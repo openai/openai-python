@@ -1,3 +1,4 @@
 *.egg-info
 __pycache__
 /public/dist
+.idea
