@@ -45,11 +45,11 @@ def _api_encode(data):
         elif isinstance(value, list) or isinstance(value, tuple):
             for i, sv in enumerate(value):
                 if isinstance(sv, dict):
-                    subdict = _encode_nested_dict("%s[]" % (key,), sv)
+                    subdict = _encode_nested_dict("%s[%d]" % (key, i), sv)
                     for k, v in _api_encode(subdict):
                         yield (k, v)
                 else:
-                    yield ("%s[]" % (key,), util.utf8(sv))
+                    yield ("%s[%d]" % (key, i), util.utf8(sv))
         elif isinstance(value, dict):
             subdict = _encode_nested_dict(key, value)
             for subkey, subvalue in _api_encode(subdict):

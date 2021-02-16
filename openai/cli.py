@@ -239,6 +239,63 @@ class FineTuneCLI:
         print(resp)
 
 
+class File:
+    @classmethod
+    def create(cls, args):
+        resp = openai.File.create(
+            file=open(args.file),
+            purpose=args.purpose,
+            file_set_names=args.file_set_names,
+        )
+        print(resp)
+
+    @classmethod
+    def get(cls, args):
+        resp = openai.File.retrieve(id=args.id)
+        print(resp)
+
+    @classmethod
+    def update(cls, args):
+        resp = openai.File.modify(sid=args.id, file_set_names=args.file_set_names)
+        print(resp)
+
+    @classmethod
+    def delete(cls, args):
+        file = openai.File(id=args.id).delete()
+        print(file)
+
+    @classmethod
+    def list(cls, args):
+        file = openai.File.list()
+        print(file)
+
+
+class FileSet:
+    @classmethod
+    def create(cls, args):
+        resp = openai.FileSet.create(
+            name=args.name,
+            file_ids=args.file_ids,
+        )
+        print(resp)
+
+    @classmethod
+    def get(cls, args):
+        # Need to add query support
+        resp = openai.FileSet.retrieve(name=args.name)
+        print(resp)
+
+    @classmethod
+    def delete(cls, args):
+        file = openai.FileSet(name=args.name).delete()
+        print(file)
+
+    @classmethod
+    def list(cls, args):
+        file = openai.FileSet.list()
+        print(file)
+
+
 def register(parser):
     # Engine management
     subparsers = parser.add_subparsers(help="All API subcommands")
@@ -450,3 +507,66 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTuneCLI.cancel)
+    # Files
+    sub = subparsers.add_parser("files.create")
+
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="File to upload",
+    )
+    sub.add_argument(
+        "-p",
+        "--purpose",
+        help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
+        required=True,
+    )
+    sub.add_argument(
+        "--file_set_names",
+        nargs="*",
+        help="What sets of files do you want to add this ?",
+    )
+    sub.set_defaults(func=File.create)
+
+    sub = subparsers.add_parser("files.update")
+    sub.add_argument("-i", "--id", required=True, help="The files ID")
+    sub.add_argument(
+        "--file_set_names",
+        nargs="*",
+        help="What sets of files do you want to add this to?",
+    )
+    sub.set_defaults(func=File.update)
+
+    sub = subparsers.add_parser("files.get")
+    sub.add_argument("-i", "--id", required=True, help="The files ID")
+    sub.set_defaults(func=File.get)
+
+    sub = subparsers.add_parser("files.delete")
+    sub.add_argument("-i", "--id", required=True, help="The files ID")
+    sub.set_defaults(func=File.delete)
+
+    sub = subparsers.add_parser("files.list")
+    sub.set_defaults(func=File.list)
+
+    # FileSets
+    sub = subparsers.add_parser("filesets.create")
+
+    sub.add_argument("-n", "--name", required=True, help="The file_set name")
+    sub.add_argument(
+        "--file_ids",
+        nargs="*",
+        help="What files do you want to add this to?",
+    )
+    sub.set_defaults(func=FileSet.create)
+
+    sub = subparsers.add_parser("filesets.get")
+    sub.add_argument("-n", "--name", required=True, help="The file_set name")
+    sub.set_defaults(func=FileSet.get)
+
+    sub = subparsers.add_parser("filesets.delete")
+    sub.add_argument("-n", "--name", required=True, help="The file_set name")
+    sub.set_defaults(func=FileSet.delete)
+
+    sub = subparsers.add_parser("filesets.list")
+    sub.set_defaults(func=FileSet.list)
