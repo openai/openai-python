@@ -9,12 +9,12 @@ from openai.api_resources.abstract import (
 )
 
 
-class FileSet(
+class Collection(
     CreateableAPIResource,
     ListableAPIResource,
     DeletableAPIResource,
 ):
-    OBJECT_NAME = "file_set"
+    OBJECT_NAME = "collection"
 
     def __init__(self, name, *args, **kwargs):
         self.name = name
@@ -27,7 +27,7 @@ class FileSet(
         return instance
 
     def instance_url(self):
-        # file_sets are normally called by their name, not their id
+        # collections are normally called by their name, not their id
         name = self.get("name")
 
         if not isinstance(name, six.string_types):

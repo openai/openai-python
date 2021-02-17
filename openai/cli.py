@@ -256,7 +256,7 @@ class File:
 
     @classmethod
     def update(cls, args):
-        resp = openai.File.modify(sid=args.id, file_set_names=args.file_set_names)
+        resp = openai.File.modify(sid=args.id, collection_names=args.collection_names)
         print(resp)
 
     @classmethod
@@ -270,10 +270,10 @@ class File:
         print(file)
 
 
-class FileSet:
+class Collection:
     @classmethod
     def create(cls, args):
-        resp = openai.FileSet.create(
+        resp = openai.Collection.create(
             name=args.name,
             file_ids=args.file_ids,
         )
@@ -282,17 +282,17 @@ class FileSet:
     @classmethod
     def get(cls, args):
         # Need to add query support
-        resp = openai.FileSet.retrieve(name=args.name)
+        resp = openai.Collection.retrieve(name=args.name)
         print(resp)
 
     @classmethod
     def delete(cls, args):
-        file = openai.FileSet(name=args.name).delete()
+        file = openai.Collection(name=args.name).delete()
         print(file)
 
     @classmethod
     def list(cls, args):
-        file = openai.FileSet.list()
+        file = openai.Collection.list()
         print(file)
 
 
@@ -523,18 +523,18 @@ Mutually exclusive with `top_p`.""",
         required=True,
     )
     sub.add_argument(
-        "--file_set_names",
+        "--collection_names",
         nargs="*",
-        help="What sets of files do you want to add this ?",
+        help="What collections do you want to add this to?",
     )
     sub.set_defaults(func=File.create)
 
     sub = subparsers.add_parser("files.update")
     sub.add_argument("-i", "--id", required=True, help="The files ID")
     sub.add_argument(
-        "--file_set_names",
+        "--collection_names",
         nargs="*",
-        help="What sets of files do you want to add this to?",
+        help="What collections do you want to add this to?",
     )
     sub.set_defaults(func=File.update)
 
@@ -549,24 +549,24 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("files.list")
     sub.set_defaults(func=File.list)
 
-    # FileSets
-    sub = subparsers.add_parser("filesets.create")
+    # Collections
+    sub = subparsers.add_parser("collections.create")
 
-    sub.add_argument("-n", "--name", required=True, help="The file_set name")
+    sub.add_argument("-n", "--name", required=True, help="The collection name")
     sub.add_argument(
         "--file_ids",
         nargs="*",
         help="What files do you want to add this to?",
     )
-    sub.set_defaults(func=FileSet.create)
+    sub.set_defaults(func=Collection.create)
 
-    sub = subparsers.add_parser("filesets.get")
-    sub.add_argument("-n", "--name", required=True, help="The file_set name")
-    sub.set_defaults(func=FileSet.get)
+    sub = subparsers.add_parser("collections.get")
+    sub.add_argument("-n", "--name", required=True, help="The collection name")
+    sub.set_defaults(func=Collection.get)
 
-    sub = subparsers.add_parser("filesets.delete")
-    sub.add_argument("-n", "--name", required=True, help="The file_set name")
-    sub.set_defaults(func=FileSet.delete)
+    sub = subparsers.add_parser("collections.delete")
+    sub.add_argument("-n", "--name", required=True, help="The collection name")
+    sub.set_defaults(func=Collection.delete)
 
-    sub = subparsers.add_parser("filesets.list")
-    sub.set_defaults(func=FileSet.list)
+    sub = subparsers.add_parser("collections.list")
+    sub.set_defaults(func=Collection.list)

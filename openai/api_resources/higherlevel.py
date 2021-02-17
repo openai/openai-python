@@ -19,6 +19,6 @@ class HigherLevel(EngineAPIResource):
         return instance.request("post", cls.get_url("answers"), params)
 
     @classmethod
-    def file_set_search(cls, **params):
+    def collection_search(cls, **params):
         instance = cls()
-        return instance.request("post", cls.get_url("file_set_search"), params)
+        return instance.request("post", cls.get_url("collection_search"), params)

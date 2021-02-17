@@ -8,22 +8,22 @@ def _upload_default_file():
     return openai.File.create(
         file=io.StringIO(json.dumps({"text": "test file data"})),
         purpose="search",
-        file_set_names=["test1", "test2"],
+        collection_names=["test1", "test2"],
     )
 
 
-def test_file_upload_with_multiple_file_sets():
+def test_file_upload_with_multiple_collections():
     result = _upload_default_file()
-    assert set(result.file_sets) == set(["test2", "test1"])
+    assert set(result.collections) == set(["test2", "test1"])
     assert "id" in result
 
 
-### FILE SET TESTS
-def test_file_sets_upload():
+### COLLECTION TESTS
+def test_collections_upload():
     file1 = _upload_default_file()
     file2 = _upload_default_file()
 
-    result = openai.FileSet.create(
+    result = openai.Collection.create(
         name=f"ci_{uuid.uuid4().hex}",
         file_ids=[file1.id, file2.id],
     )
