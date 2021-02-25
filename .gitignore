@@ -2,3 +2,4 @@
 __pycache__
 /public/dist
 .idea
+.python-version
