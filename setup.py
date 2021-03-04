@@ -16,7 +16,7 @@ setup(
         'requests >= 2.20; python_version >= "3.0"',
         'requests[security] >= 2.20; python_version < "3.0"',
     ],
-    extras_require={},
+    extras_require={"dev": ["black==20.8b1", "pytest==6.*"]},
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
     scripts=["bin/openai"],
     packages=find_packages(exclude=["tests", "tests.*"]),

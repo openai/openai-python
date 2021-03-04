@@ -195,6 +195,50 @@ class Tag:
         print(tags)
 
 
+class FineTuneCLI:
+    @classmethod
+    def list(cls, args):
+        resp = openai.FineTune.list()
+        print(resp)
+
+    @classmethod
+    def create(cls, args):
+        create_args = {
+            "train_file": args.train_file,
+        }
+        if args.test_file:
+            create_args["test_file"] = args.test_file
+        if args.base_model:
+            create_args["base_model"] = args.base_model
+        if args.hparams:
+            try:
+                hparams = json.loads(args.hparams)
+            except json.decoder.JSONDecodeError:
+                sys.stderr.write(
+                    "--hparams must be JSON decodable and match the hyperparameter arguments of the API"
+                )
+                sys.exit(1)
+            create_args.update(hparams)
+
+        resp = openai.FineTune.create(**create_args)
+        print(resp)
+
+    @classmethod
+    def get(cls, args):
+        resp = openai.FineTune.retrieve(id=args.id)
+        print(resp)
+
+    @classmethod
+    def events(cls, args):
+        resp = openai.FineTune.list_events(id=args.id)
+        print(resp)
+
+    @classmethod
+    def cancel(cls, args):
+        resp = openai.FineTune.cancel(id=args.id)
+        print(resp)
+
+
 def register(parser):
     # Engine management
     subparsers = parser.add_subparsers(help="All API subcommands")
@@ -379,3 +423,30 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("tags.list")
     sub.set_defaults(func=Tag.list)
+
+    # /fine-tunes API
+    sub = subparsers.add_parser("fine_tunes.list")
+    sub.set_defaults(func=FineTuneCLI.list)
+
+    sub = subparsers.add_parser("fine_tunes.create")
+    sub.add_argument("-t", "--train_file", required=True, help="File to train")
+    sub.add_argument("--test_file", help="File to test")
+    sub.add_argument(
+        "-b",
+        "--base_model",
+        help="The model name to start the run from",
+    )
+    sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
+    sub.set_defaults(func=FineTuneCLI.create)
+
+    sub = subparsers.add_parser("fine_tunes.get")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTuneCLI.get)
+
+    sub = subparsers.add_parser("fine_tunes.events")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTuneCLI.events)
+
+    sub = subparsers.add_parser("fine_tunes.cancel")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTuneCLI.cancel)

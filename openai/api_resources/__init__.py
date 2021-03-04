@@ -10,3 +10,4 @@ from openai.api_resources.run import Run
 from openai.api_resources.snapshot import Snapshot
 from openai.api_resources.tag import Tag
 from openai.api_resources.update import Update
+from openai.api_resources.fine_tune import FineTune
