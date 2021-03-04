@@ -14,7 +14,7 @@ from openai.api_resources.abstract import (
 from openai.util import log_info
 
 
-class File(ListableAPIResource, UpdateableAPIResource, DeletableAPIResource):
+class File(ListableAPIResource, DeletableAPIResource):
     OBJECT_NAME = "file"
 
     @classmethod

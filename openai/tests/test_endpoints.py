@@ -4,30 +4,12 @@ import json
 import uuid
 
 ### FILE TESTS
-def _upload_default_file():
-    return openai.File.create(
+def test_file_upload():
+    result = openai.File.create(
         file=io.StringIO(json.dumps({"text": "test file data"})),
         purpose="search",
-        collection_names=["test1", "test2"],
     )
-
-
-def test_file_upload_with_multiple_collections():
-    result = _upload_default_file()
-    assert set(result.collections) == set(["test2", "test1"])
-    assert "id" in result
-
-
-### COLLECTION TESTS
-def test_collections_upload():
-    file1 = _upload_default_file()
-    file2 = _upload_default_file()
-
-    result = openai.Collection.create(
-        name=f"ci_{uuid.uuid4().hex}",
-        file_ids=[file1.id, file2.id],
-    )
-    assert set(result.files) == set([file1.id, file2.id])
+    assert result.purpose == "search"
     assert "id" in result
 
 

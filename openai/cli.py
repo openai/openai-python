@@ -245,18 +245,12 @@ class File:
         resp = openai.File.create(
             file=open(args.file),
             purpose=args.purpose,
-            file_set_names=args.file_set_names,
         )
         print(resp)
 
     @classmethod
     def get(cls, args):
         resp = openai.File.retrieve(id=args.id)
-        print(resp)
-
-    @classmethod
-    def update(cls, args):
-        resp = openai.File.modify(sid=args.id, collection_names=args.collection_names)
         print(resp)
 
     @classmethod
@@ -270,30 +264,48 @@ class File:
         print(file)
 
 
-class Collection:
+class FineTuneCLI:
+    @classmethod
+    def list(cls, args):
+        resp = openai.FineTune.list()
+        print(resp)
+
     @classmethod
     def create(cls, args):
-        resp = openai.Collection.create(
-            name=args.name,
-            file_ids=args.file_ids,
-        )
+        create_args = {
+            "train_file": args.train_file,
+        }
+        if args.test_file:
+            create_args["test_file"] = args.test_file
+        if args.base_model:
+            create_args["base_model"] = args.base_model
+        if args.hparams:
+            try:
+                hparams = json.loads(args.hparams)
+            except json.decoder.JSONDecodeError:
+                sys.stderr.write(
+                    "--hparams must be JSON decodable and match the hyperparameter arguments of the API"
+                )
+                sys.exit(1)
+            create_args.update(hparams)
+
+        resp = openai.FineTune.create(**create_args)
         print(resp)
 
     @classmethod
     def get(cls, args):
-        # Need to add query support
-        resp = openai.Collection.retrieve(name=args.name)
+        resp = openai.FineTune.retrieve(id=args.id)
         print(resp)
 
     @classmethod
-    def delete(cls, args):
-        file = openai.Collection(name=args.name).delete()
-        print(file)
+    def events(cls, args):
+        resp = openai.FineTune.list_events(id=args.id)
+        print(resp)
 
     @classmethod
-    def list(cls, args):
-        file = openai.Collection.list()
-        print(file)
+    def cancel(cls, args):
+        resp = openai.FineTune.cancel(id=args.id)
+        print(resp)
 
 
 def register(parser):
@@ -522,21 +534,7 @@ Mutually exclusive with `top_p`.""",
         help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
         required=True,
     )
-    sub.add_argument(
-        "--collection_names",
-        nargs="*",
-        help="What collections do you want to add this to?",
-    )
     sub.set_defaults(func=File.create)
-
-    sub = subparsers.add_parser("files.update")
-    sub.add_argument("-i", "--id", required=True, help="The files ID")
-    sub.add_argument(
-        "--collection_names",
-        nargs="*",
-        help="What collections do you want to add this to?",
-    )
-    sub.set_defaults(func=File.update)
 
     sub = subparsers.add_parser("files.get")
     sub.add_argument("-i", "--id", required=True, help="The files ID")
@@ -549,24 +547,29 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("files.list")
     sub.set_defaults(func=File.list)
 
-    # Collections
-    sub = subparsers.add_parser("collections.create")
+    # Finetune
+    sub = subparsers.add_parser("fine_tunes.list")
+    sub.set_defaults(func=FineTuneCLI.list)
 
-    sub.add_argument("-n", "--name", required=True, help="The collection name")
+    sub = subparsers.add_parser("fine_tunes.create")
+    sub.add_argument("-t", "--train_file", required=True, help="File to train")
+    sub.add_argument("--test_file", help="File to test")
     sub.add_argument(
-        "--file_ids",
-        nargs="*",
-        help="What files do you want to add this to?",
+        "-b",
+        "--base_model",
+        help="The model name to start the run from",
     )
-    sub.set_defaults(func=Collection.create)
+    sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
+    sub.set_defaults(func=FineTuneCLI.create)
 
-    sub = subparsers.add_parser("collections.get")
-    sub.add_argument("-n", "--name", required=True, help="The collection name")
-    sub.set_defaults(func=Collection.get)
+    sub = subparsers.add_parser("fine_tunes.get")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTuneCLI.get)
 
-    sub = subparsers.add_parser("collections.delete")
-    sub.add_argument("-n", "--name", required=True, help="The collection name")
-    sub.set_defaults(func=Collection.delete)
+    sub = subparsers.add_parser("fine_tunes.events")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTuneCLI.events)
 
-    sub = subparsers.add_parser("collections.list")
-    sub.set_defaults(func=Collection.list)
+    sub = subparsers.add_parser("fine_tunes.cancel")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTuneCLI.cancel)
