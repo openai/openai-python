@@ -2,7 +2,7 @@ from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
 
 
 class HigherLevel(EngineAPIResource):
-    api_prefix = "higherlevel"
+    api_prefix = "v1"
 
     @classmethod
     def get_url(self, base):
@@ -17,8 +17,3 @@ class HigherLevel(EngineAPIResource):
     def answer(cls, **params):
         instance = cls()
         return instance.request("post", cls.get_url("answers"), params)
-
-    @classmethod
-    def collection_search(cls, **params):
-        instance = cls()
-        return instance.request("post", cls.get_url("collection_search"), params)
