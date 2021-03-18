@@ -76,7 +76,7 @@ class Engine:
             top_p=args.top_p,
             logprobs=args.logprobs,
             stop=args.stop,
-            **kwargs
+            **kwargs,
         )
         if not args.stream:
             resp = [resp]
@@ -94,17 +94,34 @@ class Engine:
     @classmethod
     def search(cls, args):
         # Will soon be deprecated and replaced by a Search.create
-        resp = openai.Engine(id=args.id).search(
-            documents=args.documents, query=args.query
-        )
+        params = {
+            "query": args.query,
+            "max_rerank": args.max_rerank,
+            "return_metadata": args.return_metadata,
+        }
+        if args.documents:
+            params["documents"] = args.documents
+        if args.file:
+            params["file"] = args.file
+
+        resp = openai.Engine(id=args.id).search(**params)
         scores = [
             (search_result["score"], search_result["document"])
             for search_result in resp["data"]
         ]
         scores.sort(reverse=True)
+        dataset = (
+            args.documents if args.documents else [x["text"] for x in resp["data"]]
+        )
         for score, document_idx in scores:
             print("=== score {:.3f} ===".format(score))
-            print(args.documents[document_idx])
+            print(dataset[document_idx])
+            if (
+                args.return_metadata
+                and args.file
+                and "metadata" in resp["data"][document_idx]
+            ):
+                print(f"METADATA: {resp['data'][document_idx]['metadata']}")
 
     @classmethod
     def list(cls, args):
@@ -193,6 +210,31 @@ class Tag:
     def list(cls, args):
         tags = openai.Tag.list()
         print(tags)
+
+
+class File:
+    @classmethod
+    def create(cls, args):
+        resp = openai.File.create(
+            file=open(args.file),
+            purpose=args.purpose,
+        )
+        print(resp)
+
+    @classmethod
+    def get(cls, args):
+        resp = openai.File.retrieve(id=args.id)
+        print(resp)
+
+    @classmethod
+    def delete(cls, args):
+        file = openai.File(id=args.id).delete()
+        print(file)
+
+    @classmethod
+    def list(cls, args):
+        file = openai.File.list()
+        print(file)
 
 
 class FineTuneCLI:
@@ -311,8 +353,26 @@ Mutually exclusive with `top_p`.""",
         "-d",
         "--documents",
         action="append",
-        help="List of documents to search over",
-        required=True,
+        help="List of documents to search over. Only one of `documents` or `file` may be supplied.",
+        required=False,
+    )
+    sub.add_argument(
+        "-f",
+        "--file",
+        help="A file id to search over.  Only one of `documents` or `file` may be supplied.",
+        required=False,
+    )
+    sub.add_argument(
+        "--max_rerank",
+        help="The maximum number of documents to be re-ranked and returned by search. This flag only takes effect when `file` is set.",
+        type=int,
+        default=200,
+    )
+    sub.add_argument(
+        "--return_metadata",
+        help="A special boolean flag for showing metadata. If set `true`, each document entry in the returned json will contain a 'metadata' field. Default to be `false`. This flag only takes effect when `file` is set.",
+        type=bool,
+        default=False,
     )
     sub.add_argument("-q", "--query", required=True, help="Search query")
     sub.set_defaults(func=Engine.search)
@@ -424,7 +484,35 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("tags.list")
     sub.set_defaults(func=Tag.list)
 
-    # /fine-tunes API
+    # Files
+    sub = subparsers.add_parser("files.create")
+
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="File to upload",
+    )
+    sub.add_argument(
+        "-p",
+        "--purpose",
+        help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
+        required=True,
+    )
+    sub.set_defaults(func=File.create)
+
+    sub = subparsers.add_parser("files.get")
+    sub.add_argument("-i", "--id", required=True, help="The files ID")
+    sub.set_defaults(func=File.get)
+
+    sub = subparsers.add_parser("files.delete")
+    sub.add_argument("-i", "--id", required=True, help="The files ID")
+    sub.set_defaults(func=File.delete)
+
+    sub = subparsers.add_parser("files.list")
+    sub.set_defaults(func=File.list)
+
+    # Finetune
     sub = subparsers.add_parser("fine_tunes.list")
     sub.set_defaults(func=FineTuneCLI.list)
 

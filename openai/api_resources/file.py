@@ -7,8 +7,6 @@ import tempfile
 import openai
 from openai import api_requestor, util
 from openai.api_resources.abstract import (
-    APIResource,
-    CreateableAPIResource,
     DeletableAPIResource,
     ListableAPIResource,
     UpdateableAPIResource,
@@ -16,7 +14,7 @@ from openai.api_resources.abstract import (
 from openai.util import log_info
 
 
-class File(ListableAPIResource):
+class File(ListableAPIResource, DeletableAPIResource):
     OBJECT_NAME = "file"
 
     @classmethod

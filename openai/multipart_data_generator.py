@@ -4,6 +4,7 @@ import random
 import io
 
 import openai
+import re
 
 
 class MultipartDataGenerator(object):
@@ -13,11 +14,19 @@ class MultipartDataGenerator(object):
         self.boundary = self._initialize_boundary()
         self.chunk_size = chunk_size
 
+    def _remove_array_element(self, input_string):
+        match = re.match(r"^(.*)\[.*\]$", input_string)
+        return match[1] if match else input_string
+
     def add_params(self, params):
         # Flatten parameters first
         params = dict(openai.api_requestor._api_encode(params))
 
         for key, value in openai.six.iteritems(params):
+
+            # strip array elements if present from key
+            key = self._remove_array_element(key)
+
             if value is None:
                 continue
 
