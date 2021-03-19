@@ -40,10 +40,10 @@ def progress(total, desc):
     meter = tqdm.tqdm(total=total, unit_scale=True, desc=desc)
 
     def incr(progress):
+        meter.n = progress
         if progress == total:
             meter.close()
         else:
-            meter.n = progress
             meter.refresh()
 
     return incr
