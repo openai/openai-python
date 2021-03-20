@@ -15,6 +15,7 @@ setup(
     install_requires=[
         'requests >= 2.20; python_version >= "3.0"',
         'requests[security] >= 2.20; python_version < "3.0"',
+        "tqdm",  # Needed for progress bars
     ],
     extras_require={"dev": ["black==20.8b1", "pytest==6.*"]},
     python_requires=">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*",
