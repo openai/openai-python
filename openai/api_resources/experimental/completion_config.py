@@ -1,9 +1,7 @@
 from openai.api_resources.abstract import (
-    APIResource,
     CreateableAPIResource,
     DeletableAPIResource,
     ListableAPIResource,
-    UpdateableAPIResource,
 )
 
 

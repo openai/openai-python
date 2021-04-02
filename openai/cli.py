@@ -163,16 +163,6 @@ class Completion:
 
 class Snapshot:
     @classmethod
-    def create(cls, args):
-        resp = openai.Snapshot.create(
-            engine=args.engine,
-            branch=args.branch,
-            description=args.description,
-            timeout=args.timeout,
-        )
-        print(resp)
-
-    @classmethod
     def get(cls, args):
         resp = openai.Snapshot.retrieve(
             engine=args.engine, id=args.id, timeout=args.timeout
@@ -188,28 +178,6 @@ class Snapshot:
     def list(cls, args):
         snapshots = openai.Snapshot.list()
         print(snapshots)
-
-
-class Tag:
-    @classmethod
-    def create(cls, args):
-        resp = openai.Tag.create(id=args.id, model=args.model, force=args.force)
-        print(resp)
-
-    @classmethod
-    def get(cls, args):
-        resp = openai.Tag.retrieve(id=args.id)
-        print(resp)
-
-    @classmethod
-    def delete(cls, args):
-        tag = openai.Tag(id=args.id).delete()
-        print(tag)
-
-    @classmethod
-    def list(cls, args):
-        tags = openai.Tag.list()
-        print(tags)
 
 
 class File:
@@ -423,24 +391,6 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("snapshots.list")
     sub.set_defaults(func=Snapshot.list)
 
-    sub = subparsers.add_parser("snapshots.create")
-    sub.add_argument(
-        "-e", "--engine", required=True, help="The engine this snapshot is running on"
-    )
-    sub.add_argument(
-        "-b", "--branch", required=True, help="The branch to turn into a snapshot"
-    )
-    sub.add_argument(
-        "-d", "--description", help="A human-readable description of this snapshot"
-    )
-    sub.add_argument(
-        "-t",
-        "--timeout",
-        help="An optional amount of time to block for the snapshot to transition from pending. If the timeout expires, a pending snapshot will be returned.",
-        type=float,
-    )
-    sub.set_defaults(func=Snapshot.create)
-
     sub = subparsers.add_parser("snapshots.get")
     sub.add_argument("-e", "--engine", help="The engine this snapshot is running on")
     sub.add_argument("-i", "--id", required=True, help="The snapshot ID")
@@ -455,34 +405,6 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("snapshots.delete")
     sub.add_argument("-i", "--id", required=True, help="The snapshot ID")
     sub.set_defaults(func=Snapshot.delete)
-
-    # Tags
-    sub = subparsers.add_parser("tags.create")
-    sub.add_argument("-i", "--id", help="The ID of the tag to create", required=True)
-    sub.add_argument(
-        "-f",
-        "--force",
-        action="store_true",
-        help="Whether to overwrite an existing tag with this ID",
-    )
-    sub.add_argument(
-        "-m",
-        "--model",
-        help="Which model (most commonly a snapshot ID) to tag",
-        required=True,
-    )
-    sub.set_defaults(func=Tag.create)
-
-    sub = subparsers.add_parser("tags.get")
-    sub.add_argument("-i", "--id", required=True, help="The tag ID")
-    sub.set_defaults(func=Tag.get)
-
-    sub = subparsers.add_parser("tags.delete")
-    sub.add_argument("-i", "--id", required=True, help="The tag ID")
-    sub.set_defaults(func=Tag.delete)
-
-    sub = subparsers.add_parser("tags.list")
-    sub.set_defaults(func=Tag.list)
 
     # Files
     sub = subparsers.add_parser("files.create")
