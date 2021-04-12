@@ -6,10 +6,7 @@ from openai.api_resources.experimental.completion_config import CompletionConfig
 OBJECT_CLASSES = {
     "engine": api_resources.Engine,
     "experimental.completion_config": CompletionConfig,
+    "file": api_resources.File,
+    "fine-tune": api_resources.FineTune,
     "snapshot": api_resources.Snapshot,
-    "tag": api_resources.Tag,
-    "branch": api_resources.Branch,
-    "plan": api_resources.Plan,
-    "update": api_resources.Update,
-    "event": api_resources.Event,
 }

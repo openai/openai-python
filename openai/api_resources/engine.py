@@ -4,9 +4,6 @@ import time
 
 from openai import api_requestor, util
 from openai.api_resources.abstract import (
-    APIResource,
-    CreateableAPIResource,
-    DeletableAPIResource,
     ListableAPIResource,
     UpdateableAPIResource,
 )

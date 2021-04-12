@@ -1,17 +1,11 @@
 from __future__ import absolute_import, division, print_function
 
-import json
-import os
-import tempfile
-
 import openai
 from openai import api_requestor, util
 from openai.api_resources.abstract import (
     DeletableAPIResource,
     ListableAPIResource,
-    UpdateableAPIResource,
 )
-from openai.util import log_info
 
 
 class File(ListableAPIResource, DeletableAPIResource):
