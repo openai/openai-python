@@ -17,7 +17,7 @@ class File(ListableAPIResource, DeletableAPIResource):
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
-            api_base=openai.file_api_base or openai.api_base,
+            api_base=api_base or openai.file_api_base or openai.api_base,
             api_version=api_version,
             organization=organization,
         )
