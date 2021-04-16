@@ -129,6 +129,13 @@ class Engine:
         display(engines)
 
 
+class Tokens:
+    @classmethod
+    def count(cls, args):
+        count = openai.Tokens.retrieve(id=args.text)
+        display(count)
+
+
 class Completion:
     @classmethod
     def create(cls, args):
@@ -345,7 +352,7 @@ Mutually exclusive with `top_p`.""",
     sub.add_argument("-q", "--query", required=True, help="Search query")
     sub.set_defaults(func=Engine.search)
 
-    ## Completions
+    # Completions
     sub = subparsers.add_parser("completions.create")
     sub.add_argument("-e", "--engine", required=True, help="The engine to use")
     sub.add_argument(
@@ -460,3 +467,7 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTuneCLI.cancel)
+
+    sub = subparsers.add_parser("tokens.count_tokens")
+    sub.add_argument("-t", "--text", required=True)
+    sub.set_defaults(func=Tokens.count_tokens)
