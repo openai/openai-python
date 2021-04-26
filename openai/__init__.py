@@ -28,5 +28,3 @@ log = None
 
 # API resources
 from openai.api_resources import *  # noqa
-
-from openai.error import OpenAIError, APIError, InvalidRequestError

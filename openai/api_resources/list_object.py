@@ -1,8 +1,6 @@
 from __future__ import absolute_import, division, print_function
-
 from openai import api_requestor, six, util
 from openai.openai_object import OpenAIObject
-
 from openai.six.moves.urllib.parse import quote_plus
 
 
@@ -67,7 +65,7 @@ class ListObject(OpenAIObject):
         openai_account = openai_account or self.openai_account
 
         requestor = api_requestor.APIRequestor(
-            api_key, api_version=openai_version, account=openai_account
+            api_key, api_version=openai_version
         )
         headers = util.populate_headers(idempotency_key)
         response, api_key = requestor.request(method_, url_, params, headers)

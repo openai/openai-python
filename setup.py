@@ -1,5 +1,4 @@
 import os
-
 from setuptools import find_packages, setup
 
 version_contents = {}

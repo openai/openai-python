@@ -3,3 +3,5 @@ __pycache__
 /public/dist
 .idea
 .python-version
+build/
+dist/
