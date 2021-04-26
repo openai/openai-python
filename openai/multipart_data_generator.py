@@ -1,22 +1,26 @@
 from __future__ import absolute_import, division, print_function
-
 import random
 import io
-
 import openai
 import re
+from openai import six
+
+
+def initialize_boundary():
+    return random.randint(0, 2 ** 63)
+
+
+def remove_array_element(input_string):
+    match = re.match(r"^(.*)\[.*\]$", input_string)
+    return match[1] if match else input_string
 
 
 class MultipartDataGenerator(object):
     def __init__(self, chunk_size=1028):
         self.data = io.BytesIO()
         self.line_break = "\r\n"
-        self.boundary = self._initialize_boundary()
+        self.boundary = initialize_boundary()
         self.chunk_size = chunk_size
-
-    def _remove_array_element(self, input_string):
-        match = re.match(r"^(.*)\[.*\]$", input_string)
-        return match[1] if match else input_string
 
     def add_params(self, params):
         # Flatten parameters first
@@ -25,7 +29,7 @@ class MultipartDataGenerator(object):
         for key, value in openai.six.iteritems(params):
 
             # strip array elements if present from key
-            key = self._remove_array_element(key)
+            key = remove_array_element(key)
 
             if value is None:
                 continue
@@ -87,6 +91,3 @@ class MultipartDataGenerator(object):
             if not file_contents:
                 break
             self._write(file_contents)
-
-    def _initialize_boundary(self):
-        return random.randint(0, 2 ** 63)

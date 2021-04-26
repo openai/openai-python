@@ -7,7 +7,6 @@ import platform
 import time
 import uuid
 import warnings
-import gzip
 from io import BytesIO
 from collections import OrderedDict
 
@@ -18,13 +17,11 @@ from openai.six.moves.urllib.parse import urlencode, urlsplit, urlunsplit
 from openai.openai_response import OpenAIResponse
 from openai.upload_progress import BufferReader
 
-
 def _encode_datetime(dttime):
     if dttime.tzinfo and dttime.tzinfo.utcoffset(dttime) is not None:
         utc_timestamp = calendar.timegm(dttime.utctimetuple())
     else:
         utc_timestamp = time.mktime(dttime.timetuple())
-
     return int(utc_timestamp)
 
 
@@ -41,23 +38,23 @@ def _api_encode(data):
         if value is None:
             continue
         elif hasattr(value, "openai_id"):
-            yield (key, value.openai_id)
+            yield key, value.openai_id
         elif isinstance(value, list) or isinstance(value, tuple):
             for i, sv in enumerate(value):
                 if isinstance(sv, dict):
                     subdict = _encode_nested_dict("%s[%d]" % (key, i), sv)
                     for k, v in _api_encode(subdict):
-                        yield (k, v)
+                        yield k, v
                 else:
-                    yield ("%s[%d]" % (key, i), util.utf8(sv))
+                    yield "%s[%d]" % (key, i), util.utf8(sv)
         elif isinstance(value, dict):
             subdict = _encode_nested_dict(key, value)
             for subkey, subvalue in _api_encode(subdict):
-                yield (subkey, subvalue)
+                yield subkey, subvalue
         elif isinstance(value, datetime.datetime):
-            yield (key, _encode_datetime(value))
+            yield key, _encode_datetime(value)
         else:
-            yield (key, util.utf8(value))
+            yield key, util.utf8(value)
 
 
 def _build_api_url(url, query):
@@ -258,10 +255,10 @@ class APIRequestor(object):
         if my_api_key is None:
             raise error.AuthenticationError(
                 "No API key provided. (HINT: set your API key using in code using "
-                '"openai.api_key = <API-KEY>", or you can set the environment variable OPENAI_API_KEY=<API-KEY>). You can generate API keys '
+                '"openai.api_key = <API-KEY>", or you can set the environment variable OPENAI_API_KEY=<API-KEY>). '
+                'You can generate API keys '
                 "in the OpenAI web interface. See https://onboard.openai.com "
-                "for details, or email support@openai.com if you have any "
-                "questions."
+                "for details, or email support@openai.com if you have any questions"
             )
 
         abs_url = "%s%s" % (self.api_base, url)
@@ -313,9 +310,9 @@ class APIRequestor(object):
                 post_data = GZIPCompressedStream(post_data, compression_level=9)
         else:
             raise error.APIConnectionError(
-                "Unrecognized HTTP method %r. This may indicate a bug in the "
+                "Unrecognized HTTP method {}. This may indicate a bug in the "
                 "OpenAI bindings. Please contact support@openai.com for "
-                "assistance." % (method,)
+                "assistance.".format(method)
             )
 
         headers = self.request_headers(my_api_key, method, headers)

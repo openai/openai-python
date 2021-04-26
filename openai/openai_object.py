@@ -1,9 +1,7 @@
 from __future__ import absolute_import, division, print_function
-
 import datetime
 import json
 from copy import deepcopy
-
 import openai
 from openai import api_requestor, util, six
 

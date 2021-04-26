@@ -1,5 +1,4 @@
 from __future__ import absolute_import, division, print_function
-
 import functools
 import hmac
 import io
@@ -7,11 +6,8 @@ import logging
 import sys
 import os
 import re
-
 import openai
 from openai import six
-from openai.six.moves.urllib.parse import parse_qsl
-
 
 OPENAI_LOG = os.environ.get("OPENAI_LOG")
 
@@ -19,13 +15,13 @@ logger = logging.getLogger("openai")
 
 __all__ = [
     "io",
-    "parse_qsl",
     "utf8",
     "log_info",
     "log_debug",
     "log_warn",
     "dashboard_link",
     "logfmt",
+    "merge_dicts"
 ]
 
 
@@ -64,10 +60,11 @@ def log_info(message, **params):
         print(msg, file=sys.stderr)
     logger.info(msg)
 
+
 def log_warn(message, **params):
     msg = logfmt(dict(message=message, **params))
     print(msg, file=sys.stderr)
-    logger.warn(msg)
+    logger.warning(msg)
 
 
 def _test_or_live_environment():
@@ -87,7 +84,7 @@ def dashboard_link(request_id):
 
 def logfmt(props):
     def fmt(key, val):
-        # Handle case where val is a bytes or bytesarray
+        # Handle case where val is a bytes or bytes array
         if six.PY3 and hasattr(val, "decode"):
             val = val.decode("utf-8")
         # Check if val is already a string to avoid re-encoding into
