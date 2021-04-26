@@ -7,7 +7,6 @@ import sys
 import os
 import re
 import openai
-from common_constants import Constants
 from openai import six
 
 
@@ -232,12 +231,6 @@ def merge_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
-
-
-def check_tokens(data):
-    number_of_characters = len(data)
-    tokens = number_of_characters / Constants.NUMBER_OF_CHARACTERS_PER_TOKEN
-    return tokens
 
 
 class class_method_variant(object):
