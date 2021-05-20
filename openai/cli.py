@@ -1,4 +1,5 @@
 import json
+import os
 import sys
 import warnings
 
@@ -205,21 +206,34 @@ class File:
         print(file)
 
 
-class FineTuneCLI:
+class FineTune:
     @classmethod
     def list(cls, args):
         resp = openai.FineTune.list()
         print(resp)
 
     @classmethod
+    def _get_or_upload(cls, file):
+        try:
+            openai.File.retrieve(file)
+        except openai.error.InvalidRequestError as e:
+            if e.http_status == 404 and os.path.isfile(file):
+                resp = openai.File.create(file=open(file), purpose="fine-tune")
+                sys.stdout.write(
+                    "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
+                )
+                return resp["id"]
+        return file
+
+    @classmethod
     def create(cls, args):
         create_args = {
-            "train_file": args.train_file,
+            "training_file": cls._get_or_upload(args.training_file),
         }
-        if args.test_file:
-            create_args["test_file"] = args.test_file
-        if args.base_model:
-            create_args["base_model"] = args.base_model
+        if args.validation_file:
+            create_args["validation_file"] = cls._get_or_upload(args.validation_file)
+        if args.model:
+            create_args["model"] = args.model
         if args.hparams:
             try:
                 hparams = json.loads(args.hparams)
@@ -436,27 +450,40 @@ Mutually exclusive with `top_p`.""",
 
     # Finetune
     sub = subparsers.add_parser("fine_tunes.list")
-    sub.set_defaults(func=FineTuneCLI.list)
+    sub.set_defaults(func=FineTune.list)
 
     sub = subparsers.add_parser("fine_tunes.create")
-    sub.add_argument("-t", "--train_file", required=True, help="File to train")
-    sub.add_argument("--test_file", help="File to test")
     sub.add_argument(
-        "-b",
-        "--base_model",
-        help="The model name to start the run from",
+        "-t",
+        "--training_file",
+        required=True,
+        help="JSONL file containing prompt-completion examples for training. This can "
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
+        "or a local file path.",
+    )
+    sub.add_argument(
+        "-v",
+        "--validation_file",
+        help="JSONL file containing prompt-completion examples for validation. This can "
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
+        "or a local file path.",
+    )
+    sub.add_argument(
+        "-m",
+        "--model",
+        help="The model to start fine-tuning from",
     )
     sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
-    sub.set_defaults(func=FineTuneCLI.create)
+    sub.set_defaults(func=FineTune.create)
 
     sub = subparsers.add_parser("fine_tunes.get")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
-    sub.set_defaults(func=FineTuneCLI.get)
+    sub.set_defaults(func=FineTune.get)
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
-    sub.set_defaults(func=FineTuneCLI.events)
+    sub.set_defaults(func=FineTune.events)
 
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
-    sub.set_defaults(func=FineTuneCLI.cancel)
+    sub.set_defaults(func=FineTune.cancel)
