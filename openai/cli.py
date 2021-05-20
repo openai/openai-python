@@ -1,5 +1,7 @@
+import datetime
 import json
 import os
+import signal
 import sys
 import warnings
 
@@ -245,7 +247,35 @@ class FineTune:
             create_args.update(hparams)
 
         resp = openai.FineTune.create(**create_args)
-        print(resp)
+
+        if args.no_wait:
+            print(resp)
+            return
+
+        sys.stdout.write(
+            "Created job: {job_id}\n"
+            "Streaming events until the job is complete...\n\n"
+            "(Ctrl-C will interrupt the stream, but not cancel the job)\n".format(
+                job_id=resp["id"]
+            )
+        )
+        cls._stream_events(resp["id"])
+
+        resp = openai.FineTune.retrieve(id=resp["id"])
+        status = resp["status"]
+        sys.stdout.write("\nJob complete! Status: {status}".format(status=status))
+        if status == "succeeded":
+            sys.stdout.write(" 🎉")
+            sys.stdout.write(
+                "\nTry out your fine-tuned model: {model}\n"
+                "(Pass this as the model parameter to a completion request)".format(
+                    model=resp["fine_tuned_model"]
+                )
+            )
+            # TODO(rachel): Print instructions on how to use the model here.
+        elif status == "failed":
+            sys.stdout.write("\nPlease contact support@openai.com for assistance.")
+        sys.stdout.write("\n")
 
     @classmethod
     def get(cls, args):
@@ -254,8 +284,39 @@ class FineTune:
 
     @classmethod
     def events(cls, args):
-        resp = openai.FineTune.list_events(id=args.id)
-        print(resp)
+        if not args.stream:
+            resp = openai.FineTune.list_events(id=args.id)
+            print(resp)
+            return
+        cls._stream_events(args.id)
+
+    @classmethod
+    def _stream_events(cls, job_id):
+        def signal_handler(sig, frame):
+            status = openai.FineTune.retrieve(job_id).status
+            sys.stdout.write(
+                "\nStream interrupted. Job is still {status}. "
+                "To cancel your job, run:\n"
+                "`openai api fine_tunes.cancel -i {job_id}`\n".format(
+                    status=status, job_id=job_id
+                )
+            )
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
+        events = openai.FineTune.stream_events(job_id)
+        # TODO(rachel): Add a nifty spinner here.
+        for event in events:
+            sys.stdout.write(
+                "[%s] %s"
+                % (
+                    datetime.datetime.fromtimestamp(event["created_at"]),
+                    event["message"],
+                )
+            )
+            sys.stdout.write("\n")
+            sys.stdout.flush()
 
     @classmethod
     def cancel(cls, args):
@@ -473,6 +534,11 @@ Mutually exclusive with `top_p`.""",
         "--model",
         help="The model to start fine-tuning from",
     )
+    sub.add_argument(
+        "--no_wait",
+        action="store_true",
+        help="If set, returns immediately after creating the job. Otherwise, waits for the job to complete.",
+    )
     sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
     sub.set_defaults(func=FineTune.create)
 
@@ -482,6 +548,13 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.add_argument(
+        "-s",
+        "--stream",
+        action="store_true",
+        help="If set, events will be streamed until the job is done. Otherwise, "
+        "displays the event history to date.",
+    )
     sub.set_defaults(func=FineTune.events)
 
     sub = subparsers.add_parser("fine_tunes.cancel")
