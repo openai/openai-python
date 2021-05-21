@@ -64,6 +64,7 @@ def log_info(message, **params):
         print(msg, file=sys.stderr)
     logger.info(msg)
 
+
 def log_warn(message, **params):
     msg = logfmt(dict(message=message, **params))
     print(msg, file=sys.stderr)

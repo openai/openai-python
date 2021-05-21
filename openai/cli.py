@@ -1,4 +1,7 @@
+import datetime
 import json
+import os
+import signal
 import sys
 import warnings
 
@@ -205,21 +208,34 @@ class File:
         print(file)
 
 
-class FineTuneCLI:
+class FineTune:
     @classmethod
     def list(cls, args):
         resp = openai.FineTune.list()
         print(resp)
 
     @classmethod
+    def _get_or_upload(cls, file):
+        try:
+            openai.File.retrieve(file)
+        except openai.error.InvalidRequestError as e:
+            if e.http_status == 404 and os.path.isfile(file):
+                resp = openai.File.create(file=open(file), purpose="fine-tune")
+                sys.stdout.write(
+                    "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
+                )
+                return resp["id"]
+        return file
+
+    @classmethod
     def create(cls, args):
         create_args = {
-            "train_file": args.train_file,
+            "training_file": cls._get_or_upload(args.training_file),
         }
-        if args.test_file:
-            create_args["test_file"] = args.test_file
-        if args.base_model:
-            create_args["base_model"] = args.base_model
+        if args.validation_file:
+            create_args["validation_file"] = cls._get_or_upload(args.validation_file)
+        if args.model:
+            create_args["model"] = args.model
         if args.hparams:
             try:
                 hparams = json.loads(args.hparams)
@@ -231,7 +247,35 @@ class FineTuneCLI:
             create_args.update(hparams)
 
         resp = openai.FineTune.create(**create_args)
-        print(resp)
+
+        if args.no_wait:
+            print(resp)
+            return
+
+        sys.stdout.write(
+            "Created job: {job_id}\n"
+            "Streaming events until the job is complete...\n\n"
+            "(Ctrl-C will interrupt the stream, but not cancel the job)\n".format(
+                job_id=resp["id"]
+            )
+        )
+        cls._stream_events(resp["id"])
+
+        resp = openai.FineTune.retrieve(id=resp["id"])
+        status = resp["status"]
+        sys.stdout.write("\nJob complete! Status: {status}".format(status=status))
+        if status == "succeeded":
+            sys.stdout.write(" 🎉")
+            sys.stdout.write(
+                "\nTry out your fine-tuned model: {model}\n"
+                "(Pass this as the model parameter to a completion request)".format(
+                    model=resp["fine_tuned_model"]
+                )
+            )
+            # TODO(rachel): Print instructions on how to use the model here.
+        elif status == "failed":
+            sys.stdout.write("\nPlease contact support@openai.com for assistance.")
+        sys.stdout.write("\n")
 
     @classmethod
     def get(cls, args):
@@ -240,8 +284,39 @@ class FineTuneCLI:
 
     @classmethod
     def events(cls, args):
-        resp = openai.FineTune.list_events(id=args.id)
-        print(resp)
+        if not args.stream:
+            resp = openai.FineTune.list_events(id=args.id)
+            print(resp)
+            return
+        cls._stream_events(args.id)
+
+    @classmethod
+    def _stream_events(cls, job_id):
+        def signal_handler(sig, frame):
+            status = openai.FineTune.retrieve(job_id).status
+            sys.stdout.write(
+                "\nStream interrupted. Job is still {status}. "
+                "To cancel your job, run:\n"
+                "`openai api fine_tunes.cancel -i {job_id}`\n".format(
+                    status=status, job_id=job_id
+                )
+            )
+            sys.exit(0)
+
+        signal.signal(signal.SIGINT, signal_handler)
+
+        events = openai.FineTune.stream_events(job_id)
+        # TODO(rachel): Add a nifty spinner here.
+        for event in events:
+            sys.stdout.write(
+                "[%s] %s"
+                % (
+                    datetime.datetime.fromtimestamp(event["created_at"]),
+                    event["message"],
+                )
+            )
+            sys.stdout.write("\n")
+            sys.stdout.flush()
 
     @classmethod
     def cancel(cls, args):
@@ -436,27 +511,52 @@ Mutually exclusive with `top_p`.""",
 
     # Finetune
     sub = subparsers.add_parser("fine_tunes.list")
-    sub.set_defaults(func=FineTuneCLI.list)
+    sub.set_defaults(func=FineTune.list)
 
     sub = subparsers.add_parser("fine_tunes.create")
-    sub.add_argument("-t", "--train_file", required=True, help="File to train")
-    sub.add_argument("--test_file", help="File to test")
     sub.add_argument(
-        "-b",
-        "--base_model",
-        help="The model name to start the run from",
+        "-t",
+        "--training_file",
+        required=True,
+        help="JSONL file containing prompt-completion examples for training. This can "
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
+        "or a local file path.",
+    )
+    sub.add_argument(
+        "-v",
+        "--validation_file",
+        help="JSONL file containing prompt-completion examples for validation. This can "
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
+        "or a local file path.",
+    )
+    sub.add_argument(
+        "-m",
+        "--model",
+        help="The model to start fine-tuning from",
+    )
+    sub.add_argument(
+        "--no_wait",
+        action="store_true",
+        help="If set, returns immediately after creating the job. Otherwise, waits for the job to complete.",
     )
     sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
-    sub.set_defaults(func=FineTuneCLI.create)
+    sub.set_defaults(func=FineTune.create)
 
     sub = subparsers.add_parser("fine_tunes.get")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
-    sub.set_defaults(func=FineTuneCLI.get)
+    sub.set_defaults(func=FineTune.get)
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
-    sub.set_defaults(func=FineTuneCLI.events)
+    sub.add_argument(
+        "-s",
+        "--stream",
+        action="store_true",
+        help="If set, events will be streamed until the job is done. Otherwise, "
+        "displays the event history to date.",
+    )
+    sub.set_defaults(func=FineTune.events)
 
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
-    sub.set_defaults(func=FineTuneCLI.cancel)
+    sub.set_defaults(func=FineTune.cancel)
