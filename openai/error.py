@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
 import openai
-from openai.six import python_2_unicode_compatible
 
 
-@python_2_unicode_compatible
 class OpenAIError(Exception):
     def __init__(
         self,

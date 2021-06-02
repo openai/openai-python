@@ -1,7 +1,6 @@
-from __future__ import absolute_import, division, print_function
+from urllib.parse import quote_plus
 
 from openai import util
-from openai.six.moves.urllib.parse import quote_plus
 
 
 def custom_method(name, http_verb, http_path=None):
@@ -17,7 +16,7 @@ def custom_method(name, http_verb, http_path=None):
         def custom_method_request(cls, sid, **params):
             url = "%s/%s/%s" % (
                 cls.class_url(),
-                quote_plus(util.utf8(sid)),
+                quote_plus(sid),
                 http_path,
             )
             return cls._static_request(http_verb, url, **params)

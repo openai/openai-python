@@ -1,7 +1,7 @@
 import openai
 import io
 import json
-import uuid
+
 
 ### FILE TESTS
 def test_file_upload():

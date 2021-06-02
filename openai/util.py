@@ -1,16 +1,13 @@
-from __future__ import absolute_import, division, print_function
-
 import functools
 import hmac
 import io
 import logging
-import sys
 import os
 import re
+import sys
+from urllib.parse import parse_qsl
 
 import openai
-from openai import six
-from openai.six.moves.urllib.parse import parse_qsl
 
 
 OPENAI_LOG = os.environ.get("OPENAI_LOG")
@@ -20,20 +17,12 @@ logger = logging.getLogger("openai")
 __all__ = [
     "io",
     "parse_qsl",
-    "utf8",
     "log_info",
     "log_debug",
     "log_warn",
     "dashboard_link",
     "logfmt",
 ]
-
-
-def utf8(value):
-    if six.PY2 and isinstance(value, six.text_type):
-        return value.encode("utf-8")
-    else:
-        return value
 
 
 def is_appengine_dev():
@@ -89,52 +78,23 @@ def dashboard_link(request_id):
 def logfmt(props):
     def fmt(key, val):
         # Handle case where val is a bytes or bytesarray
-        if six.PY3 and hasattr(val, "decode"):
+        if hasattr(val, "decode"):
             val = val.decode("utf-8")
-        # Check if val is already a string to avoid re-encoding into
-        # ascii. Since the code is sent through 2to3, we can't just
-        # use unicode(val, encoding='utf8') since it will be
-        # translated incorrectly.
-        if not isinstance(val, six.string_types):
-            val = six.text_type(val)
+        # Check if val is already a string to avoid re-encoding into ascii.
+        if not isinstance(val, str):
+            val = str(val)
         if re.search(r"\s", val):
             val = repr(val)
         # key should already be a string
         if re.search(r"\s", key):
             key = repr(key)
-        return u"{key}={val}".format(key=key, val=val)
+        return "{key}={val}".format(key=key, val=val)
 
-    return u" ".join([fmt(key, val) for key, val in sorted(props.items())])
-
-
-# Borrowed from Django's source code
-if hasattr(hmac, "compare_digest"):
-    # Prefer the stdlib implementation, when available.
-    def secure_compare(val1, val2):
-        return hmac.compare_digest(utf8(val1), utf8(val2))
+    return " ".join([fmt(key, val) for key, val in sorted(props.items())])
 
 
-else:
-
-    def secure_compare(val1, val2):
-        """
-        Returns True if the two strings are equal, False otherwise.
-        The time taken is independent of the number of characters that match.
-        For the sake of simplicity, this function executes in constant time
-        only when the two strings have the same length. It short-circuits when
-        they have different lengths.
-        """
-        val1, val2 = utf8(val1), utf8(val2)
-        if len(val1) != len(val2):
-            return False
-        result = 0
-        if six.PY3 and isinstance(val1, bytes) and isinstance(val2, bytes):
-            for x, y in zip(val1, val2):
-                result |= x ^ y
-        else:
-            for x, y in zip(val1, val2):
-                result |= ord(x) ^ ord(y)
-        return result == 0
+def secure_compare(val1, val2):
+    return hmac.compare_digest(val1, val2)
 
 
 def get_object_classes():
@@ -179,7 +139,7 @@ def convert_to_openai_object(
     ):
         resp = resp.copy()
         klass_name = resp.get("object")
-        if isinstance(klass_name, six.string_types):
+        if isinstance(klass_name, str):
             klass = get_object_classes().get(
                 klass_name, openai.openai_object.OpenAIObject
             )
@@ -213,7 +173,7 @@ def convert_to_dict(obj):
     # comprehension returns a regular dict and recursively applies the
     # conversion to each value.
     elif isinstance(obj, dict):
-        return {k: convert_to_dict(v) for k, v in six.iteritems(obj)}
+        return {k: convert_to_dict(v) for k, v in obj.items()}
     else:
         return obj
 

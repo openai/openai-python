@@ -1,7 +1,6 @@
-from __future__ import absolute_import, division, print_function
+from urllib.parse import quote_plus
 
 from openai import api_requestor, util
-from openai.six.moves.urllib.parse import quote_plus
 
 
 def nested_resource_class_methods(

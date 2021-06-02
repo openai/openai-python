@@ -1,9 +1,10 @@
+from urllib.parse import quote_plus
+
 from openai.api_resources.abstract import (
     ListableAPIResource,
     CreateableAPIResource,
     nested_resource_class_methods,
 )
-from openai.six.moves.urllib.parse import quote_plus
 from openai import api_requestor, util
 
 

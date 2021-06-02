@@ -1,9 +1,7 @@
-from __future__ import absolute_import, division, print_function
+from urllib.parse import quote_plus
 
-from openai import api_requestor, six, util
+from openai import api_requestor, util
 from openai.openai_object import OpenAIObject
-
-from openai.six.moves.urllib.parse import quote_plus
 
 
 class ListObject(OpenAIObject):
@@ -42,7 +40,7 @@ class ListObject(OpenAIObject):
     def retrieve(
         self, id, api_key=None, openai_version=None, openai_account=None, **params
     ):
-        url = "%s/%s" % (self.get("url"), quote_plus(util.utf8(id)))
+        url = "%s/%s" % (self.get("url"), quote_plus(id))
         return self._request(
             "get",
             url,
@@ -77,7 +75,7 @@ class ListObject(OpenAIObject):
         return openai_object
 
     def __getitem__(self, k):
-        if isinstance(k, six.string_types):
+        if isinstance(k, str):
             return super(ListObject, self).__getitem__(k)
         else:
             raise KeyError(
