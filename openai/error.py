@@ -95,40 +95,11 @@ class APIConnectionError(OpenAIError):
         self.should_retry = should_retry
 
 
-class OpenAIErrorWithParamCode(OpenAIError):
-    def __repr__(self):
-        return "%s(message=%r, param=%r, code=%r, http_status=%r, " "request_id=%r)" % (
-            self.__class__.__name__,
-            self._message,
-            self.param,
-            self.code,
-            self.http_status,
-            self.request_id,
-        )
-
-
-class CardError(OpenAIErrorWithParamCode):
-    def __init__(
-        self,
-        message,
-        param,
-        code,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-    ):
-        super(CardError, self).__init__(
-            message, http_body, http_status, json_body, headers, code
-        )
-        self.param = param
-
-
 class IdempotencyError(OpenAIError):
     pass
 
 
-class InvalidRequestError(OpenAIErrorWithParamCode):
+class InvalidRequestError(OpenAIError):
     def __init__(
         self,
         message,
@@ -143,6 +114,16 @@ class InvalidRequestError(OpenAIErrorWithParamCode):
             message, http_body, http_status, json_body, headers, code
         )
         self.param = param
+
+    def __repr__(self):
+        return "%s(message=%r, param=%r, code=%r, http_status=%r, " "request_id=%r)" % (
+            self.__class__.__name__,
+            self._message,
+            self.param,
+            self.code,
+            self.http_status,
+            self.request_id,
+        )
 
 
 class AuthenticationError(OpenAIError):

@@ -19,7 +19,6 @@ from openai.api_resources.abstract.deletable_api_resource import (
 from openai.api_resources.abstract.listable_api_resource import (
     ListableAPIResource,
 )
-from openai.api_resources.abstract.verify_mixin import VerifyMixin
 
 from openai.api_resources.abstract.custom_method import custom_method
 
