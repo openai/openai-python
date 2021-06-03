@@ -32,9 +32,7 @@ def custom_method(name, http_verb, http_path=None):
             # that the new class method is called when the original method is
             # called as a class method.
             setattr(cls, "_cls_" + name, classmethod(custom_method_request))
-            instance_method = util.class_method_variant("_cls_" + name)(
-                existing_method
-            )
+            instance_method = util.class_method_variant("_cls_" + name)(existing_method)
             setattr(cls, name, instance_method)
 
         return cls

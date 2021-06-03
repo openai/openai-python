@@ -25,7 +25,7 @@ debug = False
 log = None
 
 # API resources
-from openai.api_resources import (  # noqa: F401
+from openai.api_resources import (  # noqa: E402,F401
     Answer,
     Classification,
     Completion,
@@ -36,4 +36,4 @@ from openai.api_resources import (  # noqa: F401
     Snapshot,
 )
 
-from openai.error import OpenAIError, APIError, InvalidRequestError  # noqa: F401
+from openai.error import OpenAIError, APIError, InvalidRequestError  # noqa: E402,F401

@@ -51,7 +51,7 @@ class OpenAIObject(dict):
         last_response=None,
         api_base=None,
         engine=None,
-        **params
+        **params,
     ):
         super(OpenAIObject, self).__init__()
 
@@ -267,8 +267,9 @@ class OpenAIObject(dict):
     def __repr__(self):
         ident_parts = [type(self).__name__]
 
-        if isinstance(self.get("object"), str):
-            ident_parts.append(self.get("object"))
+        obj = self.get("object")
+        if isinstance(obj, str):
+            ident_parts.append(obj)
 
         if isinstance(self.get("id"), str):
             ident_parts.append("id=%s" % (self.get("id"),))

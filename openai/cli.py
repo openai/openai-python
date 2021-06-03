@@ -420,7 +420,7 @@ Mutually exclusive with `top_p`.""",
     sub.add_argument("-q", "--query", required=True, help="Search query")
     sub.set_defaults(func=Engine.search)
 
-    ## Completions
+    # Completions
     sub = subparsers.add_parser("completions.create")
     sub.add_argument("-e", "--engine", required=True, help="The engine to use")
     sub.add_argument(
@@ -462,7 +462,7 @@ Mutually exclusive with `top_p`.""",
     )
     sub.set_defaults(func=Completion.create)
 
-    ## Snapshots
+    # Snapshots
     sub = subparsers.add_parser("snapshots.list")
     sub.set_defaults(func=Snapshot.list)
 

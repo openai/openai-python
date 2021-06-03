@@ -32,7 +32,7 @@ def nested_resource_class_methods(
             request_id=None,
             api_version=None,
             organization=None,
-            **params
+            **params,
         ):
             requestor = api_requestor.APIRequestor(
                 api_key, api_version=api_version, organization=organization

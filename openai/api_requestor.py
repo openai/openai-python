@@ -16,7 +16,8 @@ from openai.openai_response import OpenAIResponse
 from openai.upload_progress import BufferReader
 
 
-def _encode_datetime(dttime):
+def _encode_datetime(dttime) -> int:
+    utc_timestamp: float
     if dttime.tzinfo and dttime.tzinfo.utcoffset(dttime) is not None:
         utc_timestamp = calendar.timegm(dttime.utctimetuple())
     else:
@@ -77,7 +78,7 @@ def parse_stream(rbody):
             yield line
 
 
-class APIRequestor(object):
+class APIRequestor:
     def __init__(
         self, key=None, client=None, api_base=None, api_version=None, organization=None
     ):

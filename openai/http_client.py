@@ -4,6 +4,7 @@ import random
 import textwrap
 import threading
 import time
+from typing import Any, Dict
 
 import requests
 from urllib.parse import urlparse
@@ -82,6 +83,7 @@ class HTTPClient(abc.ABC):
 
                     return response
                 else:
+                    assert connection_error is not None
                     raise connection_error
 
     def request(self, method, url, headers, post_data=None, stream=False):
@@ -195,7 +197,7 @@ class RequestsClient(HTTPClient):
         self._timeout = timeout
 
     def request(self, method, url, headers, post_data=None, stream=False):
-        kwargs = {}
+        kwargs: Dict[str, Any] = {}
         if self._verify_ssl_certs:
             kwargs["verify"] = openai.ca_bundle_path
         else:
@@ -216,7 +218,7 @@ class RequestsClient(HTTPClient):
                     data=post_data,
                     timeout=self._timeout,
                     stream=stream,
-                    **kwargs
+                    **kwargs,
                 )
             except TypeError as e:
                 raise TypeError(
@@ -249,7 +251,7 @@ class RequestsClient(HTTPClient):
         # but we don't want to retry, unless it is caused by dropped
         # SSL connection
         if isinstance(e, requests.exceptions.SSLError):
-            if 'ECONNRESET' not in repr(e):
+            if "ECONNRESET" not in repr(e):
                 msg = (
                     "Could not verify OpenAI's SSL certificate.  Please make "
                     "sure that your network is not intercepting certificates.  "

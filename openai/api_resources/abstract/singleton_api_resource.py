@@ -17,7 +17,7 @@ class SingletonAPIResource(APIResource):
             )
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
-        base = cls.OBJECT_NAME.replace(".", "/")
+        base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
         return "/v1/%s" % (base,)
 
     def instance_url(self):
