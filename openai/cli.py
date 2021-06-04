@@ -285,7 +285,7 @@ class FineTune:
     @classmethod
     def events(cls, args):
         if not args.stream:
-            resp = openai.FineTune.list_events(id=args.id)
+            resp = openai.FineTune.list_events(id=args.id)  # type: ignore
             print(resp)
             return
         cls._stream_events(args.id)

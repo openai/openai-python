@@ -202,20 +202,13 @@ class APIRequestor:
 
         ua = {
             "bindings_version": version.VERSION,
-            "lang": "python",
-            "publisher": "openai",
             "httplib": self._client.name,
+            "lang": "python",
+            "lang_version": platform.python_version(),
+            "platform": platform.platform(),
+            "publisher": "openai",
+            "uname": " ".join(platform.uname()),
         }
-        for attr, func in [
-            ["lang_version", platform.python_version],
-            ["platform", platform.platform],
-            ["uname", lambda: " ".join(platform.uname())],
-        ]:
-            try:
-                val = func()
-            except Exception as e:
-                val = "!! %s" % (e,)
-            ua[attr] = val
         if openai.app_info:
             ua["application"] = openai.app_info
 

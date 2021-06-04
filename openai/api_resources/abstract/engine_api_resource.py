@@ -12,9 +12,8 @@ class EngineAPIResource(APIResource):
     engine_required = True
     plain_old_data = False
 
-    def __init__(self, *args, **kwargs):
-        engine = kwargs.pop("engine", None)
-        super().__init__(*args, engine=engine, **kwargs)
+    def __init__(self, engine: Optional[str] = None, **kwargs):
+        super().__init__(engine=engine, **kwargs)
 
     @classmethod
     def class_url(cls, engine: Optional[str] = None):
@@ -26,13 +25,6 @@ class EngineAPIResource(APIResource):
 
         extn = quote_plus(engine)
         return "/%s/engines/%s/%ss" % (cls.api_prefix, extn, base)
-
-    @classmethod
-    def retrieve(cls, id, api_key=None, request_id=None, **params):
-        engine = params.pop("engine", None)
-        instance = cls(id, api_key, engine=engine, **params)
-        instance.refresh(request_id=request_id)
-        return instance
 
     @classmethod
     def create(
