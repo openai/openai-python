@@ -247,7 +247,7 @@ class APIRequestor:
 
         if my_api_key is None:
             raise error.AuthenticationError(
-                "No API key provided. (HINT: set your API key using in code using "
+                "No API key provided. (HINT: set your API key in code using "
                 '"openai.api_key = <API-KEY>", or you can set the environment variable OPENAI_API_KEY=<API-KEY>). You can generate API keys '
                 "in the OpenAI web interface. See https://onboard.openai.com "
                 "for details, or email support@openai.com if you have any "
