@@ -1,4 +1,3 @@
-import requests
 import io
 
 
@@ -35,7 +34,7 @@ class BufferReader(io.BytesIO):
 
 
 def progress(total, desc):
-    import tqdm
+    import tqdm  # type: ignore
 
     meter = tqdm.tqdm(total=total, unit_scale=True, desc=desc)
 

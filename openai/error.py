@@ -1,10 +1,8 @@
 from __future__ import absolute_import, division, print_function
 
 import openai
-from openai.six import python_2_unicode_compatible
 
 
-@python_2_unicode_compatible
 class OpenAIError(Exception):
     def __init__(
         self,
@@ -39,7 +37,7 @@ class OpenAIError(Exception):
     def __str__(self):
         msg = self._message or "<empty message>"
         if self.request_id is not None:
-            return u"Request {0}: {1}".format(self.request_id, msg)
+            return "Request {0}: {1}".format(self.request_id, msg)
         else:
             return msg
 
@@ -97,40 +95,11 @@ class APIConnectionError(OpenAIError):
         self.should_retry = should_retry
 
 
-class OpenAIErrorWithParamCode(OpenAIError):
-    def __repr__(self):
-        return "%s(message=%r, param=%r, code=%r, http_status=%r, " "request_id=%r)" % (
-            self.__class__.__name__,
-            self._message,
-            self.param,
-            self.code,
-            self.http_status,
-            self.request_id,
-        )
-
-
-class CardError(OpenAIErrorWithParamCode):
-    def __init__(
-        self,
-        message,
-        param,
-        code,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-    ):
-        super(CardError, self).__init__(
-            message, http_body, http_status, json_body, headers, code
-        )
-        self.param = param
-
-
 class IdempotencyError(OpenAIError):
     pass
 
 
-class InvalidRequestError(OpenAIErrorWithParamCode):
+class InvalidRequestError(OpenAIError):
     def __init__(
         self,
         message,
@@ -145,6 +114,16 @@ class InvalidRequestError(OpenAIErrorWithParamCode):
             message, http_body, http_status, json_body, headers, code
         )
         self.param = param
+
+    def __repr__(self):
+        return "%s(message=%r, param=%r, code=%r, http_status=%r, " "request_id=%r)" % (
+            self.__class__.__name__,
+            self._message,
+            self.param,
+            self.code,
+            self.http_status,
+            self.request_id,
+        )
 
 
 class AuthenticationError(OpenAIError):

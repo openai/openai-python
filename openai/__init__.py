@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import os
 
 # OpenAI Python bindings.
@@ -27,6 +25,15 @@ debug = False
 log = None
 
 # API resources
-from openai.api_resources import *  # noqa
+from openai.api_resources import (  # noqa: E402,F401
+    Answer,
+    Classification,
+    Completion,
+    Engine,
+    ErrorObject,
+    File,
+    FineTune,
+    Snapshot,
+)
 
-from openai.error import OpenAIError, APIError, InvalidRequestError
+from openai.error import OpenAIError, APIError, InvalidRequestError  # noqa: E402,F401

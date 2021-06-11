@@ -22,7 +22,7 @@ class MultipartDataGenerator(object):
         # Flatten parameters first
         params = dict(openai.api_requestor._api_encode(params))
 
-        for key, value in openai.six.iteritems(params):
+        for key, value in params.items():
 
             # strip array elements if present from key
             key = self._remove_array_element(key)
@@ -38,7 +38,7 @@ class MultipartDataGenerator(object):
                     # Convert the filename to string, just in case it's not
                     # already one. E.g. `tempfile.TemporaryFile` has a `name`
                     # attribute but it's an `int`.
-                    filename = openai.six.text_type(value.name)
+                    filename = str(value.name)
 
                 self._write('Content-Disposition: form-data; name="')
                 self._write(key)
@@ -70,9 +70,9 @@ class MultipartDataGenerator(object):
         return self.data.getvalue()
 
     def _write(self, value):
-        if isinstance(value, openai.six.binary_type):
+        if isinstance(value, bytes):
             array = bytearray(value)
-        elif isinstance(value, openai.six.text_type):
+        elif isinstance(value, str):
             array = bytearray(value, encoding="utf-8")
         else:
             raise TypeError(

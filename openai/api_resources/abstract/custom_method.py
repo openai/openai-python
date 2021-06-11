@@ -1,7 +1,6 @@
-from __future__ import absolute_import, division, print_function
+from urllib.parse import quote_plus
 
 from openai import util
-from openai.six.moves.urllib.parse import quote_plus
 
 
 def custom_method(name, http_verb, http_path=None):
@@ -17,7 +16,7 @@ def custom_method(name, http_verb, http_path=None):
         def custom_method_request(cls, sid, **params):
             url = "%s/%s/%s" % (
                 cls.class_url(),
-                quote_plus(util.utf8(sid)),
+                quote_plus(sid),
                 http_path,
             )
             return cls._static_request(http_verb, url, **params)
@@ -33,9 +32,7 @@ def custom_method(name, http_verb, http_path=None):
             # that the new class method is called when the original method is
             # called as a class method.
             setattr(cls, "_cls_" + name, classmethod(custom_method_request))
-            instance_method = util.class_method_variant("_cls_" + name)(
-                existing_method
-            )
+            instance_method = util.class_method_variant("_cls_" + name)(existing_method)
             setattr(cls, name, instance_method)
 
         return cls

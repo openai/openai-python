@@ -1,6 +1,6 @@
 import os
 
-from setuptools import find_packages, setup
+from setuptools import setup
 
 if os.getenv("OPENAI_UPLOAD") != "y":
     raise RuntimeError(

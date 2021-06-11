@@ -1,8 +1,7 @@
-from __future__ import absolute_import, division, print_function
+from urllib.parse import quote_plus
 
-from openai import api_requestor, error, six, util
+from openai import api_requestor, error, util
 from openai.openai_object import OpenAIObject
-from openai.six.moves.urllib.parse import quote_plus
 
 
 class APIResource(OpenAIObject):
@@ -28,13 +27,13 @@ class APIResource(OpenAIObject):
             )
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
-        base = cls.OBJECT_NAME.replace(".", "/")
+        base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
         return "/%s/%ss" % (cls.api_prefix, base)
 
     def instance_url(self):
         id = self.get("id")
 
-        if not isinstance(id, six.string_types):
+        if not isinstance(id, str):
             raise error.InvalidRequestError(
                 "Could not determine which URL to request: %s instance "
                 "has invalid ID: %r, %s. ID should be of type `str` (or"
@@ -42,7 +41,6 @@ class APIResource(OpenAIObject):
                 "id",
             )
 
-        id = util.utf8(id)
         base = self.class_url()
         extn = quote_plus(id)
         return "%s/%s" % (base, extn)
@@ -60,7 +58,7 @@ class APIResource(OpenAIObject):
         request_id=None,
         api_version=None,
         organization=None,
-        **params
+        **params,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,

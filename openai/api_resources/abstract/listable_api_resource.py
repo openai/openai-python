@@ -17,7 +17,7 @@ class ListableAPIResource(APIResource):
         api_version=None,
         organization=None,
         api_base=None,
-        **params
+        **params,
     ):
         headers = util.populate_headers(request_id=request_id)
         requestor = api_requestor.APIRequestor(

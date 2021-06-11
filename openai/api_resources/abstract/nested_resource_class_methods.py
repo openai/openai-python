@@ -1,7 +1,6 @@
-from __future__ import absolute_import, division, print_function
+from urllib.parse import quote_plus
 
 from openai import api_requestor, util
-from openai.six.moves.urllib.parse import quote_plus
 
 
 def nested_resource_class_methods(
@@ -33,7 +32,7 @@ def nested_resource_class_methods(
             request_id=None,
             api_version=None,
             organization=None,
-            **params
+            **params,
         ):
             requestor = api_requestor.APIRequestor(
                 api_key, api_version=api_version, organization=organization

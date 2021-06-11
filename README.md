@@ -68,7 +68,7 @@ openai api completions.create -e ada -p "Hello world"
 
 ## Requirements
 
--   Python 3.4+
+-   Python 3.6+
 
 In general we want to support the versions of Python that our
 customers are using, so if you run into issues with any version

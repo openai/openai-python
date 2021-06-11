@@ -5,7 +5,7 @@ import json
 from copy import deepcopy
 
 import openai
-from openai import api_requestor, util, six
+from openai import api_requestor, util
 
 
 def _compute_diff(current, previous):
@@ -51,7 +51,7 @@ class OpenAIObject(dict):
         last_response=None,
         api_base=None,
         engine=None,
-        **params
+        **params,
     ):
         super(OpenAIObject, self).__init__()
 
@@ -218,7 +218,7 @@ class OpenAIObject(dict):
 
         self._transient_values = self._transient_values - set(values)
 
-        for k, v in six.iteritems(values):
+        for k, v in values.items():
             super(OpenAIObject, self).__setitem__(
                 k, util.convert_to_openai_object(v, api_key, api_version, organization)
             )
@@ -267,10 +267,11 @@ class OpenAIObject(dict):
     def __repr__(self):
         ident_parts = [type(self).__name__]
 
-        if isinstance(self.get("object"), six.string_types):
-            ident_parts.append(self.get("object"))
+        obj = self.get("object")
+        if isinstance(obj, str):
+            ident_parts.append(obj)
 
-        if isinstance(self.get("id"), six.string_types):
+        if isinstance(self.get("id"), str):
             ident_parts.append("id=%s" % (self.get("id"),))
 
         unicode_repr = "<%s at %s> JSON: %s" % (
@@ -279,10 +280,7 @@ class OpenAIObject(dict):
             str(self),
         )
 
-        if six.PY2:
-            return unicode_repr.encode("utf-8")
-        else:
-            return unicode_repr
+        return unicode_repr
 
     def __str__(self):
         obj = self.to_dict_recursive()
@@ -293,7 +291,7 @@ class OpenAIObject(dict):
 
     def to_dict_recursive(self):
         d = dict(self)
-        for k, v in six.iteritems(d):
+        for k, v in d.items():
             if isinstance(v, OpenAIObject):
                 d[k] = v.to_dict_recursive()
             elif isinstance(v, list):
@@ -312,7 +310,7 @@ class OpenAIObject(dict):
         unsaved_keys = self._unsaved_values or set()
         previous = previous or self._previous or {}
 
-        for k, v in six.iteritems(self):
+        for k, v in self.items():
             if k == "id" or (isinstance(k, str) and k.startswith("_")):
                 continue
             elif isinstance(v, openai.api_resources.abstract.APIResource):
@@ -343,7 +341,7 @@ class OpenAIObject(dict):
 
         copied._retrieve_params = self._retrieve_params
 
-        for k, v in six.iteritems(self):
+        for k, v in self.items():
             # Call parent's __setitem__ to avoid checks that we've added in the
             # overridden version that can throw exceptions.
             super(OpenAIObject, copied).__setitem__(k, v)
@@ -359,7 +357,7 @@ class OpenAIObject(dict):
         copied = self.__copy__()
         memo[id(self)] = copied
 
-        for k, v in six.iteritems(self):
+        for k, v in self.items():
             # Call parent's __setitem__ to avoid checks that we've added in the
             # overridden version that can throw exceptions.
             super(OpenAIObject, copied).__setitem__(k, deepcopy(v, memo))

@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import calendar
 import datetime
 import json
@@ -7,19 +5,19 @@ import platform
 import time
 import uuid
 import warnings
-import gzip
 from io import BytesIO
 from collections import OrderedDict
+from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import openai
-from openai import error, http_client, version, util, six
+from openai import error, http_client, version, util
 from openai.multipart_data_generator import MultipartDataGenerator
-from openai.six.moves.urllib.parse import urlencode, urlsplit, urlunsplit
 from openai.openai_response import OpenAIResponse
 from openai.upload_progress import BufferReader
 
 
-def _encode_datetime(dttime):
+def _encode_datetime(dttime) -> int:
+    utc_timestamp: float
     if dttime.tzinfo and dttime.tzinfo.utcoffset(dttime) is not None:
         utc_timestamp = calendar.timegm(dttime.utctimetuple())
     else:
@@ -30,14 +28,13 @@ def _encode_datetime(dttime):
 
 def _encode_nested_dict(key, data, fmt="%s[%s]"):
     d = OrderedDict()
-    for subkey, subvalue in six.iteritems(data):
+    for subkey, subvalue in data.items():
         d[fmt % (key, subkey)] = subvalue
     return d
 
 
 def _api_encode(data):
-    for key, value in six.iteritems(data):
-        key = util.utf8(key)
+    for key, value in data.items():
         if value is None:
             continue
         elif hasattr(value, "openai_id"):
@@ -49,7 +46,7 @@ def _api_encode(data):
                     for k, v in _api_encode(subdict):
                         yield (k, v)
                 else:
-                    yield ("%s[%d]" % (key, i), util.utf8(sv))
+                    yield ("%s[%d]" % (key, i), sv)
         elif isinstance(value, dict):
             subdict = _encode_nested_dict(key, value)
             for subkey, subvalue in _api_encode(subdict):
@@ -57,7 +54,7 @@ def _api_encode(data):
         elif isinstance(value, datetime.datetime):
             yield (key, _encode_datetime(value))
         else:
-            yield (key, util.utf8(value))
+            yield (key, value)
 
 
 def _build_api_url(url, query):
@@ -81,7 +78,7 @@ def parse_stream(rbody):
             yield line
 
 
-class APIRequestor(object):
+class APIRequestor:
     def __init__(
         self, key=None, client=None, api_base=None, api_version=None, organization=None
     ):
@@ -205,20 +202,13 @@ class APIRequestor(object):
 
         ua = {
             "bindings_version": version.VERSION,
-            "lang": "python",
-            "publisher": "openai",
             "httplib": self._client.name,
+            "lang": "python",
+            "lang_version": platform.python_version(),
+            "platform": platform.platform(),
+            "publisher": "openai",
+            "uname": " ".join(platform.uname()),
         }
-        for attr, func in [
-            ["lang_version", platform.python_version],
-            ["platform", platform.platform],
-            ["uname", lambda: " ".join(platform.uname())],
-        ]:
-            try:
-                val = func()
-            except Exception as e:
-                val = "!! %s" % (e,)
-            ua[attr] = val
         if openai.app_info:
             ua["application"] = openai.app_info
 
@@ -257,7 +247,7 @@ class APIRequestor(object):
 
         if my_api_key is None:
             raise error.AuthenticationError(
-                "No API key provided. (HINT: set your API key using in code using "
+                "No API key provided. (HINT: set your API key in code using "
                 '"openai.api_key = <API-KEY>", or you can set the environment variable OPENAI_API_KEY=<API-KEY>). You can generate API keys '
                 "in the OpenAI web interface. See https://onboard.openai.com "
                 "for details, or email support@openai.com if you have any "
@@ -320,7 +310,7 @@ class APIRequestor(object):
 
         headers = self.request_headers(my_api_key, method, headers)
         if supplied_headers is not None:
-            for key, value in six.iteritems(supplied_headers):
+            for key, value in supplied_headers.items():
                 headers[key] = value
 
         util.log_info("Request to OpenAI API", method=method, path=abs_url)

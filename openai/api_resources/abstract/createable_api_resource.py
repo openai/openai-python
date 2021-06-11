@@ -16,7 +16,7 @@ class CreateableAPIResource(APIResource):
         request_id=None,
         api_version=None,
         organization=None,
-        **params
+        **params,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,

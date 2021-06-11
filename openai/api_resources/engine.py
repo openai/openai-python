@@ -1,8 +1,6 @@
-from __future__ import absolute_import, division, print_function
-
 import time
 
-from openai import api_requestor, util
+from openai import util
 from openai.api_resources.abstract import (
     ListableAPIResource,
     UpdateableAPIResource,

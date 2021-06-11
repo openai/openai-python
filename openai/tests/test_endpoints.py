@@ -1,9 +1,9 @@
 import openai
 import io
 import json
-import uuid
 
-### FILE TESTS
+
+# FILE TESTS
 def test_file_upload():
     result = openai.File.create(
         file=io.StringIO(json.dumps({"text": "test file data"})),
@@ -13,7 +13,7 @@ def test_file_upload():
     assert "id" in result
 
 
-### COMPLETION TESTS
+# COMPLETION TESTS
 def test_completions():
     result = openai.Completion.create(prompt="This was a test", n=5, engine="davinci")
     assert len(result.choices) == 5
