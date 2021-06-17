@@ -37,12 +37,6 @@ class EngineAPIResource(APIResource):
         organization=None,
         **params,
     ):
-        """
-        Create a new instance of this model.
-
-        Parameters:
-        timeout (float): the number of seconds to wait on the promise returned by the API, where 0 means wait forever.
-        """
         engine = params.pop("engine", None)
         timeout = params.pop("timeout", None)
         stream = params.get("stream", False)

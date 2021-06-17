@@ -3,16 +3,29 @@ import time
 from openai import util
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
-from openai.error import TryAgain
+from openai.error import TryAgain, InvalidRequestError
 
 
 class Completion(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
-    engine_required = True
+    engine_required = False
     OBJECT_NAME = "completion"
 
     @classmethod
-    def create(cls, *args, timeout=None, **kwargs):
+    def create(cls, *args, **kwargs):
+        """
+        Creates a new completion for the provided prompt and parameters.
+
+        See https://beta.openai.com/docs/api-reference/completions/create for a list
+        of valid parameters.
+        """
         start = time.time()
+        timeout = kwargs.get("timeout", None)
+        if kwargs.get("model", None) is None and kwargs.get("engine", None) is None:
+            raise InvalidRequestError(
+                "Must provide an 'engine' or 'model' parameter to create a Completion.",
+                param="engine",
+            )
+
         while True:
             try:
                 return super().create(*args, **kwargs)
