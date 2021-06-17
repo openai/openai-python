@@ -138,8 +138,14 @@ class Completion:
         if args.n is not None and args.n > 1 and args.stream:
             raise ValueError("Can't stream completions with n>1 with the current CLI")
 
+        if args.engine and args.model:
+            warnings.warn(
+                "In most cases, you should not be specifying both engine and model."
+            )
+
         resp = openai.Completion.create(
             engine=args.engine,
+            model=args.model,
             n=args.n,
             max_tokens=args.max_tokens,
             logprobs=args.logprobs,
@@ -253,29 +259,13 @@ class FineTune:
             return
 
         sys.stdout.write(
-            "Created job: {job_id}\n"
-            "Streaming events until the job is complete...\n\n"
-            "(Ctrl-C will interrupt the stream, but not cancel the job)\n".format(
+            "Created fine-tune: {job_id}\n"
+            "Streaming events until fine-tuning is complete...\n\n"
+            "(Ctrl-C will interrupt the stream, but not cancel the fine-tune)\n".format(
                 job_id=resp["id"]
             )
         )
         cls._stream_events(resp["id"])
-
-        resp = openai.FineTune.retrieve(id=resp["id"])
-        status = resp["status"]
-        sys.stdout.write("\nJob complete! Status: {status}".format(status=status))
-        if status == "succeeded":
-            sys.stdout.write(" 🎉")
-            sys.stdout.write(
-                "\nTry out your fine-tuned model: {model}\n"
-                "(Pass this as the model parameter to a completion request)".format(
-                    model=resp["fine_tuned_model"]
-                )
-            )
-            # TODO(rachel): Print instructions on how to use the model here.
-        elif status == "failed":
-            sys.stdout.write("\nPlease contact support@openai.com for assistance.")
-        sys.stdout.write("\n")
 
     @classmethod
     def get(cls, args):
@@ -296,8 +286,8 @@ class FineTune:
             status = openai.FineTune.retrieve(job_id).status
             sys.stdout.write(
                 "\nStream interrupted. Job is still {status}. "
-                "To cancel your job, run:\n"
-                "`openai api fine_tunes.cancel -i {job_id}`\n".format(
+                "To cancel your job, run:\n\n"
+                "openai api fine_tunes.cancel -i {job_id}\n".format(
                     status=status, job_id=job_id
                 )
             )
@@ -317,6 +307,22 @@ class FineTune:
             )
             sys.stdout.write("\n")
             sys.stdout.flush()
+
+        resp = openai.FineTune.retrieve(id=job_id)
+        status = resp["status"]
+        if status == "succeeded":
+            sys.stdout.write("\nJob complete! Status: succeeded 🎉")
+            sys.stdout.write(
+                "\nTry out your fine-tuned model:\n\n"
+                "openai api completions.create -m {model} -p <YOUR_PROMPT>".format(
+                    model=resp["fine_tuned_model"]
+                )
+            )
+        elif status == "failed":
+            sys.stdout.write(
+                "\nJob failed. Please contact support@openai.com if you need assistance."
+            )
+        sys.stdout.write("\n")
 
     @classmethod
     def cancel(cls, args):
@@ -422,7 +428,16 @@ Mutually exclusive with `top_p`.""",
 
     # Completions
     sub = subparsers.add_parser("completions.create")
-    sub.add_argument("-e", "--engine", required=True, help="The engine to use")
+    sub.add_argument(
+        "-e",
+        "--engine",
+        help="The engine to use. See https://beta.openai.com/docs/engines for more about what engines are available.",
+    )
+    sub.add_argument(
+        "-m",
+        "--model",
+        help="The model to use. At most one of `engine` or `model` should be specified.",
+    )
     sub.add_argument(
         "--stream", help="Stream tokens as they're ready.", action="store_true"
     )
