@@ -1,5 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
+import json
+
 import openai
 from openai import api_requestor, util
 from openai.api_resources.abstract import (
@@ -29,3 +31,21 @@ class File(ListableAPIResource, DeletableAPIResource):
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
         )
+
+    @classmethod
+    def download(
+        cls, id, api_key=None, api_base=None, api_version=None, organization=None
+    ):
+        requestor = api_requestor.APIRequestor(
+            api_key,
+            api_base=api_base or openai.file_api_base or openai.api_base,
+            api_version=api_version,
+            organization=organization,
+        )
+        url = f"{cls.class_url()}/{id}/content"
+        rbody, rcode, rheaders, _, _ = requestor.request_raw("get", url)
+        if not 200 <= rcode < 300:
+            raise requestor.handle_error_response(
+                rbody, rcode, json.loads(rbody), rheaders, stream_error=False
+            )
+        return rbody

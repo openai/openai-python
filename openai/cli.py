@@ -271,6 +271,18 @@ class FineTune:
     def get(cls, args):
         resp = openai.FineTune.retrieve(id=args.id)
         print(resp)
+        print(resp["result_files"][0])
+
+    @classmethod
+    def results(cls, args):
+        fine_tune = openai.FineTune.retrieve(id=args.id)
+        if "result_files" not in fine_tune or len(fine_tune["result_files"]) == 0:
+            raise openai.error.InvalidRequestError(
+                f"No results file available for fine-tune {args.id}", "id"
+            )
+        result_file = openai.FineTune.retrieve(id=args.id)["result_files"][0]
+        resp = openai.File.download(id=result_file["id"])
+        print(resp.decode("utf-8"))
 
     @classmethod
     def events(cls, args):
@@ -560,6 +572,10 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.get")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.get)
+
+    sub = subparsers.add_parser("fine_tunes.results")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTune.results)
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
