@@ -1,6 +1,7 @@
 from __future__ import absolute_import, division, print_function
 
 import json
+import os
 
 import openai
 from openai import api_requestor, util
@@ -49,3 +50,41 @@ class File(ListableAPIResource, DeletableAPIResource):
                 rbody, rcode, json.loads(rbody), rheaders, stream_error=False
             )
         return rbody
+
+    @classmethod
+    def find_matching_files(
+        cls,
+        api_key=None,
+        api_base=None,
+        api_version=None,
+        organization=None,
+        file=None,
+        purpose=None,
+    ):
+        if file is None:
+            raise openai.error.InvalidRequestError(
+                "'file' is a required property", "file"
+            )
+        if purpose is None:
+            raise openai.error.InvalidRequestError(
+                "'purpose' is a required property", "purpose"
+            )
+        all_files = cls.list(
+            api_key=api_key,
+            api_base=api_base or openai.file_api_base or openai.api_base,
+            api_version=api_version,
+            organization=organization,
+        ).get("data", [])
+        matching_files = []
+        for f in all_files:
+            if f["purpose"] != purpose:
+                continue
+            if not hasattr(file, "name") or f["filename"] != file.name:
+                continue
+            file.seek(0, os.SEEK_END)
+            if f["bytes"] != file.tell():
+                file.seek(0)
+                continue
+            file.seek(0)
+            matching_files.append(f)
+        return matching_files

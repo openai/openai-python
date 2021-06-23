@@ -221,12 +221,48 @@ class FineTune:
         print(resp)
 
     @classmethod
-    def _get_or_upload(cls, file):
+    def _get_or_upload(cls, file, check_if_file_exists=True):
         try:
             openai.File.retrieve(file)
         except openai.error.InvalidRequestError as e:
             if e.http_status == 404 and os.path.isfile(file):
-                resp = openai.File.create(file=open(file), purpose="fine-tune")
+                matching_files = openai.File.find_matching_files(
+                    file=open(file), purpose="fine-tune"
+                )
+                if len(matching_files) > 0 and check_if_file_exists:
+                    file_ids = [f["id"] for f in matching_files]
+                    sys.stdout.write(
+                        "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
+                            name=matching_files[0]["filename"],
+                            size=matching_files[0]["bytes"],
+                        )
+                    )
+                    sys.stdout.write("\n".join(file_ids))
+                    while True:
+                        sys.stdout.write(
+                            "\nEnter file ID to reuse an already uploaded file, or an empty string to upload this file anyway: "
+                        )
+                        inp = sys.stdin.readline().strip()
+                        if inp in file_ids:
+                            sys.stdout.write(
+                                "Using your file {file}: {id}\n".format(
+                                    file=file, id=inp
+                                )
+                            )
+                            return inp
+                        elif inp == "":
+                            break
+                        else:
+                            sys.stdout.write(
+                                "File id '{id}' is not among the IDs of the potentially duplicated files\n".format(
+                                    id=inp
+                                )
+                            )
+
+                resp = openai.File.create(
+                    file=open(file),
+                    purpose="fine-tune",
+                )
                 sys.stdout.write(
                     "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
                 )
@@ -236,10 +272,14 @@ class FineTune:
     @classmethod
     def create(cls, args):
         create_args = {
-            "training_file": cls._get_or_upload(args.training_file),
+            "training_file": cls._get_or_upload(
+                args.training_file, args.check_if_files_exist
+            ),
         }
         if args.validation_file:
-            create_args["validation_file"] = cls._get_or_upload(args.validation_file)
+            create_args["validation_file"] = cls._get_or_upload(
+                args.validation_file, args.check_if_files_exist
+            )
         if args.model:
             create_args["model"] = args.model
         if args.hparams:
@@ -555,6 +595,12 @@ Mutually exclusive with `top_p`.""",
         help="JSONL file containing prompt-completion examples for validation. This can "
         "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
         "or a local file path.",
+    )
+    sub.add_argument(
+        "--no_check_if_files_exist",
+        dest="check_if_files_exist",
+        action="store_false",
+        help="If this argument is set and training_file or validation_file are file paths, immediately upload them. If this argument is not set, check if they may be duplicates of already uploaded files before uploading, based on file name and file size.",
     )
     sub.add_argument(
         "-m",
