@@ -1,5 +1,4 @@
 import datetime
-import json
 import os
 import signal
 import sys
@@ -282,15 +281,29 @@ class FineTune:
             )
         if args.model:
             create_args["model"] = args.model
-        if args.hparams:
-            try:
-                hparams = json.loads(args.hparams)
-            except json.decoder.JSONDecodeError:
-                sys.stderr.write(
-                    "--hparams must be JSON decodable and match the hyperparameter arguments of the API"
-                )
-                sys.exit(1)
-            create_args.update(hparams)
+        if args.n_epochs:
+            create_args["n_epochs"] = args.n_epochs
+        if args.batch_size:
+            create_args["batch_size"] = args.batch_size
+        if args.learning_rate_multiplier:
+            create_args["learning_rate_multiplier"] = args.learning_rate_multiplier
+        if args.use_packing:
+            create_args["use_packing"] = args.use_packing
+        if args.prompt_loss_weight:
+            create_args["prompt_loss_weight"] = args.prompt_loss_weight
+        if args.compute_classification_metrics:
+            create_args[
+                "compute_classification_metrics"
+            ] = args.compute_classification_metrics
+            if args.classification_n_classes:
+                create_args["classification_n_classes"] = args.classification_n_classes
+            if args.classification_positive_class:
+                create_args[
+                    "classification_positive_class"
+                ] = args.classification_positive_class
+            if args.classification_betas:
+                betas = [float(x) for x in args.classification_betas.split(",")]
+                create_args["classification_betas"] = betas
 
         resp = openai.FineTune.create(**create_args)
 
@@ -612,7 +625,66 @@ Mutually exclusive with `top_p`.""",
         action="store_true",
         help="If set, returns immediately after creating the job. Otherwise, waits for the job to complete.",
     )
-    sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
+    sub.add_argument(
+        "--n_epochs",
+        type=int,
+        help="The number of epochs to train the model for. An epoch refers to one "
+        "full cycle through the training dataset.",
+    )
+    sub.add_argument(
+        "--batch_size",
+        type=int,
+        help="The batch size to use for training. The batch size is the number of "
+        "training examples used to train a single forward and backward pass.",
+    )
+    sub.add_argument(
+        "--learning_rate_multiplier",
+        type=float,
+        help="The learning rate multiplier to use for training. The fine-tuning "
+        "learning rate is determined by the original learning rate used for "
+        "pretraining multiplied by this value",
+    )
+    sub.add_argument(
+        "--use_packing",
+        type=bool,
+        help="On classification tasks, we recommend setting this to `false`. "
+        "On all other tasks, we recommend setting it to `true`. "
+        "When `true`, we pack as many prompt-completion pairs as possible into each "
+        "training example. This greatly increases the speed of a fine-tuning job, "
+        "often without negatively affecting model performance.",
+    )
+    sub.add_argument(
+        "--prompt_loss_weight",
+        type=float,
+        help="The weight to use for the prompt loss. The optimum value here depends "
+        "depends on your use case. This determines how much the model prioritizes "
+        "learning from prompt tokens vs learning from completion tokens",
+    )
+    sub.add_argument(
+        "--compute_classification_metrics",
+        action="store_true",
+        help="If set, we calculate classification-specific metrics such as accuracy "
+        "and F-1 score using the validation set at the end of every epoch.",
+    )
+    sub.add_argument(
+        "--classification_n_classes",
+        type=int,
+        help="The number of classes in a classification task. This parameter is "
+        "required for multiclass classification",
+    )
+    sub.add_argument(
+        "--classification_positive_class",
+        help="The positive class in binary classification. This parameter is needed "
+        "to generate precision, recall and F-1 metrics when doing binary "
+        "classification",
+    )
+    sub.add_argument(
+        "--classification_betas",
+        help="If this is provided, we calculate F-beta scores at the specified beta "
+        "values. The F-beta score is a generalization of F-1 score. This is only "
+        "used for binary classification. The expected format is a comma-separated "
+        "list - e.g. 1,1.5,2",
+    )
     sub.set_defaults(func=FineTune.create)
 
     sub = subparsers.add_parser("fine_tunes.get")
