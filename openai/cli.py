@@ -287,8 +287,7 @@ class FineTune:
             create_args["batch_size"] = args.batch_size
         if args.learning_rate_multiplier:
             create_args["learning_rate_multiplier"] = args.learning_rate_multiplier
-        if args.use_packing:
-            create_args["use_packing"] = args.use_packing
+        create_args["use_packing"] = args.use_packing
         if args.prompt_loss_weight:
             create_args["prompt_loss_weight"] = args.prompt_loss_weight
         if args.compute_classification_metrics:
@@ -646,13 +645,21 @@ Mutually exclusive with `top_p`.""",
     )
     sub.add_argument(
         "--use_packing",
-        type=bool,
-        help="On classification tasks, we recommend setting this to `false`. "
-        "On all other tasks, we recommend setting it to `true`. "
-        "When `true`, we pack as many prompt-completion pairs as possible into each "
+        action="store_true",
+        dest="use_packing",
+        help="On classification tasks, we recommend not setting this flag. "
+        "On all other tasks, we recommend setting it. "
+        "When set, we pack as many prompt-completion pairs as possible into each "
         "training example. This greatly increases the speed of a fine-tuning job, "
         "often without negatively affecting model performance.",
     )
+    sub.add_argument(
+        "--no_packing",
+        action="store_false",
+        dest="use_packing",
+        help="Disables the packing flag (see --use_packing for description)",
+    )
+    sub.set_defaults(use_packing=True)
     sub.add_argument(
         "--prompt_loss_weight",
         type=float,
