@@ -16,6 +16,9 @@ setup(
     install_requires=[
         "requests>=2.20",  # to get the patch for CVE-2018-18074
         "tqdm",  # Needed for progress bars
+        "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
+        "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
+        "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
     ],
     extras_require={"dev": ["black==20.8b1", "pytest==6.*"]},
     python_requires=">=3.6",

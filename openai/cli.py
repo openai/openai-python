@@ -3,6 +3,13 @@ import os
 import signal
 import sys
 import warnings
+from openai.validators import (
+    write_out_file,
+    apply_necessary_remediation,
+    apply_optional_remediation,
+    read_any_format,
+    get_validators,
+)
 
 import openai
 
@@ -393,8 +400,69 @@ class FineTune:
         resp = openai.FineTune.cancel(id=args.id)
         print(resp)
 
+    @classmethod
+    def prepare_data(cls, args):
 
-def register(parser):
+        sys.stdout.write("Analyzing...\n")
+        fname = args.file
+        df, remediation = read_any_format(fname)
+        apply_necessary_remediation(None, remediation)
+
+        validators = get_validators()
+
+        optional_remediations = []
+        if remediation is not None:
+            optional_remediations.append(remediation)
+        for validator in validators:
+            remediation = validator(df)
+            if remediation is not None:
+                optional_remediations.append(remediation)
+                df = apply_necessary_remediation(df, remediation)
+
+        any_optional_or_necessary_remediations = any(
+            [
+                remediation
+                for remediation in optional_remediations
+                if remediation.optional_msg is not None
+                or remediation.necessary_msg is not None
+            ]
+        )
+
+        if any_optional_or_necessary_remediations:
+            sys.stdout.write(
+                "\n\nBased on the analysis we will perform the following actions:\n"
+            )
+
+            for remediation in optional_remediations:
+                df = apply_optional_remediation(df, remediation)
+        else:
+            sys.stdout.write("\n\nNo remediations found.\n")
+
+        write_out_file(df, fname, any_optional_or_necessary_remediations)
+
+
+def tools_register(parser):
+    subparsers = parser.add_subparsers(
+        title="Tools", help="Convenience client side tools"
+    )
+
+    def help(args):
+        parser.print_help()
+
+    parser.set_defaults(func=help)
+
+    sub = subparsers.add_parser("fine_tunes.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing prompt-completion examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.set_defaults(func=FineTune.prepare_data)
+
+
+def api_register(parser):
     # Engine management
     subparsers = parser.add_subparsers(help="All API subcommands")
 
