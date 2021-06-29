@@ -19,7 +19,7 @@ class Completion(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
         of valid parameters.
         """
         start = time.time()
-        timeout = kwargs.get("timeout", None)
+        timeout = kwargs.pop("timeout", None)
         if kwargs.get("model", None) is None and kwargs.get("engine", None) is None:
             raise InvalidRequestError(
                 "Must provide an 'engine' or 'model' parameter to create a Completion.",
