@@ -50,12 +50,7 @@ class OpenAIError(Exception):
         return self._message
 
     def __repr__(self):
-        return "%s(message=%r, http_status=%r, request_id=%r)" % (
-            self.__class__.__name__,
-            self._message,
-            self.http_status,
-            self.request_id,
-        )
+        return f'{self.__class__.__name__}(message={self._message}, http_status={self.http_status}, request_id={self.request_id})'
 
     def construct_error_object(self):
         if (
@@ -116,14 +111,7 @@ class InvalidRequestError(OpenAIError):
         self.param = param
 
     def __repr__(self):
-        return "%s(message=%r, param=%r, code=%r, http_status=%r, " "request_id=%r)" % (
-            self.__class__.__name__,
-            self._message,
-            self.param,
-            self.code,
-            self.http_status,
-            self.request_id,
-        )
+        return f'{self.__class__.__name__}(message={self._message}, param={self.param}, code={self.code}, http_status={self.http_status}, " "request_id={self.request_id})'
 
 
 class AuthenticationError(OpenAIError):

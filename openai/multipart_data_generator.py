@@ -62,10 +62,10 @@ class MultipartDataGenerator(object):
             self._write(self.line_break)
 
     def param_header(self):
-        return "--%s" % self.boundary
+        return f'--{self.boundary}'
 
     def get_post_data(self):
-        self._write("--%s--" % (self.boundary,))
+        self._write(f'--{self.boundary}--')
         self._write(self.line_break)
         return self.data.getvalue()
 
@@ -76,7 +76,7 @@ class MultipartDataGenerator(object):
             array = bytearray(value, encoding="utf-8")
         else:
             raise TypeError(
-                "unexpected type: {value_type}".format(value_type=type(value))
+                f'unexpected type: {type(value)}'
             )
 
         self.data.write(array)

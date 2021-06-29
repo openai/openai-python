@@ -22,7 +22,7 @@ class bcolors:
 def organization_info(obj):
     organization = getattr(obj, "organization", None)
     if organization is not None:
-        return "[organization={}] ".format(organization)
+        return f'[organization={organization}] '
     else:
         return ""
 
@@ -35,14 +35,12 @@ def display(obj):
 
 def display_error(e):
     extra = (
-        " (HTTP status code: {})".format(e.http_status)
+        f' (HTTP status code: {e.http_status})'
         if e.http_status is not None
         else ""
     )
     sys.stderr.write(
-        "{}{}Error:{} {}{}\n".format(
-            organization_info(e), bcolors.FAIL, bcolors.ENDC, e, extra
-        )
+        f'{organization_info(e)}{bcolors.FAIL}Error:{bcolors.ENDC} {e}{extra}\n'
     )
 
 
@@ -88,7 +86,7 @@ class Engine:
             completions = len(part["data"])
             for c_idx, c in enumerate(part["data"]):
                 if completions > 1:
-                    sys.stdout.write("===== Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f'===== Completion {c_idx} =====\n')
                 sys.stdout.write("".join(c["text"]))
                 if completions > 1:
                     sys.stdout.write("\n")
@@ -117,7 +115,7 @@ class Engine:
             args.documents if args.documents else [x["text"] for x in resp["data"]]
         )
         for score, document_idx in scores:
-            print("=== score {:.3f} ===".format(score))
+            print(f'=== score {score:.3f} ===')
             print(dataset[document_idx])
             if (
                 args.return_metadata
@@ -163,7 +161,7 @@ class Completion:
             choices = part["choices"]
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
-                    sys.stdout.write("===== Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f'===== Completion {c_idx} =====\n')
                 sys.stdout.write(c["text"])
                 if len(choices) > 1:
                     sys.stdout.write("\n")
@@ -228,7 +226,7 @@ class FineTune:
             if e.http_status == 404 and os.path.isfile(file):
                 resp = openai.File.create(file=open(file), purpose="fine-tune")
                 sys.stdout.write(
-                    "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
+                    f'Uploaded file from {file}: {resp["id"]}\n'
                 )
                 return resp["id"]
         return file
@@ -259,11 +257,9 @@ class FineTune:
             return
 
         sys.stdout.write(
-            "Created fine-tune: {job_id}\n"
+            f'Created fine-tune: {resp["id"]}\n'
             "Streaming events until fine-tuning is complete...\n\n"
-            "(Ctrl-C will interrupt the stream, but not cancel the fine-tune)\n".format(
-                job_id=resp["id"]
-            )
+            "(Ctrl-C will interrupt the stream, but not cancel the fine-tune)\n"
         )
         cls._stream_events(resp["id"])
 
@@ -285,11 +281,9 @@ class FineTune:
         def signal_handler(sig, frame):
             status = openai.FineTune.retrieve(job_id).status
             sys.stdout.write(
-                "\nStream interrupted. Job is still {status}. "
+                f'\nStream interrupted. Job is still {status}. '
                 "To cancel your job, run:\n\n"
-                "openai api fine_tunes.cancel -i {job_id}\n".format(
-                    status=status, job_id=job_id
-                )
+                f'openai api fine_tunes.cancel -i {job_id}\n'
             )
             sys.exit(0)
 
@@ -314,9 +308,7 @@ class FineTune:
             sys.stdout.write("\nJob complete! Status: succeeded 🎉")
             sys.stdout.write(
                 "\nTry out your fine-tuned model:\n\n"
-                "openai api completions.create -m {model} -p <YOUR_PROMPT>".format(
-                    model=resp["fine_tuned_model"]
-                )
+                f'openai api completions.create -m {resp["fine_tuned_model"]} -p <YOUR_PROMPT>'
             )
         elif status == "failed":
             sys.stdout.write(

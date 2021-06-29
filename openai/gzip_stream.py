@@ -73,11 +73,11 @@ class GZIPCompressedStream(io.RawIOBase):
 
     def __repr__(self):
         return (
-            "{self.__class__.__name__}("
-            "{self.stream!r}, "
-            "compression_level={self.compression_level!r}"
+            f'{self.__class__.__name__}('
+            f'{self.stream!r}, '
+            f'compression_level={self.compression_level!r}'
             ")"
-        ).format(self=self)
+        )
 
 
 __all__ = ("GZIPCompressedStream",)

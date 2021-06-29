@@ -61,7 +61,7 @@ def _build_api_url(url, query):
     scheme, netloc, path, base_query, fragment = urlsplit(url)
 
     if base_query:
-        query = "%s&%s" % (base_query, query)
+        query = f'{base_query}&{query}'
 
     return urlunsplit((scheme, netloc, path, query, fragment))
 
@@ -115,12 +115,12 @@ class APIRequestor:
 
     @classmethod
     def format_app_info(cls, info):
-        str = info["name"]
+        string = info["name"]
         if info["version"]:
-            str += "/%s" % (info["version"],)
+            string += f'/{info["version"]}'
         if info["url"]:
-            str += " (%s)" % (info["url"],)
-        return str
+            string += f' ({info["url"]})'
+        return string
 
     def request(self, method, url, params=None, headers=None, stream=False):
         rbody, rcode, rheaders, stream, my_api_key = self.request_raw(
@@ -134,15 +134,15 @@ class APIRequestor:
             error_data = resp["error"]
         except (KeyError, TypeError):
             raise error.APIError(
-                "Invalid response object from API: %r (HTTP response code "
-                "was %d)" % (rbody, rcode),
+                f'Invalid response object from API: {rbody} (HTTP response code '
+                f'was {rcode})',
                 rbody,
                 rcode,
                 resp,
             )
 
         if "internal_message" in error_data:
-            error_data["message"] += "\n\n" + error_data["internal_message"]
+            error_data["message"] += f'\n\n{error_data["internal_message"]}'
 
         util.log_info(
             "OpenAI API error received",
@@ -196,9 +196,9 @@ class APIRequestor:
             )
 
     def request_headers(self, api_key, method, extra):
-        user_agent = "OpenAI/v1 PythonBindings/%s" % (version.VERSION,)
+        user_agent = f'OpenAI/v1 PythonBindings/{version.VERSION}'
         if openai.app_info:
-            user_agent += " " + self.format_app_info(openai.app_info)
+            user_agent += f' {self.format_app_info(openai.app_info)}'
 
         ua = {
             "bindings_version": version.VERSION,
@@ -215,7 +215,7 @@ class APIRequestor:
         headers = {
             "X-OpenAI-Client-User-Agent": json.dumps(ua),
             "User-Agent": user_agent,
-            "Authorization": "Bearer %s" % (api_key,),
+            "Authorization": f'Bearer {api_key}',
         }
 
         if self.organization:
@@ -254,7 +254,7 @@ class APIRequestor:
                 "questions."
             )
 
-        abs_url = "%s%s" % (self.api_base, url)
+        abs_url = f'{self.api_base}{url}'
         headers = {}
         compress = None
         progress_meter = False
@@ -274,9 +274,7 @@ class APIRequestor:
                 generator = MultipartDataGenerator()
                 generator.add_params(params or {})
                 post_data = generator.get_post_data()
-                content_type = "multipart/form-data; boundary=%s" % (
-                    generator.boundary,
-                )
+                content_type = f'multipart/form-data; boundary={generator.boundary}'
                 # We will overrite Content-Type
                 supplied_headers.pop("Content-Type")
                 progress_meter = True
@@ -303,9 +301,9 @@ class APIRequestor:
                 post_data = GZIPCompressedStream(post_data, compression_level=9)
         else:
             raise error.APIConnectionError(
-                "Unrecognized HTTP method %r. This may indicate a bug in the "
+                f'Unrecognized HTTP method {method}. This may indicate a bug in the '
                 "OpenAI bindings. Please contact support@openai.com for "
-                "assistance." % (method,)
+                "assistance."
             )
 
         headers = self.request_headers(my_api_key, method, headers)
@@ -354,8 +352,8 @@ class APIRequestor:
             resp = OpenAIResponse(rbody, rcode, rheaders)
         except Exception:
             raise error.APIError(
-                "Invalid response body from API: %s "
-                "(HTTP response code was %d)" % (rbody, rcode),
+                f'Invalid response body from API: {rbody} '
+                f'(HTTP response code was {rcode})',
                 rbody,
                 rcode,
                 rheaders,

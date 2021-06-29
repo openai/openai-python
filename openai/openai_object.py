@@ -106,9 +106,9 @@ class OpenAIObject(dict):
     def __setitem__(self, k, v):
         if v == "":
             raise ValueError(
-                "You cannot set %s to an empty string. "
-                "We interpret empty strings as None in requests."
-                "You may set %s.%s = None to delete the property" % (k, str(self), k)
+                f"You cannot set {k} to an empty string. "
+                f"We interpret empty strings as None in requests."
+                f"You may set {str(self)}.{k} = None to delete the property"
             )
 
         # Allows for unpickling in Python 3.x
@@ -125,12 +125,11 @@ class OpenAIObject(dict):
         except KeyError as err:
             if k in self._transient_values:
                 raise KeyError(
-                    "%r.  HINT: The %r attribute was set in the past. "
-                    "It was then wiped when refreshing the object with "
-                    "the result returned by OpenAI's API, probably as a "
-                    "result of a save().  The attributes currently "
-                    "available on this object are: %s"
-                    % (k, k, ", ".join(list(self.keys())))
+                    f'{k}.  HINT: The {k} attribute was set in the past. '
+                    f'It was then wiped when refreshing the object with '
+                    f'the result returned by OpenAI\'s API, probably as a '
+                    f'result of a save().  The attributes currently '
+                    f'available on this object are: {", ".join(list(self.keys()))}'
                 )
             else:
                 raise err
@@ -272,14 +271,9 @@ class OpenAIObject(dict):
             ident_parts.append(obj)
 
         if isinstance(self.get("id"), str):
-            ident_parts.append("id=%s" % (self.get("id"),))
+            ident_parts.append(f'id={self.get("id")}')
 
-        unicode_repr = "<%s at %s> JSON: %s" % (
-            " ".join(ident_parts),
-            hex(id(self)),
-            str(self),
-        )
-
+        unicode_repr = f'<{" ".join(ident_parts)} at {hex(id(self))}> JSON: {str(self)}'
         return unicode_repr
 
     def __str__(self):

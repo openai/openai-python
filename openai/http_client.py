@@ -64,16 +64,14 @@ class HTTPClient(abc.ABC):
             if self._should_retry(response, connection_error, num_retries):
                 if connection_error:
                     util.log_warn(
-                        "Encountered a retryable error %s"
-                        % connection_error.user_message
+                        f'Encountered a retryable error {connection_error.user_message}'
                     )
                 num_retries += 1
                 sleep_time = self._sleep_time_seconds(num_retries, response)
                 util.log_info(
                     (
-                        "Initiating retry %i for request %s %s after "
-                        "sleeping %.2f seconds."
-                        % (num_retries, method, url, sleep_time)
+                        f'Initiating retry {num_retries} for request {method} {url} after '
+                        f'sleeping {sleep_time:.2f} seconds.'
                     )
                 )
                 time.sleep(sleep_time)
@@ -227,7 +225,7 @@ class RequestsClient(HTTPClient):
                     "usage thereof. (HINT: The most likely cause is that "
                     'your "requests" library is out of date. You can fix '
                     'that by running "pip install -U requests".) The '
-                    "underlying error was: %s" % (e,)
+                    f'underlying error was: {e}'
                 )
 
             # This causes the content to actually be read, which could cause
@@ -262,7 +260,7 @@ class RequestsClient(HTTPClient):
             else:
                 msg = "Detected ECONNRESET, indicates a dropped SSL connection."
                 should_retry = True
-            err = "%s: %s" % (type(e).__name__, str(e))
+            err = f'{type(e).__name__}: {str(e)}'
         # Retry only timeout and connect errors; similar to urllib3 Retry
         elif isinstance(
             e, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)
@@ -272,7 +270,7 @@ class RequestsClient(HTTPClient):
                 "If this problem persists, let us know at "
                 "support@openai.com."
             )
-            err = "%s: %s" % (type(e).__name__, str(e))
+            err = f'{type(e).__name__}: {str(e)}'
             should_retry = True
         # Catch remaining request exceptions
         elif isinstance(e, requests.exceptions.RequestException):
@@ -281,7 +279,7 @@ class RequestsClient(HTTPClient):
                 "If this problem persists, let us know at "
                 "support@openai.com."
             )
-            err = "%s: %s" % (type(e).__name__, str(e))
+            err = f'{type(e).__name__}: {str(e)}'
             should_retry = False
         else:
             msg = (
@@ -290,9 +288,9 @@ class RequestsClient(HTTPClient):
                 "issue locally.  If this problem persists, let us "
                 "know at support@openai.com."
             )
-            err = "A %s was raised" % (type(e).__name__,)
+            err = f'A {type(e).__name__} was raised'
             if str(e):
-                err += " with error message %s" % (str(e),)
+                err += f' with error message {str(e)}'
             else:
                 err += " with no error message"
             should_retry = False
@@ -300,16 +298,17 @@ class RequestsClient(HTTPClient):
         if isinstance(e, requests.RequestException):
             request = e.request  # type: requests.Request
             if request is not None:
-                err += " (url=" + self._sanitized_url(request.url) + ")"
+                err += f' (url={self._sanitized_url(request.url)})'
 
-        msg = textwrap.fill(msg) + "\n\n(Network error: %s)" % (err,)
+        msg = f'{textwrap.fill(msg)}\n\n(Network error: {err})'
         raise error.APIConnectionError(msg, should_retry=should_retry)
 
     @staticmethod
     def _sanitized_url(url):
         """ for now just strip all query params from the url for privacy"""
         url = urlparse(url)
-        return url.scheme + "://" + url.netloc + url.path
+        # return url.scheme + "://" + url.netloc + url.path
+        return f'{url.scheme}://{url.netloc}{url.path}'
 
     def close(self):
         if getattr(self._thread_local, "session", None) is not None:
