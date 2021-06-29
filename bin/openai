@@ -1,13 +1,11 @@
 #!/usr/bin/env python
 import argparse
-import json
 import logging
-import os
 import sys
 
 import openai
 from openai.cli import display_error
-from openai.cli import register as api_register
+from openai.cli import api_register, tools_register
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -40,9 +38,11 @@ def main():
     parser.set_defaults(func=help)
 
     subparsers = parser.add_subparsers()
-    sub = subparsers.add_parser("api", help="Direct API calls")
+    sub_api = subparsers.add_parser("api", help="Direct API calls")
+    sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
 
-    api_register(sub)
+    api_register(sub_api)
+    tools_register(sub_tools)
 
     args = parser.parse_args()
     if args.verbosity == 1:

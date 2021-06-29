@@ -1,9 +1,15 @@
 import datetime
-import json
 import os
 import signal
 import sys
 import warnings
+from openai.validators import (
+    write_out_file,
+    apply_necessary_remediation,
+    apply_optional_remediation,
+    read_any_format,
+    get_validators,
+)
 
 import openai
 
@@ -221,12 +227,48 @@ class FineTune:
         print(resp)
 
     @classmethod
-    def _get_or_upload(cls, file):
+    def _get_or_upload(cls, file, check_if_file_exists=True):
         try:
             openai.File.retrieve(file)
         except openai.error.InvalidRequestError as e:
             if e.http_status == 404 and os.path.isfile(file):
-                resp = openai.File.create(file=open(file), purpose="fine-tune")
+                matching_files = openai.File.find_matching_files(
+                    file=open(file), purpose="fine-tune"
+                )
+                if len(matching_files) > 0 and check_if_file_exists:
+                    file_ids = [f["id"] for f in matching_files]
+                    sys.stdout.write(
+                        "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
+                            name=matching_files[0]["filename"],
+                            size=matching_files[0]["bytes"],
+                        )
+                    )
+                    sys.stdout.write("\n".join(file_ids))
+                    while True:
+                        sys.stdout.write(
+                            "\nEnter file ID to reuse an already uploaded file, or an empty string to upload this file anyway: "
+                        )
+                        inp = sys.stdin.readline().strip()
+                        if inp in file_ids:
+                            sys.stdout.write(
+                                "Using your file {file}: {id}\n".format(
+                                    file=file, id=inp
+                                )
+                            )
+                            return inp
+                        elif inp == "":
+                            break
+                        else:
+                            sys.stdout.write(
+                                "File id '{id}' is not among the IDs of the potentially duplicated files\n".format(
+                                    id=inp
+                                )
+                            )
+
+                resp = openai.File.create(
+                    file=open(file),
+                    purpose="fine-tune",
+                )
                 sys.stdout.write(
                     "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
                 )
@@ -236,21 +278,38 @@ class FineTune:
     @classmethod
     def create(cls, args):
         create_args = {
-            "training_file": cls._get_or_upload(args.training_file),
+            "training_file": cls._get_or_upload(
+                args.training_file, args.check_if_files_exist
+            ),
         }
         if args.validation_file:
-            create_args["validation_file"] = cls._get_or_upload(args.validation_file)
+            create_args["validation_file"] = cls._get_or_upload(
+                args.validation_file, args.check_if_files_exist
+            )
         if args.model:
             create_args["model"] = args.model
-        if args.hparams:
-            try:
-                hparams = json.loads(args.hparams)
-            except json.decoder.JSONDecodeError:
-                sys.stderr.write(
-                    "--hparams must be JSON decodable and match the hyperparameter arguments of the API"
-                )
-                sys.exit(1)
-            create_args.update(hparams)
+        if args.n_epochs:
+            create_args["n_epochs"] = args.n_epochs
+        if args.batch_size:
+            create_args["batch_size"] = args.batch_size
+        if args.learning_rate_multiplier:
+            create_args["learning_rate_multiplier"] = args.learning_rate_multiplier
+        create_args["use_packing"] = args.use_packing
+        if args.prompt_loss_weight:
+            create_args["prompt_loss_weight"] = args.prompt_loss_weight
+        if args.compute_classification_metrics:
+            create_args[
+                "compute_classification_metrics"
+            ] = args.compute_classification_metrics
+            if args.classification_n_classes:
+                create_args["classification_n_classes"] = args.classification_n_classes
+            if args.classification_positive_class:
+                create_args[
+                    "classification_positive_class"
+                ] = args.classification_positive_class
+            if args.classification_betas:
+                betas = [float(x) for x in args.classification_betas.split(",")]
+                create_args["classification_betas"] = betas
 
         resp = openai.FineTune.create(**create_args)
 
@@ -271,6 +330,18 @@ class FineTune:
     def get(cls, args):
         resp = openai.FineTune.retrieve(id=args.id)
         print(resp)
+        print(resp["result_files"][0])
+
+    @classmethod
+    def results(cls, args):
+        fine_tune = openai.FineTune.retrieve(id=args.id)
+        if "result_files" not in fine_tune or len(fine_tune["result_files"]) == 0:
+            raise openai.error.InvalidRequestError(
+                f"No results file available for fine-tune {args.id}", "id"
+            )
+        result_file = openai.FineTune.retrieve(id=args.id)["result_files"][0]
+        resp = openai.File.download(id=result_file["id"])
+        print(resp.decode("utf-8"))
 
     @classmethod
     def events(cls, args):
@@ -329,8 +400,69 @@ class FineTune:
         resp = openai.FineTune.cancel(id=args.id)
         print(resp)
 
+    @classmethod
+    def prepare_data(cls, args):
 
-def register(parser):
+        sys.stdout.write("Analyzing...\n")
+        fname = args.file
+        df, remediation = read_any_format(fname)
+        apply_necessary_remediation(None, remediation)
+
+        validators = get_validators()
+
+        optional_remediations = []
+        if remediation is not None:
+            optional_remediations.append(remediation)
+        for validator in validators:
+            remediation = validator(df)
+            if remediation is not None:
+                optional_remediations.append(remediation)
+                df = apply_necessary_remediation(df, remediation)
+
+        any_optional_or_necessary_remediations = any(
+            [
+                remediation
+                for remediation in optional_remediations
+                if remediation.optional_msg is not None
+                or remediation.necessary_msg is not None
+            ]
+        )
+
+        if any_optional_or_necessary_remediations:
+            sys.stdout.write(
+                "\n\nBased on the analysis we will perform the following actions:\n"
+            )
+
+            for remediation in optional_remediations:
+                df = apply_optional_remediation(df, remediation)
+        else:
+            sys.stdout.write("\n\nNo remediations found.\n")
+
+        write_out_file(df, fname, any_optional_or_necessary_remediations)
+
+
+def tools_register(parser):
+    subparsers = parser.add_subparsers(
+        title="Tools", help="Convenience client side tools"
+    )
+
+    def help(args):
+        parser.print_help()
+
+    parser.set_defaults(func=help)
+
+    sub = subparsers.add_parser("fine_tunes.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing prompt-completion examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.set_defaults(func=FineTune.prepare_data)
+
+
+def api_register(parser):
     # Engine management
     subparsers = parser.add_subparsers(help="All API subcommands")
 
@@ -545,6 +677,12 @@ Mutually exclusive with `top_p`.""",
         "or a local file path.",
     )
     sub.add_argument(
+        "--no_check_if_files_exist",
+        dest="check_if_files_exist",
+        action="store_false",
+        help="If this argument is set and training_file or validation_file are file paths, immediately upload them. If this argument is not set, check if they may be duplicates of already uploaded files before uploading, based on file name and file size.",
+    )
+    sub.add_argument(
         "-m",
         "--model",
         help="The model to start fine-tuning from",
@@ -554,12 +692,83 @@ Mutually exclusive with `top_p`.""",
         action="store_true",
         help="If set, returns immediately after creating the job. Otherwise, waits for the job to complete.",
     )
-    sub.add_argument("-p", "--hparams", help="Hyperparameter JSON")
+    sub.add_argument(
+        "--n_epochs",
+        type=int,
+        help="The number of epochs to train the model for. An epoch refers to one "
+        "full cycle through the training dataset.",
+    )
+    sub.add_argument(
+        "--batch_size",
+        type=int,
+        help="The batch size to use for training. The batch size is the number of "
+        "training examples used to train a single forward and backward pass.",
+    )
+    sub.add_argument(
+        "--learning_rate_multiplier",
+        type=float,
+        help="The learning rate multiplier to use for training. The fine-tuning "
+        "learning rate is determined by the original learning rate used for "
+        "pretraining multiplied by this value",
+    )
+    sub.add_argument(
+        "--use_packing",
+        action="store_true",
+        dest="use_packing",
+        help="On classification tasks, we recommend not setting this flag. "
+        "On all other tasks, we recommend setting it. "
+        "When set, we pack as many prompt-completion pairs as possible into each "
+        "training example. This greatly increases the speed of a fine-tuning job, "
+        "often without negatively affecting model performance.",
+    )
+    sub.add_argument(
+        "--no_packing",
+        action="store_false",
+        dest="use_packing",
+        help="Disables the packing flag (see --use_packing for description)",
+    )
+    sub.set_defaults(use_packing=True)
+    sub.add_argument(
+        "--prompt_loss_weight",
+        type=float,
+        help="The weight to use for the prompt loss. The optimum value here depends "
+        "depends on your use case. This determines how much the model prioritizes "
+        "learning from prompt tokens vs learning from completion tokens",
+    )
+    sub.add_argument(
+        "--compute_classification_metrics",
+        action="store_true",
+        help="If set, we calculate classification-specific metrics such as accuracy "
+        "and F-1 score using the validation set at the end of every epoch.",
+    )
+    sub.add_argument(
+        "--classification_n_classes",
+        type=int,
+        help="The number of classes in a classification task. This parameter is "
+        "required for multiclass classification",
+    )
+    sub.add_argument(
+        "--classification_positive_class",
+        help="The positive class in binary classification. This parameter is needed "
+        "to generate precision, recall and F-1 metrics when doing binary "
+        "classification",
+    )
+    sub.add_argument(
+        "--classification_betas",
+        help="If this is provided, we calculate F-beta scores at the specified beta "
+        "values. The F-beta score is a generalization of F-1 score. This is only "
+        "used for binary classification. The expected format is a comma-separated "
+        "list - e.g. 1,1.5,2",
+    )
     sub.set_defaults(func=FineTune.create)
 
     sub = subparsers.add_parser("fine_tunes.get")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.get)
+
+    sub = subparsers.add_parser("fine_tunes.results")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTune.results)
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
