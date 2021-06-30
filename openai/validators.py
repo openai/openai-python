@@ -480,6 +480,8 @@ def read_any_format(fname):
                 )
             else:
                 error_msg += f" Your file `{fname}` does not appear to have a file ending. Please ensure your filename ends with one of the supported file endings."
+        else:
+            df.fillna("", inplace=True)
     else:
         error_msg = f"File {fname} does not exist."
 
