@@ -305,7 +305,7 @@ class FineTune:
 
         resp = openai.FineTune.create(**create_args)
 
-        if args.no_wait:
+        if args.no_follow:
             print(resp)
             return
 
@@ -337,10 +337,20 @@ class FineTune:
 
     @classmethod
     def events(cls, args):
-        if not args.stream:
-            resp = openai.FineTune.list_events(id=args.id)  # type: ignore
-            print(resp)
-            return
+        if args.stream:
+            raise openai.error.OpenAIError(
+                message=(
+                    "The --stream parameter is deprecated, use fine_tunes.follow "
+                    "instead:\n\n"
+                    "  openai api fine_tunes.follow -i {id}\n".format(id=args.id)
+                ),
+            )
+
+        resp = openai.FineTune.list_events(id=args.id)  # type: ignore
+        print(resp)
+
+    @classmethod
+    def follow(cls, args):
         cls._stream_events(args.id)
 
     @classmethod
@@ -348,9 +358,11 @@ class FineTune:
         def signal_handler(sig, frame):
             status = openai.FineTune.retrieve(job_id).status
             sys.stdout.write(
-                "\nStream interrupted. Job is still {status}. "
+                "\nStream interrupted. Job is still {status}.\n"
+                "To resume the stream, run:\n\n"
+                "  openai api fine_tunes.follow -i {job_id}\n\n"
                 "To cancel your job, run:\n\n"
-                "openai api fine_tunes.cancel -i {job_id}\n".format(
+                "  openai api fine_tunes.cancel -i {job_id}\n\n".format(
                     status=status, job_id=job_id
                 )
             )
@@ -360,16 +372,24 @@ class FineTune:
 
         events = openai.FineTune.stream_events(job_id)
         # TODO(rachel): Add a nifty spinner here.
-        for event in events:
-            sys.stdout.write(
-                "[%s] %s"
-                % (
-                    datetime.datetime.fromtimestamp(event["created_at"]),
-                    event["message"],
+        try:
+            for event in events:
+                sys.stdout.write(
+                    "[%s] %s"
+                    % (
+                        datetime.datetime.fromtimestamp(event["created_at"]),
+                        event["message"],
+                    )
                 )
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+        except Exception:
+            sys.stdout.write(
+                "\nStream interrupted (client disconnected).\n"
+                "To resume the stream, run:\n\n"
+                "  openai api fine_tunes.follow -i {job_id}\n\n".format(job_id=job_id)
             )
-            sys.stdout.write("\n")
-            sys.stdout.flush()
+            return
 
         resp = openai.FineTune.retrieve(id=job_id)
         status = resp["status"]
@@ -680,9 +700,9 @@ Mutually exclusive with `top_p`.""",
         help="The model to start fine-tuning from",
     )
     sub.add_argument(
-        "--no_wait",
+        "--no_follow",
         action="store_true",
-        help="If set, returns immediately after creating the job. Otherwise, waits for the job to complete.",
+        help="If set, returns immediately after creating the job. Otherwise, streams events and waits for the job to complete.",
     )
     sub.add_argument(
         "--n_epochs",
@@ -766,14 +786,20 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+
+    # TODO(rachel): Remove this in 1.0
     sub.add_argument(
         "-s",
         "--stream",
         action="store_true",
-        help="If set, events will be streamed until the job is done. Otherwise, "
+        help="[DEPRECATED] If set, events will be streamed until the job is done. Otherwise, "
         "displays the event history to date.",
     )
     sub.set_defaults(func=FineTune.events)
+
+    sub = subparsers.add_parser("fine_tunes.follow")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTune.follow)
 
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
