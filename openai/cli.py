@@ -286,34 +286,26 @@ class FineTune:
             create_args["validation_file"] = cls._get_or_upload(
                 args.validation_file, args.check_if_files_exist
             )
-        if args.model:
-            create_args["model"] = args.model
-        if args.n_epochs:
-            create_args["n_epochs"] = args.n_epochs
-        if args.batch_size:
-            create_args["batch_size"] = args.batch_size
-        if args.learning_rate_multiplier:
-            create_args["learning_rate_multiplier"] = args.learning_rate_multiplier
-        create_args["use_packing"] = args.use_packing
-        if args.prompt_loss_weight:
-            create_args["prompt_loss_weight"] = args.prompt_loss_weight
-        if args.compute_classification_metrics:
-            create_args[
-                "compute_classification_metrics"
-            ] = args.compute_classification_metrics
-            if args.classification_n_classes:
-                create_args["classification_n_classes"] = args.classification_n_classes
-            if args.classification_positive_class:
-                create_args[
-                    "classification_positive_class"
-                ] = args.classification_positive_class
-            if args.classification_betas:
-                betas = [float(x) for x in args.classification_betas.split(",")]
-                create_args["classification_betas"] = betas
+
+        for hparam in (
+            "model",
+            "n_epochs",
+            "batch_size",
+            "learning_rate_multiplier",
+            "prompt_loss_weight",
+            "use_packing",
+            "compute_classification_metrics",
+            "classification_n_classes",
+            "classification_positive_class",
+            "classification_betas",
+        ):
+            attr = getattr(args, hparam)
+            if attr is not None:
+                create_args[hparam] = attr
 
         resp = openai.FineTune.create(**create_args)
 
-        if args.no_wait:
+        if args.no_follow:
             print(resp)
             return
 
@@ -345,10 +337,20 @@ class FineTune:
 
     @classmethod
     def events(cls, args):
-        if not args.stream:
-            resp = openai.FineTune.list_events(id=args.id)  # type: ignore
-            print(resp)
-            return
+        if args.stream:
+            raise openai.error.OpenAIError(
+                message=(
+                    "The --stream parameter is deprecated, use fine_tunes.follow "
+                    "instead:\n\n"
+                    "  openai api fine_tunes.follow -i {id}\n".format(id=args.id)
+                ),
+            )
+
+        resp = openai.FineTune.list_events(id=args.id)  # type: ignore
+        print(resp)
+
+    @classmethod
+    def follow(cls, args):
         cls._stream_events(args.id)
 
     @classmethod
@@ -356,9 +358,11 @@ class FineTune:
         def signal_handler(sig, frame):
             status = openai.FineTune.retrieve(job_id).status
             sys.stdout.write(
-                "\nStream interrupted. Job is still {status}. "
+                "\nStream interrupted. Job is still {status}.\n"
+                "To resume the stream, run:\n\n"
+                "  openai api fine_tunes.follow -i {job_id}\n\n"
                 "To cancel your job, run:\n\n"
-                "openai api fine_tunes.cancel -i {job_id}\n".format(
+                "  openai api fine_tunes.cancel -i {job_id}\n\n".format(
                     status=status, job_id=job_id
                 )
             )
@@ -368,16 +372,24 @@ class FineTune:
 
         events = openai.FineTune.stream_events(job_id)
         # TODO(rachel): Add a nifty spinner here.
-        for event in events:
-            sys.stdout.write(
-                "[%s] %s"
-                % (
-                    datetime.datetime.fromtimestamp(event["created_at"]),
-                    event["message"],
+        try:
+            for event in events:
+                sys.stdout.write(
+                    "[%s] %s"
+                    % (
+                        datetime.datetime.fromtimestamp(event["created_at"]),
+                        event["message"],
+                    )
                 )
+                sys.stdout.write("\n")
+                sys.stdout.flush()
+        except Exception:
+            sys.stdout.write(
+                "\nStream interrupted (client disconnected).\n"
+                "To resume the stream, run:\n\n"
+                "  openai api fine_tunes.follow -i {job_id}\n\n".format(job_id=job_id)
             )
-            sys.stdout.write("\n")
-            sys.stdout.flush()
+            return
 
         resp = openai.FineTune.retrieve(id=job_id)
         status = resp["status"]
@@ -688,9 +700,9 @@ Mutually exclusive with `top_p`.""",
         help="The model to start fine-tuning from",
     )
     sub.add_argument(
-        "--no_wait",
+        "--no_follow",
         action="store_true",
-        help="If set, returns immediately after creating the job. Otherwise, waits for the job to complete.",
+        help="If set, returns immediately after creating the job. Otherwise, streams events and waits for the job to complete.",
     )
     sub.add_argument(
         "--n_epochs",
@@ -727,7 +739,7 @@ Mutually exclusive with `top_p`.""",
         dest="use_packing",
         help="Disables the packing flag (see --use_packing for description)",
     )
-    sub.set_defaults(use_packing=True)
+    sub.set_defaults(use_packing=None)
     sub.add_argument(
         "--prompt_loss_weight",
         type=float,
@@ -741,6 +753,7 @@ Mutually exclusive with `top_p`.""",
         help="If set, we calculate classification-specific metrics such as accuracy "
         "and F-1 score using the validation set at the end of every epoch.",
     )
+    sub.set_defaults(compute_classification_metrics=None)
     sub.add_argument(
         "--classification_n_classes",
         type=int,
@@ -755,10 +768,11 @@ Mutually exclusive with `top_p`.""",
     )
     sub.add_argument(
         "--classification_betas",
+        type=float,
+        nargs="+",
         help="If this is provided, we calculate F-beta scores at the specified beta "
         "values. The F-beta score is a generalization of F-1 score. This is only "
-        "used for binary classification. The expected format is a comma-separated "
-        "list - e.g. 1,1.5,2",
+        "used for binary classification.",
     )
     sub.set_defaults(func=FineTune.create)
 
@@ -772,14 +786,20 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("fine_tunes.events")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+
+    # TODO(rachel): Remove this in 1.0
     sub.add_argument(
         "-s",
         "--stream",
         action="store_true",
-        help="If set, events will be streamed until the job is done. Otherwise, "
+        help="[DEPRECATED] If set, events will be streamed until the job is done. Otherwise, "
         "displays the event history to date.",
     )
     sub.set_defaults(func=FineTune.events)
+
+    sub = subparsers.add_parser("fine_tunes.follow")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTune.follow)
 
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")

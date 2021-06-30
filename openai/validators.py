@@ -326,7 +326,7 @@ def common_completion_suffix_validator(df):
     display_suggested_suffix = suggested_suffix.replace("\n", "\\n")
 
     ft_type = infer_task_type(df)
-    if ft_type == "open-ended generation":
+    if ft_type == "open-ended generation" or ft_type == "classification":
         return Remediation(name="common_suffix")
 
     def add_suffix(x, suffix):
