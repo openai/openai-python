@@ -286,30 +286,22 @@ class FineTune:
             create_args["validation_file"] = cls._get_or_upload(
                 args.validation_file, args.check_if_files_exist
             )
-        if args.model:
-            create_args["model"] = args.model
-        if args.n_epochs:
-            create_args["n_epochs"] = args.n_epochs
-        if args.batch_size:
-            create_args["batch_size"] = args.batch_size
-        if args.learning_rate_multiplier:
-            create_args["learning_rate_multiplier"] = args.learning_rate_multiplier
-        create_args["use_packing"] = args.use_packing
-        if args.prompt_loss_weight:
-            create_args["prompt_loss_weight"] = args.prompt_loss_weight
-        if args.compute_classification_metrics:
-            create_args[
-                "compute_classification_metrics"
-            ] = args.compute_classification_metrics
-            if args.classification_n_classes:
-                create_args["classification_n_classes"] = args.classification_n_classes
-            if args.classification_positive_class:
-                create_args[
-                    "classification_positive_class"
-                ] = args.classification_positive_class
-            if args.classification_betas:
-                betas = [float(x) for x in args.classification_betas.split(",")]
-                create_args["classification_betas"] = betas
+
+        for hparam in (
+            "model",
+            "n_epochs",
+            "batch_size",
+            "learning_rate_multiplier",
+            "prompt_loss_weight",
+            "use_packing",
+            "compute_classification_metrics",
+            "classification_n_classes",
+            "classification_positive_class",
+            "classification_betas",
+        ):
+            attr = getattr(args, hparam)
+            if attr is not None:
+                create_args[hparam] = attr
 
         resp = openai.FineTune.create(**create_args)
 
@@ -727,7 +719,7 @@ Mutually exclusive with `top_p`.""",
         dest="use_packing",
         help="Disables the packing flag (see --use_packing for description)",
     )
-    sub.set_defaults(use_packing=True)
+    sub.set_defaults(use_packing=None)
     sub.add_argument(
         "--prompt_loss_weight",
         type=float,
@@ -741,6 +733,7 @@ Mutually exclusive with `top_p`.""",
         help="If set, we calculate classification-specific metrics such as accuracy "
         "and F-1 score using the validation set at the end of every epoch.",
     )
+    sub.set_defaults(compute_classification_metrics=None)
     sub.add_argument(
         "--classification_n_classes",
         type=int,
@@ -755,10 +748,11 @@ Mutually exclusive with `top_p`.""",
     )
     sub.add_argument(
         "--classification_betas",
+        type=float,
+        nargs="+",
         help="If this is provided, we calculate F-beta scores at the specified beta "
         "values. The F-beta score is a generalization of F-1 score. This is only "
-        "used for binary classification. The expected format is a comma-separated "
-        "list - e.g. 1,1.5,2",
+        "used for binary classification.",
     )
     sub.set_defaults(func=FineTune.create)
 
