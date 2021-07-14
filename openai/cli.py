@@ -180,7 +180,7 @@ class Model:
     @classmethod
     def get(cls, args):
         resp = openai.Model.retrieve(
-            engine=args.engine, id=args.id, timeout=args.timeout
+            id=args.id,
         )
         print(resp)
 
