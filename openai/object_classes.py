@@ -8,5 +8,5 @@ OBJECT_CLASSES = {
     "experimental.completion_config": CompletionConfig,
     "file": api_resources.File,
     "fine-tune": api_resources.FineTune,
-    "snapshot": api_resources.Snapshot,
+    "model": api_resources.Model,
 }

@@ -33,7 +33,7 @@ from openai.api_resources import (  # noqa: E402,F401
     ErrorObject,
     File,
     FineTune,
-    Snapshot,
+    Model,
 )
 
 from openai.error import OpenAIError, APIError, InvalidRequestError  # noqa: E402,F401

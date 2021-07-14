@@ -307,7 +307,7 @@ class RequestsClient(HTTPClient):
 
     @staticmethod
     def _sanitized_url(url):
-        """ for now just strip all query params from the url for privacy"""
+        """for now just strip all query params from the url for privacy"""
         url = urlparse(url)
         return url.scheme + "://" + url.netloc + url.path
 

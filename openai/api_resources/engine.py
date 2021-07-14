@@ -26,7 +26,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                 if timeout is not None and time.time() > start + timeout:
                     raise
 
-                util.log_info("Waiting for snapshot to warm up", error=e)
+                util.log_info("Waiting for model to warm up", error=e)
 
     def search(self, **params):
         return self.request("post", self.instance_url() + "/search", params)
