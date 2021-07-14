@@ -4,6 +4,6 @@ from openai.api_resources.abstract import (
 )
 
 
-class Snapshot(ListableAPIResource, DeletableAPIResource):
+class Model(ListableAPIResource, DeletableAPIResource):
     engine_required = False
-    OBJECT_NAME = "snapshot"
+    OBJECT_NAME = "model"

@@ -176,23 +176,23 @@ class Completion:
                 sys.stdout.flush()
 
 
-class Snapshot:
+class Model:
     @classmethod
     def get(cls, args):
-        resp = openai.Snapshot.retrieve(
+        resp = openai.Model.retrieve(
             engine=args.engine, id=args.id, timeout=args.timeout
         )
         print(resp)
 
     @classmethod
     def delete(cls, args):
-        snapshot = openai.Snapshot(id=args.id).delete()
-        print(snapshot)
+        model = openai.Model(id=args.id).delete()
+        print(model)
 
     @classmethod
     def list(cls, args):
-        snapshots = openai.Snapshot.list()
-        print(snapshots)
+        models = openai.Model.list()
+        print(models)
 
 
 class File:
@@ -536,7 +536,7 @@ Mutually exclusive with `top_p`.""",
         "-m",
         "--model",
         required=False,
-        help="A model (most commonly a snapshot ID) to generate from. Defaults to the engine's default snapshot.",
+        help="A model (most commonly a model ID) to generate from. Defaults to the engine's default model.",
     )
     sub.set_defaults(func=Engine.generate)
 
@@ -621,24 +621,17 @@ Mutually exclusive with `top_p`.""",
     )
     sub.set_defaults(func=Completion.create)
 
-    # Snapshots
-    sub = subparsers.add_parser("snapshots.list")
-    sub.set_defaults(func=Snapshot.list)
+    # Models
+    sub = subparsers.add_parser("models.list")
+    sub.set_defaults(func=Model.list)
 
-    sub = subparsers.add_parser("snapshots.get")
-    sub.add_argument("-e", "--engine", help="The engine this snapshot is running on")
-    sub.add_argument("-i", "--id", required=True, help="The snapshot ID")
-    sub.add_argument(
-        "-t",
-        "--timeout",
-        help="An optional amount of time to block for the snapshot to transition from pending. If the timeout expires, a pending snapshot will be returned.",
-        type=float,
-    )
-    sub.set_defaults(func=Snapshot.get)
+    sub = subparsers.add_parser("models.get")
+    sub.add_argument("-i", "--id", required=True, help="The model ID")
+    sub.set_defaults(func=Model.get)
 
-    sub = subparsers.add_parser("snapshots.delete")
-    sub.add_argument("-i", "--id", required=True, help="The snapshot ID")
-    sub.set_defaults(func=Snapshot.delete)
+    sub = subparsers.add_parser("models.delete")
+    sub.add_argument("-i", "--id", required=True, help="The model ID")
+    sub.set_defaults(func=Model.delete)
 
     # Files
     sub = subparsers.add_parser("files.create")
