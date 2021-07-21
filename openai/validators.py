@@ -538,12 +538,43 @@ def apply_optional_remediation(df, remediation):
     """
     This function will apply an optional remediation to a dataframe, based on the user input.
     """
+    optional_applied = False
     if remediation.optional_msg is not None:
         if input(f"- [Recommended] {remediation.optional_msg} [Y/n]: ").lower() != "n":
             df = remediation.optional_fn(df)
+            optional_applied = True
     if remediation.necessary_msg is not None:
         sys.stdout.write(f"- [Necessary] {remediation.necessary_msg}\n")
-    return df
+    return df, optional_applied
+
+
+def estimate_fine_tuning_time(df):
+    """
+    Estimate the time it'll take to fine-tune the dataset
+    """
+    ft_format = infer_task_type(df)
+    expected_time = 1.0
+    if ft_format == "classification":
+        num_examples = len(df)
+        expected_time = num_examples * 0.004
+    else:
+        size = df.memory_usage(index=True).sum()
+        expected_time = size * 0.2 / (1024 ** 2)
+
+    def format_time(time):
+        if time < 60:
+            return f"{round(time, 2)} seconds"
+        elif time < 3600:
+            return f"{round(time / 60, 2)} minutes"
+        elif time < 86400:
+            return f"{round(time / 3600, 2)} hours"
+        else:
+            return f"{round(time / 86400, 2)} days"
+
+    time_string = format_time(expected_time * 3600 + 140)
+    sys.stdout.write(
+        f"Once your model starts training, it'll approximately take {time_string}. Queue will approximately take half an hour per job ahead of you.\n"
+    )
 
 
 def write_out_file(df, fname, any_remediations):
@@ -580,6 +611,7 @@ def write_out_file(df, fname, any_remediations):
         sys.stdout.write(
             f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{packing_param}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
+        estimate_fine_tuning_time(df)
 
     elif (
         input(
@@ -623,7 +655,7 @@ def write_out_file(df, fname, any_remediations):
             if suffix == "":
                 df_out = df
             df_out[["prompt", "completion"]].to_json(
-                out_fname, lines=True, orient="records"
+                out_fname, lines=True, orient="records", force_ascii=False
             )
 
         # Add -v VALID_FILE if we split the file into train / valid
@@ -637,6 +669,7 @@ def write_out_file(df, fname, any_remediations):
         sys.stdout.write(
             f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{outfnames[0]}"{valid_string}{packing_param}\n\n{separator_reminder}{optional_ending_string}\n'
         )
+        estimate_fine_tuning_time(df)
     else:
         sys.stdout.write("Aborting... did not write the file\n")
 

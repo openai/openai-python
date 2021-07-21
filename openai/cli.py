@@ -322,7 +322,6 @@ class FineTune:
     def get(cls, args):
         resp = openai.FineTune.retrieve(id=args.id)
         print(resp)
-        print(resp["result_files"][0])
 
     @classmethod
     def results(cls, args):
@@ -439,18 +438,30 @@ class FineTune:
                 or remediation.necessary_msg is not None
             ]
         )
+        any_necessary_applied = any(
+            [
+                remediation
+                for remediation in optional_remediations
+                if remediation.necessary_msg is not None
+            ]
+        )
+        any_optional_applied = False
 
         if any_optional_or_necessary_remediations:
             sys.stdout.write(
                 "\n\nBased on the analysis we will perform the following actions:\n"
             )
-
             for remediation in optional_remediations:
-                df = apply_optional_remediation(df, remediation)
+                df, optional_applied = apply_optional_remediation(df, remediation)
+                any_optional_applied = any_optional_applied or optional_applied
         else:
             sys.stdout.write("\n\nNo remediations found.\n")
 
-        write_out_file(df, fname, any_optional_or_necessary_remediations)
+        any_optional_or_necessary_applied = (
+            any_optional_applied or any_necessary_applied
+        )
+
+        write_out_file(df, fname, any_optional_or_necessary_applied)
 
 
 def tools_register(parser):
