@@ -534,13 +534,22 @@ def apply_necessary_remediation(df, remediation):
     return df
 
 
-def apply_optional_remediation(df, remediation):
+def accept_suggestion(input_text, auto_accept):
+    sys.stdout.write(input_text)
+    if auto_accept:
+        sys.stdout.write("Y")
+        return True
+    return input().lower() != "n"
+
+
+def apply_optional_remediation(df, remediation, auto_accept):
     """
     This function will apply an optional remediation to a dataframe, based on the user input.
     """
     optional_applied = False
+    input_text = f"- [Recommended] {remediation.optional_msg} [Y/n]: "
     if remediation.optional_msg is not None:
-        if input(f"- [Recommended] {remediation.optional_msg} [Y/n]: ").lower() != "n":
+        if accept_suggestion(input_text, auto_accept):
             df = remediation.optional_fn(df)
             optional_applied = True
     if remediation.necessary_msg is not None:
@@ -556,7 +565,7 @@ def estimate_fine_tuning_time(df):
     expected_time = 1.0
     if ft_format == "classification":
         num_examples = len(df)
-        expected_time = num_examples * 0.004
+        expected_time = num_examples * 0.0004
     else:
         size = df.memory_usage(index=True).sum()
         expected_time = size * 0.2 / (1024 ** 2)
@@ -577,7 +586,21 @@ def estimate_fine_tuning_time(df):
     )
 
 
-def write_out_file(df, fname, any_remediations):
+def get_outfnames(fname, split):
+    suffixes = ["_train", "_valid"] if split else [""]
+    i = 0
+    while True:
+        index_suffix = f" ({i})" if i > 0 else ""
+        candidate_fnames = [
+            fname.split(".")[0] + "_prepared" + suffix + index_suffix + ".jsonl"
+            for suffix in suffixes
+        ]
+        if not any(os.path.isfile(f) for f in candidate_fnames):
+            return candidate_fnames
+        i += 1
+
+
+def write_out_file(df, fname, any_remediations, auto_accept):
     """
     This function will write out a dataframe to a file, if the user would like to proceed, and also offer a fine-tuning command with the newly created file.
     For classification it will optionally ask the user if they would like to split the data into train/valid files, and modify the suggested command to include the valid set.
@@ -587,13 +610,9 @@ def write_out_file(df, fname, any_remediations):
     common_completion_suffix = get_common_xfix(df.completion, xfix="suffix")
 
     split = False
+    input_text = "- [Recommended] Would you like to split into training and validation set? [Y/n]: "
     if ft_format == "classification":
-        if (
-            input(
-                "- [Recommended] Would you like to split into training and validation set? [Y/n]: "
-            )
-            != "n"
-        ):
+        if accept_suggestion(input_text, auto_accept):
             split = True
 
     packing_param = " --no_packing" if ft_format == "classification" else ""
@@ -607,67 +626,44 @@ def write_out_file(df, fname, any_remediations):
         else ""
     )
 
+    input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
+
     if not any_remediations:
         sys.stdout.write(
             f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{packing_param}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
         estimate_fine_tuning_time(df)
 
-    elif (
-        input(
-            "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
-        ).lower()
-        != "n"
-    ):
-
-        suffixes = ["_train", "_valid"] if split else [""]
-        outfnames = []
-        indices = None
-        for suffix in suffixes:
-            out_fname = fname.split(".")[0] + "_prepared" + suffix + ".jsonl"
-
-            # check if file already exists, and if it does, add a number to the end
-            i = 0
-            while True:
-                to_continue = False
-                # in case of train and test, make sure that the numbers will match
-                for suf in suffixes:
-                    out_fname = (
-                        fname.split(".")[0] + "_prepared" + suf + f" ({i})" + ".jsonl"
-                    )
-                    if i == 0:
-                        out_fname = fname.split(".")[0] + "_prepared" + suf + ".jsonl"
-                    i += 1
-                    if os.path.isfile(out_fname):
-                        to_continue = True
-                if to_continue:
-                    continue
-                break
-
-            outfnames.append(out_fname)
-            if suffix == "_train":
-                MAX_VALID_EXAMPLES = 1000
-                n = max(len(df) - MAX_VALID_EXAMPLES, int(len(df) * 0.8))
-                df_out = df.sample(n=n, random_state=42)
-                indices = df_out.index
-            if suffix == "_valid":
-                df_out = df.drop(indices)
-            if suffix == "":
-                df_out = df
-            df_out[["prompt", "completion"]].to_json(
-                out_fname, lines=True, orient="records", force_ascii=False
+    elif accept_suggestion(input_text, auto_accept):
+        fnames = get_outfnames(fname, split)
+        if split:
+            assert len(fnames) == 2 and "train" in fnames[0] and "valid" in fnames[1]
+            MAX_VALID_EXAMPLES = 1000
+            n_train = max(len(df) - MAX_VALID_EXAMPLES, int(len(df) * 0.8))
+            df_train = df.sample(n=n_train, random_state=42)
+            df_valid = df.drop(df_train.index)
+            df_train[["prompt", "completion"]].to_json(
+                fnames[0], lines=True, orient="records", force_ascii=False
+            )
+            df_valid[["prompt", "completion"]].to_json(
+                fnames[1], lines=True, orient="records", force_ascii=False
+            )
+        else:
+            assert len(fnames) == 1
+            df[["prompt", "completion"]].to_json(
+                fnames[0], lines=True, orient="records", force_ascii=False
             )
 
         # Add -v VALID_FILE if we split the file into train / valid
-        files_string = ("s" if split else "") + " to `" + ("` and `".join(outfnames))
-        valid_string = f' -v "{outfnames[1]}"' if split else ""
+        files_string = ("s" if split else "") + " to `" + ("` and `".join(fnames))
+        valid_string = f' -v "{fnames[1]}"' if split else ""
         separator_reminder = (
             ""
             if len(common_prompt_suffix_new_line_handled) == 0
             else f"After you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt."
         )
         sys.stdout.write(
-            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{outfnames[0]}"{valid_string}{packing_param}\n\n{separator_reminder}{optional_ending_string}\n'
+            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{packing_param}\n\n{separator_reminder}{optional_ending_string}\n'
         )
         estimate_fine_tuning_time(df)
     else:
