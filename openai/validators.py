@@ -582,7 +582,7 @@ def estimate_fine_tuning_time(df):
 
     time_string = format_time(expected_time * 3600 + 140)
     sys.stdout.write(
-        f"Once your model starts training, it'll approximately take {time_string}. Queue will approximately take half an hour per job ahead of you.\n"
+        f"Once your model starts training, it'll approximately take {time_string} to train a `curie` model, and less for `ada` and `babbage`. Queue will approximately take half an hour per job ahead of you.\n"
     )
 
 
