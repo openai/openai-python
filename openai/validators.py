@@ -153,6 +153,36 @@ def duplicated_rows_validator(df):
     )
 
 
+def long_examples_validator(df):
+    """
+    This validator will suggest to the user to remove examples that are too long.
+    """
+    immediate_msg = None
+    optional_msg = None
+    optional_fn = None
+
+    ft_type = infer_task_type(df)
+    if ft_type != "open-ended generation":
+        long_examples = df.apply(
+            lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
+        )
+        long_indexes = df.reset_index().index[long_examples].tolist()
+
+        if len(long_indexes) > 0:
+            immediate_msg = f"\n- There are {len(long_indexes)} examples that are very long. These are rows: {long_indexes}\nFor conditional generation, and for classification the examples shouldn't be longer than 2048 tokens."
+            optional_msg = f"Remove {len(long_indexes)} long examples"
+
+            def optional_fn(x):
+                return x.drop(long_indexes)
+
+    return Remediation(
+        name="long_examples",
+        immediate_msg=immediate_msg,
+        optional_msg=optional_msg,
+        optional_fn=optional_fn,
+    )
+
+
 def common_prompt_suffix_validator(df):
     """
     This validator will suggest to add a common suffix to the prompt if one doesn't already exist in case of classification or conditional generation.
@@ -565,10 +595,10 @@ def estimate_fine_tuning_time(df):
     expected_time = 1.0
     if ft_format == "classification":
         num_examples = len(df)
-        expected_time = num_examples * 0.0004
+        expected_time = num_examples * 1.44
     else:
         size = df.memory_usage(index=True).sum()
-        expected_time = size * 0.2 / (1024 ** 2)
+        expected_time = size * 0.0515
 
     def format_time(time):
         if time < 60:
@@ -580,7 +610,7 @@ def estimate_fine_tuning_time(df):
         else:
             return f"{round(time / 86400, 2)} days"
 
-    time_string = format_time(expected_time * 3600 + 140)
+    time_string = format_time(expected_time + 140)
     sys.stdout.write(
         f"Once your model starts training, it'll approximately take {time_string} to train a `curie` model, and less for `ada` and `babbage`. Queue will approximately take half an hour per job ahead of you.\n"
     )
@@ -600,6 +630,14 @@ def get_outfnames(fname, split):
         i += 1
 
 
+def get_classification_hyperparams(df):
+    n_classes = df.completion.nunique()
+    pos_class = None
+    if n_classes == 2:
+        pos_class = df.completion.value_counts().index[0]
+    return n_classes, pos_class
+
+
 def write_out_file(df, fname, any_remediations, auto_accept):
     """
     This function will write out a dataframe to a file, if the user would like to proceed, and also offer a fine-tuning command with the newly created file.
@@ -615,7 +653,11 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         if accept_suggestion(input_text, auto_accept):
             split = True
 
-    packing_param = " --no_packing" if ft_format == "classification" else ""
+    classification_params = ""
+    if ft_format == "classification" or (
+        ft_format == "conditional generation" and len(df) < 1000
+    ):
+        classification_params = " --no_packing"
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace(
         "\n", "\\n"
@@ -630,7 +672,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
 
     if not any_remediations:
         sys.stdout.write(
-            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{packing_param}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
+            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{classification_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
         estimate_fine_tuning_time(df)
 
@@ -648,6 +690,15 @@ def write_out_file(df, fname, any_remediations, auto_accept):
             df_valid[["prompt", "completion"]].to_json(
                 fnames[1], lines=True, orient="records", force_ascii=False
             )
+
+            n_classes, pos_class = get_classification_hyperparams(df)
+            classification_params += " --compute_classification_metrics"
+            if n_classes == 2:
+                classification_params += (
+                    f' --classification_positive_class "{pos_class}"'
+                )
+            else:
+                classification_params += f" --classification_n_classes {n_classes}"
         else:
             assert len(fnames) == 1
             df[["prompt", "completion"]].to_json(
@@ -663,7 +714,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
             else f"After you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt."
         )
         sys.stdout.write(
-            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{packing_param}\n\n{separator_reminder}{optional_ending_string}\n'
+            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{classification_params}\n\n{separator_reminder}{optional_ending_string}\n'
         )
         estimate_fine_tuning_time(df)
     else:
@@ -717,6 +768,7 @@ def get_validators():
         non_empty_completion_validator,
         format_inferrer_validator,
         duplicated_rows_validator,
+        long_examples_validator,
         lambda x: lower_case_validator(x, "prompt"),
         lambda x: lower_case_validator(x, "completion"),
         common_prompt_suffix_validator,
