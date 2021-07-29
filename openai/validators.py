@@ -153,6 +153,36 @@ def duplicated_rows_validator(df):
     )
 
 
+def long_examples_validator(df):
+    """
+    This validator will suggest to the user to remove examples that are too long.
+    """
+    immediate_msg = None
+    optional_msg = None
+    optional_fn = None
+
+    ft_type = infer_task_type(df)
+    if ft_type != "open-ended generation":
+        long_examples = df.apply(
+            lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
+        )
+        long_indexes = df.reset_index().index[long_examples].tolist()
+
+        if len(long_indexes) > 0:
+            immediate_msg = f"\n- There are {len(long_indexes)} examples that are very long. These are rows: {long_indexes}\nFor conditional generation, and for classification the examples shouldn't be longer than 2048 tokens."
+            optional_msg = f"Remove {len(long_indexes)} long examples"
+
+            def optional_fn(x):
+                return x.drop(long_indexes)
+
+    return Remediation(
+        name="long_examples",
+        immediate_msg=immediate_msg,
+        optional_msg=optional_msg,
+        optional_fn=optional_fn,
+    )
+
+
 def common_prompt_suffix_validator(df):
     """
     This validator will suggest to add a common suffix to the prompt if one doesn't already exist in case of classification or conditional generation.
@@ -210,7 +240,7 @@ def common_prompt_suffix_validator(df):
             immediate_msg += f"\n  WARNING: Some of your prompts contain the suffix `{common_suffix}` more than once. We strongly suggest that you review your prompts and add a unique suffix"
 
     else:
-        immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See `Fine Tuning How to Guide` for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
+        immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
 
     if common_suffix == "":
         optional_msg = (
@@ -361,7 +391,7 @@ def common_completion_suffix_validator(df):
             immediate_msg += f"\n  WARNING: Some of your completions contain the suffix `{common_suffix}` more than once. We suggest that you review your completions and add a unique ending"
 
     else:
-        immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See `Fine Tuning How to Guide` for more detail and examples."
+        immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples."
 
     if common_suffix == "":
         optional_msg = (
@@ -396,7 +426,7 @@ def completions_space_start_validator(df):
     immediate_msg = None
 
     if df.completion.str[:1].nunique() != 1 or df.completion.values[0][0] != " ":
-        immediate_msg = "\n- The completion should start with a whitespace character (` `). This tends to produce better results due to the tokenization we use. See `Fine Tuning How to Guide` for more details"
+        immediate_msg = "\n- The completion should start with a whitespace character (` `). This tends to produce better results due to the tokenization we use. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more details"
         optional_msg = "Add a whitespace character to the beginning of the completion"
         optional_fn = add_space_start
     return Remediation(
@@ -430,7 +460,7 @@ def lower_case_validator(df, column):
     if count_upper * 2 > count_lower:
         return Remediation(
             name="lower_case",
-            immediate_msg=f"\n- More than a third of your `{column}` column/key is uppercase. Uppercase {column}s tends to perform worse than a mixture of case encountered in normal language. We recommend to lower case the data if that makes sense in your domain. See `Fine Tuning How to Guide` for more details",
+            immediate_msg=f"\n- More than a third of your `{column}` column/key is uppercase. Uppercase {column}s tends to perform worse than a mixture of case encountered in normal language. We recommend to lower case the data if that makes sense in your domain. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more details",
             optional_msg=f"Lowercase all your data in column/key `{column}`",
             optional_fn=lower_case,
         )
@@ -534,19 +564,81 @@ def apply_necessary_remediation(df, remediation):
     return df
 
 
-def apply_optional_remediation(df, remediation):
+def accept_suggestion(input_text, auto_accept):
+    sys.stdout.write(input_text)
+    if auto_accept:
+        sys.stdout.write("Y")
+        return True
+    return input().lower() != "n"
+
+
+def apply_optional_remediation(df, remediation, auto_accept):
     """
     This function will apply an optional remediation to a dataframe, based on the user input.
     """
+    optional_applied = False
+    input_text = f"- [Recommended] {remediation.optional_msg} [Y/n]: "
     if remediation.optional_msg is not None:
-        if input(f"- [Recommended] {remediation.optional_msg} [Y/n]: ").lower() != "n":
+        if accept_suggestion(input_text, auto_accept):
             df = remediation.optional_fn(df)
+            optional_applied = True
     if remediation.necessary_msg is not None:
         sys.stdout.write(f"- [Necessary] {remediation.necessary_msg}\n")
-    return df
+    return df, optional_applied
 
 
-def write_out_file(df, fname, any_remediations):
+def estimate_fine_tuning_time(df):
+    """
+    Estimate the time it'll take to fine-tune the dataset
+    """
+    ft_format = infer_task_type(df)
+    expected_time = 1.0
+    if ft_format == "classification":
+        num_examples = len(df)
+        expected_time = num_examples * 1.44
+    else:
+        size = df.memory_usage(index=True).sum()
+        expected_time = size * 0.0515
+
+    def format_time(time):
+        if time < 60:
+            return f"{round(time, 2)} seconds"
+        elif time < 3600:
+            return f"{round(time / 60, 2)} minutes"
+        elif time < 86400:
+            return f"{round(time / 3600, 2)} hours"
+        else:
+            return f"{round(time / 86400, 2)} days"
+
+    time_string = format_time(expected_time + 140)
+    sys.stdout.write(
+        f"Once your model starts training, it'll approximately take {time_string} to train a `curie` model, and less for `ada` and `babbage`. Queue will approximately take half an hour per job ahead of you.\n"
+    )
+
+
+def get_outfnames(fname, split):
+    suffixes = ["_train", "_valid"] if split else [""]
+    i = 0
+    while True:
+        index_suffix = f" ({i})" if i > 0 else ""
+        candidate_fnames = [
+            fname.split(".")[0] + "_prepared" + suffix + index_suffix + ".jsonl"
+            for suffix in suffixes
+        ]
+        if not any(os.path.isfile(f) for f in candidate_fnames):
+            return candidate_fnames
+        i += 1
+
+
+def get_classification_hyperparams(df):
+    n_classes = df.completion.nunique()
+    pos_class = None
+    if n_classes == 2:
+        pos_class = df.completion.value_counts().index[0]
+    return n_classes, pos_class
+
+
+def write_out_file(df, fname, any_remediations, auto_accept):
     """
     This function will write out a dataframe to a file, if the user would like to proceed, and also offer a fine-tuning command with the newly created file.
     For classification it will optionally ask the user if they would like to split the data into train/valid files, and modify the suggested command to include the valid set.
@@ -556,16 +648,16 @@ def write_out_file(df, fname, any_remediations):
     common_completion_suffix = get_common_xfix(df.completion, xfix="suffix")
 
     split = False
+    input_text = "- [Recommended] Would you like to split into training and validation set? [Y/n]: "
     if ft_format == "classification":
-        if (
-            input(
-                "- [Recommended] Would you like to split into training and validation set? [Y/n]: "
-            )
-            != "n"
-        ):
+        if accept_suggestion(input_text, auto_accept):
             split = True
 
-    packing_param = " --no_packing" if ft_format == "classification" else ""
+    classification_params = ""
+    if ft_format == "classification" or (
+        ft_format == "conditional generation" and len(df) < 1000
+    ):
+        classification_params = " --no_packing"
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace(
         "\n", "\\n"
@@ -576,67 +668,55 @@ def write_out_file(df, fname, any_remediations):
         else ""
     )
 
+    input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
+
     if not any_remediations:
         sys.stdout.write(
-            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{packing_param}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
+            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{classification_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
+        estimate_fine_tuning_time(df)
 
-    elif (
-        input(
-            "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
-        ).lower()
-        != "n"
-    ):
+    elif accept_suggestion(input_text, auto_accept):
+        fnames = get_outfnames(fname, split)
+        if split:
+            assert len(fnames) == 2 and "train" in fnames[0] and "valid" in fnames[1]
+            MAX_VALID_EXAMPLES = 1000
+            n_train = max(len(df) - MAX_VALID_EXAMPLES, int(len(df) * 0.8))
+            df_train = df.sample(n=n_train, random_state=42)
+            df_valid = df.drop(df_train.index)
+            df_train[["prompt", "completion"]].to_json(
+                fnames[0], lines=True, orient="records", force_ascii=False
+            )
+            df_valid[["prompt", "completion"]].to_json(
+                fnames[1], lines=True, orient="records", force_ascii=False
+            )
 
-        suffixes = ["_train", "_valid"] if split else [""]
-        outfnames = []
-        indices = None
-        for suffix in suffixes:
-            out_fname = fname.split(".")[0] + "_prepared" + suffix + ".jsonl"
-
-            # check if file already exists, and if it does, add a number to the end
-            i = 0
-            while True:
-                to_continue = False
-                # in case of train and test, make sure that the numbers will match
-                for suf in suffixes:
-                    out_fname = (
-                        fname.split(".")[0] + "_prepared" + suf + f" ({i})" + ".jsonl"
-                    )
-                    if i == 0:
-                        out_fname = fname.split(".")[0] + "_prepared" + suf + ".jsonl"
-                    i += 1
-                    if os.path.isfile(out_fname):
-                        to_continue = True
-                if to_continue:
-                    continue
-                break
-
-            outfnames.append(out_fname)
-            if suffix == "_train":
-                MAX_VALID_EXAMPLES = 1000
-                n = max(len(df) - MAX_VALID_EXAMPLES, int(len(df) * 0.8))
-                df_out = df.sample(n=n, random_state=42)
-                indices = df_out.index
-            if suffix == "_valid":
-                df_out = df.drop(indices)
-            if suffix == "":
-                df_out = df
-            df_out[["prompt", "completion"]].to_json(
-                out_fname, lines=True, orient="records"
+            n_classes, pos_class = get_classification_hyperparams(df)
+            classification_params += " --compute_classification_metrics"
+            if n_classes == 2:
+                classification_params += (
+                    f' --classification_positive_class "{pos_class}"'
+                )
+            else:
+                classification_params += f" --classification_n_classes {n_classes}"
+        else:
+            assert len(fnames) == 1
+            df[["prompt", "completion"]].to_json(
+                fnames[0], lines=True, orient="records", force_ascii=False
             )
 
         # Add -v VALID_FILE if we split the file into train / valid
-        files_string = ("s" if split else "") + " to `" + ("` and `".join(outfnames))
-        valid_string = f' -v "{outfnames[1]}"' if split else ""
+        files_string = ("s" if split else "") + " to `" + ("` and `".join(fnames))
+        valid_string = f' -v "{fnames[1]}"' if split else ""
         separator_reminder = (
             ""
             if len(common_prompt_suffix_new_line_handled) == 0
             else f"After you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt."
         )
         sys.stdout.write(
-            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{outfnames[0]}"{valid_string}{packing_param}\n\n{separator_reminder}{optional_ending_string}\n'
+            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{classification_params}\n\n{separator_reminder}{optional_ending_string}\n'
         )
+        estimate_fine_tuning_time(df)
     else:
         sys.stdout.write("Aborting... did not write the file\n")
 
@@ -688,6 +768,7 @@ def get_validators():
         non_empty_completion_validator,
         format_inferrer_validator,
         duplicated_rows_validator,
+        long_examples_validator,
         lambda x: lower_case_validator(x, "prompt"),
         lambda x: lower_case_validator(x, "completion"),
         common_prompt_suffix_validator,

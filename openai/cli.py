@@ -322,7 +322,6 @@ class FineTune:
     def get(cls, args):
         resp = openai.FineTune.retrieve(id=args.id)
         print(resp)
-        print(resp["result_files"][0])
 
     @classmethod
     def results(cls, args):
@@ -417,6 +416,7 @@ class FineTune:
 
         sys.stdout.write("Analyzing...\n")
         fname = args.file
+        auto_accept = args.quiet
         df, remediation = read_any_format(fname)
         apply_necessary_remediation(None, remediation)
 
@@ -439,18 +439,32 @@ class FineTune:
                 or remediation.necessary_msg is not None
             ]
         )
+        any_necessary_applied = any(
+            [
+                remediation
+                for remediation in optional_remediations
+                if remediation.necessary_msg is not None
+            ]
+        )
+        any_optional_applied = False
 
         if any_optional_or_necessary_remediations:
             sys.stdout.write(
                 "\n\nBased on the analysis we will perform the following actions:\n"
             )
-
             for remediation in optional_remediations:
-                df = apply_optional_remediation(df, remediation)
+                df, optional_applied = apply_optional_remediation(
+                    df, remediation, auto_accept
+                )
+                any_optional_applied = any_optional_applied or optional_applied
         else:
             sys.stdout.write("\n\nNo remediations found.\n")
 
-        write_out_file(df, fname, any_optional_or_necessary_remediations)
+        any_optional_or_necessary_applied = (
+            any_optional_applied or any_necessary_applied
+        )
+
+        write_out_file(df, fname, any_optional_or_necessary_applied, auto_accept)
 
 
 def tools_register(parser):
@@ -470,6 +484,13 @@ def tools_register(parser):
         required=True,
         help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing prompt-completion examples to be analyzed."
         "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
     )
     sub.set_defaults(func=FineTune.prepare_data)
 
