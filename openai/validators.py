@@ -567,7 +567,7 @@ def apply_necessary_remediation(df, remediation):
 def accept_suggestion(input_text, auto_accept):
     sys.stdout.write(input_text)
     if auto_accept:
-        sys.stdout.write("Y")
+        sys.stdout.write("Y\n")
         return True
     return input().lower() != "n"
 
