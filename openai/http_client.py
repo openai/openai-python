@@ -5,9 +5,9 @@ import textwrap
 import threading
 import time
 from typing import Any, Dict
+from urllib.parse import urlparse
 
 import requests
-from urllib.parse import urlparse
 
 import openai
 from openai import error, util
@@ -265,7 +265,12 @@ class RequestsClient(HTTPClient):
             err = "%s: %s" % (type(e).__name__, str(e))
         # Retry only timeout and connect errors; similar to urllib3 Retry
         elif isinstance(
-            e, (requests.exceptions.Timeout, requests.exceptions.ConnectionError)
+            e,
+            (
+                requests.exceptions.Timeout,
+                requests.exceptions.ConnectionError,
+                requests.exceptions.ChunkedEncodingError,
+            ),
         ):
             msg = (
                 "Unexpected error communicating with OpenAI.  "

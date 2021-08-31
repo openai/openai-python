@@ -201,6 +201,7 @@ class File:
         resp = openai.File.create(
             file=open(args.file),
             purpose=args.purpose,
+            model=args.model,
         )
         print(resp)
 
@@ -668,6 +669,11 @@ Mutually exclusive with `top_p`.""",
         "--purpose",
         help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
         required=True,
+    )
+    sub.add_argument(
+        "-m",
+        "--model",
+        help="Model for search indexing (e.g. 'ada'). Only meaningful if --purpose is 'search'.",
     )
     sub.set_defaults(func=File.create)
 

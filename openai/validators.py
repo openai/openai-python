@@ -1,6 +1,7 @@
 import os
 import sys
 import pandas as pd
+import numpy as np
 
 from typing import NamedTuple, Optional, Callable, Any
 
@@ -567,7 +568,7 @@ def apply_necessary_remediation(df, remediation):
 def accept_suggestion(input_text, auto_accept):
     sys.stdout.write(input_text)
     if auto_accept:
-        sys.stdout.write("Y")
+        sys.stdout.write("Y\n")
         return True
     return input().lower() != "n"
 
@@ -638,6 +639,26 @@ def get_classification_hyperparams(df):
     return n_classes, pos_class
 
 
+def get_batch_size_suggestion(df, no_packing):
+    """
+    Suggest the batch size based on the number of examples after packing optionally is applied.
+    """
+    n_examples, n_characters = (
+        len(df),
+        df.completion.str.len().sum() + df.prompt.str.len().sum(),
+    )
+    BATCH_SIZE_TO_N_EXAMPLES_RATIO = 0.002
+    BATCH_SIZE_TO_N_CHARACTERS_RATIO = BATCH_SIZE_TO_N_EXAMPLES_RATIO / 10_000
+
+    if no_packing:
+        batch_size = BATCH_SIZE_TO_N_EXAMPLES_RATIO * n_examples
+    else:
+        batch_size = BATCH_SIZE_TO_N_CHARACTERS_RATIO * n_characters
+    batch_size = 2 ** int(np.log2(batch_size))
+    batch_size_suggestion = f" --batch_size {batch_size}"
+    return batch_size_suggestion
+
+
 def write_out_file(df, fname, any_remediations, auto_accept):
     """
     This function will write out a dataframe to a file, if the user would like to proceed, and also offer a fine-tuning command with the newly created file.
@@ -653,11 +674,14 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         if accept_suggestion(input_text, auto_accept):
             split = True
 
-    classification_params = ""
-    if ft_format == "classification" or (
+    no_packing = ft_format == "classification" or (
         ft_format == "conditional generation" and len(df) < 1000
-    ):
-        classification_params = " --no_packing"
+    )
+    additional_params = ""
+    if no_packing:
+        additional_params = " --no_packing"
+    additional_params += get_batch_size_suggestion(df, no_packing)
+
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace(
         "\n", "\\n"
@@ -672,7 +696,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
 
     if not any_remediations:
         sys.stdout.write(
-            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{classification_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
+            f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{additional_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
         estimate_fine_tuning_time(df)
 
@@ -692,13 +716,11 @@ def write_out_file(df, fname, any_remediations, auto_accept):
             )
 
             n_classes, pos_class = get_classification_hyperparams(df)
-            classification_params += " --compute_classification_metrics"
+            additional_params += " --compute_classification_metrics"
             if n_classes == 2:
-                classification_params += (
-                    f' --classification_positive_class "{pos_class}"'
-                )
+                additional_params += f' --classification_positive_class "{pos_class}"'
             else:
-                classification_params += f" --classification_n_classes {n_classes}"
+                additional_params += f" --classification_n_classes {n_classes}"
         else:
             assert len(fnames) == 1
             df[["prompt", "completion"]].to_json(
@@ -714,7 +736,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
             else f"After you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt."
         )
         sys.stdout.write(
-            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{classification_params}\n\n{separator_reminder}{optional_ending_string}\n'
+            f'\nWrote modified file{files_string}`\nFeel free to take a look!\n\nNow use that file when fine-tuning:\n> openai api fine_tunes.create -t "{fnames[0]}"{valid_string}{additional_params}\n\n{separator_reminder}{optional_ending_string}\n'
         )
         estimate_fine_tuning_time(df)
     else:
