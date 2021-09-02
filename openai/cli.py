@@ -3,15 +3,15 @@ import os
 import signal
 import sys
 import warnings
-from openai.validators import (
-    write_out_file,
-    apply_necessary_remediation,
-    apply_optional_remediation,
-    read_any_format,
-    get_validators,
-)
 
 import openai
+from openai.validators import (
+    apply_necessary_remediation,
+    apply_optional_remediation,
+    get_validators,
+    read_any_format,
+    write_out_file,
+)
 
 
 class bcolors:
@@ -219,6 +219,17 @@ class File:
     def list(cls, args):
         file = openai.File.list()
         print(file)
+
+
+class Search:
+    @classmethod
+    def create_alpha(cls, args):
+        resp = openai.Search.create_alpha(
+            query=[args.query],
+            max_documents=args.max_documents,
+            file_id=args.file,
+        )
+        print(resp)
 
 
 class FineTune:
@@ -687,6 +698,29 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("files.list")
     sub.set_defaults(func=File.list)
+
+    # Search
+    sub = subparsers.add_parser("search.create_alpha")
+
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="ID for previously uploaded file that contains the documents you want to search",
+    )
+    sub.add_argument(
+        "-m",
+        "--max_documents",
+        help="The maximum number of documents to return",
+        type=int,
+        default=200,
+    )
+    sub.add_argument(
+        "-q",
+        "--query",
+        help="Search query",
+    )
+    sub.set_defaults(func=Search.create_alpha)
 
     # Finetune
     sub = subparsers.add_parser("fine_tunes.list")
