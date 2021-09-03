@@ -725,6 +725,7 @@ Mutually exclusive with `top_p`.""",
     sub.add_argument(
         "-q",
         "--query",
+        required=True,
         help="Search query",
     )
     sub.set_defaults(func=Search.create_alpha)
