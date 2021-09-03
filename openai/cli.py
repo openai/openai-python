@@ -102,7 +102,6 @@ class Engine:
 
     @classmethod
     def search(cls, args):
-        # Will soon be deprecated and replaced by a Search.create
         params = {
             "query": args.query,
             "max_rerank": args.max_rerank,
@@ -112,6 +111,9 @@ class Engine:
             params["documents"] = args.documents
         if args.file:
             params["file"] = args.file
+
+        if args.version:
+            params["version"] = args.version
 
         resp = openai.Engine(id=args.id).search(**params)
         scores = [
@@ -600,6 +602,11 @@ Mutually exclusive with `top_p`.""",
         type=bool,
         default=False,
     )
+    sub.add_argument(
+        "--version",
+        help="The version of the search routing to use",
+    )
+
     sub.add_argument("-q", "--query", required=True, help="Search query")
     sub.set_defaults(func=Engine.search)
 
