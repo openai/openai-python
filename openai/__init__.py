@@ -34,6 +34,6 @@ from openai.api_resources import (  # noqa: E402,F401
     File,
     FineTune,
     Model,
+    Search,
 )
-
-from openai.error import OpenAIError, APIError, InvalidRequestError  # noqa: E402,F401
+from openai.error import APIError, InvalidRequestError, OpenAIError  # noqa: E402,F401
