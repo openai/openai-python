@@ -215,8 +215,8 @@ class APIRequestor:
         headers = {
             "X-OpenAI-Client-User-Agent": json.dumps(ua),
             "User-Agent": user_agent,
-            "Authorization": "Bearer %s" % (api_key,),
         }
+        headers.update(openai.api_key_to_header_fn(api_key))
 
         if self.organization:
             headers["OpenAI-Organization"] = self.organization

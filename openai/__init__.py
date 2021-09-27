@@ -6,7 +6,11 @@ import os
 
 # Configuration variables
 
+# Set this to the API key for whatever API provider you're using.
 api_key = os.environ.get("OPENAI_API_KEY")
+# Provide a function that takes the above key and returns a dictionary
+# with the appropriate header(s) for whatever API provider you're using.
+api_key_to_header_fn = lambda key: {"Authorization": f"Bearer {key}"}
 organization = os.environ.get("OPENAI_ORGANIZATION")
 client_id = None
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com")
