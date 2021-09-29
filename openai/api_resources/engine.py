@@ -30,3 +30,6 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
 
     def search(self, **params):
         return self.request("post", self.instance_url() + "/search", params)
+
+    def embeddings(self, **params):
+        return self.request("post", self.instance_url() + "/embeddings", params)
