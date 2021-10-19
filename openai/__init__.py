@@ -1,4 +1,5 @@
 import os
+import configparser
 
 # OpenAI Python bindings.
 #
@@ -8,6 +9,21 @@ import os
 
 api_key = os.environ.get("OPENAI_API_KEY")
 organization = os.environ.get("OPENAI_ORGANIZATION")
+
+home = os.path.expanduser("~")
+config_home = os.environ.get("XDG_CONFIG_HOME", os.path.join(home, ".config"))
+config_parser = configparser.RawConfigParser()
+config_location = os.path.join(config_home, "openairc")
+if os.path.exists(config_location):
+    config_parser.read(config_location)
+
+    if not api_key:
+        api_key = config_parser.get("api", "APIKey")
+
+    if not organization:
+        organization = config_parser.get("api", "Organization")
+
+
 client_id = None
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com")
 file_api_base = None
