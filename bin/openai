@@ -4,8 +4,7 @@ import logging
 import sys
 
 import openai
-from openai.cli import display_error
-from openai.cli import api_register, tools_register
+from openai.cli import api_register, display_error, tools_register
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -62,8 +61,10 @@ def main():
         args.func(args)
     except openai.error.OpenAIError as e:
         display_error(e)
+        return 1
     except KeyboardInterrupt:
         sys.stderr.write("\n")
+        return 1
     return 0
 
 

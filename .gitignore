@@ -1,5 +1,6 @@
 *.egg-info
-__pycache__
-/public/dist
 .idea
 .python-version
+/public/dist
+__pycache__
+build

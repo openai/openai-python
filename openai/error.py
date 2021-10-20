@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 import openai
 
 
@@ -66,7 +64,7 @@ class OpenAIError(Exception):
             return None
 
         return openai.api_resources.error_object.ErrorObject.construct_from(
-            self.json_body["error"], openai.api_key
+            self.json_body["error"], key=None
         )
 
 
@@ -93,10 +91,6 @@ class APIConnectionError(OpenAIError):
             message, http_body, http_status, json_body, headers, code
         )
         self.should_retry = should_retry
-
-
-class IdempotencyError(OpenAIError):
-    pass
 
 
 class InvalidRequestError(OpenAIError):
@@ -135,6 +129,10 @@ class PermissionError(OpenAIError):
 
 
 class RateLimitError(OpenAIError):
+    pass
+
+
+class ServiceUnavailableError(OpenAIError):
     pass
 
 

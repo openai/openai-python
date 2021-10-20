@@ -20,8 +20,8 @@ setup(
         "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
         "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
     ],
-    extras_require={"dev": ["black==20.8b1", "pytest==6.*"]},
-    python_requires=">=3.6",
+    extras_require={"dev": ["black~=21.6b0", "pytest==6.*"]},
+    python_requires=">=3.7.1",
     scripts=["bin/openai"],
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_data={

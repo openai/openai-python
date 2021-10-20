@@ -1,5 +1,3 @@
-from __future__ import absolute_import, division, print_function
-
 from openai import api_requestor, util
 from openai.api_resources.abstract.api_resource import APIResource
 
@@ -19,7 +17,6 @@ class ListableAPIResource(APIResource):
         api_base=None,
         **params,
     ):
-        headers = util.populate_headers(request_id=request_id)
         requestor = api_requestor.APIRequestor(
             api_key,
             api_base=api_base or cls.api_base(),
@@ -27,7 +24,9 @@ class ListableAPIResource(APIResource):
             organization=organization,
         )
         url = cls.class_url()
-        response, _, api_key = requestor.request("get", url, params, headers)
+        response, _, api_key = requestor.request(
+            "get", url, params, request_id=request_id
+        )
         openai_object = util.convert_to_openai_object(
             response, api_key, api_version, organization
         )

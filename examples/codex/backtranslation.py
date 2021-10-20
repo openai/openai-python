@@ -1,6 +1,8 @@
-import openai
-from smokey import Smokey
 from typing import List, Union
+
+from smokey import Smokey
+
+import openai
 
 
 def get_candidates(

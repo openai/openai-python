@@ -28,7 +28,6 @@ def nested_resource_class_methods(
             method,
             url,
             api_key=None,
-            idempotency_key=None,
             request_id=None,
             api_version=None,
             organization=None,
@@ -37,8 +36,9 @@ def nested_resource_class_methods(
             requestor = api_requestor.APIRequestor(
                 api_key, api_version=api_version, organization=organization
             )
-            headers = util.populate_headers(idempotency_key, request_id)
-            response, _, api_key = requestor.request(method, url, params, headers)
+            response, _, api_key = requestor.request(
+                method, url, params, request_id=request_id
+            )
             return util.convert_to_openai_object(
                 response, api_key, api_version, organization
             )

@@ -1,5 +1,6 @@
-import openai
 import argparse
+
+import openai
 
 
 def create_context(

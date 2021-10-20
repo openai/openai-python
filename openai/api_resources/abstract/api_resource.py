@@ -14,16 +14,16 @@ class APIResource(OpenAIObject):
         return instance
 
     def refresh(self, request_id=None):
-        headers = util.populate_headers(request_id=request_id)
-        self.refresh_from(self.request("get", self.instance_url(), headers=headers))
+        self.refresh_from(
+            self.request("get", self.instance_url(), request_id=request_id)
+        )
         return self
 
     @classmethod
     def class_url(cls):
         if cls == APIResource:
             raise NotImplementedError(
-                "APIResource is an abstract class.  You should perform "
-                "actions on its subclasses (e.g. Charge, Customer)"
+                "APIResource is an abstract class. You should perform actions on its subclasses."
             )
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
@@ -54,7 +54,6 @@ class APIResource(OpenAIObject):
         url_,
         api_key=None,
         api_base=None,
-        idempotency_key=None,
         request_id=None,
         api_version=None,
         organization=None,
@@ -66,8 +65,9 @@ class APIResource(OpenAIObject):
             organization=organization,
             api_base=api_base,
         )
-        headers = util.populate_headers(idempotency_key, request_id)
-        response, _, api_key = requestor.request(method_, url_, params, headers)
+        response, _, api_key = requestor.request(
+            method_, url_, params, request_id=request_id
+        )
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
         )

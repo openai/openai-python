@@ -1,7 +1,4 @@
-from openai.api_resources.abstract import (
-    ListableAPIResource,
-    DeletableAPIResource,
-)
+from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 
 
 class Model(ListableAPIResource, DeletableAPIResource):
