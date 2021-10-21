@@ -67,8 +67,14 @@ def answer_question(
         print("Context:\n" + context)
         print("\n\n")
     try:
+        # fine-tuned models requires model parameter, whereas other models require engine parameter
+        model_param = (
+            {"model": fine_tuned_qa_model}
+            if ":" in fine_tuned_qa_model
+            and fine_tuned_qa_model.split(":")[1].startswith("ft")
+            else {"engine": fine_tuned_qa_model}
+        )
         response = openai.Completion.create(
-            model=fine_tuned_qa_model,
             prompt=f"Answer the question based on the context below\n\nText: {context}\n\n---\n\nQuestion: {question}\nAnswer:",
             temperature=0,
             max_tokens=max_tokens,
@@ -76,6 +82,7 @@ def answer_question(
             frequency_penalty=0,
             presence_penalty=0,
             stop=stop_sequence,
+            **model_param,
         )
         return response["choices"][0]["text"]
     except Exception as e:

@@ -694,7 +694,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
 
     input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
 
-    if not any_remediations:
+    if not any_remediations and not split:
         sys.stdout.write(
             f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{additional_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
