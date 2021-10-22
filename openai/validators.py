@@ -654,7 +654,8 @@ def get_batch_size_suggestion(df, no_packing):
         batch_size = BATCH_SIZE_TO_N_EXAMPLES_RATIO * n_examples
     else:
         batch_size = BATCH_SIZE_TO_N_CHARACTERS_RATIO * n_characters
-    batch_size = 2 ** int(np.log2(batch_size))
+
+    batch_size = max(1, int(2 ** np.ceil(np.log2(batch_size))))
     batch_size_suggestion = f" --batch_size {batch_size}"
     return batch_size_suggestion
 
