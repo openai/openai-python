@@ -3,7 +3,7 @@ import time
 from openai import util
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
-from openai.error import TryAgain, InvalidRequestError
+from openai.error import InvalidRequestError, TryAgain
 
 
 class Completion(EngineAPIResource, ListableAPIResource, DeletableAPIResource):

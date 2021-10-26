@@ -1,9 +1,9 @@
 import os
 import sys
-import pandas as pd
-import numpy as np
+from typing import Any, Callable, NamedTuple, Optional
 
-from typing import NamedTuple, Optional, Callable, Any
+import numpy as np
+import pandas as pd
 
 
 class Remediation(NamedTuple):

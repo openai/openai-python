@@ -1,60 +1,22 @@
-import calendar
-import datetime
 import json
 import platform
-import time
-import uuid
+import threading
 import warnings
-from io import BytesIO
-from collections import OrderedDict
+from json import JSONDecodeError
+from typing import Dict, Iterator, Optional, Tuple, Union
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
+import requests
+
 import openai
-from openai import error, http_client, version, util
-from openai.multipart_data_generator import MultipartDataGenerator
+from openai import error, util, version
 from openai.openai_response import OpenAIResponse
-from openai.upload_progress import BufferReader
 
+TIMEOUT_SECS = 600
+MAX_CONNECTION_RETRIES = 2
 
-def _encode_datetime(dttime) -> int:
-    utc_timestamp: float
-    if dttime.tzinfo and dttime.tzinfo.utcoffset(dttime) is not None:
-        utc_timestamp = calendar.timegm(dttime.utctimetuple())
-    else:
-        utc_timestamp = time.mktime(dttime.timetuple())
-
-    return int(utc_timestamp)
-
-
-def _encode_nested_dict(key, data, fmt="%s[%s]"):
-    d = OrderedDict()
-    for subkey, subvalue in data.items():
-        d[fmt % (key, subkey)] = subvalue
-    return d
-
-
-def _api_encode(data):
-    for key, value in data.items():
-        if value is None:
-            continue
-        elif hasattr(value, "openai_id"):
-            yield (key, value.openai_id)
-        elif isinstance(value, list) or isinstance(value, tuple):
-            for i, sv in enumerate(value):
-                if isinstance(sv, dict):
-                    subdict = _encode_nested_dict("%s[%d]" % (key, i), sv)
-                    for k, v in _api_encode(subdict):
-                        yield (k, v)
-                else:
-                    yield ("%s[%d]" % (key, i), sv)
-        elif isinstance(value, dict):
-            subdict = _encode_nested_dict(key, value)
-            for subkey, subvalue in _api_encode(subdict):
-                yield (subkey, subvalue)
-        elif isinstance(value, datetime.datetime):
-            yield (key, _encode_datetime(value))
-        else:
-            yield (key, value)
+# Has one attribute per thread, 'session'.
+_thread_context = threading.local()
 
 
 def _build_api_url(url, query):
@@ -64,6 +26,35 @@ def _build_api_url(url, query):
         query = "%s&%s" % (base_query, query)
 
     return urlunsplit((scheme, netloc, path, query, fragment))
+
+
+def _requests_proxies_arg(proxy) -> Optional[Dict[str, str]]:
+    """Returns a value suitable for the 'proxies' argument to 'requests.request."""
+    if proxy is None:
+        return None
+    elif isinstance(proxy, str):
+        return {"http": proxy, "https": proxy}
+    elif isinstance(proxy, dict):
+        return proxy.copy()
+    else:
+        raise ValueError(
+            "'openai.proxy' must be specified as either a string URL or a dict with string URL under the https and/or http keys."
+        )
+
+
+def _make_session() -> requests.Session:
+    if not openai.verify_ssl_certs:
+        warnings.warn("verify_ssl_certs is ignored; openai always verifies.")
+    s = requests.Session()
+    proxies = _requests_proxies_arg(openai.proxy)
+    if proxies:
+        s.proxies = proxies
+    s.verify = openai.ca_bundle_path
+    s.mount(
+        "https://",
+        requests.adapters.HTTPAdapter(max_retries=MAX_CONNECTION_RETRIES),
+    )
+    return s
 
 
 def parse_stream(rbody):
@@ -79,39 +70,11 @@ def parse_stream(rbody):
 
 
 class APIRequestor:
-    def __init__(
-        self, key=None, client=None, api_base=None, api_version=None, organization=None
-    ):
+    def __init__(self, key=None, api_base=None, api_version=None, organization=None):
         self.api_base = api_base or openai.api_base
-        self.api_key = key
+        self.api_key = key or util.default_api_key()
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
-
-        self._default_proxy = None
-
-        from openai import verify_ssl_certs as verify
-        from openai import proxy
-
-        if client:
-            self._client = client
-        elif openai.default_http_client:
-            self._client = openai.default_http_client
-            if proxy != self._default_proxy:
-                warnings.warn(
-                    "openai.proxy was updated after sending a "
-                    "request - this is a no-op. To use a different proxy, "
-                    "set openai.default_http_client to a new client "
-                    "configured with the proxy."
-                )
-        else:
-            # If the openai.default_http_client has not been set by the user
-            # yet, we'll set it here. This way, we aren't creating a new
-            # HttpClient for every request.
-            openai.default_http_client = http_client.new_default_http_client(
-                verify_ssl_certs=verify, proxy=proxy
-            )
-            self._client = openai.default_http_client
-            self._default_proxy = proxy
 
     @classmethod
     def format_app_info(cls, info):
@@ -122,12 +85,27 @@ class APIRequestor:
             str += " (%s)" % (info["url"],)
         return str
 
-    def request(self, method, url, params=None, headers=None, stream=False):
-        rbody, rcode, rheaders, stream, my_api_key = self.request_raw(
-            method.lower(), url, params, headers, stream=stream
+    def request(
+        self,
+        method,
+        url,
+        params=None,
+        headers=None,
+        files=None,
+        stream=False,
+        request_id: Optional[str] = None,
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
+        result = self.request_raw(
+            method.lower(),
+            url,
+            params,
+            headers,
+            files=files,
+            stream=stream,
+            request_id=request_id,
         )
-        resp = self.interpret_response(rbody, rcode, rheaders, stream=stream)
-        return resp, stream, my_api_key
+        resp, got_stream = self._interpret_response(result, stream)
+        return resp, got_stream, self.api_key
 
     def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
         try:
@@ -159,20 +137,15 @@ class APIRequestor:
                 error_data.get("message"), rbody, rcode, resp, rheaders
             )
         elif rcode in [400, 404, 415]:
-            if error_data.get("type") == "idempotency_error":
-                return error.IdempotencyError(
-                    error_data.get("message"), rbody, rcode, resp, rheaders
-                )
-            else:
-                return error.InvalidRequestError(
-                    error_data.get("message"),
-                    error_data.get("param"),
-                    error_data.get("code"),
-                    rbody,
-                    rcode,
-                    resp,
-                    rheaders,
-                )
+            return error.InvalidRequestError(
+                error_data.get("message"),
+                error_data.get("param"),
+                error_data.get("code"),
+                rbody,
+                rcode,
+                resp,
+                rheaders,
+            )
         elif rcode == 401:
             return error.AuthenticationError(
                 error_data.get("message"), rbody, rcode, resp, rheaders
@@ -195,19 +168,24 @@ class APIRequestor:
                 error_data.get("message"), rbody, rcode, resp, rheaders
             )
 
-    def request_headers(self, api_key, method, extra):
+    def request_headers(
+        self, method: str, extra, request_id: Optional[str]
+    ) -> Dict[str, str]:
         user_agent = "OpenAI/v1 PythonBindings/%s" % (version.VERSION,)
         if openai.app_info:
             user_agent += " " + self.format_app_info(openai.app_info)
 
+        uname_without_node = " ".join(
+            v for k, v in platform.uname()._asdict().items() if k != "node"
+        )
         ua = {
             "bindings_version": version.VERSION,
-            "httplib": self._client.name,
+            "httplib": "requests",
             "lang": "python",
             "lang_version": platform.python_version(),
             "platform": platform.platform(),
             "publisher": "openai",
-            "uname": " ".join(platform.uname()),
+            "uname": uname_without_node,
         }
         if openai.app_info:
             ua["application"] = openai.app_info
@@ -215,92 +193,48 @@ class APIRequestor:
         headers = {
             "X-OpenAI-Client-User-Agent": json.dumps(ua),
             "User-Agent": user_agent,
-            "Authorization": "Bearer %s" % (api_key,),
+            "Authorization": "Bearer %s" % (self.api_key,),
         }
 
         if self.organization:
             headers["OpenAI-Organization"] = self.organization
 
-        if method in {"post", "put"}:
-            headers.setdefault("Idempotency-Key", str(uuid.uuid4()))
-
         if self.api_version is not None:
             headers["OpenAI-Version"] = self.api_version
-
+        if request_id is not None:
+            headers["X-Request-Id"] = request_id
+        if openai.debug:
+            headers["OpenAI-Debug"] = "true"
         headers.update(extra)
 
         return headers
 
     def request_raw(
-        self, method, url, params=None, supplied_headers=None, stream=False
-    ):
-        """
-        Mechanism for issuing an API call
-        """
-
-        if self.api_key:
-            my_api_key = self.api_key
-        else:
-            from openai import api_key
-
-            my_api_key = api_key
-
-        if my_api_key is None:
-            raise error.AuthenticationError(
-                "No API key provided. (HINT: set your API key in code using "
-                '"openai.api_key = <API-KEY>", or you can set the environment variable OPENAI_API_KEY=<API-KEY>). You can generate API keys '
-                "in the OpenAI web interface. See https://onboard.openai.com "
-                "for details, or email support@openai.com if you have any "
-                "questions."
-            )
-
+        self,
+        method,
+        url,
+        params=None,
+        supplied_headers=None,
+        files=None,
+        stream=False,
+        request_id: Optional[str] = None,
+    ) -> requests.Response:
         abs_url = "%s%s" % (self.api_base, url)
         headers = {}
-        compress = None
-        progress_meter = False
 
+        data = None
         if method == "get" or method == "delete":
             if params:
-                encoded_params = url_encode_params(params)
-                abs_url = _build_api_url(abs_url, encoded_params)
-            else:
-                encoded_params = None
-            post_data = None
-        elif method in {"post", "put"}:
-            if (
-                supplied_headers is not None
-                and supplied_headers.get("Content-Type") == "multipart/form-data"
-            ):
-                generator = MultipartDataGenerator()
-                generator.add_params(params or {})
-                post_data = generator.get_post_data()
-                content_type = "multipart/form-data; boundary=%s" % (
-                    generator.boundary,
+                encoded_params = urlencode(
+                    [(k, v) for k, v in params.items() if v is not None]
                 )
-                # We will overrite Content-Type
-                supplied_headers.pop("Content-Type")
-                progress_meter = True
-                # compress = "gzip"
-                compress = None
-            else:
-                post_data = json.dumps(params).encode()
-                content_type = "application/json"
-
-            headers["Content-Type"] = content_type
-
-            encoded_params = post_data
-
-            if progress_meter:
-                post_data = BufferReader(post_data, desc="Upload progress")
-
-            if compress == "gzip":
-                if not hasattr(post_data, "read"):
-                    post_data = BytesIO(post_data)
-                headers["Content-Encoding"] = "gzip"
-
-                from openai.gzip_stream import GZIPCompressedStream
-
-                post_data = GZIPCompressedStream(post_data, compression_level=9)
+                abs_url = _build_api_url(abs_url, encoded_params)
+        elif method in {"post", "put"}:
+            if params and files:
+                raise ValueError("At most one of params and files may be specified.")
+            if params:
+                data = json.dumps(params).encode()
+                headers["Content-Type"] = "application/json"
         else:
             raise error.APIConnectionError(
                 "Unrecognized HTTP method %r. This may indicate a bug in the "
@@ -308,58 +242,75 @@ class APIRequestor:
                 "assistance." % (method,)
             )
 
-        headers = self.request_headers(my_api_key, method, headers)
+        headers = self.request_headers(method, headers, request_id)
         if supplied_headers is not None:
-            for key, value in supplied_headers.items():
-                headers[key] = value
+            headers.update(supplied_headers)
 
         util.log_info("Request to OpenAI API", method=method, path=abs_url)
-        util.log_debug(
-            "Post details", post_data=encoded_params, api_version=self.api_version
-        )
+        util.log_debug("Post details", data=data, api_version=self.api_version)
 
-        rbody, rcode, rheaders, stream = self._client.request_with_retries(
-            method, abs_url, headers, post_data, stream=stream
-        )
-
+        if not hasattr(_thread_context, "session"):
+            _thread_context.session = _make_session()
+        try:
+            result = _thread_context.session.request(
+                method,
+                abs_url,
+                headers=headers,
+                data=data,
+                files=files,
+                stream=stream,
+                timeout=TIMEOUT_SECS,
+            )
+        except requests.exceptions.RequestException as e:
+            raise error.APIConnectionError("Error communicating with OpenAI") from e
         util.log_info(
             "OpenAI API response",
             path=abs_url,
-            response_code=rcode,
-            processing_ms=rheaders.get("OpenAI-Processing-Ms"),
+            response_code=result.status_code,
+            processing_ms=result.headers.get("OpenAI-Processing-Ms"),
         )
-        util.log_debug("API response body", body=rbody, headers=rheaders)
-
-        if "Request-Id" in rheaders:
-            request_id = rheaders["Request-Id"]
+        # Don't read the whole stream for debug logging unless necessary.
+        if openai.log == "debug":
             util.log_debug(
-                "Dashboard link for request", link=util.dashboard_link(request_id)
+                "API response body", body=result.content, headers=result.headers
             )
+        return result
 
-        return rbody, rcode, rheaders, stream, my_api_key
-
-    def interpret_response(self, rbody, rcode, rheaders, stream=False):
-        if stream:
+    def _interpret_response(
+        self, result: requests.Response, stream: bool
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]:
+        """Returns the response(s) and a bool indicating whether it is a stream."""
+        if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
             return (
-                self.interpret_response_line(line, rcode, rheaders, stream)
-                for line in parse_stream(rbody)
-            )
+                self._interpret_response_line(
+                    line, result.status_code, result.headers, stream=True
+                )
+                for line in parse_stream(result.iter_lines())
+            ), True
         else:
-            return self.interpret_response_line(rbody, rcode, rheaders, stream)
+            return (
+                self._interpret_response_line(
+                    result.content, result.status_code, result.headers, stream=False
+                ),
+                False,
+            )
 
-    def interpret_response_line(self, rbody, rcode, rheaders, stream=False):
+    def _interpret_response_line(
+        self, rbody, rcode, rheaders, stream: bool
+    ) -> OpenAIResponse:
+        if rcode == 503:
+            raise error.ServiceUnavailableError(
+                "The server is overloaded or not ready yet.", rbody, rcode, rheaders
+            )
         try:
             if hasattr(rbody, "decode"):
                 rbody = rbody.decode("utf-8")
-            resp = OpenAIResponse(rbody, rcode, rheaders)
-        except Exception:
+            data = json.loads(rbody)
+        except (JSONDecodeError, UnicodeDecodeError):
             raise error.APIError(
-                "Invalid response body from API: %s "
-                "(HTTP response code was %d)" % (rbody, rcode),
-                rbody,
-                rcode,
-                rheaders,
+                f"HTTP code {rcode} from API ({rbody})", rbody, rcode, rheaders
             )
+        resp = OpenAIResponse(data, rheaders)
         # In the future, we might add a "status" parameter to errors
         # to better handle the "error while streaming" case.
         stream_error = stream and "error" in resp.data
@@ -367,15 +318,4 @@ class APIRequestor:
             raise self.handle_error_response(
                 rbody, rcode, resp.data, rheaders, stream_error=stream_error
             )
-
         return resp
-
-
-def url_encode_params(params):
-    encoded_params = urlencode(list(_api_encode(params or {})))
-
-    # Don't use strict form encoding by changing the square bracket control
-    # characters back to their literals. This is fine by the server, and
-    # makes these parameter strings easier to read.
-    encoded_params = encoded_params.replace("%5B", "[").replace("%5D", "]")
-    return encoded_params

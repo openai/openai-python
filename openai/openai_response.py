@@ -1,25 +1,20 @@
-from __future__ import absolute_import, division, print_function
-
-import json
+from typing import Optional
 
 
-class OpenAIResponse(object):
-    def __init__(self, body, code, headers):
-        self.body = body
-        self.code = code
-        self.headers = headers
-        self.data = json.loads(body)
+class OpenAIResponse:
+    def __init__(self, data, headers):
+        self._headers = headers
+        self.data = data
 
     @property
-    def idempotency_key(self):
-        try:
-            return self.headers["idempotency-key"]
-        except KeyError:
-            return None
+    def request_id(self) -> Optional[str]:
+        return self._headers.get("request-id")
 
     @property
-    def request_id(self):
-        try:
-            return self.headers["request-id"]
-        except KeyError:
-            return None
+    def organization(self) -> Optional[str]:
+        return self._headers.get("OpenAI-Organization")
+
+    @property
+    def response_ms(self) -> Optional[int]:
+        h = self._headers.get("Openai-Processing-Ms")
+        return None if h is None else int(h)

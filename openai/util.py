@@ -1,34 +1,21 @@
-import functools
-import hmac
-import io
 import logging
 import os
 import re
 import sys
-from urllib.parse import parse_qsl
+from typing import Optional
 
 import openai
-
 
 OPENAI_LOG = os.environ.get("OPENAI_LOG")
 
 logger = logging.getLogger("openai")
 
 __all__ = [
-    "io",
-    "parse_qsl",
     "log_info",
     "log_debug",
     "log_warn",
-    "dashboard_link",
     "logfmt",
 ]
-
-
-def is_appengine_dev():
-    return "APPENGINE_RUNTIME" in os.environ and "Dev" in os.environ.get(
-        "SERVER_SOFTWARE", ""
-    )
 
 
 def _console_log_level():
@@ -60,21 +47,6 @@ def log_warn(message, **params):
     logger.warn(msg)
 
 
-def _test_or_live_environment():
-    if openai.api_key is None:
-        return
-    match = re.match(r"sk_(live|test)_", openai.api_key)
-    if match is None:
-        return
-    return match.groups()[0]
-
-
-def dashboard_link(request_id):
-    return "https://dashboard.openai.com/{env}/logs/{reqid}".format(
-        env=_test_or_live_environment() or "test", reqid=request_id
-    )
-
-
 def logfmt(props):
     def fmt(key, val):
         # Handle case where val is a bytes or bytesarray
@@ -93,10 +65,6 @@ def logfmt(props):
     return " ".join([fmt(key, val) for key, val in sorted(props.items())])
 
 
-def secure_compare(val1, val2):
-    return hmac.compare_digest(val1, val2)
-
-
 def get_object_classes():
     # This is here to avoid a circular dependency
     from openai.object_classes import OBJECT_CLASSES
@@ -112,18 +80,13 @@ def convert_to_openai_object(
     engine=None,
     plain_old_data=False,
 ):
-    # If we get a OpenAIResponse, we'll want to return a
-    # OpenAIObject with the last_response field filled out with
-    # the raw API response information
-    openai_response = None
+    # If we get a OpenAIResponse, we'll want to return a OpenAIObject.
 
+    response_ms: Optional[int] = None
     if isinstance(resp, openai.openai_response.OpenAIResponse):
-        # TODO: move this elsewhere
-        openai_response = resp
-        resp = openai_response.data
-        organization = (
-            openai_response.headers.get("OpenAI-Organization") or organization
-        )
+        organization = resp.organization
+        response_ms = resp.response_ms
+        resp = resp.data
 
     if plain_old_data:
         return resp
@@ -151,7 +114,7 @@ def convert_to_openai_object(
             api_key,
             api_version=api_version,
             organization=organization,
-            last_response=openai_response,
+            response_ms=response_ms,
             engine=engine,
         )
     else:
@@ -178,47 +141,22 @@ def convert_to_dict(obj):
         return obj
 
 
-def populate_headers(idempotency_key=None, request_id=None):
-    headers = {}
-    if idempotency_key is not None:
-        headers["Idempotency-Key"] = idempotency_key
-    if request_id is not None:
-        headers["X-Request-Id"] = request_id
-    if openai.debug:
-        headers["OpenAI-Debug"] = "true"
-
-    return headers
-
-
 def merge_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
 
 
-class class_method_variant(object):
-    def __init__(self, class_method_name):
-        self.class_method_name = class_method_name
-
-    def __call__(self, method):
-        self.method = method
-        return self
-
-    def __get__(self, obj, objtype=None):
-        @functools.wraps(self.method)
-        def _wrapper(*args, **kwargs):
-            if obj is not None:
-                # Method was called as an instance method, e.g.
-                # instance.method(...)
-                return self.method(obj, *args, **kwargs)
-            elif len(args) > 0 and isinstance(args[0], objtype):
-                # Method was called as a class method with the instance as the
-                # first argument, e.g. Class.method(instance, ...) which in
-                # Python is the same thing as calling an instance method
-                return self.method(args[0], *args[1:], **kwargs)
-            else:
-                # Method was called as a class method, e.g. Class.method(...)
-                class_method = getattr(objtype, self.class_method_name)
-                return class_method(*args, **kwargs)
-
-        return _wrapper
+def default_api_key() -> str:
+    if openai.api_key_path:
+        with open(openai.api_key_path, "rt") as k:
+            api_key = k.read().strip()
+            if not api_key.startswith("sk-"):
+                raise ValueError(f"Malformed API key in {openai.api_key_path}.")
+            return api_key
+    elif openai.api_key is not None:
+        return openai.api_key
+    else:
+        raise openai.error.AuthenticationError(
+            "No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://onboard.openai.com for details, or email support@openai.com if you have any questions."
+        )

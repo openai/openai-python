@@ -1,10 +1,7 @@
 import time
 
 from openai import util
-from openai.api_resources.abstract import (
-    ListableAPIResource,
-    UpdateableAPIResource,
-)
+from openai.api_resources.abstract import ListableAPIResource, UpdateableAPIResource
 from openai.error import TryAgain
 
 

@@ -1,31 +1,11 @@
-import os
-
 # OpenAI Python bindings.
 #
 # Originally forked from the MIT-licensed Stripe Python bindings.
 
-# Configuration variables
+import os
+from typing import Optional
 
-api_key = os.environ.get("OPENAI_API_KEY")
-organization = os.environ.get("OPENAI_ORGANIZATION")
-client_id = None
-api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com")
-file_api_base = None
-api_version = None
-verify_ssl_certs = True
-proxy = None
-default_http_client = None
-app_info = None
-enable_telemetry = True
-max_network_retries = 0
-ca_bundle_path = os.path.join(os.path.dirname(__file__), "data/ca-certificates.crt")
-debug = False
-
-# Set to either 'debug' or 'info', controls console logging
-log = None
-
-# API resources
-from openai.api_resources import (  # noqa: E402,F401
+from openai.api_resources import (
     Answer,
     Classification,
     Completion,
@@ -36,4 +16,48 @@ from openai.api_resources import (  # noqa: E402,F401
     Model,
     Search,
 )
-from openai.error import APIError, InvalidRequestError, OpenAIError  # noqa: E402,F401
+from openai.error import APIError, InvalidRequestError, OpenAIError
+
+api_key = os.environ.get("OPENAI_API_KEY")
+# Path of a file with an API key, whose contents can change. Supercedes
+# `api_key` if set.  The main use case is volume-mounted Kubernetes secrets,
+# which are updated automatically.
+api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
+
+organization = os.environ.get("OPENAI_ORGANIZATION")
+api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com")
+api_version = None
+verify_ssl_certs = True  # No effect. Certificates are always verified.
+proxy = None
+app_info = None
+enable_telemetry = False  # Ignored; the telemetry feature was removed.
+ca_bundle_path = os.path.join(os.path.dirname(__file__), "data/ca-certificates.crt")
+debug = False
+log = None  # Set to either 'debug' or 'info', controls console logging
+
+__all__ = [
+    "APIError",
+    "Answer",
+    "Classification",
+    "Completion",
+    "Engine",
+    "ErrorObject",
+    "File",
+    "FineTune",
+    "InvalidRequestError",
+    "Model",
+    "OpenAIError",
+    "Search",
+    "api_base",
+    "api_key",
+    "api_key_path",
+    "api_version",
+    "app_info",
+    "ca_bundle_path",
+    "debug",
+    "enable_elemetry",
+    "log",
+    "organization",
+    "proxy",
+    "verify_ssl_certs",
+]

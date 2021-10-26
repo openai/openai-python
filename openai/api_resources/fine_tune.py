@@ -1,11 +1,12 @@
 from urllib.parse import quote_plus
 
+from openai import api_requestor, util
 from openai.api_resources.abstract import (
-    ListableAPIResource,
     CreateableAPIResource,
+    ListableAPIResource,
     nested_resource_class_methods,
 )
-from openai import api_requestor, util
+from openai.openai_response import OpenAIResponse
 
 
 @nested_resource_class_methods("event", operations=["list"])
@@ -18,8 +19,7 @@ class FineTune(ListableAPIResource, CreateableAPIResource):
         extn = quote_plus(id)
         url = "%s/%s/cancel" % (base, extn)
         instance = cls(id, api_key, **params)
-        headers = util.populate_headers(request_id=request_id)
-        return instance.request("post", url, headers=headers)
+        return instance.request("post", url, request_id=request_id)
 
     @classmethod
     def stream_events(
@@ -42,11 +42,11 @@ class FineTune(ListableAPIResource, CreateableAPIResource):
             organization=organization,
         )
         url = "%s/%s/events?stream=true" % (base, extn)
-        headers = util.populate_headers(request_id=request_id)
         response, _, api_key = requestor.request(
-            "get", url, params, headers=headers, stream=True
+            "get", url, params, stream=True, request_id=request_id
         )
 
+        assert not isinstance(response, OpenAIResponse)  # must be an iterator
         return (
             util.convert_to_openai_object(
                 line,

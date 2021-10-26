@@ -5,6 +5,7 @@ import sys
 import warnings
 
 import openai
+from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
     apply_optional_remediation,
@@ -60,9 +61,7 @@ class Engine:
 
     @classmethod
     def update(cls, args):
-        engine = openai.Engine(id=args.id)
-        engine.replicas = args.replicas
-        engine.save()
+        engine = openai.Engine.modify(args.id, replicas=args.replicas)
         display(engine)
 
     @classmethod
@@ -181,14 +180,12 @@ class Completion:
 class Model:
     @classmethod
     def get(cls, args):
-        resp = openai.Model.retrieve(
-            id=args.id,
-        )
+        resp = openai.Model.retrieve(id=args.id)
         print(resp)
 
     @classmethod
     def delete(cls, args):
-        model = openai.Model(id=args.id).delete()
+        model = openai.Model.delete(args.id)
         print(model)
 
     @classmethod
@@ -200,10 +197,10 @@ class Model:
 class File:
     @classmethod
     def create(cls, args):
+        with open(args.file, "rb") as file_reader:
+            buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
         resp = openai.File.create(
-            file=open(args.file),
-            purpose=args.purpose,
-            model=args.model,
+            file=buffer_reader, purpose=args.purpose, model=args.model
         )
         print(resp)
 
@@ -214,7 +211,7 @@ class File:
 
     @classmethod
     def delete(cls, args):
-        file = openai.File(id=args.id).delete()
+        file = openai.File.delete(args.id)
         print(file)
 
     @classmethod

@@ -1,9 +1,10 @@
 #!/usr/bin/env python
-import openai
 import argparse
 import logging
 import sys
 from typing import List
+
+import openai
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] [%(process)d] %(message)s")

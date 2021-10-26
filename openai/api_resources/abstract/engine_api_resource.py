@@ -4,6 +4,7 @@ from urllib.parse import quote_plus
 
 from openai import api_requestor, error, util
 from openai.api_resources.abstract.api_resource import APIResource
+from openai.openai_response import OpenAIResponse
 
 MAX_TIMEOUT = 20
 
@@ -31,7 +32,6 @@ class EngineAPIResource(APIResource):
         cls,
         api_key=None,
         api_base=None,
-        idempotency_key=None,
         request_id=None,
         api_version=None,
         organization=None,
@@ -62,12 +62,12 @@ class EngineAPIResource(APIResource):
             organization=organization,
         )
         url = cls.class_url(engine)
-        headers = util.populate_headers(idempotency_key, request_id)
         response, _, api_key = requestor.request(
-            "post", url, params, headers, stream=stream
+            "post", url, params, stream=stream, request_id=request_id
         )
 
         if stream:
+            assert not isinstance(response, OpenAIResponse)  # must be an iterator
             return (
                 util.convert_to_openai_object(
                     line,
@@ -99,9 +99,7 @@ class EngineAPIResource(APIResource):
 
         if not isinstance(id, str):
             raise error.InvalidRequestError(
-                "Could not determine which URL to request: %s instance "
-                "has invalid ID: %r, %s. ID should be of type `str` (or"
-                " `unicode`)" % (type(self).__name__, id, type(id)),
+                f"Could not determine which URL to request: {type(self).__name__} instance has invalid ID: {id}, {type(id)}. ID should be of type str.",
                 "id",
             )
 
