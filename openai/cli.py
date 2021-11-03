@@ -13,6 +13,7 @@ from openai.validators import (
     read_any_format,
     write_out_file,
 )
+import openai.logger
 
 
 class bcolors:
@@ -478,6 +479,15 @@ class FineTune:
         write_out_file(df, fname, any_optional_or_necessary_applied, auto_accept)
 
 
+class Logger:
+    @classmethod
+    def log(cls, args):
+        resp = openai.logger.Logger.log(
+            id=args.id, n_jobs=args.n_jobs, project=args.project, entity=args.entity
+        )
+        print(resp)
+
+
 def tools_register(parser):
     subparsers = parser.add_subparsers(
         title="Tools", help="Convenience client side tools"
@@ -863,3 +873,23 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.cancel)
+
+    sub = subparsers.add_parser("fine_tunes.wandb")
+    sub.add_argument("-i", "--id", help="The id of the fine-tune job")
+    sub.add_argument(
+        "-n",
+        "--n_jobs",
+        type=int,
+        default=10,
+        help="Number of most recent fine-tune jobs to log when an id is not provided",
+    )
+    sub.add_argument(
+        "--project",
+        default="GPT-3",
+        help="""Name of the project where you're sending runs. By default, it is "GPT-3".""",
+    )
+    sub.add_argument(
+        "--entity",
+        help="Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.",
+    )
+    sub.set_defaults(func=Logger.log)
