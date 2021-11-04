@@ -483,7 +483,11 @@ class Logger:
     @classmethod
     def log(cls, args):
         resp = openai.logger.Logger.log(
-            id=args.id, n_jobs=args.n_jobs, project=args.project, entity=args.entity
+            id=args.id,
+            n_jobs=args.n_jobs,
+            project=args.project,
+            entity=args.entity,
+            force=args.force,
         )
         print(resp)
 
@@ -903,4 +907,10 @@ def wandb_register(parser):
         "--entity",
         help="Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.",
     )
+    sub.add_argument(
+        "--force",
+        action="store_true",
+        help="Forces logging and overwrite existing wandb run of the same finetune job.",
+    )
+    sub.set_defaults(force=False)
     sub.set_defaults(func=Logger.log)

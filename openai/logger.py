@@ -28,6 +28,7 @@ class Logger:
         n_jobs=10,
         project="GPT-3",
         entity=None,
+        force=False,
         **kwargs_wandb_init,
     ):
         # TODO: add docstring
@@ -50,11 +51,11 @@ class Logger:
 
         # log starting from oldest fine_tune
         for fine_tune in fine_tunes:
-            cls._log_fine_tune(fine_tune, project, entity, **kwargs_wandb_init)
+            cls._log_fine_tune(fine_tune, project, entity, force, **kwargs_wandb_init)
         return "Command completed successfully"
 
     @classmethod
-    def _log_fine_tune(cls, fine_tune, project, entity, **kwargs_wandb_init):
+    def _log_fine_tune(cls, fine_tune, project, entity, force, **kwargs_wandb_init):
         fine_tune_id = fine_tune.get("id")
         status = fine_tune.get("status")
 
@@ -69,12 +70,22 @@ class Logger:
         if entity is not None:
             run_path = f"{entity}/{run_path}"
         wandb_run = cls._get_wandb_run(run_path)
-        if cls._get_wandb_run(run_path):
-            print(
-                f"Fine-tune job {fine_tune_id} has already been logged at {wandb_run.url}"
-            )
-            return
-            # TODO: add a "force" argument
+        if wandb_run:
+            wandb_status = wandb_run.summary.get("status")
+            if wandb_status == "succeeded":
+                print(
+                    f"Fine-tune job {fine_tune_id} has already been logged successfully at {wandb_run.url}"
+                )
+                if not force:
+                    print(
+                        'Use "--force" in the CLI or "force=True" in python if you want to overwrite previous run'
+                    )
+            if wandb_status != "succeeded" or force:
+                print(
+                    f"A new wandb run will be created for fine-tune job {fine_tune_id} and previous run will be overwritten"
+                )
+            else:
+                return
 
         # retrieve results
         results_id = fine_tune["result_files"][0]["id"]
@@ -106,7 +117,9 @@ class Logger:
         # training/validation files
         cls._log_artifacts(fine_tune)
 
-        # TODO: mark the run as successful so we can overwrite it in case it did not log properly
+        # mark run as complete
+        wandb.summary["status"] = "succeeded"
+
         wandb.finish()
 
     @classmethod
