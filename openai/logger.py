@@ -11,6 +11,7 @@ if WANDB_AVAILABLE:
     import io
     import numpy as np
     import pandas as pd
+    from pathlib import Path
 
 
 class Logger:
@@ -102,7 +103,9 @@ class Logger:
         if fine_tuned_model is not None:
             wandb.summary["fine_tuned_model"] = fine_tuned_model
 
-        # TODO: retrieve training/validation files if not already present
+        # training/validation files
+        cls._log_artifacts(fine_tune)
+
         # TODO: mark the run as successful so we can overwrite it in case it did not log properly
         wandb.finish()
 
@@ -121,3 +124,48 @@ class Logger:
             return cls._wandb_api.run(run_path)
         except Exception as e:
             return False
+
+    @classmethod
+    def _log_artifacts(cls, fine_tune):
+        training_file = (
+            fine_tune["training_files"][0] if fine_tune.get("training_files") else None
+        )
+        validation_file = (
+            fine_tune["validation_files"][0]
+            if fine_tune.get("validation_files")
+            else None
+        )
+        for file, prefix in ((training_file, "train"), (validation_file, "valid")):
+            cls._log_artifact(file, prefix)
+
+    @classmethod
+    def _log_artifact(cls, file, prefix):
+        file_id = file["id"]
+        filename = Path(file["filename"]).name
+        stem = Path(file["filename"]).stem
+
+        # get file content
+        try:
+            file_content = File.download(id=file_id).decode("utf-8")
+        except:
+            print(
+                f"File {file_id} could not be retrieved. Make sure you are allowed to download training/validation files"
+            )
+            return
+        artifact = wandb.Artifact(f"{prefix}-{filename}", type=prefix, metadata=file)
+        with artifact.new_file(filename, mode="w") as f:
+            f.write(file_content)
+
+        # create a Table
+        try:
+            table = cls._make_table(file_content)
+            artifact.add(table, stem)
+        except:
+            print(f"File {file_id} could not be read as a valid JSON file")
+
+        wandb.run.log_artifact(artifact, aliases=[file_id, "latest"])
+
+    @classmethod
+    def _make_table(cls, file_content):
+        df = pd.read_json(io.StringIO(file_content), orient="records", lines=True)
+        return wandb.Table(dataframe=df)
