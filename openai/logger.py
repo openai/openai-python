@@ -15,6 +15,10 @@ if WANDB_AVAILABLE:
 
 
 class Logger:
+    """
+    Log fine-tune jobs to Weights & Biases
+    """
+
     if not WANDB_AVAILABLE:
         print("Logging requires wandb to be installed. Run `pip install wandb`.")
     else:
@@ -31,7 +35,14 @@ class Logger:
         force=False,
         **kwargs_wandb_init,
     ):
-        # TODO: add docstring
+        """
+        Log a fine-tune jobs to Weights & Biases.
+        :param id: The id of the fine-tune job (optional)
+        :param n_jobs: Number of most recent fine-tune jobs to log when an id is not provided
+        :param project: Name of the project where you're sending runs. By default, it is "GPT-3".
+        :param entity: Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.
+        :param force: Forces logging and overwrite existing wandb run of the same finetune job.
+        """
 
         if not WANDB_AVAILABLE:
             return
