@@ -161,11 +161,14 @@ class Logger:
             if fine_tune.get("validation_files")
             else None
         )
-        for file, prefix in ((training_file, "train"), (validation_file, "valid")):
-            cls._log_artifact(file, prefix)
+        for file, prefix, artifact_type in (
+            (training_file, "train", "training_files"),
+            (validation_file, "valid", "validation_files"),
+        ):
+            cls._log_artifact(file, prefix, artifact_type)
 
     @classmethod
-    def _log_artifact(cls, file, prefix):
+    def _log_artifact(cls, file, prefix, artifact_type):
         file_id = file["id"]
         filename = Path(file["filename"]).name
         stem = Path(file["filename"]).stem
@@ -178,7 +181,9 @@ class Logger:
                 f"File {file_id} could not be retrieved. Make sure you are allowed to download training/validation files"
             )
             return
-        artifact = wandb.Artifact(f"{prefix}-{filename}", type=prefix, metadata=file)
+        artifact = wandb.Artifact(
+            f"{prefix}-{filename}", type=artifact_type, metadata=file
+        )
         with artifact.new_file(filename, mode="w") as f:
             f.write(file_content)
 
