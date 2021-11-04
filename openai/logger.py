@@ -98,6 +98,9 @@ class Logger:
             if step is not None:
                 step = int(step)
             wandb.log(metrics, step=step)
+        fine_tuned_model = fine_tune.get("fine_tuned_model")
+        if fine_tuned_model is not None:
+            wandb.summary["fine_tuned_model"] = fine_tuned_model
 
         # TODO: retrieve training/validation files if not already present
         # TODO: mark the run as successful so we can overwrite it in case it did not log properly
