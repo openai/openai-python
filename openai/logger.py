@@ -105,7 +105,7 @@ class Logger:
         # start a wandb run
         wandb.init(
             job_type="finetune",
-            config=fine_tune,
+            config=cls._get_config(fine_tune),
             project=project,
             entity=entity,
             name=fine_tune_id,
@@ -152,13 +152,23 @@ class Logger:
             return False
 
     @classmethod
+    def _get_config(cls, fine_tune):
+        config = dict(fine_tune)
+        for key in ("training_files", "validation_files", "result_files"):
+            if config.get(key) and len(config[key]):
+                config[key] = config[key][0]
+        return config
+
+    @classmethod
     def _log_artifacts(cls, fine_tune):
         training_file = (
-            fine_tune["training_files"][0] if fine_tune.get("training_files") else None
+            fine_tune["training_files"][0]
+            if fine_tune.get("training_files") and len(fine_tune["training_files"])
+            else None
         )
         validation_file = (
             fine_tune["validation_files"][0]
-            if fine_tune.get("validation_files")
+            if fine_tune.get("validation_files") and len(fine_tune["validation_files"])
             else None
         )
         for file, prefix, artifact_type in (
