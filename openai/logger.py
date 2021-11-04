@@ -22,7 +22,7 @@ class Logger:
     if not WANDB_AVAILABLE:
         print("Logging requires wandb to be installed. Run `pip install wandb`.")
     else:
-        _wandb_api = wandb.Api()
+        _wandb_api = False
         _logged_in = False
 
     @classmethod
@@ -145,6 +145,8 @@ class Logger:
     def _get_wandb_run(cls, run_path):
         cls._ensure_logged_in()
         try:
+            if cls._wandb_api is None:
+                cls._wandb_api = wandb.Api()
             return cls._wandb_api.run(run_path)
         except Exception as e:
             return False
