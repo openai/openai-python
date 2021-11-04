@@ -874,7 +874,18 @@ Mutually exclusive with `top_p`.""",
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.cancel)
 
-    sub = subparsers.add_parser("fine_tunes.wandb")
+
+def wandb_register(parser):
+    subparsers = parser.add_subparsers(
+        title="wandb", help="Logging with Weights & Biases"
+    )
+
+    def help(args):
+        parser.print_help()
+
+    parser.set_defaults(func=help)
+
+    sub = subparsers.add_parser("log")
     sub.add_argument("-i", "--id", help="The id of the fine-tune job")
     sub.add_argument(
         "-n",
