@@ -189,7 +189,7 @@ class Logger:
         except:
             print(f"File {file_id} could not be read as a valid JSON file")
 
-        wandb.run.log_artifact(artifact, aliases=[file_id, "latest"])
+        wandb.run.use_artifact(artifact, aliases=[file_id, "latest"])
 
     @classmethod
     def _make_table(cls, file_content):
