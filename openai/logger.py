@@ -22,14 +22,14 @@ class Logger:
     if not WANDB_AVAILABLE:
         print("Logging requires wandb to be installed. Run `pip install wandb`.")
     else:
-        _wandb_api = False
+        _wandb_api = None
         _logged_in = False
 
     @classmethod
     def log(
         cls,
         id=None,
-        n_jobs=10,
+        n_jobs=None,
         project="GPT-3",
         entity=None,
         force=False,
@@ -58,23 +58,40 @@ class Logger:
             if not fine_tunes or fine_tunes.get("data") is None:
                 print("No fine-tune jobs have been retrieved")
                 return
-            fine_tunes = fine_tunes["data"][-n_jobs:]
+            fine_tunes = fine_tunes["data"][-n_jobs if n_jobs is not None else None :]
 
         # log starting from oldest fine_tune
-        for fine_tune in fine_tunes:
-            cls._log_fine_tune(fine_tune, project, entity, force, **kwargs_wandb_init)
-        return "Command completed successfully"
+        show_warnings = False if id is None and n_jobs is None else True
+        fine_tune_logged = [
+            cls._log_fine_tune(
+                fine_tune,
+                project,
+                entity,
+                force,
+                show_warnings,
+                **kwargs_wandb_init,
+            )
+            for fine_tune in fine_tunes
+        ]
+
+        if not show_warnings and not any(fine_tune_logged):
+            print("No new successful fine-tune were found")
+
+        return "🎉 wandb log completed successfully"
 
     @classmethod
-    def _log_fine_tune(cls, fine_tune, project, entity, force, **kwargs_wandb_init):
+    def _log_fine_tune(
+        cls, fine_tune, project, entity, force, show_warnings, **kwargs_wandb_init
+    ):
         fine_tune_id = fine_tune.get("id")
         status = fine_tune.get("status")
 
         # check run completed successfully
-        if status != "succeeded":
+        if show_warnings and status != "succeeded":
             print(
                 f'Fine-tune job {fine_tune_id} has the status "{status}" and will not be logged'
             )
+            return
 
         # check run has not been logged already
         run_path = f"{project}/{fine_tune_id}"
@@ -83,19 +100,24 @@ class Logger:
         wandb_run = cls._get_wandb_run(run_path)
         if wandb_run:
             wandb_status = wandb_run.summary.get("status")
-            if wandb_status == "succeeded":
-                print(
-                    f"Fine-tune job {fine_tune_id} has already been logged successfully at {wandb_run.url}"
-                )
-                if not force:
+            if show_warnings:
+                if wandb_status == "succeeded":
                     print(
-                        'Use "--force" in the CLI or "force=True" in python if you want to overwrite previous run'
+                        f"Fine-tune job {fine_tune_id} has already been logged successfully at {wandb_run.url}"
                     )
-            if wandb_status != "succeeded" or force:
-                print(
-                    f"A new wandb run will be created for fine-tune job {fine_tune_id} and previous run will be overwritten"
-                )
-            else:
+                    if not force:
+                        print(
+                            'Use "--force" in the CLI or "force=True" in python if you want to overwrite previous run'
+                        )
+                else:
+                    print(
+                        f"A run for fine-tune job {fine_tune_id} was previously created but didn't end successfully"
+                    )
+                if wandb_status != "succeeded" or force:
+                    print(
+                        f"A new wandb run will be created for fine-tune job {fine_tune_id} and previous run will be overwritten"
+                    )
+            if wandb_status == "succeeded":
                 return
 
         # retrieve results
@@ -132,6 +154,7 @@ class Logger:
         wandb.summary["status"] = "succeeded"
 
         wandb.finish()
+        return True
 
     @classmethod
     def _ensure_logged_in(cls):
@@ -148,7 +171,7 @@ class Logger:
             if cls._wandb_api is None:
                 cls._wandb_api = wandb.Api()
             return cls._wandb_api.run(run_path)
-        except Exception as e:
+        except Exception:
             return False
 
     @classmethod

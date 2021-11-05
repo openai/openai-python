@@ -895,7 +895,7 @@ def wandb_register(parser):
         "-n",
         "--n_jobs",
         type=int,
-        default=10,
+        default=None,
         help="Number of most recent fine-tune jobs to log when an id is not provided",
     )
     sub.add_argument(
