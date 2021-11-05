@@ -9,6 +9,7 @@ except:
 if WANDB_AVAILABLE:
     from openai import FineTune, File
     import io
+    import json
     import numpy as np
     import pandas as pd
     from pathlib import Path
@@ -147,7 +148,7 @@ class Logger:
         if fine_tuned_model is not None:
             wandb.summary["fine_tuned_model"] = fine_tuned_model
 
-        # training/validation files
+        # training/validation files and job details
         cls._log_artifacts(fine_tune)
 
         # mark run as complete
@@ -184,6 +185,7 @@ class Logger:
 
     @classmethod
     def _log_artifacts(cls, fine_tune):
+        # training/validation files
         training_file = (
             fine_tune["training_files"][0]
             if fine_tune.get("training_files") and len(fine_tune["training_files"])
@@ -198,10 +200,24 @@ class Logger:
             (training_file, "train", "training_files"),
             (validation_file, "valid", "validation_files"),
         ):
-            cls._log_artifact(file, prefix, artifact_type)
+            cls._log_artifact_inputs(file, prefix, artifact_type)
+
+        # job details
+        fine_tune_id = fine_tune.get("id")
+        artifact = wandb.Artifact(
+            "job_details",
+            type="job_details",
+            metadata=fine_tune,
+        )
+        with artifact.new_file("job_details.json") as f:
+            json.dump(fine_tune, f, indent=2)
+        wandb.run.log_artifact(
+            artifact,
+            aliases=[fine_tune_id, "latest"],
+        )
 
     @classmethod
-    def _log_artifact(cls, file, prefix, artifact_type):
+    def _log_artifact_inputs(cls, file, prefix, artifact_type):
         file_id = file["id"]
         filename = Path(file["filename"]).name
         stem = Path(file["filename"]).stem
