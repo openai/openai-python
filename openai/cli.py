@@ -889,14 +889,14 @@ def wandb_register(parser):
 
     parser.set_defaults(func=help)
 
-    sub = subparsers.add_parser("log")
-    sub.add_argument("-i", "--id", help="The id of the fine-tune job")
+    sub = subparsers.add_parser("sync")
+    sub.add_argument("-i", "--id", help="The id of the fine-tune job (optional)")
     sub.add_argument(
         "-n",
         "--n_jobs",
         type=int,
         default=None,
-        help="Number of most recent fine-tune jobs to log when an id is not provided",
+        help="Number of most recent fine-tune jobs to log when an id is not provided. By default, every fine-tune is synced.",
     )
     sub.add_argument(
         "--project",

@@ -27,7 +27,7 @@ class Logger:
         _logged_in = False
 
     @classmethod
-    def log(
+    def sync(
         cls,
         id=None,
         n_jobs=None,
@@ -37,7 +37,7 @@ class Logger:
         **kwargs_wandb_init,
     ):
         """
-        Log a fine-tune jobs to Weights & Biases.
+        Sync fine-tune job to Weights & Biases.
         :param id: The id of the fine-tune job (optional)
         :param n_jobs: Number of most recent fine-tune jobs to log when an id is not provided
         :param project: Name of the project where you're sending runs. By default, it is "GPT-3".
