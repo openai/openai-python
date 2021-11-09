@@ -481,8 +481,8 @@ class FineTune:
 
 class Logger:
     @classmethod
-    def log(cls, args):
-        resp = openai.logger.Logger.log(
+    def sync(cls, args):
+        resp = openai.logger.Logger.sync(
             id=args.id,
             n_jobs=args.n_jobs,
             project=args.project,
@@ -913,4 +913,4 @@ def wandb_register(parser):
         help="Forces logging and overwrite existing wandb run of the same finetune job.",
     )
     sub.set_defaults(force=False)
-    sub.set_defaults(func=Logger.log)
+    sub.set_defaults(func=Logger.sync)
