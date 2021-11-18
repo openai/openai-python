@@ -3,6 +3,7 @@ import os
 import re
 import sys
 from typing import Optional
+from enum import Enum
 
 import openai
 
@@ -16,6 +17,20 @@ __all__ = [
     "log_warn",
     "logfmt",
 ]
+
+
+class ApiType(Enum):
+    AZURE = 1
+    OPEN_AI = 2
+
+    @staticmethod
+    def from_str(label):
+        if label.lower() == 'azure':
+            return ApiType.AZURE
+        elif label.lower() in ('open_ai', 'openai'):
+            return ApiType.OPEN_AI
+        else:
+            raise openai.error.InvalidAPIType("The API type provided in invalid. Please select one of the supported API types: 'azure', 'open_ai'")    
 
 
 def _console_log_level():

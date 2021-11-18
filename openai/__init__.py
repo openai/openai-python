@@ -26,6 +26,7 @@ api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
 
 organization = os.environ.get("OPENAI_ORGANIZATION")
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com")
+api_type = os.environ.get("OPENAI_API_TYPE", "open_ai")
 api_version = None
 verify_ssl_certs = True  # No effect. Certificates are always verified.
 proxy = None
@@ -50,6 +51,7 @@ __all__ = [
     "Search",
     "api_base",
     "api_key",
+    "api_type",
     "api_key_path",
     "api_version",
     "app_info",
