@@ -17,8 +17,7 @@ class EngineAPIResource(APIResource):
     azure_api_prefix = 'openai/deployments'
     azure_api_version = '?api-version=2021-11-01-preview'
 
-    def __init__(self, engine: Optional[str] = None, api_type : Optional[str] = None, **kwargs):
-        self.api_type = api_type
+    def __init__(self, engine: Optional[str] = None, **kwargs):
         super().__init__(engine=engine, **kwargs)
 
     @classmethod
@@ -31,7 +30,7 @@ class EngineAPIResource(APIResource):
         if typed_api_type == ApiType.AZURE:
             if engine is None:
                 raise error.InvalidRequestError(
-                    "Must provide an 'engine' parameter for API type: azure.", param="engine"
+                    "You must provide the deployment name in the 'engine' parameter to access the Azure OpenAI service"
                 )
             extn = quote_plus(engine)
             return "/%s/%s/%ss%s" % (cls.azure_api_prefix, extn, base, cls.azure_api_version)
@@ -124,14 +123,25 @@ class EngineAPIResource(APIResource):
                 "id",
             )
 
-        base = self.class_url(self.engine, self.api_type)
-        extn = quote_plus(id)
-        url = "%s/%s" % (base, extn)
+        params_connector = '?'
+        if self.typed_api_type == ApiType.AZURE:
+            extn = quote_plus(id)
+            base = self.OBJECT_NAME.replace(".", "/")
+            url = "/%s/%s/%ss/%s%s" % (self.azure_api_prefix, self.engine, base, extn, self.azure_api_version)
+            params_connector = '&'
+
+        elif self.typed_api_type == ApiType.OPEN_AI:
+            base = self.class_url(self.engine, self.api_type)
+            extn = quote_plus(id)
+            url = "%s/%s" % (base, extn)
+
+        else:
+            raise error.InvalidAPIType('Unsupported API type %s' % self.api_type)
 
         timeout = self.get("timeout")
         if timeout is not None:
             timeout = quote_plus(str(timeout))
-            url += "?timeout={}".format(timeout)
+            url += params_connector + "timeout={}".format(timeout)
         return url
 
     def wait(self, timeout=None):
