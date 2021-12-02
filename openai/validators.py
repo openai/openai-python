@@ -654,7 +654,8 @@ def get_batch_size_suggestion(df, no_packing):
         batch_size = BATCH_SIZE_TO_N_EXAMPLES_RATIO * n_examples
     else:
         batch_size = BATCH_SIZE_TO_N_CHARACTERS_RATIO * n_characters
-    batch_size = 2 ** int(np.log2(batch_size))
+
+    batch_size = max(1, int(2 ** np.ceil(np.log2(batch_size))))
     batch_size_suggestion = f" --batch_size {batch_size}"
     return batch_size_suggestion
 
@@ -694,7 +695,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
 
     input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
 
-    if not any_remediations:
+    if not any_remediations and not split:
         sys.stdout.write(
             f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{additional_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
