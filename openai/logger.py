@@ -199,8 +199,9 @@ class Logger:
         for file, prefix, artifact_type in (
             (training_file, "train", "training_files"),
             (validation_file, "valid", "validation_files"),
-        ):
-            cls._log_artifact_inputs(file, prefix, artifact_type)
+         ):
+            if file is not None:
+                cls._log_artifact_inputs(file, prefix, artifact_type)
 
         # job details
         fine_tune_id = fine_tune.get("id")
