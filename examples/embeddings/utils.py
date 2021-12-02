@@ -14,7 +14,7 @@ def get_embedding(text, engine="davinci-similarity"):
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
-    return openai.Engine(id=engine).embeddings(input = [text], version="v3")['data'][0]['embedding']
+    return openai.Engine(id=engine).embeddings(input = [text])['data'][0]['embedding']
 
 
 def cosine_similarity(a, b):
