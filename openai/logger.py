@@ -244,8 +244,9 @@ class Logger:
 
         # create a Table
         try:
-            table = cls._make_table(file_content)
+            table, n_items = cls._make_table(file_content)
             artifact.add(table, stem)
+            wandb.config.update({f"n_{prefix}": n_items})
         except:
             print(f"File {file_id} could not be read as a valid JSON file")
 
@@ -254,4 +255,4 @@ class Logger:
     @classmethod
     def _make_table(cls, file_content):
         df = pd.read_json(io.StringIO(file_content), orient="records", lines=True)
-        return wandb.Table(dataframe=df)
+        return wandb.Table(dataframe=df), len(df)
