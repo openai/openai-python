@@ -5,6 +5,7 @@ import sys
 import warnings
 
 import openai
+import openai.logger
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
@@ -13,7 +14,6 @@ from openai.validators import (
     read_any_format,
     write_out_file,
 )
-import openai.logger
 
 
 class bcolors:

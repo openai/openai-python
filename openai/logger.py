@@ -7,12 +7,15 @@ except:
 
 
 if WANDB_AVAILABLE:
-    from openai import FineTune, File
+    import datetime
     import io
     import json
+    from pathlib import Path
+
     import numpy as np
     import pandas as pd
-    from pathlib import Path
+
+    from openai import File, FineTune
 
 
 class Logger:
@@ -181,6 +184,8 @@ class Logger:
         for key in ("training_files", "validation_files", "result_files"):
             if config.get(key) and len(config[key]):
                 config[key] = config[key][0]
+        if config.get("created_at"):
+            config["created_at"] = datetime.datetime.fromtimestamp(config["created_at"])
         return config
 
     @classmethod
@@ -199,7 +204,7 @@ class Logger:
         for file, prefix, artifact_type in (
             (training_file, "train", "training_files"),
             (validation_file, "valid", "validation_files"),
-         ):
+        ):
             if file is not None:
                 cls._log_artifact_inputs(file, prefix, artifact_type)
 
