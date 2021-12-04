@@ -20,6 +20,7 @@ class File(ListableAPIResource, DeletableAPIResource):
         api_base=None,
         api_version=None,
         organization=None,
+        user_provided_filename=None,
     ):
         if purpose != "search" and model is not None:
             raise ValueError("'model' is only meaningful if 'purpose' is 'search'")
@@ -32,9 +33,13 @@ class File(ListableAPIResource, DeletableAPIResource):
         url = cls.class_url()
         # Set the filename on 'purpose' and 'model' to None so they are
         # interpreted as form data.
-        files = [("file", file), ("purpose", (None, purpose))]
+        files = [("purpose", (None, purpose))]
         if model is not None:
             files.append(("model", (None, model)))
+        if user_provided_filename is not None:
+            files.append(("file", (user_provided_filename, file)))
+        else:
+            files.append(("file", file))
         response, _, api_key = requestor.request("post", url, files=files)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -65,21 +70,15 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def find_matching_files(
         cls,
+        name,
+        bytes,
+        purpose,
         api_key=None,
         api_base=None,
         api_version=None,
         organization=None,
-        file=None,
-        purpose=None,
     ):
-        if file is None:
-            raise openai.error.InvalidRequestError(
-                "'file' is a required property", "file"
-            )
-        if purpose is None:
-            raise openai.error.InvalidRequestError(
-                "'purpose' is a required property", "purpose"
-            )
+        """Find already uploaded files with the same name, size, and purpose."""
         all_files = cls.list(
             api_key=api_key,
             api_base=api_base or openai.api_base,
@@ -87,15 +86,14 @@ class File(ListableAPIResource, DeletableAPIResource):
             organization=organization,
         ).get("data", [])
         matching_files = []
+        basename = os.path.basename(name)
         for f in all_files:
             if f["purpose"] != purpose:
                 continue
-            if not hasattr(file, "name") or f["filename"] != file.name:
+            file_basename = os.path.basename(f["filename"])
+            if file_basename != basename:
                 continue
-            file.seek(0, os.SEEK_END)
-            if f["bytes"] != file.tell():
-                file.seek(0)
+            if f["bytes"] != bytes:
                 continue
-            file.seek(0)
             matching_files.append(f)
         return matching_files
