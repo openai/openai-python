@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import warnings
+from typing import Optional
 
 import requests
 
