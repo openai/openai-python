@@ -4,6 +4,8 @@ import signal
 import sys
 import warnings
 
+import requests
+
 import openai
 from openai.upload_progress import BufferReader
 from openai.validators import (
@@ -200,7 +202,10 @@ class File:
         with open(args.file, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
         resp = openai.File.create(
-            file=buffer_reader, purpose=args.purpose, model=args.model
+            file=buffer_reader,
+            purpose=args.purpose,
+            model=args.model,
+            user_provided_filename=args.file,
         )
         print(resp)
 
@@ -238,52 +243,102 @@ class FineTune:
         print(resp)
 
     @classmethod
+    def _is_url(cls, file: str):
+        return file.lower().startswith("http")
+
+    @classmethod
+    def _download_file_from_public_url(cls, url: str) -> Optional[bytes]:
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.content
+        else:
+            return None
+
+    @classmethod
+    def _maybe_upload_file(
+        cls,
+        file: Optional[str] = None,
+        content: Optional[bytes] = None,
+        user_provided_file: Optional[str] = None,
+        check_if_file_exists: bool = True,
+    ):
+        # Exactly one of `file` or `content` must be provided
+        if (file is None) == (content is None):
+            raise ValueError("Exactly one of `file` or `content` must be provided")
+
+        if content is None:
+            assert file is not None
+            with open(file, "rb") as f:
+                content = f.read()
+
+        if check_if_file_exists:
+            bytes = len(content)
+            matching_files = openai.File.find_matching_files(
+                name=user_provided_file or f.name, bytes=bytes, purpose="fine-tune"
+            )
+            if len(matching_files) > 0:
+                file_ids = [f["id"] for f in matching_files]
+                sys.stdout.write(
+                    "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
+                        name=os.path.basename(matching_files[0]["filename"]),
+                        size=matching_files[0]["bytes"],
+                    )
+                )
+                sys.stdout.write("\n".join(file_ids))
+                while True:
+                    sys.stdout.write(
+                        "\nEnter file ID to reuse an already uploaded file, or an empty string to upload this file anyway: "
+                    )
+                    inp = sys.stdin.readline().strip()
+                    if inp in file_ids:
+                        sys.stdout.write(
+                            "Reusing already uploaded file: {id}\n".format(id=inp)
+                        )
+                        return inp
+                    elif inp == "":
+                        break
+                    else:
+                        sys.stdout.write(
+                            "File id '{id}' is not among the IDs of the potentially duplicated files\n".format(
+                                id=inp
+                            )
+                        )
+
+        buffer_reader = BufferReader(content, desc="Upload progress")
+        resp = openai.File.create(
+            file=buffer_reader,
+            purpose="fine-tune",
+            user_provided_filename=user_provided_file or file,
+        )
+        sys.stdout.write(
+            "Uploaded file from {file}: {id}\n".format(
+                file=user_provided_file or file, id=resp["id"]
+            )
+        )
+        return resp["id"]
+
+    @classmethod
     def _get_or_upload(cls, file, check_if_file_exists=True):
         try:
+            # 1. If it's a valid file, use it
             openai.File.retrieve(file)
-        except openai.error.InvalidRequestError as e:
-            if e.http_status == 404 and os.path.isfile(file):
-                matching_files = openai.File.find_matching_files(
-                    file=open(file), purpose="fine-tune"
+            return file
+        except openai.error.InvalidRequestError:
+            pass
+        if os.path.isfile(file):
+            # 2. If it's a file on the filesystem, upload it
+            return cls._maybe_upload_file(
+                file=file, check_if_file_exists=check_if_file_exists
+            )
+        if cls._is_url(file):
+            # 3. If it's a URL, download it temporarily
+            content = cls._download_file_from_public_url(file)
+            if content is not None:
+                return cls._maybe_upload_file(
+                    content=content,
+                    check_if_file_exists=check_if_file_exists,
+                    user_provided_file=file,
                 )
-                if len(matching_files) > 0 and check_if_file_exists:
-                    file_ids = [f["id"] for f in matching_files]
-                    sys.stdout.write(
-                        "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
-                            name=matching_files[0]["filename"],
-                            size=matching_files[0]["bytes"],
-                        )
-                    )
-                    sys.stdout.write("\n".join(file_ids))
-                    while True:
-                        sys.stdout.write(
-                            "\nEnter file ID to reuse an already uploaded file, or an empty string to upload this file anyway: "
-                        )
-                        inp = sys.stdin.readline().strip()
-                        if inp in file_ids:
-                            sys.stdout.write(
-                                "Using your file {file}: {id}\n".format(
-                                    file=file, id=inp
-                                )
-                            )
-                            return inp
-                        elif inp == "":
-                            break
-                        else:
-                            sys.stdout.write(
-                                "File id '{id}' is not among the IDs of the potentially duplicated files\n".format(
-                                    id=inp
-                                )
-                            )
-
-                resp = openai.File.create(
-                    file=open(file),
-                    purpose="fine-tune",
-                )
-                sys.stdout.write(
-                    "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
-                )
-                return resp["id"]
         return file
 
     @classmethod
@@ -737,15 +792,15 @@ Mutually exclusive with `top_p`.""",
         "--training_file",
         required=True,
         help="JSONL file containing prompt-completion examples for training. This can "
-        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
-        "or a local file path.",
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345), "
+        'a local file path, or a URL that starts with "http".',
     )
     sub.add_argument(
         "-v",
         "--validation_file",
         help="JSONL file containing prompt-completion examples for validation. This can "
-        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
-        "or a local file path.",
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345), "
+        'a local file path, or a URL that starts with "http".',
     )
     sub.add_argument(
         "--no_check_if_files_exist",
@@ -780,7 +835,7 @@ Mutually exclusive with `top_p`.""",
         type=float,
         help="The learning rate multiplier to use for training. The fine-tuning "
         "learning rate is determined by the original learning rate used for "
-        "pretraining multiplied by this value",
+        "pretraining multiplied by this value.",
     )
     sub.add_argument(
         "--use_packing",
@@ -796,7 +851,7 @@ Mutually exclusive with `top_p`.""",
         "--no_packing",
         action="store_false",
         dest="use_packing",
-        help="Disables the packing flag (see --use_packing for description)",
+        help="Disables the packing flag (see --use_packing for description).",
     )
     sub.set_defaults(use_packing=None)
     sub.add_argument(
@@ -804,7 +859,7 @@ Mutually exclusive with `top_p`.""",
         type=float,
         help="The weight to use for the prompt loss. The optimum value here depends "
         "depends on your use case. This determines how much the model prioritizes "
-        "learning from prompt tokens vs learning from completion tokens",
+        "learning from prompt tokens vs learning from completion tokens.",
     )
     sub.add_argument(
         "--compute_classification_metrics",
@@ -817,13 +872,13 @@ Mutually exclusive with `top_p`.""",
         "--classification_n_classes",
         type=int,
         help="The number of classes in a classification task. This parameter is "
-        "required for multiclass classification",
+        "required for multiclass classification.",
     )
     sub.add_argument(
         "--classification_positive_class",
         help="The positive class in binary classification. This parameter is needed "
         "to generate precision, recall and F-1 metrics when doing binary "
-        "classification",
+        "classification.",
     )
     sub.add_argument(
         "--classification_betas",
