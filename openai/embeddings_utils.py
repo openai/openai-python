@@ -43,16 +43,14 @@ def plot_multiclass_precision_recall(
         average_precision[i] = average_precision_score(y_true[:, i], y_score[:, i])
 
     # A "micro-average": quantifying score on all classes jointly
-    precision["micro"], recall["micro"], _ = precision_recall_curve(
+    precision_micro, recall_micro, _ = precision_recall_curve(
         y_true.ravel(), y_score.ravel()
     )
-    average_precision["micro"] = average_precision_score(
-        y_true, y_score, average="micro"
-    )
+    average_precision_micro = average_precision_score(y_true, y_score, average="micro")
     print(
         str(classifier_name)
         + " - Average precision score over all classes: {0:0.2f}".format(
-            average_precision["micro"]
+            average_precision_micro
         )
     )
 
@@ -69,11 +67,10 @@ def plot_multiclass_precision_recall(
 
     lines.append(l)
     labels.append("iso-f1 curves")
-    (l,) = plt.plot(recall["micro"], precision["micro"], color="gold", lw=2)
+    (l,) = plt.plot(recall_micro, precision_micro, color="gold", lw=2)
     lines.append(l)
     labels.append(
-        "average Precision-recall (auprc = {0:0.2f})"
-        "".format(average_precision["micro"])
+        "average Precision-recall (auprc = {0:0.2f})" "".format(average_precision_micro)
     )
 
     for i in range(n_classes):
