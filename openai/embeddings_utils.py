@@ -1,11 +1,10 @@
-import openai
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.metrics import average_precision_score, precision_recall_curve
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from tenacity import retry, wait_random_exponential, stop_after_attempt
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import average_precision_score
+import openai
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -14,7 +13,7 @@ def get_embedding(text, engine="davinci-similarity"):
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
-    return openai.Engine(id=engine).embeddings(input = [text])['data'][0]['embedding']
+    return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]
 
 
 def cosine_similarity(a, b):
