@@ -3,6 +3,7 @@ import os
 import signal
 import sys
 import warnings
+from functools import partial
 from typing import Optional
 
 import requests
@@ -11,10 +12,12 @@ import openai
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
-    apply_optional_remediation,
+    apply_validators,
+    get_search_validators,
     get_validators,
     read_any_format,
     write_out_file,
+    write_out_search_file,
 )
 
 
@@ -227,6 +230,40 @@ class File:
 
 
 class Search:
+    @classmethod
+    def prepare_data(cls, args, purpose):
+
+        sys.stdout.write("Analyzing...\n")
+        fname = args.file
+        auto_accept = args.quiet
+
+        optional_fields = ["metadata"]
+
+        if purpose == "classifications":
+            required_fields = ["text", "labels"]
+        else:
+            required_fields = ["text"]
+
+        df, remediation = read_any_format(
+            fname, fields=required_fields + optional_fields
+        )
+
+        if "metadata" not in df:
+            df["metadata"] = None
+
+        apply_necessary_remediation(None, remediation)
+        validators = get_search_validators(required_fields, optional_fields)
+
+        write_out_file_func = partial(
+            write_out_search_file,
+            purpose=purpose,
+            fields=required_fields + optional_fields,
+        )
+
+        apply_validators(
+            df, fname, remediation, validators, auto_accept, write_out_file_func
+        )
+
     @classmethod
     def create_alpha(cls, args):
         resp = openai.Search.create_alpha(
@@ -489,49 +526,14 @@ class FineTune:
 
         validators = get_validators()
 
-        optional_remediations = []
-        if remediation is not None:
-            optional_remediations.append(remediation)
-        for validator in validators:
-            remediation = validator(df)
-            if remediation is not None:
-                optional_remediations.append(remediation)
-                df = apply_necessary_remediation(df, remediation)
-
-        any_optional_or_necessary_remediations = any(
-            [
-                remediation
-                for remediation in optional_remediations
-                if remediation.optional_msg is not None
-                or remediation.necessary_msg is not None
-            ]
+        apply_validators(
+            df,
+            fname,
+            remediation,
+            validators,
+            auto_accept,
+            write_out_file_func=write_out_file,
         )
-        any_necessary_applied = any(
-            [
-                remediation
-                for remediation in optional_remediations
-                if remediation.necessary_msg is not None
-            ]
-        )
-        any_optional_applied = False
-
-        if any_optional_or_necessary_remediations:
-            sys.stdout.write(
-                "\n\nBased on the analysis we will perform the following actions:\n"
-            )
-            for remediation in optional_remediations:
-                df, optional_applied = apply_optional_remediation(
-                    df, remediation, auto_accept
-                )
-                any_optional_applied = any_optional_applied or optional_applied
-        else:
-            sys.stdout.write("\n\nNo remediations found.\n")
-
-        any_optional_or_necessary_applied = (
-            any_optional_applied or any_necessary_applied
-        )
-
-        write_out_file(df, fname, any_optional_or_necessary_applied, auto_accept)
 
 
 def tools_register(parser):
@@ -560,6 +562,57 @@ def tools_register(parser):
         help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
     )
     sub.set_defaults(func=FineTune.prepare_data)
+
+    sub = subparsers.add_parser("search.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
+    )
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="search"))
+
+    sub = subparsers.add_parser("classifications.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text-label examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
+    )
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="classification"))
+
+    sub = subparsers.add_parser("answers.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
+    )
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="answer"))
 
 
 def api_register(parser):

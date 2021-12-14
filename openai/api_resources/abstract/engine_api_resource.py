@@ -22,10 +22,10 @@ class EngineAPIResource(APIResource):
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
         if engine is None:
-            return "/%s/%ss" % (cls.api_prefix, base)
+            return "/%ss" % (base)
 
         extn = quote_plus(engine)
-        return "/%s/engines/%s/%ss" % (cls.api_prefix, extn, base)
+        return "/engines/%s/%ss" % (extn, base)
 
     @classmethod
     def create(

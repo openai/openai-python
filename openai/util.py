@@ -111,7 +111,7 @@ def convert_to_openai_object(
 
         return klass.construct_from(
             resp,
-            api_key,
+            api_key=api_key,
             api_version=api_version,
             organization=organization,
             response_ms=response_ms,
