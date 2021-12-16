@@ -7,7 +7,7 @@ from openai.util import ApiType
 
 
 class APIResource(OpenAIObject):
-    api_prefix = "v1"
+    api_prefix = ""
     azure_api_prefix = 'openai/deployments'
     azure_api_version = '?api-version=2021-11-01-preview'
 
@@ -32,7 +32,9 @@ class APIResource(OpenAIObject):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
-        return "/%s/%ss" % (cls.api_prefix, base)
+        if cls.api_prefix:
+            return "/%s/%ss" % (cls.api_prefix, base)
+        return "/%ss" % (base)
 
     def instance_url(self, operation=None):
         id = self.get("id")

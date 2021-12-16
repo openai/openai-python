@@ -37,13 +37,14 @@ class EngineAPIResource(APIResource):
 
         elif typed_api_type == ApiType.OPEN_AI:
             if engine is None:
-                return "/%s/%ss" % (cls.api_prefix, base)
+                return "/%ss" % (base)
 
             extn = quote_plus(engine)
-            return "/%s/engines/%s/%ss" % (cls.api_prefix, extn, base)
+            return "/engines/%s/%ss" % (extn, base)
 
         else:
             raise error.InvalidAPIType('Unsupported API type %s' % api_type)
+
 
     @classmethod
     def create(

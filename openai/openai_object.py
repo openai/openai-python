@@ -105,7 +105,7 @@ class OpenAIObject(dict):
     def construct_from(
         cls,
         values,
-        key,
+        api_key: Optional[str] = None,
         api_version=None,
         organization=None,
         engine=None,
@@ -113,7 +113,7 @@ class OpenAIObject(dict):
     ):
         instance = cls(
             values.get("id"),
-            api_key=key,
+            api_key=api_key,
             api_version=api_version,
             organization=organization,
             engine=engine,
@@ -121,7 +121,7 @@ class OpenAIObject(dict):
         )
         instance.refresh_from(
             values,
-            api_key=key,
+            api_key=api_key,
             api_version=api_version,
             organization=organization,
             response_ms=response_ms,

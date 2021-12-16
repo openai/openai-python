@@ -1,11 +1,10 @@
-import openai
-import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from sklearn.metrics import average_precision_score, precision_recall_curve
+from tenacity import retry, stop_after_attempt, wait_random_exponential
 
-from tenacity import retry, wait_random_exponential, stop_after_attempt
-from sklearn.metrics import precision_recall_curve
-from sklearn.metrics import average_precision_score
+import openai
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
@@ -14,7 +13,7 @@ def get_embedding(text, engine="davinci-similarity"):
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
-    return openai.Engine(id=engine).embeddings(input = [text])['data'][0]['embedding']
+    return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]
 
 
 def cosine_similarity(a, b):
@@ -43,16 +42,14 @@ def plot_multiclass_precision_recall(
         average_precision[i] = average_precision_score(y_true[:, i], y_score[:, i])
 
     # A "micro-average": quantifying score on all classes jointly
-    precision["micro"], recall["micro"], _ = precision_recall_curve(
+    precision_micro, recall_micro, _ = precision_recall_curve(
         y_true.ravel(), y_score.ravel()
     )
-    average_precision["micro"] = average_precision_score(
-        y_true, y_score, average="micro"
-    )
+    average_precision_micro = average_precision_score(y_true, y_score, average="micro")
     print(
         str(classifier_name)
         + " - Average precision score over all classes: {0:0.2f}".format(
-            average_precision["micro"]
+            average_precision_micro
         )
     )
 
@@ -69,11 +66,10 @@ def plot_multiclass_precision_recall(
 
     lines.append(l)
     labels.append("iso-f1 curves")
-    (l,) = plt.plot(recall["micro"], precision["micro"], color="gold", lw=2)
+    (l,) = plt.plot(recall_micro, precision_micro, color="gold", lw=2)
     lines.append(l)
     labels.append(
-        "average Precision-recall (auprc = {0:0.2f})"
-        "".format(average_precision["micro"])
+        "average Precision-recall (auprc = {0:0.2f})" "".format(average_precision_micro)
     )
 
     for i in range(n_classes):
