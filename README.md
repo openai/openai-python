@@ -58,13 +58,64 @@ This library additionally provides an `openai` command-line utility
 which makes it easy to interact with the API from your terminal. Run
 `openai api -h` for usage.
 
-```
+```sh
 # list engines
 openai api engines.list
 
 # create a completion
 openai api completions.create -e ada -p "Hello world"
 ```
+
+## Example code
+
+Examples of how to use [embeddings](https://github.com/openai/openai-python/tree/main/examples/embeddings), [fine tuning](https://github.com/openai/openai-python/tree/main/examples/finetuning), [semantic search](https://github.com/openai/openai-python/tree/main/examples/semanticsearch), and [codex](https://github.com/openai/openai-python/tree/main/examples/codex) can be found in the [examples folder](https://github.com/openai/openai-python/tree/main/examples).
+
+### Embeddings
+
+In the OpenAI Python library, an embedding represents a text string as a fixed-length vector of floating point numbers. Embeddings are designed to measure the similarity or relevance between text strings.
+
+To get an embedding for a text string, you can use the embeddings method as follows in Python:
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+# choose text to embed
+text_string = "sample text"
+
+# choose an embedding
+model_id = "davinci-similarity"
+
+# compute the embedding of the text
+embedding = openai.Engine(id=model_id).embeddings(input=text_string)['data'][0]['embedding']
+```
+
+An example of how to call the embeddings method is shown in the [get embeddings notebook](https://github.com/openai/openai-python/blob/main/examples/embeddings/Get_embeddings.ipynb).
+
+Examples of how to use embeddings are shared in the following Jupyter notebooks:
+
+- [Classification using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Classification.ipynb)
+- [Clustering using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Clustering.ipynb)
+- [Code search using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Code_search.ipynb)
+- [Semantic text search using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Semantic_text_search_using_embeddings.ipynb)
+- [User and product embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/User_and_product_embeddings.ipynb)
+- [Zero-shot classification using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Zero-shot_classification.ipynb)
+
+For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://beta.openai.com/docs/guides/embeddings) in the OpenAI documentation.
+
+### Fine tuning
+
+Fine tuning a model on training data can both improve the results (by giving the model more examples to learn from) and reduce the cost & latency of API calls (by reducing the need to include training examples in prompts).
+
+Examples of fine tuning are shared in the following Jupyter notebooks:
+
+- [Classification with fine tuning](https://github.com/openai/openai-python/blob/main/examples/finetuning/finetuning-classification.ipynb) (a simple notebook that shows the steps required for fine tuning)
+- Fine tuning a model that answers questions about the 2020 Olympics
+  - [Step 1: Collecting data](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-1-collect-data.ipynb)
+  - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-2-create-qa.ipynb)
+  - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-3-train-qa.ipynb)
+
+For more information on fine tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 
 ## Requirements
 
