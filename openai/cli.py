@@ -397,7 +397,6 @@ class FineTune:
             "batch_size",
             "learning_rate_multiplier",
             "prompt_loss_weight",
-            "use_packing",
             "compute_classification_metrics",
             "classification_n_classes",
             "classification_positive_class",
@@ -891,23 +890,6 @@ Mutually exclusive with `top_p`.""",
         "learning rate is determined by the original learning rate used for "
         "pretraining multiplied by this value.",
     )
-    sub.add_argument(
-        "--use_packing",
-        action="store_true",
-        dest="use_packing",
-        help="On classification tasks, we recommend not setting this flag. "
-        "On all other tasks, we recommend setting it. "
-        "When set, we pack as many prompt-completion pairs as possible into each "
-        "training example. This greatly increases the speed of a fine-tuning job, "
-        "often without negatively affecting model performance.",
-    )
-    sub.add_argument(
-        "--no_packing",
-        action="store_false",
-        dest="use_packing",
-        help="Disables the packing flag (see --use_packing for description).",
-    )
-    sub.set_defaults(use_packing=None)
     sub.add_argument(
         "--prompt_loss_weight",
         type=float,
