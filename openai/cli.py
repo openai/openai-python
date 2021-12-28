@@ -240,7 +240,7 @@ class Search:
         optional_fields = ["metadata"]
 
         if purpose == "classifications":
-            required_fields = ["text", "labels"]
+            required_fields = ["text", "label"]
         else:
             required_fields = ["text"]
 
@@ -594,7 +594,7 @@ def tools_register(parser):
         action="store_true",
         help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
     )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="classification"))
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="classifications"))
 
     sub = subparsers.add_parser("answers.prepare_data")
     sub.add_argument(
