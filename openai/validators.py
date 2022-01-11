@@ -2,7 +2,6 @@ import os
 import sys
 from typing import Any, Callable, NamedTuple, Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -535,12 +534,12 @@ def read_any_format(fname, fields=["prompt", "completion"]):
 def format_inferrer_validator(df):
     """
     This validator will infer the likely fine-tuning format of the data, and display it to the user if it is classification.
-    It will also suggest to use ada, --no_packing and explain train/validation split benefits.
+    It will also suggest to use ada and explain train/validation split benefits.
     """
     ft_type = infer_task_type(df)
     immediate_msg = None
     if ft_type == "classification":
-        immediate_msg = f"\n- Based on your data it seems like you're trying to fine-tune a model for {ft_type}\n- For classification, we recommend you try one of the faster and cheaper models, such as `ada`. You should also set the `--no_packing` parameter when fine-tuning\n- For classification, you can estimate the expected model performance by keeping a held out dataset, which is not used for training"
+        immediate_msg = f"\n- Based on your data it seems like you're trying to fine-tune a model for {ft_type}\n- For classification, we recommend you try one of the faster and cheaper models, such as `ada`\n- For classification, you can estimate the expected model performance by keeping a held out dataset, which is not used for training"
     return Remediation(name="num_examples", immediate_msg=immediate_msg)
 
 
@@ -634,27 +633,6 @@ def get_classification_hyperparams(df):
     return n_classes, pos_class
 
 
-def get_batch_size_suggestion(df, no_packing):
-    """
-    Suggest the batch size based on the number of examples after packing optionally is applied.
-    """
-    n_examples, n_characters = (
-        len(df),
-        df.completion.str.len().sum() + df.prompt.str.len().sum(),
-    )
-    BATCH_SIZE_TO_N_EXAMPLES_RATIO = 0.002
-    BATCH_SIZE_TO_N_CHARACTERS_RATIO = BATCH_SIZE_TO_N_EXAMPLES_RATIO / 10_000
-
-    if no_packing:
-        batch_size = BATCH_SIZE_TO_N_EXAMPLES_RATIO * n_examples
-    else:
-        batch_size = BATCH_SIZE_TO_N_CHARACTERS_RATIO * n_characters
-
-    batch_size = max(1, int(2 ** np.ceil(np.log2(batch_size))))
-    batch_size_suggestion = f" --batch_size {batch_size}"
-    return batch_size_suggestion
-
-
 def write_out_file(df, fname, any_remediations, auto_accept):
     """
     This function will write out a dataframe to a file, if the user would like to proceed, and also offer a fine-tuning command with the newly created file.
@@ -670,14 +648,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         if accept_suggestion(input_text, auto_accept):
             split = True
 
-    no_packing = ft_format == "classification" or (
-        ft_format == "conditional generation" and len(df) < 1000
-    )
     additional_params = ""
-    if no_packing:
-        additional_params = " --no_packing"
-    additional_params += get_batch_size_suggestion(df, no_packing)
-
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace(
         "\n", "\\n"
