@@ -1,3 +1,5 @@
+from typing import List
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -8,12 +10,26 @@ import openai
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
-def get_embedding(text, engine="davinci-similarity"):
+def get_embedding(text: str, engine="davinci-similarity") -> List[float]:
 
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
     return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]
+
+
+@retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
+def get_embeddings(
+    list_of_text: List[str], engine="babbage-similarity"
+) -> List[List[float]]:
+    assert len(list_of_text) < 2048, "The batch size should not be larger than 2048."
+
+    # replace newlines, which can negatively affect performance.
+    list_of_text = [text.replace("\n", " ") for text in list_of_text]
+
+    data = openai.Engine(id=engine).embeddings(input=list_of_text).data
+    data = sorted(data, key=lambda x: x["index"])  # maintain the same order as input.
+    return [d["embedding"] for d in data]
 
 
 def cosine_similarity(a, b):
