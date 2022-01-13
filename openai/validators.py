@@ -2,7 +2,6 @@ import os
 import sys
 from typing import Any, Callable, NamedTuple, Optional
 
-import numpy as np
 import pandas as pd
 
 
@@ -70,7 +69,7 @@ def necessary_column_validator(df, necessary_column):
     )
 
 
-def additional_column_validator(df):
+def additional_column_validator(df, fields=["prompt", "completion"]):
     """
     This validator will remove additional columns from the dataframe.
     """
@@ -79,9 +78,7 @@ def additional_column_validator(df):
     immediate_msg = None
     necessary_fn = None
     if len(df.columns) > 2:
-        additional_columns = [
-            c for c in df.columns if c not in ["prompt", "completion"]
-        ]
+        additional_columns = [c for c in df.columns if c not in fields]
         warn_message = ""
         for ac in additional_columns:
             dups = [c for c in additional_columns if ac in c]
@@ -91,7 +88,7 @@ def additional_column_validator(df):
         necessary_msg = f"Remove additional columns/keys: {additional_columns}"
 
         def necessary_fn(x):
-            return x[["prompt", "completion"]]
+            return x[fields]
 
     return Remediation(
         name="additional_column",
@@ -101,7 +98,7 @@ def additional_column_validator(df):
     )
 
 
-def non_empty_completion_validator(df):
+def non_empty_field_validator(df, field="completion"):
     """
     This validator will ensure that no completion is empty.
     """
@@ -109,42 +106,39 @@ def non_empty_completion_validator(df):
     necessary_fn = None
     immediate_msg = None
 
-    if (
-        df["completion"].apply(lambda x: x == "").any()
-        or df["completion"].isnull().any()
-    ):
-        empty_rows = (df["completion"] == "") | (df["completion"].isnull())
+    if df[field].apply(lambda x: x == "").any() or df[field].isnull().any():
+        empty_rows = (df[field] == "") | (df[field].isnull())
         empty_indexes = df.reset_index().index[empty_rows].tolist()
-        immediate_msg = f"\n- `completion` column/key should not contain empty strings. These are rows: {empty_indexes}"
+        immediate_msg = f"\n- `{field}` column/key should not contain empty strings. These are rows: {empty_indexes}"
 
         def necessary_fn(x):
-            return x[x["completion"] != ""].dropna(subset=["completion"])
+            return x[x[field] != ""].dropna(subset=[field])
 
-        necessary_msg = f"Remove {len(empty_indexes)} rows with empty completions"
+        necessary_msg = f"Remove {len(empty_indexes)} rows with empty {field}s"
     return Remediation(
-        name="empty_completion",
+        name=f"empty_{field}",
         immediate_msg=immediate_msg,
         necessary_msg=necessary_msg,
         necessary_fn=necessary_fn,
     )
 
 
-def duplicated_rows_validator(df):
+def duplicated_rows_validator(df, fields=["prompt", "completion"]):
     """
     This validator will suggest to the user to remove duplicate rows if they exist.
     """
-    duplicated_rows = df.duplicated(subset=["prompt", "completion"])
+    duplicated_rows = df.duplicated(subset=fields)
     duplicated_indexes = df.reset_index().index[duplicated_rows].tolist()
     immediate_msg = None
     optional_msg = None
     optional_fn = None
 
     if len(duplicated_indexes) > 0:
-        immediate_msg = f"\n- There are {len(duplicated_indexes)} duplicated prompt-completion pairs. These are rows: {duplicated_indexes}"
+        immediate_msg = f"\n- There are {len(duplicated_indexes)} duplicated {'-'.join(fields)} sets. These are rows: {duplicated_indexes}"
         optional_msg = f"Remove {len(duplicated_indexes)} duplicate rows"
 
         def optional_fn(x):
-            return x.drop_duplicates(subset=["prompt", "completion"])
+            return x.drop_duplicates(subset=fields)
 
     return Remediation(
         name="duplicated_rows",
@@ -467,7 +461,7 @@ def lower_case_validator(df, column):
         )
 
 
-def read_any_format(fname):
+def read_any_format(fname, fields=["prompt", "completion"]):
     """
     This function will read a file saved in .csv, .json, .txt, .xlsx or .tsv format using pandas.
      - for .xlsx it will read the first sheet
@@ -502,7 +496,7 @@ def read_any_format(fname):
                 content = f.read()
                 df = pd.DataFrame(
                     [["", line] for line in content.split("\n")],
-                    columns=["prompt", "completion"],
+                    columns=fields,
                     dtype=str,
                 )
         if fname.lower().endswith("jsonl") or fname.lower().endswith("json"):
@@ -540,12 +534,12 @@ def read_any_format(fname):
 def format_inferrer_validator(df):
     """
     This validator will infer the likely fine-tuning format of the data, and display it to the user if it is classification.
-    It will also suggest to use ada, --no_packing and explain train/validation split benefits.
+    It will also suggest to use ada and explain train/validation split benefits.
     """
     ft_type = infer_task_type(df)
     immediate_msg = None
     if ft_type == "classification":
-        immediate_msg = f"\n- Based on your data it seems like you're trying to fine-tune a model for {ft_type}\n- For classification, we recommend you try one of the faster and cheaper models, such as `ada`. You should also set the `--no_packing` parameter when fine-tuning\n- For classification, you can estimate the expected model performance by keeping a held out dataset, which is not used for training"
+        immediate_msg = f"\n- Based on your data it seems like you're trying to fine-tune a model for {ft_type}\n- For classification, we recommend you try one of the faster and cheaper models, such as `ada`\n- For classification, you can estimate the expected model performance by keeping a held out dataset, which is not used for training"
     return Remediation(name="num_examples", immediate_msg=immediate_msg)
 
 
@@ -623,7 +617,7 @@ def get_outfnames(fname, split):
     while True:
         index_suffix = f" ({i})" if i > 0 else ""
         candidate_fnames = [
-            fname.split(".")[0] + "_prepared" + suffix + index_suffix + ".jsonl"
+            os.path.splitext(fname)[0] + "_prepared" + suffix + index_suffix + ".jsonl"
             for suffix in suffixes
         ]
         if not any(os.path.isfile(f) for f in candidate_fnames):
@@ -637,26 +631,6 @@ def get_classification_hyperparams(df):
     if n_classes == 2:
         pos_class = df.completion.value_counts().index[0]
     return n_classes, pos_class
-
-
-def get_batch_size_suggestion(df, no_packing):
-    """
-    Suggest the batch size based on the number of examples after packing optionally is applied.
-    """
-    n_examples, n_characters = (
-        len(df),
-        df.completion.str.len().sum() + df.prompt.str.len().sum(),
-    )
-    BATCH_SIZE_TO_N_EXAMPLES_RATIO = 0.002
-    BATCH_SIZE_TO_N_CHARACTERS_RATIO = BATCH_SIZE_TO_N_EXAMPLES_RATIO / 10_000
-
-    if no_packing:
-        batch_size = BATCH_SIZE_TO_N_EXAMPLES_RATIO * n_examples
-    else:
-        batch_size = BATCH_SIZE_TO_N_CHARACTERS_RATIO * n_characters
-    batch_size = 2 ** int(np.log2(batch_size))
-    batch_size_suggestion = f" --batch_size {batch_size}"
-    return batch_size_suggestion
 
 
 def write_out_file(df, fname, any_remediations, auto_accept):
@@ -674,14 +648,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         if accept_suggestion(input_text, auto_accept):
             split = True
 
-    no_packing = ft_format == "classification" or (
-        ft_format == "conditional generation" and len(df) < 1000
-    )
     additional_params = ""
-    if no_packing:
-        additional_params = " --no_packing"
-    additional_params += get_batch_size_suggestion(df, no_packing)
-
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace(
         "\n", "\\n"
@@ -694,7 +661,7 @@ def write_out_file(df, fname, any_remediations, auto_accept):
 
     input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
 
-    if not any_remediations:
+    if not any_remediations and not split:
         sys.stdout.write(
             f'\nYou can use your file for fine-tuning:\n> openai api fine_tunes.create -t "{fname}"{additional_params}\n\nAfter you’ve fine-tuned a model, remember that your prompt has to end with the indicator string `{common_prompt_suffix_new_line_handled}` for the model to start generating completions, rather than continuing with the prompt.{optional_ending_string}\n'
         )
@@ -743,6 +710,30 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         sys.stdout.write("Aborting... did not write the file\n")
 
 
+def write_out_search_file(df, fname, any_remediations, auto_accept, fields, purpose):
+    """
+    This function will write out a dataframe to a file, if the user would like to proceed.
+    """
+    input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
+
+    if not any_remediations:
+        sys.stdout.write(
+            f'\nYou can upload your file:\n> openai api files.create -f "{fname}" -p {purpose}'
+        )
+
+    elif accept_suggestion(input_text, auto_accept):
+        fnames = get_outfnames(fname, split=False)
+
+        assert len(fnames) == 1
+        df[fields].to_json(fnames[0], lines=True, orient="records", force_ascii=False)
+
+        sys.stdout.write(
+            f'\nWrote modified file to {fnames[0]}`\nFeel free to take a look!\n\nNow upload that file:\n> openai api files.create -f "{fnames[0]}" -p {purpose}'
+        )
+    else:
+        sys.stdout.write("Aborting... did not write the file\n")
+
+
 def infer_task_type(df):
     """
     Infer the likely fine-tuning task type from the data
@@ -787,7 +778,7 @@ def get_validators():
         lambda x: necessary_column_validator(x, "prompt"),
         lambda x: necessary_column_validator(x, "completion"),
         additional_column_validator,
-        non_empty_completion_validator,
+        non_empty_field_validator,
         format_inferrer_validator,
         duplicated_rows_validator,
         long_examples_validator,
@@ -799,3 +790,71 @@ def get_validators():
         common_completion_suffix_validator,
         completions_space_start_validator,
     ]
+
+
+def get_search_validators(required_fields, optional_fields):
+    validators = [
+        lambda x: necessary_column_validator(x, field) for field in required_fields
+    ]
+    validators += [
+        lambda x: non_empty_field_validator(x, field) for field in required_fields
+    ]
+    validators += [lambda x: duplicated_rows_validator(x, required_fields)]
+    validators += [
+        lambda x: additional_column_validator(
+            x, fields=required_fields + optional_fields
+        ),
+    ]
+
+    return validators
+
+
+def apply_validators(
+    df,
+    fname,
+    remediation,
+    validators,
+    auto_accept,
+    write_out_file_func,
+):
+    optional_remediations = []
+    if remediation is not None:
+        optional_remediations.append(remediation)
+    for validator in validators:
+        remediation = validator(df)
+        if remediation is not None:
+            optional_remediations.append(remediation)
+            df = apply_necessary_remediation(df, remediation)
+
+    any_optional_or_necessary_remediations = any(
+        [
+            remediation
+            for remediation in optional_remediations
+            if remediation.optional_msg is not None
+            or remediation.necessary_msg is not None
+        ]
+    )
+    any_necessary_applied = any(
+        [
+            remediation
+            for remediation in optional_remediations
+            if remediation.necessary_msg is not None
+        ]
+    )
+    any_optional_applied = False
+
+    if any_optional_or_necessary_remediations:
+        sys.stdout.write(
+            "\n\nBased on the analysis we will perform the following actions:\n"
+        )
+        for remediation in optional_remediations:
+            df, optional_applied = apply_optional_remediation(
+                df, remediation, auto_accept
+            )
+            any_optional_applied = any_optional_applied or optional_applied
+    else:
+        sys.stdout.write("\n\nNo remediations found.\n")
+
+    any_optional_or_necessary_applied = any_optional_applied or any_necessary_applied
+
+    write_out_file_func(df, fname, any_optional_or_necessary_applied, auto_accept)

@@ -64,7 +64,7 @@ class OpenAIError(Exception):
             return None
 
         return openai.api_resources.error_object.ErrorObject.construct_from(
-            self.json_body["error"], key=None
+            self.json_body["error"]
         )
 
 

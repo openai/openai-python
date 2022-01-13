@@ -3,16 +3,22 @@ import os
 import signal
 import sys
 import warnings
+from functools import partial
+from typing import Optional
+
+import requests
 
 import openai
 import openai.logger
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
-    apply_optional_remediation,
+    apply_validators,
+    get_search_validators,
     get_validators,
     read_any_format,
     write_out_file,
+    write_out_search_file,
 )
 
 
@@ -201,7 +207,10 @@ class File:
         with open(args.file, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
         resp = openai.File.create(
-            file=buffer_reader, purpose=args.purpose, model=args.model
+            file=buffer_reader,
+            purpose=args.purpose,
+            model=args.model,
+            user_provided_filename=args.file,
         )
         print(resp)
 
@@ -223,6 +232,40 @@ class File:
 
 class Search:
     @classmethod
+    def prepare_data(cls, args, purpose):
+
+        sys.stdout.write("Analyzing...\n")
+        fname = args.file
+        auto_accept = args.quiet
+
+        optional_fields = ["metadata"]
+
+        if purpose == "classifications":
+            required_fields = ["text", "label"]
+        else:
+            required_fields = ["text"]
+
+        df, remediation = read_any_format(
+            fname, fields=required_fields + optional_fields
+        )
+
+        if "metadata" not in df:
+            df["metadata"] = None
+
+        apply_necessary_remediation(None, remediation)
+        validators = get_search_validators(required_fields, optional_fields)
+
+        write_out_file_func = partial(
+            write_out_search_file,
+            purpose=purpose,
+            fields=required_fields + optional_fields,
+        )
+
+        apply_validators(
+            df, fname, remediation, validators, auto_accept, write_out_file_func
+        )
+
+    @classmethod
     def create_alpha(cls, args):
         resp = openai.Search.create_alpha(
             query=[args.query],
@@ -239,52 +282,102 @@ class FineTune:
         print(resp)
 
     @classmethod
+    def _is_url(cls, file: str):
+        return file.lower().startswith("http")
+
+    @classmethod
+    def _download_file_from_public_url(cls, url: str) -> Optional[bytes]:
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            return resp.content
+        else:
+            return None
+
+    @classmethod
+    def _maybe_upload_file(
+        cls,
+        file: Optional[str] = None,
+        content: Optional[bytes] = None,
+        user_provided_file: Optional[str] = None,
+        check_if_file_exists: bool = True,
+    ):
+        # Exactly one of `file` or `content` must be provided
+        if (file is None) == (content is None):
+            raise ValueError("Exactly one of `file` or `content` must be provided")
+
+        if content is None:
+            assert file is not None
+            with open(file, "rb") as f:
+                content = f.read()
+
+        if check_if_file_exists:
+            bytes = len(content)
+            matching_files = openai.File.find_matching_files(
+                name=user_provided_file or f.name, bytes=bytes, purpose="fine-tune"
+            )
+            if len(matching_files) > 0:
+                file_ids = [f["id"] for f in matching_files]
+                sys.stdout.write(
+                    "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
+                        name=os.path.basename(matching_files[0]["filename"]),
+                        size=matching_files[0]["bytes"],
+                    )
+                )
+                sys.stdout.write("\n".join(file_ids))
+                while True:
+                    sys.stdout.write(
+                        "\nEnter file ID to reuse an already uploaded file, or an empty string to upload this file anyway: "
+                    )
+                    inp = sys.stdin.readline().strip()
+                    if inp in file_ids:
+                        sys.stdout.write(
+                            "Reusing already uploaded file: {id}\n".format(id=inp)
+                        )
+                        return inp
+                    elif inp == "":
+                        break
+                    else:
+                        sys.stdout.write(
+                            "File id '{id}' is not among the IDs of the potentially duplicated files\n".format(
+                                id=inp
+                            )
+                        )
+
+        buffer_reader = BufferReader(content, desc="Upload progress")
+        resp = openai.File.create(
+            file=buffer_reader,
+            purpose="fine-tune",
+            user_provided_filename=user_provided_file or file,
+        )
+        sys.stdout.write(
+            "Uploaded file from {file}: {id}\n".format(
+                file=user_provided_file or file, id=resp["id"]
+            )
+        )
+        return resp["id"]
+
+    @classmethod
     def _get_or_upload(cls, file, check_if_file_exists=True):
         try:
+            # 1. If it's a valid file, use it
             openai.File.retrieve(file)
-        except openai.error.InvalidRequestError as e:
-            if e.http_status == 404 and os.path.isfile(file):
-                matching_files = openai.File.find_matching_files(
-                    file=open(file), purpose="fine-tune"
+            return file
+        except openai.error.InvalidRequestError:
+            pass
+        if os.path.isfile(file):
+            # 2. If it's a file on the filesystem, upload it
+            return cls._maybe_upload_file(
+                file=file, check_if_file_exists=check_if_file_exists
+            )
+        if cls._is_url(file):
+            # 3. If it's a URL, download it temporarily
+            content = cls._download_file_from_public_url(file)
+            if content is not None:
+                return cls._maybe_upload_file(
+                    content=content,
+                    check_if_file_exists=check_if_file_exists,
+                    user_provided_file=file,
                 )
-                if len(matching_files) > 0 and check_if_file_exists:
-                    file_ids = [f["id"] for f in matching_files]
-                    sys.stdout.write(
-                        "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
-                            name=matching_files[0]["filename"],
-                            size=matching_files[0]["bytes"],
-                        )
-                    )
-                    sys.stdout.write("\n".join(file_ids))
-                    while True:
-                        sys.stdout.write(
-                            "\nEnter file ID to reuse an already uploaded file, or an empty string to upload this file anyway: "
-                        )
-                        inp = sys.stdin.readline().strip()
-                        if inp in file_ids:
-                            sys.stdout.write(
-                                "Using your file {file}: {id}\n".format(
-                                    file=file, id=inp
-                                )
-                            )
-                            return inp
-                        elif inp == "":
-                            break
-                        else:
-                            sys.stdout.write(
-                                "File id '{id}' is not among the IDs of the potentially duplicated files\n".format(
-                                    id=inp
-                                )
-                            )
-
-                resp = openai.File.create(
-                    file=open(file),
-                    purpose="fine-tune",
-                )
-                sys.stdout.write(
-                    "Uploaded file from {file}: {id}\n".format(file=file, id=resp["id"])
-                )
-                return resp["id"]
         return file
 
     @classmethod
@@ -305,7 +398,6 @@ class FineTune:
             "batch_size",
             "learning_rate_multiplier",
             "prompt_loss_weight",
-            "use_packing",
             "compute_classification_metrics",
             "classification_n_classes",
             "classification_positive_class",
@@ -434,49 +526,14 @@ class FineTune:
 
         validators = get_validators()
 
-        optional_remediations = []
-        if remediation is not None:
-            optional_remediations.append(remediation)
-        for validator in validators:
-            remediation = validator(df)
-            if remediation is not None:
-                optional_remediations.append(remediation)
-                df = apply_necessary_remediation(df, remediation)
-
-        any_optional_or_necessary_remediations = any(
-            [
-                remediation
-                for remediation in optional_remediations
-                if remediation.optional_msg is not None
-                or remediation.necessary_msg is not None
-            ]
+        apply_validators(
+            df,
+            fname,
+            remediation,
+            validators,
+            auto_accept,
+            write_out_file_func=write_out_file,
         )
-        any_necessary_applied = any(
-            [
-                remediation
-                for remediation in optional_remediations
-                if remediation.necessary_msg is not None
-            ]
-        )
-        any_optional_applied = False
-
-        if any_optional_or_necessary_remediations:
-            sys.stdout.write(
-                "\n\nBased on the analysis we will perform the following actions:\n"
-            )
-            for remediation in optional_remediations:
-                df, optional_applied = apply_optional_remediation(
-                    df, remediation, auto_accept
-                )
-                any_optional_applied = any_optional_applied or optional_applied
-        else:
-            sys.stdout.write("\n\nNo remediations found.\n")
-
-        any_optional_or_necessary_applied = (
-            any_optional_applied or any_necessary_applied
-        )
-
-        write_out_file(df, fname, any_optional_or_necessary_applied, auto_accept)
 
 
 class Logger:
@@ -518,6 +575,57 @@ def tools_register(parser):
         help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
     )
     sub.set_defaults(func=FineTune.prepare_data)
+
+    sub = subparsers.add_parser("search.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
+    )
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="search"))
+
+    sub = subparsers.add_parser("classifications.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text-label examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
+    )
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="classifications"))
+
+    sub = subparsers.add_parser("answers.prepare_data")
+    sub.add_argument(
+        "-f",
+        "--file",
+        required=True,
+        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
+        "This should be the local file path.",
+    )
+    sub.add_argument(
+        "-q",
+        "--quiet",
+        required=False,
+        action="store_true",
+        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
+    )
+    sub.set_defaults(func=partial(Search.prepare_data, purpose="answer"))
 
 
 def api_register(parser):
@@ -751,15 +859,15 @@ Mutually exclusive with `top_p`.""",
         "--training_file",
         required=True,
         help="JSONL file containing prompt-completion examples for training. This can "
-        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
-        "or a local file path.",
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345), "
+        'a local file path, or a URL that starts with "http".',
     )
     sub.add_argument(
         "-v",
         "--validation_file",
         help="JSONL file containing prompt-completion examples for validation. This can "
-        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345) "
-        "or a local file path.",
+        "be the ID of a file uploaded through the OpenAI API (e.g. file-abcde12345), "
+        'a local file path, or a URL that starts with "http".',
     )
     sub.add_argument(
         "--no_check_if_files_exist",
@@ -794,31 +902,14 @@ Mutually exclusive with `top_p`.""",
         type=float,
         help="The learning rate multiplier to use for training. The fine-tuning "
         "learning rate is determined by the original learning rate used for "
-        "pretraining multiplied by this value",
+        "pretraining multiplied by this value.",
     )
-    sub.add_argument(
-        "--use_packing",
-        action="store_true",
-        dest="use_packing",
-        help="On classification tasks, we recommend not setting this flag. "
-        "On all other tasks, we recommend setting it. "
-        "When set, we pack as many prompt-completion pairs as possible into each "
-        "training example. This greatly increases the speed of a fine-tuning job, "
-        "often without negatively affecting model performance.",
-    )
-    sub.add_argument(
-        "--no_packing",
-        action="store_false",
-        dest="use_packing",
-        help="Disables the packing flag (see --use_packing for description)",
-    )
-    sub.set_defaults(use_packing=None)
     sub.add_argument(
         "--prompt_loss_weight",
         type=float,
         help="The weight to use for the prompt loss. The optimum value here depends "
         "depends on your use case. This determines how much the model prioritizes "
-        "learning from prompt tokens vs learning from completion tokens",
+        "learning from prompt tokens vs learning from completion tokens.",
     )
     sub.add_argument(
         "--compute_classification_metrics",
@@ -831,13 +922,13 @@ Mutually exclusive with `top_p`.""",
         "--classification_n_classes",
         type=int,
         help="The number of classes in a classification task. This parameter is "
-        "required for multiclass classification",
+        "required for multiclass classification.",
     )
     sub.add_argument(
         "--classification_positive_class",
         help="The positive class in binary classification. This parameter is needed "
         "to generate precision, recall and F-1 metrics when doing binary "
-        "classification",
+        "classification.",
     )
     sub.add_argument(
         "--classification_betas",

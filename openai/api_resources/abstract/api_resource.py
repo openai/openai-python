@@ -5,7 +5,7 @@ from openai.openai_object import OpenAIObject
 
 
 class APIResource(OpenAIObject):
-    api_prefix = "v1"
+    api_prefix = ""
 
     @classmethod
     def retrieve(cls, id, api_key=None, request_id=None, **params):
@@ -28,7 +28,9 @@ class APIResource(OpenAIObject):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
-        return "/%s/%ss" % (cls.api_prefix, base)
+        if cls.api_prefix:
+            return "/%s/%ss" % (cls.api_prefix, base)
+        return "/%ss" % (base)
 
     def instance_url(self):
         id = self.get("id")
