@@ -265,6 +265,7 @@ class Logger:
                 table, n_items = cls._make_table(file_content)
                 artifact.add(table, stem)
                 wandb.config.update({f"n_{prefix}": n_items})
+                artifact.metadata["items"] = n_items
             except:
                 print(f"File {file_id} could not be read as a valid JSON file")
 
