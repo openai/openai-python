@@ -121,7 +121,7 @@ class Logger:
                     print(
                         f"A new wandb run will be created for fine-tune job {fine_tune_id} and previous run will be overwritten"
                     )
-            if wandb_status == "succeeded":
+            if wandb_status == "succeeded" and not force:
                 return
 
         # retrieve results
