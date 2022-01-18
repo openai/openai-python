@@ -81,7 +81,7 @@ class Logger:
         if not show_warnings and not any(fine_tune_logged):
             print("No new successful fine-tune were found")
 
-        return "🎉 wandb log completed successfully"
+        return "🎉 wandb sync completed successfully"
 
     @classmethod
     def _log_fine_tune(
@@ -152,7 +152,7 @@ class Logger:
             wandb.summary["fine_tuned_model"] = fine_tuned_model
 
         # training/validation files and job details
-        cls._log_artifacts(fine_tune)
+        cls._log_artifacts(fine_tune, project, entity)
 
         # mark run as complete
         wandb.summary["status"] = "succeeded"
@@ -176,7 +176,17 @@ class Logger:
                 cls._wandb_api = wandb.Api()
             return cls._wandb_api.run(run_path)
         except Exception:
-            return False
+            return None
+
+    @classmethod
+    def _get_wandb_artifact(cls, artifact_path):
+        cls._ensure_logged_in()
+        try:
+            if cls._wandb_api is None:
+                cls._wandb_api = wandb.Api()
+            return cls._wandb_api.artifact(artifact_path)
+        except Exception:
+            return None
 
     @classmethod
     def _get_config(cls, fine_tune):
@@ -189,7 +199,7 @@ class Logger:
         return config
 
     @classmethod
-    def _log_artifacts(cls, fine_tune):
+    def _log_artifacts(cls, fine_tune, project, entity):
         # training/validation files
         training_file = (
             fine_tune["training_files"][0]
@@ -206,7 +216,7 @@ class Logger:
             (validation_file, "valid", "validation_files"),
         ):
             if file is not None:
-                cls._log_artifact_inputs(file, prefix, artifact_type)
+                cls._log_artifact_inputs(file, prefix, artifact_type, project, entity)
 
         # job details
         fine_tune_id = fine_tune.get("id")
@@ -219,38 +229,46 @@ class Logger:
             json.dump(fine_tune, f, indent=2)
         wandb.run.log_artifact(
             artifact,
-            aliases=[fine_tune_id, "latest"],
+            aliases=["latest", fine_tune_id],
         )
 
     @classmethod
-    def _log_artifact_inputs(cls, file, prefix, artifact_type):
+    def _log_artifact_inputs(cls, file, prefix, artifact_type, project, entity):
         file_id = file["id"]
         filename = Path(file["filename"]).name
         stem = Path(file["filename"]).stem
 
-        # get file content
-        try:
-            file_content = File.download(id=file_id).decode("utf-8")
-        except:
-            print(
-                f"File {file_id} could not be retrieved. Make sure you are allowed to download training/validation files"
-            )
-            return
-        artifact = wandb.Artifact(
-            f"{prefix}-{filename}", type=artifact_type, metadata=file
-        )
-        with artifact.new_file(filename, mode="w") as f:
-            f.write(file_content)
+        # get input artifact
+        artifact_name = f"{prefix}-{filename}"
+        artifact_alias = file_id
+        artifact_path = f"{project}/{artifact_name}:{artifact_alias}"
+        if entity is not None:
+            artifact_path = f"{entity}/{artifact_path}"
+        artifact = cls._get_wandb_artifact(artifact_path)
 
-        # create a Table
-        try:
-            table, n_items = cls._make_table(file_content)
-            artifact.add(table, stem)
-            wandb.config.update({f"n_{prefix}": n_items})
-        except:
-            print(f"File {file_id} could not be read as a valid JSON file")
+        # create artifact if file not already logged previously
+        if artifact is None:
+            # get file content
+            try:
+                file_content = File.download(id=file_id).decode("utf-8")
+            except:
+                print(
+                    f"File {file_id} could not be retrieved. Make sure you are allowed to download training/validation files"
+                )
+                return
+            artifact = wandb.Artifact(artifact_name, type=artifact_type, metadata=file)
+            with artifact.new_file(filename, mode="w") as f:
+                f.write(file_content)
 
-        wandb.run.use_artifact(artifact, aliases=[file_id, "latest"])
+            # create a Table
+            try:
+                table, n_items = cls._make_table(file_content)
+                artifact.add(table, stem)
+                wandb.config.update({f"n_{prefix}": n_items})
+            except:
+                print(f"File {file_id} could not be read as a valid JSON file")
+
+        wandb.run.use_artifact(artifact, aliases=["latest", artifact_alias])
 
     @classmethod
     def _make_table(cls, file_content):
