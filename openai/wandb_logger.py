@@ -278,6 +278,9 @@ class WandbLogger:
                 artifact.metadata["items"] = n_items
             except:
                 print(f"File {file_id} could not be read as a valid JSON file")
+        else:
+            # log number of items
+            wandb.config.update({f"n_{prefix}": artifact.metadata.get("items")})
 
         wandb.run.use_artifact(artifact, aliases=["latest", artifact_alias])
 
