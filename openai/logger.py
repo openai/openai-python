@@ -67,33 +67,41 @@ class Logger:
             ]
 
         # log starting from oldest fine_tune
-        show_warnings = False if id is None and n_fine_tunes is None else True
+        show_individual_warnings = (
+            False if id is None and n_fine_tunes is None else True
+        )
         fine_tune_logged = [
             cls._log_fine_tune(
                 fine_tune,
                 project,
                 entity,
                 force,
-                show_warnings,
+                show_individual_warnings,
                 **kwargs_wandb_init,
             )
             for fine_tune in fine_tunes
         ]
 
-        if not show_warnings and not any(fine_tune_logged):
+        if not show_individual_warnings and not any(fine_tune_logged):
             print("No new successful fine-tunes were found")
 
         return "🎉 wandb sync completed successfully"
 
     @classmethod
     def _log_fine_tune(
-        cls, fine_tune, project, entity, force, show_warnings, **kwargs_wandb_init
+        cls,
+        fine_tune,
+        project,
+        entity,
+        force,
+        show_individual_warnings,
+        **kwargs_wandb_init,
     ):
         fine_tune_id = fine_tune.get("id")
         status = fine_tune.get("status")
 
         # check run completed successfully
-        if show_warnings and status != "succeeded":
+        if show_individual_warnings and status != "succeeded":
             print(
                 f'Fine-tune {fine_tune_id} has the status "{status}" and will not be logged'
             )
@@ -106,7 +114,7 @@ class Logger:
         wandb_run = cls._get_wandb_run(run_path)
         if wandb_run:
             wandb_status = wandb_run.summary.get("status")
-            if show_warnings:
+            if show_individual_warnings:
                 if wandb_status == "succeeded":
                     print(
                         f"Fine-tune {fine_tune_id} has already been logged successfully at {wandb_run.url}"
