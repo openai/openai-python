@@ -541,7 +541,7 @@ class Logger:
     def sync(cls, args):
         resp = openai.logger.Logger.sync(
             id=args.id,
-            n_jobs=args.n_jobs,
+            n_fine_tunes=args.n_fine_tunes,
             project=args.project,
             entity=args.entity,
             force=args.force,
@@ -984,10 +984,10 @@ def wandb_register(parser):
     sub.add_argument("-i", "--id", help="The id of the fine-tune job (optional)")
     sub.add_argument(
         "-n",
-        "--n_jobs",
+        "--n_fine_tunes",
         type=int,
         default=None,
-        help="Number of most recent fine-tune jobs to log when an id is not provided. By default, every fine-tune is synced.",
+        help="Number of most recent fine-tunes to log when an id is not provided. By default, every fine-tune is synced.",
     )
     sub.add_argument(
         "--project",
@@ -1001,7 +1001,7 @@ def wandb_register(parser):
     sub.add_argument(
         "--force",
         action="store_true",
-        help="Forces logging and overwrite existing wandb run of the same finetune job.",
+        help="Forces logging and overwrite existing wandb run of the same fine-tune.",
     )
     sub.set_defaults(force=False)
     sub.set_defaults(func=Logger.sync)

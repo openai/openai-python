@@ -20,7 +20,7 @@ if WANDB_AVAILABLE:
 
 class Logger:
     """
-    Log fine-tune jobs to Weights & Biases
+    Log fine-tunes to Weights & Biases
     """
 
     if not WANDB_AVAILABLE:
@@ -33,19 +33,19 @@ class Logger:
     def sync(
         cls,
         id=None,
-        n_jobs=None,
+        n_fine_tunes=None,
         project="GPT-3",
         entity=None,
         force=False,
         **kwargs_wandb_init,
     ):
         """
-        Sync fine-tune job to Weights & Biases.
-        :param id: The id of the fine-tune job (optional)
-        :param n_jobs: Number of most recent fine-tune jobs to log when an id is not provided
+        Sync fine-tunes to Weights & Biases.
+        :param id: The id of the fine-tune (optional)
+        :param n_fine_tunes: Number of most recent fine-tunes to log when an id is not provided. By default, every fine-tune is synced.
         :param project: Name of the project where you're sending runs. By default, it is "GPT-3".
         :param entity: Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.
-        :param force: Forces logging and overwrite existing wandb run of the same finetune job.
+        :param force: Forces logging and overwrite existing wandb run of the same fine-tune.
         """
 
         if not WANDB_AVAILABLE:
@@ -60,12 +60,14 @@ class Logger:
             # get list of fine_tune to log
             fine_tunes = FineTune.list()
             if not fine_tunes or fine_tunes.get("data") is None:
-                print("No fine-tune jobs have been retrieved")
+                print("No fine-tune has been retrieved")
                 return
-            fine_tunes = fine_tunes["data"][-n_jobs if n_jobs is not None else None :]
+            fine_tunes = fine_tunes["data"][
+                -n_fine_tunes if n_fine_tunes is not None else None :
+            ]
 
         # log starting from oldest fine_tune
-        show_warnings = False if id is None and n_jobs is None else True
+        show_warnings = False if id is None and n_fine_tunes is None else True
         fine_tune_logged = [
             cls._log_fine_tune(
                 fine_tune,
@@ -79,7 +81,7 @@ class Logger:
         ]
 
         if not show_warnings and not any(fine_tune_logged):
-            print("No new successful fine-tune were found")
+            print("No new successful fine-tunes were found")
 
         return "🎉 wandb sync completed successfully"
 
@@ -93,7 +95,7 @@ class Logger:
         # check run completed successfully
         if show_warnings and status != "succeeded":
             print(
-                f'Fine-tune job {fine_tune_id} has the status "{status}" and will not be logged'
+                f'Fine-tune {fine_tune_id} has the status "{status}" and will not be logged'
             )
             return
 
@@ -107,7 +109,7 @@ class Logger:
             if show_warnings:
                 if wandb_status == "succeeded":
                     print(
-                        f"Fine-tune job {fine_tune_id} has already been logged successfully at {wandb_run.url}"
+                        f"Fine-tune {fine_tune_id} has already been logged successfully at {wandb_run.url}"
                     )
                     if not force:
                         print(
@@ -115,11 +117,11 @@ class Logger:
                         )
                 else:
                     print(
-                        f"A run for fine-tune job {fine_tune_id} was previously created but didn't end successfully"
+                        f"A run for fine-tune {fine_tune_id} was previously created but didn't end successfully"
                     )
                 if wandb_status != "succeeded" or force:
                     print(
-                        f"A new wandb run will be created for fine-tune job {fine_tune_id} and previous run will be overwritten"
+                        f"A new wandb run will be created for fine-tune {fine_tune_id} and previous run will be overwritten"
                     )
             if wandb_status == "succeeded" and not force:
                 return
@@ -130,7 +132,7 @@ class Logger:
 
         # start a wandb run
         wandb.init(
-            job_type="finetune",
+            job_type="fine-tune",
             config=cls._get_config(fine_tune),
             project=project,
             entity=entity,
@@ -151,7 +153,7 @@ class Logger:
         if fine_tuned_model is not None:
             wandb.summary["fine_tuned_model"] = fine_tuned_model
 
-        # training/validation files and job details
+        # training/validation files and fine-tune details
         cls._log_artifacts(fine_tune, project, entity)
 
         # mark run as complete
@@ -218,14 +220,14 @@ class Logger:
             if file is not None:
                 cls._log_artifact_inputs(file, prefix, artifact_type, project, entity)
 
-        # job details
+        # fine-tune details
         fine_tune_id = fine_tune.get("id")
         artifact = wandb.Artifact(
-            "job_details",
-            type="job_details",
+            "fine_tune_details",
+            type="fine_tune_details",
             metadata=fine_tune,
         )
-        with artifact.new_file("job_details.json") as f:
+        with artifact.new_file("fine_tune_details.json") as f:
             json.dump(fine_tune, f, indent=2)
         wandb.run.log_artifact(
             artifact,
