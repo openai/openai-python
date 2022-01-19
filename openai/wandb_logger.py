@@ -18,7 +18,7 @@ if WANDB_AVAILABLE:
     from openai import File, FineTune
 
 
-class Logger:
+class WandbLogger:
     """
     Log fine-tunes to Weights & Biases
     """

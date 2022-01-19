@@ -9,7 +9,6 @@ from typing import Optional
 import requests
 
 import openai
-import openai.logger
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
@@ -20,6 +19,7 @@ from openai.validators import (
     write_out_file,
     write_out_search_file,
 )
+import openai.wandb_logger
 
 
 class bcolors:
@@ -536,10 +536,10 @@ class FineTune:
         )
 
 
-class Logger:
+class WandbLogger:
     @classmethod
     def sync(cls, args):
-        resp = openai.logger.Logger.sync(
+        resp = openai.wandb_logger.WandbLogger.sync(
             id=args.id,
             n_fine_tunes=args.n_fine_tunes,
             project=args.project,
@@ -1004,4 +1004,4 @@ def wandb_register(parser):
         help="Forces logging and overwrite existing wandb run of the same fine-tune.",
     )
     sub.set_defaults(force=False)
-    sub.set_defaults(func=Logger.sync)
+    sub.set_defaults(func=WandbLogger.sync)
