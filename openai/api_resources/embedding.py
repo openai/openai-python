@@ -1,4 +1,7 @@
+import base64
 import time
+
+import numpy as np
 
 from openai import util
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
@@ -26,9 +29,28 @@ class Embedding(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
                 param="engine",
             )
 
+        user_provided_encoding_format = kwargs.get("encoding_format", None)
+
+        # If encoding format was not explicitly specified, we opaquely use base64 for performance
+        if not user_provided_encoding_format:
+            kwargs["encoding_format"] = "base64"
+
         while True:
             try:
-                return super().create(*args, **kwargs)
+                response = super().create(*args, **kwargs)
+
+                # If a user specifies base64, we'll just return the encoded string.
+                # This is only for the default case.
+                if not user_provided_encoding_format:
+                    for data in response.data:
+
+                        # If an engine isn't using this optimization, don't do anything
+                        if type(data["embedding"]) == str:
+                            data["embedding"] = np.frombuffer(
+                                base64.b64decode(data["embedding"]), dtype="float32"
+                            ).tolist()
+
+                return response
             except TryAgain as e:
                 if timeout is not None and time.time() > start + timeout:
                     raise
