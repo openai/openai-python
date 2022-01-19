@@ -84,10 +84,10 @@ openai.api_key = "sk-..."  # supply your API key however you choose
 text_string = "sample text"
 
 # choose an embedding
-model_id = "davinci-similarity"
+model_id = "text-similarity-davinci-001"
 
 # compute the embedding of the text
-embedding = openai.Engine(id=model_id).embeddings(input=text_string)['data'][0]['embedding']
+embedding = openai.Embedding.create(input=text_string, engine=model_id)['data'][0]['embedding']
 ```
 
 An example of how to call the embeddings method is shown in the [get embeddings notebook](https://github.com/openai/openai-python/blob/main/examples/embeddings/Get_embeddings.ipynb).
