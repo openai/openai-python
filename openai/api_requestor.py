@@ -1,3 +1,4 @@
+from email import header
 import json
 import platform
 import threading
@@ -197,15 +198,12 @@ class APIRequestor:
             "User-Agent": user_agent,
         }
 
-        if self.api_type == ApiType.OPEN_AI:
-            headers["Authorization"] = "Bearer %s" % (self.api_key,)
-        elif self.api_type == ApiType.AZURE:
-            headers["api-key"] = self.api_key
+        headers.update(util.api_key_to_header(self.api_type, self.api_key))
 
         if self.organization:
             headers["OpenAI-Organization"] = self.organization
 
-        if self.api_version is not None:
+        if self.api_version is not None and self.api_type == ApiType.OPEN_AI:
             headers["OpenAI-Version"] = self.api_version
         if request_id is not None:
             headers["X-Request-Id"] = request_id

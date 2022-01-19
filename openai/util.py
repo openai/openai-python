@@ -18,6 +18,7 @@ __all__ = [
     "logfmt",
 ]
 
+api_key_to_header = lambda api, key: {"Authorization": f"Bearer {key}"} if api == ApiType.OPEN_AI else {"api-key": f"{key}"}
 
 class ApiType(Enum):
     AZURE = 1

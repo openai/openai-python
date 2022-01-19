@@ -9,7 +9,6 @@ from openai.util import ApiType
 class APIResource(OpenAIObject):
     api_prefix = ""
     azure_api_prefix = 'openai/deployments'
-    azure_api_version = '?api-version=2021-11-01-preview'
 
     @classmethod
     def retrieve(cls, id, api_key=None, request_id=None, **params):
@@ -46,14 +45,17 @@ class APIResource(OpenAIObject):
                 " `unicode`)" % (type(self).__name__, id, type(id)),
                 "id",
             )
+        api_version = self.api_version or openai.api_version
 
         if self.typed_api_type == ApiType.AZURE:
+            if not api_version:
+                raise error.InvalidRequestError("An API version is required for the Azure API type.")
             if not operation:
                 raise error.InvalidRequestError(
                     "The request needs an operation (eg: 'search') for the Azure OpenAI API type."
                 )
             extn = quote_plus(id)
-            return "/%s/%s/%s%s" % (self.azure_api_prefix, extn, operation, self.azure_api_version)
+            return "/%s/%s/%s?api-version=%s" % (self.azure_api_prefix, extn, operation, api_version)
 
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url()
