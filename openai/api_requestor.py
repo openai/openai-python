@@ -49,7 +49,6 @@ def _make_session() -> requests.Session:
     proxies = _requests_proxies_arg(openai.proxy)
     if proxies:
         s.proxies = proxies
-    s.verify = openai.ca_bundle_path
     s.mount(
         "https://",
         requests.adapters.HTTPAdapter(max_retries=MAX_CONNECTION_RETRIES),
