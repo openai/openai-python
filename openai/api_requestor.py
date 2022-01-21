@@ -51,7 +51,6 @@ def _make_session() -> requests.Session:
     proxies = _requests_proxies_arg(openai.proxy)
     if proxies:
         s.proxies = proxies
-    s.verify = openai.ca_bundle_path
     s.mount(
         "https://",
         requests.adapters.HTTPAdapter(max_retries=MAX_CONNECTION_RETRIES),
@@ -304,7 +303,7 @@ class APIRequestor:
     ) -> OpenAIResponse:
         if rcode == 503:
             raise error.ServiceUnavailableError(
-                "The server is overloaded or not ready yet.", rbody, rcode, rheaders
+                "The server is overloaded or not ready yet.", rbody, rcode, headers=rheaders
             )
         try:
             if hasattr(rbody, "decode"):
@@ -312,7 +311,7 @@ class APIRequestor:
             data = json.loads(rbody)
         except (JSONDecodeError, UnicodeDecodeError):
             raise error.APIError(
-                f"HTTP code {rcode} from API ({rbody})", rbody, rcode, rheaders
+                f"HTTP code {rcode} from API ({rbody})", rbody, rcode, headers=rheaders
             )
         resp = OpenAIResponse(data, rheaders)
         # In the future, we might add a "status" parameter to errors

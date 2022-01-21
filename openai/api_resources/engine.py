@@ -1,4 +1,5 @@
 import time
+import warnings
 
 from openai import util
 from openai.api_resources.abstract import ListableAPIResource, UpdateableAPIResource
@@ -35,4 +36,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
             raise InvalidAPIType('Unsupported API type %s' % self.api_type)
 
     def embeddings(self, **params):
+        warnings.warn(
+            "Engine.embeddings is deprecated, use Embedding.create", DeprecationWarning
+        )
         return self.request("post", self.instance_url() + "/embeddings", params)
