@@ -26,7 +26,6 @@ setup(
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_data={
         "openai": [
-            "data/ca-certificates.crt",
             "py.typed",
         ]
     },

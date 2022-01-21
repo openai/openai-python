@@ -10,24 +10,24 @@ import openai
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
-def get_embedding(text: str, engine="davinci-similarity") -> List[float]:
+def get_embedding(text: str, engine="text-similarity-davinci-001") -> List[float]:
 
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
-    return openai.Engine(id=engine).embeddings(input=[text])["data"][0]["embedding"]
+    return openai.Embedding.create(input=[text], engine=engine)["data"][0]["embedding"]
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def get_embeddings(
-    list_of_text: List[str], engine="babbage-similarity"
+    list_of_text: List[str], engine="text-similarity-babbage-001"
 ) -> List[List[float]]:
     assert len(list_of_text) < 2048, "The batch size should not be larger than 2048."
 
     # replace newlines, which can negatively affect performance.
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
 
-    data = openai.Engine(id=engine).embeddings(input=list_of_text).data
+    data = openai.Embedding.create(input=list_of_text, engine=engine).data
     data = sorted(data, key=lambda x: x["index"])  # maintain the same order as input.
     return [d["embedding"] for d in data]
 

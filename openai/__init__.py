@@ -9,6 +9,7 @@ from openai.api_resources import (
     Answer,
     Classification,
     Completion,
+    Embedding,
     Engine,
     ErrorObject,
     File,
@@ -31,7 +32,7 @@ verify_ssl_certs = True  # No effect. Certificates are always verified.
 proxy = None
 app_info = None
 enable_telemetry = False  # Ignored; the telemetry feature was removed.
-ca_bundle_path = os.path.join(os.path.dirname(__file__), "data/ca-certificates.crt")
+ca_bundle_path = None  # No longer used, feature was removed
 debug = False
 log = None  # Set to either 'debug' or 'info', controls console logging
 
@@ -40,6 +41,7 @@ __all__ = [
     "Answer",
     "Classification",
     "Completion",
+    "Embedding",
     "Engine",
     "ErrorObject",
     "File",
