@@ -146,6 +146,9 @@ class RateLimitError(OpenAIError):
 class ServiceUnavailableError(OpenAIError):
     pass
 
+class InvalidAPIType(OpenAIError):
+    pass
+
 
 class SignatureVerificationError(OpenAIError):
     def __init__(self, message, sig_header, http_body=None):

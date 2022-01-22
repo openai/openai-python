@@ -4,4 +4,6 @@
 /public/dist
 __pycache__
 build
+*.egg
+.vscode/settings.json
 .ipynb_checkpoints

@@ -2,8 +2,10 @@ import json
 from copy import deepcopy
 from typing import Optional
 
+import openai
 from openai import api_requestor, util
 from openai.openai_response import OpenAIResponse
+from openai.util import ApiType
 
 
 class OpenAIObject(dict):
@@ -14,6 +16,7 @@ class OpenAIObject(dict):
         id=None,
         api_key=None,
         api_version=None,
+        api_type=None,
         organization=None,
         response_ms: Optional[int] = None,
         api_base=None,
@@ -30,6 +33,7 @@ class OpenAIObject(dict):
 
         object.__setattr__(self, "api_key", api_key)
         object.__setattr__(self, "api_version", api_version)
+        object.__setattr__(self, "api_type", api_type)
         object.__setattr__(self, "organization", organization)
         object.__setattr__(self, "api_base_override", api_base)
         object.__setattr__(self, "engine", engine)
@@ -90,6 +94,7 @@ class OpenAIObject(dict):
                 self.get("id", None),
                 self.api_key,
                 self.api_version,
+                self.api_type,
                 self.organization,
             ),
             dict(self),  # state
@@ -128,11 +133,13 @@ class OpenAIObject(dict):
         values,
         api_key=None,
         api_version=None,
+        api_type=None,
         organization=None,
         response_ms: Optional[int] = None,
     ):
         self.api_key = api_key or getattr(values, "api_key", None)
         self.api_version = api_version or getattr(values, "api_version", None)
+        self.api_type = api_type or getattr(values, "api_type", None)
         self.organization = organization or getattr(values, "organization", None)
         self._response_ms = response_ms or getattr(values, "_response_ms", None)
 
@@ -164,6 +171,7 @@ class OpenAIObject(dict):
         requestor = api_requestor.APIRequestor(
             key=self.api_key,
             api_base=self.api_base_override or self.api_base(),
+            api_type=self.api_type,
             api_version=self.api_version,
             organization=self.organization,
         )
@@ -233,6 +241,10 @@ class OpenAIObject(dict):
     def openai_id(self):
         return self.id
 
+    @property
+    def typed_api_type(self):
+        return ApiType.from_str(self.api_type) if self.api_type else ApiType.from_str(openai.api_type)
+
     # This class overrides __setitem__ to throw exceptions on inputs that it
     # doesn't like. This can cause problems when we try to copy an object
     # wholesale because some data that's returned from the API may not be valid
@@ -243,6 +255,7 @@ class OpenAIObject(dict):
             self.get("id"),
             self.api_key,
             api_version=self.api_version,
+            api_type=self.api_type,
             organization=self.organization,
         )
 
