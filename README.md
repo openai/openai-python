@@ -100,6 +100,7 @@ Examples of how to use embeddings are shared in the following Jupyter notebooks:
 - [Semantic text search using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Semantic_text_search_using_embeddings.ipynb)
 - [User and product embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/User_and_product_embeddings.ipynb)
 - [Zero-shot classification using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Zero-shot_classification.ipynb)
+- [Recommendation using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Recommendation.ipynb)
 
 For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://beta.openai.com/docs/guides/embeddings) in the OpenAI documentation.
 
