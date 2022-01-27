@@ -22,11 +22,14 @@ setup(
     ],
     extras_require={"dev": ["black~=21.6b0", "pytest==6.*"]},
     python_requires=">=3.7.1",
-    scripts=["bin/openai"],
+    entry_points={
+        'console_scripts': [
+            'openai=openai._openai_scripts:main',
+        ],
+    },
     packages=find_packages(exclude=["tests", "tests.*"]),
     package_data={
         "openai": [
-            "data/ca-certificates.crt",
             "py.typed",
         ]
     },

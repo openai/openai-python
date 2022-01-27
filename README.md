@@ -52,6 +52,32 @@ completion = openai.Completion.create(engine="ada", prompt="Hello world")
 print(completion.choices[0].text)
 ```
 
+### Microsoft Azure Endpoints
+
+In order to use the library with Microsoft Azure endpoints, you need to set the api_type, api_base and api_version in addition to the api_key. The api_type must be set to 'azure' and the others correspond to the properites of your endpoint.
+In addition, the deployment name must be passed as the engine parameter.
+
+```python
+import openai
+openai.api_type = "azure"
+openai.api_key = "..."
+openai.api_base = "https://example-endpoint.openai.azure.com"
+openai.api_version = "2021-11-01-preview"
+
+# create a completion
+completion = openai.Completion.create(engine="deployment-namme", prompt="Hello world")
+
+# print the completion
+print(completion.choices[0].text)
+
+# create a search and pass the deployment-name as the engine Id.
+search = openai.Engine(id="deployment-namme").search(documents=["White House", "hospital", "school"], query ="the president")
+
+# print the search
+print(search)
+```
+Please note that for the moment, the Microsoft Azure endpoints can only be used for completion and search operations.
+
 ### Command-line interface
 
 This library additionally provides an `openai` command-line utility
@@ -84,10 +110,10 @@ openai.api_key = "sk-..."  # supply your API key however you choose
 text_string = "sample text"
 
 # choose an embedding
-model_id = "davinci-similarity"
+model_id = "text-similarity-davinci-001"
 
 # compute the embedding of the text
-embedding = openai.Engine(id=model_id).embeddings(input=text_string)['data'][0]['embedding']
+embedding = openai.Embedding.create(input=text_string, engine=model_id)['data'][0]['embedding']
 ```
 
 An example of how to call the embeddings method is shown in the [get embeddings notebook](https://github.com/openai/openai-python/blob/main/examples/embeddings/Get_embeddings.ipynb).
@@ -100,6 +126,7 @@ Examples of how to use embeddings are shared in the following Jupyter notebooks:
 - [Semantic text search using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Semantic_text_search_using_embeddings.ipynb)
 - [User and product embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/User_and_product_embeddings.ipynb)
 - [Zero-shot classification using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Zero-shot_classification.ipynb)
+- [Recommendation using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Recommendation.ipynb)
 
 For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://beta.openai.com/docs/guides/embeddings) in the OpenAI documentation.
 

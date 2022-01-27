@@ -1,8 +1,10 @@
 import time
+import warnings
 
 from openai import util
 from openai.api_resources.abstract import ListableAPIResource, UpdateableAPIResource
-from openai.error import TryAgain
+from openai.error import InvalidAPIType, TryAgain
+from openai.util import ApiType
 
 
 class Engine(ListableAPIResource, UpdateableAPIResource):
@@ -26,7 +28,15 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                 util.log_info("Waiting for model to warm up", error=e)
 
     def search(self, **params):
-        return self.request("post", self.instance_url() + "/search", params)
+        if self.typed_api_type == ApiType.AZURE:
+            return self.request("post", self.instance_url("search"), params)
+        elif self.typed_api_type == ApiType.OPEN_AI:
+            return self.request("post", self.instance_url() + "/search", params)
+        else:
+            raise InvalidAPIType('Unsupported API type %s' % self.api_type)
 
     def embeddings(self, **params):
+        warnings.warn(
+            "Engine.embeddings is deprecated, use Embedding.create", DeprecationWarning
+        )
         return self.request("post", self.instance_url() + "/embeddings", params)

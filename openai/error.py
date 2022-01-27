@@ -119,6 +119,17 @@ class InvalidRequestError(OpenAIError):
             self.request_id,
         )
 
+    def __reduce__(self):
+        return type(self), (
+            self._message,
+            self.param,
+            self.code,
+            self.http_body,
+            self.http_status,
+            self.json_body,
+            self.headers,
+        )
+
 
 class AuthenticationError(OpenAIError):
     pass
@@ -135,8 +146,18 @@ class RateLimitError(OpenAIError):
 class ServiceUnavailableError(OpenAIError):
     pass
 
+class InvalidAPIType(OpenAIError):
+    pass
+
 
 class SignatureVerificationError(OpenAIError):
     def __init__(self, message, sig_header, http_body=None):
         super(SignatureVerificationError, self).__init__(message, http_body)
         self.sig_header = sig_header
+
+    def __reduce__(self):
+        return type(self), (
+            self._message,
+            self.sig_header,
+            self.http_body,
+        )
