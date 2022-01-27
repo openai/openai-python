@@ -20,7 +20,7 @@ if WANDB_AVAILABLE:
 
 class WandbLogger:
     """
-    Log fine-tunes to Weights & Biases
+    Log fine-tunes to [Weights & Biases](https://wandb.me/openai-docs)
     """
 
     if not WANDB_AVAILABLE:
