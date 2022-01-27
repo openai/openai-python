@@ -52,6 +52,32 @@ completion = openai.Completion.create(engine="ada", prompt="Hello world")
 print(completion.choices[0].text)
 ```
 
+### Microsoft Azure Endpoints
+
+In order to use the library with Microsoft Azure endpoints, you need to set the api_type, api_base and api_version in addition to the api_key. The api_type must be set to 'azure' and the others correspond to the properites of your endpoint.
+In addition, the deployment name must be passed as the engine parameter.
+
+```python
+import openai
+openai.api_type = "azure"
+openai.api_key = "..."
+openai.api_base = "https://example-endpoint.openai.azure.com"
+openai.api_version = "2021-11-01-preview"
+
+# create a completion
+completion = openai.Completion.create(engine="deployment-namme", prompt="Hello world")
+
+# print the completion
+print(completion.choices[0].text)
+
+# create a search and pass the deployment-name as the engine Id.
+search = openai.Engine(id="deployment-namme").search(documents=["White House", "hospital", "school"], query ="the president")
+
+# print the search
+print(search)
+```
+Please note that for the moment, the Microsoft Azure endpoints can only be used for completion and search operations.
+
 ### Command-line interface
 
 This library additionally provides an `openai` command-line utility
