@@ -19,6 +19,7 @@ from openai.validators import (
     write_out_file,
     write_out_search_file,
 )
+import openai.wandb_logger
 
 
 class bcolors:
@@ -535,6 +536,19 @@ class FineTune:
         )
 
 
+class WandbLogger:
+    @classmethod
+    def sync(cls, args):
+        resp = openai.wandb_logger.WandbLogger.sync(
+            id=args.id,
+            n_fine_tunes=args.n_fine_tunes,
+            project=args.project,
+            entity=args.entity,
+            force=args.force,
+        )
+        print(resp)
+
+
 def tools_register(parser):
     subparsers = parser.add_subparsers(
         title="Tools", help="Convenience client side tools"
@@ -954,3 +968,40 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.cancel)
+
+
+def wandb_register(parser):
+    subparsers = parser.add_subparsers(
+        title="wandb", help="Logging with Weights & Biases"
+    )
+
+    def help(args):
+        parser.print_help()
+
+    parser.set_defaults(func=help)
+
+    sub = subparsers.add_parser("sync")
+    sub.add_argument("-i", "--id", help="The id of the fine-tune job (optional)")
+    sub.add_argument(
+        "-n",
+        "--n_fine_tunes",
+        type=int,
+        default=None,
+        help="Number of most recent fine-tunes to log when an id is not provided. By default, every fine-tune is synced.",
+    )
+    sub.add_argument(
+        "--project",
+        default="GPT-3",
+        help="""Name of the project where you're sending runs. By default, it is "GPT-3".""",
+    )
+    sub.add_argument(
+        "--entity",
+        help="Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.",
+    )
+    sub.add_argument(
+        "--force",
+        action="store_true",
+        help="Forces logging and overwrite existing wandb run of the same fine-tune.",
+    )
+    sub.set_defaults(force=False)
+    sub.set_defaults(func=WandbLogger.sync)

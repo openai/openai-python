@@ -76,6 +76,7 @@ search = openai.Engine(id="deployment-namme").search(documents=["White House", "
 # print the search
 print(search)
 ```
+
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion and search operations.
 
 ### Command-line interface
@@ -141,6 +142,12 @@ Examples of fine tuning are shared in the following Jupyter notebooks:
   - [Step 1: Collecting data](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-1-collect-data.ipynb)
   - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-2-create-qa.ipynb)
   - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-3-train-qa.ipynb)
+
+Sync your fine-tunes to [Weights & Biases](https://wandb.me/openai-docs) to track experiments, models, and datasets in your central dashboard with:
+
+```bash
+openai wandb sync
+```
 
 For more information on fine tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 

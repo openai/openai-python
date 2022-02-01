@@ -4,7 +4,7 @@ import logging
 import sys
 
 import openai
-from openai.cli import api_register, display_error, tools_register
+from openai.cli import api_register, display_error, tools_register, wandb_register
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -39,9 +39,11 @@ def main():
     subparsers = parser.add_subparsers()
     sub_api = subparsers.add_parser("api", help="Direct API calls")
     sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
+    sub_wandb = subparsers.add_parser("wandb", help="Logging with Weights & Biases")
 
     api_register(sub_api)
     tools_register(sub_tools)
+    wandb_register(sub_wandb)
 
     args = parser.parse_args()
     if args.verbosity == 1:
