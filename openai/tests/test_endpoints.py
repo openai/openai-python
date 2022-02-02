@@ -28,3 +28,9 @@ def test_completions_multiple_prompts():
         prompt=["This was a test", "This was another test"], n=5, engine="ada"
     )
     assert len(result.choices) == 10
+
+
+def test_completions_model():
+    result = openai.Completion.create(prompt="This was a test", n=5, model="ada")
+    assert len(result.choices) == 5
+    assert result.model.startswith("ada:")
