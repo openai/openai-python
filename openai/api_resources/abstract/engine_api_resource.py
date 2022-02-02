@@ -63,6 +63,7 @@ class EngineAPIResource(APIResource):
         engine = params.pop("engine", None)
         timeout = params.pop("timeout", None)
         stream = params.get("stream", False)
+        headers = params.pop("headers", None)
         if engine is None and cls.engine_required:
             raise error.InvalidRequestError(
                 "Must provide an 'engine' parameter to create a %s" % cls, "engine"
@@ -87,7 +88,12 @@ class EngineAPIResource(APIResource):
         )
         url = cls.class_url(engine, api_type, api_version)
         response, _, api_key = requestor.request(
-            "post", url, params, stream=stream, request_id=request_id
+            "post",
+            url,
+            params=params,
+            headers=headers,
+            stream=stream,
+            request_id=request_id,
         )
 
         if stream:

@@ -176,7 +176,12 @@ class OpenAIObject(dict):
             organization=self.organization,
         )
         response, stream, api_key = requestor.request(
-            method, url, params, stream=stream, headers=headers, request_id=request_id
+            method,
+            url,
+            params=params,
+            stream=stream,
+            headers=headers,
+            request_id=request_id,
         )
 
         if stream:
