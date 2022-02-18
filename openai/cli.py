@@ -394,6 +394,7 @@ class FineTune:
 
         for hparam in (
             "model",
+            "suffix",
             "n_epochs",
             "batch_size",
             "learning_rate_multiplier",
@@ -879,6 +880,17 @@ Mutually exclusive with `top_p`.""",
         "-m",
         "--model",
         help="The model to start fine-tuning from",
+    )
+    sub.add_argument(
+        "--suffix",
+        help="If set, this argument can be used to customize the generated fine-tuned model name."
+        "All punctuation and whitespace in `suffix` will be replaced with a "
+        "single dash, and the string will be lower cased. The max "
+        "length of `suffix` is 40 chars. "
+        "The generated name will match the form `{base_model}:ft-{org-title}:{suffix}-{timestamp}`. "
+        'For example, `openai api fine_tunes.create -t test.jsonl -m ada --suffix "custom model name" '
+        "could generate a model with the name "
+        "ada:ft-your-org:custom-model-name-2022-02-15-04-21-04",
     )
     sub.add_argument(
         "--no_follow",
