@@ -101,10 +101,11 @@ class WandbLogger:
         status = fine_tune.get("status")
 
         # check run completed successfully
-        if show_individual_warnings and status != "succeeded":
-            print(
-                f'Fine-tune {fine_tune_id} has the status "{status}" and will not be logged'
-            )
+        if status != "succeeded":
+            if show_individual_warnings:
+                print(
+                    f'Fine-tune {fine_tune_id} has the status "{status}" and will not be logged'
+                )
             return
 
         # check run has not been logged already
