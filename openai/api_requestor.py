@@ -111,7 +111,7 @@ class APIRequestor:
 
     def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
         try:
-            error_data = resp["error"]
+            error_data = resp["error"] if self.api_type == ApiType.OPEN_AI else resp
         except (KeyError, TypeError):
             raise error.APIError(
                 "Invalid response object from API: %r (HTTP response code "
@@ -322,6 +322,10 @@ class APIRequestor:
     def _interpret_response_line(
         self, rbody, rcode, rheaders, stream: bool
     ) -> OpenAIResponse:
+        # HTTP 204 response code does not have any content in the body.
+        if rcode == 204:
+            return OpenAIResponse(None, rheaders)
+
         if rcode == 503:
             raise error.ServiceUnavailableError(
                 "The server is overloaded or not ready yet.", rbody, rcode, headers=rheaders
