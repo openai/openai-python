@@ -10,6 +10,7 @@ if WANDB_AVAILABLE:
     import datetime
     import io
     import json
+    import re
     from pathlib import Path
 
     import numpy as np
@@ -251,6 +252,8 @@ class WandbLogger:
 
         # get input artifact
         artifact_name = f"{prefix}-{filename}"
+        # sanitize name to valid wandb artifact name
+        artifact_name = re.sub(r"[^a-zA-Z0-9_\-.]", '_', artifact_name)
         artifact_alias = file_id
         artifact_path = f"{project}/{artifact_name}:{artifact_alias}"
         if entity is not None:
