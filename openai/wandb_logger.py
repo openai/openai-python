@@ -109,6 +109,15 @@ class WandbLogger:
                 )
             return
 
+        # check results are present
+        try:
+            results_id = fine_tune["result_files"][0]["id"]
+            results = File.download(id=results_id).decode("utf-8")
+        except:
+            if show_individual_warnings:
+                print(f"Fine-tune {fine_tune_id} has no results and will not be logged")
+            return
+
         # check run has not been logged already
         run_path = f"{project}/{fine_tune_id}"
         if entity is not None:
@@ -135,10 +144,6 @@ class WandbLogger:
                     )
             if wandb_status == "succeeded" and not force:
                 return
-
-        # retrieve results
-        results_id = fine_tune["result_files"][0]["id"]
-        results = File.download(id=results_id).decode("utf-8")
 
         # start a wandb run
         wandb.init(
@@ -253,7 +258,7 @@ class WandbLogger:
         # get input artifact
         artifact_name = f"{prefix}-{filename}"
         # sanitize name to valid wandb artifact name
-        artifact_name = re.sub(r"[^a-zA-Z0-9_\-.]", '_', artifact_name)
+        artifact_name = re.sub(r"[^a-zA-Z0-9_\-.]", "_", artifact_name)
         artifact_alias = file_id
         artifact_path = f"{project}/{artifact_name}:{artifact_alias}"
         if entity is not None:
