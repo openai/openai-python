@@ -1,6 +1,5 @@
-from openai import api_requestor, util, error
+from openai import api_requestor, util
 from openai.api_resources.abstract.api_resource import APIResource
-from openai.util import ApiType
 
 
 class ListableAPIResource(APIResource):
@@ -16,27 +15,15 @@ class ListableAPIResource(APIResource):
         api_version=None,
         organization=None,
         api_base=None,
-        api_type=None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
             api_base=api_base or cls.api_base(),
             api_version=api_version,
-            api_type=api_type,
             organization=organization,
         )
-
-        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
-
-        if typed_api_type == ApiType.AZURE:
-            base = cls.class_url()
-            url = "/%s%s?api-version=%s" % (cls.azure_api_prefix, base, api_version)
-        elif typed_api_type == ApiType.OPEN_AI:
-            url = cls.class_url()
-        else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)            
-
+        url = cls.class_url()
         response, _, api_key = requestor.request(
             "get", url, params, request_id=request_id
         )
