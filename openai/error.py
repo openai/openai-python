@@ -146,6 +146,7 @@ class RateLimitError(OpenAIError):
 class ServiceUnavailableError(OpenAIError):
     pass
 
+
 class InvalidAPIType(OpenAIError):
     pass
 
