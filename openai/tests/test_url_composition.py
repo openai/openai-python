@@ -1,9 +1,10 @@
 from sys import api_version
+
 import pytest
 
-from openai import Completion
-from openai import Engine
+from openai import Completion, Engine
 from openai.util import ApiType
+
 
 @pytest.mark.url
 def test_completions_url_composition_azure() -> None:

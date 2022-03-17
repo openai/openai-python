@@ -2,8 +2,8 @@ import logging
 import os
 import re
 import sys
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
 import openai
 

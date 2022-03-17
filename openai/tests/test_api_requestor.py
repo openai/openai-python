@@ -1,10 +1,12 @@
 import json
+
 import pytest
 import requests
 from pytest_mock import MockerFixture
 
 from openai import Model
 from openai.api_requestor import APIRequestor
+
 
 @pytest.mark.requestor
 def test_requestor_sets_request_id(mocker: MockerFixture) -> None:
