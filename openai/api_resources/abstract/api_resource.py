@@ -1,14 +1,14 @@
 from urllib.parse import quote_plus
 
-from openai import api_requestor, error, util
 import openai
+from openai import api_requestor, error, util
 from openai.openai_object import OpenAIObject
 from openai.util import ApiType
 
 
 class APIResource(OpenAIObject):
     api_prefix = ""
-    azure_api_prefix = 'openai/deployments'
+    azure_api_prefix = "openai/deployments"
 
     @classmethod
     def retrieve(cls, id, api_key=None, request_id=None, **params):
@@ -49,13 +49,20 @@ class APIResource(OpenAIObject):
 
         if self.typed_api_type == ApiType.AZURE:
             if not api_version:
-                raise error.InvalidRequestError("An API version is required for the Azure API type.")
+                raise error.InvalidRequestError(
+                    "An API version is required for the Azure API type."
+                )
             if not operation:
                 raise error.InvalidRequestError(
                     "The request needs an operation (eg: 'search') for the Azure OpenAI API type."
                 )
             extn = quote_plus(id)
-            return "/%s/%s/%s?api-version=%s" % (self.azure_api_prefix, extn, operation, api_version)
+            return "/%s/%s/%s?api-version=%s" % (
+                self.azure_api_prefix,
+                extn,
+                operation,
+                api_version,
+            )
 
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url()
@@ -63,8 +70,7 @@ class APIResource(OpenAIObject):
             return "%s/%s" % (base, extn)
 
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % self.api_type)
-    
+            raise error.InvalidAPIType("Unsupported API type %s" % self.api_type)
 
     # The `method_` and `url_` arguments are suffixed with an underscore to
     # avoid conflicting with actual request parameters in `params`.

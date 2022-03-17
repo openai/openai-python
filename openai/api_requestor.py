@@ -1,8 +1,8 @@
-from email import header
 import json
 import platform
 import threading
 import warnings
+from email import header
 from json import JSONDecodeError
 from typing import Dict, Iterator, Optional, Tuple, Union
 from urllib.parse import urlencode, urlsplit, urlunsplit
@@ -71,10 +71,21 @@ def parse_stream(rbody):
 
 
 class APIRequestor:
-    def __init__(self, key=None, api_base=None, api_type=None, api_version=None, organization=None):
+    def __init__(
+        self,
+        key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+    ):
         self.api_base = api_base or openai.api_base
         self.api_key = key or util.default_api_key()
-        self.api_type = ApiType.from_str(api_type) if api_type else ApiType.from_str(openai.api_type)
+        self.api_type = (
+            ApiType.from_str(api_type)
+            if api_type
+            else ApiType.from_str(openai.api_type)
+        )
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
 
@@ -324,7 +335,10 @@ class APIRequestor:
     ) -> OpenAIResponse:
         if rcode == 503:
             raise error.ServiceUnavailableError(
-                "The server is overloaded or not ready yet.", rbody, rcode, headers=rheaders
+                "The server is overloaded or not ready yet.",
+                rbody,
+                rcode,
+                headers=rheaders,
             )
         try:
             if hasattr(rbody, "decode"):

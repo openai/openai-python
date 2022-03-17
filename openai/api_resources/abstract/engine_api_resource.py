@@ -1,5 +1,5 @@
-from pydoc import apropos
 import time
+from pydoc import apropos
 from typing import Optional
 from urllib.parse import quote_plus
 
@@ -15,28 +15,44 @@ MAX_TIMEOUT = 20
 class EngineAPIResource(APIResource):
     engine_required = True
     plain_old_data = False
-    azure_api_prefix = 'openai/deployments'
+    azure_api_prefix = "openai/deployments"
 
     def __init__(self, engine: Optional[str] = None, **kwargs):
         super().__init__(engine=engine, **kwargs)
 
     @classmethod
-    def class_url(cls, engine: Optional[str] = None, api_type : Optional[str] = None, api_version: Optional[str] = None):
+    def class_url(
+        cls,
+        engine: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+    ):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
-        typed_api_type = ApiType.from_str(api_type) if api_type else ApiType.from_str(openai.api_type)
+        typed_api_type = (
+            ApiType.from_str(api_type)
+            if api_type
+            else ApiType.from_str(openai.api_type)
+        )
         api_version = api_version or openai.api_version
 
         if typed_api_type == ApiType.AZURE:
             if not api_version:
-                raise error.InvalidRequestError("An API version is required for the Azure API type.")
+                raise error.InvalidRequestError(
+                    "An API version is required for the Azure API type."
+                )
             if engine is None:
                 raise error.InvalidRequestError(
                     "You must provide the deployment name in the 'engine' parameter to access the Azure OpenAI service"
                 )
             extn = quote_plus(engine)
-            return "/%s/%s/%ss?api-version=%s" % (cls.azure_api_prefix, extn, base, api_version)
+            return "/%s/%s/%ss?api-version=%s" % (
+                cls.azure_api_prefix,
+                extn,
+                base,
+                api_version,
+            )
 
         elif typed_api_type == ApiType.OPEN_AI:
             if engine is None:
@@ -46,8 +62,7 @@ class EngineAPIResource(APIResource):
             return "/engines/%s/%ss" % (extn, base)
 
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)
-
+            raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
     @classmethod
     def create(
@@ -133,15 +148,23 @@ class EngineAPIResource(APIResource):
                 "id",
             )
 
-        params_connector = '?'
+        params_connector = "?"
         if self.typed_api_type == ApiType.AZURE:
             api_version = self.api_version or openai.api_version
             if not api_version:
-                raise error.InvalidRequestError("An API version is required for the Azure API type.")
+                raise error.InvalidRequestError(
+                    "An API version is required for the Azure API type."
+                )
             extn = quote_plus(id)
             base = self.OBJECT_NAME.replace(".", "/")
-            url = "/%s/%s/%ss/%s?api-version=%s" % (self.azure_api_prefix, self.engine, base, extn, api_version)
-            params_connector = '&'
+            url = "/%s/%s/%ss/%s?api-version=%s" % (
+                self.azure_api_prefix,
+                self.engine,
+                base,
+                extn,
+                api_version,
+            )
+            params_connector = "&"
 
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url(self.engine, self.api_type, self.api_version)
@@ -149,7 +172,7 @@ class EngineAPIResource(APIResource):
             url = "%s/%s" % (base, extn)
 
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % self.api_type)
+            raise error.InvalidAPIType("Unsupported API type %s" % self.api_type)
 
         timeout = self.get("timeout")
         if timeout is not None:
