@@ -51,7 +51,7 @@ class File(ListableAPIResource, DeletableAPIResource):
         if user_provided_filename is not None:
             files.append(("file", (user_provided_filename, file, 'application/octet-stream')))
         else:
-            files.append(("file", ("unknown", file, 'application/octet-stream')))
+            files.append(("file", ("file", file, 'application/octet-stream')))
         response, _, api_key = requestor.request("post", url, files=files)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
