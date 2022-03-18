@@ -15,7 +15,6 @@ MAX_TIMEOUT = 20
 class EngineAPIResource(APIResource):
     engine_required = True
     plain_old_data = False
-    azure_api_prefix = "openai/deployments"
 
     def __init__(self, engine: Optional[str] = None, **kwargs):
         super().__init__(engine=engine, **kwargs)
@@ -30,12 +29,7 @@ class EngineAPIResource(APIResource):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
-        typed_api_type = (
-            ApiType.from_str(api_type)
-            if api_type
-            else ApiType.from_str(openai.api_type)
-        )
-        api_version = api_version or openai.api_version
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         if typed_api_type == ApiType.AZURE:
             if not api_version:
@@ -47,11 +41,12 @@ class EngineAPIResource(APIResource):
                     "You must provide the deployment name in the 'engine' parameter to access the Azure OpenAI service"
                 )
             extn = quote_plus(engine)
-            return "/%s/%s/%ss?api-version=%s" % (
+            return "/%s/%s/%s/%ss?api-version=%s" % (
                 cls.azure_api_prefix,
+                cls.azure_deployments_prefix,
                 extn,
                 base,
-                api_version,
+                api_version
             )
 
         elif typed_api_type == ApiType.OPEN_AI:
@@ -148,27 +143,29 @@ class EngineAPIResource(APIResource):
                 "id",
             )
 
-        params_connector = "?"
+        extn = quote_plus(id)
+        params_connector = '?'
+
         if self.typed_api_type == ApiType.AZURE:
             api_version = self.api_version or openai.api_version
             if not api_version:
                 raise error.InvalidRequestError(
                     "An API version is required for the Azure API type."
                 )
-            extn = quote_plus(id)
             base = self.OBJECT_NAME.replace(".", "/")
-            url = "/%s/%s/%ss/%s?api-version=%s" % (
+            url = "/%s/%s/%s/%ss/%s?api-version=%s" % (
                 self.azure_api_prefix,
+                self.azure_deployments_prefix,
                 self.engine,
                 base,
                 extn,
-                api_version,
+                api_version
             )
-            params_connector = "&"
+            params_connector = '&'
+
 
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url(self.engine, self.api_type, self.api_version)
-            extn = quote_plus(id)
             url = "%s/%s" % (base, extn)
 
         else:

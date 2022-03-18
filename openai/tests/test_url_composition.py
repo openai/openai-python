@@ -133,9 +133,7 @@ def test_engine_search_url_composition_azure_no_operation() -> None:
     engine = Engine(id="test_id", api_type="azure", api_version="2021-11-01-preview")
     assert engine.api_type == "azure"
     assert engine.typed_api_type == ApiType.AZURE
-    with pytest.raises(Exception):
-        engine.instance_url()
-
+    assert engine.instance_url() == "/openai/engines/test_id?api-version=2021-11-01-preview"
 
 @pytest.mark.url
 def test_engine_search_url_composition_default() -> None:

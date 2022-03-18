@@ -77,7 +77,7 @@ search = openai.Engine(id="deployment-namme").search(documents=["White House", "
 print(search)
 ```
 
-Please note that for the moment, the Microsoft Azure endpoints can only be used for completion and search operations.
+Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, search and fine-tuning operations.
 
 ### Command-line interface
 
