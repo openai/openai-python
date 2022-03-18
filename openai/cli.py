@@ -9,6 +9,7 @@ from typing import Optional
 import requests
 
 import openai
+import openai.wandb_logger
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
@@ -19,7 +20,6 @@ from openai.validators import (
     write_out_file,
     write_out_search_file,
 )
-import openai.wandb_logger
 
 
 class bcolors:

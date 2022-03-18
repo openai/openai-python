@@ -33,7 +33,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
         elif self.typed_api_type == ApiType.OPEN_AI:
             return self.request("post", self.instance_url() + "/search", params)
         else:
-            raise InvalidAPIType('Unsupported API type %s' % self.api_type)
+            raise InvalidAPIType("Unsupported API type %s" % self.api_type)
 
     def embeddings(self, **params):
         warnings.warn(

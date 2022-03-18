@@ -2,8 +2,8 @@ import logging
 import os
 import re
 import sys
-from typing import Optional
 from enum import Enum
+from typing import Optional
 
 import openai
 
@@ -18,7 +18,12 @@ __all__ = [
     "logfmt",
 ]
 
-api_key_to_header = lambda api, key: {"Authorization": f"Bearer {key}"} if api == ApiType.OPEN_AI else {"api-key": f"{key}"}
+api_key_to_header = (
+    lambda api, key: {"Authorization": f"Bearer {key}"}
+    if api == ApiType.OPEN_AI
+    else {"api-key": f"{key}"}
+)
+
 
 class ApiType(Enum):
     AZURE = 1
@@ -26,12 +31,14 @@ class ApiType(Enum):
 
     @staticmethod
     def from_str(label):
-        if label.lower() == 'azure':
+        if label.lower() == "azure":
             return ApiType.AZURE
-        elif label.lower() in ('open_ai', 'openai'):
+        elif label.lower() in ("open_ai", "openai"):
             return ApiType.OPEN_AI
         else:
-            raise openai.error.InvalidAPIType("The API type provided in invalid. Please select one of the supported API types: 'azure', 'open_ai'")    
+            raise openai.error.InvalidAPIType(
+                "The API type provided in invalid. Please select one of the supported API types: 'azure', 'open_ai'"
+            )
 
 
 def _console_log_level():
