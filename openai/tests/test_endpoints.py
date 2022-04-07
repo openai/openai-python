@@ -33,4 +33,4 @@ def test_completions_multiple_prompts():
 def test_completions_model():
     result = openai.Completion.create(prompt="This was a test", n=5, model="ada")
     assert len(result.choices) == 5
-    assert result.model.startswith("ada:")
+    assert result.model.startswith("ada")
