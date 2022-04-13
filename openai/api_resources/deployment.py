@@ -1,5 +1,6 @@
+from openai import util
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource, CreateableAPIResource
-from openai.error import InvalidRequestError
+from openai.error import InvalidRequestError, APIError
 
 
 class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResource):
@@ -11,6 +12,10 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
         """
         Creates a new deployment for the provided prompt and parameters.
         """
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
+        if typed_api_type != util.ApiType.AZURE:
+            raise APIError("Deployment operations are only available for the openai API type.")  
+
         if kwargs.get("model", None) is None:
             raise InvalidRequestError(
                 "Must provide a 'model' parameter to create a Deployment.",
@@ -31,3 +36,27 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
             )
 
         return super().create(*args, **kwargs)
+
+    @classmethod
+    def list(cls, *args, **kwargs):
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
+        if typed_api_type != util.ApiType.AZURE:
+            raise APIError("Deployment operations are only available for the openai API type.")  
+
+        return super().list(*args, **kwargs)
+
+    @classmethod
+    def delete(cls, *args, **kwargs):
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
+        if typed_api_type != util.ApiType.AZURE:
+            raise APIError("Deployment operations are only available for the openai API type.")  
+
+        return super().delete(*args, **kwargs)
+
+    @classmethod
+    def retrieve(cls, *args, **kwargs):
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
+        if typed_api_type != util.ApiType.AZURE:
+            raise APIError("Deployment operations are only available for the openai API type.")  
+
+        return super().retrieve(*args, **kwargs)
