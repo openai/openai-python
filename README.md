@@ -78,6 +78,8 @@ print(search)
 ```
 
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, search and fine-tuning operations.
+For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebook:
+[Using Azure fine-tuning](https://github.com/openai/openai-python/blob/main/examples/azure/finetuning.ipynb)
 
 ### Command-line interface
 

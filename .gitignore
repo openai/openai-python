@@ -8,3 +8,5 @@ build
 .vscode/settings.json
 .ipynb_checkpoints
 .vscode/launch.json
+examples/azure/training.jsonl
+examples/azure/validation.jsonl
