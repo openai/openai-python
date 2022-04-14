@@ -14,7 +14,7 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
         """
         typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type != util.ApiType.AZURE:
-            raise APIError("Deployment operations are only available for the openai API type.")  
+            raise APIError("Deployment operations are only available for the Azure API type.")  
 
         if kwargs.get("model", None) is None:
             raise InvalidRequestError(
@@ -41,7 +41,7 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
     def list(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type != util.ApiType.AZURE:
-            raise APIError("Deployment operations are only available for the openai API type.")  
+            raise APIError("Deployment operations are only available for the Azure API type.")  
 
         return super().list(*args, **kwargs)
 
@@ -49,7 +49,7 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
     def delete(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type != util.ApiType.AZURE:
-            raise APIError("Deployment operations are only available for the openai API type.")  
+            raise APIError("Deployment operations are only available for the Azure API type.")  
 
         return super().delete(*args, **kwargs)
 
@@ -57,6 +57,6 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
     def retrieve(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type != util.ApiType.AZURE:
-            raise APIError("Deployment operations are only available for the openai API type.")  
+            raise APIError("Deployment operations are only available for the Azure API type.")  
 
         return super().retrieve(*args, **kwargs)
