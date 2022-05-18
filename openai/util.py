@@ -20,7 +20,7 @@ __all__ = [
 
 api_key_to_header = (
     lambda api, key: {"Authorization": f"Bearer {key}"}
-    if api == ApiType.OPEN_AI
+    if api in (ApiType.OPEN_AI, ApiType.AZURE_AD)
     else {"api-key": f"{key}"}
 )
 
@@ -28,11 +28,14 @@ api_key_to_header = (
 class ApiType(Enum):
     AZURE = 1
     OPEN_AI = 2
+    AZURE_AD = 3
 
     @staticmethod
     def from_str(label):
         if label.lower() == "azure":
             return ApiType.AZURE
+        elif label.lower() in ("azure_ad", "azuread"):
+            return ApiType.AZURE_AD
         elif label.lower() in ("open_ai", "openai"):
             return ApiType.OPEN_AI
         else:
@@ -175,7 +178,8 @@ def default_api_key() -> str:
         with open(openai.api_key_path, "rt") as k:
             api_key = k.read().strip()
             if not api_key.startswith("sk-"):
-                raise ValueError(f"Malformed API key in {openai.api_key_path}.")
+                raise ValueError(
+                    f"Malformed API key in {openai.api_key_path}.")
             return api_key
     elif openai.api_key is not None:
         return openai.api_key

@@ -24,15 +24,17 @@ class CreateableAPIResource(APIResource):
             api_version=api_version,
             organization=organization,
         )
-        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        typed_api_type, api_version = cls._get_api_type_and_version(
+            api_type, api_version)
 
-        if typed_api_type == ApiType.AZURE:
+        if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
-            url = "/%s%s?api-version=%s" % (cls.azure_api_prefix, base, api_version)
+            url = "/%s%s?api-version=%s" % (cls.azure_api_prefix,
+                                            base, api_version)
         elif typed_api_type == ApiType.OPEN_AI:
             url = cls.class_url()
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)            
+            raise error.InvalidAPIType('Unsupported API type %s' % api_type)
 
         response, _, api_key = requestor.request(
             "post", url, params, request_id=request_id

@@ -29,9 +29,10 @@ class EngineAPIResource(APIResource):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
-        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        typed_api_type, api_version = cls._get_api_type_and_version(
+            api_type, api_version)
 
-        if typed_api_type == ApiType.AZURE:
+        if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             if not api_version:
                 raise error.InvalidRequestError(
                     "An API version is required for the Azure API type."
@@ -107,7 +108,8 @@ class EngineAPIResource(APIResource):
         )
 
         if stream:
-            assert not isinstance(response, OpenAIResponse)  # must be an iterator
+            # must be an iterator
+            assert not isinstance(response, OpenAIResponse)
             return (
                 util.convert_to_openai_object(
                     line,
@@ -146,7 +148,7 @@ class EngineAPIResource(APIResource):
         extn = quote_plus(id)
         params_connector = '?'
 
-        if self.typed_api_type == ApiType.AZURE:
+        if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             api_version = self.api_version or openai.api_version
             if not api_version:
                 raise error.InvalidRequestError(
@@ -163,13 +165,13 @@ class EngineAPIResource(APIResource):
             )
             params_connector = '&'
 
-
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url(self.engine, self.api_type, self.api_version)
             url = "%s/%s" % (base, extn)
 
         else:
-            raise error.InvalidAPIType("Unsupported API type %s" % self.api_type)
+            raise error.InvalidAPIType(
+                "Unsupported API type %s" % self.api_type)
 
         timeout = self.get("timeout")
         if timeout is not None:

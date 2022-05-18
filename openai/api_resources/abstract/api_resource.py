@@ -49,12 +49,12 @@ class APIResource(OpenAIObject):
         api_version = self.api_version or openai.api_version
         extn = quote_plus(id)
 
-        if self.typed_api_type == ApiType.AZURE:
+        if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             if not api_version:
                 raise error.InvalidRequestError(
                     "An API version is required for the Azure API type."
                 )
-            
+
             if not operation:
                 base = self.class_url()
                 return "/%s%s/%s?api-version=%s" % (
@@ -72,13 +72,13 @@ class APIResource(OpenAIObject):
                 api_version
             )
 
-
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url()
             return "%s/%s" % (base, extn)
 
         else:
-            raise error.InvalidAPIType("Unsupported API type %s" % self.api_type)
+            raise error.InvalidAPIType(
+                "Unsupported API type %s" % self.api_type)
 
     # The `method_` and `url_` arguments are suffixed with an underscore to
     # avoid conflicting with actual request parameters in `params`.
@@ -111,7 +111,7 @@ class APIResource(OpenAIObject):
 
     @classmethod
     def _get_api_type_and_version(cls, api_type: str, api_version: str):
-        typed_api_type = ApiType.from_str(api_type) if api_type else ApiType.from_str(openai.api_type)
+        typed_api_type = ApiType.from_str(
+            api_type) if api_type else ApiType.from_str(openai.api_type)
         typed_api_version = api_version or openai.api_version
         return (typed_api_type, typed_api_version)
-

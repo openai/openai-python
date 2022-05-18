@@ -28,7 +28,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                 util.log_info("Waiting for model to warm up", error=e)
 
     def search(self, **params):
-        if self.typed_api_type == ApiType.AZURE:
+        if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             return self.request("post", self.instance_url("search"), params)
         elif self.typed_api_type == ApiType.OPEN_AI:
             return self.request("post", self.instance_url() + "/search", params)
