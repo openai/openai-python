@@ -7,7 +7,7 @@ from openai.error import InvalidRequestError, TryAgain
 
 class Edit(EngineAPIResource):
     engine_required = False
-    OBJECT_NAME = "edit"
+    OBJECT_NAME = "edits"
 
     @classmethod
     def create(cls, *args, **kwargs):
