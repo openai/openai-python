@@ -41,7 +41,7 @@ class EngineAPIResource(APIResource):
                     "You must provide the deployment name in the 'engine' parameter to access the Azure OpenAI service"
                 )
             extn = quote_plus(engine)
-            return "/%s/%s/%s/%ss?api-version=%s" % (
+            return "/%s/%s/%s/%s?api-version=%s" % (
                 cls.azure_api_prefix,
                 cls.azure_deployments_prefix,
                 extn,
@@ -51,10 +51,10 @@ class EngineAPIResource(APIResource):
 
         elif typed_api_type == ApiType.OPEN_AI:
             if engine is None:
-                return "/%ss" % (base)
+                return "/%s" % (base)
 
             extn = quote_plus(engine)
-            return "/engines/%s/%ss" % (extn, base)
+            return "/engines/%s/%s" % (extn, base)
 
         else:
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
@@ -153,7 +153,7 @@ class EngineAPIResource(APIResource):
                     "An API version is required for the Azure API type."
                 )
             base = self.OBJECT_NAME.replace(".", "/")
-            url = "/%s/%s/%s/%ss/%s?api-version=%s" % (
+            url = "/%s/%s/%s/%s/%s?api-version=%s" % (
                 self.azure_api_prefix,
                 self.azure_deployments_prefix,
                 self.engine,

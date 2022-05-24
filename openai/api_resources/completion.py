@@ -8,7 +8,7 @@ from openai.error import InvalidRequestError, TryAgain
 
 class Completion(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
     engine_required = False
-    OBJECT_NAME = "completion"
+    OBJECT_NAME = "completions"
 
     @classmethod
     def create(cls, *args, **kwargs):

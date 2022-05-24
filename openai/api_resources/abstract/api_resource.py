@@ -33,8 +33,8 @@ class APIResource(OpenAIObject):
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
         if cls.api_prefix:
-            return "/%s/%ss" % (cls.api_prefix, base)
-        return "/%ss" % (base)
+            return "/%s/%s" % (cls.api_prefix, base)
+        return "/%s" % (base)
 
     def instance_url(self, operation=None):
         id = self.get("id")

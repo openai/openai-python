@@ -8,7 +8,7 @@ from openai.util import ApiType
 
 
 class Engine(ListableAPIResource, UpdateableAPIResource):
-    OBJECT_NAME = "engine"
+    OBJECT_NAME = "engines"
 
     def generate(self, timeout=None, **params):
         start = time.time()

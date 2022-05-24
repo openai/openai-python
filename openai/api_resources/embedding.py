@@ -10,8 +10,8 @@ from openai.error import InvalidRequestError, TryAgain
 
 
 class Embedding(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
-    engine_required = True
-    OBJECT_NAME = "embedding"
+    engine_required = False
+    OBJECT_NAME = "embeddings"
 
     @classmethod
     def create(cls, *args, **kwargs):
