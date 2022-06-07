@@ -37,7 +37,6 @@ def test_requestor_open_ai_headers() -> None:
     headers = api_requestor.request_headers(
         method="get", extra=headers, request_id="test_id"
     )
-    print(headers)
     assert "Test_Header" in headers
     assert headers["Test_Header"] == "Unit_Test_Header"
     assert "Authorization" in headers
@@ -51,7 +50,6 @@ def test_requestor_azure_headers() -> None:
     headers = api_requestor.request_headers(
         method="get", extra=headers, request_id="test_id"
     )
-    print(headers)
     assert "Test_Header" in headers
     assert headers["Test_Header"] == "Unit_Test_Header"
     assert "api-key" in headers
@@ -65,7 +63,6 @@ def test_requestor_azure_ad_headers() -> None:
     headers = api_requestor.request_headers(
         method="get", extra=headers, request_id="test_id"
     )
-    print(headers)
     assert "Test_Header" in headers
     assert headers["Test_Header"] == "Unit_Test_Header"
     assert "Authorization" in headers
