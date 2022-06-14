@@ -19,6 +19,7 @@ setup(
         "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
         "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
         "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
+        "scikit-learn>=1.1.1" # Needed for embedding utils
     ],
     extras_require={"dev": ["black~=21.6b0", "pytest==6.*"]},
     python_requires=">=3.7.1",
