@@ -18,6 +18,7 @@ from openai.api_resources import (
     File,
     FineTune,
     Model,
+    Moderation,
     Search,
 )
 from openai.error import APIError, InvalidRequestError, OpenAIError
@@ -55,6 +56,7 @@ __all__ = [
     "FineTune",
     "InvalidRequestError",
     "Model",
+    "Moderation",
     "OpenAIError",
     "Search",
     "api_base",
