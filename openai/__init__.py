@@ -32,7 +32,7 @@ api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
 organization = os.environ.get("OPENAI_ORGANIZATION")
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
 api_type = os.environ.get("OPENAI_API_TYPE", "open_ai")
-api_version = "2021-11-01-preview" if api_type == "azure" else None
+api_version = "2022-03-01-preview" if api_type == "azure" else None
 verify_ssl_certs = True  # No effect. Certificates are always verified.
 proxy = None
 app_info = None
