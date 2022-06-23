@@ -5,7 +5,7 @@ from openai.error import InvalidRequestError, APIError
 
 class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResource):
     engine_required = False
-    OBJECT_NAME = "deployment"
+    OBJECT_NAME = "deployments"
 
     @classmethod
     def create(cls, *args, **kwargs):
@@ -31,7 +31,8 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
                 param="scale_settings",
             )
 
-        if "scale_type" not in scale_settings or "capacity" not in scale_settings:
+        if "scale_type" not in scale_settings or \
+                (scale_settings["scale_type"].lower() == 'manual' and "capacity" not in scale_settings):
             raise InvalidRequestError(
                 "The 'scale_settings' parameter contains invalid or incomplete values.",
                 param="scale_settings",

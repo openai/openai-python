@@ -9,9 +9,9 @@ from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
 from openai.error import InvalidRequestError, TryAgain
 
 
-class Embedding(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
-    engine_required = True
-    OBJECT_NAME = "embedding"
+class Embedding(EngineAPIResource):
+    engine_required = False
+    OBJECT_NAME = "embeddings"
 
     @classmethod
     def create(cls, *args, **kwargs):

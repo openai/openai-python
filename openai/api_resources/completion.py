@@ -6,9 +6,9 @@ from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
 from openai.error import InvalidRequestError, TryAgain
 
 
-class Completion(EngineAPIResource, ListableAPIResource, DeletableAPIResource):
+class Completion(EngineAPIResource):
     engine_required = False
-    OBJECT_NAME = "completion"
+    OBJECT_NAME = "completions"
 
     @classmethod
     def create(cls, *args, **kwargs):

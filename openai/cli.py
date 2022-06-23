@@ -266,11 +266,11 @@ class Search:
         )
 
     @classmethod
-    def create_alpha(cls, args):
-        resp = openai.Search.create_alpha(
-            query=[args.query],
-            max_documents=args.max_documents,
-            file_id=args.file,
+    def create(cls, args):
+        resp = openai.Search.create(
+            query=args.query,
+            documents=args.documents,
+            model=args.model,
         )
         print(resp)
 
@@ -827,20 +827,14 @@ Mutually exclusive with `top_p`.""",
     sub.set_defaults(func=File.list)
 
     # Search
-    sub = subparsers.add_parser("search.create_alpha")
+    sub = subparsers.add_parser("search.create")
 
     sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="ID for previously uploaded file that contains the documents you want to search",
-    )
-    sub.add_argument(
-        "-m",
-        "--max_documents",
-        help="The maximum number of documents to return",
-        type=int,
-        default=200,
+        "-d",
+        "--documents",
+        help="Documents to search over",
+        type=str,
+        nargs="+",
     )
     sub.add_argument(
         "-q",
@@ -848,7 +842,12 @@ Mutually exclusive with `top_p`.""",
         required=True,
         help="Search query",
     )
-    sub.set_defaults(func=Search.create_alpha)
+    sub.add_argument(
+        "-m",
+        "--model",
+        help="The model to search with",
+    )
+    sub.set_defaults(func=Search.create)
 
     # Finetune
     sub = subparsers.add_parser("fine_tunes.list")

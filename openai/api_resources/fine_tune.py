@@ -13,7 +13,7 @@ from openai.util import ApiType
 
 @nested_resource_class_methods("event", operations=["list"])
 class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource):
-    OBJECT_NAME = "fine-tune"
+    OBJECT_NAME = "fine-tunes"
 
     @classmethod
     def cancel(

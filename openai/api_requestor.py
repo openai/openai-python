@@ -62,7 +62,9 @@ def parse_stream(rbody):
     for line in rbody:
         if line:
             if line == b"data: [DONE]":
-                return
+                # return here will cause GeneratorExit exception in urllib3
+                # and it will close http connection with TCP Reset
+                continue
             if hasattr(line, "decode"):
                 line = line.decode("utf-8")
             if line.startswith("data: "):

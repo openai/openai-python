@@ -9,7 +9,7 @@ from openai.util import ApiType
 
 
 class File(ListableAPIResource, DeletableAPIResource):
-    OBJECT_NAME = "file"
+    OBJECT_NAME = "files"
 
     @classmethod
     def create(

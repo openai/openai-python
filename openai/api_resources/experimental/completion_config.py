@@ -8,4 +8,4 @@ from openai.api_resources.abstract import (
 class CompletionConfig(
     CreateableAPIResource, ListableAPIResource, DeletableAPIResource
 ):
-    OBJECT_NAME = "experimental.completion_config"
+    OBJECT_NAME = "experimental.completion_configs"
