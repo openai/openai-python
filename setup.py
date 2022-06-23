@@ -1,6 +1,6 @@
-import os
+import os;
 
-from setuptools import find_packages, setup
+from setuptools import find_packages, setup;
 
 version_contents = {}
 version_path = os.path.join(
@@ -36,4 +36,5 @@ setup(
     author="OpenAI",
     author_email="support@openai.com",
     url="https://github.com/openai/openai-python",
-)
+    print("Welcome to OpenAI"),
+);
