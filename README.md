@@ -65,13 +65,13 @@ openai.api_base = "https://example-endpoint.openai.azure.com"
 openai.api_version = "2021-11-01-preview"
 
 # create a completion
-completion = openai.Completion.create(engine="deployment-namme", prompt="Hello world")
+completion = openai.Completion.create(engine="deployment-name", prompt="Hello world")
 
 # print the completion
 print(completion.choices[0].text)
 
 # create a search and pass the deployment-name as the engine Id.
-search = openai.Engine(id="deployment-namme").search(documents=["White House", "hospital", "school"], query ="the president")
+search = openai.Engine(id="deployment-name").search(documents=["White House", "hospital", "school"], query ="the president")
 
 # print the search
 print(search)
@@ -81,6 +81,27 @@ Please note that for the moment, the Microsoft Azure endpoints can only be used 
 For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebook:
 [Using Azure fine-tuning](https://github.com/openai/openai-python/blob/main/examples/azure/finetuning.ipynb)
 
+### Microsoft Azure Active Directory Authentication
+
+In order to use Microsoft Active Directory to authenticate to your Azure endpoint, you need to set the api_type to "azure_ad" and pass the acquired credential token to api_key. The rest of the parameters need to be set as specified in the previous section.
+
+
+```python
+from azure.identity import DefaultAzureCredential
+import openai
+
+# Request credential
+default_credential = DefaultAzureCredential()
+token = default_credential.get_token("https://cognitiveservices.azure.com")
+
+# Setup parameters
+openai.api_type = "azure_ad"
+openai.api_key = token.token
+openai.api_base = "https://example-endpoint.openai.azure.com/"
+openai.api_version = "2022-03-01-preview"
+
+# ...
+```
 ### Command-line interface
 
 This library additionally provides an `openai` command-line utility

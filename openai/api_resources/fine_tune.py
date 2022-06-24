@@ -28,13 +28,15 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
         base = cls.class_url()
         extn = quote_plus(id)
 
-        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
-        if typed_api_type == ApiType.AZURE:
-            url = "/%s%s/%s/cancel?api-version=%s" % (cls.azure_api_prefix, base, extn, api_version)
+        typed_api_type, api_version = cls._get_api_type_and_version(
+            api_type, api_version)
+        if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
+            url = "/%s%s/%s/cancel?api-version=%s" % (
+                cls.azure_api_prefix, base, extn, api_version)
         elif typed_api_type == ApiType.OPEN_AI:
             url = "%s/%s/cancel" % (base, extn)
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)            
+            raise error.InvalidAPIType('Unsupported API type %s' % api_type)
 
         instance = cls(id, api_key, **params)
         return instance.request("post", url, request_id=request_id)
@@ -62,15 +64,17 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
             organization=organization,
         )
 
-        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        typed_api_type, api_version = cls._get_api_type_and_version(
+            api_type, api_version)
 
-        if typed_api_type == ApiType.AZURE:
-            url = "/%s%s/%s/events?stream=true&api-version=%s" % (cls.azure_api_prefix, base, extn, api_version)
+        if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
+            url = "/%s%s/%s/events?stream=true&api-version=%s" % (
+                cls.azure_api_prefix, base, extn, api_version)
         elif typed_api_type == ApiType.OPEN_AI:
             url = "%s/%s/events?stream=true" % (base, extn)
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)            
-        
+            raise error.InvalidAPIType('Unsupported API type %s' % api_type)
+
         response, _, api_key = requestor.request(
             "get", url, params, stream=True, request_id=request_id
         )
