@@ -20,11 +20,20 @@ class Search(EngineAPIResource):
 
         start = time.time()
         timeout = kwargs.pop("timeout", None)
-        if kwargs.get("model", None) is None and kwargs.get("engine", None) is None:
-            raise InvalidRequestError(
-                "Must provide an 'engine' or 'model' parameter to create a Search.",
-                param="engine",
-            )
+        api_type = kwargs.pop("api_type", None)
+        typed_api_type = cls._get_api_type_and_version(api_type=api_type)[0]
+        if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            if kwargs.get("deployment_id", None) is None and kwargs.get("engine", None) is None:
+                raise InvalidRequestError(
+                    "Must provide an 'engine' or 'deployment_id' parameter to create a Search.",
+                    param="engine",
+                )
+        else:
+            if kwargs.get("model", None) is None and kwargs.get("engine", None) is None:
+                raise InvalidRequestError(
+                    "Must provide an 'engine' or 'model' parameter to create a Search.",
+                    param="engine",
+                )
 
         while True:
             try:

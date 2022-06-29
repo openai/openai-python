@@ -40,7 +40,7 @@ class ApiType(Enum):
             return ApiType.OPEN_AI
         else:
             raise openai.error.InvalidAPIType(
-                "The API type provided in invalid. Please select one of the supported API types: 'azure', 'open_ai'"
+                "The API type provided in invalid. Please select one of the supported API types: 'azure', 'azure_ad', 'open_ai'"
             )
 
 

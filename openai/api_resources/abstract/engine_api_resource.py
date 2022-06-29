@@ -71,13 +71,14 @@ class EngineAPIResource(APIResource):
         organization=None,
         **params,
     ):
-        engine = params.pop("engine", None)
+        deployment_id = params.pop("deployment_id", None)
+        engine = params.pop("engine", deployment_id)
         timeout = params.pop("timeout", None)
         stream = params.get("stream", False)
         headers = params.pop("headers", None)
         if engine is None and cls.engine_required:
             raise error.InvalidRequestError(
-                "Must provide an 'engine' parameter to create a %s" % cls, "engine"
+                "Must provide an 'engine' or 'deployment_id' parameter to create a %s" % cls, "engine"
             )
 
         if timeout is None:

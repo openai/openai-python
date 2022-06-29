@@ -110,7 +110,7 @@ class APIResource(OpenAIObject):
         )
 
     @classmethod
-    def _get_api_type_and_version(cls, api_type: str, api_version: str):
+    def _get_api_type_and_version(cls, api_type: str = None, api_version: str = None):
         typed_api_type = ApiType.from_str(
             api_type) if api_type else ApiType.from_str(openai.api_type)
         typed_api_version = api_version or openai.api_version
