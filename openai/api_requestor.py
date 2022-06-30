@@ -2,7 +2,6 @@ import json
 import platform
 import threading
 import warnings
-from email import header
 from json import JSONDecodeError
 from typing import Dict, Iterator, Optional, Tuple, Union
 from urllib.parse import urlencode, urlsplit, urlunsplit
