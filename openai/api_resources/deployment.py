@@ -4,7 +4,6 @@ from openai.error import InvalidRequestError, APIError
 
 
 class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResource):
-    engine_required = False
     OBJECT_NAME = "deployments"
 
     @classmethod
