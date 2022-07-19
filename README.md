@@ -54,7 +54,7 @@ print(completion.choices[0].text)
 
 ### Microsoft Azure Endpoints
 
-In order to use the library with Microsoft Azure endpoints, you need to set the api_type, api_base and api_version in addition to the api_key. The api_type must be set to 'azure' and the others correspond to the properites of your endpoint.
+In order to use the library with Microsoft Azure endpoints, you need to set the api_type, api_base and api_version in addition to the api_key. The api_type must be set to 'azure' and the others correspond to the properties of your endpoint.
 In addition, the deployment name must be passed as the engine parameter.
 
 ```python
@@ -78,8 +78,9 @@ print(search)
 ```
 
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, search and fine-tuning operations.
-For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebook:
-[Using Azure fine-tuning](https://github.com/openai/openai-python/blob/main/examples/azure/finetuning.ipynb)
+For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
+* [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
+* [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
 
 ### Microsoft Azure Active Directory Authentication
 
@@ -118,7 +119,18 @@ openai api completions.create -e ada -p "Hello world"
 
 ## Example code
 
-Examples of how to use [embeddings](https://github.com/openai/openai-python/tree/main/examples/embeddings), [fine tuning](https://github.com/openai/openai-python/tree/main/examples/finetuning), [semantic search](https://github.com/openai/openai-python/tree/main/examples/semanticsearch), and [codex](https://github.com/openai/openai-python/tree/main/examples/codex) can be found in the [examples folder](https://github.com/openai/openai-python/tree/main/examples).
+Examples of how to use this Python library to accomplish various tasks can be found in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/). It contains code examples for:
+
+* Classification using fine-tuning
+* Clustering
+* Code search
+* Customizing embeddings
+* Question answering from a corpus of documents
+* Recommendations
+* Visualization of embeddings
+* And more
+
+Prior to July 2022, this OpenAI Python library hosted code examples in its examples folder, but since then all examples have been migrated to the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
 ### Embeddings
 
@@ -140,17 +152,17 @@ model_id = "text-similarity-davinci-001"
 embedding = openai.Embedding.create(input=text_string, engine=model_id)['data'][0]['embedding']
 ```
 
-An example of how to call the embeddings method is shown in the [get embeddings notebook](https://github.com/openai/openai-python/blob/main/examples/embeddings/Get_embeddings.ipynb).
+An example of how to call the embeddings method is shown in this [get embeddings notebook](https://github.com/openai/openai-cookbook/blob/main/examples/Get_embeddings.ipynb).
 
 Examples of how to use embeddings are shared in the following Jupyter notebooks:
 
-- [Classification using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Classification.ipynb)
-- [Clustering using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Clustering.ipynb)
-- [Code search using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Code_search.ipynb)
-- [Semantic text search using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Semantic_text_search_using_embeddings.ipynb)
-- [User and product embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/User_and_product_embeddings.ipynb)
-- [Zero-shot classification using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Zero-shot_classification.ipynb)
-- [Recommendation using embeddings](https://github.com/openai/openai-python/blob/main/examples/embeddings/Recommendation.ipynb)
+- [Classification using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Classification_using_embeddings.ipynb)
+- [Clustering using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Clustering.ipynb)
+- [Code search using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Code_search.ipynb)
+- [Semantic text search using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Semantic_text_search_using_embeddings.ipynb)
+- [User and product embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/User_and_product_embeddings.ipynb)
+- [Zero-shot classification using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Zero-shot_classification_with_embeddings.ipynb)
+- [Recommendation using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Recommendation_using_embeddings.ipynb)
 
 For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://beta.openai.com/docs/guides/embeddings) in the OpenAI documentation.
 
@@ -160,11 +172,11 @@ Fine tuning a model on training data can both improve the results (by giving the
 
 Examples of fine tuning are shared in the following Jupyter notebooks:
 
-- [Classification with fine tuning](https://github.com/openai/openai-python/blob/main/examples/finetuning/finetuning-classification.ipynb) (a simple notebook that shows the steps required for fine tuning)
+- [Classification with fine tuning](https://github.com/openai/openai-cookbook/blob/main/examples/Fine-tuned_classification.ipynb) (a simple notebook that shows the steps required for fine tuning)
 - Fine tuning a model that answers questions about the 2020 Olympics
-  - [Step 1: Collecting data](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-1-collect-data.ipynb)
-  - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-2-create-qa.ipynb)
-  - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-python/blob/main/examples/finetuning/olympics-3-train-qa.ipynb)
+  - [Step 1: Collecting data](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-1-collect-data.ipynb)
+  - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-2-create-qa.ipynb)
+  - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-3-train-qa.ipynb)
 
 Sync your fine-tunes to [Weights & Biases](https://wandb.me/openai-docs) to track experiments, models, and datasets in your central dashboard with:
 
