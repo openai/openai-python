@@ -1,12 +1,11 @@
 import time
 
-from openai import util
+from openai import util, error
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
-from openai.error import InvalidRequestError, TryAgain
+from openai.error import TryAgain
 
 
 class Edit(EngineAPIResource):
-    engine_required = False
     OBJECT_NAME = "edits"
 
     @classmethod
@@ -16,11 +15,12 @@ class Edit(EngineAPIResource):
         """
         start = time.time()
         timeout = kwargs.pop("timeout", None)
-        if kwargs.get("model", None) is None and kwargs.get("engine", None) is None:
-            raise InvalidRequestError(
-                "Must provide an 'engine' or 'model' parameter to create an Edit.",
-                param="engine",
-            )
+
+        api_type = kwargs.pop("api_type", None)
+        typed_api_type = cls._get_api_type_and_version(api_type=api_type)[0]
+        if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            raise error.InvalidAPIType(
+                "This operation is not supported by the Azure OpenAI API yet.")
 
         while True:
             try:

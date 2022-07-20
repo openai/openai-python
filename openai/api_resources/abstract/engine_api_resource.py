@@ -13,7 +13,6 @@ MAX_TIMEOUT = 20
 
 
 class EngineAPIResource(APIResource):
-    engine_required = True
     plain_old_data = False
 
     def __init__(self, engine: Optional[str] = None, **kwargs):
@@ -71,14 +70,24 @@ class EngineAPIResource(APIResource):
         organization=None,
         **params,
     ):
-        engine = params.pop("engine", None)
+        deployment_id = params.pop("deployment_id", None)
+        engine = params.pop("engine", deployment_id)
+        model = params.get("model", None)
         timeout = params.pop("timeout", None)
         stream = params.get("stream", False)
         headers = params.pop("headers", None)
-        if engine is None and cls.engine_required:
-            raise error.InvalidRequestError(
-                "Must provide an 'engine' parameter to create a %s" % cls, "engine"
-            )
+
+        typed_api_type = cls._get_api_type_and_version(api_type=api_type)[0]
+        if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            if deployment_id is None and engine is None:
+                raise error.InvalidRequestError(
+                    "Must provide an 'engine' or 'deployment_id' parameter to create a %s" % cls, "engine"
+                )
+        else:
+            if model is None and engine is None:
+                raise error.InvalidRequestError(
+                    "Must provide an 'engine' or 'model' parameter to create a %s" % cls, "engine"
+                )
 
         if timeout is None:
             # No special timeout handling

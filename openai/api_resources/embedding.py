@@ -6,11 +6,10 @@ import numpy as np
 from openai import util
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
-from openai.error import InvalidRequestError, TryAgain
+from openai.error import TryAgain
 
 
 class Embedding(EngineAPIResource):
-    engine_required = False
     OBJECT_NAME = "embeddings"
 
     @classmethod
@@ -23,11 +22,6 @@ class Embedding(EngineAPIResource):
         """
         start = time.time()
         timeout = kwargs.pop("timeout", None)
-        if kwargs.get("model", None) is None and kwargs.get("engine", None) is None:
-            raise InvalidRequestError(
-                "Must provide an 'engine' or 'model' parameter to create an Embedding.",
-                param="engine",
-            )
 
         user_provided_encoding_format = kwargs.get("encoding_format", None)
 
