@@ -102,8 +102,7 @@ def test_completions_url_composition_instance_url_open_ai() -> None:
 
 @pytest.mark.url
 def test_completions_url_composition_instance_url_invalid() -> None:
-    completion = Completion(
-        id="test_id", engine="test_engine", api_type="invalid")
+    completion = Completion(id="test_id", engine="test_engine", api_type="invalid")
     with pytest.raises(Exception):
         url = completion.instance_url()
 
@@ -126,8 +125,7 @@ def test_completions_url_composition_instance_url_timeout_azure() -> None:
 
 @pytest.mark.url
 def test_completions_url_composition_instance_url_timeout_openai() -> None:
-    completion = Completion(
-        id="test_id", engine="test_engine", api_type="open_ai")
+    completion = Completion(id="test_id", engine="test_engine", api_type="open_ai")
     completion["timeout"] = 12
     url = completion.instance_url()
     assert url == "/engines/test_engine/completions/test_id?timeout=12"
@@ -135,8 +133,7 @@ def test_completions_url_composition_instance_url_timeout_openai() -> None:
 
 @pytest.mark.url
 def test_engine_search_url_composition_azure() -> None:
-    engine = Engine(id="test_id", api_type="azure",
-                    api_version="2021-11-01-preview")
+    engine = Engine(id="test_id", api_type="azure", api_version="2021-11-01-preview")
     assert engine.api_type == "azure"
     assert engine.typed_api_type == ApiType.AZURE
     url = engine.instance_url("test_operation")
@@ -148,8 +145,7 @@ def test_engine_search_url_composition_azure() -> None:
 
 @pytest.mark.url
 def test_engine_search_url_composition_azure_ad() -> None:
-    engine = Engine(id="test_id", api_type="azure_ad",
-                    api_version="2021-11-01-preview")
+    engine = Engine(id="test_id", api_type="azure_ad", api_version="2021-11-01-preview")
     assert engine.api_type == "azure_ad"
     assert engine.typed_api_type == ApiType.AZURE_AD
     url = engine.instance_url("test_operation")
@@ -170,11 +166,13 @@ def test_engine_search_url_composition_azure_no_version() -> None:
 
 @pytest.mark.url
 def test_engine_search_url_composition_azure_no_operation() -> None:
-    engine = Engine(id="test_id", api_type="azure",
-                    api_version="2021-11-01-preview")
+    engine = Engine(id="test_id", api_type="azure", api_version="2021-11-01-preview")
     assert engine.api_type == "azure"
     assert engine.typed_api_type == ApiType.AZURE
-    assert engine.instance_url() == "/openai/engines/test_id?api-version=2021-11-01-preview"
+    assert (
+        engine.instance_url()
+        == "/openai/engines/test_id?api-version=2021-11-01-preview"
+    )
 
 
 @pytest.mark.url

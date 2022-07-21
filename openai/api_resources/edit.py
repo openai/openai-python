@@ -20,7 +20,8 @@ class Edit(EngineAPIResource):
         typed_api_type = cls._get_api_type_and_version(api_type=api_type)[0]
         if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             raise error.InvalidAPIType(
-                "This operation is not supported by the Azure OpenAI API yet.")
+                "This operation is not supported by the Azure OpenAI API yet."
+            )
 
         while True:
             try:

@@ -320,7 +320,9 @@ class FineTune:
                 sys.stdout.write(
                     "Found potentially duplicated files with name '{name}', purpose 'fine-tune' and size {size} bytes\n".format(
                         name=os.path.basename(matching_files[0]["filename"]),
-                        size=matching_files[0]["bytes"] if "bytes" in matching_files[0] else matching_files[0]["size"],
+                        size=matching_files[0]["bytes"]
+                        if "bytes" in matching_files[0]
+                        else matching_files[0]["size"],
                     )
                 )
                 sys.stdout.write("\n".join(file_ids))

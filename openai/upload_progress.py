@@ -49,4 +49,4 @@ def progress(total, desc):
 
 
 def MB(i):
-    return int(i // 1024 ** 2)
+    return int(i // 1024**2)

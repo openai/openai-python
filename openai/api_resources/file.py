@@ -25,8 +25,7 @@ class File(ListableAPIResource, DeletableAPIResource):
         user_provided_filename=None,
     ):
         if purpose != "search" and model is not None:
-            raise ValueError(
-                "'model' is only meaningful if 'purpose' is 'search'")
+            raise ValueError("'model' is only meaningful if 'purpose' is 'search'")
         requestor = api_requestor.APIRequestor(
             api_key,
             api_base=api_base or openai.api_base,
@@ -35,16 +34,16 @@ class File(ListableAPIResource, DeletableAPIResource):
             organization=organization,
         )
         typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version)
+            api_type, api_version
+        )
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
-            url = "/%s%s?api-version=%s" % (cls.azure_api_prefix,
-                                            base, api_version)
+            url = "/%s%s?api-version=%s" % (cls.azure_api_prefix, base, api_version)
         elif typed_api_type == ApiType.OPEN_AI:
             url = cls.class_url()
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)
+            raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
         # Set the filename on 'purpose' and 'model' to None so they are
         # interpreted as form data.
@@ -53,9 +52,10 @@ class File(ListableAPIResource, DeletableAPIResource):
             files.append(("model", (None, model)))
         if user_provided_filename is not None:
             files.append(
-                ("file", (user_provided_filename, file, 'application/octet-stream')))
+                ("file", (user_provided_filename, file, "application/octet-stream"))
+            )
         else:
-            files.append(("file", ("file", file, 'application/octet-stream')))
+            files.append(("file", ("file", file, "application/octet-stream")))
         response, _, api_key = requestor.request("post", url, files=files)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -69,7 +69,7 @@ class File(ListableAPIResource, DeletableAPIResource):
         api_base=None,
         api_type=None,
         api_version=None,
-        organization=None
+        organization=None,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -79,16 +79,21 @@ class File(ListableAPIResource, DeletableAPIResource):
             organization=organization,
         )
         typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version)
+            api_type, api_version
+        )
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
             url = "/%s%s/%s/content?api-version=%s" % (
-                cls.azure_api_prefix, base, id, api_version)
+                cls.azure_api_prefix,
+                base,
+                id,
+                api_version,
+            )
         elif typed_api_type == ApiType.OPEN_AI:
             url = f"{cls.class_url()}/{id}/content"
         else:
-            raise error.InvalidAPIType('Unsupported API type %s' % api_type)
+            raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
         result = requestor.request_raw("get", url)
         if not 200 <= result.status_code < 300:

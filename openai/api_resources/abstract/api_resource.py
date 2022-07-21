@@ -62,7 +62,7 @@ class APIResource(OpenAIObject):
                     self.azure_api_prefix,
                     base,
                     extn,
-                    api_version
+                    api_version,
                 )
 
             return "/%s/%s/%s/%s?api-version=%s" % (
@@ -70,7 +70,7 @@ class APIResource(OpenAIObject):
                 self.azure_deployments_prefix,
                 extn,
                 operation,
-                api_version
+                api_version,
             )
 
         elif self.typed_api_type == ApiType.OPEN_AI:
@@ -78,8 +78,7 @@ class APIResource(OpenAIObject):
             return "%s/%s" % (base, extn)
 
         else:
-            raise error.InvalidAPIType(
-                "Unsupported API type %s" % self.api_type)
+            raise error.InvalidAPIType("Unsupported API type %s" % self.api_type)
 
     # The `method_` and `url_` arguments are suffixed with an underscore to
     # avoid conflicting with actual request parameters in `params`.
@@ -101,7 +100,7 @@ class APIResource(OpenAIObject):
             api_version=api_version,
             organization=organization,
             api_base=api_base,
-            api_type=api_type
+            api_type=api_type,
         )
         response, _, api_key = requestor.request(
             method_, url_, params, request_id=request_id
@@ -111,8 +110,13 @@ class APIResource(OpenAIObject):
         )
 
     @classmethod
-    def _get_api_type_and_version(cls, api_type: Optional[str] = None, api_version: Optional[str] = None):
-        typed_api_type = ApiType.from_str(
-            api_type) if api_type else ApiType.from_str(openai.api_type)
+    def _get_api_type_and_version(
+        cls, api_type: Optional[str] = None, api_version: Optional[str] = None
+    ):
+        typed_api_type = (
+            ApiType.from_str(api_type)
+            if api_type
+            else ApiType.from_str(openai.api_type)
+        )
         typed_api_version = api_version or openai.api_version
         return (typed_api_type, typed_api_version)
