@@ -10,6 +10,7 @@ class ErrorObject(OpenAIObject):
         values,
         api_key=None,
         api_version=None,
+        api_type=None,
         organization=None,
         response_ms: Optional[int] = None,
     ):
@@ -21,6 +22,7 @@ class ErrorObject(OpenAIObject):
             values=values,
             api_key=api_key,
             api_version=api_version,
+            api_type=api_type,
             organization=organization,
             response_ms=response_ms,
         )
