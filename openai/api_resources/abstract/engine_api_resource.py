@@ -29,7 +29,8 @@ class EngineAPIResource(APIResource):
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
         typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version)
+            api_type, api_version
+        )
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             if not api_version:
@@ -46,7 +47,7 @@ class EngineAPIResource(APIResource):
                 cls.azure_deployments_prefix,
                 extn,
                 base,
-                api_version
+                api_version,
             )
 
         elif typed_api_type == ApiType.OPEN_AI:
@@ -81,12 +82,16 @@ class EngineAPIResource(APIResource):
         if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             if deployment_id is None and engine is None:
                 raise error.InvalidRequestError(
-                    "Must provide an 'engine' or 'deployment_id' parameter to create a %s" % cls, "engine"
+                    "Must provide an 'engine' or 'deployment_id' parameter to create a %s"
+                    % cls,
+                    "engine",
                 )
         else:
             if model is None and engine is None:
                 raise error.InvalidRequestError(
-                    "Must provide an 'engine' or 'model' parameter to create a %s" % cls, "engine"
+                    "Must provide an 'engine' or 'model' parameter to create a %s"
+                    % cls,
+                    "engine",
                 )
 
         if timeout is None:
@@ -155,7 +160,7 @@ class EngineAPIResource(APIResource):
             )
 
         extn = quote_plus(id)
-        params_connector = '?'
+        params_connector = "?"
 
         if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             api_version = self.api_version or openai.api_version
@@ -170,17 +175,16 @@ class EngineAPIResource(APIResource):
                 self.engine,
                 base,
                 extn,
-                api_version
+                api_version,
             )
-            params_connector = '&'
+            params_connector = "&"
 
         elif self.typed_api_type == ApiType.OPEN_AI:
             base = self.class_url(self.engine, self.api_type, self.api_version)
             url = "%s/%s" % (base, extn)
 
         else:
-            raise error.InvalidAPIType(
-                "Unsupported API type %s" % self.api_type)
+            raise error.InvalidAPIType("Unsupported API type %s" % self.api_type)
 
         timeout = self.get("timeout")
         if timeout is not None:

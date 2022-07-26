@@ -18,7 +18,8 @@ setup(
         "tqdm",  # Needed for progress bars
         "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
         "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
-        "openpyxl>=3.0.7"  # Needed for CLI fine-tuning data preparation tool xlsx format
+        "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
+        "numpy>=1.22.0",  # To address a vuln in <1.21.6
     ],
     extras_require={
         "dev": ["black~=21.6b0", "pytest==6.*"],
