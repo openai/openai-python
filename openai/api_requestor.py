@@ -3,10 +3,11 @@ import platform
 import threading
 import warnings
 from json import JSONDecodeError
-from typing import Dict, Iterator, Optional, Tuple, Union
+from typing import Any, Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import requests
+from typing_extensions import Literal
 
 import openai
 from openai import error, util, version
@@ -99,6 +100,59 @@ class APIRequestor:
             str += " (%s)" % (info["url"],)
         return str
 
+    @overload
+    def request(
+        self,
+        method,
+        url,
+        params,
+        headers,
+        files,
+        stream: Literal[True],
+        request_id: Optional[str] = ...,
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        pass
+
+    @overload
+    def request(
+        self,
+        method,
+        url,
+        params=...,
+        headers=...,
+        files=...,
+        *,
+        stream: Literal[True],
+        request_id: Optional[str] = ...,
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        pass
+
+    @overload
+    def request(
+        self,
+        method,
+        url,
+        params=...,
+        headers=...,
+        files=...,
+        stream: Literal[False] = ...,
+        request_id: Optional[str] = ...,
+    ) -> Tuple[OpenAIResponse, bool, str]:
+        pass
+
+    @overload
+    def request(
+        self,
+        method,
+        url,
+        params=...,
+        headers=...,
+        files=...,
+        stream: bool = ...,
+        request_id: Optional[str] = ...,
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
+        pass
+
     def request(
         self,
         method,
@@ -106,7 +160,7 @@ class APIRequestor:
         params=None,
         headers=None,
         files=None,
-        stream=False,
+        stream: bool = False,
         request_id: Optional[str] = None,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         result = self.request_raw(
