@@ -165,6 +165,7 @@ class OpenAIObject(dict):
         stream=False,
         plain_old_data=False,
         request_id: Optional[str] = None,
+        request_timeout: Optional[float] = None,
     ):
         if params is None:
             params = self._retrieve_params
@@ -182,6 +183,7 @@ class OpenAIObject(dict):
             stream=stream,
             headers=headers,
             request_id=request_id,
+            request_timeout=request_timeout,
         )
 
         if stream:

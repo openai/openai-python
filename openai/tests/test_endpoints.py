@@ -1,7 +1,10 @@
 import io
 import json
 
+import pytest
+
 import openai
+from openai import error
 
 
 # FILE TESTS
@@ -34,3 +37,24 @@ def test_completions_model():
     result = openai.Completion.create(prompt="This was a test", n=5, model="ada")
     assert len(result.choices) == 5
     assert result.model.startswith("ada")
+
+
+def test_timeout_raises_error():
+    # A query that should take awhile to return
+    with pytest.raises(error.Timeout):
+        openai.Completion.create(
+            prompt="test" * 1000,
+            n=10,
+            model="ada",
+            max_tokens=100,
+            request_timeout=0.01,
+        )
+
+
+def test_timeout_does_not_error():
+    # A query that should be fast
+    openai.Completion.create(
+        prompt="test",
+        model="ada",
+        request_timeout=10,
+    )

@@ -110,6 +110,7 @@ class APIRequestor:
         files,
         stream: Literal[True],
         request_id: Optional[str] = ...,
+        request_timeout: Optional[float] = ...,
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         pass
 
@@ -124,6 +125,7 @@ class APIRequestor:
         *,
         stream: Literal[True],
         request_id: Optional[str] = ...,
+        request_timeout: Optional[float] = ...,
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         pass
 
@@ -137,6 +139,7 @@ class APIRequestor:
         files=...,
         stream: Literal[False] = ...,
         request_id: Optional[str] = ...,
+        request_timeout: Optional[float] = ...,
     ) -> Tuple[OpenAIResponse, bool, str]:
         pass
 
@@ -150,6 +153,7 @@ class APIRequestor:
         files=...,
         stream: bool = ...,
         request_id: Optional[str] = ...,
+        request_timeout: Optional[float] = ...,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         pass
 
@@ -162,6 +166,7 @@ class APIRequestor:
         files=None,
         stream: bool = False,
         request_id: Optional[str] = None,
+        request_timeout: Optional[float] = None,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         result = self.request_raw(
             method.lower(),
@@ -171,6 +176,7 @@ class APIRequestor:
             files=files,
             stream=stream,
             request_id=request_id,
+            request_timeout=request_timeout,
         )
         resp, got_stream = self._interpret_response(result, stream)
         return resp, got_stream, self.api_key
@@ -233,7 +239,11 @@ class APIRequestor:
             return error.APIError(message, rbody, rcode, resp, rheaders)
         else:
             return error.APIError(
-                error_data.get("message"), rbody, rcode, resp, rheaders
+                f"{error_data.get('message')} {rbody} {rcode} {resp} {rheaders}",
+                rbody,
+                rcode,
+                resp,
+                rheaders,
             )
 
     def request_headers(
@@ -310,6 +320,7 @@ class APIRequestor:
         files=None,
         stream: bool = False,
         request_id: Optional[str] = None,
+        request_timeout: Optional[float] = None,
     ) -> requests.Response:
         abs_url = "%s%s" % (self.api_base, url)
         headers = self._validate_headers(supplied_headers)
@@ -349,8 +360,10 @@ class APIRequestor:
                 data=data,
                 files=files,
                 stream=stream,
-                timeout=TIMEOUT_SECS,
+                timeout=request_timeout if request_timeout else TIMEOUT_SECS,
             )
+        except requests.exceptions.Timeout as e:
+            raise error.Timeout("Request timed out") from e
         except requests.exceptions.RequestException as e:
             raise error.APIConnectionError("Error communicating with OpenAI") from e
         util.log_info(
