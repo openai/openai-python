@@ -1,6 +1,6 @@
 import json
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 import openai
 from openai import api_requestor, util
@@ -165,7 +165,7 @@ class OpenAIObject(dict):
         stream=False,
         plain_old_data=False,
         request_id: Optional[str] = None,
-        request_timeout: Optional[float] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ):
         if params is None:
             params = self._retrieve_params

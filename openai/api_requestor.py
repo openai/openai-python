@@ -110,7 +110,7 @@ class APIRequestor:
         files,
         stream: Literal[True],
         request_id: Optional[str] = ...,
-        request_timeout: Optional[float] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         pass
 
@@ -125,7 +125,7 @@ class APIRequestor:
         *,
         stream: Literal[True],
         request_id: Optional[str] = ...,
-        request_timeout: Optional[float] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         pass
 
@@ -139,7 +139,7 @@ class APIRequestor:
         files=...,
         stream: Literal[False] = ...,
         request_id: Optional[str] = ...,
-        request_timeout: Optional[float] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
     ) -> Tuple[OpenAIResponse, bool, str]:
         pass
 
@@ -153,7 +153,7 @@ class APIRequestor:
         files=...,
         stream: bool = ...,
         request_id: Optional[str] = ...,
-        request_timeout: Optional[float] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         pass
 
@@ -166,7 +166,7 @@ class APIRequestor:
         files=None,
         stream: bool = False,
         request_id: Optional[str] = None,
-        request_timeout: Optional[float] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         result = self.request_raw(
             method.lower(),
@@ -320,7 +320,7 @@ class APIRequestor:
         files=None,
         stream: bool = False,
         request_id: Optional[str] = None,
-        request_timeout: Optional[float] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ) -> requests.Response:
         abs_url = "%s%s" % (self.api_base, url)
         headers = self._validate_headers(supplied_headers)
