@@ -371,6 +371,7 @@ class APIRequestor:
             path=abs_url,
             response_code=result.status_code,
             processing_ms=result.headers.get("OpenAI-Processing-Ms"),
+            request_id=result.headers.get("X-Request-Id"),
         )
         # Don't read the whole stream for debug logging unless necessary.
         if openai.log == "debug":
