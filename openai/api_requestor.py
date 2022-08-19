@@ -3,7 +3,7 @@ import platform
 import threading
 import warnings
 from json import JSONDecodeError
-from typing import Any, Dict, Iterator, Optional, Tuple, Union, overload
+from typing import Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import requests
