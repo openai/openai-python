@@ -13,14 +13,21 @@ class APIResource(OpenAIObject):
     azure_deployments_prefix = "deployments"
 
     @classmethod
-    def retrieve(cls, id, api_key=None, request_id=None, **params):
+    def retrieve(
+        cls, id, api_key=None, request_id=None, request_timeout=None, **params
+    ):
         instance = cls(id, api_key, **params)
-        instance.refresh(request_id=request_id)
+        instance.refresh(request_id=request_id, request_timeout=request_timeout)
         return instance
 
-    def refresh(self, request_id=None):
+    def refresh(self, request_id=None, request_timeout=None):
         self.refresh_from(
-            self.request("get", self.instance_url(), request_id=request_id)
+            self.request(
+                "get",
+                self.instance_url(),
+                request_id=request_id,
+                request_timeout=request_timeout,
+            )
         )
         return self
 

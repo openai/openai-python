@@ -52,6 +52,10 @@ completion = openai.Completion.create(engine="ada", prompt="Hello world")
 print(completion.choices[0].text)
 ```
 
+
+### Params
+All endpoints have a `.create` method that support a `request_timeout` param.  This param takes a `Union[float, Tuple[float, float]]` and will raise a `openai.error.TimeoutError` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+
 ### Microsoft Azure Endpoints
 
 In order to use the library with Microsoft Azure endpoints, you need to set the api_type, api_base and api_version in addition to the api_key. The api_type must be set to 'azure' and the others correspond to the properties of your endpoint.

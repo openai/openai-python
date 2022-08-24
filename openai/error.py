@@ -76,6 +76,10 @@ class TryAgain(OpenAIError):
     pass
 
 
+class Timeout(OpenAIError):
+    pass
+
+
 class APIConnectionError(OpenAIError):
     def __init__(
         self,
