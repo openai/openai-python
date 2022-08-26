@@ -27,7 +27,7 @@ def get_embedding(text: str, engine="text-similarity-davinci-001") -> List[float
 def get_embeddings(
     list_of_text: List[str], engine="text-similarity-babbage-001"
 ) -> List[List[float]]:
-    assert len(list_of_text) < 2048, "The batch size should not be larger than 2048."
+    assert len(list_of_text) <= 2048, "The batch size should not be larger than 2048."
 
     # replace newlines, which can negatively affect performance.
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
