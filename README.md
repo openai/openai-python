@@ -172,7 +172,7 @@ For more information on embeddings and the types of embeddings OpenAI offers, re
 
 ### Fine tuning
 
-Fine tuning a model on training data can both improve the results (by giving the model more examples to learn from) and reduce the cost & latency of API calls (by reducing the need to include training examples in prompts).
+Fine tuning a model on training data can both improve the results (by giving the model more examples to learn from) and reduce the cost/latency of API calls (chiefly through reducing the need to include training examples in prompts).
 
 Examples of fine tuning are shared in the following Jupyter notebooks:
 
@@ -194,8 +194,8 @@ For more information on fine tuning, read the [fine-tuning guide](https://beta.o
 
 - Python 3.7.1+
 
-In general we want to support the versions of Python that our
-customers are using, so if you run into issues with any version
+In general, we want to support the versions of Python that our
+customers are using. If you run into problems with any version
 issues, please let us know at support@openai.com.
 
 ## Credit
