@@ -128,7 +128,7 @@ def duplicated_rows_validator(df, fields=["prompt", "completion"]):
     This validator will suggest to the user to remove duplicate rows if they exist.
     """
     duplicated_rows = df.duplicated(subset=fields)
-    duplicated_indexes = df.index[duplicated_rows].tolist()
+    duplicated_indexes = df.reset_index().index[duplicated_rows].tolist()
     immediate_msg = None
     optional_msg = None
     optional_fn = None
