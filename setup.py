@@ -24,9 +24,13 @@ setup(
     ],
     extras_require={
         "dev": ["black~=21.6b0", "pytest==6.*"],
+        "wandb": ["wandb"],
         "embeddings": [
-            "scikit-learn>=1.0.2", # Needed for embedding utils, versions >= 1.1 require python 3.8
-            "tenacity>=8.0.1"
+            "scikit-learn>=1.0.2",  # Needed for embedding utils, versions >= 1.1 require python 3.8
+            "tenacity>=8.0.1",
+            "matplotlib",
+            "sklearn",
+            "plotly",
         ],
     },
     python_requires=">=3.7.1",
