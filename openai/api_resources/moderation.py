@@ -11,7 +11,7 @@ class Moderation(OpenAIObject):
         return "/moderations"
 
     @classmethod
-    def create(cls, input: Union[str, List[str]], model: Optional[str] = None, api_key: Optional[str] = None):
+    def create(cls, input: Union[str, List[str]], model: Optional[str] = None, api_key: Optional[str] = None):  # fmt: skip
         if model is not None and model not in cls.VALID_MODEL_NAMES:
             raise ValueError(
                 f"The parameter model should be chosen from {cls.VALID_MODEL_NAMES} "
