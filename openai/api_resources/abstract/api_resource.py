@@ -1,10 +1,10 @@
+from typing import Optional
 from urllib.parse import quote_plus
 
 import openai
 from openai import api_requestor, error, util
 from openai.openai_object import OpenAIObject
 from openai.util import ApiType
-from typing import Optional
 
 
 class APIResource(OpenAIObject):

@@ -1,4 +1,4 @@
-from openai import api_requestor, util, error
+from openai import api_requestor, error, util
 from openai.api_resources.abstract.api_resource import APIResource
 from openai.util import ApiType
 

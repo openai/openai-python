@@ -3,7 +3,7 @@ import os
 from typing import cast
 
 import openai
-from openai import api_requestor, util, error
+from openai import api_requestor, error, util
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 from openai.util import ApiType
 

@@ -1,6 +1,6 @@
 from urllib.parse import quote_plus
 
-from openai import api_requestor, util, error
+from openai import api_requestor, error, util
 from openai.api_resources.abstract import (
     CreateableAPIResource,
     ListableAPIResource,
