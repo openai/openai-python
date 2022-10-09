@@ -2,7 +2,7 @@ try:
     import wandb
 
     WANDB_AVAILABLE = True
-except:
+except:  # noqa: E722
     WANDB_AVAILABLE = False
 
 
@@ -113,7 +113,7 @@ class WandbLogger:
         try:
             results_id = fine_tune["result_files"][0]["id"]
             results = File.download(id=results_id).decode("utf-8")
-        except:
+        except:  # noqa: E722
             if show_individual_warnings:
                 print(f"Fine-tune {fine_tune_id} has no results and will not be logged")
             return
@@ -270,7 +270,7 @@ class WandbLogger:
             # get file content
             try:
                 file_content = File.download(id=file_id).decode("utf-8")
-            except:
+            except:  # noqa: E722
                 print(
                     f"File {file_id} could not be retrieved. Make sure you are allowed to download training/validation files"
                 )
@@ -285,7 +285,7 @@ class WandbLogger:
                 artifact.add(table, stem)
                 wandb.config.update({f"n_{prefix}": n_items})
                 artifact.metadata["items"] = n_items
-            except:
+            except:  # noqa: E722
                 print(f"File {file_id} could not be read as a valid JSON file")
         else:
             # log number of items

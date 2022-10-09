@@ -1,5 +1,3 @@
-from sys import api_version
-
 import pytest
 
 from openai import Completion, Engine
@@ -39,7 +37,7 @@ def test_completions_url_composition_open_ai() -> None:
 @pytest.mark.url
 def test_completions_url_composition_invalid_type() -> None:
     with pytest.raises(Exception):
-        url = Completion.class_url("test_engine", "invalid")
+        Completion.class_url("test_engine", "invalid")
 
 
 @pytest.mark.url
@@ -104,7 +102,7 @@ def test_completions_url_composition_instance_url_open_ai() -> None:
 def test_completions_url_composition_instance_url_invalid() -> None:
     completion = Completion(id="test_id", engine="test_engine", api_type="invalid")
     with pytest.raises(Exception):
-        url = completion.instance_url()
+        completion.instance_url()
 
 
 @pytest.mark.url
@@ -178,7 +176,7 @@ def test_engine_search_url_composition_azure_no_operation() -> None:
 @pytest.mark.url
 def test_engine_search_url_composition_default() -> None:
     engine = Engine(id="test_id")
-    assert engine.api_type == None
+    assert engine.api_type is None
     assert engine.typed_api_type == ApiType.OPEN_AI
     url = engine.instance_url()
     assert url == "/engines/test_id"
