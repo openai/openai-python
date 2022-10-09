@@ -24,7 +24,7 @@ from openai.api_resources import (
 from openai.error import APIError, InvalidRequestError, OpenAIError
 
 api_key = os.environ.get("OPENAI_API_KEY")
-# Path of a file with an API key, whose contents can change. Supercedes
+# Path of a file with an API key, whose contents can change. Supersedes
 # `api_key` if set.  The main use case is volume-mounted Kubernetes secrets,
 # which are updated automatically.
 api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
