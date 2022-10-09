@@ -1,0 +1,34 @@
+---
+repos:
+  - repo: https://github.com/zricethezav/gitleaks
+    rev: v8.13.0
+    hooks:
+      - id: gitleaks
+        args: ["--verbose"]
+  - repo: https://github.com/PyCQA/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+  - repo: https://github.com/PyCQA/flake8
+    rev: 5.0.4
+    hooks:
+      - id: flake8
+        args:
+          - --ignore=E203,E501,W503,E741
+          - --show-source
+          - --statistics
+  - repo: https://github.com/python/black
+    rev: 22.10.0
+    hooks:
+      - id: black
+        args:
+        - --diff
+        - --check
+  - repo: https://github.com/codespell-project/codespell
+    rev: v2.2.0
+    hooks:
+      - id: codespell
+        files: ^.*\.(py)$
+        args:
+          - --ignore-words-list = nd, reacher, thist, ths, ure, referenc

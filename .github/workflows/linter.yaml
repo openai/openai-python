@@ -1,0 +1,37 @@
+name: Formatting codebase
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout committed code
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Check code for Gitleaks
+        uses: gitleaks/gitleaks-action@v2.2.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Check code for isort formatting
+        uses: isort/isort-action@master
+      - name: Check code for flake8 formatting
+        run: |
+          python -m pip install flake8
+          flake8 . --ignore E203,E501,W503
+      - name: Check code for Black formatting
+        uses: psf/black@stable
+        with:
+          options: "--check --diff"
+      - name: Check code for common misspellings
+        uses: codespell-project/actions-codespell@master
+        with:
+          ignore_words_list: nd,reacher,thist,ths,ure,referenc
+          skip: ^.*\.(md|toml|ini|ipyb)$
