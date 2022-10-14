@@ -166,8 +166,6 @@ def long_examples_validator(df):
 
         long_indexes = get_long_indexes(df)
 
-        print("long_indexes:", long_indexes)
-
         if len(long_indexes) > 0:
             immediate_msg = f"\n- There are {len(long_indexes)} examples that are very long. These are rows: {long_indexes}\nFor conditional generation, and for classification the examples shouldn't be longer than 2048 tokens."
             optional_msg = f"Remove {len(long_indexes)} long examples."
