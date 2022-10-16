@@ -158,17 +158,24 @@ def long_examples_validator(df):
 
     ft_type = infer_task_type(df)
     if ft_type != "open-ended generation":
-        long_examples = df.apply(
-            lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
-        )
-        long_indexes = df.reset_index().index[long_examples].tolist()
+        def get_long_indexes(d):
+            long_examples = d.apply(
+                lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
+            )
+            return d.reset_index().index[long_examples].tolist()
+
+        long_indexes = get_long_indexes(df)
 
         if len(long_indexes) > 0:
             immediate_msg = f"\n- There are {len(long_indexes)} examples that are very long. These are rows: {long_indexes}\nFor conditional generation, and for classification the examples shouldn't be longer than 2048 tokens."
             optional_msg = f"Remove {len(long_indexes)} long examples"
 
             def optional_fn(x):
-                return x.drop(long_indexes)
+                
+                long_indexes_to_drop = get_long_indexes(x)
+                if long_indexes != long_indexes_to_drop:
+                    sys.stdout.write(f"The indices of the long examples has changed as a result of a previously applied recommendation.\nThe {len(long_indexes_to_drop)} long examples to be dropped are now at the following indices: {long_indexes_to_drop}\n")
+                return x.drop(long_indexes_to_drop)
 
     return Remediation(
         name="long_examples",
