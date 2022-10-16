@@ -3,7 +3,12 @@ import subprocess
 from tempfile import NamedTemporaryFile
 
 
-def test_prepare_data() -> None:
+def test_long_examples_validator() -> None:
+
+    """
+    Ensures that long_examples_validator() handles previously applied recommendations,
+    namely dropped duplicates, without resulting in a KeyError.
+    """
 
     # data
     short_prompt = "a prompt "
@@ -29,13 +34,13 @@ def test_prepare_data() -> None:
             [f"openai tools fine_tunes.prepare_data -f {training_data.name}"], 
             stdout=subprocess.PIPE, 
             text=True, 
-            input="y\ny\ny\ny\ny",  # apply all recommendations, but one at a time
+            input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
             stderr=subprocess.PIPE,
             encoding="utf-8",
             shell=True
         )
 
-    assert prepared_data_cmd_output.stderr == ""  # validate no errors
+    assert prepared_data_cmd_output.stderr == ""  # validate data was prepared successfully
     assert "indices of the long examples has changed" in prepared_data_cmd_output.stdout  # validate get_long_indexes() applied during optional_fn() call in long_examples_validator()
     
     return prepared_data_cmd_output.stdout
