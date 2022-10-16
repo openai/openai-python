@@ -40,7 +40,9 @@ def test_long_examples_validator() -> None:
             shell=True
         )
 
-    assert prepared_data_cmd_output.stderr == ""  # validate data was prepared successfully
-    assert "indices of the long examples has changed" in prepared_data_cmd_output.stdout  # validate get_long_indexes() applied during optional_fn() call in long_examples_validator()
+    # validate data was prepared successfully
+    assert prepared_data_cmd_output.stderr == ""  
+    # validate get_long_indexes() applied during optional_fn() call in long_examples_validator()
+    assert "indices of the long examples has changed" in prepared_data_cmd_output.stdout
     
     return prepared_data_cmd_output.stdout
