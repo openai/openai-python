@@ -6,6 +6,7 @@ import os
 from typing import Optional
 
 from openai.api_resources import (
+    DALLE,
     Answer,
     Classification,
     Completion,
@@ -50,6 +51,7 @@ __all__ = [
     "Completion",
     "Customer",
     "Edit",
+    "DALLE",
     "Deployment",
     "Embedding",
     "Engine",

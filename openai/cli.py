@@ -229,6 +229,49 @@ class File:
         print(file)
 
 
+class DALLE:
+    @classmethod
+    def generations(cls, args):
+        resp = openai.DALLE.generations(
+            prompt=args.prompt,
+            model=args.model,
+            size=args.size,
+            num_images=args.num_images,
+            response_format=args.response_format,
+        )
+        print(resp)
+
+    @classmethod
+    def variations(cls, args):
+        with open(args.image, "rb") as file_reader:
+            buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        resp = openai.DALLE.variations(
+            image=buffer_reader,
+            model=args.model,
+            size=args.size,
+            num_images=args.num_images,
+            response_format=args.response_format,
+        )
+        print(resp)
+
+    @classmethod
+    def edits(cls, args):
+        with open(args.image, "rb") as file_reader:
+            image_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        with open(args.mask, "rb") as file_reader:
+            mask_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        resp = openai.DALLE.edits(
+            image=image_reader,
+            mask=mask_reader,
+            prompt=args.prompt,
+            model=args.model,
+            size=args.size,
+            num_images=args.num_images,
+            response_format=args.response_format,
+        )
+        print(resp)
+
+
 class Search:
     @classmethod
     def prepare_data(cls, args, purpose):
@@ -982,6 +1025,57 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.cancel)
+
+    # DALLE
+    sub = subparsers.add_parser("dalle.generations")
+    sub.add_argument("-m", "--model", type=str, default="image-alpha-001")
+    sub.add_argument("-p", "--prompt", type=str, required=True)
+    sub.add_argument("-n", "--num-images", type=int, default=1)
+    sub.add_argument(
+        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
+    )
+    sub.add_argument("--response-format", type=str, default="url")
+    sub.set_defaults(func=DALLE.generations)
+
+    sub = subparsers.add_parser("dalle.edits")
+    sub.add_argument("-m", "--model", type=str, default="image-alpha-001")
+    sub.add_argument("-p", "--prompt", type=str, required=True)
+    sub.add_argument("-n", "--num-images", type=int, default=1)
+    sub.add_argument(
+        "-I",
+        "--image",
+        type=str,
+        required=True,
+        help="Image to modify. Should be a local path and a PNG encoded image.",
+    )
+    sub.add_argument(
+        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
+    )
+    sub.add_argument("--response-format", type=str, default="url")
+    sub.add_argument(
+        "-M",
+        "--mask",
+        type=str,
+        required=True,
+        help="Path to a mask image. It should be the same size as the image you're editing and a RGBA PNG image. The Alpha channel acts as the mask.",
+    )
+    sub.set_defaults(func=DALLE.edits)
+
+    sub = subparsers.add_parser("dalle.variations")
+    sub.add_argument("-m", "--model", type=str, default="image-alpha-001")
+    sub.add_argument("-n", "--num-images", type=int, default=1)
+    sub.add_argument(
+        "-I",
+        "--image",
+        type=str,
+        required=True,
+        help="Image to modify. Should be a local path and a PNG encoded image.",
+    )
+    sub.add_argument(
+        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
+    )
+    sub.add_argument("--response-format", type=str, default="url")
+    sub.set_defaults(func=DALLE.variations)
 
 
 def wandb_register(parser):
