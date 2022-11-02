@@ -6,7 +6,6 @@ import os
 from typing import Optional
 
 from openai.api_resources import (
-    DALLE,
     Answer,
     Classification,
     Completion,
@@ -18,6 +17,7 @@ from openai.api_resources import (
     ErrorObject,
     File,
     FineTune,
+    Image,
     Model,
     Moderation,
     Search,
@@ -51,7 +51,7 @@ __all__ = [
     "Completion",
     "Customer",
     "Edit",
-    "DALLE",
+    "Image",
     "Deployment",
     "Embedding",
     "Engine",
