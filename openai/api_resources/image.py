@@ -6,7 +6,7 @@ from openai import api_requestor, util
 from openai.api_resources.abstract import APIResource
 
 
-class DALLE(APIResource):
+class Image(APIResource):
     OBJECT_NAME = "images"
 
     @classmethod
@@ -14,7 +14,7 @@ class DALLE(APIResource):
         return cls.class_url() + f"/{action}"
 
     @classmethod
-    def generations(
+    def create(
         cls,
         **params,
     ):
@@ -22,7 +22,7 @@ class DALLE(APIResource):
         return instance.request("post", cls._get_url("generations"), params)
 
     @classmethod
-    def variations(
+    def create_variation(
         cls,
         image,
         api_key=None,
@@ -55,7 +55,7 @@ class DALLE(APIResource):
         )
 
     @classmethod
-    def edits(
+    def create_edit(
         cls,
         image,
         mask,
