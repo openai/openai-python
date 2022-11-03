@@ -119,6 +119,9 @@ openai api engines.list
 
 # create a completion
 openai api completions.create -e ada -p "Hello world"
+
+# generate images via DALL·E API
+openai api image.create -p "two dogs playing chess, cartoon" -n 1
 ```
 
 ## Example code
@@ -189,6 +192,18 @@ openai wandb sync
 ```
 
 For more information on fine tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
+
+## Image generation (DALL·E)
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
+
+```
+
+See the [usage guide](https://beta.openai.com/docs/guides/images) for more details.
 
 ## Requirements
 
