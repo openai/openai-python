@@ -1,4 +1,7 @@
 import openai
+import os
+
+display_cause = os.environ["OPENAI_ERROR_DISPLAY_CAUSE"]
 
 
 class OpenAIError(Exception):
@@ -34,6 +37,8 @@ class OpenAIError(Exception):
 
     def __str__(self):
         msg = self._message or "<empty message>"
+        if display_cause is not None and hasattr(self, "__cause__") and self.__cause__ is not None:
+            msg += " (Cause: {0})".format(self.__cause__)
         if self.request_id is not None:
             return "Request {0}: {1}".format(self.request_id, msg)
         else:
