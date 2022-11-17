@@ -193,6 +193,19 @@ openai wandb sync
 
 For more information on fine tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 
+### Moderation
+
+OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://beta.openai.com/docs/usage-policies)
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
+```
+
+See the [moderation guide](https://beta.openai.com/docs/guides/moderation) for more details.
+
 ## Image generation (DALL·E)
 
 ```python
