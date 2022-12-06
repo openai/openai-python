@@ -12,7 +12,7 @@ class File(ListableAPIResource, DeletableAPIResource):
     OBJECT_NAME = "files"
 
     @classmethod
-    def create(
+    def __prepare_file_create(
         cls,
         file,
         purpose,
@@ -56,13 +56,69 @@ class File(ListableAPIResource, DeletableAPIResource):
             )
         else:
             files.append(("file", ("file", file, "application/octet-stream")))
+
+        return requestor, url, files
+
+    @classmethod
+    def create(
+        cls,
+        file,
+        purpose,
+        model=None,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+        user_provided_filename=None,
+    ):
+        requestor, url, files = cls.__prepare_file_create(
+            file,
+            purpose,
+            model,
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+            user_provided_filename,
+        )
         response, _, api_key = requestor.request("post", url, files=files)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
         )
 
     @classmethod
-    def download(
+    async def acreate(
+        cls,
+        file,
+        purpose,
+        model=None,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+        user_provided_filename=None,
+    ):
+        requestor, url, files = cls.__prepare_file_create(
+            file,
+            purpose,
+            model,
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+            user_provided_filename,
+        )
+        response, _, api_key = await requestor.arequest("post", url, files=files)
+        return util.convert_to_openai_object(
+            response, api_key, api_version, organization
+        )
+
+    @classmethod
+    def __prepare_file_download(
         cls,
         id,
         api_key=None,
@@ -84,16 +140,32 @@ class File(ListableAPIResource, DeletableAPIResource):
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
-            url = "/%s%s/%s/content?api-version=%s" % (
+            url = "/%s%s/%s?api-version=%s" % (
                 cls.azure_api_prefix,
                 base,
                 id,
                 api_version,
             )
         elif typed_api_type == ApiType.OPEN_AI:
-            url = f"{cls.class_url()}/{id}/content"
+            url = "%s/%s" % (cls.class_url(), id)
         else:
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
+
+        return requestor, url
+
+    @classmethod
+    def download(
+        cls,
+        id,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+    ):
+        requestor, url = cls.__prepare_file_download(
+            id, api_key, api_base, api_type, api_version, organization
+        )
 
         result = requestor.request_raw("get", url)
         if not 200 <= result.status_code < 300:
@@ -105,6 +177,48 @@ class File(ListableAPIResource, DeletableAPIResource):
                 stream_error=False,
             )
         return result.content
+
+    @classmethod
+    async def adownload(
+        cls,
+        id,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+    ):
+        requestor, url = cls.__prepare_file_download(
+            id, api_key, api_base, api_type, api_version, organization
+        )
+
+        result = await requestor.arequest_raw("get", url)
+        if not 200 <= result.status < 300:
+            raise requestor.handle_error_response(
+                result.content,
+                result.status,
+                json.loads(cast(bytes, result.content)),
+                result.headers,
+                stream_error=False,
+            )
+        return result.content
+
+    @classmethod
+    def __find_matching_files(cls, name, all_files, purpose):
+        matching_files = []
+        basename = os.path.basename(name)
+        for f in all_files:
+            if f["purpose"] != purpose:
+                continue
+            file_basename = os.path.basename(f["filename"])
+            if file_basename != basename:
+                continue
+            if "bytes" in f and f["bytes"] != bytes:
+                continue
+            if "size" in f and int(f["size"]) != bytes:
+                continue
+            matching_files.append(f)
+        return matching_files
 
     @classmethod
     def find_matching_files(
@@ -126,17 +240,28 @@ class File(ListableAPIResource, DeletableAPIResource):
             api_version=api_version,
             organization=organization,
         ).get("data", [])
-        matching_files = []
-        basename = os.path.basename(name)
-        for f in all_files:
-            if f["purpose"] != purpose:
-                continue
-            file_basename = os.path.basename(f["filename"])
-            if file_basename != basename:
-                continue
-            if "bytes" in f and f["bytes"] != bytes:
-                continue
-            if "size" in f and int(f["size"]) != bytes:
-                continue
-            matching_files.append(f)
-        return matching_files
+        return cls.__find_matching_files(name, all_files, purpose)
+
+    @classmethod
+    async def afind_matching_files(
+        cls,
+        name,
+        bytes,
+        purpose,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+    ):
+        """Find already uploaded files with the same name, size, and purpose."""
+        all_files = (
+            await cls.alist(
+                api_key=api_key,
+                api_base=api_base or openai.api_base,
+                api_type=api_type,
+                api_version=api_version,
+                organization=organization,
+            )
+        ).get("data", [])
+        return cls.__find_matching_files(name, all_files, purpose)

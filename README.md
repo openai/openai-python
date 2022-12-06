@@ -216,6 +216,19 @@ image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", 
 
 ```
 
+## Async API
+
+Async support is available in the API by prepending `a` to a network-bound method:
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+async def create_completion():
+    completion_resp = await openai.Completion.acreate(prompt="This is a test", engine="davinci")
+
+```
+
 See the [usage guide](https://beta.openai.com/docs/guides/images) for more details.
 
 ## Requirements

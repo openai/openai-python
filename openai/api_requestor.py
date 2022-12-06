@@ -2,10 +2,12 @@ import json
 import platform
 import threading
 import warnings
+from contextvars import ContextVar
 from json import JSONDecodeError
 from typing import Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
+import aiohttp
 import requests
 from typing_extensions import Literal
 
@@ -19,6 +21,7 @@ MAX_CONNECTION_RETRIES = 2
 
 # Has one attribute per thread, 'session'.
 _thread_context = threading.local()
+_aiohttp_session: ContextVar[aiohttp.ClientSession] = ContextVar("aiohttp_session")
 
 
 def _build_api_url(url, query):
@@ -44,6 +47,19 @@ def _requests_proxies_arg(proxy) -> Optional[Dict[str, str]]:
         )
 
 
+def _aiohttp_proxies_arg(proxy) -> Optional[str]:
+    """Returns a value suitable for the 'proxies' argument to 'aiohttp.ClientSession.request."""
+    if proxy is None:
+        return None
+    elif isinstance(proxy, str):
+        return proxy
+    elif isinstance(proxy, dict):
+        return proxy["https"] if "https" in proxy else proxy["http"]
+    else:
+        raise ValueError(
+            "'openai.proxy' must be specified as either a string URL or a dict with string URL under the https and/or http keys."
+        )
+
 def _make_session() -> requests.Session:
     if not openai.verify_ssl_certs:
         warnings.warn("verify_ssl_certs is ignored; openai always verifies.")
@@ -64,6 +80,18 @@ def parse_stream(rbody):
             if line == b"data: [DONE]":
                 # return here will cause GeneratorExit exception in urllib3
                 # and it will close http connection with TCP Reset
+                continue
+            if hasattr(line, "decode"):
+                line = line.decode("utf-8")
+            if line.startswith("data: "):
+                line = line[len("data: ") :]
+            yield line
+
+
+async def parse_stream_async(rbody: aiohttp.StreamReader):
+    async for line in rbody:
+        if line:
+            if line == b"data: [DONE]":
                 continue
             if hasattr(line, "decode"):
                 line = line.decode("utf-8")
@@ -179,6 +207,29 @@ class APIRequestor:
             request_timeout=request_timeout,
         )
         resp, got_stream = self._interpret_response(result, stream)
+        return resp, got_stream, self.api_key
+
+    async def arequest(
+        self,
+        method,
+        url,
+        params=None,
+        headers=None,
+        files=None,
+        stream: bool = False,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
+        result = await self.arequest_raw(
+            method.lower(),
+            url,
+            params=params,
+            supplied_headers=headers,
+            files=files,
+            request_id=request_id,
+            request_timeout=request_timeout,
+        )
+        resp, got_stream = self._interpret_async_response(result, stream)
         return resp, got_stream, self.api_key
 
     def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
@@ -310,18 +361,9 @@ class APIRequestor:
 
         return headers
 
-    def request_raw(
-        self,
-        method,
-        url,
-        *,
-        params=None,
-        supplied_headers: Dict[str, str] = None,
-        files=None,
-        stream: bool = False,
-        request_id: Optional[str] = None,
-        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
-    ) -> requests.Response:
+    def _prepare_request_raw(
+        self, url, supplied_headers, method, params, files, request_id: Optional[str],
+    ) -> Tuple[str, Dict[str, str], Optional[bytes]]:
         abs_url = "%s%s" % (self.api_base, url)
         headers = self._validate_headers(supplied_headers)
 
@@ -349,6 +391,24 @@ class APIRequestor:
 
         util.log_info("Request to OpenAI API", method=method, path=abs_url)
         util.log_debug("Post details", data=data, api_version=self.api_version)
+
+        return abs_url, headers, data
+
+    def request_raw(
+        self,
+        method,
+        url,
+        *,
+        params=None,
+        supplied_headers: Dict[str, str] = None,
+        files=None,
+        stream: bool = False,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+    ) -> requests.Response:
+        abs_url, headers, data = self._prepare_request_raw(
+            url, supplied_headers, method, params, files, request_id
+        )
 
         if not hasattr(_thread_context, "session"):
             _thread_context.session = _make_session()
@@ -380,6 +440,58 @@ class APIRequestor:
             )
         return result
 
+    async def arequest_raw(
+        self,
+        method,
+        url,
+        *,
+        params=None,
+        supplied_headers: Dict[str, str] = None,
+        files=None,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+    ) -> aiohttp.ClientResponse:
+        abs_url, headers, data = self._prepare_request_raw(
+            url, supplied_headers, method, params, files, request_id
+        )
+
+        timeout = aiohttp.ClientTimeout(
+            total=request_timeout if request_timeout else TIMEOUT_SECS
+        )
+        try:
+            session = _aiohttp_session.get()
+        except LookupError:
+            session = aiohttp.ClientSession()
+            _aiohttp_session.set(session)
+
+        try:
+            async with session.request(
+                method,
+                abs_url,
+                headers=headers,
+                data=data,
+                files=files,
+                proxy=_aiohttp_proxies_arg(openai.proxy),
+                timeout=timeout,
+            ) as result:
+                util.log_info(
+                    "OpenAI API response",
+                    path=abs_url,
+                    response_code=result.status,
+                    processing_ms=result.headers.get("OpenAI-Processing-Ms"),
+                    request_id=result.headers.get("X-Request-Id"),
+                )
+                # Don't read the whole stream for debug logging unless necessary.
+                if openai.log == "debug":
+                    util.log_debug(
+                        "API response body", body=result.content, headers=result.headers
+                    )
+                return result
+        except aiohttp.ServerTimeoutError as e:
+            raise error.Timeout("Request timed out") from e
+        except aiohttp.ClientError as e:
+            raise error.APIConnectionError("Error communicating with OpenAI") from e
+
     def _interpret_response(
         self, result: requests.Response, stream: bool
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]:
@@ -395,6 +507,25 @@ class APIRequestor:
             return (
                 self._interpret_response_line(
                     result.content, result.status_code, result.headers, stream=False
+                ),
+                False,
+            )
+
+    def _interpret_async_response(
+        self, result: aiohttp.ClientResponse, stream: bool
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]:
+        """Returns the response(s) and a bool indicating whether it is a stream."""
+        if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
+            return (
+                self._interpret_response_line(
+                    line, result.status, result.headers, stream=True
+                )
+                async for line in parse_stream_async(result.content)
+            ), True
+        else:
+            return (
+                self._interpret_response_line(
+                    await result.read(), result.status, result.headers, stream=False
                 ),
                 False,
             )
