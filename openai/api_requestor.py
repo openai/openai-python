@@ -229,7 +229,7 @@ class APIRequestor:
             request_id=request_id,
             request_timeout=request_timeout,
         )
-        resp, got_stream = self._interpret_async_response(result, stream)
+        resp, got_stream = await self._interpret_async_response(result, stream)
         return resp, got_stream, self.api_key
 
     def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
@@ -464,33 +464,42 @@ class APIRequestor:
             session = aiohttp.ClientSession()
             _aiohttp_session.set(session)
 
+        if files:
+            data, content_type = requests.models.RequestEncodingMixin._encode_files(
+                files, data
+            )
+            headers["Content-Type"] = content_type
+
+        result = None
         try:
-            async with session.request(
+            result = await session.request(
                 method,
                 abs_url,
                 headers=headers,
                 data=data,
-                files=files,
                 proxy=_aiohttp_proxies_arg(openai.proxy),
                 timeout=timeout,
-            ) as result:
-                util.log_info(
-                    "OpenAI API response",
-                    path=abs_url,
-                    response_code=result.status,
-                    processing_ms=result.headers.get("OpenAI-Processing-Ms"),
-                    request_id=result.headers.get("X-Request-Id"),
+            )
+            util.log_info(
+                "OpenAI API response",
+                path=abs_url,
+                response_code=result.status,
+                processing_ms=result.headers.get("OpenAI-Processing-Ms"),
+                request_id=result.headers.get("X-Request-Id"),
+            )
+            # Don't read the whole stream for debug logging unless necessary.
+            if openai.log == "debug":
+                util.log_debug(
+                    "API response body", body=result.content, headers=result.headers
                 )
-                # Don't read the whole stream for debug logging unless necessary.
-                if openai.log == "debug":
-                    util.log_debug(
-                        "API response body", body=result.content, headers=result.headers
-                    )
-                return result
+            return result
         except aiohttp.ServerTimeoutError as e:
             raise error.Timeout("Request timed out") from e
         except aiohttp.ClientError as e:
             raise error.APIConnectionError("Error communicating with OpenAI") from e
+        finally:
+            if result and not result.closed:
+                result.close()
 
     def _interpret_response(
         self, result: requests.Response, stream: bool
@@ -511,7 +520,7 @@ class APIRequestor:
                 False,
             )
 
-    def _interpret_async_response(
+    async def _interpret_async_response(
         self, result: aiohttp.ClientResponse, stream: bool
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]:
         """Returns the response(s) and a bool indicating whether it is a stream."""
@@ -523,6 +532,10 @@ class APIRequestor:
                 async for line in parse_stream_async(result.content)
             ), True
         else:
+            try:
+                await result.read()
+            except aiohttp.ClientError as e:
+                print(result.content, e)
             return (
                 self._interpret_response_line(
                     await result.read(), result.status, result.headers, stream=False

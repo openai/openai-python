@@ -42,7 +42,7 @@ class APIResource(OpenAIObject):
         self.refresh_from(
             await self.arequest(
                 "get",
-                self.instance_url(operation="arefresh"),
+                self.instance_url(operation="refresh"),
                 request_id=request_id,
                 request_timeout=request_timeout,
             )

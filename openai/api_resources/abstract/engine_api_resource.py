@@ -298,7 +298,7 @@ class EngineAPIResource(APIResource):
             self.refresh()
         return self
 
-    def await_(self, timeout=None):
+    async def await_(self, timeout=None):
         """Async version of `EngineApiResource.wait`"""
         start = time.time()
         while self.status != "complete":
