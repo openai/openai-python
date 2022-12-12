@@ -2,7 +2,6 @@ import json
 import platform
 import threading
 import warnings
-from contextvars import ContextVar
 from json import JSONDecodeError
 from typing import Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
@@ -21,7 +20,6 @@ MAX_CONNECTION_RETRIES = 2
 
 # Has one attribute per thread, 'session'.
 _thread_context = threading.local()
-_aiohttp_session: ContextVar[aiohttp.ClientSession] = ContextVar("aiohttp_session")
 
 
 def _build_api_url(url, query):
@@ -458,11 +456,7 @@ class APIRequestor:
         timeout = aiohttp.ClientTimeout(
             total=request_timeout if request_timeout else TIMEOUT_SECS
         )
-        try:
-            session = _aiohttp_session.get()
-        except LookupError:
-            session = aiohttp.ClientSession()
-            _aiohttp_session.set(session)
+        user_set_session = openai.aiosession.get()
 
         if files:
             data, content_type = requests.models.RequestEncodingMixin._encode_files(
@@ -472,14 +466,25 @@ class APIRequestor:
 
         result = None
         try:
-            result = await session.request(
-                method,
-                abs_url,
-                headers=headers,
-                data=data,
-                proxy=_aiohttp_proxies_arg(openai.proxy),
-                timeout=timeout,
-            )
+            if user_set_session:
+                result = await user_set_session.request(
+                    method,
+                    abs_url,
+                    headers=headers,
+                    data=data,
+                    proxy=_aiohttp_proxies_arg(openai.proxy),
+                    timeout=timeout,
+                )
+            else:
+                async with aiohttp.ClientSession() as session:
+                    result = await session.request(
+                        method,
+                        abs_url,
+                        headers=headers,
+                        data=data,
+                        proxy=_aiohttp_proxies_arg(openai.proxy),
+                        timeout=timeout,
+                    )
             util.log_info(
                 "OpenAI API response",
                 path=abs_url,

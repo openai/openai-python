@@ -229,6 +229,19 @@ async def create_completion():
 
 ```
 
+To make async requests more efficient, you can pass in your own
+``aiohttp.ClientSession``, but you must manage the client session closing at the end 
+of your program/event loop:
+
+```python
+import openai
+from aiohttp import ClientSession
+
+openai.aiosession.set(ClientSession())
+# At the end of your program, close the http session
+await openai.aiosession.get().close()
+```
+
 See the [usage guide](https://beta.openai.com/docs/guides/images) for more details.
 
 ## Requirements
