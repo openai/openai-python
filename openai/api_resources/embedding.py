@@ -1,10 +1,10 @@
 import base64
 import time
 
-from openai.datalib import numpy as np, assert_has_numpy
 
 from openai import util
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
+from openai.datalib import numpy as np, assert_has_numpy
 from openai.error import TryAgain
 
 

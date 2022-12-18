@@ -10,8 +10,8 @@ with open(version_path, "rt") as f:
     exec(f.read(), version_contents)
 
 
-# See `openai/datalib.py`.
 DATA_LIBRARIES = [
+    # These libraries are optional because of their size. See `openai/datalib.py`.
     "numpy",
     "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
     "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
