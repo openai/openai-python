@@ -36,5 +36,5 @@ def assert_has_numpy():
 
 
 def assert_has_pandas():
-    if not HAS_NUMPY:
+    if not HAS_PANDAS:
         raise Exception(PANDAS_INSTRUCTIONS)
