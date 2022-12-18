@@ -1,7 +1,7 @@
 """
 This module helps make data libraries like `numpy` and `pandas` optional dependencies.
 
-The libraries add up to 130M+, which makes it challenging to deploy applications
+The libraries add up to 130MB+, which makes it challenging to deploy applications
 using this library in environments with code size constraints, like AWS Lambda.
 
 This module serves as an import proxy and provides a few utilities for dealing with the optionality.
