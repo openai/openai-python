@@ -2,9 +2,14 @@ import json
 import subprocess
 from tempfile import NamedTemporaryFile
 
+import pytest
 
+from openai.datalib import HAS_PANDAS, HAS_NUMPY, NUMPY_INSTRUCTIONS, PANDAS_INSTRUCTIONS
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)
+@pytest.mark.skipif(not HAS_NUMPY, reason=NUMPY_INSTRUCTIONS)
 def test_long_examples_validator() -> None:
-
     """
     Ensures that long_examples_validator() handles previously applied recommendations,
     namely dropped duplicates, without resulting in a KeyError.

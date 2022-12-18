@@ -9,6 +9,14 @@ version_path = os.path.join(
 with open(version_path, "rt") as f:
     exec(f.read(), version_contents)
 
+
+# See `openai/datalib.py`.
+DATA_LIBRARIES = [
+    "numpy",
+    "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
+    "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
+]
+
 setup(
     name="openai",
     description="Python client library for the OpenAI API",
@@ -16,21 +24,27 @@ setup(
     install_requires=[
         "requests>=2.20",  # to get the patch for CVE-2018-18074
         "tqdm",  # Needed for progress bars
-        "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
-        "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
         "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
-        "numpy",
         "typing_extensions",  # Needed for type hints for mypy
     ],
     extras_require={
-        "dev": ["black~=21.6b0", "pytest==6.*"],
-        "wandb": ["wandb"],
+        "dev": [
+            "black~=21.6b0",
+            "pytest==6.*",
+            "pytest_mock",
+        ],
+        "datalib": DATA_LIBRARIES,
+        "wandb": [
+            "wandb",
+            *DATA_LIBRARIES,
+        ],
         "embeddings": [
             "scikit-learn>=1.0.2",  # Needed for embedding utils, versions >= 1.1 require python 3.8
             "tenacity>=8.0.1",
             "matplotlib",
             "sklearn",
             "plotly",
+            *DATA_LIBRARIES,
         ],
     },
     python_requires=">=3.7.1",
