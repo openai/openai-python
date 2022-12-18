@@ -15,6 +15,7 @@ DATA_LIBRARIES = [
     "numpy",
     "pandas>=1.2.3",  # Needed for CLI fine-tuning data preparation tool
     "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
+    "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
 ]
 
 setup(
@@ -24,7 +25,6 @@ setup(
     install_requires=[
         "requests>=2.20",  # to get the patch for CVE-2018-18074
         "tqdm",  # Needed for progress bars
-        "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
         "typing_extensions",  # Needed for type hints for mypy
     ],
     extras_require={
