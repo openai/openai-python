@@ -8,10 +8,15 @@ version_path = os.path.join(
 )
 with open(version_path, "rt") as f:
     exec(f.read(), version_contents)
+    
+with open("README.md", "r") as fh:
+    long_description = fh.read()
 
 setup(
     name="openai",
     description="Python client library for the OpenAI API",
+    long_description=long_description,
+    long_description_content_type="text/markdown",
     version=version_contents["VERSION"],
     install_requires=[
         "requests>=2.20",  # to get the patch for CVE-2018-18074
