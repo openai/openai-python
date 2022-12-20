@@ -78,7 +78,7 @@ print(completion.choices[0].text)
 print(search)
 ```
 
-Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embeddings, and fine-tuning operations.
+Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
 For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
 * [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
 * [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
@@ -95,7 +95,7 @@ import openai
 
 # Request credential
 default_credential = DefaultAzureCredential()
-token = default_credential.get_token("https://cognitiveservices.azure.com")
+token = default_credential.get_token("https://cognitiveservices.azure.com/.default")
 
 # Setup parameters
 openai.api_type = "azure_ad"
