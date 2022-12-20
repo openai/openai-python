@@ -25,7 +25,7 @@ setup(
         "pandas-stubs>=1.1.0.11",  # Needed for type hints for mypy
         "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
         "numpy",
-        "typing_extensions",  # Needed for type hints for mypy
+        'typing_extensions;python_version<"3.8"',  # Needed for type hints for mypy
     ],
     extras_require={
         "dev": ["black~=21.6b0", "pytest==6.*"],

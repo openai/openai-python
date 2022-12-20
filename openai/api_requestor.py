@@ -7,7 +7,12 @@ from typing import Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import requests
-from typing_extensions import Literal
+
+# Literal is available from Python 3.8
+try:
+    from typing import Literal
+except ImportError:
+    from typing_extensions import Literal
 
 import openai
 from openai import error, util, version
