@@ -73,9 +73,6 @@ completion = openai.Completion.create(engine="deployment-name", prompt="Hello wo
 
 # print the completion
 print(completion.choices[0].text)
-
-# print the search
-print(search)
 ```
 
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
