@@ -1,5 +1,6 @@
 import json
 import platform
+import sys
 import threading
 import warnings
 from json import JSONDecodeError
@@ -8,10 +9,9 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import requests
 
-# Literal is available from Python 3.8
-try:
+if sys.version_info >= (3, 8):
     from typing import Literal
-except ImportError:
+else:
     from typing_extensions import Literal
 
 import openai
