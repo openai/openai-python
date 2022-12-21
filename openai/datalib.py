@@ -26,15 +26,31 @@ except ImportError:
 HAS_NUMPY = bool(numpy)
 HAS_PANDAS = bool(pandas)
 
-NUMPY_INSTRUCTIONS = "numpy is not installed: pip install openai[datalib]"
-PANDAS_INSTRUCTIONS = "pandas is not installed: pip install openai[datalib]"
+INSTRUCTIONS = """
+
+OpenAI error: 
+
+    missing `{library}` 
+
+This feature requires additional dependencies:
+
+    $ pip install openai[datalib]
+
+"""
+
+NUMPY_INSTRUCTIONS = INSTRUCTIONS.format(library="numpy")
+PANDAS_INSTRUCTIONS = INSTRUCTIONS.format(library="pandas")
+
+
+class MissingDependencyError(Exception):
+    pass
 
 
 def assert_has_numpy():
     if not HAS_NUMPY:
-        raise Exception(NUMPY_INSTRUCTIONS)
+        raise MissingDependencyError(NUMPY_INSTRUCTIONS)
 
 
 def assert_has_pandas():
     if not HAS_PANDAS:
-        raise Exception(PANDAS_INSTRUCTIONS)
+        raise MissingDependencyError(PANDAS_INSTRUCTIONS)
