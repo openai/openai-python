@@ -27,24 +27,23 @@ python setup.py install
 
 ### Optional dependencies
 
-Data libraries including `numpy` and `pandas` are not installed by default due to their size. They’re needed for some functionality of this library, but generally not for talking to the API. If you encounter a `MissingDependencyError`, install them with:
-
-```sh
-pip install openai[datalib]
-````
-
-Dependencies for [`openapi.embeddings_utils`](openai/embeddings_utils.py):
+Install dependencies for [`openapi.embeddings_utils`](openai/embeddings_utils.py):
 
 ```sh
 pip install openai[embeddings]
 ```
 
-Support for [Weights & Biases](https://wandb.me/openai-docs):
+Install support for [Weights & Biases](https://wandb.me/openai-docs):
 
 ```
 pip install openai[wandb]
 ```
 
+Data libraries including `numpy` and `pandas` are not installed by default due to their size. They’re needed for some functionality of this library, but generally not for talking to the API. If you encounter a `MissingDependencyError`, install them with:
+
+```sh
+pip install openai[datalib]
+````
 
 ## Usage
 
