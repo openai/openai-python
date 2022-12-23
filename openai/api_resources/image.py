@@ -16,10 +16,30 @@ class Image(APIResource):
     @classmethod
     def create(
         cls,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
         **params,
     ):
-        instance = cls()
-        return instance.request("post", cls._get_url("generations"), params)
+        requestor = api_requestor.APIRequestor(
+            api_key,
+            api_base=api_base or openai.api_base,
+            api_type=api_type,
+            api_version=api_version,
+            organization=organization,
+        )
+
+        _, api_version = cls._get_api_type_and_version(api_type, api_version)
+
+        response, _, api_key = requestor.request(
+            "post", cls._get_url("generations"), params
+        )
+
+        return util.convert_to_openai_object(
+            response, api_key, api_version, organization
+        )
 
     @classmethod
     def create_variation(
