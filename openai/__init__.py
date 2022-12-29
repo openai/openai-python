@@ -50,7 +50,8 @@ log = None  # Set to either 'debug' or 'info', controls console logging
 
 aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
     "aiohttp-session", default=None
-)
+)  # Acts as a global aiohttp ClientSession that reuses connections.
+# This is user-supplied; otherwise, a session is remade for each request.
 
 __all__ = [
     "APIError",

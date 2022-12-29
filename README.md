@@ -230,7 +230,7 @@ async def create_completion():
 ```
 
 To make async requests more efficient, you can pass in your own
-``aiohttp.ClientSession``, but you must manage the client session closing at the end 
+``aiohttp.ClientSession``, but you must manually close the client session at the end 
 of your program/event loop:
 
 ```python

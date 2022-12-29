@@ -9,6 +9,7 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 import aiohttp
 import requests
 from typing_extensions import Literal
+from urllib3 import encode_multipart_formdata
 
 import openai
 from openai import error, util, version
@@ -58,6 +59,7 @@ def _aiohttp_proxies_arg(proxy) -> Optional[str]:
             "'openai.proxy' must be specified as either a string URL or a dict with string URL under the https and/or http keys."
         )
 
+
 def _make_session() -> requests.Session:
     if not openai.verify_ssl_certs:
         warnings.warn("verify_ssl_certs is ignored; openai always verifies.")
@@ -72,30 +74,31 @@ def _make_session() -> requests.Session:
     return s
 
 
+def parse_stream_helper(line):
+    if line:
+        if line == b"data: [DONE]":
+            # return here will cause GeneratorExit exception in urllib3
+            # and it will close http connection with TCP Reset
+            return None
+        if hasattr(line, "decode"):
+            line = line.decode("utf-8")
+        if line.startswith("data: "):
+            line = line[len("data: "):]
+        yield line
+
+
 def parse_stream(rbody):
     for line in rbody:
-        if line:
-            if line == b"data: [DONE]":
-                # return here will cause GeneratorExit exception in urllib3
-                # and it will close http connection with TCP Reset
-                continue
-            if hasattr(line, "decode"):
-                line = line.decode("utf-8")
-            if line.startswith("data: "):
-                line = line[len("data: ") :]
-            yield line
+        _line = parse_stream_helper(line)
+        if _line is not None:
+            yield _line
 
 
 async def parse_stream_async(rbody: aiohttp.StreamReader):
     async for line in rbody:
-        if line:
-            if line == b"data: [DONE]":
-                continue
-            if hasattr(line, "decode"):
-                line = line.decode("utf-8")
-            if line.startswith("data: "):
-                line = line[len("data: ") :]
-            yield line
+        _line = parse_stream_helper(line)
+        if _line is not None:
+            yield _line
 
 
 class APIRequestor:
@@ -206,6 +209,20 @@ class APIRequestor:
         )
         resp, got_stream = self._interpret_response(result, stream)
         return resp, got_stream, self.api_key
+
+    @overload
+    async def arequest(
+        self,
+        method,
+        url,
+        params=...,
+        headers=...,
+        files=...,
+        stream: bool = ...,
+        request_id: Optional[str] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
+        pass
 
     async def arequest(
         self,
@@ -463,28 +480,20 @@ class APIRequestor:
                 files, data
             )
             headers["Content-Type"] = content_type
-
-        result = None
+        request_kwargs = {
+            "method": method,
+            "url": abs_url,
+            "headers": headers,
+            "data": data,
+            "proxy": _aiohttp_proxies_arg(openai.proxy),
+            "timeout": timeout,
+        }
         try:
             if user_set_session:
-                result = await user_set_session.request(
-                    method,
-                    abs_url,
-                    headers=headers,
-                    data=data,
-                    proxy=_aiohttp_proxies_arg(openai.proxy),
-                    timeout=timeout,
-                )
+                result = await user_set_session.request(**request_kwargs)
             else:
                 async with aiohttp.ClientSession() as session:
-                    result = await session.request(
-                        method,
-                        abs_url,
-                        headers=headers,
-                        data=data,
-                        proxy=_aiohttp_proxies_arg(openai.proxy),
-                        timeout=timeout,
-                    )
+                    result = await session.request(**request_kwargs)
             util.log_info(
                 "OpenAI API response",
                 path=abs_url,
@@ -502,9 +511,6 @@ class APIRequestor:
             raise error.Timeout("Request timed out") from e
         except aiohttp.ClientError as e:
             raise error.APIConnectionError("Error communicating with OpenAI") from e
-        finally:
-            if result and not result.closed:
-                result.close()
 
     def _interpret_response(
         self, result: requests.Response, stream: bool
@@ -540,7 +546,7 @@ class APIRequestor:
             try:
                 await result.read()
             except aiohttp.ClientError as e:
-                print(result.content, e)
+                util.log_warn(e, body=result.content)
             return (
                 self._interpret_response_line(
                     await result.read(), result.status, result.headers, stream=False

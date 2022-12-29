@@ -3,7 +3,7 @@ from urllib.parse import quote_plus
 from openai import api_requestor, util
 
 
-def nested_resource_class_methods(
+def _nested_resource_class_methods(
     resource, path=None, operations=None, resource_plural=None, async_=False,
 ):
     if resource_plural is None:
@@ -127,9 +127,18 @@ def nested_resource_class_methods(
 
     return wrapper
 
+
+def nested_resource_class_methods(
+    resource, path=None, operations=None, resource_plural=None,
+):
+    return _nested_resource_class_methods(
+        resource, path, operations, resource_plural, async_=False
+    )
+
+
 def anested_resource_class_methods(
     resource, path=None, operations=None, resource_plural=None,
 ):
-    return nested_resource_class_methods(
+    return _nested_resource_class_methods(
         resource, path, operations, resource_plural, async_=True
     )

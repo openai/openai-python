@@ -7,7 +7,6 @@ from functools import partial
 from typing import Optional
 
 import requests
-import aiohttp
 
 import openai
 from openai.upload_progress import BufferReader
@@ -332,15 +331,6 @@ class FineTune:
             return resp.content
         else:
             return None
-
-    @classmethod
-    def _adownload_file_from_public_url(cls, url: str) -> Optional[bytes]:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
-                if resp.status == 200:
-                    return await resp.read()
-                else:
-                    return None
 
     @classmethod
     def _maybe_upload_file(

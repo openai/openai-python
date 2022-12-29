@@ -61,12 +61,11 @@ class EngineAPIResource(APIResource):
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
     @classmethod
-    def create(
+    def __prepare_create_request(
         cls,
         api_key=None,
         api_base=None,
         api_type=None,
-        request_id=None,
         api_version=None,
         organization=None,
         **params,
@@ -112,6 +111,45 @@ class EngineAPIResource(APIResource):
             organization=organization,
         )
         url = cls.class_url(engine, api_type, api_version)
+        return (
+            deployment_id,
+            engine,
+            timeout,
+            stream,
+            headers,
+            request_timeout,
+            typed_api_type,
+            requestor,
+            url,
+            params,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        (
+            deployment_id,
+            engine,
+            timeout,
+            stream,
+            headers,
+            request_timeout,
+            typed_api_type,
+            requestor,
+            url,
+            params,
+        ) = cls.__prepare_create_request(
+            api_key, api_base, api_type, api_version, organization, **params
+        )
+
         response, _, api_key = requestor.request(
             "post",
             url,
@@ -162,47 +200,20 @@ class EngineAPIResource(APIResource):
         organization=None,
         **params,
     ):
-        deployment_id = params.pop("deployment_id", None)
-        engine = params.pop("engine", deployment_id)
-        model = params.get("model", None)
-        timeout = params.pop("timeout", None)
-        stream = params.get("stream", False)
-        headers = params.pop("headers", None)
-        request_timeout = params.pop("request_timeout", None)
-        typed_api_type = cls._get_api_type_and_version(api_type=api_type)[0]
-        if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            if deployment_id is None and engine is None:
-                raise error.InvalidRequestError(
-                    "Must provide an 'engine' or 'deployment_id' parameter to create a %s"
-                    % cls,
-                    "engine",
-                )
-        else:
-            if model is None and engine is None:
-                raise error.InvalidRequestError(
-                    "Must provide an 'engine' or 'model' parameter to create a %s"
-                    % cls,
-                    "engine",
-                )
-
-        if timeout is None:
-            # No special timeout handling
-            pass
-        elif timeout > 0:
-            # API only supports timeouts up to MAX_TIMEOUT
-            params["timeout"] = min(timeout, MAX_TIMEOUT)
-            timeout = (timeout - params["timeout"]) or None
-        elif timeout == 0:
-            params["timeout"] = MAX_TIMEOUT
-
-        requestor = api_requestor.APIRequestor(
-            api_key,
-            api_base=api_base,
-            api_type=api_type,
-            api_version=api_version,
-            organization=organization,
+        (
+            deployment_id,
+            engine,
+            timeout,
+            stream,
+            headers,
+            request_timeout,
+            typed_api_type,
+            requestor,
+            url,
+            params,
+        ) = cls.__prepare_create_request(
+            api_key, api_base, api_type, api_version, organization, **params
         )
-        url = cls.class_url(engine, api_type, api_version)
         response, _, api_key = await requestor.arequest(
             "post",
             url,
