@@ -1,5 +1,6 @@
 import json
 import platform
+import sys
 import threading
 import warnings
 from json import JSONDecodeError
@@ -8,8 +9,11 @@ from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import aiohttp
 import requests
-from typing_extensions import Literal
-from urllib3 import encode_multipart_formdata
+
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
 
 import openai
 from openai import error, util, version

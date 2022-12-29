@@ -242,7 +242,9 @@ class WandbLogger:
             type="fine_tune_details",
             metadata=fine_tune,
         )
-        with artifact.new_file("fine_tune_details.json") as f:
+        with artifact.new_file(
+            "fine_tune_details.json", mode="w", encoding="utf-8"
+        ) as f:
             json.dump(fine_tune, f, indent=2)
         wandb.run.log_artifact(
             artifact,
@@ -276,7 +278,7 @@ class WandbLogger:
                 )
                 return
             artifact = wandb.Artifact(artifact_name, type=artifact_type, metadata=file)
-            with artifact.new_file(filename, mode="w") as f:
+            with artifact.new_file(filename, mode="w", encoding="utf-8") as f:
                 f.write(file_content)
 
             # create a Table
