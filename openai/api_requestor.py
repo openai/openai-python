@@ -226,7 +226,7 @@ class APIRequestor:
         stream: Literal[True],
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
-    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+    ) -> Tuple[AsyncGenerator[OpenAIResponse, None], bool, str]:
         pass
 
     @overload
@@ -241,7 +241,7 @@ class APIRequestor:
         stream: Literal[True],
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
-    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+    ) -> Tuple[AsyncGenerator[OpenAIResponse, None], bool, str]:
         pass
 
     @overload
@@ -269,7 +269,7 @@ class APIRequestor:
         stream: bool = ...,
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
-    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
+    ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool, str]:
         pass
 
     async def arequest(
@@ -282,7 +282,7 @@ class APIRequestor:
         stream: bool = False,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
-    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
+    ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool, str]:
         result = await self.arequest_raw(
             method.lower(),
             url,
