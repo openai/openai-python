@@ -3,8 +3,9 @@ import platform
 import sys
 import threading
 import warnings
+from asyncio.exceptions import TimeoutError as AsyncIOTimeoutError
 from json import JSONDecodeError
-from typing import Dict, Iterator, Optional, Tuple, Union, overload
+from typing import AsyncGenerator, Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
 import aiohttp
@@ -219,6 +220,49 @@ class APIRequestor:
         self,
         method,
         url,
+        params,
+        headers,
+        files,
+        stream: Literal[True],
+        request_id: Optional[str] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        pass
+
+    @overload
+    async def arequest(
+        self,
+        method,
+        url,
+        params=...,
+        headers=...,
+        files=...,
+        *,
+        stream: Literal[True],
+        request_id: Optional[str] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        pass
+
+    @overload
+    async def arequest(
+        self,
+        method,
+        url,
+        params=...,
+        headers=...,
+        files=...,
+        stream: Literal[False] = ...,
+        request_id: Optional[str] = ...,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+    ) -> Tuple[OpenAIResponse, bool, str]:
+        pass
+
+    @overload
+    async def arequest(
+        self,
+        method,
+        url,
         params=...,
         headers=...,
         files=...,
@@ -419,7 +463,7 @@ class APIRequestor:
         url,
         *,
         params=None,
-        supplied_headers: Dict[str, str] = None,
+        supplied_headers: Optional[Dict[str, str]] = None,
         files=None,
         stream: bool = False,
         request_id: Optional[str] = None,
@@ -465,7 +509,7 @@ class APIRequestor:
         url,
         *,
         params=None,
-        supplied_headers: Dict[str, str] = None,
+        supplied_headers: Optional[Dict[str, str]] = None,
         files=None,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
@@ -474,13 +518,19 @@ class APIRequestor:
             url, supplied_headers, method, params, files, request_id
         )
 
-        timeout = aiohttp.ClientTimeout(
-            total=request_timeout if request_timeout else TIMEOUT_SECS
-        )
+        if isinstance(request_timeout, tuple):
+            timeout = aiohttp.ClientTimeout(
+                connect=request_timeout[0],
+                total=request_timeout[1],
+            )
+        else:
+            timeout = aiohttp.ClientTimeout(
+                total=request_timeout if request_timeout else TIMEOUT_SECS
+            )
         user_set_session = openai.aiosession.get()
 
         if files:
-            data, content_type = requests.models.RequestEncodingMixin._encode_files(
+            data, content_type = requests.models.RequestEncodingMixin._encode_files(  # type: ignore
                 files, data
             )
             headers["Content-Type"] = content_type
@@ -511,7 +561,7 @@ class APIRequestor:
                     "API response body", body=result.content, headers=result.headers
                 )
             return result
-        except aiohttp.ServerTimeoutError as e:
+        except (aiohttp.ServerTimeoutError, AsyncIOTimeoutError) as e:
             raise error.Timeout("Request timed out") from e
         except aiohttp.ClientError as e:
             raise error.APIConnectionError("Error communicating with OpenAI") from e
@@ -537,7 +587,7 @@ class APIRequestor:
 
     async def _interpret_async_response(
         self, result: aiohttp.ClientResponse, stream: bool
-    ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool]:
+    ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool]:
         """Returns the response(s) and a bool indicating whether it is a stream."""
         if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
             return (
