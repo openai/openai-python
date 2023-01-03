@@ -1,9 +1,9 @@
+import asyncio
 import json
 import platform
 import sys
 import threading
 import warnings
-from asyncio.exceptions import TimeoutError as AsyncIOTimeoutError
 from json import JSONDecodeError
 from typing import AsyncGenerator, Dict, Iterator, Optional, Tuple, Union, overload
 from urllib.parse import urlencode, urlsplit, urlunsplit
@@ -569,7 +569,7 @@ class APIRequestor:
                     "API response body", body=result.content, headers=result.headers
                 )
             return result
-        except (aiohttp.ServerTimeoutError, AsyncIOTimeoutError) as e:
+        except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
             raise error.Timeout("Request timed out") from e
         except aiohttp.ClientError as e:
             raise error.APIConnectionError("Error communicating with OpenAI") from e
