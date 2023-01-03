@@ -536,6 +536,8 @@ class APIRequestor:
         user_set_session = openai.aiosession.get()
 
         if files:
+            # TODO: Use `aiohttp.MultipartWriter` to create the multipart form data here.
+            # For now we use the private `requests` method that is known to have worked so far.
             data, content_type = requests.models.RequestEncodingMixin._encode_files(  # type: ignore
                 files, data
             )
