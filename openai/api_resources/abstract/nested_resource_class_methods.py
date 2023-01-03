@@ -4,7 +4,11 @@ from openai import api_requestor, util
 
 
 def _nested_resource_class_methods(
-    resource, path=None, operations=None, resource_plural=None, async_=False,
+    resource,
+    path=None,
+    operations=None,
+    resource_plural=None,
+    async_=False,
 ):
     if resource_plural is None:
         resource_plural = "%ss" % resource
@@ -129,7 +133,10 @@ def _nested_resource_class_methods(
 
 
 def nested_resource_class_methods(
-    resource, path=None, operations=None, resource_plural=None,
+    resource,
+    path=None,
+    operations=None,
+    resource_plural=None,
 ):
     return _nested_resource_class_methods(
         resource, path, operations, resource_plural, async_=False
@@ -137,7 +144,10 @@ def nested_resource_class_methods(
 
 
 def anested_resource_class_methods(
-    resource, path=None, operations=None, resource_plural=None,
+    resource,
+    path=None,
+    operations=None,
+    resource_plural=None,
 ):
     return _nested_resource_class_methods(
         resource, path, operations, resource_plural, async_=True

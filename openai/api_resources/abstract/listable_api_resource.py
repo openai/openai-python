@@ -15,7 +15,7 @@ class ListableAPIResource(APIResource):
         api_version=None,
         organization=None,
         api_base=None,
-        api_type=None
+        api_type=None,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,

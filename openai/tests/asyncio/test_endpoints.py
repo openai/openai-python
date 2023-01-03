@@ -25,7 +25,9 @@ async def test_file_upload():
 
 # COMPLETION TESTS
 async def test_completions():
-    result = await openai.Completion.acreate(prompt="This was a test", n=5, engine="ada")
+    result = await openai.Completion.acreate(
+        prompt="This was a test", n=5, engine="ada"
+    )
     assert len(result.choices) == 5
 
 

@@ -88,7 +88,7 @@ def parse_stream_helper(line):
         if hasattr(line, "decode"):
             line = line.decode("utf-8")
         if line.startswith("data: "):
-            line = line[len("data: "):]
+            line = line[len("data: ") :]
         yield line
 
 
@@ -425,7 +425,13 @@ class APIRequestor:
         return headers
 
     def _prepare_request_raw(
-        self, url, supplied_headers, method, params, files, request_id: Optional[str],
+        self,
+        url,
+        supplied_headers,
+        method,
+        params,
+        files,
+        request_id: Optional[str],
     ) -> Tuple[str, Dict[str, str], Optional[bytes]]:
         abs_url = "%s%s" % (self.api_base, url)
         headers = self._validate_headers(supplied_headers)

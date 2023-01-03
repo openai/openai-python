@@ -25,11 +25,21 @@ class Moderation(OpenAIObject):
         return instance, params
 
     @classmethod
-    def create(cls, input: Union[str, List[str]], model: Optional[str] = None, api_key: Optional[str] = None):
+    def create(
+        cls,
+        input: Union[str, List[str]],
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
         instance, params = cls._prepare_create(input, model, api_key)
         return instance.request("post", cls.get_url(), params)
 
     @classmethod
-    def acreate(cls, input: Union[str, List[str]], model: Optional[str] = None, api_key: Optional[str] = None):
+    def acreate(
+        cls,
+        input: Union[str, List[str]],
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+    ):
         instance, params = cls._prepare_create(input, model, api_key)
         return instance.arequest("post", cls.get_url(), params)
