@@ -89,7 +89,8 @@ def parse_stream_helper(line):
             line = line.decode("utf-8")
         if line.startswith("data: "):
             line = line[len("data: ") :]
-        yield line
+        return line
+    return None
 
 
 def parse_stream(rbody):
