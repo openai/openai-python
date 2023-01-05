@@ -24,8 +24,6 @@ class File(ListableAPIResource, DeletableAPIResource):
         organization=None,
         user_provided_filename=None,
     ):
-        if purpose != "search" and model is not None:
-            raise ValueError("'model' is only meaningful if 'purpose' is 'search'")
         requestor = api_requestor.APIRequestor(
             api_key,
             api_base=api_base or openai.api_base,

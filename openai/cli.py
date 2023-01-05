@@ -3,7 +3,6 @@ import os
 import signal
 import sys
 import warnings
-from functools import partial
 from typing import Optional
 
 import requests
@@ -13,11 +12,9 @@ from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
     apply_validators,
-    get_search_validators,
     get_validators,
     read_any_format,
     write_out_file,
-    write_out_search_file,
 )
 
 
@@ -104,40 +101,6 @@ class Engine:
                 if completions > 1:
                     sys.stdout.write("\n")
                 sys.stdout.flush()
-
-    @classmethod
-    def search(cls, args):
-        params = {
-            "query": args.query,
-            "max_rerank": args.max_rerank,
-            "return_metadata": args.return_metadata,
-        }
-        if args.documents:
-            params["documents"] = args.documents
-        if args.file:
-            params["file"] = args.file
-
-        if args.version:
-            params["version"] = args.version
-
-        resp = openai.Engine(id=args.id).search(**params)
-        scores = [
-            (search_result["score"], search_result["document"])
-            for search_result in resp["data"]
-        ]
-        scores.sort(reverse=True)
-        dataset = (
-            args.documents if args.documents else [x["text"] for x in resp["data"]]
-        )
-        for score, document_idx in scores:
-            print("=== score {:.3f} ===".format(score))
-            print(dataset[document_idx])
-            if (
-                args.return_metadata
-                and args.file
-                and "metadata" in resp["data"][document_idx]
-            ):
-                print(f"METADATA: {resp['data'][document_idx]['metadata']}")
 
     @classmethod
     def list(cls, args):
@@ -230,7 +193,6 @@ class File:
         resp = openai.File.create(
             file=buffer_reader,
             purpose=args.purpose,
-            model=args.model,
             user_provided_filename=args.file,
         )
         print(resp)
@@ -287,51 +249,6 @@ class Image:
             size=args.size,
             n=args.num_images,
             response_format=args.response_format,
-        )
-        print(resp)
-
-
-class Search:
-    @classmethod
-    def prepare_data(cls, args, purpose):
-
-        sys.stdout.write("Analyzing...\n")
-        fname = args.file
-        auto_accept = args.quiet
-
-        optional_fields = ["metadata"]
-
-        if purpose == "classifications":
-            required_fields = ["text", "label"]
-        else:
-            required_fields = ["text"]
-
-        df, remediation = read_any_format(
-            fname, fields=required_fields + optional_fields
-        )
-
-        if "metadata" not in df:
-            df["metadata"] = None
-
-        apply_necessary_remediation(None, remediation)
-        validators = get_search_validators(required_fields, optional_fields)
-
-        write_out_file_func = partial(
-            write_out_search_file,
-            purpose=purpose,
-            fields=required_fields + optional_fields,
-        )
-
-        apply_validators(
-            df, fname, remediation, validators, auto_accept, write_out_file_func
-        )
-
-    @classmethod
-    def create(cls, args):
-        resp = openai.Search.create(
-            query=args.query,
-            documents=args.documents,
-            model=args.model,
         )
         print(resp)
 
@@ -642,57 +559,6 @@ def tools_register(parser):
     )
     sub.set_defaults(func=FineTune.prepare_data)
 
-    sub = subparsers.add_parser("search.prepare_data")
-    sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
-        "This should be the local file path.",
-    )
-    sub.add_argument(
-        "-q",
-        "--quiet",
-        required=False,
-        action="store_true",
-        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
-    )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="search"))
-
-    sub = subparsers.add_parser("classifications.prepare_data")
-    sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text-label examples to be analyzed."
-        "This should be the local file path.",
-    )
-    sub.add_argument(
-        "-q",
-        "--quiet",
-        required=False,
-        action="store_true",
-        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
-    )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="classifications"))
-
-    sub = subparsers.add_parser("answers.prepare_data")
-    sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
-        "This should be the local file path.",
-    )
-    sub.add_argument(
-        "-q",
-        "--quiet",
-        required=False,
-        action="store_true",
-        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
-    )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="answer"))
-
 
 def api_register(parser):
     # Engine management
@@ -759,41 +625,6 @@ Mutually exclusive with `top_p`.""",
         help="A model (most commonly a model ID) to generate from. Defaults to the engine's default model.",
     )
     sub.set_defaults(func=Engine.generate)
-
-    sub = subparsers.add_parser("engines.search")
-    sub.add_argument("-i", "--id", required=True)
-    sub.add_argument(
-        "-d",
-        "--documents",
-        action="append",
-        help="List of documents to search over. Only one of `documents` or `file` may be supplied.",
-        required=False,
-    )
-    sub.add_argument(
-        "-f",
-        "--file",
-        help="A file id to search over.  Only one of `documents` or `file` may be supplied.",
-        required=False,
-    )
-    sub.add_argument(
-        "--max_rerank",
-        help="The maximum number of documents to be re-ranked and returned by search. This flag only takes effect when `file` is set.",
-        type=int,
-        default=200,
-    )
-    sub.add_argument(
-        "--return_metadata",
-        help="A special boolean flag for showing metadata. If set `true`, each document entry in the returned json will contain a 'metadata' field. Default to be `false`. This flag only takes effect when `file` is set.",
-        type=bool,
-        default=False,
-    )
-    sub.add_argument(
-        "--version",
-        help="The version of the search routing to use",
-    )
-
-    sub.add_argument("-q", "--query", required=True, help="Search query")
-    sub.set_defaults(func=Engine.search)
 
     # Completions
     sub = subparsers.add_parser("completions.create")
@@ -890,11 +721,6 @@ Mutually exclusive with `top_p`.""",
         help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
         required=True,
     )
-    sub.add_argument(
-        "-m",
-        "--model",
-        help="Model for search indexing (e.g. 'ada'). Only meaningful if --purpose is 'search'.",
-    )
     sub.set_defaults(func=File.create)
 
     sub = subparsers.add_parser("files.get")
@@ -907,29 +733,6 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("files.list")
     sub.set_defaults(func=File.list)
-
-    # Search
-    sub = subparsers.add_parser("search.create")
-
-    sub.add_argument(
-        "-d",
-        "--documents",
-        help="Documents to search over",
-        type=str,
-        nargs="+",
-    )
-    sub.add_argument(
-        "-q",
-        "--query",
-        required=True,
-        help="Search query",
-    )
-    sub.add_argument(
-        "-m",
-        "--model",
-        help="The model to search with",
-    )
-    sub.set_defaults(func=Search.create)
 
     # Finetune
     sub = subparsers.add_parser("fine_tunes.list")
