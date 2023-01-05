@@ -26,9 +26,10 @@ setup(
         "openpyxl>=3.0.7",  # Needed for CLI fine-tuning data preparation tool xlsx format
         "numpy",
         'typing_extensions;python_version<"3.8"',  # Needed for type hints for mypy
+        "aiohttp",  # Needed for async support
     ],
     extras_require={
-        "dev": ["black~=21.6b0", "pytest==6.*"],
+        "dev": ["black~=21.6b0", "pytest==6.*", "pytest-asyncio", "pytest-mock"],
         "wandb": ["wandb"],
         "embeddings": [
             "scikit-learn>=1.0.2",  # Needed for embedding utils, versions >= 1.1 require python 3.8

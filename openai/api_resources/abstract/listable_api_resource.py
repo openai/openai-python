@@ -9,15 +9,13 @@ class ListableAPIResource(APIResource):
         return cls.list(*args, **params).auto_paging_iter()
 
     @classmethod
-    def list(
+    def __prepare_list_requestor(
         cls,
         api_key=None,
-        request_id=None,
         api_version=None,
         organization=None,
         api_base=None,
         api_type=None,
-        **params,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -38,8 +36,56 @@ class ListableAPIResource(APIResource):
             url = cls.class_url()
         else:
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
+        return requestor, url
+
+    @classmethod
+    def list(
+        cls,
+        api_key=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        api_base=None,
+        api_type=None,
+        **params,
+    ):
+        requestor, url = cls.__prepare_list_requestor(
+            api_key,
+            api_version,
+            organization,
+            api_base,
+            api_type,
+        )
 
         response, _, api_key = requestor.request(
+            "get", url, params, request_id=request_id
+        )
+        openai_object = util.convert_to_openai_object(
+            response, api_key, api_version, organization
+        )
+        openai_object._retrieve_params = params
+        return openai_object
+
+    @classmethod
+    async def alist(
+        cls,
+        api_key=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        api_base=None,
+        api_type=None,
+        **params,
+    ):
+        requestor, url = cls.__prepare_list_requestor(
+            api_key,
+            api_version,
+            organization,
+            api_base,
+            api_type,
+        )
+
+        response, _, api_key = await requestor.arequest(
             "get", url, params, request_id=request_id
         )
         openai_object = util.convert_to_openai_object(
