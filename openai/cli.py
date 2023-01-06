@@ -183,6 +183,28 @@ class Completion:
                 sys.stdout.flush()
 
 
+class Deployment:
+    @classmethod
+    def get(cls, args):
+        resp = openai.Deployment.retrieve(id=args.id)
+        print(resp)
+
+    @classmethod
+    def delete(cls, args):
+        model = openai.Deployment.delete(args.id)
+        print(model)
+
+    @classmethod
+    def list(cls, args):
+        models = openai.Deployment.list()
+        print(models)
+
+    @classmethod
+    def create(cls, args):
+        models = openai.Deployment.create(model=args.model, scale_settings={"scale_type": args.scale_type})
+        print(models)
+
+
 class Model:
     @classmethod
     def get(cls, args):
@@ -823,6 +845,23 @@ Mutually exclusive with `top_p`.""",
         "--stop", help="A stop sequence at which to stop generating tokens."
     )
     sub.set_defaults(func=Completion.create)
+
+    # Deployments
+    sub = subparsers.add_parser("deployments.list")
+    sub.set_defaults(func=Deployment.list)
+
+    sub = subparsers.add_parser("deployments.get")
+    sub.add_argument("-i", "--id", required=True, help="The deployment ID")
+    sub.set_defaults(func=Deployment.get)
+
+    sub = subparsers.add_parser("deployments.delete")
+    sub.add_argument("-i", "--id", required=True, help="The deployment ID")
+    sub.set_defaults(func=Deployment.delete)
+    
+    sub = subparsers.add_parser("deployments.create")
+    sub.add_argument("-m", "--model", required=True, help="The model ID")
+    sub.add_argument("-s", "--scale_type", required=True, help="The scale type. Either 'manual' or 'standard'")
+    sub.set_defaults(func=Deployment.create)
 
     # Models
     sub = subparsers.add_parser("models.list")
