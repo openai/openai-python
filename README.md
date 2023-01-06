@@ -25,6 +25,26 @@ Install from source with:
 python setup.py install
 ```
 
+### Optional dependencies
+
+Install dependencies for [`openapi.embeddings_utils`](openai/embeddings_utils.py):
+
+```sh
+pip install openai[embeddings]
+```
+
+Install support for [Weights & Biases](https://wandb.me/openai-docs):
+
+```
+pip install openai[wandb]
+```
+
+Data libraries like `numpy` and `pandas` are not installed by default due to their size. They’re needed for some functionality of this library, but generally not for talking to the API. If you encounter a `MissingDependencyError`, install them with:
+
+```sh
+pip install openai[datalib]
+````
+
 ## Usage
 
 The library needs to be configured with your account's secret key which is available on the [website](https://beta.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:

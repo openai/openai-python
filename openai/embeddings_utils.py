@@ -2,8 +2,6 @@ import textwrap as tr
 from typing import List, Optional
 
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
 import plotly.express as px
 from scipy import spatial
 from sklearn.decomposition import PCA
@@ -12,6 +10,8 @@ from sklearn.metrics import average_precision_score, precision_recall_curve
 from tenacity import retry, stop_after_attempt, wait_random_exponential
 
 import openai
+from openai.datalib import numpy as np
+from openai.datalib import pandas as pd
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))

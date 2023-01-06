@@ -2,7 +2,7 @@ import os
 import sys
 from typing import Any, Callable, NamedTuple, Optional
 
-import pandas as pd
+from openai.datalib import pandas as pd, assert_has_pandas
 
 
 class Remediation(NamedTuple):
@@ -474,6 +474,7 @@ def read_any_format(fname, fields=["prompt", "completion"]):
      - for .xlsx it will read the first sheet
      - for .txt it will assume completions and split on newline
     """
+    assert_has_pandas()
     remediation = None
     necessary_msg = None
     immediate_msg = None

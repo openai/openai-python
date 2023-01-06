@@ -2,9 +2,14 @@ import json
 import subprocess
 from tempfile import NamedTemporaryFile
 
+import pytest
 
+from openai.datalib import HAS_PANDAS, HAS_NUMPY, NUMPY_INSTRUCTIONS, PANDAS_INSTRUCTIONS
+
+
+@pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)
+@pytest.mark.skipif(not HAS_NUMPY, reason=NUMPY_INSTRUCTIONS)
 def test_long_examples_validator() -> None:
-
     """
     Ensures that long_examples_validator() handles previously applied recommendations,
     namely dropped duplicates, without resulting in a KeyError.
@@ -43,5 +48,5 @@ def test_long_examples_validator() -> None:
     assert prepared_data_cmd_output.stderr == ""
     # validate get_long_indexes() applied during optional_fn() call in long_examples_validator()
     assert "indices of the long examples has changed" in prepared_data_cmd_output.stdout
-
+    
     return prepared_data_cmd_output.stdout

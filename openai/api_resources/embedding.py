@@ -1,11 +1,10 @@
 import base64
 import time
 
-import numpy as np
 
 from openai import util
-from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
+from openai.datalib import numpy as np, assert_has_numpy
 from openai.error import TryAgain
 
 
@@ -40,6 +39,7 @@ class Embedding(EngineAPIResource):
 
                         # If an engine isn't using this optimization, don't do anything
                         if type(data["embedding"]) == str:
+                            assert_has_numpy()
                             data["embedding"] = np.frombuffer(
                                 base64.b64decode(data["embedding"]), dtype="float32"
                             ).tolist()
