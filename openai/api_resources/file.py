@@ -192,16 +192,17 @@ class File(ListableAPIResource, DeletableAPIResource):
             id, api_key, api_base, api_type, api_version, organization
         )
 
-        result = await requestor.arequest_raw("get", url)
-        if not 200 <= result.status < 300:
-            raise requestor.handle_error_response(
-                result.content,
-                result.status,
-                json.loads(cast(bytes, result.content)),
-                result.headers,
-                stream_error=False,
-            )
-        return result.content
+        async with api_requestor.aiohttp_session() as session:
+            result = await requestor.arequest_raw("get", url, session)
+            if not 200 <= result.status < 300:
+                raise requestor.handle_error_response(
+                    result.content,
+                    result.status,
+                    json.loads(cast(bytes, result.content)),
+                    result.headers,
+                    stream_error=False,
+                )
+            return result.content
 
     @classmethod
     def __find_matching_files(cls, name, all_files, purpose):
