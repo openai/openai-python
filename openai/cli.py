@@ -240,8 +240,10 @@ class Image:
     def create_edit(cls, args):
         with open(args.image, "rb") as file_reader:
             image_reader = BufferReader(file_reader.read(), desc="Upload progress")
-        with open(args.mask, "rb") as file_reader:
-            mask_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        mask_reader = None
+        if args.mask is not None:
+            with open(args.mask, "rb") as file_reader:
+                mask_reader = BufferReader(file_reader.read(), desc="Upload progress")
         resp = openai.Image.create_edit(
             image=image_reader,
             mask=mask_reader,
@@ -893,7 +895,7 @@ Mutually exclusive with `top_p`.""",
         "-M",
         "--mask",
         type=str,
-        required=True,
+        required=False,
         help="Path to a mask image. It should be the same size as the image you're editing and a RGBA PNG image. The Alpha channel acts as the mask.",
     )
     sub.set_defaults(func=Image.create_edit)
