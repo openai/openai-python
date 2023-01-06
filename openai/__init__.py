@@ -7,8 +7,6 @@ from contextvars import ContextVar
 from typing import Optional, TYPE_CHECKING
 
 from openai.api_resources import (
-    Answer,
-    Classification,
     Completion,
     Customer,
     Edit,
@@ -21,7 +19,6 @@ from openai.api_resources import (
     Image,
     Model,
     Moderation,
-    Search,
 )
 from openai.error import APIError, InvalidRequestError, OpenAIError
 
@@ -55,8 +52,6 @@ aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
 
 __all__ = [
     "APIError",
-    "Answer",
-    "Classification",
     "Completion",
     "Customer",
     "Edit",
@@ -71,7 +66,6 @@ __all__ = [
     "Model",
     "Moderation",
     "OpenAIError",
-    "Search",
     "api_base",
     "api_key",
     "api_type",

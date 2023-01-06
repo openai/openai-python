@@ -3,8 +3,7 @@ import warnings
 
 from openai import util
 from openai.api_resources.abstract import ListableAPIResource, UpdateableAPIResource
-from openai.error import InvalidAPIType, TryAgain
-from openai.util import ApiType
+from openai.error import TryAgain
 
 
 class Engine(ListableAPIResource, UpdateableAPIResource):
@@ -43,22 +42,6 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
-
-    def search(self, **params):
-        if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
-            return self.request("post", self.instance_url("search"), params)
-        elif self.typed_api_type == ApiType.OPEN_AI:
-            return self.request("post", self.instance_url() + "/search", params)
-        else:
-            raise InvalidAPIType("Unsupported API type %s" % self.api_type)
-
-    def asearch(self, **params):
-        if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
-            return self.arequest("post", self.instance_url("search"), params)
-        elif self.typed_api_type == ApiType.OPEN_AI:
-            return self.arequest("post", self.instance_url() + "/search", params)
-        else:
-            raise InvalidAPIType("Unsupported API type %s" % self.api_type)
 
     def embeddings(self, **params):
         warnings.warn(

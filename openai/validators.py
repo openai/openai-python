@@ -718,30 +718,6 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         sys.stdout.write("Aborting... did not write the file\n")
 
 
-def write_out_search_file(df, fname, any_remediations, auto_accept, fields, purpose):
-    """
-    This function will write out a dataframe to a file, if the user would like to proceed.
-    """
-    input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
-
-    if not any_remediations:
-        sys.stdout.write(
-            f'\nYou can upload your file:\n> openai api files.create -f "{fname}" -p {purpose}'
-        )
-
-    elif accept_suggestion(input_text, auto_accept):
-        fnames = get_outfnames(fname, split=False)
-
-        assert len(fnames) == 1
-        df[fields].to_json(fnames[0], lines=True, orient="records", force_ascii=False)
-
-        sys.stdout.write(
-            f'\nWrote modified file to {fnames[0]}`\nFeel free to take a look!\n\nNow upload that file:\n> openai api files.create -f "{fnames[0]}" -p {purpose}'
-        )
-    else:
-        sys.stdout.write("Aborting... did not write the file\n")
-
-
 def infer_task_type(df):
     """
     Infer the likely fine-tuning task type from the data
@@ -798,23 +774,6 @@ def get_validators():
         common_completion_suffix_validator,
         completions_space_start_validator,
     ]
-
-
-def get_search_validators(required_fields, optional_fields):
-    validators = [
-        lambda x: necessary_column_validator(x, field) for field in required_fields
-    ]
-    validators += [
-        lambda x: non_empty_field_validator(x, field) for field in required_fields
-    ]
-    validators += [lambda x: duplicated_rows_validator(x, required_fields)]
-    validators += [
-        lambda x: additional_column_validator(
-            x, fields=required_fields + optional_fields
-        ),
-    ]
-
-    return validators
 
 
 def apply_validators(

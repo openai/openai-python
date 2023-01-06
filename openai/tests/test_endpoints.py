@@ -10,10 +10,12 @@ from openai import error
 # FILE TESTS
 def test_file_upload():
     result = openai.File.create(
-        file=io.StringIO(json.dumps({"text": "test file data"})),
-        purpose="search",
+        file=io.StringIO(
+            json.dumps({"prompt": "test file data", "completion": "tada"})
+        ),
+        purpose="fine-tune",
     )
-    assert result.purpose == "search"
+    assert result.purpose == "fine-tune"
     assert "id" in result
 
     result = openai.File.retrieve(id=result.id)

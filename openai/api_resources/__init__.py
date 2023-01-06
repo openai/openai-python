@@ -1,5 +1,3 @@
-from openai.api_resources.answer import Answer  # noqa: F401
-from openai.api_resources.classification import Classification  # noqa: F401
 from openai.api_resources.completion import Completion  # noqa: F401
 from openai.api_resources.customer import Customer  # noqa: F401
 from openai.api_resources.deployment import Deployment  # noqa: F401
@@ -12,4 +10,3 @@ from openai.api_resources.fine_tune import FineTune  # noqa: F401
 from openai.api_resources.image import Image  # noqa: F401
 from openai.api_resources.model import Model  # noqa: F401
 from openai.api_resources.moderation import Moderation  # noqa: F401
-from openai.api_resources.search import Search  # noqa: F401
