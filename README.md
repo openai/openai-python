@@ -78,7 +78,7 @@ All endpoints have a `.create` method that support a `request_timeout` param.  T
 
 ### Microsoft Azure Endpoints
 
-In order to use the library with Microsoft Azure endpoints, you need to set the api_type, api_base and api_version in addition to the api_key. The api_type must be set to 'azure' and the others correspond to the properties of your endpoint.
+In order to use the library with Microsoft Azure endpoints, you need to set the `api_type`, `api_base` and `api_version` in addition to the `api_key`. The `api_type` must be set to 'azure' and the others correspond to the properties of your endpoint.
 In addition, the deployment name must be passed as the engine parameter.
 
 ```python
@@ -86,29 +86,24 @@ import openai
 openai.api_type = "azure"
 openai.api_key = "..."
 openai.api_base = "https://example-endpoint.openai.azure.com"
-openai.api_version = "2021-11-01-preview"
+openai.api_version = "2022-12-01"
 
 # create a completion
 completion = openai.Completion.create(engine="deployment-name", prompt="Hello world")
 
 # print the completion
 print(completion.choices[0].text)
-
-# create a search and pass the deployment-name as the engine Id.
-search = openai.Engine(id="deployment-name").search(documents=["White House", "hospital", "school"], query ="the president")
-
-# print the search
-print(search)
 ```
 
-Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, search and fine-tuning operations.
+Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
 For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
+* [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
 * [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
 * [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
 
 ### Microsoft Azure Active Directory Authentication
 
-In order to use Microsoft Active Directory to authenticate to your Azure endpoint, you need to set the api_type to "azure_ad" and pass the acquired credential token to api_key. The rest of the parameters need to be set as specified in the previous section.
+In order to use Microsoft Active Directory to authenticate to your Azure endpoint, you need to set the `api_type` to "azure_ad" and pass the acquired credential token to `api_key`. The rest of the parameters need to be set as specified in the previous section.
 
 
 ```python
@@ -117,13 +112,13 @@ import openai
 
 # Request credential
 default_credential = DefaultAzureCredential()
-token = default_credential.get_token("https://cognitiveservices.azure.com")
+token = default_credential.get_token("https://cognitiveservices.azure.com/.default")
 
 # Setup parameters
 openai.api_type = "azure_ad"
 openai.api_key = token.token
 openai.api_base = "https://example-endpoint.openai.azure.com/"
-openai.api_version = "2022-03-01-preview"
+openai.api_version = "2022-12-01"
 
 # ...
 ```
@@ -234,6 +229,32 @@ openai.api_key = "sk-..."  # supply your API key however you choose
 
 image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
 
+```
+
+## Async API
+
+Async support is available in the API by prepending `a` to a network-bound method:
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+async def create_completion():
+    completion_resp = await openai.Completion.acreate(prompt="This is a test", engine="davinci")
+
+```
+
+To make async requests more efficient, you can pass in your own
+``aiohttp.ClientSession``, but you must manually close the client session at the end 
+of your program/event loop:
+
+```python
+import openai
+from aiohttp import ClientSession
+
+openai.aiosession.set(ClientSession())
+# At the end of your program, close the http session
+await openai.aiosession.get().close()
 ```
 
 See the [usage guide](https://beta.openai.com/docs/guides/images) for more details.

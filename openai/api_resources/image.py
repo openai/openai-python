@@ -22,7 +22,12 @@ class Image(APIResource):
         return instance.request("post", cls._get_url("generations"), params)
 
     @classmethod
-    def create_variation(
+    def acreate(cls, **params):
+        instance = cls()
+        return instance.arequest("post", cls._get_url("generations"), params)
+
+    @classmethod
+    def _prepare_create_variation(
         cls,
         image,
         api_key=None,
@@ -47,6 +52,28 @@ class Image(APIResource):
         for key, value in params.items():
             files.append((key, (None, value)))
         files.append(("image", ("image", image, "application/octet-stream")))
+        return requestor, url, files
+
+    @classmethod
+    def create_variation(
+        cls,
+        image,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url, files = cls._prepare_create_variation(
+            image,
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+            **params,
+        )
 
         response, _, api_key = requestor.request("post", url, files=files)
 
@@ -55,7 +82,34 @@ class Image(APIResource):
         )
 
     @classmethod
-    def create_edit(
+    async def acreate_variation(
+        cls,
+        image,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url, files = cls._prepare_create_variation(
+            image,
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+            **params,
+        )
+
+        response, _, api_key = await requestor.arequest("post", url, files=files)
+
+        return util.convert_to_openai_object(
+            response, api_key, api_version, organization
+        )
+
+    @classmethod
+    def _prepare_create_edit(
         cls,
         image,
         mask,
@@ -82,8 +136,61 @@ class Image(APIResource):
             files.append((key, (None, value)))
         files.append(("image", ("image", image, "application/octet-stream")))
         files.append(("mask", ("mask", mask, "application/octet-stream")))
+        return requestor, url, files
+
+    @classmethod
+    def create_edit(
+        cls,
+        image,
+        mask,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url, files = cls._prepare_create_edit(
+            image,
+            mask,
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+            **params,
+        )
 
         response, _, api_key = requestor.request("post", url, files=files)
+
+        return util.convert_to_openai_object(
+            response, api_key, api_version, organization
+        )
+
+    @classmethod
+    async def acreate_edit(
+        cls,
+        image,
+        mask,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url, files = cls._prepare_create_edit(
+            image,
+            mask,
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+            **params,
+        )
+
+        response, _, api_key = await requestor.arequest("post", url, files=files)
 
         return util.convert_to_openai_object(
             response, api_key, api_version, organization

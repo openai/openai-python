@@ -27,11 +27,36 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
 
                 util.log_info("Waiting for model to warm up", error=e)
 
+    async def agenerate(self, timeout=None, **params):
+        start = time.time()
+        while True:
+            try:
+                return await self.arequest(
+                    "post",
+                    self.instance_url() + "/generate",
+                    params,
+                    stream=params.get("stream"),
+                    plain_old_data=True,
+                )
+            except TryAgain as e:
+                if timeout is not None and time.time() > start + timeout:
+                    raise
+
+                util.log_info("Waiting for model to warm up", error=e)
+
     def search(self, **params):
         if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             return self.request("post", self.instance_url("search"), params)
         elif self.typed_api_type == ApiType.OPEN_AI:
             return self.request("post", self.instance_url() + "/search", params)
+        else:
+            raise InvalidAPIType("Unsupported API type %s" % self.api_type)
+
+    def asearch(self, **params):
+        if self.typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
+            return self.arequest("post", self.instance_url("search"), params)
+        elif self.typed_api_type == ApiType.OPEN_AI:
+            return self.arequest("post", self.instance_url() + "/search", params)
         else:
             raise InvalidAPIType("Unsupported API type %s" % self.api_type)
 

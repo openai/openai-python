@@ -31,13 +31,10 @@ setup(
         "requests>=2.20",  # to get the patch for CVE-2018-18074
         "tqdm",  # Needed for progress bars
         'typing_extensions;python_version<"3.8"',  # Needed for type hints for mypy
+        "aiohttp",  # Needed for async support
     ],
     extras_require={
-        "dev": [
-            "black~=21.6b0",
-            "pytest==6.*",
-            "pytest_mock",
-        ],
+        "dev": ["black~=21.6b0", "pytest==6.*", "pytest-asyncio", "pytest-mock"],
         "datalib": DATA_LIBRARIES,
         "wandb": [
             "wandb",

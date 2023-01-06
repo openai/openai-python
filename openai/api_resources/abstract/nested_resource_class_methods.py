@@ -3,8 +3,12 @@ from urllib.parse import quote_plus
 from openai import api_requestor, util
 
 
-def nested_resource_class_methods(
-    resource, path=None, operations=None, resource_plural=None
+def _nested_resource_class_methods(
+    resource,
+    path=None,
+    operations=None,
+    resource_plural=None,
+    async_=False,
 ):
     if resource_plural is None:
         resource_plural = "%ss" % resource
@@ -43,8 +47,34 @@ def nested_resource_class_methods(
                 response, api_key, api_version, organization
             )
 
+        async def anested_resource_request(
+            cls,
+            method,
+            url,
+            api_key=None,
+            request_id=None,
+            api_version=None,
+            organization=None,
+            **params,
+        ):
+            requestor = api_requestor.APIRequestor(
+                api_key, api_version=api_version, organization=organization
+            )
+            response, _, api_key = await requestor.arequest(
+                method, url, params, request_id=request_id
+            )
+            return util.convert_to_openai_object(
+                response, api_key, api_version, organization
+            )
+
         resource_request_method = "%ss_request" % resource
-        setattr(cls, resource_request_method, classmethod(nested_resource_request))
+        setattr(
+            cls,
+            resource_request_method,
+            classmethod(
+                anested_resource_request if async_ else nested_resource_request
+            ),
+        )
 
         for operation in operations:
             if operation == "create":
@@ -100,3 +130,25 @@ def nested_resource_class_methods(
         return cls
 
     return wrapper
+
+
+def nested_resource_class_methods(
+    resource,
+    path=None,
+    operations=None,
+    resource_plural=None,
+):
+    return _nested_resource_class_methods(
+        resource, path, operations, resource_plural, async_=False
+    )
+
+
+def anested_resource_class_methods(
+    resource,
+    path=None,
+    operations=None,
+    resource_plural=None,
+):
+    return _nested_resource_class_methods(
+        resource, path, operations, resource_plural, async_=True
+    )
