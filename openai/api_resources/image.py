@@ -156,7 +156,7 @@ class Image(APIResource):
     def _prepare_create_edit(
         cls,
         image,
-        mask,
+        mask=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -179,14 +179,15 @@ class Image(APIResource):
         for key, value in params.items():
             files.append((key, (None, value)))
         files.append(("image", ("image", image, "application/octet-stream")))
-        files.append(("mask", ("mask", mask, "application/octet-stream")))
+        if mask is not None:
+            files.append(("mask", ("mask", mask, "application/octet-stream")))
         return requestor, url, files
 
     @classmethod
     def create_edit(
         cls,
         image,
-        mask,
+        mask=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -215,7 +216,7 @@ class Image(APIResource):
     async def acreate_edit(
         cls,
         image,
-        mask,
+        mask=None,
         api_key=None,
         api_base=None,
         api_type=None,
