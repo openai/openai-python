@@ -10,3 +10,8 @@ class Answer(OpenAIObject):
     def create(cls, **params):
         instance = cls()
         return instance.request("post", cls.get_url(), params)
+
+    @classmethod
+    def acreate(cls, **params):
+        instance = cls()
+        return instance.arequest("post", cls.get_url(), params)

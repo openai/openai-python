@@ -7,15 +7,13 @@ class CreateableAPIResource(APIResource):
     plain_old_data = False
 
     @classmethod
-    def create(
+    def __prepare_create_requestor(
         cls,
         api_key=None,
         api_base=None,
         api_type=None,
-        request_id=None,
         api_version=None,
         organization=None,
-        **params,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -35,8 +33,59 @@ class CreateableAPIResource(APIResource):
             url = cls.class_url()
         else:
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
+        return requestor, url
+
+    @classmethod
+    def create(
+        cls,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url = cls.__prepare_create_requestor(
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+        )
 
         response, _, api_key = requestor.request(
+            "post", url, params, request_id=request_id
+        )
+
+        return util.convert_to_openai_object(
+            response,
+            api_key,
+            api_version,
+            organization,
+            plain_old_data=cls.plain_old_data,
+        )
+
+    @classmethod
+    async def acreate(
+        cls,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url = cls.__prepare_create_requestor(
+            api_key,
+            api_base,
+            api_type,
+            api_version,
+            organization,
+        )
+
+        response, _, api_key = await requestor.arequest(
             "post", url, params, request_id=request_id
         )
 

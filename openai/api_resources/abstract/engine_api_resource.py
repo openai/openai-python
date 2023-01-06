@@ -61,12 +61,11 @@ class EngineAPIResource(APIResource):
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
     @classmethod
-    def create(
+    def __prepare_create_request(
         cls,
         api_key=None,
         api_base=None,
         api_type=None,
-        request_id=None,
         api_version=None,
         organization=None,
         **params,
@@ -112,6 +111,45 @@ class EngineAPIResource(APIResource):
             organization=organization,
         )
         url = cls.class_url(engine, api_type, api_version)
+        return (
+            deployment_id,
+            engine,
+            timeout,
+            stream,
+            headers,
+            request_timeout,
+            typed_api_type,
+            requestor,
+            url,
+            params,
+        )
+
+    @classmethod
+    def create(
+        cls,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        (
+            deployment_id,
+            engine,
+            timeout,
+            stream,
+            headers,
+            request_timeout,
+            typed_api_type,
+            requestor,
+            url,
+            params,
+        ) = cls.__prepare_create_request(
+            api_key, api_base, api_type, api_version, organization, **params
+        )
+
         response, _, api_key = requestor.request(
             "post",
             url,
@@ -148,6 +186,70 @@ class EngineAPIResource(APIResource):
 
             if timeout is not None:
                 obj.wait(timeout=timeout or None)
+
+        return obj
+
+    @classmethod
+    async def acreate(
+        cls,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        (
+            deployment_id,
+            engine,
+            timeout,
+            stream,
+            headers,
+            request_timeout,
+            typed_api_type,
+            requestor,
+            url,
+            params,
+        ) = cls.__prepare_create_request(
+            api_key, api_base, api_type, api_version, organization, **params
+        )
+        response, _, api_key = await requestor.arequest(
+            "post",
+            url,
+            params=params,
+            headers=headers,
+            stream=stream,
+            request_id=request_id,
+            request_timeout=request_timeout,
+        )
+
+        if stream:
+            # must be an iterator
+            assert not isinstance(response, OpenAIResponse)
+            return (
+                util.convert_to_openai_object(
+                    line,
+                    api_key,
+                    api_version,
+                    organization,
+                    engine=engine,
+                    plain_old_data=cls.plain_old_data,
+                )
+                for line in response
+            )
+        else:
+            obj = util.convert_to_openai_object(
+                response,
+                api_key,
+                api_version,
+                organization,
+                engine=engine,
+                plain_old_data=cls.plain_old_data,
+            )
+
+            if timeout is not None:
+                await obj.await_(timeout=timeout or None)
 
         return obj
 
@@ -205,4 +307,19 @@ class EngineAPIResource(APIResource):
                 del self.timeout
                 break
             self.refresh()
+        return self
+
+    async def await_(self, timeout=None):
+        """Async version of `EngineApiResource.wait`"""
+        start = time.time()
+        while self.status != "complete":
+            self.timeout = (
+                min(timeout + start - time.time(), MAX_TIMEOUT)
+                if timeout is not None
+                else MAX_TIMEOUT
+            )
+            if self.timeout < 0:
+                del self.timeout
+                break
+            await self.arefresh()
         return self

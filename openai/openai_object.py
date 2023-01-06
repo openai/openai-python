@@ -207,6 +207,57 @@ class OpenAIObject(dict):
                 plain_old_data=plain_old_data,
             )
 
+    async def arequest(
+        self,
+        method,
+        url,
+        params=None,
+        headers=None,
+        stream=False,
+        plain_old_data=False,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+    ):
+        if params is None:
+            params = self._retrieve_params
+        requestor = api_requestor.APIRequestor(
+            key=self.api_key,
+            api_base=self.api_base_override or self.api_base(),
+            api_type=self.api_type,
+            api_version=self.api_version,
+            organization=self.organization,
+        )
+        response, stream, api_key = await requestor.arequest(
+            method,
+            url,
+            params=params,
+            stream=stream,
+            headers=headers,
+            request_id=request_id,
+            request_timeout=request_timeout,
+        )
+
+        if stream:
+            assert not isinstance(response, OpenAIResponse)  # must be an iterator
+            return (
+                util.convert_to_openai_object(
+                    line,
+                    api_key,
+                    self.api_version,
+                    self.organization,
+                    plain_old_data=plain_old_data,
+                )
+                for line in response
+            )
+        else:
+            return util.convert_to_openai_object(
+                response,
+                api_key,
+                self.api_version,
+                self.organization,
+                plain_old_data=plain_old_data,
+            )
+
     def __repr__(self):
         ident_parts = [type(self).__name__]
 

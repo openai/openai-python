@@ -7,4 +7,5 @@ OBJECT_CLASSES = {
     "file": api_resources.File,
     "fine-tune": api_resources.FineTune,
     "model": api_resources.Model,
+    "deployment": api_resources.Deployment,
 }
