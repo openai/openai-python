@@ -294,18 +294,29 @@ class APIRequestor:
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool, str]:
-        async with aiohttp_session() as session:
-            result = await self.arequest_raw(
-                method.lower(),
-                url,
-                session,
-                params=params,
-                supplied_headers=headers,
-                files=files,
-                request_id=request_id,
-                request_timeout=request_timeout,
-            )
-            resp, got_stream = await self._interpret_async_response(result, stream)
+        ctx = aiohttp_session()
+        session = await ctx.__aenter__()
+        result = await self.arequest_raw(
+            method.lower(),
+            url,
+            session,
+            params=params,
+            supplied_headers=headers,
+            files=files,
+            request_id=request_id,
+            request_timeout=request_timeout,
+        )
+        resp, got_stream = await self._interpret_async_response(result, stream)
+        if got_stream:
+
+            async def wrap_resp():
+                async for r in resp:
+                    yield r
+                await ctx.__aexit__(None, None, None)
+
+            return wrap_resp(), got_stream, self.api_key
+        else:
+            await ctx.__aexit__(None, None, None)
             return resp, got_stream, self.api_key
 
     def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
