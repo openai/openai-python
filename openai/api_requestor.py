@@ -89,9 +89,9 @@ def _make_session() -> requests.Session:
     return s
 
 
-def parse_stream_helper(line):
+def parse_stream_helper(line: bytes):
     if line:
-        if line == b"data: [DONE]":
+        if line.strip() == b"data: [DONE]":
             # return here will cause GeneratorExit exception in urllib3
             # and it will close http connection with TCP Reset
             return None
@@ -111,7 +111,7 @@ def parse_stream(rbody):
 
 
 async def parse_stream_async(rbody: aiohttp.StreamReader):
-    async for line in rbody:
+    async for line, _ in rbody.iter_chunks():
         _line = parse_stream_helper(line)
         if _line is not None:
             yield _line
