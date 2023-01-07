@@ -63,3 +63,15 @@ async def test_timeout_does_not_error():
         model="ada",
         request_timeout=10,
     )
+
+
+async def test_completions_stream_finishes():
+    # A query that should be fast
+    parts = []
+    async for part in await openai.Completion.acreate(
+        prompt="test", model="ada", request_timeout=10, stream=True
+    ):
+        parts.append(part)
+    assert (
+        len(parts) == 2
+    )  # note this assertion is incorrect, but we don't make it here currently
