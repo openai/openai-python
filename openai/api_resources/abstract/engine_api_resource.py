@@ -236,7 +236,7 @@ class EngineAPIResource(APIResource):
                     engine=engine,
                     plain_old_data=cls.plain_old_data,
                 )
-                for line in response
+                async for line in response
             )
         else:
             obj = util.convert_to_openai_object(
