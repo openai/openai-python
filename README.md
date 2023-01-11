@@ -27,7 +27,7 @@ python setup.py install
 
 ### Optional dependencies
 
-Install dependencies for [`openapi.embeddings_utils`](openai/embeddings_utils.py):
+Install dependencies for [`openai.embeddings_utils`](openai/embeddings_utils.py):
 
 ```sh
 pip install openai[embeddings]
