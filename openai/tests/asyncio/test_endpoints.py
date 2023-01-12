@@ -5,6 +5,7 @@ import pytest
 
 import openai
 from openai import error
+from aiohttp import ClientSession
 
 
 pytestmark = [pytest.mark.asyncio]
@@ -63,3 +64,26 @@ async def test_timeout_does_not_error():
         model="ada",
         request_timeout=10,
     )
+
+
+async def test_completions_stream_finishes_global_session():
+    async with ClientSession() as session:
+        openai.aiosession.set(session)
+
+        # A query that should be fast
+        parts = []
+        async for part in await openai.Completion.acreate(
+            prompt="test", model="ada", request_timeout=3, stream=True
+        ):
+            parts.append(part)
+        assert len(parts) > 1
+
+
+async def test_completions_stream_finishes_local_session():
+    # A query that should be fast
+    parts = []
+    async for part in await openai.Completion.acreate(
+        prompt="test", model="ada", request_timeout=3, stream=True
+    ):
+        parts.append(part)
+    assert len(parts) > 1
