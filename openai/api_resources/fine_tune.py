@@ -128,7 +128,45 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
         return requestor, url
 
     @classmethod
-    async def stream_events(
+    def stream_events(
+        cls,
+        id,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url = cls._prepare_stream_events(
+            id,
+            api_key,
+            api_base,
+            api_type,
+            request_id,
+            api_version,
+            organization,
+            **params,
+        )
+
+        response, _, api_key = requestor.request(
+            "get", url, params, stream=True, request_id=request_id
+        )
+
+        assert not isinstance(response, OpenAIResponse)  # must be an iterator
+        return (
+            util.convert_to_openai_object(
+                line,
+                api_key,
+                api_version,
+                organization,
+            )
+            for line in response
+        )
+
+    @classmethod
+    async def astream_events(
         cls,
         id,
         api_key=None,
