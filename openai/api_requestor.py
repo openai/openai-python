@@ -310,9 +310,11 @@ class APIRequestor:
         if got_stream:
 
             async def wrap_resp():
-                async for r in resp:
-                    yield r
-                await ctx.__aexit__(None, None, None)
+                try:
+                    async for r in resp:
+                        yield r
+                finally:
+                    await ctx.__aexit__(None, None, None)
 
             return wrap_resp(), got_stream, self.api_key
         else:
@@ -518,7 +520,9 @@ class APIRequestor:
         except requests.exceptions.Timeout as e:
             raise error.Timeout("Request timed out: {}".format(e)) from e
         except requests.exceptions.RequestException as e:
-            raise error.APIConnectionError("Error communicating with OpenAI: {}".format(e)) from e
+            raise error.APIConnectionError(
+                "Error communicating with OpenAI: {}".format(e)
+            ) from e
         util.log_info(
             "OpenAI API response",
             path=abs_url,
