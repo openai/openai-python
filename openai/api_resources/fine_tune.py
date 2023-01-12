@@ -200,5 +200,5 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
                 api_version,
                 organization,
             )
-            for line in response
+            async for line in response
         )
