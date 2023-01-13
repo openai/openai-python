@@ -490,7 +490,7 @@ class APIRequestor:
 
         headers = self.request_headers(method, headers, request_id)
 
-        util.log_info("Request to OpenAI API", method=method, path=abs_url)
+        util.log_debug("Request to OpenAI API", method=method, path=abs_url)
         util.log_debug("Post details", data=data, api_version=self.api_version)
 
         return abs_url, headers, data
@@ -529,7 +529,7 @@ class APIRequestor:
             raise error.APIConnectionError(
                 "Error communicating with OpenAI: {}".format(e)
             ) from e
-        util.log_info(
+        util.log_debug(
             "OpenAI API response",
             path=abs_url,
             response_code=result.status_code,
