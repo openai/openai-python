@@ -2,10 +2,10 @@ import io
 import json
 
 import pytest
+from aiohttp import ClientSession
 
 import openai
 from openai import error
-from aiohttp import ClientSession
 
 
 pytestmark = [pytest.mark.asyncio]
