@@ -111,7 +111,7 @@ class WandbLogger:
         # check results are present
         try:
             results_id = fine_tune["result_files"][0]["id"]
-            results = File.download(id=results_id).decode("utf-8")
+            results = File.download(id=results_id + "/content").decode("utf-8")
         except:
             if show_individual_warnings:
                 print(f"Fine-tune {fine_tune_id} has no results and will not be logged")
