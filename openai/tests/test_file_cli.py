@@ -18,7 +18,7 @@ def test_file_cli() -> None:
     assert file_obj["bytes"] == len(contents)
     file_id: str = file_obj["id"]
     assert file_id.startswith("file-")
-    start_time = time.time()
+    start_time = time.monotonic()
     while True:
         delete_result = subprocess.run(
             ["openai", "api", "files.delete", "-i", file_id],
@@ -30,7 +30,7 @@ def test_file_cli() -> None:
             break
         elif STILL_PROCESSING in delete_result.stderr:
             time.sleep(0.5)
-            if start_time + 60 < time.time():
+            if start_time + 60 < time.monotonic():
                 raise RuntimeError("timed out waiting for file to become available")
             continue
         else:

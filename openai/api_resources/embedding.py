@@ -19,7 +19,7 @@ class Embedding(EngineAPIResource):
         See https://beta.openai.com/docs/api-reference/embeddings for a list
         of valid parameters.
         """
-        start = time.time()
+        start = time.monotonic()
         timeout = kwargs.pop("timeout", None)
 
         user_provided_encoding_format = kwargs.get("encoding_format", None)
@@ -46,7 +46,7 @@ class Embedding(EngineAPIResource):
 
                 return response
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
@@ -59,7 +59,7 @@ class Embedding(EngineAPIResource):
         See https://beta.openai.com/docs/api-reference/embeddings for a list
         of valid parameters.
         """
-        start = time.time()
+        start = time.monotonic()
         timeout = kwargs.pop("timeout", None)
 
         user_provided_encoding_format = kwargs.get("encoding_format", None)
@@ -85,7 +85,7 @@ class Embedding(EngineAPIResource):
 
                 return response
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)

@@ -13,7 +13,7 @@ class Edit(EngineAPIResource):
         """
         Creates a new edit for the provided input, instruction, and parameters.
         """
-        start = time.time()
+        start = time.monotonic()
         timeout = kwargs.pop("timeout", None)
 
         api_type = kwargs.pop("api_type", None)
@@ -27,7 +27,7 @@ class Edit(EngineAPIResource):
             try:
                 return super().create(*args, **kwargs)
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
@@ -37,7 +37,7 @@ class Edit(EngineAPIResource):
         """
         Creates a new edit for the provided input, instruction, and parameters.
         """
-        start = time.time()
+        start = time.monotonic()
         timeout = kwargs.pop("timeout", None)
 
         api_type = kwargs.pop("api_type", None)
@@ -51,7 +51,7 @@ class Edit(EngineAPIResource):
             try:
                 return await super().acreate(*args, **kwargs)
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)

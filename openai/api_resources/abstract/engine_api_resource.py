@@ -296,10 +296,10 @@ class EngineAPIResource(APIResource):
         return url
 
     def wait(self, timeout=None):
-        start = time.time()
+        start = time.monotonic()
         while self.status != "complete":
             self.timeout = (
-                min(timeout + start - time.time(), MAX_TIMEOUT)
+                min(timeout + start - time.monotonic(), MAX_TIMEOUT)
                 if timeout is not None
                 else MAX_TIMEOUT
             )
@@ -311,10 +311,10 @@ class EngineAPIResource(APIResource):
 
     async def await_(self, timeout=None):
         """Async version of `EngineApiResource.wait`"""
-        start = time.time()
+        start = time.monotonic()
         while self.status != "complete":
             self.timeout = (
-                min(timeout + start - time.time(), MAX_TIMEOUT)
+                min(timeout + start - time.monotonic(), MAX_TIMEOUT)
                 if timeout is not None
                 else MAX_TIMEOUT
             )

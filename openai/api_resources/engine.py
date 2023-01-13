@@ -10,7 +10,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
     OBJECT_NAME = "engines"
 
     def generate(self, timeout=None, **params):
-        start = time.time()
+        start = time.monotonic()
         while True:
             try:
                 return self.request(
@@ -21,13 +21,13 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                     plain_old_data=True,
                 )
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
 
     async def agenerate(self, timeout=None, **params):
-        start = time.time()
+        start = time.monotonic()
         while True:
             try:
                 return await self.arequest(
@@ -38,7 +38,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                     plain_old_data=True,
                 )
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)

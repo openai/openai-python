@@ -17,14 +17,14 @@ class Completion(EngineAPIResource):
         See https://beta.openai.com/docs/api-reference/completions/create for a list
         of valid parameters.
         """
-        start = time.time()
+        start = time.monotonic()
         timeout = kwargs.pop("timeout", None)
 
         while True:
             try:
                 return super().create(*args, **kwargs)
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
@@ -37,14 +37,14 @@ class Completion(EngineAPIResource):
         See https://beta.openai.com/docs/api-reference/completions/create for a list
         of valid parameters.
         """
-        start = time.time()
+        start = time.monotonic()
         timeout = kwargs.pop("timeout", None)
 
         while True:
             try:
                 return await super().acreate(*args, **kwargs)
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout is not None and time.monotonic() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
