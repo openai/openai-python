@@ -159,7 +159,7 @@ class WandbLogger:
         df_results = pd.read_csv(io.StringIO(results))
         for _, row in df_results.iterrows():
             metrics = {k: v for k, v in row.items() if not np.isnan(v)}
-            step = metrics.pop("step")
+            step = metrics.pop("step", None)
             if step is not None:
                 step = int(step)
             wandb.log(metrics, step=step)
