@@ -499,6 +499,11 @@ class FineTune:
         print(resp)
 
     @classmethod
+    def delete(cls, args):
+        resp = openai.FineTune.delete(sid=args.id)
+        print(resp)
+
+    @classmethod
     def prepare_data(cls, args):
 
         sys.stdout.write("Analyzing...\n")
@@ -866,6 +871,10 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.cancel)
+
+    sub = subparsers.add_parser("fine_tunes.delete")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTune.delete)
 
     # Image
     sub = subparsers.add_parser("image.create")
