@@ -74,7 +74,7 @@ print(completion.choices[0].text)
 
 
 ### Params
-All endpoints have a `.create` method that support a `request_timeout` param.  This param takes a `Union[float, Tuple[float, float]]` and will raise a `openai.error.TimeoutError` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+All endpoints have a `.create` method that supports a `request_timeout` param.  This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.TimeoutError` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
 
 ### Microsoft Azure Endpoints
 
@@ -96,7 +96,7 @@ print(completion.choices[0].text)
 ```
 
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
-For a detailed example on how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
+For a detailed example of how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
 * [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
 * [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
 * [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
@@ -188,14 +188,14 @@ Examples of how to use embeddings are shared in the following Jupyter notebooks:
 
 For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://beta.openai.com/docs/guides/embeddings) in the OpenAI documentation.
 
-### Fine tuning
+### Fine-tuning
 
-Fine tuning a model on training data can both improve the results (by giving the model more examples to learn from) and reduce the cost/latency of API calls (chiefly through reducing the need to include training examples in prompts).
+Fine-tuning a model on training data can both improve the results (by giving the model more examples to learn from) and reduce the cost/latency of API calls (chiefly through reducing the need to include training examples in prompts).
 
-Examples of fine tuning are shared in the following Jupyter notebooks:
+Examples of fine-tuning are shared in the following Jupyter notebooks:
 
-- [Classification with fine tuning](https://github.com/openai/openai-cookbook/blob/main/examples/Fine-tuned_classification.ipynb) (a simple notebook that shows the steps required for fine tuning)
-- Fine tuning a model that answers questions about the 2020 Olympics
+- [Classification with fine-tuning](https://github.com/openai/openai-cookbook/blob/main/examples/Fine-tuned_classification.ipynb) (a simple notebook that shows the steps required for fine-tuning)
+- Fine-tuning a model that answers questions about the 2020 Olympics
   - [Step 1: Collecting data](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-1-collect-data.ipynb)
   - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-2-create-qa.ipynb)
   - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-3-train-qa.ipynb)
@@ -206,7 +206,7 @@ Sync your fine-tunes to [Weights & Biases](https://wandb.me/openai-docs) to trac
 openai wandb sync
 ```
 
-For more information on fine tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
+For more information on fine-tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 
 ### Moderation
 
