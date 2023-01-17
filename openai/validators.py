@@ -37,7 +37,7 @@ def necessary_column_validator(df, necessary_column):
     """
 
     def lower_case_column(df, column):
-        cols = [c for c in df.columns if c.lower() == column]
+        cols = [c for c in df.columns if str(c).lower() == column]
         df.rename(columns={cols[0]: column.lower()}, inplace=True)
         return df
 
@@ -47,7 +47,7 @@ def necessary_column_validator(df, necessary_column):
     error_msg = None
 
     if necessary_column not in df.columns:
-        if necessary_column in [c.lower() for c in df.columns]:
+        if necessary_column in [str(c).lower() for c in df.columns]:
 
             def lower_case_column_creator(df):
                 return lower_case_column(df, necessary_column)
@@ -482,51 +482,65 @@ def read_any_format(fname, fields=["prompt", "completion"]):
     df = None
 
     if os.path.isfile(fname):
-        for ending, separator in [(".csv", ","), (".tsv", "\t")]:
-            if fname.lower().endswith(ending):
-                immediate_msg = f"\n- Based on your file extension, your file is formatted as a {ending[1:].upper()} file"
+        try:
+            if fname.lower().endswith(".csv") or fname.lower().endswith(".tsv"):
+                file_extension_str, separator = (
+                    ("CSV", ",") if fname.lower().endswith(".csv") else ("TSV", "\t")
+                )
+                immediate_msg = f"\n- Based on your file extension, your file is formatted as a {file_extension_str} file"
                 necessary_msg = (
-                    f"Your format `{ending[1:].upper()}` will be converted to `JSONL`"
+                    f"Your format `{file_extension_str}` will be converted to `JSONL`"
                 )
-                df = pd.read_csv(fname, sep=separator, dtype=str)
-        if fname.lower().endswith(".xlsx"):
-            immediate_msg = "\n- Based on your file extension, your file is formatted as an Excel file"
-            necessary_msg = "Your format `XLSX` will be converted to `JSONL`"
-            xls = pd.ExcelFile(fname)
-            sheets = xls.sheet_names
-            if len(sheets) > 1:
-                immediate_msg += "\n- Your Excel file contains more than one sheet. Please either save as csv or ensure all data is present in the first sheet. WARNING: Reading only the first sheet..."
-            df = pd.read_excel(fname, dtype=str)
-        if fname.lower().endswith(".txt"):
-            immediate_msg = "\n- Based on your file extension, you provided a text file"
-            necessary_msg = "Your format `TXT` will be converted to `JSONL`"
-            with open(fname, "r") as f:
-                content = f.read()
-                df = pd.DataFrame(
-                    [["", line] for line in content.split("\n")],
-                    columns=fields,
-                    dtype=str,
+                df = pd.read_csv(fname, sep=separator, dtype=str).fillna("")
+            elif fname.lower().endswith(".xlsx"):
+                immediate_msg = "\n- Based on your file extension, your file is formatted as an Excel file"
+                necessary_msg = "Your format `XLSX` will be converted to `JSONL`"
+                xls = pd.ExcelFile(fname)
+                sheets = xls.sheet_names
+                if len(sheets) > 1:
+                    immediate_msg += "\n- Your Excel file contains more than one sheet. Please either save as csv or ensure all data is present in the first sheet. WARNING: Reading only the first sheet..."
+                df = pd.read_excel(fname, dtype=str).fillna("")
+            elif fname.lower().endswith(".txt"):
+                immediate_msg = (
+                    "\n- Based on your file extension, you provided a text file"
                 )
-        if fname.lower().endswith("jsonl") or fname.lower().endswith("json"):
-            try:
-                df = pd.read_json(fname, lines=True, dtype=str)
-            except (ValueError, TypeError):
-                df = pd.read_json(fname, dtype=str)
-                immediate_msg = "\n- Your file appears to be in a .JSON format. Your file will be converted to JSONL format"
-                necessary_msg = "Your format `JSON` will be converted to `JSONL`"
-
-        if df is None:
-            error_msg = (
-                "Your file is not saved as a .CSV, .TSV, .XLSX, .TXT or .JSONL file."
-            )
-            if "." in fname:
-                error_msg += (
-                    f" Your file `{fname}` appears to end with `.{fname.split('.')[1]}`"
-                )
+                necessary_msg = "Your format `TXT` will be converted to `JSONL`"
+                with open(fname, "r") as f:
+                    content = f.read()
+                    df = pd.DataFrame(
+                        [["", line] for line in content.split("\n")],
+                        columns=fields,
+                        dtype=str,
+                    ).fillna("")
+            elif fname.lower().endswith(".jsonl"):
+                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                if len(df) == 1:
+                    # this is NOT what we expect for a .jsonl file
+                    immediate_msg = "\n- Your JSONL file appears to be in a JSON format. Your file will be converted to JSONL format"
+                    necessary_msg = "Your format `JSON` will be converted to `JSONL`"
+                    df = pd.read_json(fname, dtype=str).fillna("")
+                else:
+                    pass  # this is what we expect for a .jsonl file
+            elif fname.lower().endswith(".json"):
+                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                if len(df) == 1:
+                    # this is what we expect for a .json file
+                    df = pd.read_json(fname, dtype=str).fillna("")
+                else:
+                    # this is NOT what we expect for a .json file
+                    immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
+                    necessary_msg = "Your format `JSON` will be converted to `JSONL`"
             else:
-                error_msg += f" Your file `{fname}` does not appear to have a file ending. Please ensure your filename ends with one of the supported file endings."
-        else:
-            df.fillna("", inplace=True)
+                error_msg = "Your file must have one of the following extensions: .CSV, .TSV, .XLSX, .TXT, .JSON or .JSONL"
+                if "." in fname:
+                    error_msg += f" Your file `{fname}` ends with the extension `.{fname.split('.')[-1]}` which is not supported."
+                else:
+                    error_msg += f" Your file `{fname}` is missing a file extension."
+
+        except (ValueError, TypeError):
+            file_extension_str = fname.split(".")[-1].upper()
+            error_msg = f"Your file `{fname}` does not appear to be in valid {file_extension_str} format. Please ensure your file is formatted as a valid {file_extension_str} file."
+
     else:
         error_msg = f"File {fname} does not exist."
 
