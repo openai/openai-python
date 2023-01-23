@@ -6,9 +6,7 @@ pre-defined set of classes for API resources that initialize
 themselves dynamically from API responses which makes it compatible
 with a wide range of versions of the OpenAI API.
 
-## Documentation
-
-See the [OpenAI API docs](https://beta.openai.com/docs/api-reference?lang=python).
+You can find usage examples for the OpenAI Python library in our [API reference](https://beta.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
 ## Installation
 
