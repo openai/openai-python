@@ -198,7 +198,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             return result.content
 
     @classmethod
-    def __find_matching_files(cls, name, all_files, purpose):
+    def __find_matching_files(cls, name, bytes, all_files, purpose):
         matching_files = []
         basename = os.path.basename(name)
         for f in all_files:
@@ -234,7 +234,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             api_version=api_version,
             organization=organization,
         ).get("data", [])
-        return cls.__find_matching_files(name, all_files, purpose)
+        return cls.__find_matching_files(name, bytes, all_files, purpose)
 
     @classmethod
     async def afind_matching_files(
@@ -258,4 +258,4 @@ class File(ListableAPIResource, DeletableAPIResource):
                 organization=organization,
             )
         ).get("data", [])
-        return cls.__find_matching_files(name, all_files, purpose)
+        return cls.__find_matching_files(name, bytes, all_files, purpose)
