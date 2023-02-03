@@ -3,7 +3,7 @@ from openai.openai_object import OpenAIObject
 
 class Customer(OpenAIObject):
     @classmethod
-    def get_url(self, customer, endpoint):
+    def get_url(cls, customer, endpoint):
         return f"/customer/{customer}/{endpoint}"
 
     @classmethod
