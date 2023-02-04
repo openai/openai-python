@@ -39,4 +39,4 @@ jobs:
 
       - name: test with pytest
         run:
-          pytest tests
+          pytest openai/tests
