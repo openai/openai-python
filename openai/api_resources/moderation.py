@@ -7,7 +7,7 @@ class Moderation(OpenAIObject):
     VALID_MODEL_NAMES: List[str] = ["text-moderation-stable", "text-moderation-latest"]
 
     @classmethod
-    def get_url(self):
+    def get_url(cls):
         return "/moderations"
 
     @classmethod
