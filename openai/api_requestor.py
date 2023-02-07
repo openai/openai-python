@@ -96,8 +96,10 @@ def parse_stream_helper(line: bytes) -> Optional[str]:
             # and it will close http connection with TCP Reset
             return None
         if line.startswith(b"data: "):
-            line = line[len(b"data: ") :]
-        return line.decode("utf-8")
+            line = line[len(b"data: "):]
+            return line.decode("utf-8")
+        else:
+            return None
     return None
 
 
@@ -109,13 +111,10 @@ def parse_stream(rbody: Iterator[bytes]) -> Iterator[str]:
 
 
 async def parse_stream_async(rbody: aiohttp.StreamReader):
-    async for chunk, _ in rbody.iter_chunks():
-        # While the `ChunkTupleAsyncStreamIterator` iterator is meant to iterate over chunks (and thus lines) it seems
-        # to still sometimes return multiple lines at a time, so let's split the chunk by lines again.
-        for line in chunk.splitlines():
-            _line = parse_stream_helper(line)
-            if _line is not None:
-                yield _line
+    async for line in rbody:
+        _line = parse_stream_helper(line)
+        if _line is not None:
+            yield _line
 
 
 class APIRequestor:
