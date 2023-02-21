@@ -527,7 +527,8 @@ class APIRequestor:
             raise error.Timeout(f"Request timed out: {e}") # what is ^from e in the original code do?
         except requests.exceptions.RequestException as e:
             raise error.APIConnectionError(
-                "Error communicating with OpenAI: {}".format(e)
+                # "Error communicating with OpenAI: {}".format(e)
+                f"Error communicating with OpenAI: {e}"
             ) from e
         util.log_debug(
             "OpenAI API response",

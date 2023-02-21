@@ -86,7 +86,8 @@ def logfmt(props):
         # key should already be a string
         if re.search(r"\s", key):
             key = repr(key)
-        return "{key}={val}".format(key=key, val=val)
+        # return "{key}={val}".format(key=key, val=val)
+        return f"{key}={val}"
 
     return " ".join([fmt(key, val) for key, val in sorted(props.items())])
 
