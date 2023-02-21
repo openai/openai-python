@@ -1,0 +1,28 @@
+openai/util.py line 89 and 90
+
+openai/cli.py lines 35 and 36
+openai/cli.py lines 55-58
+openai/cli.py lines 102 and 103
+openai/cli.py lines 321 and 322
+openai/cli.py lines 342-345
+openai/cli.py lines 410-415
+openai/cli.py lines 442 and 443
+openai/cli.py lines 499-502
+didn't change 459-463 because of the DRY rule
+openai/cli.py 306 - 311 still needs a change but it looks like a ternary operator but I'm not sure
+
+openai/error.py lines 38 and 39
+
+openai/api_resources/abstract/engine_api_resource.py lines 295 and 296
+
+openai/api_requestor.py 522-526
+
+openai/embeddings_utils.py 98-103 and 115-116 and 123-124 and 131-134
+
+files changed [
+    openai/api_requestor.py,
+    openai/api_resources/abstract/engine_api_resource.py,
+    openai/cli.py,
+    openai/embeddings_utils.py,
+    openai/error.py
+    ]

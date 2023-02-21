@@ -35,7 +35,8 @@ class OpenAIError(Exception):
     def __str__(self):
         msg = self._message or "<empty message>"
         if self.request_id is not None:
-            return "Request {0}: {1}".format(self.request_id, msg)
+            # return "Request {0}: {1}".format(self.request_id, msg)
+            return f"Request {self.request_id}: {msg}"
         else:
             return msg
 

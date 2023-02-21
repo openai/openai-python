@@ -292,7 +292,8 @@ class EngineAPIResource(APIResource):
         timeout = self.get("timeout")
         if timeout is not None:
             timeout = quote_plus(str(timeout))
-            url += params_connector + "timeout={}".format(timeout)
+            # url += params_connector + "timeout={}".format(timeout)
+            url += params_connector + f"timeout={timeout}"
         return url
 
     def wait(self, timeout=None):

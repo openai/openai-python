@@ -523,7 +523,8 @@ class APIRequestor:
                 timeout=request_timeout if request_timeout else TIMEOUT_SECS,
             )
         except requests.exceptions.Timeout as e:
-            raise error.Timeout("Request timed out: {}".format(e)) from e
+            # raise error.Timeout("Request timed out: {}".format(e)) from e
+            raise error.Timeout("Request timed out: {e}") # what is ^from e in the original code do?
         except requests.exceptions.RequestException as e:
             raise error.APIConnectionError(
                 "Error communicating with OpenAI: {}".format(e)

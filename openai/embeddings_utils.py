@@ -95,10 +95,12 @@ def plot_multiclass_precision_recall(
     )
     average_precision_micro = average_precision_score(y_true, y_score, average="micro")
     print(
-        str(classifier_name)
+        f"str(classifier_name) - Average precision score over all classes: {average_precision_micro:0.2f}"
+
+         """str(classifier_name)
         + " - Average precision score over all classes: {0:0.2f}".format(
             average_precision_micro
-        )
+        )"""
     )
 
     # setup plot details
@@ -110,22 +112,26 @@ def plot_multiclass_precision_recall(
         x = np.linspace(0.01, 1)
         y = f_score * x / (2 * x - f_score)
         (l,) = plt.plot(x[y >= 0], y[y >= 0], color="gray", alpha=0.2)
-        plt.annotate("f1={0:0.1f}".format(f_score), xy=(0.9, y[45] + 0.02))
+        # plt.annotate("f1={0:0.1f}".format(f_score), xy=(0.9, y[45] + 0.02))
+        plt.annotate(f"f1={f_score:0.1f}", xy=(0.9, y[45] + 0.02))
 
     lines.append(l)
     labels.append("iso-f1 curves")
     (l,) = plt.plot(recall_micro, precision_micro, color="gold", lw=2)
     lines.append(l)
     labels.append(
-        "average Precision-recall (auprc = {0:0.2f})" "".format(average_precision_micro)
+    #     "average Precision-recall (auprc = {0:0.2f})" "".format(average_precision_micro)
+        f"average Precision-recall (auprc = {average_precision_micro:0.2f})"
     )
 
     for i in range(n_classes):
         (l,) = plt.plot(recall[i], precision[i], lw=2)
         lines.append(l)
         labels.append(
-            "Precision-recall for class `{0}` (auprc = {1:0.2f})"
-            "".format(class_list[i], average_precision[i])
+            # "Precision-recall for class `{0}` (auprc = {1:0.2f})"
+            # "".format(class_list[i], average_precision[i])
+            # what is this extra double qoutes for on line 131 for? I'm assuming its a mistake
+            f"Precision-recall for class `{class_list[i]}` (auprc = {average_precision[i]:0.2f})"
         )
 
     fig = plt.gcf()
