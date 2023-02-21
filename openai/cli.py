@@ -55,7 +55,7 @@ def display_error(e):
         # "{}{}Error:{} {}{}\n".format(
         #     organization_info(e), bcolors.FAIL, bcolors.ENDC, e, extra
         # )
-        f"{organization_info(e)}{bcolors.FAIL}Error:{bcolors.ENDC} {e}"
+        f"{organization_info(e)}{bcolors.FAIL}Error:{bcolors.ENDC} {e} {extra}"
     )
 
 
