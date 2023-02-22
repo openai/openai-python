@@ -524,7 +524,7 @@ class APIRequestor:
             )
         except requests.exceptions.Timeout as e:
             # raise error.Timeout("Request timed out: {}".format(e)) from e
-            raise error.Timeout(f"Request timed out: {e}") # what is ^from e in the original code do?
+            raise error.Timeout(f"Request timed out: {e}") from e
         except requests.exceptions.RequestException as e:
             raise error.APIConnectionError(
                 # "Error communicating with OpenAI: {}".format(e)
