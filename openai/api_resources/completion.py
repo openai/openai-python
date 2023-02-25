@@ -44,7 +44,7 @@ class Completion(EngineAPIResource):
             try:
                 return await super().acreate(*args, **kwargs)
             except TryAgain as e:
-                if timeout is not None and time.time() > start + timeout:
+                if timeout and time.time() > start + timeout:
                     raise
 
                 util.log_info("Waiting for model to warm up", error=e)
