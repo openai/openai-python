@@ -7,6 +7,8 @@ from contextvars import ContextVar
 from typing import Optional, TYPE_CHECKING
 
 from openai.api_resources import (
+    Audio,
+    ChatCompletion,
     Completion,
     Customer,
     Edit,
@@ -52,6 +54,8 @@ aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
 
 __all__ = [
     "APIError",
+    "Audio",
+    "ChatCompletion",
     "Completion",
     "Customer",
     "Edit",
@@ -74,7 +78,7 @@ __all__ = [
     "app_info",
     "ca_bundle_path",
     "debug",
-    "enable_elemetry",
+    "enable_telemetry",
     "log",
     "organization",
     "proxy",

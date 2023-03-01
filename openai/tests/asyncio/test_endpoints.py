@@ -7,17 +7,18 @@ from aiohttp import ClientSession
 import openai
 from openai import error
 
-
 pytestmark = [pytest.mark.asyncio]
 
 
 # FILE TESTS
 async def test_file_upload():
     result = await openai.File.acreate(
-        file=io.StringIO(json.dumps({"text": "test file data"})),
-        purpose="search",
+        file=io.StringIO(
+            json.dumps({"prompt": "test file data", "completion": "tada"})
+        ),
+        purpose="fine-tune",
     )
-    assert result.purpose == "search"
+    assert result.purpose == "fine-tune"
     assert "id" in result
 
     result = await openai.File.aretrieve(id=result.id)

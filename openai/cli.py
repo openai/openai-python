@@ -108,6 +108,44 @@ class Engine:
         display(engines)
 
 
+class ChatCompletion:
+    @classmethod
+    def create(cls, args):
+        if args.n is not None and args.n > 1 and args.stream:
+            raise ValueError(
+                "Can't stream chat completions with n>1 with the current CLI"
+            )
+
+        messages = [
+            {"role": role, "content": content} for role, content in args.message
+        ]
+
+        resp = openai.ChatCompletion.create(
+            # Required
+            model=args.model,
+            messages=messages,
+            # Optional
+            n=args.n,
+            max_tokens=100,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            stop=args.stop,
+            stream=args.stream,
+        )
+        if not args.stream:
+            resp = [resp]
+
+        for part in resp:
+            choices = part["choices"]
+            for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
+                if len(choices) > 1:
+                    sys.stdout.write("===== Chat Completion {} =====\n".format(c_idx))
+                sys.stdout.write(c["message"]["content"])
+                if len(choices) > 1:
+                    sys.stdout.write("\n")
+                sys.stdout.flush()
+
+
 class Completion:
     @classmethod
     def create(cls, args):
@@ -251,6 +289,43 @@ class Image:
             size=args.size,
             n=args.num_images,
             response_format=args.response_format,
+        )
+        print(resp)
+
+
+class Audio:
+    @classmethod
+    def transcribe(cls, args):
+        with open(args.file, "rb") as r:
+            file_reader = BufferReader(r.read(), desc="Upload progress")
+
+        resp = openai.Audio.transcribe_raw(
+            # Required
+            model=args.model,
+            file=file_reader,
+            filename=args.file,
+            # Optional
+            response_format=args.response_format,
+            language=args.language,
+            temperature=args.temperature,
+            prompt=args.prompt,
+        )
+        print(resp)
+
+    @classmethod
+    def translate(cls, args):
+        with open(args.file, "rb") as r:
+            file_reader = BufferReader(r.read(), desc="Upload progress")
+        resp = openai.Audio.translate_raw(
+            # Required
+            model=args.model,
+            file=file_reader,
+            filename=args.file,
+            # Optional
+            response_format=args.response_format,
+            language=args.language,
+            temperature=args.temperature,
+            prompt=args.prompt,
         )
         print(resp)
 
@@ -505,7 +580,6 @@ class FineTune:
 
     @classmethod
     def prepare_data(cls, args):
-
         sys.stdout.write("Analyzing...\n")
         fname = args.file
         auto_accept = args.quiet
@@ -633,12 +707,68 @@ Mutually exclusive with `top_p`.""",
     )
     sub.set_defaults(func=Engine.generate)
 
+    # Chat Completions
+    sub = subparsers.add_parser("chat_completions.create")
+
+    sub._action_groups.pop()
+    req = sub.add_argument_group("required arguments")
+    opt = sub.add_argument_group("optional arguments")
+
+    req.add_argument(
+        "-m",
+        "--model",
+        help="The model to use.",
+        required=True,
+    )
+    req.add_argument(
+        "-g",
+        "--message",
+        action="append",
+        nargs=2,
+        metavar=("ROLE", "CONTENT"),
+        help="A message in `{role} {content}` format. Use this argument multiple times to add multiple messages.",
+        required=True,
+    )
+    opt.add_argument(
+        "-n",
+        "--n",
+        help="How many completions to generate for the conversation.",
+        type=int,
+    )
+    opt.add_argument(
+        "-M", "--max-tokens", help="The maximum number of tokens to generate.", type=int
+    )
+    opt.add_argument(
+        "-t",
+        "--temperature",
+        help="""What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
+
+Mutually exclusive with `top_p`.""",
+        type=float,
+    )
+    opt.add_argument(
+        "-P",
+        "--top_p",
+        help="""An alternative to sampling with temperature, called nucleus sampling, where the considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10%% probability mass are considered.
+
+            Mutually exclusive with `temperature`.""",
+        type=float,
+    )
+    opt.add_argument(
+        "--stop",
+        help="A stop sequence at which to stop generating tokens for the message.",
+    )
+    opt.add_argument(
+        "--stream", help="Stream messages as they're ready.", action="store_true"
+    )
+    sub.set_defaults(func=ChatCompletion.create)
+
     # Completions
     sub = subparsers.add_parser("completions.create")
     sub.add_argument(
         "-e",
         "--engine",
-        help="The engine to use. See https://beta.openai.com/docs/engines for more about what engines are available.",
+        help="The engine to use. See https://platform.openai.com/docs/engines for more about what engines are available.",
     )
     sub.add_argument(
         "-m",
@@ -725,7 +855,7 @@ Mutually exclusive with `top_p`.""",
     sub.add_argument(
         "-p",
         "--purpose",
-        help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
+        help="Why are you uploading this file? (see https://platform.openai.com/docs/api-reference/ for purposes)",
         required=True,
     )
     sub.set_defaults(func=File.create)
@@ -923,6 +1053,30 @@ Mutually exclusive with `top_p`.""",
     )
     sub.add_argument("--response-format", type=str, default="url")
     sub.set_defaults(func=Image.create_variation)
+
+    # Audio
+    # transcriptions
+    sub = subparsers.add_parser("audio.transcribe")
+    # Required
+    sub.add_argument("-m", "--model", type=str, default="whisper-1")
+    sub.add_argument("-f", "--file", type=str, required=True)
+    # Optional
+    sub.add_argument("--response-format", type=str)
+    sub.add_argument("--language", type=str)
+    sub.add_argument("-t", "--temperature", type=float)
+    sub.add_argument("--prompt", type=str)
+    sub.set_defaults(func=Audio.transcribe)
+    # translations
+    sub = subparsers.add_parser("audio.translate")
+    # Required
+    sub.add_argument("-m", "--model", type=str, default="whisper-1")
+    sub.add_argument("-f", "--file", type=str, required=True)
+    # Optional
+    sub.add_argument("--response-format", type=str)
+    sub.add_argument("--language", type=str)
+    sub.add_argument("-t", "--temperature", type=float)
+    sub.add_argument("--prompt", type=str)
+    sub.set_defaults(func=Audio.translate)
 
 
 def wandb_register(parser):

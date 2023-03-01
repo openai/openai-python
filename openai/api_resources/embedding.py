@@ -16,7 +16,7 @@ class Embedding(EngineAPIResource):
         """
         Creates a new embedding for the provided input and parameters.
 
-        See https://beta.openai.com/docs/api-reference/embeddings for a list
+        See https://platform.openai.com/docs/api-reference/embeddings for a list
         of valid parameters.
         """
         start = time.time()
@@ -56,7 +56,7 @@ class Embedding(EngineAPIResource):
         """
         Creates a new embedding for the provided input and parameters.
 
-        See https://beta.openai.com/docs/api-reference/embeddings for a list
+        See https://platform.openai.com/docs/api-reference/embeddings for a list
         of valid parameters.
         """
         start = time.time()
