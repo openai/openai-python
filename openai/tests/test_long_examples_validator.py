@@ -4,7 +4,12 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from openai.datalib import HAS_PANDAS, HAS_NUMPY, NUMPY_INSTRUCTIONS, PANDAS_INSTRUCTIONS
+from openai.datalib import (
+    HAS_NUMPY,
+    HAS_PANDAS,
+    NUMPY_INSTRUCTIONS,
+    PANDAS_INSTRUCTIONS,
+)
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)
@@ -29,7 +34,8 @@ def test_long_examples_validator() -> None:
         {"prompt": long_prompt, "completion": long_completion},  # 2 of 2 duplicates
     ]
 
-    with NamedTemporaryFile(suffix="jsonl", mode="w") as training_data:
+    with NamedTemporaryFile(suffix=".jsonl", mode="w") as training_data:
+        print(training_data.name)
         for prompt_completion_row in unprepared_training_data:
             training_data.write(json.dumps(prompt_completion_row) + "\n")
             training_data.flush()

@@ -45,7 +45,7 @@ pip install openai[datalib]
 
 ## Usage
 
-The library needs to be configured with your account's secret key which is available on the [website](https://beta.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:
+The library needs to be configured with your account's secret key which is available on the [website](https://platform.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:
 
 ```bash
 export OPENAI_API_KEY='sk-...'
@@ -57,14 +57,14 @@ Or set `openai.api_key` to its value:
 import openai
 openai.api_key = "sk-..."
 
-# list engines
-engines = openai.Engine.list()
+# list models
+models = openai.Model.list()
 
-# print the first engine's id
-print(engines.data[0].id)
+# print the first model's id
+print(models.data[0].id)
 
 # create a completion
-completion = openai.Completion.create(engine="ada", prompt="Hello world")
+completion = openai.Completion.create(model="ada", prompt="Hello world")
 
 # print the completion
 print(completion.choices[0].text)
@@ -127,11 +127,14 @@ which makes it easy to interact with the API from your terminal. Run
 `openai api -h` for usage.
 
 ```sh
-# list engines
-openai api engines.list
+# list models
+openai api models.list
 
 # create a completion
-openai api completions.create -e ada -p "Hello world"
+openai api completions.create -m ada -p "Hello world"
+
+# create a chat completion
+openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
 
 # generate images via DALL·E API
 openai api image.create -p "two dogs playing chess, cartoon" -n 1
@@ -152,6 +155,18 @@ Examples of how to use this Python library to accomplish various tasks can be fo
 
 Prior to July 2022, this OpenAI Python library hosted code examples in its examples folder, but since then all examples have been migrated to the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
+### Chat
+
+Conversational models such as `gpt-3.5-turbo` can be called using the chat completions endpoint.
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world!"}])
+print(completion.choices[0].message.content)
+```
+
 ### Embeddings
 
 In the OpenAI Python library, an embedding represents a text string as a fixed-length vector of floating point numbers. Embeddings are designed to measure the similarity or relevance between text strings.
@@ -169,7 +184,7 @@ text_string = "sample text"
 model_id = "text-similarity-davinci-001"
 
 # compute the embedding of the text
-embedding = openai.Embedding.create(input=text_string, engine=model_id)['data'][0]['embedding']
+embedding = openai.Embedding.create(input=text_string, model=model_id)['data'][0]['embedding']
 ```
 
 An example of how to call the embeddings method is shown in this [get embeddings notebook](https://github.com/openai/openai-cookbook/blob/main/examples/Get_embeddings.ipynb).
@@ -208,7 +223,7 @@ For more information on fine-tuning, read the [fine-tuning guide](https://beta.o
 
 ### Moderation
 
-OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://beta.openai.com/docs/usage-policies)
+OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies)
 
 ```python
 import openai
@@ -217,7 +232,7 @@ openai.api_key = "sk-..."  # supply your API key however you choose
 moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
 ```
 
-See the [moderation guide](https://beta.openai.com/docs/guides/moderation) for more details.
+See the [moderation guide](https://platform.openai.com/docs/guides/moderation) for more details.
 
 ## Image generation (DALL·E)
 
@@ -226,6 +241,15 @@ import openai
 openai.api_key = "sk-..."  # supply your API key however you choose
 
 image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
+
+```
+
+## Audio transcription (Whisper)
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+f = open("path/to/file.mp3", "rb")
+transcript = openai.Audio.transcribe("whisper-1", f)
 
 ```
 
@@ -238,7 +262,7 @@ import openai
 openai.api_key = "sk-..."  # supply your API key however you choose
 
 async def create_completion():
-    completion_resp = await openai.Completion.acreate(prompt="This is a test", engine="davinci")
+    completion_resp = await openai.Completion.acreate(prompt="This is a test", model="davinci")
 
 ```
 
@@ -255,7 +279,7 @@ openai.aiosession.set(ClientSession())
 await openai.aiosession.get().close()
 ```
 
-See the [usage guide](https://beta.openai.com/docs/guides/images) for more details.
+See the [usage guide](https://platform.openai.com/docs/guides/images) for more details.
 
 ## Requirements
 

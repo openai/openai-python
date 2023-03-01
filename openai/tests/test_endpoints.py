@@ -22,6 +22,32 @@ def test_file_upload():
     assert result.status == "uploaded"
 
 
+# CHAT COMPLETION TESTS
+def test_chat_completions():
+    result = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello!"}]
+    )
+    assert len(result.choices) == 1
+
+
+def test_chat_completions_multiple():
+    result = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello!"}], n=5
+    )
+    assert len(result.choices) == 5
+
+
+def test_chat_completions_streaming():
+    result = None
+    events = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[{"role": "user", "content": "Hello!"}],
+        stream=True,
+    )
+    for result in events:
+        assert len(result.choices) == 1
+
+
 # COMPLETION TESTS
 def test_completions():
     result = openai.Completion.create(prompt="This was a test", n=5, engine="ada")
