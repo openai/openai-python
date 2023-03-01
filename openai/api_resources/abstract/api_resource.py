@@ -16,7 +16,7 @@ class APIResource(OpenAIObject):
     def retrieve(
         cls, id, api_key=None, request_id=None, request_timeout=None, **params
     ):
-        instance = cls(id, api_key, **params)
+        instance = cls(id=id, api_key=api_key, **params)
         instance.refresh(request_id=request_id, request_timeout=request_timeout)
         return instance
 
@@ -24,7 +24,7 @@ class APIResource(OpenAIObject):
     def aretrieve(
         cls, id, api_key=None, request_id=None, request_timeout=None, **params
     ):
-        instance = cls(id, api_key, **params)
+        instance = cls(id=id, api_key=api_key, **params)
         return instance.arefresh(request_id=request_id, request_timeout=request_timeout)
 
     def refresh(self, request_id=None, request_timeout=None):
