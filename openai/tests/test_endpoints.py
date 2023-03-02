@@ -78,7 +78,7 @@ def test_timeout_raises_error():
             request_timeout=0.01,
         )
 
-def test_calling_turbo_raises_helpful_error():
+def test_calling_chat_completion_incorrectly_raises_helpful_error():
     with pytest.raises(error.InvalidRequestError) as excinfo:
         openai.Completion.create(
             prompt="test",
