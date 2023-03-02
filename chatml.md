@@ -7,7 +7,7 @@ option in the future!)
 Traditionally, GPT models consumed unstructured text. ChatGPT models
 instead expect a structured format, called Chat Markup Language
 (ChatML for short).
-ChatML documents consists of a sequence of messages. Each message
+ChatML documents consist of a sequence of messages. Each message
 contains a header (which today consists of who said it, but in the
 future will contain other metadata) and contents (which today is a
 text payload, but in the future will contain other datatypes).
