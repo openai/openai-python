@@ -90,4 +90,4 @@ If adding instructions in the `system` message doesn't work, you can
 also try putting them into a `user` message.  (In the near future, we
 will train our models to be much more steerable via the system
 message. But to date, we have trained only on a few system messages,
-so the models pay much most attention to user examples.)
+so the models pay much more attention to user examples.)
