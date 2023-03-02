@@ -1,7 +1,7 @@
 (This document is a preview of the underlying format consumed by
 ChatGPT models. As a developer, you can use our [higher-level
 API](https://platform.openai.com/docs/guides/chat) and won't need to
-iteract directly with this format today — but expect to have the
+interact directly with this format today — but expect to have the
 option in the future!)
 
 Traditionally, GPT models consumed unstructured text. ChatGPT models
