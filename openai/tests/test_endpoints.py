@@ -78,6 +78,13 @@ def test_timeout_raises_error():
             request_timeout=0.01,
         )
 
+def test_calling_turbo_raises_helpful_error():
+    with pytest.raises(error.InvalidRequestError) as excinfo:
+        openai.Completion.create(
+            prompt="test",
+            model="gpt-3.5-turbo",
+        )
+    assert "ChatCompletion" in str(excinfo.value)
 
 def test_timeout_does_not_error():
     # A query that should be fast

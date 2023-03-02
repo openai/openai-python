@@ -340,6 +340,10 @@ class APIRequestor:
 
         if "internal_message" in error_data:
             error_data["message"] += "\n\n" + error_data["internal_message"]
+        if "Did you mean to use v1/chat/completions?" in error_data["message"]:
+            error_data["message"] = "Please use ChatCompletion instead of Completion when using the"\
+                                    "'gpt-3.5-turbo' models. For more information see "\
+                                    "https://platform.openai.com/docs/guides/chat/introduction."
 
         util.log_info(
             "OpenAI API error received",
