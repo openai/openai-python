@@ -289,6 +289,10 @@ In general, we want to support the versions of Python that our
 customers are using. If you run into problems with any version
 issues, please let us know at on our [support page](https://help.openai.com/en/).
 
+
+## Contributing
+Please refer to the [contributing-guide](contributing.md).
+
 ## Credit
 
 This library is forked from the [Stripe Python Library](https://github.com/stripe/stripe-python).
