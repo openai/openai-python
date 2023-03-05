@@ -274,9 +274,8 @@ of your program/event loop:
 import openai
 from aiohttp import ClientSession
 
-openai.aiosession.set(ClientSession())
-# At the end of your program, close the http session
-await openai.aiosession.get().close()
+async with ClientSession() as session:
+    openai.aiosession.set(session)
 ```
 
 See the [usage guide](https://platform.openai.com/docs/guides/images) for more details.
