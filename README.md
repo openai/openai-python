@@ -42,11 +42,21 @@ Install support for [Weights & Biases](https://wandb.me/openai-docs):
 pip install openai[wandb]
 ```
 
+If you receive an error message stating: _no matches found: openai[wandb]_, try running:
+```sh
+pip install openai"[wandb]"
+```
+
 Data libraries like `numpy` and `pandas` are not installed by default due to their size. They’re needed for some functionality of this library, but generally not for talking to the API. If you encounter a `MissingDependencyError`, install them with:
 
 ```sh
 pip install openai[datalib]
 ````
+
+If you receive an error message stating: _no matches found: openai[datalib]_, try running:
+```sh
+pip install openai"[datalib]"
+```
 
 ## Usage
 
