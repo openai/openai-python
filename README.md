@@ -31,6 +31,11 @@ Install dependencies for [`openai.embeddings_utils`](openai/embeddings_utils.py)
 pip install openai[embeddings]
 ```
 
+If you receive an error message stating: _no matches found: openai[embeddings]_, try running:
+```sh
+pip install openai"[embeddings]"
+```
+
 Install support for [Weights & Biases](https://wandb.me/openai-docs):
 
 ```
@@ -267,7 +272,7 @@ async def create_completion():
 ```
 
 To make async requests more efficient, you can pass in your own
-``aiohttp.ClientSession``, but you must manually close the client session at the end 
+``aiohttp.ClientSession``, but you must manually close the client session at the end
 of your program/event loop:
 
 ```python
