@@ -135,6 +135,7 @@ class APIRequestor:
         )
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
+
     @classmethod
     def format_app_info(cls, info):
         str = info["name"]
