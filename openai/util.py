@@ -188,9 +188,4 @@ def default_api_key() -> str:
         )
 
 
-class ResponseFormat(Enum):
-    JSON = "json"
-    TEXT = "text"
-    SRT = "srt"
-    VERBOSE_JSON = "verbose_json"
-    VTT = "vtt"
+

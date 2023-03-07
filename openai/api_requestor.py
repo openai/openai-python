@@ -125,7 +125,6 @@ class APIRequestor:
         api_type=None,
         api_version=None,
         organization=None,
-        response_format=None
     ):
         self.api_base = api_base or openai.api_base
         self.api_key = key or util.default_api_key()
@@ -136,7 +135,6 @@ class APIRequestor:
         )
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
-        self.response_format = response_format
     @classmethod
     def format_app_info(cls, info):
         str = info["name"]
@@ -667,10 +665,10 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            if self.response_format == ResponseFormat.JSON or self.response_format == ResponseFormat.VERBOSE_JSON:
-                data = json.loads(rbody)
-            else:
+            if 'text/plain' in rheaders.get('Content-Type'):
                 data = rbody
+            else:
+                data = json.loads(rbody)
         except (JSONDecodeError, UnicodeDecodeError) as e:
             raise error.APIError(
                 f"HTTP code {rcode} from API ({rbody})", rbody, rcode, headers=rheaders
