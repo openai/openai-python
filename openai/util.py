@@ -99,12 +99,12 @@ def get_object_classes():
 
 
 def convert_to_openai_object(
-        resp,
-        api_key=None,
-        api_version=None,
-        organization=None,
-        engine=None,
-        plain_old_data=False,
+    resp,
+    api_key=None,
+    api_version=None,
+    organization=None,
+    engine=None,
+    plain_old_data=False,
 ):
     # If we get a OpenAIResponse, we'll want to return a OpenAIObject.
 
@@ -124,7 +124,7 @@ def convert_to_openai_object(
             for i in resp
         ]
     elif isinstance(resp, dict) and not isinstance(
-            resp, openai.openai_object.OpenAIObject
+        resp, openai.openai_object.OpenAIObject
     ):
         resp = resp.copy()
         klass_name = resp.get("object")
@@ -186,6 +186,3 @@ def default_api_key() -> str:
         raise openai.error.AuthenticationError(
             "No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://onboard.openai.com for details, or email support@openai.com if you have any questions."
         )
-
-
-
