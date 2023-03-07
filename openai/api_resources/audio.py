@@ -31,6 +31,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            response_format=params["response_format"]
         )
         files: List[Any] = []
         data = {

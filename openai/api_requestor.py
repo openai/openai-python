@@ -29,7 +29,7 @@ else:
 import openai
 from openai import error, util, version
 from openai.openai_response import OpenAIResponse
-from openai.util import ApiType
+from openai.util import ApiType, ResponseFormat
 
 TIMEOUT_SECS = 600
 MAX_CONNECTION_RETRIES = 2
@@ -125,6 +125,7 @@ class APIRequestor:
         api_type=None,
         api_version=None,
         organization=None,
+        response_format=None
     ):
         self.api_base = api_base or openai.api_base
         self.api_key = key or util.default_api_key()
@@ -135,7 +136,7 @@ class APIRequestor:
         )
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
-
+        self.response_format = response_format
     @classmethod
     def format_app_info(cls, info):
         str = info["name"]
@@ -666,7 +667,7 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            if rheaders.get('Content-Type') == 'application/json':
+            if self.response_format == ResponseFormat.JSON or self.response_format == ResponseFormat.VERBOSE_JSON:
                 data = json.loads(rbody)
             else:
                 data = rbody
