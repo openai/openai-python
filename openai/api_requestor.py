@@ -666,7 +666,10 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            data = json.loads(rbody)
+            if 'text/plain' in rheaders.get('Content-Type'):
+                data = rbody
+            else:
+                data = json.loads(rbody)
         except (JSONDecodeError, UnicodeDecodeError) as e:
             raise error.APIError(
                 f"HTTP code {rcode} from API ({rbody})", rbody, rcode, headers=rheaders
