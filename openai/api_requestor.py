@@ -1,5 +1,6 @@
 import asyncio
 import json
+import time
 import platform
 import sys
 import threading
@@ -144,6 +145,36 @@ class APIRequestor:
         if info["url"]:
             str += " (%s)" % (info["url"],)
         return str
+    
+    def poll(
+        self,
+        method,
+        url,
+        until,
+        params = None,
+        headers = None,
+        interval = None
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        response, b, api_key = self.request(method, url, params, headers)
+        while not until(response):
+            time.sleep(interval or response.retry_after or 1)
+            response, b, api_key = self.request(method, url)
+        return response, b, api_key
+    
+    async def apoll(
+        self,
+        method,
+        url,
+        until,
+        params = None,
+        headers = None,
+        interval = None
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        response, b, api_key = await self.arequest(method, url, params, headers)
+        while not until(response):
+            await asyncio.sleep(interval or response.retry_after or 1)
+            response, b, api_key = await self.arequest(method, url)
+        return response, b, api_key
 
     @overload
     def request(

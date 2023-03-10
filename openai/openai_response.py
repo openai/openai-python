@@ -9,6 +9,13 @@ class OpenAIResponse:
     @property
     def request_id(self) -> Optional[str]:
         return self._headers.get("request-id")
+    
+    @property
+    def retry_after(self) -> Optional[str]:
+        try:
+            return int(self._headers.get("retry-after"))
+        except ValueError:
+            return None
 
     @property
     def organization(self) -> Optional[str]:
