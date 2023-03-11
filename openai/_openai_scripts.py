@@ -4,6 +4,7 @@ import logging
 import sys
 
 import openai
+from openai import version
 from openai.cli import api_register, display_error, tools_register, wandb_register
 
 logger = logging.getLogger()
@@ -15,6 +16,12 @@ logger.addHandler(handler)
 
 def main():
     parser = argparse.ArgumentParser(description=None)
+    parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version="%(prog)s " + version.VERSION,
+    )
     parser.add_argument(
         "-v",
         "--verbose",
