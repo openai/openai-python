@@ -11,7 +11,7 @@ class OpenAIResponse:
         return self._headers.get("request-id")
     
     @property
-    def retry_after(self) -> Optional[str]:
+    def retry_after(self) -> Optional[int]:
         try:
             return int(self._headers.get("retry-after"))
         except ValueError:
