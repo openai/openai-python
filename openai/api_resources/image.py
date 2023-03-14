@@ -4,11 +4,24 @@ from typing import Any, List
 import openai
 from openai import api_requestor, util
 from openai.api_resources.abstract import APIResource
-from openai.error import APIError
+from openai.util import ApiType
 
 
 class Image(APIResource):
     OBJECT_NAME = "images"
+
+    _azure_preview_version = "2022-11-23-preview"
+
+    @classmethod
+    def _get_api_type_and_version(
+        cls, api_type = None, api_version = None
+    ):
+        api_type, base_api_version = super()._get_api_type_and_version()
+        if api_type in (ApiType.AZURE, ApiType.AZURE_AD):
+            # This override is only temporary: DallE and GPT endpoint versioning is currently out of sync but will be aligned soon.
+            return (api_type, api_version or Image._azure_preview_version)
+        else:
+            return (api_type, base_api_version)
 
     @classmethod
     def _get_url(cls, openai_action, azure_action, api_type, api_version):
@@ -19,7 +32,7 @@ class Image(APIResource):
         
     @classmethod
     def _get_azure_operations_url(cls, operation_id, api_version):
-        return "/%s/operations/%s?api-version=%s" % (cls.azure_dalle_prefix, operation_id, api_version)
+        return f"/{cls.azure_dalle_prefix}/operations/{operation_id}?api-version={api_version}"
 
     @classmethod
     def create(
