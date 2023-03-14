@@ -287,7 +287,7 @@ See the [usage guide](https://platform.openai.com/docs/guides/images) for more d
 
 In general, we want to support the versions of Python that our
 customers are using. If you run into problems with any version
-issues, please let us know at on our [support page](https://help.openai.com/en/).
+issues, please let us know on our [support page](https://help.openai.com/en/).
 
 ## Credit
 
