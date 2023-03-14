@@ -60,7 +60,11 @@ class Image(APIResource):
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             url = cls._get_azure_operations_url(response.data['id'], api_version)
-            response, _, api_key = requestor.poll("get", url, until=lambda response: response.data["status"] not in ["NotStarted", "Running"])
+            response, _, api_key = requestor.poll(
+                "get", url,
+                until=lambda response: response.data["status"] not in ["NotStarted", "Running"],
+                delay=response.retry_after
+            )
 
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -93,7 +97,11 @@ class Image(APIResource):
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             url = cls._get_azure_operations_url(response.data['id'], api_version)
-            response, _, api_key = requestor.poll("get", url, until=lambda response: response.data["status"] not in ["NotStarted", "Running"])
+            response, _, api_key = await requestor.apoll(
+                "get", url,
+                until=lambda response: response.data["status"] not in ["NotStarted", "Running"],
+                delay=response.retry_after
+            )
 
         return util.convert_to_openai_object(
             response, api_key, api_version, organization

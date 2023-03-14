@@ -153,8 +153,12 @@ class APIRequestor:
         until,
         params = None,
         headers = None,
-        interval = None
+        interval = None,
+        delay = None
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        if delay:
+            time.sleep(delay)
+
         response, b, api_key = self.request(method, url, params, headers)
         while not until(response):
             time.sleep(interval or response.retry_after or 1)
@@ -168,8 +172,12 @@ class APIRequestor:
         until,
         params = None,
         headers = None,
-        interval = None
+        interval = None,
+        delay = None
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        if delay:
+            await asyncio.sleep(delay)
+    
         response, b, api_key = await self.arequest(method, url, params, headers)
         while not until(response):
             await asyncio.sleep(interval or response.retry_after or 1)
