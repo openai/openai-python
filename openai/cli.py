@@ -140,7 +140,8 @@ class ChatCompletion:
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
                     sys.stdout.write("===== Chat Completion {} =====\n".format(c_idx))
-                sys.stdout.write(c["message"]["content"])
+                if "delta" in c and "content" in c["delta"]:
+                    sys.stdout.write(c["delta"]["content"])
                 if len(choices) > 1:
                     sys.stdout.write("\n")
                 sys.stdout.flush()
