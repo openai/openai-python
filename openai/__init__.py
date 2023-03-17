@@ -37,7 +37,7 @@ organization = os.environ.get("OPENAI_ORGANIZATION")
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
 api_type = os.environ.get("OPENAI_API_TYPE", "open_ai")
 api_version = (
-    "2022-12-01" if api_type in ("azure", "azure_ad", "azuread") else None
+    "2023-03-15-preview" if api_type in ("azure", "azure_ad", "azuread") else None
 )
 verify_ssl_certs = True  # No effect. Certificates are always verified.
 proxy = None

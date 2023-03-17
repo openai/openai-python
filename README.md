@@ -84,10 +84,10 @@ import openai
 openai.api_type = "azure"
 openai.api_key = "..."
 openai.api_base = "https://example-endpoint.openai.azure.com"
-openai.api_version = "2022-12-01"
+openai.api_version = "2023-03-15-preview"
 
 # create a completion
-completion = openai.Completion.create(engine="deployment-name", prompt="Hello world")
+completion = openai.Completion.create(deployment_id="deployment-name", prompt="Hello world")
 
 # print the completion
 print(completion.choices[0].text)
@@ -116,7 +116,7 @@ token = default_credential.get_token("https://cognitiveservices.azure.com/.defau
 openai.api_type = "azure_ad"
 openai.api_key = token.token
 openai.api_base = "https://example-endpoint.openai.azure.com/"
-openai.api_version = "2022-12-01"
+openai.api_version = "2023-03-15-preview"
 
 # ...
 ```
