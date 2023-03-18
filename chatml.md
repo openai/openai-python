@@ -28,8 +28,8 @@ follows:
 ]
 ```
 You could also represent it in the classic "unsafe raw string"
-format. Note this format inherently allows injections from user input
-containing special-token syntax, similar to a SQL injections:
+format. However, this format inherently allows injections from user
+input containing special-token syntax, similar to SQL injections:
 ```
 <|im_start|>system
 You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible.
