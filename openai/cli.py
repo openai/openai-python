@@ -140,9 +140,16 @@ class ChatCompletion:
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
                     sys.stdout.write("===== Chat Completion {} =====\n".format(c_idx))
-                sys.stdout.write(c["message"]["content"])
-                if len(choices) > 1:
-                    sys.stdout.write("\n")
+                if args.stream:
+                    delta = c["delta"]
+                    if "content" in delta:
+                        sys.stdout.write(delta["content"])
+                    elif "role" in delta:
+                        sys.stdout.write(delta["role"] + ':')
+                else:
+                    sys.stdout.write(c["message"]["content"])
+                    if len(choices) > 1: # not in streams
+                        sys.stdout.write("\n")
                 sys.stdout.flush()
 
 
