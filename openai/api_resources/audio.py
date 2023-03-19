@@ -52,7 +52,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("transcriptions")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
@@ -71,7 +73,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("translations")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
@@ -91,7 +95,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, filename, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("transcriptions")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
@@ -111,7 +117,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, filename, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("translations")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
@@ -130,7 +138,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("transcriptions")
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
@@ -151,7 +161,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("translations")
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
@@ -173,7 +185,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, filename, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("transcriptions")
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
@@ -195,7 +209,9 @@ class Audio(APIResource):
         organization=None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, filename, model, **params)
+        requestor, files, data = cls._prepare_request(
+            file, file.name, model, api_key, api_base, api_type, api_version, **params
+        )
         url = cls._get_url("translations")
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
