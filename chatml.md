@@ -4,6 +4,11 @@ API](https://platform.openai.com/docs/guides/chat) and won't need to
 interact directly with this format today — but expect to have the
 option in the future!)
 
+Note: This document showcases the underlying format consumed by
+ChatGPT models when GPT-3.5-Turbo was released. It may not be up to date with 
+our current models and should not be relied on for correctness but rather used 
+to build a mental model of what is happening behind the scenes.
+
 Traditionally, GPT models consumed unstructured text. ChatGPT models
 instead expect a structured format, called Chat Markup Language
 (ChatML for short).
