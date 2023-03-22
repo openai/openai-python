@@ -558,15 +558,23 @@ class APIRequestor:
             url, supplied_headers, method, params, files, request_id
         )
 
-        if isinstance(request_timeout, tuple):
-            timeout = aiohttp.ClientTimeout(
-                connect=request_timeout[0],
-                total=request_timeout[1],
-            )
-        else:
-            timeout = aiohttp.ClientTimeout(
-                total=request_timeout if request_timeout else TIMEOUT_SECS
-            )
+        kwargs = {
+            "total": TIMEOUT_SECS,
+            "connect": None,
+            "sock_read": None,
+            "sock_connect": None,
+        }
+
+        if isinstance(request_timeout, float):
+            request_timeout = (None, request_timeout)
+
+        for i, timeout in enumerate(request_timeout):
+            try:
+                timeout_keys = ["connect", "total", "sock_read", "sock_connect"]
+                kwargs[timeout_keys[i]] = timeout
+            except IndexError:
+                break
+        timeout = aiohttp.ClientTimeout(**kwargs)
 
         if files:
             # TODO: Use `aiohttp.MultipartWriter` to create the multipart form data here.
