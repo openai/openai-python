@@ -1,0 +1,38 @@
+{
+    "image": "mcr.microsoft.com/devcontainers/python:0-3.8",
+    "name": "openai-python",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "mutantdino.resourcemonitor",
+                "Alpha4.jsonl",
+                "ms-toolsai.jupyter@2023.3.1000771902"
+            ],
+            "settings": {
+                "[python]": {
+                    "editor.codeActionsOnSave": {
+                        "source.organizeImports": true
+                    },
+                    "editor.formatOnSave": true
+                },
+                "isort.args": [
+                    "--py 36",
+                    "--trailing-comma",
+                    "--line-length 88",
+                    "--multi-line 3"
+                ],
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.formatting.blackArgs": [
+                    "--target-version py36",
+                    "--exclude=\".*\\.ipynb\""
+                ],
+                "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+                "python.formatting.provider": "black"
+            }
+        }
+    },
+    "onCreateCommand": "sudo cp .devcontainer/first-run-notice.txt /usr/local/etc/vscode-dev-containers/first-run-notice.txt && if [ ! -d \"/workspaces/openai-cookbook\" ]; then git clone https://github.com/openai/openai-cookbook.git /workspaces/openai-cookbook; fi",
+    "updateContentCommand": "python3.8 -m pip install --upgrade pip;python3.8 -m pip install -r /workspaces/openai-python/.devcontainer/requirements.txt"
+}
