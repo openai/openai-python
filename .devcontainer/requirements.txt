@@ -12,7 +12,6 @@ matplotlib
 nltk
 notebook
 numpy
-openai
 openai[dev,datalib,wandb,embeddings]
 openpyxl
 pandas
