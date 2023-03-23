@@ -14,7 +14,7 @@ class Image(APIResource):
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             return f"/{cls.azure_dalle_prefix}{cls.class_url()}/{azure_action}?api-version={api_version}"
         else:
-            return cls.class_url() + f"/{openai_action}"
+            return f"{cls.class_url()}/{openai_action}"
         
     @classmethod
     def _get_azure_operations_url(cls, operation_id, api_version):
