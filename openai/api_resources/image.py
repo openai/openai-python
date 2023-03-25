@@ -12,13 +12,13 @@ class Image(APIResource):
     @classmethod
     def _get_url(cls, openai_action, azure_action, api_type, api_version):
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            return f"/{cls.azure_dalle_prefix}{cls.class_url()}/{azure_action}?api-version={api_version}"
+            return f"/{cls.azure_api_prefix}{cls.class_url()}/{azure_action}?api-version={api_version}"
         else:
             return f"{cls.class_url()}/{openai_action}"
         
     @classmethod
     def _get_azure_operations_url(cls, operation_id, api_version):
-        return f"/{cls.azure_dalle_prefix}/operations/{operation_id}?api-version={api_version}"
+        return f"/{cls.azure_api_prefix}/operations/{operation_id}?api-version={api_version}"
 
     @classmethod
     def create(

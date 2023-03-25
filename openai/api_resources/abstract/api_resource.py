@@ -10,7 +10,6 @@ from typing import Optional
 class APIResource(OpenAIObject):
     api_prefix = ""
     azure_api_prefix = "openai"
-    azure_dalle_prefix = "dalle"
     azure_deployments_prefix = "deployments"
 
     @classmethod
