@@ -515,8 +515,8 @@ class APIRequestor:
                 abs_url = _build_api_url(abs_url, encoded_params)
         elif method in {"post", "put"}:
             if params and files:
-                raise ValueError("At most one of params and files may be specified.")
-            if params:
+                data = params
+            if params and not files:
                 data = json.dumps(params).encode()
                 headers["Content-Type"] = "application/json"
         else:
@@ -705,7 +705,10 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            data = json.loads(rbody)
+            if 'text/plain' in rheaders.get('Content-Type'):
+                data = rbody
+            else:
+                data = json.loads(rbody)
         except (JSONDecodeError, UnicodeDecodeError) as e:
             raise error.APIError(
                 f"HTTP code {rcode} from API ({rbody})", rbody, rcode, headers=rheaders
