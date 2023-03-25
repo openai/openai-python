@@ -15,10 +15,6 @@ class Image(APIResource):
             return f"/{cls.azure_api_prefix}{cls.class_url()}/{azure_action}?api-version={api_version}"
         else:
             return f"{cls.class_url()}/{openai_action}"
-        
-    @classmethod
-    def _get_azure_operations_url(cls, operation_id, api_version):
-        return f"/{cls.azure_api_prefix}/operations/{operation_id}?api-version={api_version}"
 
     @classmethod
     def create(
@@ -45,9 +41,9 @@ class Image(APIResource):
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            url = cls._get_azure_operations_url(response.data['id'], api_version)
+            requestor.api_base = "" # operation_location is a full url
             response, _, api_key = requestor.poll(
-                "get", url,
+                "get", response.operation_location,
                 until=lambda response: response.data["status"] not in ["NotStarted", "Running"],
                 delay=response.retry_after
             )
@@ -81,10 +77,10 @@ class Image(APIResource):
             "post", cls._get_url("generations", "generate", api_type=api_type, api_version=api_version), params
         )
 
-        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            url = cls._get_azure_operations_url(response.data['id'], api_version)
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD): 
+            requestor.api_base = "" # operation_location is a full url
             response, _, api_key = await requestor.apoll(
-                "get", url,
+                "get", response.operation_location,
                 until=lambda response: response.data["status"] not in ["NotStarted", "Running"],
                 delay=response.retry_after
             )

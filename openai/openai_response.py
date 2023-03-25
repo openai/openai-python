@@ -16,6 +16,10 @@ class OpenAIResponse:
             return int(self._headers.get("retry-after"))
         except ValueError:
             return None
+        
+    @property
+    def operation_location(self) -> Optional[str]:
+        return self._headers.get("operation-location")
 
     @property
     def organization(self) -> Optional[str]:
