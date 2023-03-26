@@ -705,7 +705,7 @@ Mutually exclusive with `top_p`.""",
         required=False,
         help="A model (most commonly a model ID) to generate from. Defaults to the engine's default model.",
     )
-    sub.set_defaults(func=Engine.generate)
+    sub.set_defaults(func=Completion.create)
 
     # Chat Completions
     sub = subparsers.add_parser("chat_completions.create")
