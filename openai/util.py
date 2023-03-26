@@ -2,8 +2,9 @@ import logging
 import os
 import re
 import sys
+from collections.abc import Mapping
 from enum import Enum
-from typing import Optional
+from typing import Optional, Any, List, Tuple
 
 import openai
 
@@ -171,6 +172,19 @@ def merge_dicts(x, y):
     z = x.copy()
     z.update(y)
     return z
+
+
+def to_key_val_list(value: Any) -> Optional[List[Tuple[str, Any]]]:
+    if value is None:
+        return None
+
+    if isinstance(value, (str, bytes, bool, int)):
+        raise ValueError("cannot encode objects that are not 2-tuples")
+
+    if isinstance(value, Mapping):
+        value = value.items()
+
+    return list(value)
 
 
 def default_api_key() -> str:

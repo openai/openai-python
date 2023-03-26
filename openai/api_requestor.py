@@ -15,6 +15,7 @@ from typing import (
     Tuple,
     Union,
     overload,
+    Any,
 )
 from urllib.parse import urlencode, urlsplit, urlunsplit
 
@@ -29,7 +30,7 @@ else:
 import openai
 from openai import error, util, version
 from openai.openai_response import OpenAIResponse
-from openai.util import ApiType
+from openai.util import ApiType, to_key_val_list
 
 TIMEOUT_SECS = 600
 MAX_CONNECTION_RETRIES = 2
@@ -569,12 +570,8 @@ class APIRequestor:
             )
 
         if files:
-            # TODO: Use `aiohttp.MultipartWriter` to create the multipart form data here.
-            # For now we use the private `requests` method that is known to have worked so far.
-            data, content_type = requests.models.RequestEncodingMixin._encode_files(  # type: ignore
-                files, data
-            )
-            headers["Content-Type"] = content_type
+            data = _aiohttp_encode_formdata(files, data)
+
         request_kwargs = {
             "method": method,
             "url": abs_url,
@@ -683,6 +680,38 @@ class APIRequestor:
                 rbody, rcode, resp.data, rheaders, stream_error=stream_error
             )
         return resp
+
+
+def _aiohttp_encode_formdata(files: Any, data: Any) -> aiohttp.FormData:
+    if not files:
+        raise ValueError("Files must be provided.")
+    elif isinstance(data, (str, bytes, bytearray)):
+        raise ValueError("Data must not be a string.")
+
+    form_data = aiohttp.FormData(charset="utf-8")
+    fields = to_key_val_list(data or {})
+    files = to_key_val_list(files or {})
+
+    for name, file_metadata in files:
+        content_type: Optional[str] = None
+        if len(file_metadata) == 2:
+            file_name, file_content = file_metadata
+        elif len(file_metadata) == 3:
+            file_name, file_content, content_type = file_metadata
+        else:
+            raise ValueError(f"The file named {name} has an invalid payload.")
+
+        form_data.add_field(
+            name,
+            file_content,
+            filename=file_name,
+            content_type=content_type,
+        )
+
+    for field_name, value in fields:
+        form_data.add_field(field_name, value)
+
+    return form_data
 
 
 @asynccontextmanager
