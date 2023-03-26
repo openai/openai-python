@@ -1,5 +1,4 @@
 import time
-from pydoc import apropos
 from typing import Optional
 from urllib.parse import quote_plus
 

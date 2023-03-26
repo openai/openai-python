@@ -16,6 +16,8 @@ __all__ = [
     "log_debug",
     "log_warn",
     "logfmt",
+    "ApiType",
+    "merge_dicts"
 ]
 
 api_key_to_header = (

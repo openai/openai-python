@@ -111,8 +111,8 @@ def plot_multiclass_precision_recall(
         y = f_score * x / (2 * x - f_score)
         (l,) = plt.plot(x[y >= 0], y[y >= 0], color="gray", alpha=0.2)
         plt.annotate("f1={0:0.1f}".format(f_score), xy=(0.9, y[45] + 0.02))
+        lines.append(l)
 
-    lines.append(l)
     labels.append("iso-f1 curves")
     (l,) = plt.plot(recall_micro, precision_micro, color="gold", lw=2)
     lines.append(l)

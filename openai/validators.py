@@ -73,7 +73,6 @@ def additional_column_validator(df, fields=["prompt", "completion"]):
     """
     This validator will remove additional columns from the dataframe.
     """
-    additional_columns = []
     necessary_msg = None
     immediate_msg = None
     necessary_fn = None
@@ -475,7 +474,6 @@ def read_any_format(fname, fields=["prompt", "completion"]):
      - for .txt it will assume completions and split on newline
     """
     assert_has_pandas()
-    remediation = None
     necessary_msg = None
     immediate_msg = None
     error_msg = None
@@ -609,7 +607,6 @@ def estimate_fine_tuning_time(df):
     Estimate the time it'll take to fine-tune the dataset
     """
     ft_format = infer_task_type(df)
-    expected_time = 1.0
     if ft_format == "classification":
         num_examples = len(df)
         expected_time = num_examples * 1.44

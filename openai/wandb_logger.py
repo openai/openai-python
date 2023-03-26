@@ -2,7 +2,7 @@ try:
     import wandb
 
     WANDB_AVAILABLE = True
-except:
+except ImportError:
     WANDB_AVAILABLE = False
 
 

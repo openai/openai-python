@@ -60,7 +60,7 @@ class APIResource(OpenAIObject):
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
         if cls.api_prefix:
             return "/%s/%s" % (cls.api_prefix, base)
-        return "/%s" % (base)
+        return "/%s" % base
 
     def instance_url(self, operation=None):
         id = self.get("id")
@@ -169,4 +169,4 @@ class APIResource(OpenAIObject):
             else ApiType.from_str(openai.api_type)
         )
         typed_api_version = api_version or openai.api_version
-        return (typed_api_type, typed_api_version)
+        return typed_api_type, typed_api_version

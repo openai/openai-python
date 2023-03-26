@@ -326,7 +326,8 @@ class APIRequestor:
             await ctx.__aexit__(None, None, None)
             return resp, got_stream, self.api_key
 
-    def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
+    @staticmethod
+    def handle_error_response(rbody, rcode, resp, rheaders, stream_error=False):
         try:
             error_data = resp["error"]
         except (KeyError, TypeError):
@@ -392,7 +393,7 @@ class APIRequestor:
             )
 
     def request_headers(
-        self, method: str, extra, request_id: Optional[str]
+        self, extra, request_id: Optional[str]
     ) -> Dict[str, str]:
         user_agent = "OpenAI/v1 PythonBindings/%s" % (version.VERSION,)
         if openai.app_info:
@@ -433,8 +434,9 @@ class APIRequestor:
 
         return headers
 
+    @staticmethod
     def _validate_headers(
-        self, supplied_headers: Optional[Dict[str, str]]
+        supplied_headers: Optional[Dict[str, str]]
     ) -> Dict[str, str]:
         headers: Dict[str, str] = {}
         if supplied_headers is None:
