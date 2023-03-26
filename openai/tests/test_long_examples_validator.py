@@ -14,7 +14,7 @@ from openai.datalib import (
 
 @pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)
 @pytest.mark.skipif(not HAS_NUMPY, reason=NUMPY_INSTRUCTIONS)
-def test_long_examples_validator() -> str:
+def test_long_examples_validator() -> None:
     """
     Ensures that long_examples_validator() handles previously applied recommendations,
     namely dropped duplicates, without resulting in a KeyError.
