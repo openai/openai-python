@@ -174,6 +174,8 @@ def merge_dicts(x, y):
 
 
 def default_api_key() -> str:
+    if openai.api_key_func:
+        return openai.api_key_func()
     if openai.api_key_path:
         with open(openai.api_key_path, "rt") as k:
             api_key = k.read().strip()

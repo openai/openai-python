@@ -4,7 +4,7 @@
 
 import os
 from contextvars import ContextVar
-from typing import Optional, TYPE_CHECKING
+from typing import Callable, Optional, TYPE_CHECKING
 
 from openai.api_resources import (
     Audio,
@@ -32,6 +32,11 @@ api_key = os.environ.get("OPENAI_API_KEY")
 # `api_key` if set.  The main use case is volume-mounted Kubernetes secrets,
 # which are updated automatically.
 api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
+# Callable that returns an API key. Supercedes `api_key` and `api_key_path`
+# if set. The main use case is for integrated experience with cloud
+# providers (e.g. Azure AD), which use auth tokens stored in memory and 
+# time out, thus need to be refreshed.
+api_key_func: Optional[Callable[[], str]] = None
 
 organization = os.environ.get("OPENAI_ORGANIZATION")
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")

@@ -28,3 +28,8 @@ def test_openai_api_key_path_with_malformed_key(api_key_file) -> None:
     api_key_file.flush()
     with pytest.raises(ValueError, match="Malformed API key"):
         util.default_api_key()
+
+
+def test_openai_api_key_func() -> None:
+    openai.api_key_func = lambda: "sk-foo"
+    assert util.default_api_key() == "sk-foo"
