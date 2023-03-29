@@ -126,7 +126,7 @@ class ChatCompletion:
             messages=messages,
             # Optional
             n=args.n,
-            max_tokens=100,
+            max_tokens=args.max_tokens,
             temperature=args.temperature,
             top_p=args.top_p,
             stop=args.stop,
