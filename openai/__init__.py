@@ -89,5 +89,5 @@ __all__ = [
     "log",
     "organization",
     "proxy",
-    "verify_ssl_certs"
+    "verify_ssl_certs",
 ]

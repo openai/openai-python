@@ -295,7 +295,7 @@ class EngineAPIResource(APIResource, abc.ABC):
             url += params_connector + "timeout={}".format(timeout)
         return url
 
-    def wait(self, timeout: Optional[int] = None):
+    def wait(self, timeout: Optional[float] = None):
         start = time.time()
         while self.status != "complete":
             self.timeout = (
@@ -309,7 +309,7 @@ class EngineAPIResource(APIResource, abc.ABC):
             self.refresh()
         return self
 
-    async def await_(self, timeout: Optional[int] = None):
+    async def await_(self, timeout: Optional[float] = None):
         """Async version of `EngineApiResource.wait`"""
         start = time.time()
         while self.status != "complete":

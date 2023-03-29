@@ -10,8 +10,8 @@ class ErrorObject(OpenAIObject):
         values,
         api_key: Optional[str] = None,
         api_version: Optional[str] = None,
-        organization: Optional[str] = None,
         api_type: Optional[str] = None,
+        organization: Optional[str] = None,
         response_ms: Optional[int] = None,
     ):
         # Unlike most other API resources, the API will omit attributes in

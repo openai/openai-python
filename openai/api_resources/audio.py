@@ -16,6 +16,7 @@ class Audio(APIResource):
     def _prepare_request(
         cls,
         file: IO,
+        filename: str,
         model: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -36,7 +37,7 @@ class Audio(APIResource):
             "model": model,
             **params,
         }
-        files.append(("file", (file.name, file, "application/octet-stream")))
+        files.append(("file", (filename, file, "application/octet-stream")))
         return requestor, files, data
 
     @classmethod
