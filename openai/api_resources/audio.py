@@ -1,5 +1,4 @@
-import io
-from typing import Any, List, Optional
+from typing import Any, List, Optional, IO
 
 import openai
 from openai import api_requestor, util
@@ -16,8 +15,7 @@ class Audio(APIResource):
     @classmethod
     def _prepare_request(
         cls,
-        file: io.BytesIO,
-        filename: str,
+        file: IO,
         model: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -38,14 +36,14 @@ class Audio(APIResource):
             "model": model,
             **params,
         }
-        files.append(("file", (filename, file, "application/octet-stream")))
+        files.append(("file", (file.name, file, "application/octet-stream")))
         return requestor, files, data
 
     @classmethod
     def transcribe(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -53,7 +51,7 @@ class Audio(APIResource):
         organization: Optional[str] = None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(file, model, **params)
         url = cls._get_url("transcriptions")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
@@ -64,7 +62,7 @@ class Audio(APIResource):
     def translate(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -72,7 +70,7 @@ class Audio(APIResource):
         organization: Optional[str] = None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(file, model, **params)
         url = cls._get_url("translations")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
@@ -83,7 +81,7 @@ class Audio(APIResource):
     def transcribe_raw(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -103,7 +101,7 @@ class Audio(APIResource):
     def translate_raw(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -123,7 +121,7 @@ class Audio(APIResource):
     async def atranscribe(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -131,7 +129,7 @@ class Audio(APIResource):
         organization: Optional[str] = None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(file, model, **params)
         url = cls._get_url("transcriptions")
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
@@ -144,7 +142,7 @@ class Audio(APIResource):
     async def atranslate(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -152,7 +150,7 @@ class Audio(APIResource):
         organization: Optional[str] = None,
         **params,
     ):
-        requestor, files, data = cls._prepare_request(file, file.name, model, **params)
+        requestor, files, data = cls._prepare_request(file, model, **params)
         url = cls._get_url("translations")
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
@@ -165,7 +163,7 @@ class Audio(APIResource):
     async def atranscribe_raw(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -187,7 +185,7 @@ class Audio(APIResource):
     async def atranslate_raw(
         cls,
         model: str,
-        file: io.BytesIO,
+        file: IO,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,

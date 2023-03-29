@@ -1,7 +1,7 @@
 import io
 import sys
 from asyncio import StreamReader
-from typing import Union, Iterator, Dict, Tuple, TypedDict, List, Optional
+from typing import Union, Iterator, Dict, Tuple, TypedDict, List, Optional, IO
 
 if sys.version_info >= (3, 10):
     from typing import TypeAlias
@@ -16,7 +16,7 @@ RequestTimeoutType: TypeAlias = Union[float, Tuple[float, float]]
 
 _ContentType: TypeAlias = str
 FilesType: TypeAlias = List[
-    Union[Tuple[str, Tuple[None, str]], Tuple[str, Tuple[str, io.BytesIO, _ContentType]]]
+    Union[Tuple[str, Tuple[None, str]], Tuple[str, Tuple[str, Union[io.IOBase, IO], _ContentType]]]
 ]
 
 

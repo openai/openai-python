@@ -1,7 +1,7 @@
 import json
 import os
 import io
-from typing import cast, Optional, AnyStr, List, Union, Tuple
+from typing import cast, Optional, AnyStr
 
 import openai
 from openai import api_requestor, util, error
@@ -16,7 +16,7 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def __prepare_file_create(
         cls,
-        file: io.BytesIO,
+        file: io.IOBase,
         purpose: str,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
@@ -62,7 +62,7 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def create(
         cls,
-        file: io.BytesIO,
+        file: io.IOBase,
         purpose: str,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
@@ -91,7 +91,7 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     async def acreate(
         cls,
-        file: io.BytesIO,
+        file: io.IOBase,
         purpose: str,
         model: Optional[str] = None,
         api_key: Optional[str] = None,
