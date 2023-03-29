@@ -1,4 +1,4 @@
-from typing import Optional, Mapping, Any, TYPE_CHECKING, List, Dict, cast, AnyStr
+from typing import Optional, Any, TYPE_CHECKING, List, Dict
 
 try:
     import wandb
@@ -80,7 +80,7 @@ class WandbLogger:
             cls._log_fine_tune(
                 fine_tune,
                 project,
-                entity,  # type: ignore
+                entity,
                 force,
                 show_individual_warnings,
                 **kwargs_wandb_init,
@@ -98,7 +98,7 @@ class WandbLogger:
         cls,
         fine_tune: Dict[str, Any],
         project: str,
-        entity: str,
+        entity: Optional[str],
         force: bool,
         show_individual_warnings: bool,
         **kwargs_wandb_init,

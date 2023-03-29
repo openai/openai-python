@@ -3,7 +3,7 @@ import os
 import re
 import sys
 from enum import Enum
-from typing import Optional, Mapping, Any, Dict, overload, List, Union, Iterator
+from typing import Optional, Mapping, Any, Dict
 
 import openai
 from openai.openai_response import OpenAIResponse

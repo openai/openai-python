@@ -1,6 +1,6 @@
 import abc
 from urllib.parse import quote_plus
-from typing import Awaitable, AnyStr
+from typing import AnyStr
 
 from openai.api_resources.abstract.api_resource import APIResource
 
