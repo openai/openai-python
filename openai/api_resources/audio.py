@@ -1,4 +1,5 @@
-from typing import Any, List
+import io
+from typing import Any, List, Optional
 
 import openai
 from openai import api_requestor, util
@@ -9,20 +10,20 @@ class Audio(APIResource):
     OBJECT_NAME = "audio"
 
     @classmethod
-    def _get_url(cls, action):
+    def _get_url(cls, action: str) -> str:
         return cls.class_url() + f"/{action}"
 
     @classmethod
     def _prepare_request(
         cls,
-        file,
-        filename,
-        model,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        file: io.BytesIO,
+        filename: str,
+        model: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -43,13 +44,13 @@ class Audio(APIResource):
     @classmethod
     def transcribe(
         cls,
-        model,
-        file,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, file.name, model, **params)
@@ -62,13 +63,13 @@ class Audio(APIResource):
     @classmethod
     def translate(
         cls,
-        model,
-        file,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, file.name, model, **params)
@@ -81,14 +82,14 @@ class Audio(APIResource):
     @classmethod
     def transcribe_raw(
         cls,
-        model,
-        file,
-        filename,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        filename: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, filename, model, **params)
@@ -101,14 +102,14 @@ class Audio(APIResource):
     @classmethod
     def translate_raw(
         cls,
-        model,
-        file,
-        filename,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        filename: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, filename, model, **params)
@@ -121,13 +122,13 @@ class Audio(APIResource):
     @classmethod
     async def atranscribe(
         cls,
-        model,
-        file,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, file.name, model, **params)
@@ -142,13 +143,13 @@ class Audio(APIResource):
     @classmethod
     async def atranslate(
         cls,
-        model,
-        file,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, file.name, model, **params)
@@ -163,14 +164,14 @@ class Audio(APIResource):
     @classmethod
     async def atranscribe_raw(
         cls,
-        model,
-        file,
-        filename,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        filename: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, filename, model, **params)
@@ -185,14 +186,14 @@ class Audio(APIResource):
     @classmethod
     async def atranslate_raw(
         cls,
-        model,
-        file,
-        filename,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        model: str,
+        file: io.BytesIO,
+        filename: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(file, filename, model, **params)

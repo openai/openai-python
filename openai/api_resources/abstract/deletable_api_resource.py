@@ -1,14 +1,20 @@
+import abc
 from urllib.parse import quote_plus
-from typing import Awaitable
+from typing import Union, Optional, AnyStr
 
 from openai import error
 from openai.api_resources.abstract.api_resource import APIResource
 from openai.util import ApiType
 
 
-class DeletableAPIResource(APIResource):
+class DeletableAPIResource(APIResource, abc.ABC):
     @classmethod
-    def __prepare_delete(cls, sid, api_type=None, api_version=None):
+    def __prepare_delete(
+        cls,
+        sid: AnyStr,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+    ):
         if isinstance(cls, APIResource):
             raise ValueError(".delete may only be called as a class method now.")
 
@@ -32,7 +38,13 @@ class DeletableAPIResource(APIResource):
         return url
 
     @classmethod
-    def delete(cls, sid, api_type=None, api_version=None, **params):
+    def delete(
+            cls,
+            sid: AnyStr,
+            api_type: Optional[str] = None,
+            api_version: Optional[str] = None,
+            **params,
+    ):
         url = cls.__prepare_delete(sid, api_type, api_version)
 
         return cls._static_request(
@@ -40,7 +52,13 @@ class DeletableAPIResource(APIResource):
         )
 
     @classmethod
-    def adelete(cls, sid, api_type=None, api_version=None, **params) -> Awaitable:
+    def adelete(
+            cls,
+            sid: AnyStr,
+            api_type: Optional[str] = None,
+            api_version: Optional[str] = None,
+            **params,
+    ):
         url = cls.__prepare_delete(sid, api_type, api_version)
 
         return cls._astatic_request(

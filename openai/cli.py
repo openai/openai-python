@@ -3,11 +3,13 @@ import os
 import signal
 import sys
 import warnings
-from typing import Optional
+from argparse import ArgumentParser
+from typing import Optional, Any
 
 import requests
 
 import openai
+from openai import OpenAIError
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
@@ -29,7 +31,7 @@ class bcolors:
     UNDERLINE = "\033[4m"
 
 
-def organization_info(obj):
+def organization_info(obj: Any) -> str:
     organization = getattr(obj, "organization", None)
     if organization is not None:
         return "[organization={}] ".format(organization)
@@ -37,13 +39,13 @@ def organization_info(obj):
         return ""
 
 
-def display(obj):
+def display(obj: Any):
     sys.stderr.write(organization_info(obj))
     sys.stderr.flush()
     print(obj)
 
 
-def display_error(e):
+def display_error(e: OpenAIError):
     extra = (
         " (HTTP status code: {})".format(e.http_status)
         if e.http_status is not None
@@ -613,7 +615,7 @@ class WandbLogger:
         print(resp)
 
 
-def tools_register(parser):
+def tools_register(parser: ArgumentParser):
     subparsers = parser.add_subparsers(
         title="Tools", help="Convenience client side tools"
     )
@@ -641,7 +643,7 @@ def tools_register(parser):
     sub.set_defaults(func=FineTune.prepare_data)
 
 
-def api_register(parser):
+def api_register(parser: ArgumentParser):
     # Engine management
     subparsers = parser.add_subparsers(help="All API subcommands")
 
@@ -1079,7 +1081,7 @@ Mutually exclusive with `top_p`.""",
     sub.set_defaults(func=Audio.translate)
 
 
-def wandb_register(parser):
+def wandb_register(parser: ArgumentParser):
     subparsers = parser.add_subparsers(
         title="wandb", help="Logging with Weights & Biases"
     )

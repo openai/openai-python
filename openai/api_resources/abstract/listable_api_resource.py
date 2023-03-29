@@ -1,9 +1,12 @@
+import abc
+from typing import Optional
+
 from openai import api_requestor, util, error
 from openai.api_resources.abstract.api_resource import APIResource
 from openai.util import ApiType
 
 
-class ListableAPIResource(APIResource):
+class ListableAPIResource(APIResource, abc.ABC):
     @classmethod
     def auto_paging_iter(cls, *args, **params):
         return cls.list(*args, **params).auto_paging_iter()
@@ -11,11 +14,11 @@ class ListableAPIResource(APIResource):
     @classmethod
     def __prepare_list_requestor(
         cls,
-        api_key=None,
-        api_version=None,
-        organization=None,
-        api_base=None,
-        api_type=None,
+        api_key: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -41,12 +44,12 @@ class ListableAPIResource(APIResource):
     @classmethod
     def list(
         cls,
-        api_key=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
-        api_base=None,
-        api_type=None,
+        api_key: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
         **params,
     ):
         requestor, url = cls.__prepare_list_requestor(
@@ -69,12 +72,12 @@ class ListableAPIResource(APIResource):
     @classmethod
     async def alist(
         cls,
-        api_key=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
-        api_base=None,
-        api_type=None,
+        api_key: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
         **params,
     ):
         requestor, url = cls.__prepare_list_requestor(

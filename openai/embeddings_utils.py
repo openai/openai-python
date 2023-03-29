@@ -1,5 +1,5 @@
 import textwrap as tr
-from typing import List, Optional
+from typing import List, Optional, Sequence
 
 import matplotlib.pyplot as plt
 import plotly.express as px
@@ -15,7 +15,7 @@ from openai.datalib import pandas as pd
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
-def get_embedding(text: str, engine="text-similarity-davinci-001") -> List[float]:
+def get_embedding(text: str, engine: str = "text-similarity-davinci-001") -> List[float]:
 
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
@@ -25,7 +25,7 @@ def get_embedding(text: str, engine="text-similarity-davinci-001") -> List[float
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 async def aget_embedding(
-    text: str, engine="text-similarity-davinci-001"
+    text: str, engine: str = "text-similarity-davinci-001"
 ) -> List[float]:
 
     # replace newlines, which can negatively affect performance.
@@ -38,7 +38,7 @@ async def aget_embedding(
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 def get_embeddings(
-    list_of_text: List[str], engine="text-similarity-babbage-001"
+    list_of_text: List[str], engine: str = "text-similarity-babbage-001"
 ) -> List[List[float]]:
     assert len(list_of_text) <= 2048, "The batch size should not be larger than 2048."
 
@@ -52,7 +52,7 @@ def get_embeddings(
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 async def aget_embeddings(
-    list_of_text: List[str], engine="text-similarity-babbage-001"
+    list_of_text: List[str], engine: str = "text-similarity-babbage-001"
 ) -> List[List[float]]:
     assert len(list_of_text) <= 2048, "The batch size should not be larger than 2048."
 
@@ -157,13 +157,13 @@ def distances_from_embeddings(
     return distances
 
 
-def indices_of_nearest_neighbors_from_distances(distances) -> np.ndarray:
+def indices_of_nearest_neighbors_from_distances(distances: Sequence[int]) -> np.ndarray:
     """Return a list of indices of nearest neighbors from a list of distances."""
     return np.argsort(distances)
 
 
 def pca_components_from_embeddings(
-    embeddings: List[List[float]], n_components=2
+    embeddings: List[List[float]], n_components: int = 2
 ) -> np.ndarray:
     """Return the PCA components of a list of embeddings."""
     pca = PCA(n_components=n_components)
@@ -172,7 +172,7 @@ def pca_components_from_embeddings(
 
 
 def tsne_components_from_embeddings(
-    embeddings: List[List[float]], n_components=2, **kwargs
+    embeddings: List[List[float]], n_components: int = 2, **kwargs
 ) -> np.ndarray:
     """Returns t-SNE components of a list of embeddings."""
     # use better defaults if not specified
@@ -189,9 +189,9 @@ def chart_from_components(
     components: np.ndarray,
     labels: Optional[List[str]] = None,
     strings: Optional[List[str]] = None,
-    x_title="Component 0",
-    y_title="Component 1",
-    mark_size=5,
+    x_title: str = "Component 0",
+    y_title: str = "Component 1",
+    mark_size: int = 5,
     **kwargs,
 ):
     """Return an interactive 2D chart of embedding components."""

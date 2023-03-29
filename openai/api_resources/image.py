@@ -1,5 +1,5 @@
 # WARNING: This interface is considered experimental and may changed in the future without warning.
-from typing import Any, List
+from typing import Any, List, Optional
 
 import openai
 from openai import api_requestor, util
@@ -10,17 +10,17 @@ class Image(APIResource):
     OBJECT_NAME = "images"
 
     @classmethod
-    def _get_url(cls, action):
+    def _get_url(cls, action: str) -> str:
         return cls.class_url() + f"/{action}"
 
     @classmethod
     def create(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -44,11 +44,11 @@ class Image(APIResource):
     @classmethod
     async def acreate(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
 
@@ -74,11 +74,11 @@ class Image(APIResource):
     def _prepare_create_variation(
         cls,
         image,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -102,11 +102,11 @@ class Image(APIResource):
     def create_variation(
         cls,
         image,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url, files = cls._prepare_create_variation(
@@ -129,11 +129,11 @@ class Image(APIResource):
     async def acreate_variation(
         cls,
         image,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url, files = cls._prepare_create_variation(
@@ -157,11 +157,11 @@ class Image(APIResource):
         cls,
         image,
         mask=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -188,11 +188,11 @@ class Image(APIResource):
         cls,
         image,
         mask=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url, files = cls._prepare_create_edit(
@@ -217,11 +217,11 @@ class Image(APIResource):
         cls,
         image,
         mask=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url, files = cls._prepare_create_edit(

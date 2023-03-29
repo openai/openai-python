@@ -3,9 +3,11 @@
 # Originally forked from the MIT-licensed Stripe Python bindings.
 
 import os
+import sys
 from contextvars import ContextVar
 from typing import Optional, TYPE_CHECKING
 
+from openai._typedefs import ProxyType, AppInfo
 from openai.api_resources import (
     Audio,
     ChatCompletion,
@@ -27,25 +29,30 @@ from openai.error import APIError, InvalidRequestError, OpenAIError
 if TYPE_CHECKING:
     from aiohttp import ClientSession
 
-api_key = os.environ.get("OPENAI_API_KEY")
+if sys.version_info >= (3, 8):
+    from typing import Literal
+else:
+    from typing_extensions import Literal
+
+api_key: Optional[str] = os.environ.get("OPENAI_API_KEY")
 # Path of a file with an API key, whose contents can change. Supercedes
 # `api_key` if set.  The main use case is volume-mounted Kubernetes secrets,
 # which are updated automatically.
 api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
 
-organization = os.environ.get("OPENAI_ORGANIZATION")
+organization: Optional[str] = os.environ.get("OPENAI_ORGANIZATION")
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
 api_type = os.environ.get("OPENAI_API_TYPE", "open_ai")
-api_version = (
+api_version: Optional[str] = (
     "2023-03-15-preview" if api_type in ("azure", "azure_ad", "azuread") else None
 )
 verify_ssl_certs = True  # No effect. Certificates are always verified.
-proxy = None
-app_info = None
+proxy: Optional[ProxyType] = None
+app_info: Optional[AppInfo] = None
 enable_telemetry = False  # Ignored; the telemetry feature was removed.
 ca_bundle_path = None  # No longer used, feature was removed
 debug = False
-log = None  # Set to either 'debug' or 'info', controls console logging
+log: Optional[Literal["debug", "info"]] = None  # Set to either 'debug' or 'info', controls console logging
 
 aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
     "aiohttp-session", default=None
@@ -82,5 +89,5 @@ __all__ = [
     "log",
     "organization",
     "proxy",
-    "verify_ssl_certs",
+    "verify_ssl_certs"
 ]

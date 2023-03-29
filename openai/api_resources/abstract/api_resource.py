@@ -1,20 +1,28 @@
+import abc
 from urllib.parse import quote_plus
 
 import openai
+import openai._typedefs
 from openai import api_requestor, error, util
 from openai.openai_object import OpenAIObject
+from openai.openai_response import OpenAIResponse
 from openai.util import ApiType
 from typing import Optional
 
 
-class APIResource(OpenAIObject):
-    api_prefix = ""
-    azure_api_prefix = "openai"
-    azure_deployments_prefix = "deployments"
+class APIResource(OpenAIObject, abc.ABC):
+    api_prefix: str = ""
+    azure_api_prefix: str = "openai"
+    azure_deployments_prefix: str = "deployments"
 
     @classmethod
     def retrieve(
-        cls, id, api_key=None, request_id=None, request_timeout=None, **params
+        cls,
+        id: str,
+        api_key: Optional[str] = None,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[openai._typedefs.RequestTimeoutType] = None,
+        **params
     ):
         instance = cls(id=id, api_key=api_key, **params)
         instance.refresh(request_id=request_id, request_timeout=request_timeout)
@@ -22,12 +30,21 @@ class APIResource(OpenAIObject):
 
     @classmethod
     def aretrieve(
-        cls, id, api_key=None, request_id=None, request_timeout=None, **params
+        cls,
+        id: str,
+        api_key: Optional[str] = None,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[openai._typedefs.RequestTimeoutType] = None,
+        **params
     ):
         instance = cls(id=id, api_key=api_key, **params)
         return instance.arefresh(request_id=request_id, request_timeout=request_timeout)
 
-    def refresh(self, request_id=None, request_timeout=None):
+    def refresh(
+        self,
+        request_id: Optional[str] = None,
+        request_timeout: Optional[openai._typedefs.RequestTimeoutType] = None,
+    ):
         self.refresh_from(
             self.request(
                 "get",
@@ -38,7 +55,11 @@ class APIResource(OpenAIObject):
         )
         return self
 
-    async def arefresh(self, request_id=None, request_timeout=None):
+    async def arefresh(
+            self,
+            request_id: Optional[str] = None,
+            request_timeout: Optional[openai._typedefs.RequestTimeoutType] = None,
+    ):
         self.refresh_from(
             await self.arequest(
                 "get",
@@ -50,7 +71,7 @@ class APIResource(OpenAIObject):
         return self
 
     @classmethod
-    def class_url(cls):
+    def class_url(cls) -> str:
         if cls == APIResource:
             raise NotImplementedError(
                 "APIResource is an abstract class. You should perform actions on its subclasses."
@@ -62,7 +83,7 @@ class APIResource(OpenAIObject):
             return "/%s/%s" % (cls.api_prefix, base)
         return "/%s" % (base)
 
-    def instance_url(self, operation=None):
+    def instance_url(self, operation: Optional[str] = None):
         id = self.get("id")
 
         if not isinstance(id, str):
@@ -110,14 +131,14 @@ class APIResource(OpenAIObject):
     @classmethod
     def _static_request(
         cls,
-        method_,
-        url_,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        method_: str,
+        url_: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -137,16 +158,16 @@ class APIResource(OpenAIObject):
     @classmethod
     async def _astatic_request(
         cls,
-        method_,
-        url_,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        method_: str,
+        url_: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
-    ):
+    ) -> OpenAIResponse:
         requestor = api_requestor.APIRequestor(
             api_key,
             api_version=api_version,

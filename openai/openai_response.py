@@ -1,8 +1,8 @@
-from typing import Optional
+from typing import Optional, Any, Mapping
 
 
 class OpenAIResponse:
-    def __init__(self, data, headers):
+    def __init__(self, data: Any, headers: Mapping[str, str]):
         self._headers = headers
         self.data = data
 

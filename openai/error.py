@@ -1,15 +1,20 @@
+from __future__ import annotations as _annotations
+
+from typing import Optional, Union, Any
+
 import openai
+import openai._typedefs
 
 
 class OpenAIError(Exception):
     def __init__(
         self,
-        message=None,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-        code=None,
+        message: Optional[str] = None,
+        http_body: Any = None,
+        http_status: Union[str, int, None] = None,
+        json_body: Optional[Any] = None,
+        headers: Optional[openai._typedefs.HeadersType] = None,
+        code: Union[str, int, None] = None,
     ):
         super(OpenAIError, self).__init__(message)
 
@@ -44,7 +49,7 @@ class OpenAIError(Exception):
     # in python2 via `error.message`. Unlike `str(error)`, it omits "Request
     # req_..." from the beginning of the string.
     @property
-    def user_message(self):
+    def user_message(self) -> Optional[str]:
         return self._message
 
     def __repr__(self):
@@ -83,13 +88,13 @@ class Timeout(OpenAIError):
 class APIConnectionError(OpenAIError):
     def __init__(
         self,
-        message,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
-        code=None,
-        should_retry=False,
+        message: Optional[str] = None,
+        http_body: Any = None,
+        http_status: Union[str, int, None] = None,
+        json_body: Optional[Any] = None,
+        headers: Optional[openai._typedefs.HeadersType] = None,
+        code: Union[str, int, None] = None,
+        should_retry: bool = False,
     ):
         super(APIConnectionError, self).__init__(
             message, http_body, http_status, json_body, headers, code
@@ -100,13 +105,13 @@ class APIConnectionError(OpenAIError):
 class InvalidRequestError(OpenAIError):
     def __init__(
         self,
-        message,
-        param,
-        code=None,
-        http_body=None,
-        http_status=None,
-        json_body=None,
-        headers=None,
+        message: Optional[str],
+        param: Optional[str] = None,
+        code: Union[str, int, None] = None,
+        http_body: Any = None,
+        http_status: Union[str, int, None] = None,
+        json_body: Optional[Any] = None,
+        headers: Optional[openai._typedefs.HeadersType] = None,
     ):
         super(InvalidRequestError, self).__init__(
             message, http_body, http_status, json_body, headers, code
@@ -156,7 +161,11 @@ class InvalidAPIType(OpenAIError):
 
 
 class SignatureVerificationError(OpenAIError):
-    def __init__(self, message, sig_header, http_body=None):
+    def __init__(
+        self,
+        message: str, sig_header: str,
+        http_body: Any = None
+    ):
         super(SignatureVerificationError, self).__init__(message, http_body)
         self.sig_header = sig_header
 

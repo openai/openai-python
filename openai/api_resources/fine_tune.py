@@ -1,3 +1,4 @@
+from typing import Optional
 from urllib.parse import quote_plus
 
 from openai import api_requestor, util, error
@@ -18,11 +19,11 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     @classmethod
     def _prepare_cancel(
         cls,
-        id,
-        api_key=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
         **params,
     ):
         base = cls.class_url()
@@ -49,11 +50,11 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     @classmethod
     def cancel(
         cls,
-        id,
-        api_key=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
         **params,
     ):
         instance, url = cls._prepare_cancel(
@@ -69,11 +70,11 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     @classmethod
     def acancel(
         cls,
-        id,
-        api_key=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
         **params,
     ):
         instance, url = cls._prepare_cancel(
@@ -89,13 +90,13 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     @classmethod
     def _prepare_stream_events(
         cls,
-        id,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         base = cls.class_url()
@@ -130,13 +131,13 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     @classmethod
     def stream_events(
         cls,
-        id,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url = cls._prepare_stream_events(
@@ -168,13 +169,13 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     @classmethod
     async def astream_events(
         cls,
-        id,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url = cls._prepare_stream_events(

@@ -1,26 +1,27 @@
 import json
 from copy import deepcopy
-from typing import Optional, Tuple, Union
+from typing import Optional, Tuple, Union, Any, Mapping, Dict
 
 import openai
+import openai._typedefs
 from openai import api_requestor, util
 from openai.openai_response import OpenAIResponse
 from openai.util import ApiType
 
 
-class OpenAIObject(dict):
-    api_base_override = None
+class OpenAIObject(Dict[str, Any]):
+    api_base_override: Optional[str] = None
 
     def __init__(
         self,
-        id=None,
-        api_key=None,
-        api_version=None,
-        api_type=None,
-        organization=None,
+        id: Optional[str] = None,
+        api_key: Optional[str] = None,
+        api_version: Optional[str] = None,
+        api_type: Optional[str] = None,
+        organization: Optional[str] = None,
         response_ms: Optional[int] = None,
-        api_base=None,
-        engine=None,
+        api_base: Optional[str] = None,
+        engine: Optional[str] = None,
         **params,
     ):
         super(OpenAIObject, self).__init__()
@@ -45,14 +46,14 @@ class OpenAIObject(dict):
     def response_ms(self) -> Optional[int]:
         return self._response_ms
 
-    def __setattr__(self, k, v):
+    def __setattr__(self, k: str, v: Any):
         if k[0] == "_" or k in self.__dict__:
             return super(OpenAIObject, self).__setattr__(k, v)
 
         self[k] = v
         return None
 
-    def __getattr__(self, k):
+    def __getattr__(self, k: str):
         if k[0] == "_":
             raise AttributeError(k)
         try:
@@ -60,13 +61,13 @@ class OpenAIObject(dict):
         except KeyError as err:
             raise AttributeError(*err.args)
 
-    def __delattr__(self, k):
+    def __delattr__(self, k: str):
         if k[0] == "_" or k in self.__dict__:
             return super(OpenAIObject, self).__delattr__(k)
         else:
             del self[k]
 
-    def __setitem__(self, k, v):
+    def __setitem__(self, k: str, v: Any):
         if v == "":
             raise ValueError(
                 "You cannot set %s to an empty string. "
@@ -75,7 +76,7 @@ class OpenAIObject(dict):
             )
         super(OpenAIObject, self).__setitem__(k, v)
 
-    def __delitem__(self, k):
+    def __delitem__(self, k: str):
         raise NotImplementedError("del is not supported")
 
     # Custom unpickling method that uses `update` to update the dictionary
@@ -104,11 +105,11 @@ class OpenAIObject(dict):
     @classmethod
     def construct_from(
         cls,
-        values,
+        values: Mapping[str, str],
         api_key: Optional[str] = None,
-        api_version=None,
-        organization=None,
-        engine=None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        engine: Optional[str] = None,
         response_ms: Optional[int] = None,
     ):
         instance = cls(
@@ -131,10 +132,10 @@ class OpenAIObject(dict):
     def refresh_from(
         self,
         values,
-        api_key=None,
-        api_version=None,
-        api_type=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        api_type: Optional[str] = None,
         response_ms: Optional[int] = None,
     ):
         self.api_key = api_key or getattr(values, "api_key", None)
@@ -158,12 +159,12 @@ class OpenAIObject(dict):
 
     def request(
         self,
-        method,
-        url,
-        params=None,
-        headers=None,
-        stream=False,
-        plain_old_data=False,
+        method: str,
+        url: str,
+        params: Optional[openai._typedefs.ParamsType] = None,
+        headers: Optional[openai._typedefs.HeadersType] = None,
+        stream: bool = False,
+        plain_old_data: bool = False,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ):
@@ -209,12 +210,12 @@ class OpenAIObject(dict):
 
     async def arequest(
         self,
-        method,
-        url,
-        params=None,
-        headers=None,
-        stream=False,
-        plain_old_data=False,
+        method: str,
+        url: str,
+        params: Optional[openai._typedefs.ParamsType] = None,
+        headers: Optional[openai._typedefs.HeadersType] = None,
+        stream: bool = False,
+        plain_old_data: bool = False,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
     ):
@@ -247,7 +248,7 @@ class OpenAIObject(dict):
                     self.organization,
                     plain_old_data=plain_old_data,
                 )
-                for line in response
+                async for line in response
             )
         else:
             return util.convert_to_openai_object(
@@ -296,11 +297,11 @@ class OpenAIObject(dict):
         return d
 
     @property
-    def openai_id(self):
+    def openai_id(self) -> str:
         return self.id
 
     @property
-    def typed_api_type(self):
+    def typed_api_type(self) -> ApiType:
         return (
             ApiType.from_str(self.api_type)
             if self.api_type
@@ -312,7 +313,7 @@ class OpenAIObject(dict):
     # wholesale because some data that's returned from the API may not be valid
     # if it was set to be set manually. Here we override the class' copy
     # arguments so that we can bypass these possible exceptions on __setitem__.
-    def __copy__(self):
+    def __copy__(self) -> "OpenAIObject":
         copied = OpenAIObject(
             self.get("id"),
             self.api_key,
@@ -335,7 +336,7 @@ class OpenAIObject(dict):
     # wholesale because some data that's returned from the API may not be valid
     # if it was set to be set manually. Here we override the class' copy
     # arguments so that we can bypass these possible exceptions on __setitem__.
-    def __deepcopy__(self, memo):
+    def __deepcopy__(self, memo) -> "OpenAIObject":
         copied = self.__copy__()
         memo[id(self)] = copied
 

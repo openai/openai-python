@@ -8,10 +8,10 @@ class ErrorObject(OpenAIObject):
     def refresh_from(
         self,
         values,
-        api_key=None,
-        api_version=None,
-        api_type=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        api_type: Optional[str] = None,
         response_ms: Optional[int] = None,
     ):
         # Unlike most other API resources, the API will omit attributes in

@@ -7,11 +7,11 @@ class Moderation(OpenAIObject):
     VALID_MODEL_NAMES: List[str] = ["text-moderation-stable", "text-moderation-latest"]
 
     @classmethod
-    def get_url(cls):
+    def get_url(cls) -> str:
         return "/moderations"
 
     @classmethod
-    def _prepare_create(cls, input, model, api_key):
+    def _prepare_create(cls, input: Union[str, List[str]], model: Optional[str], api_key: Optional[str]):
         if model is not None and model not in cls.VALID_MODEL_NAMES:
             raise ValueError(
                 f"The parameter model should be chosen from {cls.VALID_MODEL_NAMES} "

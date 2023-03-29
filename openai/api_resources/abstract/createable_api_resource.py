@@ -1,19 +1,22 @@
+import abc
+from typing import Optional
+
 from openai import api_requestor, util, error
 from openai.api_resources.abstract.api_resource import APIResource
 from openai.util import ApiType
 
 
-class CreateableAPIResource(APIResource):
+class CreateableAPIResource(APIResource, abc.ABC):
     plain_old_data = False
 
     @classmethod
     def __prepare_create_requestor(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -38,12 +41,12 @@ class CreateableAPIResource(APIResource):
     @classmethod
     def create(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url = cls.__prepare_create_requestor(
@@ -69,12 +72,12 @@ class CreateableAPIResource(APIResource):
     @classmethod
     async def acreate(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         requestor, url = cls.__prepare_create_requestor(

@@ -1,3 +1,5 @@
+from typing import Optional, Mapping, Any, TYPE_CHECKING, List, Dict, cast, AnyStr
+
 try:
     import wandb
 
@@ -17,6 +19,10 @@ if WANDB_AVAILABLE:
     from openai.datalib import numpy as np
     from openai.datalib import pandas as pd
 
+if TYPE_CHECKING:
+    if WANDB_AVAILABLE:
+        WandbApi = wandb.Api
+
 
 class WandbLogger:
     """
@@ -26,17 +32,17 @@ class WandbLogger:
     if not WANDB_AVAILABLE:
         print("Logging requires wandb to be installed. Run `pip install wandb`.")
     else:
-        _wandb_api = None
-        _logged_in = False
+        _wandb_api: Optional[wandb.Api] = None
+        _logged_in: bool = False
 
     @classmethod
     def sync(
         cls,
-        id=None,
-        n_fine_tunes=None,
-        project="GPT-3",
-        entity=None,
-        force=False,
+        id: Optional[str] = None,
+        n_fine_tunes: Optional[int] = None,
+        project: str = "GPT-3",
+        entity: Optional[str] = None,
+        force: bool = False,
         **kwargs_wandb_init,
     ):
         """
@@ -59,11 +65,11 @@ class WandbLogger:
         else:
             # get list of fine_tune to log
             fine_tunes = FineTune.list()
-            if not fine_tunes or fine_tunes.get("data") is None:
+            if not fine_tunes or fine_tunes.get("data") is None:  # type: ignore
                 print("No fine-tune has been retrieved")
                 return
-            fine_tunes = fine_tunes["data"][
-                -n_fine_tunes if n_fine_tunes is not None else None :
+            fine_tunes = fine_tunes["data"][  # type: ignore
+                -n_fine_tunes if n_fine_tunes is not None else None:
             ]
 
         # log starting from oldest fine_tune
@@ -74,7 +80,7 @@ class WandbLogger:
             cls._log_fine_tune(
                 fine_tune,
                 project,
-                entity,
+                entity,  # type: ignore
                 force,
                 show_individual_warnings,
                 **kwargs_wandb_init,
@@ -90,11 +96,11 @@ class WandbLogger:
     @classmethod
     def _log_fine_tune(
         cls,
-        fine_tune,
-        project,
-        entity,
-        force,
-        show_individual_warnings,
+        fine_tune: Dict[str, Any],
+        project: str,
+        entity: str,
+        force: bool,
+        show_individual_warnings: bool,
         **kwargs_wandb_init,
     ):
         fine_tune_id = fine_tune.get("id")
@@ -185,7 +191,7 @@ class WandbLogger:
                 raise Exception("You need to log in to wandb")
 
     @classmethod
-    def _get_wandb_run(cls, run_path):
+    def _get_wandb_run(cls, run_path: str):
         cls._ensure_logged_in()
         try:
             if cls._wandb_api is None:
@@ -195,7 +201,7 @@ class WandbLogger:
             return None
 
     @classmethod
-    def _get_wandb_artifact(cls, artifact_path):
+    def _get_wandb_artifact(cls, artifact_path: str):
         cls._ensure_logged_in()
         try:
             if cls._wandb_api is None:
@@ -215,7 +221,7 @@ class WandbLogger:
         return config
 
     @classmethod
-    def _log_artifacts(cls, fine_tune, project, entity):
+    def _log_artifacts(cls, fine_tune: Dict[str, List[Any]], project: str, entity: str):
         # training/validation files
         training_file = (
             fine_tune["training_files"][0]
@@ -245,13 +251,21 @@ class WandbLogger:
             "fine_tune_details.json", mode="w", encoding="utf-8"
         ) as f:
             json.dump(fine_tune, f, indent=2)
-        wandb.run.log_artifact(
+
+        wandb.run.log_artifact(  # type: ignore
             artifact,
             aliases=["latest", fine_tune_id],
         )
 
     @classmethod
-    def _log_artifact_inputs(cls, file, prefix, artifact_type, project, entity):
+    def _log_artifact_inputs(
+        cls,
+        file: Dict[str, Any],
+        prefix: str,
+        artifact_type: str,
+        project: str,
+        entity: str
+    ):
         file_id = file["id"]
         filename = Path(file["filename"]).name
         stem = Path(file["filename"]).stem
@@ -292,9 +306,9 @@ class WandbLogger:
             # log number of items
             wandb.config.update({f"n_{prefix}": artifact.metadata.get("items")})
 
-        wandb.run.use_artifact(artifact, aliases=["latest", artifact_alias])
+        wandb.run.use_artifact(artifact, aliases=["latest", artifact_alias])  # type: ignore
 
     @classmethod
-    def _make_table(cls, file_content):
+    def _make_table(cls, file_content: str):
         df = pd.read_json(io.StringIO(file_content), orient="records", lines=True)
         return wandb.Table(dataframe=df), len(df)

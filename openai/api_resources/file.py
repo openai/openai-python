@@ -1,9 +1,11 @@
 import json
 import os
-from typing import cast
+import io
+from typing import cast, Optional, AnyStr, List, Union, Tuple
 
 import openai
 from openai import api_requestor, util, error
+from openai._typedefs import FilesType
 from openai.api_resources.abstract import DeletableAPIResource, ListableAPIResource
 from openai.util import ApiType
 
@@ -14,15 +16,15 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def __prepare_file_create(
         cls,
-        file,
-        purpose,
-        model=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
-        user_provided_filename=None,
+        file: io.BytesIO,
+        purpose: str,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        user_provided_filename: Optional[str] = None,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -45,7 +47,7 @@ class File(ListableAPIResource, DeletableAPIResource):
 
         # Set the filename on 'purpose' and 'model' to None so they are
         # interpreted as form data.
-        files = [("purpose", (None, purpose))]
+        files: FilesType = [("purpose", (None, purpose))]
         if model is not None:
             files.append(("model", (None, model)))
         if user_provided_filename is not None:
@@ -60,15 +62,15 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def create(
         cls,
-        file,
-        purpose,
-        model=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
-        user_provided_filename=None,
+        file: io.BytesIO,
+        purpose: str,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        user_provided_filename: Optional[str] = None,
     ):
         requestor, url, files = cls.__prepare_file_create(
             file,
@@ -89,15 +91,15 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     async def acreate(
         cls,
-        file,
-        purpose,
-        model=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
-        user_provided_filename=None,
+        file: io.BytesIO,
+        purpose: str,
+        model: Optional[str] = None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        user_provided_filename: Optional[str] = None,
     ):
         requestor, url, files = cls.__prepare_file_create(
             file,
@@ -118,12 +120,12 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def __prepare_file_download(
         cls,
-        id,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
     ):
         requestor = api_requestor.APIRequestor(
             api_key,
@@ -149,12 +151,12 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def download(
         cls,
-        id,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
     ):
         requestor, url = cls.__prepare_file_download(
             id, api_key, api_base, api_type, api_version, organization
@@ -174,12 +176,12 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     async def adownload(
         cls,
-        id,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        id: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
     ):
         requestor, url = cls.__prepare_file_download(
             id, api_key, api_base, api_type, api_version, organization
@@ -198,7 +200,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             return result.content
 
     @classmethod
-    def __find_matching_files(cls, name, bytes, all_files, purpose):
+    def __find_matching_files(cls, name: AnyStr, bytes: int, all_files, purpose):
         matching_files = []
         basename = os.path.basename(name)
         for f in all_files:
@@ -217,14 +219,14 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     def find_matching_files(
         cls,
-        name,
-        bytes,
-        purpose,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        name: str,
+        bytes: int,
+        purpose: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
     ):
         """Find already uploaded files with the same name, size, and purpose."""
         all_files = cls.list(
@@ -239,14 +241,14 @@ class File(ListableAPIResource, DeletableAPIResource):
     @classmethod
     async def afind_matching_files(
         cls,
-        name,
-        bytes,
-        purpose,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        name: str,
+        bytes: int,
+        purpose: str,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
     ):
         """Find already uploaded files with the same name, size, and purpose."""
         all_files = (

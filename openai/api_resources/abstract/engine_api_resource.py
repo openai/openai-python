@@ -1,5 +1,5 @@
+import abc
 import time
-from pydoc import apropos
 from typing import Optional
 from urllib.parse import quote_plus
 
@@ -12,7 +12,7 @@ from openai.util import ApiType
 MAX_TIMEOUT = 20
 
 
-class EngineAPIResource(APIResource):
+class EngineAPIResource(APIResource, abc.ABC):
     plain_old_data = False
 
     def __init__(self, engine: Optional[str] = None, **kwargs):
@@ -63,11 +63,11 @@ class EngineAPIResource(APIResource):
     @classmethod
     def __prepare_create_request(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         deployment_id = params.pop("deployment_id", None)
@@ -127,12 +127,12 @@ class EngineAPIResource(APIResource):
     @classmethod
     def create(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         (
@@ -192,12 +192,12 @@ class EngineAPIResource(APIResource):
     @classmethod
     async def acreate(
         cls,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        request_id=None,
-        api_version=None,
-        organization=None,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
         **params,
     ):
         (
@@ -295,7 +295,7 @@ class EngineAPIResource(APIResource):
             url += params_connector + "timeout={}".format(timeout)
         return url
 
-    def wait(self, timeout=None):
+    def wait(self, timeout: Optional[int] = None):
         start = time.time()
         while self.status != "complete":
             self.timeout = (
@@ -309,7 +309,7 @@ class EngineAPIResource(APIResource):
             self.refresh()
         return self
 
-    async def await_(self, timeout=None):
+    async def await_(self, timeout: Optional[int] = None):
         """Async version of `EngineApiResource.wait`"""
         start = time.time()
         while self.status != "complete":

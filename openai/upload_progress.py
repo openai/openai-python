@@ -1,8 +1,9 @@
 import io
+from typing import Optional
 
 
 class CancelledError(Exception):
-    def __init__(self, msg):
+    def __init__(self, msg: str):
         self.msg = msg
         Exception.__init__(self, msg)
 
@@ -13,7 +14,7 @@ class CancelledError(Exception):
 
 
 class BufferReader(io.BytesIO):
-    def __init__(self, buf=b"", desc=None):
+    def __init__(self, buf: bytes = b"", desc: Optional[str] = None):
         self._len = len(buf)
         io.BytesIO.__init__(self, buf)
         self._progress = 0
@@ -33,7 +34,7 @@ class BufferReader(io.BytesIO):
         return chunk
 
 
-def progress(total, desc):
+def progress(total: float, desc: Optional[str]):
     import tqdm  # type: ignore
 
     meter = tqdm.tqdm(total=total, unit_scale=True, desc=desc)
@@ -48,5 +49,5 @@ def progress(total, desc):
     return incr
 
 
-def MB(i):
+def MB(i: float) -> float:
     return int(i // 1024**2)

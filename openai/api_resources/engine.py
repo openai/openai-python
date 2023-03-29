@@ -1,5 +1,6 @@
 import time
 import warnings
+from typing import Optional, cast
 
 from openai import util
 from openai.api_resources.abstract import ListableAPIResource, UpdateableAPIResource
@@ -9,7 +10,7 @@ from openai.error import TryAgain
 class Engine(ListableAPIResource, UpdateableAPIResource):
     OBJECT_NAME = "engines"
 
-    def generate(self, timeout=None, **params):
+    def generate(self, timeout: Optional[float] = None, **params):
         start = time.time()
         while True:
             try:
@@ -17,7 +18,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                     "post",
                     self.instance_url() + "/generate",
                     params,
-                    stream=params.get("stream"),
+                    stream=cast(bool, params.get("stream")),
                     plain_old_data=True,
                 )
             except TryAgain as e:
@@ -26,7 +27,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
 
                 util.log_info("Waiting for model to warm up", error=e)
 
-    async def agenerate(self, timeout=None, **params):
+    async def agenerate(self, timeout: Optional[float] = None, **params):
         start = time.time()
         while True:
             try:
@@ -34,7 +35,7 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                     "post",
                     self.instance_url() + "/generate",
                     params,
-                    stream=params.get("stream"),
+                    stream=cast(bool, params.get("stream")),
                     plain_old_data=True,
                 )
             except TryAgain as e:

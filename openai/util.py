@@ -3,9 +3,10 @@ import os
 import re
 import sys
 from enum import Enum
-from typing import Optional
+from typing import Optional, Mapping, Any, Dict, overload, List, Union, Iterator
 
 import openai
+from openai.openai_response import OpenAIResponse
 
 OPENAI_LOG = os.environ.get("OPENAI_LOG")
 
@@ -31,7 +32,7 @@ class ApiType(Enum):
     AZURE_AD = 3
 
     @staticmethod
-    def from_str(label):
+    def from_str(label: str) -> "ApiType":
         if label.lower() == "azure":
             return ApiType.AZURE
         elif label.lower() in ("azure_ad", "azuread"):
@@ -44,7 +45,7 @@ class ApiType(Enum):
             )
 
 
-def _console_log_level():
+def _console_log_level() -> Optional[str]:
     if openai.log in ["debug", "info"]:
         return openai.log
     elif OPENAI_LOG in ["debug", "info"]:
@@ -53,28 +54,28 @@ def _console_log_level():
         return None
 
 
-def log_debug(message, **params):
+def log_debug(message: Any, **params):
     msg = logfmt(dict(message=message, **params))
     if _console_log_level() == "debug":
         print(msg, file=sys.stderr)
     logger.debug(msg)
 
 
-def log_info(message, **params):
+def log_info(message: Any, **params):
     msg = logfmt(dict(message=message, **params))
     if _console_log_level() in ["debug", "info"]:
         print(msg, file=sys.stderr)
     logger.info(msg)
 
 
-def log_warn(message, **params):
+def log_warn(message: Any, **params):
     msg = logfmt(dict(message=message, **params))
     print(msg, file=sys.stderr)
     logger.warn(msg)
 
 
-def logfmt(props):
-    def fmt(key, val):
+def logfmt(props: Mapping[str, Any]):
+    def fmt(key: str, val: Any):
         # Handle case where val is a bytes or bytesarray
         if hasattr(val, "decode"):
             val = val.decode("utf-8")
@@ -99,12 +100,12 @@ def get_object_classes():
 
 
 def convert_to_openai_object(
-    resp,
-    api_key=None,
-    api_version=None,
-    organization=None,
-    engine=None,
-    plain_old_data=False,
+    resp: Any,
+    api_key: Optional[str] = None,
+    api_version: Optional[str] = None,
+    organization: Optional[str] = None,
+    engine: Optional[str] = None,
+    plain_old_data: bool = False,
 ):
     # If we get a OpenAIResponse, we'll want to return a OpenAIObject.
 
@@ -167,7 +168,7 @@ def convert_to_dict(obj):
         return obj
 
 
-def merge_dicts(x, y):
+def merge_dicts(x: Dict[Any, Any], y: Dict[Any, Any]) -> Dict[Any, Any]:
     z = x.copy()
     z.update(y)
     return z
