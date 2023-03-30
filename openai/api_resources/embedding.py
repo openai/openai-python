@@ -1,6 +1,6 @@
 import base64
 import time
-
+from typing import Optional, Union, List
 
 from openai import util
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
@@ -12,7 +12,20 @@ class Embedding(EngineAPIResource):
     OBJECT_NAME = "embeddings"
 
     @classmethod
-    def create(cls, *args, **kwargs):
+    def create(
+        cls,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        timeout: Optional[float] = None,
+        model: Optional[str] = None,
+        input: Optional[Union[str, List[str]]] = None,
+        encoding_format: str = "base64",
+        **params,
+    ):
         """
         Creates a new embedding for the provided input and parameters.
 
@@ -20,21 +33,24 @@ class Embedding(EngineAPIResource):
         of valid parameters.
         """
         start = time.time()
-        timeout = kwargs.pop("timeout", None)
-
-        user_provided_encoding_format = kwargs.get("encoding_format", None)
-
-        # If encoding format was not explicitly specified, we opaquely use base64 for performance
-        if not user_provided_encoding_format:
-            kwargs["encoding_format"] = "base64"
 
         while True:
             try:
-                response = super().create(*args, **kwargs)
+                response = super().create(
+                    api_key=api_key,
+                    api_base=api_base,
+                    api_type=api_type,
+                    api_version=api_version,
+                    request_id=request_id,
+                    organization=organization,
+                    model=model,
+                    input=input,
+                    **params,
+                )
 
                 # If a user specifies base64, we'll just return the encoded string.
                 # This is only for the default case.
-                if not user_provided_encoding_format:
+                if not encoding_format:
                     for data in response.data:
 
                         # If an engine isn't using this optimization, don't do anything
@@ -52,7 +68,20 @@ class Embedding(EngineAPIResource):
                 util.log_info("Waiting for model to warm up", error=e)
 
     @classmethod
-    async def acreate(cls, *args, **kwargs):
+    async def acreate(
+        cls,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        timeout: Optional[float] = None,
+        model: Optional[str] = None,
+        input: Optional[Union[str, List[str]]] = None,
+        encoding_format: str = "base64",
+        **params,
+    ):
         """
         Creates a new embedding for the provided input and parameters.
 
@@ -60,21 +89,24 @@ class Embedding(EngineAPIResource):
         of valid parameters.
         """
         start = time.time()
-        timeout = kwargs.pop("timeout", None)
-
-        user_provided_encoding_format = kwargs.get("encoding_format", None)
-
-        # If encoding format was not explicitly specified, we opaquely use base64 for performance
-        if not user_provided_encoding_format:
-            kwargs["encoding_format"] = "base64"
 
         while True:
             try:
-                response = await super().acreate(*args, **kwargs)
+                response = await super().acreate(
+                    api_key=api_key,
+                    api_base=api_base,
+                    api_type=api_type,
+                    api_version=api_version,
+                    request_id=request_id,
+                    organization=organization,
+                    model=model,
+                    input=input,
+                    **params,
+                )
 
                 # If a user specifies base64, we'll just return the encoded string.
                 # This is only for the default case.
-                if not user_provided_encoding_format:
+                if not encoding_format:
                     for data in response.data:
 
                         # If an engine isn't using this optimization, don't do anything

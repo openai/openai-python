@@ -1,7 +1,8 @@
-from typing import Any, List, Optional, IO
+from typing import Any, List, Optional
 
 import openai
 from openai import api_requestor, util
+from openai._typedefs import FileType
 from openai.api_resources.abstract import APIResource
 
 
@@ -15,7 +16,7 @@ class Audio(APIResource):
     @classmethod
     def _prepare_request(
         cls,
-        file: IO,
+        file: FileType,
         filename: str,
         model: str,
         api_key: Optional[str] = None,
@@ -44,7 +45,7 @@ class Audio(APIResource):
     def transcribe(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -63,7 +64,7 @@ class Audio(APIResource):
     def translate(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -82,7 +83,7 @@ class Audio(APIResource):
     def transcribe_raw(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -102,7 +103,7 @@ class Audio(APIResource):
     def translate_raw(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -122,7 +123,7 @@ class Audio(APIResource):
     async def atranscribe(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -143,7 +144,7 @@ class Audio(APIResource):
     async def atranslate(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -164,7 +165,7 @@ class Audio(APIResource):
     async def atranscribe_raw(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -186,7 +187,7 @@ class Audio(APIResource):
     async def atranslate_raw(
         cls,
         model: str,
-        file: IO,
+        file: FileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,

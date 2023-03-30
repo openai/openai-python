@@ -3,6 +3,7 @@ from typing import Any, List, Optional
 
 import openai
 from openai import api_requestor, util
+from openai._typedefs import FileType
 from openai.api_resources.abstract import APIResource
 
 
@@ -73,7 +74,7 @@ class Image(APIResource):
     @classmethod
     def _prepare_create_variation(
         cls,
-        image,
+        image: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -101,7 +102,7 @@ class Image(APIResource):
     @classmethod
     def create_variation(
         cls,
-        image,
+        image: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -128,7 +129,7 @@ class Image(APIResource):
     @classmethod
     async def acreate_variation(
         cls,
-        image,
+        image: FileType,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -155,8 +156,8 @@ class Image(APIResource):
     @classmethod
     def _prepare_create_edit(
         cls,
-        image,
-        mask=None,
+        image: FileType,
+        mask: Optional[FileType] = None,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -186,8 +187,8 @@ class Image(APIResource):
     @classmethod
     def create_edit(
         cls,
-        image,
-        mask=None,
+        image: FileType,
+        mask: Optional[FileType] = None,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,
@@ -215,8 +216,8 @@ class Image(APIResource):
     @classmethod
     async def acreate_edit(
         cls,
-        image,
-        mask=None,
+        image: FileType,
+        mask: Optional[FileType] = None,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
         api_type: Optional[str] = None,

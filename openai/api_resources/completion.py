@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 
 from openai import util
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
@@ -9,7 +10,19 @@ class Completion(EngineAPIResource):
     OBJECT_NAME = "completions"
 
     @classmethod
-    def create(cls, *args, **kwargs):
+    def create(
+        cls,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        timeout: Optional[float] = None,
+        model: Optional[str] = None,
+        prompt: Optional[str] = None,
+        **params,
+    ):
         """
         Creates a new completion for the provided prompt and parameters.
 
@@ -17,11 +30,20 @@ class Completion(EngineAPIResource):
         of valid parameters.
         """
         start = time.time()
-        timeout = kwargs.pop("timeout", None)
 
         while True:
             try:
-                return super().create(*args, **kwargs)
+                return super().create(
+                    api_key=api_key,
+                    api_base=api_base,
+                    api_type=api_type,
+                    api_version=api_version,
+                    request_id=request_id,
+                    organization=organization,
+                    model=model,
+                    prompt=prompt,
+                    **params
+                )
             except TryAgain as e:
                 if timeout is not None and time.time() > start + timeout:
                     raise
@@ -29,7 +51,19 @@ class Completion(EngineAPIResource):
                 util.log_info("Waiting for model to warm up", error=e)
 
     @classmethod
-    async def acreate(cls, *args, **kwargs):
+    async def acreate(
+        cls,
+        api_key: Optional[str] = None,
+        api_base: Optional[str] = None,
+        api_type: Optional[str] = None,
+        request_id: Optional[str] = None,
+        api_version: Optional[str] = None,
+        organization: Optional[str] = None,
+        timeout: Optional[float] = None,
+        model: Optional[str] = None,
+        prompt: Optional[str] = None,
+        **params,
+    ):
         """
         Creates a new completion for the provided prompt and parameters.
 
@@ -37,11 +71,20 @@ class Completion(EngineAPIResource):
         of valid parameters.
         """
         start = time.time()
-        timeout = kwargs.pop("timeout", None)
 
         while True:
             try:
-                return await super().acreate(*args, **kwargs)
+                return await super().acreate(
+                    api_key=api_key,
+                    api_base=api_base,
+                    api_type=api_type,
+                    api_version=api_version,
+                    request_id=request_id,
+                    organization=organization,
+                    model=model,
+                    prompt=prompt,
+                    **params
+                )
             except TryAgain as e:
                 if timeout is not None and time.time() > start + timeout:
                     raise

@@ -1,4 +1,6 @@
-from typing import Optional, Any, TYPE_CHECKING, List, Dict
+from typing import Optional, Any, TYPE_CHECKING, List, Dict, Union, cast
+
+from openai.openai_object import OpenAIObject
 
 try:
     import wandb
@@ -57,6 +59,7 @@ class WandbLogger:
         if not WANDB_AVAILABLE:
             return
 
+        fine_tunes: Union[OpenAIObject, List[FineTune]]
         if id:
             fine_tune = FineTune.retrieve(id=id)
             fine_tune.pop("events", None)
@@ -78,7 +81,7 @@ class WandbLogger:
         )
         fine_tune_logged = [
             cls._log_fine_tune(
-                fine_tune,
+                cast(Dict[str, Any], fine_tune),
                 project,
                 entity,
                 force,
@@ -221,7 +224,7 @@ class WandbLogger:
         return config
 
     @classmethod
-    def _log_artifacts(cls, fine_tune: Dict[str, List[Any]], project: str, entity: str):
+    def _log_artifacts(cls, fine_tune: Dict[str, List[Any]], project: str, entity: Optional[str]):
         # training/validation files
         training_file = (
             fine_tune["training_files"][0]
@@ -264,7 +267,7 @@ class WandbLogger:
         prefix: str,
         artifact_type: str,
         project: str,
-        entity: str
+        entity: Optional[str]
     ):
         file_id = file["id"]
         filename = Path(file["filename"]).name

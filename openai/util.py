@@ -6,7 +6,6 @@ from enum import Enum
 from typing import Optional, Mapping, Any, Dict
 
 import openai
-from openai.openai_response import OpenAIResponse
 
 OPENAI_LOG = os.environ.get("OPENAI_LOG")
 
