@@ -489,7 +489,7 @@ class APIRequestor:
                 "assistance." % (method,)
             )
 
-        headers = self.request_headers(method, headers, request_id)
+        headers = self.request_headers(headers, request_id)
 
         util.log_debug("Request to OpenAI API", method=method, path=abs_url)
         util.log_debug("Post details", data=data, api_version=self.api_version)
