@@ -134,8 +134,8 @@ class OpenAIObject(Dict[str, Any]):
         values,
         api_key: Optional[str] = None,
         api_version: Optional[str] = None,
-        organization: Optional[str] = None,
         api_type: Optional[str] = None,
+        organization: Optional[str] = None,
         response_ms: Optional[int] = None,
     ):
         self.api_key = api_key or getattr(values, "api_key", None)
