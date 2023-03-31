@@ -2,7 +2,7 @@ from typing import Any, List, Optional, IO
 
 import openai
 from openai import api_requestor, util
-from openai._typedefs import FileType
+from openai._typedefs import AudioFileType
 from openai.api_resources.abstract import APIResource
 
 
@@ -16,7 +16,7 @@ class Audio(APIResource):
     @classmethod
     def _prepare_request(
         cls,
-        file: FileType,
+        file: AudioFileType,
         filename: str,
         model: str,
         api_key: Optional[str] = None,
@@ -83,7 +83,7 @@ class Audio(APIResource):
     def transcribe_raw(
         cls,
         model: str,
-        file: FileType,
+        file: AudioFileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -103,7 +103,7 @@ class Audio(APIResource):
     def translate_raw(
         cls,
         model: str,
-        file: FileType,
+        file: AudioFileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -165,7 +165,7 @@ class Audio(APIResource):
     async def atranscribe_raw(
         cls,
         model: str,
-        file: FileType,
+        file: AudioFileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,
@@ -187,7 +187,7 @@ class Audio(APIResource):
     async def atranslate_raw(
         cls,
         model: str,
-        file: FileType,
+        file: AudioFileType,
         filename: str,
         api_key: Optional[str] = None,
         api_base: Optional[str] = None,

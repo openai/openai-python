@@ -29,6 +29,8 @@ class _SupportsRead(Protocol):
 
 
 FileType: TypeAlias = Union[_SupportsRead, str, bytes, bytearray]
+ImageFileType: TypeAlias = Union[_SupportsRead, bytes, bytearray]
+AudioFileType: TypeAlias = Union[_SupportsRead, bytes, bytearray]
 FilesType: TypeAlias = List[
     Union[Tuple[str, Tuple[None, str]], Tuple[str, Tuple[str, FileType, _ContentType]]]
 ]
