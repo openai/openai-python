@@ -1,5 +1,5 @@
 import time
-from typing import Optional
+from typing import Optional, Union, List
 
 from openai import util
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
@@ -20,7 +20,7 @@ class Completion(EngineAPIResource):
         organization: Optional[str] = None,
         timeout: Optional[float] = None,
         model: Optional[str] = None,
-        prompt: Optional[str] = None,
+        prompt: Optional[Union[str, List[str]]] = None,
         **params,
     ):
         """
@@ -61,7 +61,7 @@ class Completion(EngineAPIResource):
         organization: Optional[str] = None,
         timeout: Optional[float] = None,
         model: Optional[str] = None,
-        prompt: Optional[str] = None,
+        prompt: Optional[Union[str, List[str]]] = None,
         **params,
     ):
         """
