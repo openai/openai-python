@@ -28,8 +28,8 @@ follows:
 ]
 ```
 You could also represent it in the classic "unsafe raw string"
-format. Note this format inherently allows injections from user input
-containing special-token syntax, similar to a SQL injections:
+format. However, this format inherently allows injections from user
+input containing special-token syntax, similar to SQL injections:
 ```
 <|im_start|>system
 You are ChatGPT, a large language model trained by OpenAI. Answer as concisely as possible.
@@ -59,7 +59,7 @@ We do not currently allow autocompleting of partial messages,
 ```
 [
  {"token": "<|im_start|>"},
- "system\nPlease autocomplete the user's message."
+ "system\nPlease autocomplete the user's message.",
  {"token": "<|im_end|>"}, "\n", {"token": "<|im_start|>"},
  "user\nThis morning I decided to eat a giant"
 ]
@@ -87,7 +87,7 @@ Comment allez-vous?
 {{user input here}}<|im_end|>
 ```
 If adding instructions in the `system` message doesn't work, you can
-also try putting them into a `user` message.  (In the near future, we
+also try putting them into a `user` message. (In the near future, we
 will train our models to be much more steerable via the system
 message. But to date, we have trained only on a few system messages,
 so the models pay much more attention to user examples.)
