@@ -468,6 +468,18 @@ def lower_case_validator(df, column):
         )
 
 
+def reading_with_multiple_engines(file_path):
+    """
+    This function will try to read the file from the pandas ujoin first
+    if it doesn't work we will try to use other engine
+    """
+    try:
+        return pd.read_json(file_path, lines=True, dtype=str, engine="ujoin")
+    except ValueError:
+        # If the preferred engine fails, fallback to the alternative engine
+        return pd.read_json(file_path, lines=True, dtype=str, engine="pyarrow")
+
+
 def read_any_format(fname, fields=["prompt", "completion"]):
     """
     This function will read a file saved in .csv, .json, .txt, .xlsx or .tsv format using pandas.
@@ -522,10 +534,10 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                 else:
                     pass  # this is what we expect for a .jsonl file
             elif fname.lower().endswith(".json"):
-                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                df = reading_with_multiple_engines(fname).fillna("")
                 if len(df) == 1:
                     # this is what we expect for a .json file
-                    df = pd.read_json(fname, dtype=str).fillna("")
+                    df = reading_with_multiple_engines(fname).fillna("")
                 else:
                     # this is NOT what we expect for a .json file
                     immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
