@@ -23,6 +23,7 @@ from openai.api_resources import (
     Moderation,
 )
 from openai.error import APIError, InvalidRequestError, OpenAIError
+from openai.version import VERSION
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession
@@ -52,6 +53,7 @@ aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
 )  # Acts as a global aiohttp ClientSession that reuses connections.
 # This is user-supplied; otherwise, a session is remade for each request.
 
+__version__ = VERSION
 __all__ = [
     "APIError",
     "Audio",
