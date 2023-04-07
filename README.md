@@ -151,7 +151,7 @@ Examples of how to use this Python library to accomplish various tasks can be fo
 * Question answering from a corpus of documents
 * Recommendations
 * Visualization of embeddings
-* And more
+* And more!
 
 Prior to July 2022, this OpenAI Python library hosted code examples in its examples folder, but since then all examples have been migrated to the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
@@ -283,7 +283,7 @@ See the [usage guide](https://platform.openai.com/docs/guides/images) for more d
 
 ## Requirements
 
-- Python 3.7.1+
+- Python 3.7.1 or later
 
 In general, we want to support the versions of Python that our
 customers are using. If you run into problems with any version
