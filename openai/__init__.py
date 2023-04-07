@@ -3,16 +3,26 @@
 # Originally forked from the MIT-licensed Stripe Python bindings.
 
 import os
+import sys
+from typing import TYPE_CHECKING, Optional
+
 from contextvars import ContextVar
-from typing import Optional, TYPE_CHECKING
+
+if "pkg_resources" not in sys.modules:
+    # workaround for the following:
+    # https://github.com/benoitc/gunicorn/pull/2539
+    sys.modules["pkg_resources"] = object()  # type: ignore[assignment]
+    import aiohttp
+
+    del sys.modules["pkg_resources"]
 
 from openai.api_resources import (
     Audio,
     ChatCompletion,
     Completion,
     Customer,
-    Edit,
     Deployment,
+    Edit,
     Embedding,
     Engine,
     ErrorObject,
