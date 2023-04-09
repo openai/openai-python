@@ -562,11 +562,12 @@ class APIRequestor:
         if isinstance(request_timeout, tuple):
             timeout = aiohttp.ClientTimeout(
                 connect=request_timeout[0],
-                total=request_timeout[1],
+                sock_read=request_timeout[1],
             )
         else:
             timeout = aiohttp.ClientTimeout(
-                total=request_timeout if request_timeout else TIMEOUT_SECS
+                connect=request_timeout if request_timeout else TIMEOUT_SECS,
+                sock_read=request_timeout if request_timeout else TIMEOUT_SECS,
             )
 
         if files:
