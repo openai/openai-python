@@ -76,6 +76,10 @@ def _aiohttp_proxies_arg(proxy) -> Optional[str]:
 
 
 def _make_session() -> requests.Session:
+    if openai.requestssession:
+        if isinstance(openai.requestssession, requests.Session):
+            return openai.requestssession
+        return openai.requestssession()
     if not openai.verify_ssl_certs:
         warnings.warn("verify_ssl_certs is ignored; openai always verifies.")
     s = requests.Session()

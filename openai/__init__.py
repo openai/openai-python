@@ -4,7 +4,7 @@
 
 import os
 import sys
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union, Callable
 
 from contextvars import ContextVar
 
@@ -36,6 +36,7 @@ from openai.error import APIError, InvalidRequestError, OpenAIError
 from openai.version import VERSION
 
 if TYPE_CHECKING:
+    import requests
     from aiohttp import ClientSession
 
 api_key = os.environ.get("OPENAI_API_KEY")
@@ -57,6 +58,10 @@ enable_telemetry = False  # Ignored; the telemetry feature was removed.
 ca_bundle_path = None  # No longer used, feature was removed
 debug = False
 log = None  # Set to either 'debug' or 'info', controls console logging
+
+requestssession: Optional[
+    Union["requests.Session", Callable[[], "requests.Session"]]
+] = None # Provide a requests.Session or Session factory.
 
 aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
     "aiohttp-session", default=None
