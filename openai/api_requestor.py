@@ -667,7 +667,7 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            if 'text/plain' in rheaders.get('Content-Type'):
+            if 'text/plain' in rheaders.get('Content-Type', ''):
                 data = rbody
             else:
                 data = json.loads(rbody)
