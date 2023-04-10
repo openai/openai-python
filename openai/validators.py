@@ -526,14 +526,21 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                 else:
                     pass  # this is what we expect for a .jsonl file
             elif fname.lower().endswith(".json"):
-                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
-                if len(df) == 1:
-                    # this is what we expect for a .json file
+                try:
+                    # to handle case where .json file is actually a .jsonl file
+                    df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                    if len(df) == 1:
+                        # this code path corresponds to a .json file that has one line
+                        df = pd.read_json(fname, dtype=str).fillna("")
+                    else:
+                        # this is NOT what we expect for a .json file
+                        immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
+                        necessary_msg = (
+                            "Your format `JSON` will be converted to `JSONL`"
+                        )
+                except ValueError:
+                    # this code path corresponds to a .json file that has multiple lines (i.e. it is indented)
                     df = pd.read_json(fname, dtype=str).fillna("")
-                else:
-                    # this is NOT what we expect for a .json file
-                    immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
-                    necessary_msg = "Your format `JSON` will be converted to `JSONL`"
             else:
                 error_msg = "Your file must have one of the following extensions: .CSV, .TSV, .XLSX, .TXT, .JSON or .JSONL"
                 if "." in fname:
