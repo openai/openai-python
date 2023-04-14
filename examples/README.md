@@ -5,3 +5,4 @@ Looking for code examples? Visit the [OpenAI Cookbook](https://github.com/openai
 Prior to July 2022, code examples were hosted in this examples folder; going forward, code examples will be hosted in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
 This separation will help keep the [OpenAI Python library](https://github.com/openai/openai-python) simple and small, without extra files or dependencies.
+ # should check it 
