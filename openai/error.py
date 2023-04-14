@@ -58,6 +58,7 @@ class OpenAIError(Exception):
     def construct_error_object(self):
         if (
             self.json_body is None
+            or not isinstance(self.json_body, dict)
             or "error" not in self.json_body
             or not isinstance(self.json_body["error"], dict)
         ):

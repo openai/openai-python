@@ -138,6 +138,9 @@ openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
 
 # generate images via DALL·E API
 openai api image.create -p "two dogs playing chess, cartoon" -n 1
+
+# using openai through a proxy
+openai --proxy=http://proxy.com api models.list
 ```
 
 ## Example code

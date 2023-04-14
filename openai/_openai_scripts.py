@@ -32,6 +32,7 @@ def main():
     )
     parser.add_argument("-b", "--api-base", help="What API base url to use.")
     parser.add_argument("-k", "--api-key", help="What API key to use.")
+    parser.add_argument("-p", "--proxy", nargs='+', help="What proxy to use.")
     parser.add_argument(
         "-o",
         "--organization",
@@ -65,6 +66,13 @@ def main():
         openai.api_base = args.api_base
     if args.organization is not None:
         openai.organization = args.organization
+    if args.proxy is not None:
+        openai.proxy = {}
+        for proxy in args.proxy:
+            if proxy.startswith('https'):
+                openai.proxy['https'] = proxy
+            elif proxy.startswith('http'):
+                openai.proxy['http'] = proxy
 
     try:
         args.func(args)

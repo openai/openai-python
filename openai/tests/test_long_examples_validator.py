@@ -4,12 +4,8 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from openai.datalib import (
-    HAS_NUMPY,
-    HAS_PANDAS,
-    NUMPY_INSTRUCTIONS,
-    PANDAS_INSTRUCTIONS,
-)
+from openai.datalib.numpy_helper import HAS_NUMPY, NUMPY_INSTRUCTIONS
+from openai.datalib.pandas_helper import HAS_PANDAS, PANDAS_INSTRUCTIONS
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)
@@ -54,5 +50,5 @@ def test_long_examples_validator() -> None:
     assert prepared_data_cmd_output.stderr == ""
     # validate get_long_indexes() applied during optional_fn() call in long_examples_validator()
     assert "indices of the long examples has changed" in prepared_data_cmd_output.stdout
-    
+
     return prepared_data_cmd_output.stdout
