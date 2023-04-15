@@ -523,6 +523,7 @@ class APIRequestor:
                 files=files,
                 stream=stream,
                 timeout=request_timeout if request_timeout else TIMEOUT_SECS,
+                proxies=_thread_context.session.proxies,
             )
         except requests.exceptions.Timeout as e:
             raise error.Timeout("Request timed out: {}".format(e)) from e
@@ -668,7 +669,7 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            if 'text/plain' in rheaders.get('Content-Type'):
+            if 'text/plain' in rheaders.get('Content-Type', ''):
                 data = rbody
             else:
                 data = json.loads(rbody)

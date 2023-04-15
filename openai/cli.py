@@ -123,10 +123,11 @@ class ChatCompletion:
         resp = openai.ChatCompletion.create(
             # Required
             model=args.model,
+            engine=args.engine,
             messages=messages,
             # Optional
             n=args.n,
-            max_tokens=100,
+            max_tokens=args.max_tokens,
             temperature=args.temperature,
             top_p=args.top_p,
             stop=args.stop,
@@ -715,12 +716,6 @@ Mutually exclusive with `top_p`.""",
     opt = sub.add_argument_group("optional arguments")
 
     req.add_argument(
-        "-m",
-        "--model",
-        help="The model to use.",
-        required=True,
-    )
-    req.add_argument(
         "-g",
         "--message",
         action="append",
@@ -729,6 +724,19 @@ Mutually exclusive with `top_p`.""",
         help="A message in `{role} {content}` format. Use this argument multiple times to add multiple messages.",
         required=True,
     )
+
+    group = opt.add_mutually_exclusive_group()
+    group.add_argument(
+        "-e",
+        "--engine",
+        help="The engine to use. See https://learn.microsoft.com/en-us/azure/cognitive-services/openai/chatgpt-quickstart?pivots=programming-language-python for more about what engines are available.",
+    )
+    group.add_argument(
+        "-m",
+        "--model",
+        help="The model to use.",
+    )
+
     opt.add_argument(
         "-n",
         "--n",

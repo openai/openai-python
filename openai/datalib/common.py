@@ -13,19 +13,6 @@ assertions with instructive error messages.
 See also `setup.py`.
 
 """
-try:
-    import numpy
-except ImportError:
-    numpy = None
-
-try:
-    import pandas
-except ImportError:
-    pandas = None
-
-HAS_NUMPY = bool(numpy)
-HAS_PANDAS = bool(pandas)
-
 INSTRUCTIONS = """
 
 OpenAI error: 
@@ -39,18 +26,7 @@ This feature requires additional dependencies:
 """
 
 NUMPY_INSTRUCTIONS = INSTRUCTIONS.format(library="numpy")
-PANDAS_INSTRUCTIONS = INSTRUCTIONS.format(library="pandas")
 
 
 class MissingDependencyError(Exception):
     pass
-
-
-def assert_has_numpy():
-    if not HAS_NUMPY:
-        raise MissingDependencyError(NUMPY_INSTRUCTIONS)
-
-
-def assert_has_pandas():
-    if not HAS_PANDAS:
-        raise MissingDependencyError(PANDAS_INSTRUCTIONS)

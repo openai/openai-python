@@ -4,12 +4,8 @@ from tempfile import NamedTemporaryFile
 
 import pytest
 
-from openai.datalib import (
-    HAS_NUMPY,
-    HAS_PANDAS,
-    NUMPY_INSTRUCTIONS,
-    PANDAS_INSTRUCTIONS,
-)
+from openai.datalib.numpy_helper import HAS_NUMPY, NUMPY_INSTRUCTIONS
+from openai.datalib.pandas_helper import HAS_PANDAS, PANDAS_INSTRUCTIONS
 
 
 @pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)

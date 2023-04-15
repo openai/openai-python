@@ -3,16 +3,26 @@
 # Originally forked from the MIT-licensed Stripe Python bindings.
 
 import os
+import sys
+from typing import TYPE_CHECKING, Optional
+
 from contextvars import ContextVar
-from typing import Optional, TYPE_CHECKING
+
+if "pkg_resources" not in sys.modules:
+    # workaround for the following:
+    # https://github.com/benoitc/gunicorn/pull/2539
+    sys.modules["pkg_resources"] = object()  # type: ignore[assignment]
+    import aiohttp
+
+    del sys.modules["pkg_resources"]
 
 from openai.api_resources import (
     Audio,
     ChatCompletion,
     Completion,
     Customer,
-    Edit,
     Deployment,
+    Edit,
     Embedding,
     Engine,
     ErrorObject,
@@ -23,6 +33,7 @@ from openai.api_resources import (
     Moderation,
 )
 from openai.error import APIError, InvalidRequestError, OpenAIError
+from openai.version import VERSION
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession
@@ -52,6 +63,7 @@ aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
 )  # Acts as a global aiohttp ClientSession that reuses connections.
 # This is user-supplied; otherwise, a session is remade for each request.
 
+__version__ = VERSION
 __all__ = [
     "APIError",
     "Audio",
