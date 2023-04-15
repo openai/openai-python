@@ -4,7 +4,8 @@ from typing import Optional, Union, List
 
 from openai import util
 from openai.api_resources.abstract.engine_api_resource import EngineAPIResource
-from openai.datalib import numpy as np, assert_has_numpy
+from openai.datalib.numpy_helper import assert_has_numpy
+from openai.datalib.numpy_helper import numpy as np
 from openai.error import TryAgain
 
 
