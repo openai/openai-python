@@ -423,7 +423,7 @@ def completions_space_start_validator(df):
 
     def add_space_start(x):
         x["completion"] = x["completion"].apply(
-            lambda x: ("" if x[0] == " " else " ") + x
+            lambda x: ("" if x == "" or x[0] == " " else " ") + x
         )
         return x
 
