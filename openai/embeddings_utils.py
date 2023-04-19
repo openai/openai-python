@@ -20,9 +20,6 @@ def get_embedding(text: str, engine="text-similarity-davinci-001", **kwargs) -> 
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
 
-    print(engine)
-    print(kwargs)
-
     return openai.Embedding.create(input=[text], engine=engine, **kwargs)["data"][0]["embedding"]
 
 
