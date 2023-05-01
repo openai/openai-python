@@ -487,7 +487,7 @@ class APIRequestor:
         else:
             raise error.APIConnectionError(
                 "Unrecognized HTTP method %r. This may indicate a bug in the "
-                "OpenAI bindings. Please contact support@openai.com for "
+                "OpenAI bindings. Please contact us through our help center at help.openai.com for "
                 "assistance." % (method,)
             )
 

@@ -565,7 +565,7 @@ class FineTune:
             )
         elif status == "failed":
             sys.stdout.write(
-                "\nJob failed. Please contact support@openai.com if you need assistance."
+                "\nJob failed. Please contact us through our help center at help.openai.com if you need assistance."
             )
         sys.stdout.write("\n")
 
