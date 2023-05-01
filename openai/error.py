@@ -19,7 +19,7 @@ class OpenAIError(Exception):
             except BaseException:
                 http_body = (
                     "<Could not decode body as utf-8. "
-                    "Please report to support@openai.com>"
+                    "Please contact us through our help center at help.openai.com.>"
                 )
 
         self._message = message
