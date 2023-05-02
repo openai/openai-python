@@ -59,6 +59,7 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
             **params,
         )
         url = cls._get_url("transcriptions")
