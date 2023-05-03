@@ -57,16 +57,16 @@ Or set `openai.api_key` to its value:
 import openai
 openai.api_key = "sk-..."
 
-# list models
+# List models.
 models = openai.Model.list()
 
-# print the first model's id
+# Print the first model's id.
 print(models.data[0].id)
 
-# create a completion
+# Create a completion.
 completion = openai.Completion.create(model="ada", prompt="Hello world")
 
-# print the completion
+# Print the completion.
 print(completion.choices[0].text)
 ```
 
@@ -86,10 +86,10 @@ openai.api_key = "..."
 openai.api_base = "https://example-endpoint.openai.azure.com"
 openai.api_version = "2023-03-15-preview"
 
-# create a completion
+# Create a completion.
 completion = openai.Completion.create(deployment_id="deployment-name", prompt="Hello world")
 
-# print the completion
+# Print the completion.
 print(completion.choices[0].text)
 ```
 
@@ -108,11 +108,11 @@ In order to use Microsoft Active Directory to authenticate to your Azure endpoin
 from azure.identity import DefaultAzureCredential
 import openai
 
-# Request credential
+# Request credential.
 default_credential = DefaultAzureCredential()
 token = default_credential.get_token("https://cognitiveservices.azure.com/.default")
 
-# Setup parameters
+# Setup parameters.
 openai.api_type = "azure_ad"
 openai.api_key = token.token
 openai.api_base = "https://example-endpoint.openai.azure.com/"
@@ -127,19 +127,19 @@ which makes it easy to interact with the API from your terminal. Run
 `openai api -h` for usage.
 
 ```sh
-# list models
+# List models.
 openai api models.list
 
-# create a completion
+# Create a completion.
 openai api completions.create -m ada -p "Hello world"
 
-# create a chat completion
+# Create a chat completion.
 openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
 
-# generate images via DALL·E API
+# Generate images via DALL·E API.
 openai api image.create -p "two dogs playing chess, cartoon" -n 1
 
-# using openai through a proxy
+# Using openai through a proxy.
 openai --proxy=http://proxy.com api models.list
 ```
 
@@ -147,14 +147,14 @@ openai --proxy=http://proxy.com api models.list
 
 Examples of how to use this Python library to accomplish various tasks can be found in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/). It contains code examples for:
 
-* Classification using fine-tuning
-* Clustering
-* Code search
-* Customizing embeddings
-* Question answering from a corpus of documents
-* Recommendations
-* Visualization of embeddings
-* And more
+* Classification using fine-tuning.
+* Clustering.
+* Code search.
+* Customizing embeddings.
+* Question answering from a corpus of documents.
+* Recommendations.
+* Visualization of embeddings.
+* And more.
 
 Prior to July 2022, this OpenAI Python library hosted code examples in its examples folder, but since then all examples have been migrated to the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
@@ -164,7 +164,7 @@ Conversational models such as `gpt-3.5-turbo` can be called using the chat compl
 
 ```python
 import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
+openai.api_key = "sk-..."  # Supply your API key however you choose.
 
 completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world!"}])
 print(completion.choices[0].message.content)
@@ -178,15 +178,15 @@ To get an embedding for a text string, you can use the embeddings method as foll
 
 ```python
 import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
+openai.api_key = "sk-..."  # Supply your API key however you choose.
 
-# choose text to embed
+# Choose text to embed.
 text_string = "sample text"
 
-# choose an embedding
+# Choose an embedding.
 model_id = "text-similarity-davinci-001"
 
-# compute the embedding of the text
+# Compute the embedding of the text.
 embedding = openai.Embedding.create(input=text_string, model=model_id)['data'][0]['embedding']
 ```
 
@@ -230,7 +230,7 @@ OpenAI provides a Moderation endpoint that can be used to check whether content 
 
 ```python
 import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
+openai.api_key = "sk-..."  # Supply your API key however you choose.
 
 moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
 ```
@@ -241,7 +241,7 @@ See the [moderation guide](https://platform.openai.com/docs/guides/moderation) f
 
 ```python
 import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
+openai.api_key = "sk-..."  # Supply your API key however you choose.
 
 image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
 
@@ -250,7 +250,7 @@ image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", 
 ## Audio transcription (Whisper)
 ```python
 import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
+openai.api_key = "sk-..."  # Supply your API key however you choose.
 f = open("path/to/file.mp3", "rb")
 transcript = openai.Audio.transcribe("whisper-1", f)
 
@@ -262,7 +262,7 @@ Async support is available in the API by prepending `a` to a network-bound metho
 
 ```python
 import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
+openai.api_key = "sk-..."  # Supply your API key however you choose.
 
 async def create_completion():
     completion_resp = await openai.Completion.acreate(prompt="This is a test", model="davinci")
@@ -278,7 +278,7 @@ import openai
 from aiohttp import ClientSession
 
 openai.aiosession.set(ClientSession())
-# At the end of your program, close the http session
+# At the end of your program, close the http session.
 await openai.aiosession.get().close()
 ```
 
