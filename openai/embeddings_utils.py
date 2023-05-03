@@ -46,7 +46,6 @@ def get_embeddings(
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
 
     data = openai.Embedding.create(input=list_of_text, engine=engine, **kwargs).data
-    data = sorted(data, key=lambda x: x["index"])  # maintain the same order as input.
     return [d["embedding"] for d in data]
 
 
@@ -60,7 +59,6 @@ async def aget_embeddings(
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
 
     data = (await openai.Embedding.acreate(input=list_of_text, engine=engine, **kwargs)).data
-    data = sorted(data, key=lambda x: x["index"])  # maintain the same order as input.
     return [d["embedding"] for d in data]
 
 
