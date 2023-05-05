@@ -11,8 +11,8 @@ class Image(APIResource):
 
     @classmethod
     def _get_url(cls, openai_action, azure_action, api_type, api_version):
-        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            return f"/{cls.azure_api_prefix}{cls.class_url()}/{azure_action}?api-version={api_version}"
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD) and azure_action is not None:
+            return f"/{cls.azure_api_prefix}{cls.class_url()}/{openai_action}:{azure_action}?api-version={api_version}"
         else:
             return f"{cls.class_url()}/{openai_action}"
 
@@ -37,15 +37,15 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = requestor.request(
-            "post", cls._get_url("generations", "generate", api_type=api_type, api_version=api_version), params
+            "post", cls._get_url("generations", "submit", api_type=api_type, api_version=api_version), params
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             requestor.api_base = "" # operation_location is a full url
             response, _, api_key = requestor.poll(
                 "get", response.operation_location,
-                until=lambda response: response.data["status"] not in ["NotStarted", "Running"],
-                delay=response.retry_after
+                until=lambda response: response.data["status"] not in ["notRunning", "running"],
+                failed=lambda response: response.data['status'] in [ 'canceled', 'failed', 'deleted']
             )
 
         return util.convert_to_openai_object(
@@ -74,15 +74,15 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = await requestor.arequest(
-            "post", cls._get_url("generations", "generate", api_type=api_type, api_version=api_version), params
+            "post", cls._get_url("generations", "submit", api_type=api_type, api_version=api_version), params
         )
 
-        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD): 
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             requestor.api_base = "" # operation_location is a full url
             response, _, api_key = await requestor.apoll(
                 "get", response.operation_location,
-                until=lambda response: response.data["status"] not in ["NotStarted", "Running"],
-                delay=response.retry_after
+                until=lambda response: response.data["status"] not in ["notRunning", "running"],
+                failed=lambda response: response.data['status'] in [ 'canceled', 'failed', 'deleted']
             )
 
         return util.convert_to_openai_object(
