@@ -144,11 +144,9 @@ class ChatCompletion:
                     delta = c["delta"]
                     if "content" in delta:
                         sys.stdout.write(delta["content"])
-                    elif "role" in delta:
-                        sys.stdout.write(delta["role"] + ':')
                 else:
                     sys.stdout.write(c["message"]["content"])
-                    if len(choices) > 1: # not in streams
+                    if len(choices) > 1:  # not in streams
                         sys.stdout.write("\n")
                 sys.stdout.flush()
 
@@ -209,7 +207,9 @@ class Deployment:
 
     @classmethod
     def create(cls, args):
-        models = openai.Deployment.create(model=args.model, scale_settings={"scale_type": args.scale_type})
+        models = openai.Deployment.create(
+            model=args.model, scale_settings={"scale_type": args.scale_type}
+        )
         print(models)
 
 
@@ -832,10 +832,15 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("deployments.delete")
     sub.add_argument("-i", "--id", required=True, help="The deployment ID")
     sub.set_defaults(func=Deployment.delete)
-    
+
     sub = subparsers.add_parser("deployments.create")
     sub.add_argument("-m", "--model", required=True, help="The model ID")
-    sub.add_argument("-s", "--scale_type", required=True, help="The scale type. Either 'manual' or 'standard'")
+    sub.add_argument(
+        "-s",
+        "--scale_type",
+        required=True,
+        help="The scale type. Either 'manual' or 'standard'",
+    )
     sub.set_defaults(func=Deployment.create)
 
     # Models
