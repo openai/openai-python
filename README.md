@@ -41,7 +41,7 @@ Data libraries like `numpy` and `pandas` are not installed by default due to the
 
 ```sh
 pip install openai[datalib]
-````
+```
 
 ## Usage
 
@@ -63,16 +63,16 @@ models = openai.Model.list()
 # print the first model's id
 print(models.data[0].id)
 
-# create a completion
-completion = openai.Completion.create(model="ada", prompt="Hello world")
+# create a chat completion
+chat_completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
 
-# print the completion
-print(completion.choices[0].text)
+# print the chat completion
+print(chat_completion.choices[0].message.content)
 ```
 
-
 ### Params
-All endpoints have a `.create` method that supports a `request_timeout` param.  This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+
+All endpoints have a `.create` method that supports a `request_timeout` param. This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
 
 ### Microsoft Azure Endpoints
 
@@ -86,23 +86,23 @@ openai.api_key = "..."
 openai.api_base = "https://example-endpoint.openai.azure.com"
 openai.api_version = "2023-03-15-preview"
 
-# create a completion
-completion = openai.Completion.create(deployment_id="deployment-name", prompt="Hello world")
+# create a chat completion
+chat_completion = openai.ChatCompletion.create(deployment_id="deployment-name", model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
 
 # print the completion
-print(completion.choices[0].text)
+print(completion.choices[0].message.content)
 ```
 
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
 For a detailed example of how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
-* [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
-* [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
-* [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
+
+- [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
+- [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
+- [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
 
 ### Microsoft Azure Active Directory Authentication
 
 In order to use Microsoft Active Directory to authenticate to your Azure endpoint, you need to set the `api_type` to "azure_ad" and pass the acquired credential token to `api_key`. The rest of the parameters need to be set as specified in the previous section.
-
 
 ```python
 from azure.identity import DefaultAzureCredential
@@ -120,6 +120,7 @@ openai.api_version = "2023-03-15-preview"
 
 # ...
 ```
+
 ### Command-line interface
 
 This library additionally provides an `openai` command-line utility
@@ -130,11 +131,11 @@ which makes it easy to interact with the API from your terminal. Run
 # list models
 openai api models.list
 
-# create a completion
-openai api completions.create -m ada -p "Hello world"
-
-# create a chat completion
+# create a chat completion (gpt-3.5-turbo, gpt-4, etc.)
 openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
+
+# create a completion (text-davinci-003, text-davinci-002, ada, babbage, curie, davinci, etc.)
+openai api completions.create -m ada -p "Hello world"
 
 # generate images via DALL·E API
 openai api image.create -p "two dogs playing chess, cartoon" -n 1
@@ -147,18 +148,18 @@ openai --proxy=http://proxy.com api models.list
 
 Examples of how to use this Python library to accomplish various tasks can be found in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/). It contains code examples for:
 
-* Classification using fine-tuning
-* Clustering
-* Code search
-* Customizing embeddings
-* Question answering from a corpus of documents
-* Recommendations
-* Visualization of embeddings
-* And more
+- Classification using fine-tuning
+- Clustering
+- Code search
+- Customizing embeddings
+- Question answering from a corpus of documents
+- Recommendations
+- Visualization of embeddings
+- And more
 
 Prior to July 2022, this OpenAI Python library hosted code examples in its examples folder, but since then all examples have been migrated to the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
-### Chat
+### Chat Completions
 
 Conversational models such as `gpt-3.5-turbo` can be called using the chat completions endpoint.
 
@@ -166,8 +167,20 @@ Conversational models such as `gpt-3.5-turbo` can be called using the chat compl
 import openai
 openai.api_key = "sk-..."  # supply your API key however you choose
 
-completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world!"}])
+completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
 print(completion.choices[0].message.content)
+```
+
+### Completions
+
+Text models such as `text-davinci-003`, `text-davinci-002` and earlier (`ada`, `babbage`, `curie`, `davinci`, etc.) can be called using the completions endpoint.
+
+```python
+import openai
+openai.api_key = "sk-..."  # supply your API key however you choose
+
+completion = openai.Completion.create(model="text-davinci-003", prompt="Hello world")
+print(completion.choices[0].text)
 ```
 
 ### Embeddings
@@ -248,6 +261,7 @@ image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", 
 ```
 
 ## Audio transcription (Whisper)
+
 ```python
 import openai
 openai.api_key = "sk-..."  # supply your API key however you choose
@@ -264,13 +278,13 @@ Async support is available in the API by prepending `a` to a network-bound metho
 import openai
 openai.api_key = "sk-..."  # supply your API key however you choose
 
-async def create_completion():
-    completion_resp = await openai.Completion.acreate(prompt="This is a test", model="davinci")
+async def create_chat_completion():
+    chat_completion_resp = await openai.ChatCompletion.acreate(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
 
 ```
 
 To make async requests more efficient, you can pass in your own
-``aiohttp.ClientSession``, but you must manually close the client session at the end 
+`aiohttp.ClientSession`, but you must manually close the client session at the end
 of your program/event loop:
 
 ```python
