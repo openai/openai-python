@@ -10,11 +10,11 @@ class Image(APIResource):
     OBJECT_NAME = "images"
 
     @classmethod
-    def _get_url(cls, openai_action, azure_action, api_type, api_version):
+    def _get_url(cls, action, azure_action, api_type, api_version):
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD) and azure_action is not None:
-            return f"/{cls.azure_api_prefix}{cls.class_url()}/{openai_action}:{azure_action}?api-version={api_version}"
+            return f"/{cls.azure_api_prefix}{cls.class_url()}/{action}:{azure_action}?api-version={api_version}"
         else:
-            return f"{cls.class_url()}/{openai_action}"
+            return f"{cls.class_url()}/{action}"
 
     @classmethod
     def create(
@@ -37,7 +37,7 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = requestor.request(
-            "post", cls._get_url("generations", "submit", api_type=api_type, api_version=api_version), params
+            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version), params
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
@@ -74,7 +74,7 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = await requestor.arequest(
-            "post", cls._get_url("generations", "submit", api_type=api_type, api_version=api_version), params
+            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version), params
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
@@ -109,7 +109,7 @@ class Image(APIResource):
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
-        url = cls._get_url("variations", None, api_type=api_type, api_version=api_version)
+        url = cls._get_url("variations", azure_action=None, api_type=api_type, api_version=api_version)
 
         files: List[Any] = []
         for key, value in params.items():
@@ -192,7 +192,7 @@ class Image(APIResource):
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
-        url = cls._get_url("edits", None, api_type=api_type, api_version=api_version)
+        url = cls._get_url("edits", azure_action=None, api_type=api_type, api_version=api_version)
 
         files: List[Any] = []
         for key, value in params.items():
