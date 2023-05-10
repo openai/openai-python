@@ -2,7 +2,8 @@ import os
 import sys
 from typing import Any, Callable, NamedTuple, Optional
 
-from openai.datalib import pandas as pd, assert_has_pandas
+from openai.datalib.pandas_helper import assert_has_pandas
+from openai.datalib.pandas_helper import pandas as pd
 
 
 class Remediation(NamedTuple):
@@ -158,6 +159,7 @@ def long_examples_validator(df):
 
     ft_type = infer_task_type(df)
     if ft_type != "open-ended generation":
+
         def get_long_indexes(d):
             long_examples = d.apply(
                 lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
@@ -171,10 +173,12 @@ def long_examples_validator(df):
             optional_msg = f"Remove {len(long_indexes)} long examples"
 
             def optional_fn(x):
-                
+
                 long_indexes_to_drop = get_long_indexes(x)
                 if long_indexes != long_indexes_to_drop:
-                    sys.stdout.write(f"The indices of the long examples has changed as a result of a previously applied recommendation.\nThe {len(long_indexes_to_drop)} long examples to be dropped are now at the following indices: {long_indexes_to_drop}\n")
+                    sys.stdout.write(
+                        f"The indices of the long examples has changed as a result of a previously applied recommendation.\nThe {len(long_indexes_to_drop)} long examples to be dropped are now at the following indices: {long_indexes_to_drop}\n"
+                    )
                 return x.drop(long_indexes_to_drop)
 
     return Remediation(
@@ -522,14 +526,21 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                 else:
                     pass  # this is what we expect for a .jsonl file
             elif fname.lower().endswith(".json"):
-                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
-                if len(df) == 1:
-                    # this is what we expect for a .json file
+                try:
+                    # to handle case where .json file is actually a .jsonl file
+                    df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                    if len(df) == 1:
+                        # this code path corresponds to a .json file that has one line
+                        df = pd.read_json(fname, dtype=str).fillna("")
+                    else:
+                        # this is NOT what we expect for a .json file
+                        immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
+                        necessary_msg = (
+                            "Your format `JSON` will be converted to `JSONL`"
+                        )
+                except ValueError:
+                    # this code path corresponds to a .json file that has multiple lines (i.e. it is indented)
                     df = pd.read_json(fname, dtype=str).fillna("")
-                else:
-                    # this is NOT what we expect for a .json file
-                    immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
-                    necessary_msg = "Your format `JSON` will be converted to `JSONL`"
             else:
                 error_msg = "Your file must have one of the following extensions: .CSV, .TSV, .XLSX, .TXT, .JSON or .JSONL"
                 if "." in fname:

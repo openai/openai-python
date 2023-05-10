@@ -76,6 +76,10 @@ def _aiohttp_proxies_arg(proxy) -> Optional[str]:
 
 
 def _make_session() -> requests.Session:
+    if openai.requestssession:
+        if isinstance(openai.requestssession, requests.Session):
+            return openai.requestssession
+        return openai.requestssession()
     if not openai.verify_ssl_certs:
         warnings.warn("verify_ssl_certs is ignored; openai always verifies.")
     s = requests.Session()
@@ -483,7 +487,7 @@ class APIRequestor:
         else:
             raise error.APIConnectionError(
                 "Unrecognized HTTP method %r. This may indicate a bug in the "
-                "OpenAI bindings. Please contact support@openai.com for "
+                "OpenAI bindings. Please contact us through our help center at help.openai.com for "
                 "assistance." % (method,)
             )
 
@@ -667,7 +671,7 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            if 'text/plain' in rheaders.get('Content-Type'):
+            if 'text/plain' in rheaders.get('Content-Type', ''):
                 data = rbody
             else:
                 data = json.loads(rbody)
