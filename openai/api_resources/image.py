@@ -45,7 +45,7 @@ class Image(APIResource):
             response, _, api_key = requestor.poll(
                 "get", response.operation_location,
                 until=lambda response: response.data["status"] not in ["notRunning", "running"],
-                failed=lambda response: response.data['status'] in [ 'canceled', 'failed', 'deleted']
+                failed=lambda response: response.data['status'] in [ 'canceled', 'failed']
             )
 
         return util.convert_to_openai_object(
@@ -82,7 +82,7 @@ class Image(APIResource):
             response, _, api_key = await requestor.apoll(
                 "get", response.operation_location,
                 until=lambda response: response.data["status"] not in ["notRunning", "running"],
-                failed=lambda response: response.data['status'] in [ 'canceled', 'failed', 'deleted']
+                failed=lambda response: response.data['status'] in [ 'canceled', 'failed']
             )
 
         return util.convert_to_openai_object(
