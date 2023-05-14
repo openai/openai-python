@@ -133,6 +133,7 @@ class EngineAPIResource(APIResource):
         request_id=None,
         api_version=None,
         organization=None,
+        get_headers=False,
         **params,
     ):
         (
@@ -186,6 +187,9 @@ class EngineAPIResource(APIResource):
 
             if timeout is not None:
                 obj.wait(timeout=timeout or None)
+
+        if (get_headers):
+            return (obj, response._headers)
 
         return obj
 
