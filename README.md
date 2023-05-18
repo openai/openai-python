@@ -84,7 +84,7 @@ import openai
 openai.api_type = "azure"
 openai.api_key = "..."
 openai.api_base = "https://example-endpoint.openai.azure.com"
-openai.api_version = "2023-03-15-preview"
+openai.api_version = "2023-05-15"
 
 # create a chat completion
 chat_completion = openai.ChatCompletion.create(deployment_id="deployment-name", model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
@@ -116,7 +116,7 @@ token = default_credential.get_token("https://cognitiveservices.azure.com/.defau
 openai.api_type = "azure_ad"
 openai.api_key = token.token
 openai.api_base = "https://example-endpoint.openai.azure.com/"
-openai.api_version = "2023-03-15-preview"
+openai.api_version = "2023-05-15"
 
 # ...
 ```
