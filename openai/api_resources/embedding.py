@@ -79,6 +79,7 @@ class Embedding(EngineAPIResource):
 
                         # If an engine isn't using this optimization, don't do anything
                         if type(data["embedding"]) == str:
+                            assert_has_numpy()
                             data["embedding"] = np.frombuffer(
                                 base64.b64decode(data["embedding"]), dtype="float32"
                             ).tolist()
