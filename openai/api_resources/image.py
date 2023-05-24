@@ -2,7 +2,7 @@
 from typing import Any, List
 
 import openai
-from openai import api_requestor, util
+from openai import api_requestor, error, util
 from openai.api_resources.abstract import APIResource
 
 
@@ -128,6 +128,9 @@ class Image(APIResource):
         organization=None,
         **params,
     ):
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            raise error.InvalidAPIType("Variations are not supported by the Azure OpenAI API yet.")
+
         requestor, url, files = cls._prepare_create_variation(
             image,
             api_key,
@@ -155,6 +158,9 @@ class Image(APIResource):
         organization=None,
         **params,
     ):
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            raise error.InvalidAPIType("Variations are not supported by the Azure OpenAI API yet.")
+
         requestor, url, files = cls._prepare_create_variation(
             image,
             api_key,
@@ -214,6 +220,9 @@ class Image(APIResource):
         organization=None,
         **params,
     ):
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            raise error.InvalidAPIType("Edits are not supported by the Azure OpenAI API yet.")
+
         requestor, url, files = cls._prepare_create_edit(
             image,
             mask,
@@ -243,6 +252,9 @@ class Image(APIResource):
         organization=None,
         **params,
     ):
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            raise error.InvalidAPIType("Edits are not supported by the Azure OpenAI API yet.")
+
         requestor, url, files = cls._prepare_create_edit(
             image,
             mask,
