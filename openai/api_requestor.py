@@ -151,7 +151,7 @@ class APIRequestor:
             str += " (%s)" % (info["url"],)
         return str
 
-    def __check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
+    def _check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
         if predicate(response):
             message, code = (None, None) if 'error' not in response.data else (
                 response.data['error']['message'] if 'message' in response.data['error'] else None,
@@ -160,7 +160,7 @@ class APIRequestor:
             message = message if message is not None else 'Operation failed'
             raise error.OpenAIError(message=message, code=code)
 
-    def poll(
+    def _poll(
         self,
         method,
         url,
@@ -175,16 +175,16 @@ class APIRequestor:
             time.sleep(delay)
 
         response, b, api_key = self.request(method, url, params, headers)
-        self.__check_polling_response(response, failed)
+        self._check_polling_response(response, failed)
         while not until(response):
             time.sleep(interval or response.retry_after or 1)
-            response, b, api_key = self.request(method, url)
-            self.__check_polling_response(response, failed)
+            response, b, api_key = self.request(method, url, params, headers)
+            self._check_polling_response(response, failed)
 
         response.data = response.data['result']
         return response, b, api_key
 
-    async def apoll(
+    async def _apoll(
         self,
         method,
         url,
@@ -199,11 +199,11 @@ class APIRequestor:
             await asyncio.sleep(delay)
 
         response, b, api_key = await self.arequest(method, url, params, headers)
-        self.__check_polling_response(response, failed)
+        self._check_polling_response(response, failed)
         while not until(response):
             await asyncio.sleep(interval or response.retry_after or 1)
-            response, b, api_key = await self.arequest(method, url)
-            self.__check_polling_response(response, failed)
+            response, b, api_key = await self.arequest(method, url, params, headers)
+            self._check_polling_response(response, failed)
 
         response.data = response.data['result']
         return response, b, api_key

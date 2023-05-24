@@ -42,9 +42,9 @@ class Image(APIResource):
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             requestor.api_base = "" # operation_location is a full url
-            response, _, api_key = requestor.poll(
+            response, _, api_key = requestor._poll(
                 "get", response.operation_location,
-                until=lambda response: response.data["status"] not in ["notRunning", "running"],
+                until=lambda response: response.data["status"] in ["succeeded"],
                 failed=lambda response: response.data['status'] in [ 'canceled', 'failed']
             )
 
@@ -79,9 +79,9 @@ class Image(APIResource):
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             requestor.api_base = "" # operation_location is a full url
-            response, _, api_key = await requestor.apoll(
+            response, _, api_key = await requestor._apoll(
                 "get", response.operation_location,
-                until=lambda response: response.data["status"] not in ["notRunning", "running"],
+                until=lambda response: response.data["status"] in ["succeeded"],
                 failed=lambda response: response.data['status'] in [ 'canceled', 'failed']
             )
 
