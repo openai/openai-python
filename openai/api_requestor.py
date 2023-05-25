@@ -177,7 +177,7 @@ class APIRequestor:
         response, b, api_key = self.request(method, url, params, headers)
         self._check_polling_response(response, failed)
         while not until(response):
-            time.sleep(interval or response.retry_after or 1)
+            time.sleep(interval or response.retry_after or 10)
             response, b, api_key = self.request(method, url, params, headers)
             self._check_polling_response(response, failed)
 
@@ -201,7 +201,7 @@ class APIRequestor:
         response, b, api_key = await self.arequest(method, url, params, headers)
         self._check_polling_response(response, failed)
         while not until(response):
-            await asyncio.sleep(interval or response.retry_after or 1)
+            await asyncio.sleep(interval or response.retry_after or 10)
             response, b, api_key = await self.arequest(method, url, params, headers)
             self._check_polling_response(response, failed)
 
