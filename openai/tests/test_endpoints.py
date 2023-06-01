@@ -116,3 +116,11 @@ def test_user_session_factory():
         model="ada",
     )
     assert completion
+
+def test_moderation_create_timeout_does_not_error():
+     # A query that should be fast
+    openai.Moderation.create(
+        input="clean content",
+        model="text-moderation-stable",
+        request_timeout=10
+    )

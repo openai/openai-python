@@ -88,3 +88,12 @@ async def test_completions_stream_finishes_local_session():
     ):
         parts.append(part)
     assert len(parts) > 1
+
+
+async def test_moderation_acreate_timeout_does_not_error():
+     # A query that should be fast
+    await openai.Moderation.acreate(
+        input="clean content",
+        model="text-moderation-stable",
+        request_timeout=10,
+    )
