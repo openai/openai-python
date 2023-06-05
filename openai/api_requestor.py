@@ -3,6 +3,7 @@ import json
 import platform
 import sys
 import threading
+import time
 import warnings
 from contextlib import asynccontextmanager
 from json import JSONDecodeError
@@ -32,6 +33,7 @@ from openai.openai_response import OpenAIResponse
 from openai.util import ApiType
 
 TIMEOUT_SECS = 600
+MAX_SESSION_LIFETIME_SECS = 180
 MAX_CONNECTION_RETRIES = 2
 
 # Has one attribute per thread, 'session'.
@@ -516,6 +518,14 @@ class APIRequestor:
 
         if not hasattr(_thread_context, "session"):
             _thread_context.session = _make_session()
+            _thread_context.session_create_time = time.time()
+        elif (
+            time.time() - getattr(_thread_context, "session_create_time", 0)
+            >= MAX_SESSION_LIFETIME_SECS
+        ):
+            _thread_context.session.close()
+            _thread_context.session = _make_session()
+            _thread_context.session_create_time = time.time()
         try:
             result = _thread_context.session.request(
                 method,
