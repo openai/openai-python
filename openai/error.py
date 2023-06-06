@@ -19,7 +19,7 @@ class OpenAIError(Exception):
             except BaseException:
                 http_body = (
                     "<Could not decode body as utf-8. "
-                    "Please report to support@openai.com>"
+                    "Please contact us through our help center at help.openai.com.>"
                 )
 
         self._message = message
@@ -58,6 +58,7 @@ class OpenAIError(Exception):
     def construct_error_object(self):
         if (
             self.json_body is None
+            or not isinstance(self.json_body, dict)
             or "error" not in self.json_body
             or not isinstance(self.json_body["error"], dict)
         ):
@@ -73,6 +74,10 @@ class APIError(OpenAIError):
 
 
 class TryAgain(OpenAIError):
+    pass
+
+
+class Timeout(OpenAIError):
     pass
 
 

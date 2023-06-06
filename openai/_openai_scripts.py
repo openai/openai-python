@@ -4,6 +4,7 @@ import logging
 import sys
 
 import openai
+from openai import version
 from openai.cli import api_register, display_error, tools_register, wandb_register
 
 logger = logging.getLogger()
@@ -16,6 +17,12 @@ logger.addHandler(handler)
 def main():
     parser = argparse.ArgumentParser(description=None)
     parser.add_argument(
+        "-V",
+        "--version",
+        action="version",
+        version="%(prog)s " + version.VERSION,
+    )
+    parser.add_argument(
         "-v",
         "--verbose",
         action="count",
@@ -25,6 +32,7 @@ def main():
     )
     parser.add_argument("-b", "--api-base", help="What API base url to use.")
     parser.add_argument("-k", "--api-key", help="What API key to use.")
+    parser.add_argument("-p", "--proxy", nargs='+', help="What proxy to use.")
     parser.add_argument(
         "-o",
         "--organization",
@@ -58,6 +66,13 @@ def main():
         openai.api_base = args.api_base
     if args.organization is not None:
         openai.organization = args.organization
+    if args.proxy is not None:
+        openai.proxy = {}
+        for proxy in args.proxy:
+            if proxy.startswith('https'):
+                openai.proxy['https'] = proxy
+            elif proxy.startswith('http'):
+                openai.proxy['http'] = proxy
 
     try:
         args.func(args)

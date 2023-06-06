@@ -3,22 +3,18 @@ import os
 import signal
 import sys
 import warnings
-from functools import partial
 from typing import Optional
 
 import requests
 
 import openai
-import openai.wandb_logger
 from openai.upload_progress import BufferReader
 from openai.validators import (
     apply_necessary_remediation,
     apply_validators,
-    get_search_validators,
     get_validators,
     read_any_format,
     write_out_file,
-    write_out_search_file,
 )
 
 
@@ -107,43 +103,53 @@ class Engine:
                 sys.stdout.flush()
 
     @classmethod
-    def search(cls, args):
-        params = {
-            "query": args.query,
-            "max_rerank": args.max_rerank,
-            "return_metadata": args.return_metadata,
-        }
-        if args.documents:
-            params["documents"] = args.documents
-        if args.file:
-            params["file"] = args.file
-
-        if args.version:
-            params["version"] = args.version
-
-        resp = openai.Engine(id=args.id).search(**params)
-        scores = [
-            (search_result["score"], search_result["document"])
-            for search_result in resp["data"]
-        ]
-        scores.sort(reverse=True)
-        dataset = (
-            args.documents if args.documents else [x["text"] for x in resp["data"]]
-        )
-        for score, document_idx in scores:
-            print("=== score {:.3f} ===".format(score))
-            print(dataset[document_idx])
-            if (
-                args.return_metadata
-                and args.file
-                and "metadata" in resp["data"][document_idx]
-            ):
-                print(f"METADATA: {resp['data'][document_idx]['metadata']}")
-
-    @classmethod
     def list(cls, args):
         engines = openai.Engine.list()
         display(engines)
+
+
+class ChatCompletion:
+    @classmethod
+    def create(cls, args):
+        if args.n is not None and args.n > 1 and args.stream:
+            raise ValueError(
+                "Can't stream chat completions with n>1 with the current CLI"
+            )
+
+        messages = [
+            {"role": role, "content": content} for role, content in args.message
+        ]
+
+        resp = openai.ChatCompletion.create(
+            # Required
+            model=args.model,
+            engine=args.engine,
+            messages=messages,
+            # Optional
+            n=args.n,
+            max_tokens=args.max_tokens,
+            temperature=args.temperature,
+            top_p=args.top_p,
+            stop=args.stop,
+            stream=args.stream,
+        )
+        if not args.stream:
+            resp = [resp]
+
+        for part in resp:
+            choices = part["choices"]
+            for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
+                if len(choices) > 1:
+                    sys.stdout.write("===== Chat Completion {} =====\n".format(c_idx))
+                if args.stream:
+                    delta = c["delta"]
+                    if "content" in delta:
+                        sys.stdout.write(delta["content"])
+                else:
+                    sys.stdout.write(c["message"]["content"])
+                    if len(choices) > 1:  # not in streams
+                        sys.stdout.write("\n")
+                sys.stdout.flush()
 
 
 class Completion:
@@ -184,6 +190,30 @@ class Completion:
                 sys.stdout.flush()
 
 
+class Deployment:
+    @classmethod
+    def get(cls, args):
+        resp = openai.Deployment.retrieve(id=args.id)
+        print(resp)
+
+    @classmethod
+    def delete(cls, args):
+        model = openai.Deployment.delete(args.id)
+        print(model)
+
+    @classmethod
+    def list(cls, args):
+        models = openai.Deployment.list()
+        print(models)
+
+    @classmethod
+    def create(cls, args):
+        models = openai.Deployment.create(
+            model=args.model, scale_settings={"scale_type": args.scale_type}
+        )
+        print(models)
+
+
 class Model:
     @classmethod
     def get(cls, args):
@@ -209,7 +239,6 @@ class File:
         resp = openai.File.create(
             file=buffer_reader,
             purpose=args.purpose,
-            model=args.model,
             user_provided_filename=args.file,
         )
         print(resp)
@@ -230,47 +259,81 @@ class File:
         print(file)
 
 
-class Search:
-    @classmethod
-    def prepare_data(cls, args, purpose):
-
-        sys.stdout.write("Analyzing...\n")
-        fname = args.file
-        auto_accept = args.quiet
-
-        optional_fields = ["metadata"]
-
-        if purpose == "classifications":
-            required_fields = ["text", "label"]
-        else:
-            required_fields = ["text"]
-
-        df, remediation = read_any_format(
-            fname, fields=required_fields + optional_fields
-        )
-
-        if "metadata" not in df:
-            df["metadata"] = None
-
-        apply_necessary_remediation(None, remediation)
-        validators = get_search_validators(required_fields, optional_fields)
-
-        write_out_file_func = partial(
-            write_out_search_file,
-            purpose=purpose,
-            fields=required_fields + optional_fields,
-        )
-
-        apply_validators(
-            df, fname, remediation, validators, auto_accept, write_out_file_func
-        )
-
+class Image:
     @classmethod
     def create(cls, args):
-        resp = openai.Search.create(
-            query=args.query,
-            documents=args.documents,
+        resp = openai.Image.create(
+            prompt=args.prompt,
+            size=args.size,
+            n=args.num_images,
+            response_format=args.response_format,
+        )
+        print(resp)
+
+    @classmethod
+    def create_variation(cls, args):
+        with open(args.image, "rb") as file_reader:
+            buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        resp = openai.Image.create_variation(
+            image=buffer_reader,
+            size=args.size,
+            n=args.num_images,
+            response_format=args.response_format,
+        )
+        print(resp)
+
+    @classmethod
+    def create_edit(cls, args):
+        with open(args.image, "rb") as file_reader:
+            image_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        mask_reader = None
+        if args.mask is not None:
+            with open(args.mask, "rb") as file_reader:
+                mask_reader = BufferReader(file_reader.read(), desc="Upload progress")
+        resp = openai.Image.create_edit(
+            image=image_reader,
+            mask=mask_reader,
+            prompt=args.prompt,
+            size=args.size,
+            n=args.num_images,
+            response_format=args.response_format,
+        )
+        print(resp)
+
+
+class Audio:
+    @classmethod
+    def transcribe(cls, args):
+        with open(args.file, "rb") as r:
+            file_reader = BufferReader(r.read(), desc="Upload progress")
+
+        resp = openai.Audio.transcribe_raw(
+            # Required
             model=args.model,
+            file=file_reader,
+            filename=args.file,
+            # Optional
+            response_format=args.response_format,
+            language=args.language,
+            temperature=args.temperature,
+            prompt=args.prompt,
+        )
+        print(resp)
+
+    @classmethod
+    def translate(cls, args):
+        with open(args.file, "rb") as r:
+            file_reader = BufferReader(r.read(), desc="Upload progress")
+        resp = openai.Audio.translate_raw(
+            # Required
+            model=args.model,
+            file=file_reader,
+            filename=args.file,
+            # Optional
+            response_format=args.response_format,
+            language=args.language,
+            temperature=args.temperature,
+            prompt=args.prompt,
         )
         print(resp)
 
@@ -509,7 +572,7 @@ class FineTune:
             )
         elif status == "failed":
             sys.stdout.write(
-                "\nJob failed. Please contact support@openai.com if you need assistance."
+                "\nJob failed. Please contact us through our help center at help.openai.com if you need assistance."
             )
         sys.stdout.write("\n")
 
@@ -519,8 +582,12 @@ class FineTune:
         print(resp)
 
     @classmethod
-    def prepare_data(cls, args):
+    def delete(cls, args):
+        resp = openai.FineTune.delete(sid=args.id)
+        print(resp)
 
+    @classmethod
+    def prepare_data(cls, args):
         sys.stdout.write("Analyzing...\n")
         fname = args.file
         auto_accept = args.quiet
@@ -542,6 +609,8 @@ class FineTune:
 class WandbLogger:
     @classmethod
     def sync(cls, args):
+        import openai.wandb_logger
+
         resp = openai.wandb_logger.WandbLogger.sync(
             id=args.id,
             n_fine_tunes=args.n_fine_tunes,
@@ -578,57 +647,6 @@ def tools_register(parser):
         help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
     )
     sub.set_defaults(func=FineTune.prepare_data)
-
-    sub = subparsers.add_parser("search.prepare_data")
-    sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
-        "This should be the local file path.",
-    )
-    sub.add_argument(
-        "-q",
-        "--quiet",
-        required=False,
-        action="store_true",
-        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
-    )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="search"))
-
-    sub = subparsers.add_parser("classifications.prepare_data")
-    sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text-label examples to be analyzed."
-        "This should be the local file path.",
-    )
-    sub.add_argument(
-        "-q",
-        "--quiet",
-        required=False,
-        action="store_true",
-        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
-    )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="classifications"))
-
-    sub = subparsers.add_parser("answers.prepare_data")
-    sub.add_argument(
-        "-f",
-        "--file",
-        required=True,
-        help="JSONL, JSON, CSV, TSV, TXT or XLSX file containing text examples to be analyzed."
-        "This should be the local file path.",
-    )
-    sub.add_argument(
-        "-q",
-        "--quiet",
-        required=False,
-        action="store_true",
-        help="Auto accepts all suggestions, without asking for user input. To be used within scripts.",
-    )
-    sub.set_defaults(func=partial(Search.prepare_data, purpose="answer"))
 
 
 def api_register(parser):
@@ -697,47 +715,75 @@ Mutually exclusive with `top_p`.""",
     )
     sub.set_defaults(func=Engine.generate)
 
-    sub = subparsers.add_parser("engines.search")
-    sub.add_argument("-i", "--id", required=True)
-    sub.add_argument(
-        "-d",
-        "--documents",
+    # Chat Completions
+    sub = subparsers.add_parser("chat_completions.create")
+
+    sub._action_groups.pop()
+    req = sub.add_argument_group("required arguments")
+    opt = sub.add_argument_group("optional arguments")
+
+    req.add_argument(
+        "-g",
+        "--message",
         action="append",
-        help="List of documents to search over. Only one of `documents` or `file` may be supplied.",
-        required=False,
-    )
-    sub.add_argument(
-        "-f",
-        "--file",
-        help="A file id to search over.  Only one of `documents` or `file` may be supplied.",
-        required=False,
-    )
-    sub.add_argument(
-        "--max_rerank",
-        help="The maximum number of documents to be re-ranked and returned by search. This flag only takes effect when `file` is set.",
-        type=int,
-        default=200,
-    )
-    sub.add_argument(
-        "--return_metadata",
-        help="A special boolean flag for showing metadata. If set `true`, each document entry in the returned json will contain a 'metadata' field. Default to be `false`. This flag only takes effect when `file` is set.",
-        type=bool,
-        default=False,
-    )
-    sub.add_argument(
-        "--version",
-        help="The version of the search routing to use",
+        nargs=2,
+        metavar=("ROLE", "CONTENT"),
+        help="A message in `{role} {content}` format. Use this argument multiple times to add multiple messages.",
+        required=True,
     )
 
-    sub.add_argument("-q", "--query", required=True, help="Search query")
-    sub.set_defaults(func=Engine.search)
+    group = opt.add_mutually_exclusive_group()
+    group.add_argument(
+        "-e",
+        "--engine",
+        help="The engine to use. See https://learn.microsoft.com/en-us/azure/cognitive-services/openai/chatgpt-quickstart?pivots=programming-language-python for more about what engines are available.",
+    )
+    group.add_argument(
+        "-m",
+        "--model",
+        help="The model to use.",
+    )
+
+    opt.add_argument(
+        "-n",
+        "--n",
+        help="How many completions to generate for the conversation.",
+        type=int,
+    )
+    opt.add_argument(
+        "-M", "--max-tokens", help="The maximum number of tokens to generate.", type=int
+    )
+    opt.add_argument(
+        "-t",
+        "--temperature",
+        help="""What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
+
+Mutually exclusive with `top_p`.""",
+        type=float,
+    )
+    opt.add_argument(
+        "-P",
+        "--top_p",
+        help="""An alternative to sampling with temperature, called nucleus sampling, where the considers the results of the tokens with top_p probability mass. So 0.1 means only the tokens comprising the top 10%% probability mass are considered.
+
+            Mutually exclusive with `temperature`.""",
+        type=float,
+    )
+    opt.add_argument(
+        "--stop",
+        help="A stop sequence at which to stop generating tokens for the message.",
+    )
+    opt.add_argument(
+        "--stream", help="Stream messages as they're ready.", action="store_true"
+    )
+    sub.set_defaults(func=ChatCompletion.create)
 
     # Completions
     sub = subparsers.add_parser("completions.create")
     sub.add_argument(
         "-e",
         "--engine",
-        help="The engine to use. See https://beta.openai.com/docs/engines for more about what engines are available.",
+        help="The engine to use. See https://platform.openai.com/docs/engines for more about what engines are available.",
     )
     sub.add_argument(
         "-m",
@@ -783,6 +829,28 @@ Mutually exclusive with `top_p`.""",
     )
     sub.set_defaults(func=Completion.create)
 
+    # Deployments
+    sub = subparsers.add_parser("deployments.list")
+    sub.set_defaults(func=Deployment.list)
+
+    sub = subparsers.add_parser("deployments.get")
+    sub.add_argument("-i", "--id", required=True, help="The deployment ID")
+    sub.set_defaults(func=Deployment.get)
+
+    sub = subparsers.add_parser("deployments.delete")
+    sub.add_argument("-i", "--id", required=True, help="The deployment ID")
+    sub.set_defaults(func=Deployment.delete)
+
+    sub = subparsers.add_parser("deployments.create")
+    sub.add_argument("-m", "--model", required=True, help="The model ID")
+    sub.add_argument(
+        "-s",
+        "--scale_type",
+        required=True,
+        help="The scale type. Either 'manual' or 'standard'",
+    )
+    sub.set_defaults(func=Deployment.create)
+
     # Models
     sub = subparsers.add_parser("models.list")
     sub.set_defaults(func=Model.list)
@@ -807,13 +875,8 @@ Mutually exclusive with `top_p`.""",
     sub.add_argument(
         "-p",
         "--purpose",
-        help="Why are you uploading this file? (see https://beta.openai.com/docs/api-reference/ for purposes)",
+        help="Why are you uploading this file? (see https://platform.openai.com/docs/api-reference/ for purposes)",
         required=True,
-    )
-    sub.add_argument(
-        "-m",
-        "--model",
-        help="Model for search indexing (e.g. 'ada'). Only meaningful if --purpose is 'search'.",
     )
     sub.set_defaults(func=File.create)
 
@@ -827,29 +890,6 @@ Mutually exclusive with `top_p`.""",
 
     sub = subparsers.add_parser("files.list")
     sub.set_defaults(func=File.list)
-
-    # Search
-    sub = subparsers.add_parser("search.create")
-
-    sub.add_argument(
-        "-d",
-        "--documents",
-        help="Documents to search over",
-        type=str,
-        nargs="+",
-    )
-    sub.add_argument(
-        "-q",
-        "--query",
-        required=True,
-        help="Search query",
-    )
-    sub.add_argument(
-        "-m",
-        "--model",
-        help="The model to search with",
-    )
-    sub.set_defaults(func=Search.create)
 
     # Finetune
     sub = subparsers.add_parser("fine_tunes.list")
@@ -981,6 +1021,82 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("fine_tunes.cancel")
     sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
     sub.set_defaults(func=FineTune.cancel)
+
+    sub = subparsers.add_parser("fine_tunes.delete")
+    sub.add_argument("-i", "--id", required=True, help="The id of the fine-tune job")
+    sub.set_defaults(func=FineTune.delete)
+
+    # Image
+    sub = subparsers.add_parser("image.create")
+    sub.add_argument("-p", "--prompt", type=str, required=True)
+    sub.add_argument("-n", "--num-images", type=int, default=1)
+    sub.add_argument(
+        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
+    )
+    sub.add_argument("--response-format", type=str, default="url")
+    sub.set_defaults(func=Image.create)
+
+    sub = subparsers.add_parser("image.create_edit")
+    sub.add_argument("-p", "--prompt", type=str, required=True)
+    sub.add_argument("-n", "--num-images", type=int, default=1)
+    sub.add_argument(
+        "-I",
+        "--image",
+        type=str,
+        required=True,
+        help="Image to modify. Should be a local path and a PNG encoded image.",
+    )
+    sub.add_argument(
+        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
+    )
+    sub.add_argument("--response-format", type=str, default="url")
+    sub.add_argument(
+        "-M",
+        "--mask",
+        type=str,
+        required=False,
+        help="Path to a mask image. It should be the same size as the image you're editing and a RGBA PNG image. The Alpha channel acts as the mask.",
+    )
+    sub.set_defaults(func=Image.create_edit)
+
+    sub = subparsers.add_parser("image.create_variation")
+    sub.add_argument("-n", "--num-images", type=int, default=1)
+    sub.add_argument(
+        "-I",
+        "--image",
+        type=str,
+        required=True,
+        help="Image to modify. Should be a local path and a PNG encoded image.",
+    )
+    sub.add_argument(
+        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
+    )
+    sub.add_argument("--response-format", type=str, default="url")
+    sub.set_defaults(func=Image.create_variation)
+
+    # Audio
+    # transcriptions
+    sub = subparsers.add_parser("audio.transcribe")
+    # Required
+    sub.add_argument("-m", "--model", type=str, default="whisper-1")
+    sub.add_argument("-f", "--file", type=str, required=True)
+    # Optional
+    sub.add_argument("--response-format", type=str)
+    sub.add_argument("--language", type=str)
+    sub.add_argument("-t", "--temperature", type=float)
+    sub.add_argument("--prompt", type=str)
+    sub.set_defaults(func=Audio.transcribe)
+    # translations
+    sub = subparsers.add_parser("audio.translate")
+    # Required
+    sub.add_argument("-m", "--model", type=str, default="whisper-1")
+    sub.add_argument("-f", "--file", type=str, required=True)
+    # Optional
+    sub.add_argument("--response-format", type=str)
+    sub.add_argument("--language", type=str)
+    sub.add_argument("-t", "--temperature", type=float)
+    sub.add_argument("--prompt", type=str)
+    sub.set_defaults(func=Audio.translate)
 
 
 def wandb_register(parser):

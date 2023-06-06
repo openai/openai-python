@@ -13,14 +13,39 @@ class APIResource(OpenAIObject):
     azure_deployments_prefix = "deployments"
 
     @classmethod
-    def retrieve(cls, id, api_key=None, request_id=None, **params):
-        instance = cls(id, api_key, **params)
-        instance.refresh(request_id=request_id)
+    def retrieve(
+        cls, id, api_key=None, request_id=None, request_timeout=None, **params
+    ):
+        instance = cls(id=id, api_key=api_key, **params)
+        instance.refresh(request_id=request_id, request_timeout=request_timeout)
         return instance
 
-    def refresh(self, request_id=None):
+    @classmethod
+    def aretrieve(
+        cls, id, api_key=None, request_id=None, request_timeout=None, **params
+    ):
+        instance = cls(id=id, api_key=api_key, **params)
+        return instance.arefresh(request_id=request_id, request_timeout=request_timeout)
+
+    def refresh(self, request_id=None, request_timeout=None):
         self.refresh_from(
-            self.request("get", self.instance_url(), request_id=request_id)
+            self.request(
+                "get",
+                self.instance_url(),
+                request_id=request_id,
+                request_timeout=request_timeout,
+            )
+        )
+        return self
+
+    async def arefresh(self, request_id=None, request_timeout=None):
+        self.refresh_from(
+            await self.arequest(
+                "get",
+                self.instance_url(operation="refresh"),
+                request_id=request_id,
+                request_timeout=request_timeout,
+            )
         )
         return self
 
@@ -108,6 +133,31 @@ class APIResource(OpenAIObject):
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
         )
+
+    @classmethod
+    async def _astatic_request(
+        cls,
+        method_,
+        url_,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor = api_requestor.APIRequestor(
+            api_key,
+            api_version=api_version,
+            organization=organization,
+            api_base=api_base,
+            api_type=api_type,
+        )
+        response, _, api_key = await requestor.arequest(
+            method_, url_, params, request_id=request_id
+        )
+        return response
 
     @classmethod
     def _get_api_type_and_version(

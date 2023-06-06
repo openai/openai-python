@@ -2,7 +2,8 @@ import os
 import sys
 from typing import Any, Callable, NamedTuple, Optional
 
-import pandas as pd
+from openai.datalib.pandas_helper import assert_has_pandas
+from openai.datalib.pandas_helper import pandas as pd
 
 
 class Remediation(NamedTuple):
@@ -37,7 +38,7 @@ def necessary_column_validator(df, necessary_column):
     """
 
     def lower_case_column(df, column):
-        cols = [c for c in df.columns if c.lower() == column]
+        cols = [c for c in df.columns if str(c).lower() == column]
         df.rename(columns={cols[0]: column.lower()}, inplace=True)
         return df
 
@@ -47,7 +48,7 @@ def necessary_column_validator(df, necessary_column):
     error_msg = None
 
     if necessary_column not in df.columns:
-        if necessary_column in [c.lower() for c in df.columns]:
+        if necessary_column in [str(c).lower() for c in df.columns]:
 
             def lower_case_column_creator(df):
                 return lower_case_column(df, necessary_column)
@@ -158,17 +159,27 @@ def long_examples_validator(df):
 
     ft_type = infer_task_type(df)
     if ft_type != "open-ended generation":
-        long_examples = df.apply(
-            lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
-        )
-        long_indexes = df.reset_index().index[long_examples].tolist()
+
+        def get_long_indexes(d):
+            long_examples = d.apply(
+                lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
+            )
+            return d.reset_index().index[long_examples].tolist()
+
+        long_indexes = get_long_indexes(df)
 
         if len(long_indexes) > 0:
             immediate_msg = f"\n- There are {len(long_indexes)} examples that are very long. These are rows: {long_indexes}\nFor conditional generation, and for classification the examples shouldn't be longer than 2048 tokens."
             optional_msg = f"Remove {len(long_indexes)} long examples"
 
             def optional_fn(x):
-                return x.drop(long_indexes)
+
+                long_indexes_to_drop = get_long_indexes(x)
+                if long_indexes != long_indexes_to_drop:
+                    sys.stdout.write(
+                        f"The indices of the long examples has changed as a result of a previously applied recommendation.\nThe {len(long_indexes_to_drop)} long examples to be dropped are now at the following indices: {long_indexes_to_drop}\n"
+                    )
+                return x.drop(long_indexes_to_drop)
 
     return Remediation(
         name="long_examples",
@@ -235,7 +246,7 @@ def common_prompt_suffix_validator(df):
             immediate_msg += f"\n  WARNING: Some of your prompts contain the suffix `{common_suffix}` more than once. We strongly suggest that you review your prompts and add a unique suffix"
 
     else:
-        immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
+        immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
 
     if common_suffix == "":
         optional_msg = (
@@ -386,7 +397,7 @@ def common_completion_suffix_validator(df):
             immediate_msg += f"\n  WARNING: Some of your completions contain the suffix `{common_suffix}` more than once. We suggest that you review your completions and add a unique ending"
 
     else:
-        immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples."
+        immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples."
 
     if common_suffix == "":
         optional_msg = (
@@ -421,7 +432,7 @@ def completions_space_start_validator(df):
     immediate_msg = None
 
     if df.completion.str[:1].nunique() != 1 or df.completion.values[0][0] != " ":
-        immediate_msg = "\n- The completion should start with a whitespace character (` `). This tends to produce better results due to the tokenization we use. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more details"
+        immediate_msg = "\n- The completion should start with a whitespace character (` `). This tends to produce better results due to the tokenization we use. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more details"
         optional_msg = "Add a whitespace character to the beginning of the completion"
         optional_fn = add_space_start
     return Remediation(
@@ -455,7 +466,7 @@ def lower_case_validator(df, column):
     if count_upper * 2 > count_lower:
         return Remediation(
             name="lower_case",
-            immediate_msg=f"\n- More than a third of your `{column}` column/key is uppercase. Uppercase {column}s tends to perform worse than a mixture of case encountered in normal language. We recommend to lower case the data if that makes sense in your domain. See https://beta.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more details",
+            immediate_msg=f"\n- More than a third of your `{column}` column/key is uppercase. Uppercase {column}s tends to perform worse than a mixture of case encountered in normal language. We recommend to lower case the data if that makes sense in your domain. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more details",
             optional_msg=f"Lowercase all your data in column/key `{column}`",
             optional_fn=lower_case,
         )
@@ -467,6 +478,7 @@ def read_any_format(fname, fields=["prompt", "completion"]):
      - for .xlsx it will read the first sheet
      - for .txt it will assume completions and split on newline
     """
+    assert_has_pandas()
     remediation = None
     necessary_msg = None
     immediate_msg = None
@@ -474,51 +486,72 @@ def read_any_format(fname, fields=["prompt", "completion"]):
     df = None
 
     if os.path.isfile(fname):
-        for ending, separator in [(".csv", ","), (".tsv", "\t")]:
-            if fname.lower().endswith(ending):
-                immediate_msg = f"\n- Based on your file extension, your file is formatted as a {ending[1:].upper()} file"
+        try:
+            if fname.lower().endswith(".csv") or fname.lower().endswith(".tsv"):
+                file_extension_str, separator = (
+                    ("CSV", ",") if fname.lower().endswith(".csv") else ("TSV", "\t")
+                )
+                immediate_msg = f"\n- Based on your file extension, your file is formatted as a {file_extension_str} file"
                 necessary_msg = (
-                    f"Your format `{ending[1:].upper()}` will be converted to `JSONL`"
+                    f"Your format `{file_extension_str}` will be converted to `JSONL`"
                 )
-                df = pd.read_csv(fname, sep=separator, dtype=str)
-        if fname.lower().endswith(".xlsx"):
-            immediate_msg = "\n- Based on your file extension, your file is formatted as an Excel file"
-            necessary_msg = "Your format `XLSX` will be converted to `JSONL`"
-            xls = pd.ExcelFile(fname)
-            sheets = xls.sheet_names
-            if len(sheets) > 1:
-                immediate_msg += "\n- Your Excel file contains more than one sheet. Please either save as csv or ensure all data is present in the first sheet. WARNING: Reading only the first sheet..."
-            df = pd.read_excel(fname, dtype=str)
-        if fname.lower().endswith(".txt"):
-            immediate_msg = "\n- Based on your file extension, you provided a text file"
-            necessary_msg = "Your format `TXT` will be converted to `JSONL`"
-            with open(fname, "r") as f:
-                content = f.read()
-                df = pd.DataFrame(
-                    [["", line] for line in content.split("\n")],
-                    columns=fields,
-                    dtype=str,
+                df = pd.read_csv(fname, sep=separator, dtype=str).fillna("")
+            elif fname.lower().endswith(".xlsx"):
+                immediate_msg = "\n- Based on your file extension, your file is formatted as an Excel file"
+                necessary_msg = "Your format `XLSX` will be converted to `JSONL`"
+                xls = pd.ExcelFile(fname)
+                sheets = xls.sheet_names
+                if len(sheets) > 1:
+                    immediate_msg += "\n- Your Excel file contains more than one sheet. Please either save as csv or ensure all data is present in the first sheet. WARNING: Reading only the first sheet..."
+                df = pd.read_excel(fname, dtype=str).fillna("")
+            elif fname.lower().endswith(".txt"):
+                immediate_msg = (
+                    "\n- Based on your file extension, you provided a text file"
                 )
-        if fname.lower().endswith("jsonl") or fname.lower().endswith("json"):
-            try:
-                df = pd.read_json(fname, lines=True, dtype=str)
-            except (ValueError, TypeError):
-                df = pd.read_json(fname, dtype=str)
-                immediate_msg = "\n- Your file appears to be in a .JSON format. Your file will be converted to JSONL format"
-                necessary_msg = "Your format `JSON` will be converted to `JSONL`"
-
-        if df is None:
-            error_msg = (
-                "Your file is not saved as a .CSV, .TSV, .XLSX, .TXT or .JSONL file."
-            )
-            if "." in fname:
-                error_msg += (
-                    f" Your file `{fname}` appears to end with `.{fname.split('.')[1]}`"
-                )
+                necessary_msg = "Your format `TXT` will be converted to `JSONL`"
+                with open(fname, "r") as f:
+                    content = f.read()
+                    df = pd.DataFrame(
+                        [["", line] for line in content.split("\n")],
+                        columns=fields,
+                        dtype=str,
+                    ).fillna("")
+            elif fname.lower().endswith(".jsonl"):
+                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                if len(df) == 1:
+                    # this is NOT what we expect for a .jsonl file
+                    immediate_msg = "\n- Your JSONL file appears to be in a JSON format. Your file will be converted to JSONL format"
+                    necessary_msg = "Your format `JSON` will be converted to `JSONL`"
+                    df = pd.read_json(fname, dtype=str).fillna("")
+                else:
+                    pass  # this is what we expect for a .jsonl file
+            elif fname.lower().endswith(".json"):
+                try:
+                    # to handle case where .json file is actually a .jsonl file
+                    df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                    if len(df) == 1:
+                        # this code path corresponds to a .json file that has one line
+                        df = pd.read_json(fname, dtype=str).fillna("")
+                    else:
+                        # this is NOT what we expect for a .json file
+                        immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
+                        necessary_msg = (
+                            "Your format `JSON` will be converted to `JSONL`"
+                        )
+                except ValueError:
+                    # this code path corresponds to a .json file that has multiple lines (i.e. it is indented)
+                    df = pd.read_json(fname, dtype=str).fillna("")
             else:
-                error_msg += f" Your file `{fname}` does not appear to have a file ending. Please ensure your filename ends with one of the supported file endings."
-        else:
-            df.fillna("", inplace=True)
+                error_msg = "Your file must have one of the following extensions: .CSV, .TSV, .XLSX, .TXT, .JSON or .JSONL"
+                if "." in fname:
+                    error_msg += f" Your file `{fname}` ends with the extension `.{fname.split('.')[-1]}` which is not supported."
+                else:
+                    error_msg += f" Your file `{fname}` is missing a file extension."
+
+        except (ValueError, TypeError):
+            file_extension_str = fname.split(".")[-1].upper()
+            error_msg = f"Your file `{fname}` does not appear to be in valid {file_extension_str} format. Please ensure your file is formatted as a valid {file_extension_str} file."
+
     else:
         error_msg = f"File {fname} does not exist."
 
@@ -710,30 +743,6 @@ def write_out_file(df, fname, any_remediations, auto_accept):
         sys.stdout.write("Aborting... did not write the file\n")
 
 
-def write_out_search_file(df, fname, any_remediations, auto_accept, fields, purpose):
-    """
-    This function will write out a dataframe to a file, if the user would like to proceed.
-    """
-    input_text = "\n\nYour data will be written to a new JSONL file. Proceed [Y/n]: "
-
-    if not any_remediations:
-        sys.stdout.write(
-            f'\nYou can upload your file:\n> openai api files.create -f "{fname}" -p {purpose}'
-        )
-
-    elif accept_suggestion(input_text, auto_accept):
-        fnames = get_outfnames(fname, split=False)
-
-        assert len(fnames) == 1
-        df[fields].to_json(fnames[0], lines=True, orient="records", force_ascii=False)
-
-        sys.stdout.write(
-            f'\nWrote modified file to {fnames[0]}`\nFeel free to take a look!\n\nNow upload that file:\n> openai api files.create -f "{fnames[0]}" -p {purpose}'
-        )
-    else:
-        sys.stdout.write("Aborting... did not write the file\n")
-
-
 def infer_task_type(df):
     """
     Infer the likely fine-tuning task type from the data
@@ -790,23 +799,6 @@ def get_validators():
         common_completion_suffix_validator,
         completions_space_start_validator,
     ]
-
-
-def get_search_validators(required_fields, optional_fields):
-    validators = [
-        lambda x: necessary_column_validator(x, field) for field in required_fields
-    ]
-    validators += [
-        lambda x: non_empty_field_validator(x, field) for field in required_fields
-    ]
-    validators += [lambda x: duplicated_rows_validator(x, required_fields)]
-    validators += [
-        lambda x: additional_column_validator(
-            x, fields=required_fields + optional_fields
-        ),
-    ]
-
-    return validators
 
 
 def apply_validators(

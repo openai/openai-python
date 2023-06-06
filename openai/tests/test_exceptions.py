@@ -21,6 +21,7 @@ EXCEPTION_TEST_CASES = [
     openai.error.SignatureVerificationError("message", "sig_header?"),
     openai.error.APIConnectionError("message!", should_retry=True),
     openai.error.TryAgain(),
+    openai.error.Timeout(),
     openai.error.APIError(
         message="message",
         code=400,

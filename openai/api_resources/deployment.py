@@ -11,10 +11,7 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
     OBJECT_NAME = "deployments"
 
     @classmethod
-    def create(cls, *args, **kwargs):
-        """
-        Creates a new deployment for the provided prompt and parameters.
-        """
+    def _check_create(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(
             kwargs.get("api_type", None), None
         )
@@ -45,10 +42,24 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
                 param="scale_settings",
             )
 
+    @classmethod
+    def create(cls, *args, **kwargs):
+        """
+        Creates a new deployment for the provided prompt and parameters.
+        """
+        cls._check_create(*args, **kwargs)
         return super().create(*args, **kwargs)
 
     @classmethod
-    def list(cls, *args, **kwargs):
+    def acreate(cls, *args, **kwargs):
+        """
+        Creates a new deployment for the provided prompt and parameters.
+        """
+        cls._check_create(*args, **kwargs)
+        return super().acreate(*args, **kwargs)
+
+    @classmethod
+    def _check_list(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(
             kwargs.get("api_type", None), None
         )
@@ -57,10 +68,18 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
                 "Deployment operations are only available for the Azure API type."
             )
 
+    @classmethod
+    def list(cls, *args, **kwargs):
+        cls._check_list(*args, **kwargs)
         return super().list(*args, **kwargs)
 
     @classmethod
-    def delete(cls, *args, **kwargs):
+    def alist(cls, *args, **kwargs):
+        cls._check_list(*args, **kwargs)
+        return super().alist(*args, **kwargs)
+
+    @classmethod
+    def _check_delete(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(
             kwargs.get("api_type", None), None
         )
@@ -69,10 +88,18 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
                 "Deployment operations are only available for the Azure API type."
             )
 
+    @classmethod
+    def delete(cls, *args, **kwargs):
+        cls._check_delete(*args, **kwargs)
         return super().delete(*args, **kwargs)
 
     @classmethod
-    def retrieve(cls, *args, **kwargs):
+    def adelete(cls, *args, **kwargs):
+        cls._check_delete(*args, **kwargs)
+        return super().adelete(*args, **kwargs)
+
+    @classmethod
+    def _check_retrieve(cls, *args, **kwargs):
         typed_api_type, _ = cls._get_api_type_and_version(
             kwargs.get("api_type", None), None
         )
@@ -81,4 +108,12 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
                 "Deployment operations are only available for the Azure API type."
             )
 
+    @classmethod
+    def retrieve(cls, *args, **kwargs):
+        cls._check_retrieve(*args, **kwargs)
         return super().retrieve(*args, **kwargs)
+
+    @classmethod
+    def aretrieve(cls, *args, **kwargs):
+        cls._check_retrieve(*args, **kwargs)
+        return super().aretrieve(*args, **kwargs)

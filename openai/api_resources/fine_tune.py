@@ -16,7 +16,7 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
     OBJECT_NAME = "fine-tunes"
 
     @classmethod
-    def cancel(
+    def _prepare_cancel(
         cls,
         id,
         api_key=None,
@@ -44,10 +44,50 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
         instance = cls(id, api_key, **params)
+        return instance, url
+
+    @classmethod
+    def cancel(
+        cls,
+        id,
+        api_key=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        **params,
+    ):
+        instance, url = cls._prepare_cancel(
+            id,
+            api_key,
+            api_type,
+            request_id,
+            api_version,
+            **params,
+        )
         return instance.request("post", url, request_id=request_id)
 
     @classmethod
-    def stream_events(
+    def acancel(
+        cls,
+        id,
+        api_key=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        **params,
+    ):
+        instance, url = cls._prepare_cancel(
+            id,
+            api_key,
+            api_type,
+            request_id,
+            api_version,
+            **params,
+        )
+        return instance.arequest("post", url, request_id=request_id)
+
+    @classmethod
+    def _prepare_stream_events(
         cls,
         id,
         api_key=None,
@@ -85,6 +125,31 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
         else:
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
 
+        return requestor, url
+
+    @classmethod
+    def stream_events(
+        cls,
+        id,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url = cls._prepare_stream_events(
+            id,
+            api_key,
+            api_base,
+            api_type,
+            request_id,
+            api_version,
+            organization,
+            **params,
+        )
+
         response, _, api_key = requestor.request(
             "get", url, params, stream=True, request_id=request_id
         )
@@ -98,4 +163,42 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
                 organization,
             )
             for line in response
+        )
+
+    @classmethod
+    async def astream_events(
+        cls,
+        id,
+        api_key=None,
+        api_base=None,
+        api_type=None,
+        request_id=None,
+        api_version=None,
+        organization=None,
+        **params,
+    ):
+        requestor, url = cls._prepare_stream_events(
+            id,
+            api_key,
+            api_base,
+            api_type,
+            request_id,
+            api_version,
+            organization,
+            **params,
+        )
+
+        response, _, api_key = await requestor.arequest(
+            "get", url, params, stream=True, request_id=request_id
+        )
+
+        assert not isinstance(response, OpenAIResponse)  # must be an iterator
+        return (
+            util.convert_to_openai_object(
+                line,
+                api_key,
+                api_version,
+                organization,
+            )
+            async for line in response
         )

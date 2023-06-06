@@ -1,9 +1,11 @@
 .PHONY: build upload
 
 build:
-	python setup.py sdist
+	rm -rf dist/ build/
+	python -m pip install build
+	python -m build .
 
 upload:
-	twine upload dist/openai-*.tar.gz
-	rm dist/openai-*.tar.gz
-
+	python -m pip install twine
+	python -m twine upload dist/openai-*
+	rm -rf dist
