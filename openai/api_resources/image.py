@@ -44,7 +44,7 @@ class Image(APIResource):
             requestor.api_base = "" # operation_location is a full url
             response, _, api_key = requestor._poll(
                 "get", response.operation_location,
-                until=lambda response: response.data["status"] in ["succeeded"],
+                until=lambda response: response.data['status'] in [ 'succeeded' ],
                 failed=lambda response: response.data['status'] in [ 'failed' ]
             )
 

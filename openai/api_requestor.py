@@ -152,13 +152,12 @@ class APIRequestor:
         return str
 
     def _check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
-        if predicate(response):
-            message, code = (None, None) if 'error' not in response.data else (
-                response.data['error']['message'] if 'message' in response.data['error'] else None,
-                response.data['error']['code'] if 'code' in response.data['error'] else None
-            )
-            message = message if message is not None else 'Operation failed'
-            raise error.OpenAIError(message=message, code=code)
+        if not predicate(response):
+            return
+        error_data = response.data['error']
+        message = error_data.get('message', 'Operation failed')
+        code = error_data.get('code')
+        raise error.OpenAIError(message=message, code=code)
 
     def _poll(
         self,
@@ -176,7 +175,8 @@ class APIRequestor:
 
         response, b, api_key = self.request(method, url, params, headers)
         self._check_polling_response(response, failed)
-        while not until(response):
+        start_time = time.time()
+        while not until(response) and time.time() - start_time < TIMEOUT_SECS:
             time.sleep(interval or response.retry_after or 10)
             response, b, api_key = self.request(method, url, params, headers)
             self._check_polling_response(response, failed)
@@ -200,7 +200,8 @@ class APIRequestor:
 
         response, b, api_key = await self.arequest(method, url, params, headers)
         self._check_polling_response(response, failed)
-        while not until(response):
+        start_time = time.time()
+        while not until(response) and time.time() - start_time < TIMEOUT_SECS:
             await asyncio.sleep(interval or response.retry_after or 10)
             response, b, api_key = await self.arequest(method, url, params, headers)
             self._check_polling_response(response, failed)
