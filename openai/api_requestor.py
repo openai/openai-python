@@ -176,7 +176,10 @@ class APIRequestor:
         response, b, api_key = self.request(method, url, params, headers)
         self._check_polling_response(response, failed)
         start_time = time.time()
-        while not until(response) and time.time() - start_time < TIMEOUT_SECS:
+        while not until(response):
+            if time.time() - start_time > TIMEOUT_SECS:
+                raise error.Timeout("Operation polling timed out.")
+
             time.sleep(interval or response.retry_after or 10)
             response, b, api_key = self.request(method, url, params, headers)
             self._check_polling_response(response, failed)
@@ -201,7 +204,10 @@ class APIRequestor:
         response, b, api_key = await self.arequest(method, url, params, headers)
         self._check_polling_response(response, failed)
         start_time = time.time()
-        while not until(response) and time.time() - start_time < TIMEOUT_SECS:
+        while not until(response):
+            if time.time() - start_time > TIMEOUT_SECS:
+                raise error.Timeout("Operation polling timed out.")
+
             await asyncio.sleep(interval or response.retry_after or 10)
             response, b, api_key = await self.arequest(method, url, params, headers)
             self._check_polling_response(response, failed)
