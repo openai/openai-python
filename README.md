@@ -89,8 +89,8 @@ openai.api_version = "2023-05-15"
 # create a chat completion
 chat_completion = openai.ChatCompletion.create(deployment_id="deployment-name", model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
 
-# print the completion
-print(completion.choices[0].message.content)
+# print the chat completion
+print(chat_completion.choices[0].message.content)
 ```
 
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
