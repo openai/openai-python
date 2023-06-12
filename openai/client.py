@@ -96,6 +96,10 @@ class OpenAIClient:
         self._populate_args(kwargs, prompt=prompt, stream=False)
         return typing.cast(openai.Completion, openai.Completion.create(**kwargs))
 
+    async def acompletion(self, prompt: str, **kwargs) -> openai.Completion:
+        self._populate_args(kwargs, prompt=prompt, stream=False)
+        return typing.cast(openai.Completion, await openai.Completion.acreate(**kwargs))
+
     def iter_completion(
         self, prompt: str, **kwargs
     ) -> typing.Iterable[openai.Completion]:
@@ -104,10 +108,24 @@ class OpenAIClient:
             typing.Iterable[openai.Completion], openai.Completion.create(**kwargs)
         )
 
+    async def aiter_completion(
+        self, prompt: str, **kwargs
+    ) -> typing.AsyncIterable[openai.Completion]:
+        self._populate_args(kwargs, prompt=prompt, stream=True)
+        return typing.cast(
+            typing.AsyncIterable[openai.Completion], await openai.Completion.acreate(**kwargs)
+        )
+
     def chatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
         self._populate_args(kwargs, messages=messages, stream=False)
         return typing.cast(
             openai.ChatCompletion, openai.ChatCompletion.create(**kwargs)
+        )
+
+    async def achatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
+        self._populate_args(kwargs, messages=messages, stream=False)
+        return typing.cast(
+            openai.ChatCompletion, await openai.ChatCompletion.acreate(**kwargs)
         )
 
     def iter_chatcompletion(
@@ -119,10 +137,22 @@ class OpenAIClient:
             openai.ChatCompletion.create(**kwargs),
         )
 
-    def embeddings(self, input, **kwargs):
+    async def aiter_chatcompletion(
+        self, messages, **kwargs
+    ) -> typing.AsyncIterable[openai.ChatCompletion]:
+        self._populate_args(kwargs, messages=messages, stream=True)
+        return typing.cast(
+            typing.AsyncIterable[openai.ChatCompletion],
+            await openai.ChatCompletion.acreate(**kwargs),
+        )
+
+    def embeddings(self, input, **kwargs) -> openai.Embedding:
         self._populate_args(kwargs, input=input)
         return typing.cast(openai.Embedding, openai.Embedding.create(**kwargs))
 
+    async def aembeddings(self, input, **kwargs) -> openai.Embedding:
+        self._populate_args(kwargs, input=input)
+        return typing.cast(openai.Embedding, await openai.Embedding.acreate(**kwargs))
 
 if __name__ == "__main__":
     client = OpenAIClient(
@@ -131,7 +161,15 @@ if __name__ == "__main__":
         backend="azure",
     )
     print(client.completion("what is up, my friend?", deployment_id="chatgpt"))
-    print(client.embeddings("What, or what is this?", deployment_id="arch")) # Doesn't work 'cause it is the wrong model...
+    # print(client.embeddings("What, or what is this?", deployment_id="arch")) # Doesn't work 'cause it is the wrong model...
     oaiclient = OpenAIClient()
     print(oaiclient.completion("what is up, my friend?", model="text-davinci-003"))
     print(oaiclient.embeddings("What are embeddings?", model="text-embedding-ada-002"))
+
+    import asyncio
+    async def stream_chat():
+        respco = await client.aiter_completion("what is up, my friend?", deployment_id="chatgpt")
+        async for rsp in respco:
+            print(rsp)
+
+    asyncio.run(stream_chat())
