@@ -81,8 +81,8 @@ class OpenAIClient:
             )
 
     def _populate_args(self, kwargs: typing.Dict[str, typing.Any], **overrides) -> None:
-        backend = self.backend
-
+        """Populate default arguments based on the current client configuration/defaults
+        """
         kwargs.setdefault("api_base", self.api_base or openai.api_base)
         kwargs.setdefault("api_key", self.auth.get_token())
         kwargs.setdefault("api_type", self.api_type)
@@ -94,20 +94,41 @@ class OpenAIClient:
                 continue
             kwargs.setdefault(key, val)
             if kwargs[key] != val:
-                raise ValueError(f"No parameter named `{key}`")
+                raise TypeError(f"No parameter named `{key}`")
+
+    def _normalize_model(self, kwargs: typing.Dict[str, typing.Any]):
+        """Normalize model/engine/deployment_id based on which backend the client is
+           configured to target.
+
+           Specifically, it will pass the provided `model` parameter as `deployment_id`
+           unless `deployment_id` is explicitly passed in.
+        """
+        if len([param for param in kwargs if param in ('deployment_id', 'model', 'engine')]) != 1:
+            raise TypeError('You can only specify one of `deployment_id`, `model` and `engine`')
+        
+        if self.backend == 'azure':
+            try:
+                # We'll try to "rename" the `model` keyword to fit azure's `deployment_id`
+                # paradigm
+                kwargs['deployment_id'] = kwargs.pop('model')
+            except KeyError:
+                pass
 
     def completion(self, prompt: str, **kwargs) -> openai.Completion:
         self._populate_args(kwargs, prompt=prompt, stream=False)
+        self._normalize_model(kwargs)
         return typing.cast(openai.Completion, openai.Completion.create(**kwargs))
 
     async def acompletion(self, prompt: str, **kwargs) -> openai.Completion:
         self._populate_args(kwargs, prompt=prompt, stream=False)
+        self._normalize_model(kwargs)
         return typing.cast(openai.Completion, await openai.Completion.acreate(**kwargs))
 
     def iter_completion(
         self, prompt: str, **kwargs
     ) -> typing.Iterable[openai.Completion]:
         self._populate_args(kwargs, prompt=prompt, stream=True)
+        self._normalize_model(kwargs)
         return typing.cast(
             typing.Iterable[openai.Completion], openai.Completion.create(**kwargs)
         )
@@ -116,18 +137,21 @@ class OpenAIClient:
         self, prompt: str, **kwargs
     ) -> typing.AsyncIterable[openai.Completion]:
         self._populate_args(kwargs, prompt=prompt, stream=True)
+        self._normalize_model(kwargs)
         return typing.cast(
             typing.AsyncIterable[openai.Completion], await openai.Completion.acreate(**kwargs)
         )
 
     def chatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
         self._populate_args(kwargs, messages=messages, stream=False)
+        self._normalize_model(kwargs)
         return typing.cast(
             openai.ChatCompletion, openai.ChatCompletion.create(**kwargs)
         )
 
     async def achatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
         self._populate_args(kwargs, messages=messages, stream=False)
+        self._normalize_model(kwargs)
         return typing.cast(
             openai.ChatCompletion, await openai.ChatCompletion.acreate(**kwargs)
         )
@@ -136,6 +160,7 @@ class OpenAIClient:
         self, messages, **kwargs
     ) -> typing.Iterable[openai.ChatCompletion]:
         self._populate_args(kwargs, messages=messages, stream=True)
+        self._normalize_model(kwargs)
         return typing.cast(
             typing.Iterable[openai.ChatCompletion],
             openai.ChatCompletion.create(**kwargs),
@@ -145,6 +170,7 @@ class OpenAIClient:
         self, messages, **kwargs
     ) -> typing.AsyncIterable[openai.ChatCompletion]:
         self._populate_args(kwargs, messages=messages, stream=True)
+        self._normalize_model(kwargs)
         return typing.cast(
             typing.AsyncIterable[openai.ChatCompletion],
             await openai.ChatCompletion.acreate(**kwargs),
@@ -152,10 +178,12 @@ class OpenAIClient:
 
     def embeddings(self, input, **kwargs) -> openai.Embedding:
         self._populate_args(kwargs, input=input)
+        self._normalize_model(kwargs)
         return typing.cast(openai.Embedding, openai.Embedding.create(**kwargs))
 
     async def aembeddings(self, input, **kwargs) -> openai.Embedding:
         self._populate_args(kwargs, input=input)
+        self._normalize_model(kwargs)
         return typing.cast(openai.Embedding, await openai.Embedding.acreate(**kwargs))
 
     def image(self, prompt: str, *, n: int = ..., size: str = ...,
@@ -208,12 +236,12 @@ if __name__ == "__main__":
         auth="azuredefault",
         backend="azure",
     )
-    print(client.completion("what is up, my friend?", deployment_id="chatgpt"))
-    # print(client.embeddings("What, or what is this?", deployment_id="arch")) # Doesn't work 'cause it is the wrong model...
+    print(client.completion("what is up, my friend?", model="chatgpt"))
+    # print(client.embeddings("What, or what is this?", model="arch")) # Doesn't work 'cause it is the wrong model...
 
     import asyncio
     async def stream_chat():
-        respco = await client.aiter_completion("what is up, my friend?", deployment_id="chatgpt")
+        respco = await client.aiter_completion("what is up, my friend?", model="chatgpt")
         async for rsp in respco:
             print(rsp)
 
