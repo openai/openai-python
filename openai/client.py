@@ -20,7 +20,10 @@ class AzureTokenAuth:
         self._cached_token = None
 
     def get_token(self) -> str:
-        if self._cached_token is None or (self._cached_token.expires_on - time.time()) < 300:
+        if (
+            self._cached_token is None
+            or (self._cached_token.expires_on - time.time()) < 300
+        ):
             self._cached_token = self._credential.get_token(
                 "https://cognitiveservices.azure.com/.default"
             )
@@ -40,7 +43,6 @@ Backends = typing.Literal["azure", "openai", ""]
 
 
 class OpenAIClient:
-
     def __init__(
         self,
         *,
@@ -81,8 +83,7 @@ class OpenAIClient:
             )
 
     def _populate_args(self, kwargs: typing.Dict[str, typing.Any], **overrides) -> None:
-        """Populate default arguments based on the current client configuration/defaults
-        """
+        """Populate default arguments based on the current client configuration/defaults"""
         kwargs.setdefault("api_base", self.api_base or openai.api_base)
         kwargs.setdefault("api_key", self.auth.get_token())
         kwargs.setdefault("api_type", self.api_type)
@@ -98,19 +99,30 @@ class OpenAIClient:
 
     def _normalize_model(self, kwargs: typing.Dict[str, typing.Any]):
         """Normalize model/engine/deployment_id based on which backend the client is
-           configured to target.
+        configured to target.
 
-           Specifically, it will pass the provided `model` parameter as `deployment_id`
-           unless `deployment_id` is explicitly passed in.
+        Specifically, it will pass the provided `model` parameter as `deployment_id`
+        unless `deployment_id` is explicitly passed in.
         """
-        if len([param for param in kwargs if param in ('deployment_id', 'model', 'engine')]) != 1:
-            raise TypeError('You can only specify one of `deployment_id`, `model` and `engine`')
-        
-        if self.backend == 'azure':
+        if (
+            len(
+                [
+                    param
+                    for param in kwargs
+                    if param in ("deployment_id", "model", "engine")
+                ]
+            )
+            != 1
+        ):
+            raise TypeError(
+                "You can only specify one of `deployment_id`, `model` and `engine`"
+            )
+
+        if self.backend == "azure":
             try:
                 # We'll try to "rename" the `model` keyword to fit azure's `deployment_id`
                 # paradigm
-                kwargs['deployment_id'] = kwargs.pop('model')
+                kwargs["deployment_id"] = kwargs.pop("model")
             except KeyError:
                 pass
 
@@ -139,7 +151,8 @@ class OpenAIClient:
         self._populate_args(kwargs, prompt=prompt, stream=True)
         self._normalize_model(kwargs)
         return typing.cast(
-            typing.AsyncIterable[openai.Completion], await openai.Completion.acreate(**kwargs)
+            typing.AsyncIterable[openai.Completion],
+            await openai.Completion.acreate(**kwargs),
         )
 
     def chatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
@@ -186,49 +199,134 @@ class OpenAIClient:
         self._normalize_model(kwargs)
         return typing.cast(openai.Embedding, await openai.Embedding.acreate(**kwargs))
 
-    def image(self, prompt: str, *, n: int = ..., size: str = ...,
-              response_format: str = ..., user: str = ...,
-              **kwargs):
-        self._populate_args(kwargs, prompt = prompt, n  = n, size = size,
-                            response_format = response_format, user = user)
+    def image(
+        self,
+        prompt: str,
+        *,
+        n: int = ...,
+        size: str = ...,
+        response_format: str = ...,
+        user: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            prompt=prompt,
+            n=n,
+            size=size,
+            response_format=response_format,
+            user=user,
+        )
         return typing.cast(openai.Image, openai.Image.create(**kwargs))
-    
-    async def aimage(self, prompt: str, *, n: int = ..., size: str = ...,
-              response_format: str = ..., user: str = ...,
-              **kwargs):
-        self._populate_args(kwargs, prompt = prompt, n  = n, size = size,
-                            response_format = response_format, user = user)
+
+    async def aimage(
+        self,
+        prompt: str,
+        *,
+        n: int = ...,
+        size: str = ...,
+        response_format: str = ...,
+        user: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            prompt=prompt,
+            n=n,
+            size=size,
+            response_format=response_format,
+            user=user,
+        )
         return typing.cast(openai.Image, await openai.Image.acreate(**kwargs))
 
-    def image_variation(self, image: bytes | typing.BinaryIO, *, n: int = ...,
-                        size: str = ..., response_format: str = ...,
-                        user: str = ..., **kwargs):
-        self._populate_args(kwargs, image = image, n  = n, size = size,
-                            response_format = response_format, user = user)
+    def image_variation(
+        self,
+        image: bytes | typing.BinaryIO,
+        *,
+        n: int = ...,
+        size: str = ...,
+        response_format: str = ...,
+        user: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            image=image,
+            n=n,
+            size=size,
+            response_format=response_format,
+            user=user,
+        )
         return typing.cast(openai.Image, openai.Image.create_variation(**kwargs))
 
-    async def aimage_variation(self, image: bytes | typing.BinaryIO, *, n: int = ...,
-                        size: str = ..., response_format: str = ...,
-                        user: str = ..., **kwargs):
-        self._populate_args(kwargs, image = image, n = n, size = size,
-                            response_format = response_format, user = user)
+    async def aimage_variation(
+        self,
+        image: bytes | typing.BinaryIO,
+        *,
+        n: int = ...,
+        size: str = ...,
+        response_format: str = ...,
+        user: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            image=image,
+            n=n,
+            size=size,
+            response_format=response_format,
+            user=user,
+        )
         return typing.cast(openai.Image, await openai.Image.acreate_variation(**kwargs))
 
-    def image_edit(self, image: bytes | typing.BinaryIO, prompt: str, *, mask: str = ..., n: int = ...,
-                        size: str = ..., response_format: str = ...,
-                        user: str = ..., **kwargs):
-        self._populate_args(kwargs, image = image, n = n, size = size,
-                            prompt = prompt, mask = mask,
-                            response_format = response_format, user = user)
+    def image_edit(
+        self,
+        image: bytes | typing.BinaryIO,
+        prompt: str,
+        *,
+        mask: str = ...,
+        n: int = ...,
+        size: str = ...,
+        response_format: str = ...,
+        user: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            image=image,
+            n=n,
+            size=size,
+            prompt=prompt,
+            mask=mask,
+            response_format=response_format,
+            user=user,
+        )
         return typing.cast(openai.Image, openai.Image.create_edit(**kwargs))
-    
-    async def aimage_edit(self, image: bytes | typing.BinaryIO, prompt: str, *, mask: str = ..., n: int = ...,
-                        size: str = ..., response_format: str = ...,
-                        user: str = ..., **kwargs):
-        self._populate_args(kwargs, image = image, n = n, size = size,
-                            prompt = prompt, mask = mask,
-                            response_format = response_format, user = user)
+
+    async def aimage_edit(
+        self,
+        image: bytes | typing.BinaryIO,
+        prompt: str,
+        *,
+        mask: str = ...,
+        n: int = ...,
+        size: str = ...,
+        response_format: str = ...,
+        user: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            image=image,
+            n=n,
+            size=size,
+            prompt=prompt,
+            mask=mask,
+            response_format=response_format,
+            user=user,
+        )
         return typing.cast(openai.Image, await openai.Image.acreate_edit(**kwargs))
+
 
 if __name__ == "__main__":
     client = OpenAIClient(
@@ -240,13 +338,15 @@ if __name__ == "__main__":
     # print(client.embeddings("What, or what is this?", model="arch")) # Doesn't work 'cause it is the wrong model...
 
     import asyncio
+
     async def stream_chat():
-        respco = await client.aiter_completion("what is up, my friend?", model="chatgpt")
+        respco = await client.aiter_completion(
+            "what is up, my friend?", model="chatgpt"
+        )
         async for rsp in respco:
             print(rsp)
 
     asyncio.run(stream_chat())
-    
 
     oaiclient = OpenAIClient()
     print(oaiclient.completion("what is up, my friend?", model="text-davinci-003"))
