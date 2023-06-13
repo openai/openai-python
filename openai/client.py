@@ -1,4 +1,4 @@
-import logging
+import time
 import typing
 
 import openai
@@ -20,10 +20,11 @@ class AzureTokenAuth:
         self._cached_token = None
 
     def get_token(self) -> str:
-        if self._cached_token is None:
+        if self._cached_token is None or (self._cached_token.expires_on - time.time()) < 300:
             self._cached_token = self._credential.get_token(
                 "https://cognitiveservices.azure.com/.default"
             )
+
         return self._cached_token.token
 
 
@@ -39,6 +40,7 @@ Backends = typing.Literal["azure", "openai", ""]
 
 
 class OpenAIClient:
+
     def __init__(
         self,
         *,
@@ -88,6 +90,8 @@ class OpenAIClient:
             kwargs.setdefault("api_version", self.api_version)
 
         for key, val in overrides.items():
+            if val == ...:
+                continue
             kwargs.setdefault(key, val)
             if kwargs[key] != val:
                 raise ValueError(f"No parameter named `{key}`")
@@ -154,6 +158,50 @@ class OpenAIClient:
         self._populate_args(kwargs, input=input)
         return typing.cast(openai.Embedding, await openai.Embedding.acreate(**kwargs))
 
+    def image(self, prompt: str, *, n: int = ..., size: str = ...,
+              response_format: str = ..., user: str = ...,
+              **kwargs):
+        self._populate_args(kwargs, prompt = prompt, n  = n, size = size,
+                            response_format = response_format, user = user)
+        return typing.cast(openai.Image, openai.Image.create(**kwargs))
+    
+    async def aimage(self, prompt: str, *, n: int = ..., size: str = ...,
+              response_format: str = ..., user: str = ...,
+              **kwargs):
+        self._populate_args(kwargs, prompt = prompt, n  = n, size = size,
+                            response_format = response_format, user = user)
+        return typing.cast(openai.Image, await openai.Image.acreate(**kwargs))
+
+    def image_variation(self, image: bytes | typing.BinaryIO, *, n: int = ...,
+                        size: str = ..., response_format: str = ...,
+                        user: str = ..., **kwargs):
+        self._populate_args(kwargs, image = image, n  = n, size = size,
+                            response_format = response_format, user = user)
+        return typing.cast(openai.Image, openai.Image.create_variation(**kwargs))
+
+    async def aimage_variation(self, image: bytes | typing.BinaryIO, *, n: int = ...,
+                        size: str = ..., response_format: str = ...,
+                        user: str = ..., **kwargs):
+        self._populate_args(kwargs, image = image, n = n, size = size,
+                            response_format = response_format, user = user)
+        return typing.cast(openai.Image, await openai.Image.acreate_variation(**kwargs))
+
+    def image_edit(self, image: bytes | typing.BinaryIO, prompt: str, *, mask: str = ..., n: int = ...,
+                        size: str = ..., response_format: str = ...,
+                        user: str = ..., **kwargs):
+        self._populate_args(kwargs, image = image, n = n, size = size,
+                            prompt = prompt, mask = mask,
+                            response_format = response_format, user = user)
+        return typing.cast(openai.Image, openai.Image.create_edit(**kwargs))
+    
+    async def aimage_edit(self, image: bytes | typing.BinaryIO, prompt: str, *, mask: str = ..., n: int = ...,
+                        size: str = ..., response_format: str = ...,
+                        user: str = ..., **kwargs):
+        self._populate_args(kwargs, image = image, n = n, size = size,
+                            prompt = prompt, mask = mask,
+                            response_format = response_format, user = user)
+        return typing.cast(openai.Image, await openai.Image.acreate_edit(**kwargs))
+
 if __name__ == "__main__":
     client = OpenAIClient(
         api_base="https://achand-openai-0.openai.azure.com/",
@@ -162,9 +210,6 @@ if __name__ == "__main__":
     )
     print(client.completion("what is up, my friend?", deployment_id="chatgpt"))
     # print(client.embeddings("What, or what is this?", deployment_id="arch")) # Doesn't work 'cause it is the wrong model...
-    oaiclient = OpenAIClient()
-    print(oaiclient.completion("what is up, my friend?", model="text-davinci-003"))
-    print(oaiclient.embeddings("What are embeddings?", model="text-embedding-ada-002"))
 
     import asyncio
     async def stream_chat():
@@ -173,3 +218,10 @@ if __name__ == "__main__":
             print(rsp)
 
     asyncio.run(stream_chat())
+    
+
+    oaiclient = OpenAIClient()
+    print(oaiclient.completion("what is up, my friend?", model="text-davinci-003"))
+    print(oaiclient.embeddings("What are embeddings?", model="text-embedding-ada-002"))
+    rsp = oaiclient.image("Happy cattle", response_format="b64_json")
+    print(rsp)
