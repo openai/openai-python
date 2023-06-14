@@ -7,7 +7,16 @@ LATEST_AZURE_API_VERSION = "2023-05-15"
 
 
 class AzureTokenAuth:
-    def __init__(self, credential=None):
+    """Authentication using an Azure AD token.
+    """
+
+    def __repr__(self):
+        return f"AzureTokenAuth({type(self._credential)})"
+
+    def __init__(self, *, credential=None):
+        """Create a new AzureTokenAuth instance. If no credential is passed, 
+        it will use ~azure.identity.DefaultAzureCredential
+        """
         if not credential:
             try:
                 import azure.identity
@@ -32,10 +41,17 @@ class AzureTokenAuth:
 
 
 class ApiKeyAuth:
+    """Authentication using an API key"""
+
+    def __repr__(self):
+        return f"ApiKeyAuth(api_key=<redacted>)"
+    
     def __init__(self, key: str = ""):
+        """Create a new ApiKeyAuth instance. If no key is passed, it will use ~openai.api_key"""
         self.key = key or openai.api_key
 
     def get_token(self) -> str:
+        """Get the API key"""
         return self.key
 
 
@@ -51,7 +67,17 @@ class OpenAIClient:
         api_version: str = "",
         backend: Backends = "",
     ):
-        self.api_base = api_base or openai.api_base
+        """Create a new OpenAI client.
+           
+           :param: api_base: The base URL for the API. If not specified, based on ~opeanai.api_base
+           :param: auth: The authentication method or key to use. If the string value "azuredefault" is passed, it will use ~azure.identity.DefaultAzureCredential
+           :param: api_version: The API version to use. If not specified, based on ~openai.api_version or ~openai.client.LATEST_AZURE_API_VERSION.
+           :param backend: One of 'azure' or 'openai'. If not specified, inferred from the auth method or ~openai.api_type
+        """
+
+        #
+        # This code is a bit messy, but it's because we want to hide the messiness from the caller.
+        #
         if auth == "azuredefault":
             self.auth = AzureTokenAuth()
         elif isinstance(auth, str):
@@ -61,7 +87,7 @@ class OpenAIClient:
 
         # Pick up api type from parameter or environment
         backend = backend or (
-            "azure" if openai.api_type in ("azure", "azure_ad") else "openai"
+            "azure" if openai.api_type in ("azure", "azure_ad") or isinstance(auth, AzureTokenAuth) else "openai"
         )
 
         self.backend = backend
@@ -74,14 +100,25 @@ class OpenAIClient:
                 self.api_type = "azure_ad"
             else:
                 self.api_type = "azure"
-        elif backend in ("openai", ""):
+        elif backend == "openai":
             self.api_type = "open_ai"
             self.api_version = api_version or openai.api_version
         else:
             raise ValueError(
                 f'Unknown `backend` {backend} - expected one of "azure" or "openai"'
             )
+        if not api_base and backend == 'azure':
+            raise ValueError("You have to specify `api_base` for the azure backend.")
+        self.api_base = api_base or openai.api_base
 
+    def __repr__(self): 
+        constructor_args = [
+            f"{name}={repr(value)}"
+            for name, value in self.__dict__.items()
+            if value is not None
+        ]
+        return f"OpenAIClient({','.join(constructor_args)})"
+    
     def _populate_args(self, kwargs: typing.Dict[str, typing.Any], **overrides) -> None:
         """Populate default arguments based on the current client configuration/defaults"""
         kwargs.setdefault("api_base", self.api_base or openai.api_base)
@@ -115,7 +152,7 @@ class OpenAIClient:
             != 1
         ):
             raise TypeError(
-                "You can only specify one of `deployment_id`, `model` and `engine`"
+                "You must specify exactly one of `deployment_id`, `model` and `engine`"
             )
 
         if self.backend == "azure":
