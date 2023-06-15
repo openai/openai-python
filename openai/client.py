@@ -69,10 +69,11 @@ class OpenAIClient:
     ):
         """Create a new OpenAI client.
            
-           :param: api_base: The base URL for the API. If not specified, based on ~opeanai.api_base
-           :param: auth: The authentication method or key to use. If the string value "azuredefault" is passed, it will use ~azure.identity.DefaultAzureCredential
-           :param: api_version: The API version to use. If not specified, based on ~openai.api_version or ~openai.client.LATEST_AZURE_API_VERSION.
-           :param backend: One of 'azure' or 'openai'. If not specified, inferred from the auth method or ~openai.api_type
+       :keyword str api_base: The base URL for the API. If not specified, based on ~opeanai.api_base
+       :keyword auth: The authentication method or key to use. If the string value "azuredefault" is passed, it will use ~azure.identity.DefaultAzureCredential
+       :paramtype auth: str or ~openai.client.ApiKeyAuth or ~openai.client.AzureTokenAuth
+       :keyword str api_version: The API version to use. If not specified, based on ~openai.api_version or ~openai.client.LATEST_AZURE_API_VERSION.
+       :keyword str backend: One of 'azure' or 'openai'. If not specified, inferred from the auth method or ~openai.api_type
         """
 
         #
