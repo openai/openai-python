@@ -87,7 +87,7 @@ class OpenAIClient:
 
         # Pick up api type from parameter or environment
         backend = backend or (
-            "azure" if openai.api_type in ("azure", "azure_ad") or isinstance(auth, AzureTokenAuth) else "openai"
+            "azure" if openai.api_type in ("azure", "azure_ad", "azuread") or isinstance(auth, AzureTokenAuth) else "openai"
         )
 
         self.backend = backend
