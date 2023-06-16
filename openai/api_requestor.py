@@ -720,6 +720,8 @@ class APIRequestor:
         else:
             try:
                 await result.read()
+            except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
+                raise error.Timeout("Request timed out") from e
             except aiohttp.ClientError as e:
                 util.log_warn(e, body=result.content)
             return (
