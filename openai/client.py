@@ -116,7 +116,7 @@ class OpenAIClient:
 
         self.api_base = api_base or openai.api_base
         self.organization = organization or openai.organization
-        if self.backend == 'azure' and self.api_base == "https://api.openai.com/v1"
+        if self.backend == 'azure' and self.api_base == "https://api.openai.com/v1":
             raise ValueError("You are using the 'openai.com' endpoint with an Azure credential or API type. Please provide the endpoint to your Azure resource instead.")
 
     def __repr__(self): 
