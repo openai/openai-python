@@ -1,5 +1,11 @@
+import sys
 import time
-import typing
+
+from typing import Union, Dict, Any, cast, Iterable, BinaryIO
+if sys.version_info >= (3, 8):
+    from typing import Literal, AsyncIterable
+else:
+    from typing_extensions import Literal, AsyncIterable
 
 import openai
 
@@ -55,7 +61,7 @@ class ApiKeyAuth:
         return self.key
 
 
-Backends = typing.Literal["azure", "openai", ""]
+Backends = Literal["azure", "openai", ""]
 
 
 class OpenAIClient:
@@ -63,9 +69,10 @@ class OpenAIClient:
         self,
         *,
         api_base: str = "",
-        auth: typing.Union[str, ApiKeyAuth, AzureTokenAuth] = "",
+        auth: Union[str, ApiKeyAuth, AzureTokenAuth] = "",
         api_version: str = "",
         backend: Backends = "",
+        organization: str = "",
     ):
         """Create a new OpenAI client.
            
@@ -86,13 +93,11 @@ class OpenAIClient:
             self.auth = auth
 
         # Pick up api type from parameter or environment
-        backend = backend or (
+        self.backend = backend or (
             "azure" if openai.api_type in ("azure", "azure_ad") or isinstance(auth, AzureTokenAuth) else "openai"
         )
 
-        self.backend = backend
-
-        if backend == "azure":
+        if self.backend == "azure":
             self.api_version = (
                 api_version or openai.api_version or LATEST_AZURE_API_VERSION
             )
@@ -100,16 +105,18 @@ class OpenAIClient:
                 self.api_type = "azure_ad"
             else:
                 self.api_type = "azure"
-        elif backend == "openai":
+        elif self.backend == "openai":
             self.api_type = "open_ai"
             self.api_version = api_version or openai.api_version
         else:
             raise ValueError(
                 f'Unknown `backend` {backend} - expected one of "azure" or "openai"'
             )
-        if not api_base and backend == 'azure':
-            raise ValueError("You have to specify `api_base` for the azure backend.")
+
         self.api_base = api_base or openai.api_base
+        self.organization = organization or openai.organization
+        if self.backend == 'azure' and self.api_base == "https://api.openai.com/v1"
+            raise ValueError("You are using the 'openai.com' endpoint with an Azure credential or API type. Please provide the endpoint to your Azure resource instead.")
 
     def __repr__(self): 
         constructor_args = [
@@ -119,11 +126,12 @@ class OpenAIClient:
         ]
         return f"OpenAIClient({','.join(constructor_args)})"
     
-    def _populate_args(self, kwargs: typing.Dict[str, typing.Any], **overrides) -> None:
+    def _populate_args(self, kwargs: Dict[str, Any], **overrides) -> None:
         """Populate default arguments based on the current client configuration/defaults"""
         kwargs.setdefault("api_base", self.api_base or openai.api_base)
         kwargs.setdefault("api_key", self.auth.get_token())
         kwargs.setdefault("api_type", self.api_type)
+        kwargs.setdefault("organization", self.organization)
         if self.api_version:
             kwargs.setdefault("api_version", self.api_version)
 
@@ -134,7 +142,7 @@ class OpenAIClient:
             if kwargs[key] != val:
                 raise TypeError(f"No parameter named `{key}`")
 
-    def _normalize_model(self, kwargs: typing.Dict[str, typing.Any]):
+    def _normalize_model(self, kwargs: Dict[str, Any]):
         """Normalize model/engine/deployment_id based on which backend the client is
         configured to target.
 
@@ -166,75 +174,75 @@ class OpenAIClient:
     def completion(self, prompt: str, **kwargs) -> openai.Completion:
         self._populate_args(kwargs, prompt=prompt, stream=False)
         self._normalize_model(kwargs)
-        return typing.cast(openai.Completion, openai.Completion.create(**kwargs))
+        return cast(openai.Completion, openai.Completion.create(**kwargs))
 
     async def acompletion(self, prompt: str, **kwargs) -> openai.Completion:
         self._populate_args(kwargs, prompt=prompt, stream=False)
         self._normalize_model(kwargs)
-        return typing.cast(openai.Completion, await openai.Completion.acreate(**kwargs))
+        return cast(openai.Completion, await openai.Completion.acreate(**kwargs))
 
     def iter_completion(
         self, prompt: str, **kwargs
-    ) -> typing.Iterable[openai.Completion]:
+    ) -> Iterable[openai.Completion]:
         self._populate_args(kwargs, prompt=prompt, stream=True)
         self._normalize_model(kwargs)
-        return typing.cast(
-            typing.Iterable[openai.Completion], openai.Completion.create(**kwargs)
+        return cast(
+            Iterable[openai.Completion], openai.Completion.create(**kwargs)
         )
 
     async def aiter_completion(
         self, prompt: str, **kwargs
-    ) -> typing.AsyncIterable[openai.Completion]:
+    ) -> AsyncIterable[openai.Completion]:
         self._populate_args(kwargs, prompt=prompt, stream=True)
         self._normalize_model(kwargs)
-        return typing.cast(
-            typing.AsyncIterable[openai.Completion],
+        return cast(
+            AsyncIterable[openai.Completion],
             await openai.Completion.acreate(**kwargs),
         )
 
     def chatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
         self._populate_args(kwargs, messages=messages, stream=False)
         self._normalize_model(kwargs)
-        return typing.cast(
+        return cast(
             openai.ChatCompletion, openai.ChatCompletion.create(**kwargs)
         )
 
     async def achatcompletion(self, messages, **kwargs) -> openai.ChatCompletion:
         self._populate_args(kwargs, messages=messages, stream=False)
         self._normalize_model(kwargs)
-        return typing.cast(
+        return cast(
             openai.ChatCompletion, await openai.ChatCompletion.acreate(**kwargs)
         )
 
     def iter_chatcompletion(
         self, messages, **kwargs
-    ) -> typing.Iterable[openai.ChatCompletion]:
+    ) -> Iterable[openai.ChatCompletion]:
         self._populate_args(kwargs, messages=messages, stream=True)
         self._normalize_model(kwargs)
-        return typing.cast(
-            typing.Iterable[openai.ChatCompletion],
+        return cast(
+            Iterable[openai.ChatCompletion],
             openai.ChatCompletion.create(**kwargs),
         )
 
     async def aiter_chatcompletion(
         self, messages, **kwargs
-    ) -> typing.AsyncIterable[openai.ChatCompletion]:
+    ) -> AsyncIterable[openai.ChatCompletion]:
         self._populate_args(kwargs, messages=messages, stream=True)
         self._normalize_model(kwargs)
-        return typing.cast(
-            typing.AsyncIterable[openai.ChatCompletion],
+        return cast(
+            AsyncIterable[openai.ChatCompletion],
             await openai.ChatCompletion.acreate(**kwargs),
         )
 
     def embeddings(self, input, **kwargs) -> openai.Embedding:
         self._populate_args(kwargs, input=input)
         self._normalize_model(kwargs)
-        return typing.cast(openai.Embedding, openai.Embedding.create(**kwargs))
+        return cast(openai.Embedding, openai.Embedding.create(**kwargs))
 
     async def aembeddings(self, input, **kwargs) -> openai.Embedding:
         self._populate_args(kwargs, input=input)
         self._normalize_model(kwargs)
-        return typing.cast(openai.Embedding, await openai.Embedding.acreate(**kwargs))
+        return cast(openai.Embedding, await openai.Embedding.acreate(**kwargs))
 
     def image(
         self,
@@ -254,7 +262,7 @@ class OpenAIClient:
             response_format=response_format,
             user=user,
         )
-        return typing.cast(openai.Image, openai.Image.create(**kwargs))
+        return cast(openai.Image, openai.Image.create(**kwargs))
 
     async def aimage(
         self,
@@ -274,11 +282,11 @@ class OpenAIClient:
             response_format=response_format,
             user=user,
         )
-        return typing.cast(openai.Image, await openai.Image.acreate(**kwargs))
+        return cast(openai.Image, await openai.Image.acreate(**kwargs))
 
     def image_variation(
         self,
-        image: bytes | typing.BinaryIO,
+        image: Union[bytes,  BinaryIO],
         *,
         n: int = ...,
         size: str = ...,
@@ -294,11 +302,11 @@ class OpenAIClient:
             response_format=response_format,
             user=user,
         )
-        return typing.cast(openai.Image, openai.Image.create_variation(**kwargs))
+        return cast(openai.Image, openai.Image.create_variation(**kwargs))
 
     async def aimage_variation(
         self,
-        image: bytes | typing.BinaryIO,
+        image: Union[bytes, BinaryIO],
         *,
         n: int = ...,
         size: str = ...,
@@ -314,11 +322,11 @@ class OpenAIClient:
             response_format=response_format,
             user=user,
         )
-        return typing.cast(openai.Image, await openai.Image.acreate_variation(**kwargs))
+        return cast(openai.Image, await openai.Image.acreate_variation(**kwargs))
 
     def image_edit(
         self,
-        image: bytes | typing.BinaryIO,
+        image: Union[bytes, BinaryIO],
         prompt: str,
         *,
         mask: str = ...,
@@ -338,11 +346,11 @@ class OpenAIClient:
             response_format=response_format,
             user=user,
         )
-        return typing.cast(openai.Image, openai.Image.create_edit(**kwargs))
+        return cast(openai.Image, openai.Image.create_edit(**kwargs))
 
     async def aimage_edit(
         self,
-        image: bytes | typing.BinaryIO,
+        image: Union[bytes, BinaryIO],
         prompt: str,
         *,
         mask: str = ...,
