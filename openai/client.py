@@ -1,7 +1,16 @@
 import sys
 import time
 
-from typing import Union, Dict, Any, cast, Iterable, BinaryIO
+from typing import (
+    Union,
+    Dict,
+    Any,
+    cast,
+    Iterable,
+    BinaryIO,
+    Optional,
+    TYPE_CHECKING
+)
 if sys.version_info >= (3, 8):
     from typing import Literal, AsyncIterable
 else:
@@ -9,19 +18,28 @@ else:
 
 import openai
 
+if TYPE_CHECKING:
+    from azure.core.credentials import TokenCredential
+
+
 LATEST_AZURE_API_VERSION = "2023-05-15"
 
 
 class AzureTokenAuth:
-    """Authentication using an Azure AD token.
+    """Authentication using an Azure Active Directory token.
     """
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"AzureTokenAuth({type(self._credential)})"
 
-    def __init__(self, *, credential=None):
-        """Create a new AzureTokenAuth instance. If no credential is passed, 
-        it will use ~azure.identity.DefaultAzureCredential
+    def __init__(self, *, credential: Optional["TokenCredential"] = None) -> None:
+        """Create a new AzureTokenAuth instance. Requires the
+        azure-identity package.
+
+        :keyword credential: A credential type from the azure.identity library.
+         If no credential is passed, it will use ~azure.identity.DefaultAzureCredential. 
+        :paramtype credential: ~azure.core.credentials.TokenCredential or 
+         ~azure.identity.DefaultAzureCredential 
         """
         if not credential:
             try:
@@ -35,6 +53,13 @@ class AzureTokenAuth:
         self._cached_token = None
 
     def get_token(self) -> str:
+        """Gets a valid AAD token to authenticate the request.
+        
+        .. note:: 
+
+            Do not directly interact with this API, it will be called
+            automatically when a token is needed for the request.
+        """
         if (
             self._cached_token is None
             or (self._cached_token.expires_on - time.time()) < 300
@@ -49,15 +74,25 @@ class AzureTokenAuth:
 class ApiKeyAuth:
     """Authentication using an API key"""
 
-    def __repr__(self):
-        return f"ApiKeyAuth(api_key=<redacted>)"
-    
-    def __init__(self, key: str = ""):
-        """Create a new ApiKeyAuth instance. If no key is passed, it will use ~openai.api_key"""
+    def __repr__(self) -> str:
+        return "ApiKeyAuth(api_key=<redacted>)"
+
+    def __init__(self, key: str = "") -> None:
+        """Create a new ApiKeyAuth instance.
+
+        :param str key: The API key associated with your account.
+         If no key is passed, it will use ~openai.api_key
+        """
         self.key = key or openai.api_key
 
     def get_token(self) -> str:
-        """Get the API key"""
+        """Get the API key
+        
+        .. note:: 
+
+            Do not directly interact with this API, it will be called
+            automatically when a token is needed for the request.
+        """
         return self.key
 
 
@@ -75,12 +110,16 @@ class OpenAIClient:
         organization: str = "",
     ):
         """Create a new OpenAI client.
-           
+
        :keyword str api_base: The base URL for the API. If not specified, based on ~opeanai.api_base
-       :keyword auth: The authentication method or key to use. If the string value "azuredefault" is passed, it will use ~azure.identity.DefaultAzureCredential
+       :keyword auth: The authentication method or key to use. If the string value "azuredefault" is passed,
+        it will use ~azure.identity.DefaultAzureCredential
        :paramtype auth: str or ~openai.client.ApiKeyAuth or ~openai.client.AzureTokenAuth
-       :keyword str api_version: The API version to use. If not specified, based on ~openai.api_version or ~openai.client.LATEST_AZURE_API_VERSION.
+       :keyword str api_version: The API version to use. If not specified, based on ~openai.api_version
+        or ~openai.client.LATEST_AZURE_API_VERSION.
        :keyword str backend: One of 'azure' or 'openai'. If not specified, inferred from the auth method or ~openai.api_type
+       :keyword str organization: The identifier of the organization to use for API requests.
+        If not specified, based on ~openai.organization.
         """
 
         #
@@ -119,7 +158,7 @@ class OpenAIClient:
         if self.backend == 'azure' and self.api_base == "https://api.openai.com/v1":
             raise ValueError("You are using the 'openai.com' endpoint with an Azure credential or API type. Please provide the endpoint to your Azure resource instead.")
 
-    def __repr__(self): 
+    def __repr__(self) -> str:
         constructor_args = [
             f"{name}={repr(value)}"
             for name, value in self.__dict__.items()
@@ -173,6 +212,13 @@ class OpenAIClient:
                 pass
 
     def completion(self, prompt: str, **kwargs) -> openai.Completion:
+        """Creates a completion for the provided prompt and parameters.
+
+        :param prompt: The prompt(s) to generate completions for,
+         encoded as a string, array of strings, array of tokens, 
+         or array of token arrays.
+        :type prompt: str or Iterable[str] or Iterable[float] or Iterable[Iterable[float]]
+        """
         self._populate_args(kwargs, prompt=prompt, stream=False)
         self._normalize_model(kwargs)
         return cast(openai.Completion, openai.Completion.create(**kwargs))
