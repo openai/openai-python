@@ -774,5 +774,6 @@ async def aiohttp_session() -> AsyncIterator[aiohttp.ClientSession]:
     if user_set_session:
         yield user_set_session
     else:
-        async with aiohttp.ClientSession() as session:
+        # Read `http(s)_proxy` environment variables to align with the requests library
+        async with aiohttp.ClientSession(trust_env=True) as session:
             yield session
