@@ -15,7 +15,7 @@ from openai.datalib.pandas_helper import pandas as pd
 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
-def get_embedding(text: str, engine="text-similarity-davinci-001", **kwargs) -> List[float]:
+def get_embedding(text: str, engine="text-embedding-ada-002", **kwargs) -> List[float]:
 
     # replace newlines, which can negatively affect performance.
     text = text.replace("\n", " ")
@@ -25,7 +25,7 @@ def get_embedding(text: str, engine="text-similarity-davinci-001", **kwargs) -> 
 
 @retry(wait=wait_random_exponential(min=1, max=20), stop=stop_after_attempt(6))
 async def aget_embedding(
-    text: str, engine="text-similarity-davinci-001", **kwargs
+    text: str, engine="text-embedding-ada-002", **kwargs
 ) -> List[float]:
 
     # replace newlines, which can negatively affect performance.
