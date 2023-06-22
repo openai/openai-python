@@ -417,8 +417,153 @@ class OpenAIClient:
             response_format=response_format,
             user=user,
         )
-        return typing.cast(openai.Image, await openai.Image.acreate_edit(**kwargs))
+        return cast(openai.Image, await openai.Image.acreate_edit(**kwargs))
 
+    def edit(
+        self,
+        instruction: str,
+        *,
+        input: str = ...,
+        n: int = ...,
+        temperature: float = ...,
+        top_p: float = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            instruction=instruction,
+            input=input,
+            n=n,
+            temperature=temperature,
+            top_p=top_p,
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Edit, openai.Edit.create(**kwargs))
+
+    async def aedit(
+        self,
+        instruction: str,
+        *,
+        input: str = ...,
+        n: int = ...,
+        temperature: float = ...,
+        top_p: float = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            instruction=instruction,
+            input=input,
+            n=n,
+            temperature=temperature,
+            top_p=top_p,
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Edit, await openai.Edit.acreate(**kwargs))
+
+    def moderation(
+        self,
+        input: Union[str, Iterable[str]],
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            input=input,
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Moderation, openai.Moderation.create(**kwargs))
+
+    async def amoderation(
+        self,
+        input: Union[str, Iterable[str]],
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            input=input,
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Moderation, await openai.Moderation.acreate(**kwargs))
+
+    def transcribe_audio(
+        self,
+        file: Union[bytes, BinaryIO],
+        *,
+        prompt: str = ...,
+        response_format: str = ...,
+        temperature: float = ...,
+        language: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            file=file,
+            prompt=prompt,
+            response_format=response_format,
+            temperature=temperature,
+            language=language
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Audio, openai.Audio.transcribe(**kwargs))
+
+    async def atranscribe_audio(
+        self,
+        file: Union[bytes, BinaryIO],
+        *,
+        prompt: str = ...,
+        response_format: str = ...,
+        temperature: float = ...,
+        language: str = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            file=file,
+            prompt=prompt,
+            response_format=response_format,
+            temperature=temperature,
+            language=language
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Audio, await openai.Audio.atranscribe(**kwargs))
+
+    def translate_audio(
+        self,
+        file: Union[bytes, BinaryIO],
+        *,
+        prompt: str = ...,
+        response_format: str = ...,
+        temperature: float = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            file=file,
+            prompt=prompt,
+            response_format=response_format,
+            temperature=temperature,
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Audio, openai.Audio.translate(**kwargs))
+
+    async def atranslate_audio(
+        self,
+        file: Union[bytes, BinaryIO],
+        *,
+        prompt: str = ...,
+        response_format: str = ...,
+        temperature: float = ...,
+        **kwargs,
+    ):
+        self._populate_args(
+            kwargs,
+            file=file,
+            prompt=prompt,
+            response_format=response_format,
+            temperature=temperature,
+        )
+        self._normalize_model(kwargs)
+        return cast(openai.Audio, await openai.Audio.atranslate(**kwargs))
 
 if __name__ == "__main__":
     client = OpenAIClient(
