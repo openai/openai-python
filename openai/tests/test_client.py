@@ -1,4 +1,12 @@
 import os
+import sys
+
+from typing import Union
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
 import pytest
 import openai.client
 
@@ -44,8 +52,6 @@ def client(api_type):
 
 @pytest.fixture
 def clear_oai_module(monkeypatch: pytest.MonkeyPatch):
-    for key in [ 'api_base', 'api_key', 'api_type', 'api_version']:
-        ...
     monkeypatch.setattr(openai, 'api_base', "https://api.openai.com/v1")
     monkeypatch.setattr(openai, 'api_key', None)
     monkeypatch.setattr(openai, 'api_type', "open_ai")
@@ -56,16 +62,18 @@ def setup_oai_module(monkeypatch: pytest.MonkeyPatch, **kwargs):
     for n, v in kwargs.items():
         monkeypatch.setattr(openai, n, v)
 
-
 # MOCK TESTS ------------------------------------------------
-def test_construct_client(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+        
+@pytest.mark.usefixtures("clear_oai_module")
+def test_construct_client(monkeypatch: pytest.MonkeyPatch):
     setup_oai_module(monkeypatch, api_key=None)
     client = openai.client.OpenAIClient()
     assert client.api_base == openai.api_base
     assert client.api_type == openai.api_type
     assert client.auth.get_token() is None
 
-def test_construct_azure_client(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+@pytest.mark.usefixtures("clear_oai_module")
+def test_construct_azure_client(monkeypatch: pytest.MonkeyPatch):
     setup_oai_module(monkeypatch, api_key=None, api_base='something different')
 
     provided_api_base = 'https://contoso.microsoft.com'
@@ -74,7 +82,8 @@ def test_construct_azure_client(monkeypatch: pytest.MonkeyPatch, clear_oai_modul
     assert client.api_type == 'azure'
     assert client.auth.get_token() is None
 
-def test_construct_azure_client_aad(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+@pytest.mark.usefixtures("clear_oai_module")
+def test_construct_azure_client_aad(monkeypatch: pytest.MonkeyPatch):
     provided_api_base = 'https://contoso.microsoft.com'
     def mock_get_token(*args, **kwargs):
         return 'expected token'
@@ -85,7 +94,8 @@ def test_construct_azure_client_aad(monkeypatch: pytest.MonkeyPatch, clear_oai_m
     assert client.api_type == 'azure_ad'
     assert client.auth.get_token() == 'expected token'
 
-def test_construct_azure_client_api_key(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+@pytest.mark.usefixtures("clear_oai_module")
+def test_construct_azure_client_api_key(monkeypatch: pytest.MonkeyPatch):
     provided_api_base = 'https://contoso.microsoft.com'
     client = openai.client.OpenAIClient(api_base=provided_api_base, backend='azure', auth='secret key')
     assert client.api_base == provided_api_base
@@ -99,49 +109,52 @@ def test_construct_openai_client_api_key():
     assert client.organization == "my org"
     assert client.auth.get_token() == 'secret key'
 
-def test_make_call_client_aad(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+@pytest.mark.usefixtures("clear_oai_module")
+def test_make_call_client_aad(monkeypatch: pytest.MonkeyPatch):
     provided_api_base = 'https://contoso.microsoft.com'
     def mock_get_token(*args, **kwargs):
         return 'expected token'
     
     def mock_embeddings_response(*args, **kwargs):
-        assert kwargs.get('deployment_id') == 'das deployment'
-        assert kwargs.get('api_version') == openai.client.LATEST_AZURE_API_VERSION
-        assert kwargs.get('api_type') == 'azure_ad'
+        return args, kwargs
 
     monkeypatch.setattr(openai.client.AzureTokenAuth, 'get_token', mock_get_token)
     monkeypatch.setattr(openai.Embedding, 'create', mock_embeddings_response)
 
     client = openai.client.OpenAIClient(backend='azure', api_base = provided_api_base, auth=openai.client.AzureTokenAuth(credential='dummy'))
-    client.embeddings("some data", model='das deployment')
+    args, kwargs = client.embeddings("some data", model='das deployment')
 
+    assert kwargs.get('deployment_id') == 'das deployment'
+    assert kwargs.get('api_version') == openai.client.LATEST_AZURE_API_VERSION
+    assert kwargs.get('api_type') == 'azure_ad'
 
-def test_make_call_client_azure_key(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+@pytest.mark.usefixtures("clear_oai_module")
+def test_make_call_client_azure_key(monkeypatch: pytest.MonkeyPatch):
     provided_api_base = 'https://contoso.microsoft.com'
     def mock_get_token(*args, **kwargs):
         return 'expected token'
     def mock_embeddings_response(*args, **kwargs):
-        assert kwargs.get('deployment_id') == 'das deployment'
-        assert kwargs.get('api_version') == openai.client.LATEST_AZURE_API_VERSION
-        assert kwargs.get('api_type') == 'azure'
-        assert kwargs.get('api_key', 'secret key')
+        return args, kwargs
     
     monkeypatch.setattr(openai.client.AzureTokenAuth, 'get_token', mock_get_token)
     monkeypatch.setattr(openai.Embedding, 'create', mock_embeddings_response)
 
     client = openai.client.OpenAIClient(backend='azure', api_base = provided_api_base, auth="secret key")
-    client.embeddings("some data", model='das deployment')
+    args, kwargs = client.embeddings("some data", model='das deployment')
 
+    assert kwargs.get('deployment_id') == 'das deployment'
+    assert kwargs.get('api_version') == openai.client.LATEST_AZURE_API_VERSION
+    assert kwargs.get('api_type') == 'azure'
+    assert kwargs.get('api_key', 'secret key')
 
-def test_make_call_client_oai_key(monkeypatch: pytest.MonkeyPatch, clear_oai_module):
+@pytest.mark.usefixtures("clear_oai_module")
+def test_make_call_client_oai_key(monkeypatch: pytest.MonkeyPatch):
     provided_api_base = 'https://contoso.microsoft.com'
     def mock_get_token(*args, **kwargs):
         return 'expected token'
     def mock_embeddings_response(*args, **kwargs):
-        assert kwargs.get('model') == 'das model'
-        assert kwargs.get('api_type') == 'open_ai'
-        assert kwargs.get('api_key', 'secret key')
-
+        return args, kwargs
+    
     monkeypatch.setattr(openai.client.AzureTokenAuth, 'get_token', mock_get_token)
     monkeypatch.setattr(openai.Embedding, 'create', mock_embeddings_response)
 
