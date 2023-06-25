@@ -103,8 +103,8 @@ def parse_stream_helper(line: bytes) -> Optional[str]:
             # return here will cause GeneratorExit exception in urllib3
             # and it will close http connection with TCP Reset
             return None
-        if line.startswith(b"data: "):
-            line = line[len(b"data: "):]
+        if line.startswith(b"data:"):
+            line = line[len(b"data:"):]
             return line.decode("utf-8")
         else:
             return None
