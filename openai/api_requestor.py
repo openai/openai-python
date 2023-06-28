@@ -401,7 +401,7 @@ class APIRequestor:
     def handle_error_response(self, rbody, rcode, resp, rheaders, stream_error=False):
         try:
             error_data = resp["error"]
-        except (KeyError, TypeError):
+        except (KeyError, TypeError, AttributeError):
             raise error.APIError(
                 "Invalid response object from API: %r (HTTP response code "
                 "was %d)" % (rbody, rcode),
