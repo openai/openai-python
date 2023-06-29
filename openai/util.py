@@ -177,7 +177,7 @@ def default_api_key() -> str:
     if openai.api_key_path:
         with open(openai.api_key_path, "rt") as k:
             api_key = k.read().strip()
-            if not api_key.startswith("sk-"):
+            if openai.api_type in ("open_ai", "openai") and not api_key.startswith("sk-"):
                 raise ValueError(f"Malformed API key in {openai.api_key_path}.")
             return api_key
     elif openai.api_key is not None:

@@ -30,6 +30,11 @@ def test_openai_api_key_path_with_malformed_key(api_key_file) -> None:
     with pytest.raises(ValueError, match="Malformed API key"):
         util.default_api_key()
 
+def test_openai_api_key_path_with_azure_key(api_key_file) -> None:
+    openai.api_type = "azure"
+    print("key-with-no-sk-prefix", file=api_key_file)
+    api_key_file.flush()
+    assert util.default_api_key() == "key-with-no-sk-prefix"
 
 def test_key_order_openai_object_rendering() -> None:
     sample_response = {
