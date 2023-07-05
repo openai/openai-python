@@ -1,3 +1,4 @@
+from decouple import config
 import asyncio
 import json
 import time
@@ -34,7 +35,7 @@ from openai import error, util, version
 from openai.openai_response import OpenAIResponse
 from openai.util import ApiType
 
-TIMEOUT_SECS = 600
+OPENAI_DEFAULT_TIMEOUT = config('OPENAI_DEFAULT_TIMEOUT', default=60)
 MAX_SESSION_LIFETIME_SECS = 180
 MAX_CONNECTION_RETRIES = 2
 
@@ -179,7 +180,7 @@ class APIRequestor:
         self._check_polling_response(response, failed)
         start_time = time.time()
         while not until(response):
-            if time.time() - start_time > TIMEOUT_SECS:
+            if time.time() - start_time > OPENAI_DEFAULT_TIMEOUT:
                 raise error.Timeout("Operation polling timed out.")
 
             time.sleep(interval or response.retry_after or 10)
@@ -207,7 +208,7 @@ class APIRequestor:
         self._check_polling_response(response, failed)
         start_time = time.time()
         while not until(response):
-            if time.time() - start_time > TIMEOUT_SECS:
+            if time.time() - start_time > OPENAI_DEFAULT_TIMEOUT:
                 raise error.Timeout("Operation polling timed out.")
 
             await asyncio.sleep(interval or response.retry_after or 10)
@@ -600,7 +601,7 @@ class APIRequestor:
                 data=data,
                 files=files,
                 stream=stream,
-                timeout=request_timeout if request_timeout else TIMEOUT_SECS,
+                timeout=request_timeout if request_timeout else OPENAI_DEFAULT_TIMEOUT,
                 proxies=_thread_context.session.proxies,
             )
         except requests.exceptions.Timeout as e:
@@ -646,7 +647,7 @@ class APIRequestor:
             )
         else:
             timeout = aiohttp.ClientTimeout(
-                total=request_timeout if request_timeout else TIMEOUT_SECS
+                total=request_timeout if request_timeout else OPENAI_DEFAULT_TIMEOUT
             )
 
         if files:
