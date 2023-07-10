@@ -15,3 +15,6 @@ NUMPY_INSTRUCTIONS = INSTRUCTIONS.format(library="numpy")
 
 class MissingDependencyError(Exception):
     pass
+
+class DependencyUnchecked():
+    ...
