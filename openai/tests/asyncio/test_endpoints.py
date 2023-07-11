@@ -13,9 +13,7 @@ pytestmark = [pytest.mark.asyncio]
 # FILE TESTS
 async def test_file_upload():
     result = await openai.File.acreate(
-        file=io.StringIO(
-            json.dumps({"prompt": "test file data", "completion": "tada"})
-        ),
+        file=io.StringIO(json.dumps({"prompt": "test file data", "completion": "tada"})),
         purpose="fine-tune",
     )
     assert result.purpose == "fine-tune"
@@ -27,9 +25,7 @@ async def test_file_upload():
 
 # COMPLETION TESTS
 async def test_completions():
-    result = await openai.Completion.acreate(
-        prompt="This was a test", n=5, engine="ada"
-    )
+    result = await openai.Completion.acreate(prompt="This was a test", n=5, engine="ada")
     assert len(result.choices) == 5
 
 

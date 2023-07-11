@@ -37,20 +37,23 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = requestor.request(
-            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version), params
+            "post",
+            cls._get_url(
+                "generations", azure_action="submit", api_type=api_type, api_version=api_version
+            ),
+            params,
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            requestor.api_base = "" # operation_location is a full url
+            requestor.api_base = ""  # operation_location is a full url
             response, _, api_key = requestor._poll(
-                "get", response.operation_location,
-                until=lambda response: response.data['status'] in [ 'succeeded' ],
-                failed=lambda response: response.data['status'] in [ 'failed' ]
+                "get",
+                response.operation_location,
+                until=lambda response: response.data["status"] in ["succeeded"],
+                failed=lambda response: response.data["status"] in ["failed"],
             )
 
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def acreate(
@@ -74,20 +77,23 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = await requestor.arequest(
-            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version), params
+            "post",
+            cls._get_url(
+                "generations", azure_action="submit", api_type=api_type, api_version=api_version
+            ),
+            params,
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            requestor.api_base = "" # operation_location is a full url
+            requestor.api_base = ""  # operation_location is a full url
             response, _, api_key = await requestor._apoll(
-                "get", response.operation_location,
-                until=lambda response: response.data['status'] in [ 'succeeded' ],
-                failed=lambda response: response.data['status'] in [ 'failed' ]
+                "get",
+                response.operation_location,
+                until=lambda response: response.data["status"] in ["succeeded"],
+                failed=lambda response: response.data["status"] in ["failed"],
             )
 
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     def _prepare_create_variation(
@@ -109,7 +115,9 @@ class Image(APIResource):
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
-        url = cls._get_url("variations", azure_action=None, api_type=api_type, api_version=api_version)
+        url = cls._get_url(
+            "variations", azure_action=None, api_type=api_type, api_version=api_version
+        )
 
         files: List[Any] = []
         for key, value in params.items():
@@ -143,9 +151,7 @@ class Image(APIResource):
 
         response, _, api_key = requestor.request("post", url, files=files)
 
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def acreate_variation(
@@ -173,9 +179,7 @@ class Image(APIResource):
 
         response, _, api_key = await requestor.arequest("post", url, files=files)
 
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     def _prepare_create_edit(
@@ -236,9 +240,7 @@ class Image(APIResource):
 
         response, _, api_key = requestor.request("post", url, files=files)
 
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def acreate_edit(
@@ -268,6 +270,4 @@ class Image(APIResource):
 
         response, _, api_key = await requestor.arequest("post", url, files=files)
 
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)

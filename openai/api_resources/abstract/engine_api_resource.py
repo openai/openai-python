@@ -28,9 +28,7 @@ class EngineAPIResource(APIResource):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
         base = cls.OBJECT_NAME.replace(".", "/")  # type: ignore
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             if not api_version:
@@ -81,15 +79,13 @@ class EngineAPIResource(APIResource):
         if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             if deployment_id is None and engine is None:
                 raise error.InvalidRequestError(
-                    "Must provide an 'engine' or 'deployment_id' parameter to create a %s"
-                    % cls,
+                    "Must provide an 'engine' or 'deployment_id' parameter to create a %s" % cls,
                     "engine",
                 )
         else:
             if model is None and engine is None:
                 raise error.InvalidRequestError(
-                    "Must provide an 'engine' or 'model' parameter to create a %s"
-                    % cls,
+                    "Must provide an 'engine' or 'model' parameter to create a %s" % cls,
                     "engine",
                 )
 

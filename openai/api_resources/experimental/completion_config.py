@@ -5,7 +5,5 @@ from openai.api_resources.abstract import (
 )
 
 
-class CompletionConfig(
-    CreateableAPIResource, ListableAPIResource, DeletableAPIResource
-):
+class CompletionConfig(CreateableAPIResource, ListableAPIResource, DeletableAPIResource):
     OBJECT_NAME = "experimental.completion_configs"

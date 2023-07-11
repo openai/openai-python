@@ -11,9 +11,7 @@ from openai import error
 # FILE TESTS
 def test_file_upload():
     result = openai.File.create(
-        file=io.StringIO(
-            json.dumps({"prompt": "test file data", "completion": "tada"})
-        ),
+        file=io.StringIO(json.dumps({"prompt": "test file data", "completion": "tada"})),
         purpose="fine-tune",
     )
     assert result.purpose == "fine-tune"
@@ -90,7 +88,7 @@ def test_timeout_does_not_error():
 
 
 def test_user_session():
-     with requests.Session() as session:
+    with requests.Session() as session:
         openai.requestssession = session
 
         completion = openai.Completion.create(

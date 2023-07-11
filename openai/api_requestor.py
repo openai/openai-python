@@ -104,7 +104,7 @@ def parse_stream_helper(line: bytes) -> Optional[str]:
             # and it will close http connection with TCP Reset
             return None
         if line.startswith(b"data: "):
-            line = line[len(b"data: "):]
+            line = line[len(b"data: ") :]
             return line.decode("utf-8")
         else:
             return None
@@ -137,9 +137,7 @@ class APIRequestor:
         self.api_base = api_base or openai.api_base
         self.api_key = key or util.default_api_key()
         self.api_type = (
-            ApiType.from_str(api_type)
-            if api_type
-            else ApiType.from_str(openai.api_type)
+            ApiType.from_str(api_type) if api_type else ApiType.from_str(openai.api_type)
         )
         self.api_version = api_version or openai.api_version
         self.organization = organization or openai.organization
@@ -153,24 +151,18 @@ class APIRequestor:
             str += f' ({info["url"]})'
         return str
 
-    def _check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
+    def _check_polling_response(
+        self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]
+    ):
         if not predicate(response):
             return
-        error_data = response.data['error']
-        message = error_data.get('message', 'Operation failed')
-        code = error_data.get('code')
+        error_data = response.data["error"]
+        message = error_data.get("message", "Operation failed")
+        code = error_data.get("code")
         raise error.OpenAIError(message=message, code=code)
 
     def _poll(
-        self,
-        method,
-        url,
-        until,
-        failed,
-        params = None,
-        headers = None,
-        interval = None,
-        delay = None
+        self, method, url, until, failed, params=None, headers=None, interval=None, delay=None
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         if delay:
             time.sleep(delay)
@@ -186,19 +178,11 @@ class APIRequestor:
             response, b, api_key = self.request(method, url, params, headers)
             self._check_polling_response(response, failed)
 
-        response.data = response.data['result']
+        response.data = response.data["result"]
         return response, b, api_key
 
     async def _apoll(
-        self,
-        method,
-        url,
-        until,
-        failed,
-        params = None,
-        headers = None,
-        interval = None,
-        delay = None
+        self, method, url, until, failed, params=None, headers=None, interval=None, delay=None
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         if delay:
             await asyncio.sleep(delay)
@@ -214,7 +198,7 @@ class APIRequestor:
             response, b, api_key = await self.arequest(method, url, params, headers)
             self._check_polling_response(response, failed)
 
-        response.data = response.data['result']
+        response.data = response.data["result"]
         return response, b, api_key
 
     @overload
@@ -424,9 +408,7 @@ class APIRequestor:
 
         # Rate limits were previously coded as 400's with code 'rate_limit'
         if rcode == 429:
-            return error.RateLimitError(
-                error_data.get("message"), rbody, rcode, resp, rheaders
-            )
+            return error.RateLimitError(error_data.get("message"), rbody, rcode, resp, rheaders)
         elif rcode in [400, 404, 415]:
             return error.InvalidRequestError(
                 error_data.get("message"),
@@ -442,13 +424,9 @@ class APIRequestor:
                 error_data.get("message"), rbody, rcode, resp, rheaders
             )
         elif rcode == 403:
-            return error.PermissionError(
-                error_data.get("message"), rbody, rcode, resp, rheaders
-            )
+            return error.PermissionError(error_data.get("message"), rbody, rcode, resp, rheaders)
         elif rcode == 409:
-            return error.TryAgain(
-                error_data.get("message"), rbody, rcode, resp, rheaders
-            )
+            return error.TryAgain(error_data.get("message"), rbody, rcode, resp, rheaders)
         elif stream_error:
             # TODO: we will soon attach status codes to stream errors
             parts = [error_data.get("message"), "(Error occurred while streaming.)"]
@@ -463,9 +441,7 @@ class APIRequestor:
                 rheaders,
             )
 
-    def request_headers(
-        self, method: str, extra, request_id: Optional[str]
-    ) -> Dict[str, str]:
+    def request_headers(self, method: str, extra, request_id: Optional[str]) -> Dict[str, str]:
         user_agent = f"OpenAI/v1 PythonBindings/{version.VERSION}"
         if openai.app_info:
             user_agent += f" {self.format_app_info(openai.app_info)}"
@@ -505,9 +481,7 @@ class APIRequestor:
 
         return headers
 
-    def _validate_headers(
-        self, supplied_headers: Optional[Dict[str, str]]
-    ) -> Dict[str, str]:
+    def _validate_headers(self, supplied_headers: Optional[Dict[str, str]]) -> Dict[str, str]:
         headers: Dict[str, str] = {}
         if supplied_headers is None:
             return headers
@@ -542,9 +516,7 @@ class APIRequestor:
         data = None
         if method in ["get", "delete"]:
             if params:
-                encoded_params = urlencode(
-                    [(k, v) for k, v in params.items() if v is not None]
-                )
+                encoded_params = urlencode([(k, v) for k, v in params.items() if v is not None])
                 abs_url = _build_api_url(abs_url, encoded_params)
         elif method in {"post", "put"}:
             if params and files:
@@ -616,9 +588,7 @@ class APIRequestor:
         )
         # Don't read the whole stream for debug logging unless necessary.
         if openai.log == "debug":
-            util.log_debug(
-                "API response body", body=result.content, headers=result.headers
-            )
+            util.log_debug("API response body", body=result.content, headers=result.headers)
         return result
 
     async def arequest_raw(
@@ -673,9 +643,7 @@ class APIRequestor:
             )
             # Don't read the whole stream for debug logging unless necessary.
             if openai.log == "debug":
-                util.log_debug(
-                    "API response body", body=result.content, headers=result.headers
-                )
+                util.log_debug("API response body", body=result.content, headers=result.headers)
             return result
         except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
             raise error.Timeout("Request timed out") from e
@@ -688,9 +656,7 @@ class APIRequestor:
         """Returns the response(s) and a bool indicating whether it is a stream."""
         if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
             return (
-                self._interpret_response_line(
-                    line, result.status_code, result.headers, stream=True
-                )
+                self._interpret_response_line(line, result.status_code, result.headers, stream=True)
                 for line in parse_stream(result.iter_lines())
             ), True
         else:
@@ -710,9 +676,7 @@ class APIRequestor:
         """Returns the response(s) and a bool indicating whether it is a stream."""
         if stream and "text/event-stream" in result.headers.get("Content-Type", ""):
             return (
-                self._interpret_response_line(
-                    line, result.status, result.headers, stream=True
-                )
+                self._interpret_response_line(line, result.status, result.headers, stream=True)
                 async for line in parse_stream_async(result.content)
             ), True
         try:
@@ -746,7 +710,7 @@ class APIRequestor:
                 headers=rheaders,
             )
         try:
-            if 'text/plain' in rheaders.get('Content-Type', ''):
+            if "text/plain" in rheaders.get("Content-Type", ""):
                 data = rbody
             else:
                 data = json.loads(rbody)

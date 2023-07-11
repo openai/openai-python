@@ -28,9 +28,7 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
         base = cls.class_url()
         extn = quote_plus(id)
 
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             url = f"/{cls.azure_api_prefix}{base}/{extn}/cancel?api-version={api_version}"
         elif typed_api_type == ApiType.OPEN_AI:
@@ -104,12 +102,12 @@ class FineTune(ListableAPIResource, CreateableAPIResource, DeletableAPIResource)
             organization=organization,
         )
 
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
-            url = f"/{cls.azure_api_prefix}{base}/{extn}/events?stream=true&api-version={api_version}"
+            url = (
+                f"/{cls.azure_api_prefix}{base}/{extn}/events?stream=true&api-version={api_version}"
+            )
         elif typed_api_type == ApiType.OPEN_AI:
             url = f"{base}/{extn}/events?stream=true"
         else:

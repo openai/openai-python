@@ -65,9 +65,7 @@ class Audio(APIResource):
         )
         url = cls._get_url("transcriptions")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     def translate(
@@ -94,9 +92,7 @@ class Audio(APIResource):
         )
         url = cls._get_url("translations")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     def transcribe_raw(
@@ -124,9 +120,7 @@ class Audio(APIResource):
         )
         url = cls._get_url("transcriptions")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     def translate_raw(
@@ -154,9 +148,7 @@ class Audio(APIResource):
         )
         url = cls._get_url("translations")
         response, _, api_key = requestor.request("post", url, files=files, params=data)
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def atranscribe(
@@ -182,12 +174,8 @@ class Audio(APIResource):
             **params,
         )
         url = cls._get_url("transcriptions")
-        response, _, api_key = await requestor.arequest(
-            "post", url, files=files, params=data
-        )
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = await requestor.arequest("post", url, files=files, params=data)
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def atranslate(
@@ -213,12 +201,8 @@ class Audio(APIResource):
             **params,
         )
         url = cls._get_url("translations")
-        response, _, api_key = await requestor.arequest(
-            "post", url, files=files, params=data
-        )
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = await requestor.arequest("post", url, files=files, params=data)
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def atranscribe_raw(
@@ -245,12 +229,8 @@ class Audio(APIResource):
             **params,
         )
         url = cls._get_url("transcriptions")
-        response, _, api_key = await requestor.arequest(
-            "post", url, files=files, params=data
-        )
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = await requestor.arequest("post", url, files=files, params=data)
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def atranslate_raw(
@@ -277,9 +257,5 @@ class Audio(APIResource):
             **params,
         )
         url = cls._get_url("translations")
-        response, _, api_key = await requestor.arequest(
-            "post", url, files=files, params=data
-        )
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = await requestor.arequest("post", url, files=files, params=data)
+        return util.convert_to_openai_object(response, api_key, api_version, organization)

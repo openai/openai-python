@@ -25,9 +25,7 @@ class ListableAPIResource(APIResource):
             organization=organization,
         )
 
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
@@ -57,12 +55,8 @@ class ListableAPIResource(APIResource):
             api_type,
         )
 
-        response, _, api_key = requestor.request(
-            "get", url, params, request_id=request_id
-        )
-        openai_object = util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = requestor.request("get", url, params, request_id=request_id)
+        openai_object = util.convert_to_openai_object(response, api_key, api_version, organization)
         openai_object._retrieve_params = params
         return openai_object
 
@@ -85,11 +79,7 @@ class ListableAPIResource(APIResource):
             api_type,
         )
 
-        response, _, api_key = await requestor.arequest(
-            "get", url, params, request_id=request_id
-        )
-        openai_object = util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = await requestor.arequest("get", url, params, request_id=request_id)
+        openai_object = util.convert_to_openai_object(response, api_key, api_version, organization)
         openai_object._retrieve_params = params
         return openai_object

@@ -283,10 +283,7 @@ class OpenAIObject(dict):
             if isinstance(v, OpenAIObject):
                 d[k] = v.to_dict_recursive()
             elif isinstance(v, list):
-                d[k] = [
-                    e.to_dict_recursive() if isinstance(e, OpenAIObject) else e
-                    for e in v
-                ]
+                d[k] = [e.to_dict_recursive() if isinstance(e, OpenAIObject) else e for e in v]
         return d
 
     @property
@@ -296,9 +293,7 @@ class OpenAIObject(dict):
     @property
     def typed_api_type(self):
         return (
-            ApiType.from_str(self.api_type)
-            if self.api_type
-            else ApiType.from_str(openai.api_type)
+            ApiType.from_str(self.api_type) if self.api_type else ApiType.from_str(openai.api_type)
         )
 
     # This class overrides __setitem__ to throw exceptions on inputs that it

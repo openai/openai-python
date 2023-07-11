@@ -62,14 +62,10 @@ class WandbLogger:
             if not fine_tunes or fine_tunes.get("data") is None:
                 print("No fine-tune has been retrieved")
                 return
-            fine_tunes = fine_tunes["data"][
-                -n_fine_tunes if n_fine_tunes is not None else None :
-            ]
+            fine_tunes = fine_tunes["data"][-n_fine_tunes if n_fine_tunes is not None else None :]
 
         # log starting from oldest fine_tune
-        show_individual_warnings = (
-            False if id is None and n_fine_tunes is None else True
-        )
+        show_individual_warnings = False if id is None and n_fine_tunes is None else True
         fine_tune_logged = [
             cls._log_fine_tune(
                 fine_tune,
@@ -103,9 +99,7 @@ class WandbLogger:
         # check run completed successfully
         if status != "succeeded":
             if show_individual_warnings:
-                print(
-                    f'Fine-tune {fine_tune_id} has the status "{status}" and will not be logged'
-                )
+                print(f'Fine-tune {fine_tune_id} has the status "{status}" and will not be logged')
             return
 
         # check results are present
@@ -241,9 +235,7 @@ class WandbLogger:
             type="fine_tune_details",
             metadata=fine_tune,
         )
-        with artifact.new_file(
-            "fine_tune_details.json", mode="w", encoding="utf-8"
-        ) as f:
+        with artifact.new_file("fine_tune_details.json", mode="w", encoding="utf-8") as f:
             json.dump(fine_tune, f, indent=2)
         wandb.run.log_artifact(
             artifact,

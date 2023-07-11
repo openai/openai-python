@@ -13,17 +13,13 @@ class APIResource(OpenAIObject):
     azure_deployments_prefix = "deployments"
 
     @classmethod
-    def retrieve(
-        cls, id, api_key=None, request_id=None, request_timeout=None, **params
-    ):
+    def retrieve(cls, id, api_key=None, request_id=None, request_timeout=None, **params):
         instance = cls(id=id, api_key=api_key, **params)
         instance.refresh(request_id=request_id, request_timeout=request_timeout)
         return instance
 
     @classmethod
-    def aretrieve(
-        cls, id, api_key=None, request_id=None, request_timeout=None, **params
-    ):
+    def aretrieve(cls, id, api_key=None, request_id=None, request_timeout=None, **params):
         instance = cls(id=id, api_key=api_key, **params)
         return instance.arefresh(request_id=request_id, request_timeout=request_timeout)
 
@@ -127,12 +123,8 @@ class APIResource(OpenAIObject):
             api_base=api_base,
             api_type=api_type,
         )
-        response, _, api_key = requestor.request(
-            method_, url_, params, request_id=request_id
-        )
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        response, _, api_key = requestor.request(method_, url_, params, request_id=request_id)
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def _astatic_request(
@@ -164,9 +156,7 @@ class APIResource(OpenAIObject):
         cls, api_type: Optional[str] = None, api_version: Optional[str] = None
     ):
         typed_api_type = (
-            ApiType.from_str(api_type)
-            if api_type
-            else ApiType.from_str(openai.api_type)
+            ApiType.from_str(api_type) if api_type else ApiType.from_str(openai.api_type)
         )
         typed_api_version = api_version or openai.api_version
         return (typed_api_type, typed_api_version)

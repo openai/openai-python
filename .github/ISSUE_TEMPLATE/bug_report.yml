@@ -5,7 +5,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to fill out this bug report! If you have questions about using the OpenAI Python library, please post on our [Community forum](https://community.openai.com). 
+        Thanks for taking the time to fill out this bug report! If you have questions about using the OpenAI Python library, please post on our [Community forum](https://community.openai.com).
   - type: textarea
     id: what-happened
     attributes:
