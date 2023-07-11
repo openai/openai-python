@@ -46,7 +46,7 @@ def _build_api_url(url, query):
     scheme, netloc, path, base_query, fragment = urlsplit(url)
 
     if base_query:
-        query = "%s&%s" % (base_query, query)
+        query = f"{base_query}&{query}"
 
     return urlunsplit((scheme, netloc, path, query, fragment))
 
@@ -148,9 +148,9 @@ class APIRequestor:
     def format_app_info(cls, info):
         str = info["name"]
         if info["version"]:
-            str += "/%s" % (info["version"],)
+            str += f'/{info["version"]}'
         if info["url"]:
-            str += " (%s)" % (info["url"],)
+            str += f' ({info["url"]})'
         return str
 
     def _check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
@@ -466,9 +466,9 @@ class APIRequestor:
     def request_headers(
         self, method: str, extra, request_id: Optional[str]
     ) -> Dict[str, str]:
-        user_agent = "OpenAI/v1 PythonBindings/%s" % (version.VERSION,)
+        user_agent = f"OpenAI/v1 PythonBindings/{version.VERSION}"
         if openai.app_info:
-            user_agent += " " + self.format_app_info(openai.app_info)
+            user_agent += f" {self.format_app_info(openai.app_info)}"
 
         uname_without_node = " ".join(
             v for k, v in platform.uname()._asdict().items() if k != "node"
@@ -536,11 +536,11 @@ class APIRequestor:
         files,
         request_id: Optional[str],
     ) -> Tuple[str, Dict[str, str], Optional[bytes]]:
-        abs_url = "%s%s" % (self.api_base, url)
+        abs_url = f"{self.api_base}{url}"
         headers = self._validate_headers(supplied_headers)
 
         data = None
-        if method == "get" or method == "delete":
+        if method in ["get", "delete"]:
             if params:
                 encoded_params = urlencode(
                     [(k, v) for k, v in params.items() if v is not None]
@@ -604,11 +604,9 @@ class APIRequestor:
                 proxies=_thread_context.session.proxies,
             )
         except requests.exceptions.Timeout as e:
-            raise error.Timeout("Request timed out: {}".format(e)) from e
+            raise error.Timeout(f"Request timed out: {e}") from e
         except requests.exceptions.RequestException as e:
-            raise error.APIConnectionError(
-                "Error communicating with OpenAI: {}".format(e)
-            ) from e
+            raise error.APIConnectionError(f"Error communicating with OpenAI: {e}") from e
         util.log_debug(
             "OpenAI API response",
             path=abs_url,
@@ -717,22 +715,21 @@ class APIRequestor:
                 )
                 async for line in parse_stream_async(result.content)
             ), True
-        else:
-            try:
-                await result.read()
-            except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
-                raise error.Timeout("Request timed out") from e
-            except aiohttp.ClientError as e:
-                util.log_warn(e, body=result.content)
-            return (
-                self._interpret_response_line(
-                    (await result.read()).decode("utf-8"),
-                    result.status,
-                    result.headers,
-                    stream=False,
-                ),
-                False,
-            )
+        try:
+            await result.read()
+        except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
+            raise error.Timeout("Request timed out") from e
+        except aiohttp.ClientError as e:
+            util.log_warn(e, body=result.content)
+        return (
+            self._interpret_response_line(
+                (await result.read()).decode("utf-8"),
+                result.status,
+                result.headers,
+                stream=False,
+            ),
+            False,
+        )
 
     def _interpret_response_line(
         self, rbody: str, rcode: int, rheaders, stream: bool

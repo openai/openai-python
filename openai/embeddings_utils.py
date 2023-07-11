@@ -80,9 +80,9 @@ def plot_multiclass_precision_recall(
     ).values
 
     # For each class
-    precision = dict()
-    recall = dict()
-    average_precision = dict()
+    precision = {}
+    recall = {}
+    average_precision = {}
     for i in range(n_classes):
         precision[i], recall[i], _ = precision_recall_curve(y_true[:, i], y_score[:, i])
         average_precision[i] = average_precision_score(y_true[:, i], y_score[:, i])

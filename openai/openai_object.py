@@ -266,15 +266,9 @@ class OpenAIObject(dict):
             ident_parts.append(obj)
 
         if isinstance(self.get("id"), str):
-            ident_parts.append("id=%s" % (self.get("id"),))
+            ident_parts.append(f'id={self.get("id")}')
 
-        unicode_repr = "<%s at %s> JSON: %s" % (
-            " ".join(ident_parts),
-            hex(id(self)),
-            str(self),
-        )
-
-        return unicode_repr
+        return f'<{" ".join(ident_parts)} at {hex(id(self))}> JSON: {str(self)}'
 
     def __str__(self):
         obj = self.to_dict_recursive()

@@ -31,10 +31,7 @@ class bcolors:
 
 def organization_info(obj):
     organization = getattr(obj, "organization", None)
-    if organization is not None:
-        return "[organization={}] ".format(organization)
-    else:
-        return ""
+    return f"[organization={organization}] " if organization is not None else ""
 
 
 def display(obj):
@@ -45,14 +42,12 @@ def display(obj):
 
 def display_error(e):
     extra = (
-        " (HTTP status code: {})".format(e.http_status)
+        f" (HTTP status code: {e.http_status})"
         if e.http_status is not None
         else ""
     )
     sys.stderr.write(
-        "{}{}Error:{} {}{}\n".format(
-            organization_info(e), bcolors.FAIL, bcolors.ENDC, e, extra
-        )
+        f"{organization_info(e)}{bcolors.FAIL}Error:{bcolors.ENDC} {e}{extra}\n"
     )
 
 
@@ -96,7 +91,7 @@ class Engine:
             completions = len(part["data"])
             for c_idx, c in enumerate(part["data"]):
                 if completions > 1:
-                    sys.stdout.write("===== Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f"===== Completion {c_idx} =====\n")
                 sys.stdout.write("".join(c["text"]))
                 if completions > 1:
                     sys.stdout.write("\n")
@@ -140,7 +135,7 @@ class ChatCompletion:
             choices = part["choices"]
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
-                    sys.stdout.write("===== Chat Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f"===== Chat Completion {c_idx} =====\n")
                 if args.stream:
                     delta = c["delta"]
                     if "content" in delta:
@@ -183,7 +178,7 @@ class Completion:
             choices = part["choices"]
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
-                    sys.stdout.write("===== Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f"===== Completion {c_idx} =====\n")
                 sys.stdout.write(c["text"])
                 if len(choices) > 1:
                     sys.stdout.write("\n")
@@ -544,11 +539,7 @@ class FineTune:
         try:
             for event in events:
                 sys.stdout.write(
-                    "[%s] %s"
-                    % (
-                        datetime.datetime.fromtimestamp(event["created_at"]),
-                        event["message"],
-                    )
+                    f'[{datetime.datetime.fromtimestamp(event["created_at"])}] {event["message"]}'
                 )
                 sys.stdout.write("\n")
                 sys.stdout.flush()
