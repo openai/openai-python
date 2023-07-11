@@ -209,9 +209,8 @@ def common_prompt_suffix_validator(df):
         "\n\n--->\n\n",
     ]
     for suffix_option in suffix_options:
-        if suffix_option == " ->":
-            if df.prompt.str.contains("\n").any():
-                continue
+        if suffix_option == " ->" and df.prompt.str.contains("\n").any():
+            continue
         if df.prompt.str.contains(suffix_option, regex=False).any():
             continue
         suggested_suffix = suffix_option
@@ -350,7 +349,7 @@ def common_completion_suffix_validator(df):
     optional_fn = None
 
     ft_type = infer_task_type(df)
-    if ft_type == "open-ended generation" or ft_type == "classification":
+    if ft_type in ["open-ended generation", "classification"]:
         return Remediation(name="common_suffix")
 
     common_suffix = get_common_xfix(df.completion, xfix="suffix")
@@ -523,8 +522,6 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                     immediate_msg = "\n- Your JSONL file appears to be in a JSON format. Your file will be converted to JSONL format"
                     necessary_msg = "Your format `JSON` will be converted to `JSONL`"
                     df = pd.read_json(fname, dtype=str).fillna("")
-                else:
-                    pass  # this is what we expect for a .jsonl file
             elif fname.lower().endswith(".json"):
                 try:
                     # to handle case where .json file is actually a .jsonl file
@@ -606,10 +603,9 @@ def apply_optional_remediation(df, remediation, auto_accept):
     """
     optional_applied = False
     input_text = f"- [Recommended] {remediation.optional_msg} [Y/n]: "
-    if remediation.optional_msg is not None:
-        if accept_suggestion(input_text, auto_accept):
-            df = remediation.optional_fn(df)
-            optional_applied = True
+    if remediation.optional_msg is not None and accept_suggestion(input_text, auto_accept):
+        df = remediation.optional_fn(df)
+        optional_applied = True
     if remediation.necessary_msg is not None:
         sys.stdout.write(f"- [Necessary] {remediation.necessary_msg}\n")
     return df, optional_applied
@@ -650,7 +646,7 @@ def get_outfnames(fname, split):
     while True:
         index_suffix = f" ({i})" if i > 0 else ""
         candidate_fnames = [
-            os.path.splitext(fname)[0] + "_prepared" + suffix + index_suffix + ".jsonl"
+            f"{os.path.splitext(fname)[0]}_prepared{suffix}{index_suffix}.jsonl"
             for suffix in suffixes
         ]
         if not any(os.path.isfile(f) for f in candidate_fnames):
@@ -675,12 +671,11 @@ def write_out_file(df, fname, any_remediations, auto_accept):
     common_prompt_suffix = get_common_xfix(df.prompt, xfix="suffix")
     common_completion_suffix = get_common_xfix(df.completion, xfix="suffix")
 
-    split = False
     input_text = "- [Recommended] Would you like to split into training and validation set? [Y/n]: "
-    if ft_format == "classification":
-        if accept_suggestion(input_text, auto_accept):
-            split = True
-
+    split = bool(
+        ft_format == "classification"
+        and accept_suggestion(input_text, auto_accept)
+    )
     additional_params = ""
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
     common_completion_suffix_new_line_handled = common_completion_suffix.replace(
@@ -819,19 +814,15 @@ def apply_validators(
             df = apply_necessary_remediation(df, remediation)
 
     any_optional_or_necessary_remediations = any(
-        [
-            remediation
-            for remediation in optional_remediations
-            if remediation.optional_msg is not None
-            or remediation.necessary_msg is not None
-        ]
+        remediation
+        for remediation in optional_remediations
+        if remediation.optional_msg is not None
+        or remediation.necessary_msg is not None
     )
     any_necessary_applied = any(
-        [
-            remediation
-            for remediation in optional_remediations
-            if remediation.necessary_msg is not None
-        ]
+        remediation
+        for remediation in optional_remediations
+        if remediation.necessary_msg is not None
     )
     any_optional_applied = False
 

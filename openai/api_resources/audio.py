@@ -10,7 +10,7 @@ class Audio(APIResource):
 
     @classmethod
     def _get_url(cls, action):
-        return cls.class_url() + f"/{action}"
+        return f"{cls.class_url()}/{action}"
 
     @classmethod
     def _prepare_request(
