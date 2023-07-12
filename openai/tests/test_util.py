@@ -1,32 +1,27 @@
 import json
-from tempfile import NamedTemporaryFile
+from pathlib import Path
 
 import pytest
+from pytest import MonkeyPatch
 
 import openai
 from openai import util
 
 
 @pytest.fixture(scope="function")
-def api_key_file():
-    saved_path = openai.api_key_path
-    try:
-        with NamedTemporaryFile(prefix="openai-api-key", mode="wt") as tmp:
-            openai.api_key_path = tmp.name
-            yield tmp
-    finally:
-        openai.api_key_path = saved_path
+def api_key_file(tmp_path: Path, monkeypatch: MonkeyPatch) -> Path:
+    key_file = tmp_path / "openai_api_key"
+    monkeypatch.setattr("openai.api_key_path", str(key_file))
+    return key_file
 
 
-def test_openai_api_key_path(api_key_file) -> None:
-    print("sk-foo", file=api_key_file)
-    api_key_file.flush()
+def test_openai_api_key_path(api_key_file: Path) -> None:
+    api_key_file.write_text("sk-foo\n")
     assert util.default_api_key() == "sk-foo"
 
 
-def test_openai_api_key_path_with_malformed_key(api_key_file) -> None:
-    print("malformed-api-key", file=api_key_file)
-    api_key_file.flush()
+def test_openai_api_key_path_with_malformed_key(api_key_file: Path) -> None:
+    api_key_file.write_text("malformed-api-key\n")
     with pytest.raises(ValueError, match="Malformed API key"):
         util.default_api_key()
 
