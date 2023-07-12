@@ -37,13 +37,12 @@ def test_long_examples_validator() -> None:
             training_data.flush()
 
         prepared_data_cmd_output = subprocess.run(
-            f"openai tools fine_tunes.prepare_data -f {training_data.name}",
+            ["openai", "tools", "fine_tunes.prepare_data", "-f", training_data.name],
             stdout=subprocess.PIPE,
             text=True,
             input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
             stderr=subprocess.PIPE,
             encoding="utf-8",
-            shell=True,
         )
 
     # validate data was prepared successfully
