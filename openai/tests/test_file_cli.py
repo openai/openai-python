@@ -13,10 +13,13 @@ def test_file_cli(tmp_path: Path) -> None:
     create_output = subprocess.check_output(
         ["openai", "api", "files.create", "-f", train_file, "-p", "fine-tune"]
     )
+
     file_obj = json.loads(create_output)
     assert file_obj["bytes"] == len(contents)
+
     file_id: str = file_obj["id"]
     assert file_id.startswith("file-")
+
     start_time = time.time()
     while True:
         delete_result = subprocess.run(
