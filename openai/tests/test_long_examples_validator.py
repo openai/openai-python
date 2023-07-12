@@ -1,6 +1,6 @@
 import json
 import subprocess
-from tempfile import NamedTemporaryFile
+from pathlib import Path
 
 import pytest
 
@@ -10,7 +10,7 @@ from openai.datalib.pandas_helper import HAS_PANDAS, PANDAS_INSTRUCTIONS
 
 @pytest.mark.skipif(not HAS_PANDAS, reason=PANDAS_INSTRUCTIONS)
 @pytest.mark.skipif(not HAS_NUMPY, reason=NUMPY_INSTRUCTIONS)
-def test_long_examples_validator() -> None:
+def test_long_examples_validator(tmp_path: Path) -> None:
     """
     Ensures that long_examples_validator() handles previously applied recommendations,
     namely dropped duplicates, without resulting in a KeyError.
@@ -30,20 +30,20 @@ def test_long_examples_validator() -> None:
         {"prompt": long_prompt, "completion": long_completion},  # 2 of 2 duplicates
     ]
 
-    with NamedTemporaryFile(suffix=".jsonl", mode="w") as training_data:
-        print(training_data.name)
+    training_data = tmp_path / "data.jsonl"
+    print(training_data)  # show the full path to the temporary file
+    with open(training_data, mode="w") as file:
         for prompt_completion_row in unprepared_training_data:
-            training_data.write(json.dumps(prompt_completion_row) + "\n")
-            training_data.flush()
+            print(json.dumps(prompt_completion_row), file=file)
 
-        prepared_data_cmd_output = subprocess.run(
-            ["openai", "tools", "fine_tunes.prepare_data", "-f", training_data.name],
-            stdout=subprocess.PIPE,
-            text=True,
-            input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
-            stderr=subprocess.PIPE,
-            encoding="utf-8",
-        )
+    prepared_data_cmd_output = subprocess.run(
+        ["openai", "tools", "fine_tunes.prepare_data", "-f", training_data],
+        stdout=subprocess.PIPE,
+        text=True,
+        input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
+        stderr=subprocess.PIPE,
+        encoding="utf-8",
+    )
 
     # validate data was prepared successfully
     assert prepared_data_cmd_output.stderr == ""
