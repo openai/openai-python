@@ -4,7 +4,6 @@ from pathlib import Path
 import pytest
 from pytest import MonkeyPatch
 
-import openai
 from openai import util
 
 
