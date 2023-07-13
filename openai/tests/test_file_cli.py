@@ -11,7 +11,7 @@ def test_file_cli(tmp_path: Path) -> None:
     train_file = tmp_path / "data.jsonl"
     train_file.write_bytes(contents.encode("utf-8"))
     create_output = subprocess.check_output(
-        ["openai", "api", "files.create", "-f", train_file, "-p", "fine-tune"]
+        ["openai", "api", "files.create", "-f", str(train_file), "-p", "fine-tune"]
     )
 
     file_obj = json.loads(create_output)

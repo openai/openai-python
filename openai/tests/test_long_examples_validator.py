@@ -37,7 +37,7 @@ def test_long_examples_validator(tmp_path: Path) -> None:
             print(json.dumps(prompt_completion_row), file=file)
 
     prepared_data_cmd_output = subprocess.run(
-        ["openai", "tools", "fine_tunes.prepare_data", "-f", train_file],
+        ["openai", "tools", "fine_tunes.prepare_data", "-f", str(train_file)],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
