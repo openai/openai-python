@@ -42,7 +42,6 @@ def test_long_examples_validator(tmp_path: Path) -> None:
         text=True,
         input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
         stderr=subprocess.PIPE,
-        encoding="utf-8",
     )
 
     # validate data was prepared successfully
