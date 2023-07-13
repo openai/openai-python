@@ -15,12 +15,12 @@ def api_key_file(tmp_path: Path, monkeypatch: MonkeyPatch) -> Path:
 
 
 def test_openai_api_key_path(api_key_file: Path) -> None:
-    api_key_file.write_text("sk-foo\n")
+    api_key_file.write_text("sk-foo\n", encoding="utf-8")
     assert util.default_api_key() == "sk-foo"
 
 
 def test_openai_api_key_path_with_malformed_key(api_key_file: Path) -> None:
-    api_key_file.write_text("malformed-api-key\n")
+    api_key_file.write_text("malformed-api-key\n", encoding="utf-8")
     with pytest.raises(ValueError, match="Malformed API key"):
         util.default_api_key()
 

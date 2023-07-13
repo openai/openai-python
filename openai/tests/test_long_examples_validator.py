@@ -30,18 +30,18 @@ def test_long_examples_validator(tmp_path: Path) -> None:
         {"prompt": long_prompt, "completion": long_completion},  # 2 of 2 duplicates
     ]
 
-    training_data = tmp_path / "data.jsonl"
-    print(training_data)  # show the full path to the temporary file
-    with open(training_data, mode="w") as file:
+    train_file = tmp_path / "data.jsonl"
+    print(train_file)  # show the full path to the temporary file
+    with open(train_file, mode="w", encoding="utf-8") as file:
         for prompt_completion_row in unprepared_training_data:
             print(json.dumps(prompt_completion_row), file=file)
 
     prepared_data_cmd_output = subprocess.run(
-        ["openai", "tools", "fine_tunes.prepare_data", "-f", training_data],
+        ["openai", "tools", "fine_tunes.prepare_data", "-f", train_file],
         stdout=subprocess.PIPE,
-        text=True,
-        input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
         stderr=subprocess.PIPE,
+        input="y\ny\ny\ny\ny",  # apply all recommendations, one at a time
+        text=True,
     )
 
     # validate data was prepared successfully

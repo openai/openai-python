@@ -8,7 +8,7 @@ STILL_PROCESSING = "File is still processing. Check back later."
 
 def test_file_cli(tmp_path: Path) -> None:
     contents = json.dumps({"prompt": "1 + 3 =", "completion": "4"}) + "\n"
-    train_file = tmp_path / "example.jsonl"
+    train_file = tmp_path / "data.jsonl"
     train_file.write_bytes(contents.encode("utf-8"))
     create_output = subprocess.check_output(
         ["openai", "api", "files.create", "-f", train_file, "-p", "fine-tune"]
@@ -26,7 +26,7 @@ def test_file_cli(tmp_path: Path) -> None:
             ["openai", "api", "files.delete", "-i", file_id],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
-            encoding="utf-8",
+            text=True,
         )
         if delete_result.returncode == 0:
             break
