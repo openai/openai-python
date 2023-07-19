@@ -4,6 +4,7 @@ import time
 from typing import (
     Union,
     Any,
+    Dict,
     cast,
     Iterable,
     BinaryIO,
@@ -166,7 +167,7 @@ class OpenAIClient:
         ]
         return f"OpenAIClient({','.join(constructor_args)})"
     
-    def _populate_args(self, kwargs: Mapping[str, Any], **overrides) -> None:
+    def _populate_args(self, kwargs: Dict[str, Any], **overrides) -> None:
         """Populate default arguments based on the current client configuration/defaults
 
         :param kwargs: The keyword arguments to send in the API request.
@@ -186,7 +187,7 @@ class OpenAIClient:
             if kwargs[key] != val:
                 raise TypeError(f"No parameter named `{key}`")
 
-    def _normalize_model(self, kwargs: Mapping[str, Any]):
+    def _normalize_model(self, kwargs: Dict[str, Any]):
         """Normalize model/engine/deployment_id based on which backend the client is
         configured to target.
 
