@@ -587,7 +587,7 @@ class OpenAIClient:
         :keyword function_call: Controls how the model responds to function calls.
          "none" means the model does not call a function, and responds to the
          end-user. "auto" means the model can pick between an end-user or calling
-         a function. Specifying a particular function via {"name":\ "my_function"}
+         a function. Specifying a particular function via {"name": "my_function"}
          forces the model to call that function. "none" is the default when no
          functions are present. "auto" is the default if functions are present.
         :keyword temperature: What sampling temperature to use, between 0 and 2.
@@ -663,7 +663,7 @@ class OpenAIClient:
         :keyword function_call: Controls how the model responds to function calls.
          "none" means the model does not call a function, and responds to the
          end-user. "auto" means the model can pick between an end-user or calling
-         a function. Specifying a particular function via {"name":\ "my_function"}
+         a function. Specifying a particular function via {"name": "my_function"}
          forces the model to call that function. "none" is the default when no
          functions are present. "auto" is the default if functions are present.
         :keyword temperature: What sampling temperature to use, between 0 and 2.
@@ -740,7 +740,7 @@ class OpenAIClient:
         :keyword function_call: Controls how the model responds to function calls.
          "none" means the model does not call a function, and responds to the
          end-user. "auto" means the model can pick between an end-user or calling
-         a function. Specifying a particular function via {"name":\ "my_function"}
+         a function. Specifying a particular function via {"name": "my_function"}
          forces the model to call that function. "none" is the default when no
          functions are present. "auto" is the default if functions are present.
         :keyword temperature: What sampling temperature to use, between 0 and 2.
@@ -817,7 +817,7 @@ class OpenAIClient:
         :keyword function_call: Controls how the model responds to function calls.
          "none" means the model does not call a function, and responds to the
          end-user. "auto" means the model can pick between an end-user or calling
-         a function. Specifying a particular function via {"name":\ "my_function"}
+         a function. Specifying a particular function via {"name": "my_function"}
          forces the model to call that function. "none" is the default when no
          functions are present. "auto" is the default if functions are present.
         :keyword temperature: What sampling temperature to use, between 0 and 2.
@@ -1146,6 +1146,9 @@ class OpenAIClient:
             model=model,
         )
         self._normalize_model(kwargs)
+        kwargs.pop("api_base")
+        kwargs.pop("api_type")
+        kwargs.pop("organization")
         return cast(openai.Moderation, openai.Moderation.create(**kwargs))
 
     async def amoderation(
@@ -1166,6 +1169,9 @@ class OpenAIClient:
             model=model,
         )
         self._normalize_model(kwargs)
+        kwargs.pop("api_base")
+        kwargs.pop("api_type")
+        kwargs.pop("organization")
         return cast(openai.Moderation, await openai.Moderation.acreate(**kwargs))
 
     def transcribe_audio(
