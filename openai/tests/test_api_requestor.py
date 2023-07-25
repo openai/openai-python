@@ -67,3 +67,35 @@ def test_requestor_azure_ad_headers() -> None:
     assert headers["Test_Header"] == "Unit_Test_Header"
     assert "Authorization" in headers
     assert headers["Authorization"] == "Bearer test_key"
+
+
+@pytest.mark.requestor
+def test_requestor_cycle_sessions(mocker: MockerFixture) -> None:
+    # HACK: we need to purge the _thread_context to not interfere
+    # with other tests
+    from openai.api_requestor import _thread_context
+
+    delattr(_thread_context, "session")
+
+    api_requestor = APIRequestor(key="test_key", api_type="azure_ad")
+
+    mock_session = mocker.MagicMock()
+    mocker.patch("openai.api_requestor._make_session", lambda: mock_session)
+
+    # We don't call `session.close()` if not enough time has elapsed
+    api_requestor.request_raw("get", "http://example.com")
+    mock_session.request.assert_called()
+    api_requestor.request_raw("get", "http://example.com")
+    mock_session.close.assert_not_called()
+
+    mocker.patch("openai.api_requestor.MAX_SESSION_LIFETIME_SECS", 0)
+
+    # Due to 0 lifetime, the original session will be closed before the next call
+    # and a new session will be created
+    mock_session_2 = mocker.MagicMock()
+    mocker.patch("openai.api_requestor._make_session", lambda: mock_session_2)
+    api_requestor.request_raw("get", "http://example.com")
+    mock_session.close.assert_called()
+    mock_session_2.request.assert_called()
+
+    delattr(_thread_context, "session")
