@@ -18,17 +18,20 @@ __all__ = [
     "logfmt",
 ]
 
-api_key_to_header = (
-    lambda api, key: {"Authorization": f"Bearer {key}"}
-    if api in (ApiType.OPEN_AI, ApiType.AZURE_AD)
-    else {"api-key": f"{key}"}
-)
+def api_key_to_header(api, key):
+    if api in (ApiType.OPEN_AI, ApiType.AZURE_AD):
+        return {"Authorization": f"Bearer {key}"}
+    elif api == ApiType.CUSTOM:
+        return {}
+    else:
+        return {"api-key": f"{key}"}
 
 
 class ApiType(Enum):
     AZURE = 1
     OPEN_AI = 2
     AZURE_AD = 3
+    CUSTOM = 4
 
     @staticmethod
     def from_str(label):
@@ -38,6 +41,8 @@ class ApiType(Enum):
             return ApiType.AZURE_AD
         elif label.lower() in ("open_ai", "openai"):
             return ApiType.OPEN_AI
+        elif label.lower() == "custom":
+            return ApiType.CUSTOM
         else:
             raise openai.error.InvalidAPIType(
                 "The API type provided in invalid. Please select one of the supported API types: 'azure', 'azure_ad', 'open_ai'"
@@ -173,7 +178,13 @@ def merge_dicts(x, y):
     return z
 
 
-def default_api_key() -> str:
+def default_api_key() -> Optional[str]:
+    typed_api_type = (
+        ApiType.from_str(openai.api_type)
+        if openai.api_type
+        else ApiType.from_str(openai.api_type)
+    )
+
     if openai.api_key_path:
         with open(openai.api_key_path, "rt") as k:
             api_key = k.read().strip()
@@ -182,6 +193,8 @@ def default_api_key() -> str:
             return api_key
     elif openai.api_key is not None:
         return openai.api_key
+    elif typed_api_type == ApiType.CUSTOM:
+        return None
     else:
         raise openai.error.AuthenticationError(
             "No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details."

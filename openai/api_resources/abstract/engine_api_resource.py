@@ -24,6 +24,7 @@ class EngineAPIResource(APIResource):
         engine: Optional[str] = None,
         api_type: Optional[str] = None,
         api_version: Optional[str] = None,
+        backend_url: Optional[str] = None,
     ):
         # Namespaces are separated in object names with periods (.) and in URLs
         # with forward slashes (/), so replace the former with the latter.
@@ -56,6 +57,14 @@ class EngineAPIResource(APIResource):
 
             extn = quote_plus(engine)
             return "/engines/%s/%s" % (extn, base)
+
+        elif typed_api_type == ApiType.CUSTOM:
+            if backend_url is None:
+                raise error.InvalidRequestError(
+                    "You must provide the `backend_url` parameter for a custom backend type"
+                )
+
+            return backend_url
 
         else:
             raise error.InvalidAPIType("Unsupported API type %s" % api_type)
@@ -110,7 +119,7 @@ class EngineAPIResource(APIResource):
             api_version=api_version,
             organization=organization,
         )
-        url = cls.class_url(engine, api_type, api_version)
+        url = cls.class_url(engine, api_type, api_version, backend_url=params.pop("backend_url", None))
         return (
             deployment_id,
             engine,
