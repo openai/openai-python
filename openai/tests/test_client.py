@@ -15,13 +15,14 @@ API_TYPE = ["azure", "openai", "azuredefault"]
 API_BASE = os.environ["AZURE_API_BASE"]
 AZURE_API_KEY = os.environ["AZURE_KEY"]
 OPENAI_API_KEY = os.environ["OPENAI_KEY"]
-API_VERSION  = "2023-06-01-preview"
+API_VERSION  = "2023-07-01-preview"
 COMPLETION_MODEL = "text-davinci-003"
 CHAT_COMPLETION_MODEL = "gpt-35-turbo"
 CHAT_COMPLETION_MODEL_OPENAI = "gpt-3.5-turbo"
 EMBEDDINGS_MODEL = "text-embedding-ada-002"
 IMAGE_PATH = ""
 MASK_IMAGE_PATH = ""
+AUDIO_FILE_PATH = ""
 
 
 @pytest.fixture
@@ -439,3 +440,61 @@ async def test_client_aimage_edit(client):
         size="1024x1024"
     )
     assert edit
+
+# MODERATION TESTS
+@pytest.mark.parametrize("api_type", ["openai"])
+def test_client_moderation(client):
+    mod = client.moderation(
+        input="hello world",
+        model="text-moderation-latest"
+    )
+    assert mod
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("api_type", ["openai"])
+async def test_client_amoderation(client):
+    mod = await client.amoderation(
+        input="hello world",
+        model="text-moderation-latest"
+    )
+    assert mod
+
+# AUDIO TRANSCRIBE TESTS
+@pytest.mark.parametrize("api_type", ["openai"])
+def test_client_transcribe_audio(client):
+    file = open(AUDIO_FILE_PATH, "rb")
+    audio = client.transcribe_audio(
+        file=file,
+        model="whisper-1"
+    )
+    assert audio
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("api_type", ["openai"])
+async def test_client_atranscribe_audio(client):
+    file = open(AUDIO_FILE_PATH, "rb")
+    audio = await client.atranscribe_audio(
+        file=file,
+        model="whisper-1"
+    )
+    assert audio
+
+# AUDIO TRANSLATE TESTS
+@pytest.mark.parametrize("api_type", ["openai"])
+def test_client_translate_audio(client):
+    file = open(AUDIO_FILE_PATH, "rb")
+    audio = client.translate_audio(
+        file=file,
+        model="whisper-1"
+    )
+    assert audio
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("api_type", ["openai"])
+async def test_client_atranslate_audio(client):
+    file = open(AUDIO_FILE_PATH, "rb")
+    audio = await client.atranslate_audio(
+        file=file,
+        model="whisper-1"
+    )
+    assert audio
