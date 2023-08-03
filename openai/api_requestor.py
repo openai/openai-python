@@ -100,11 +100,11 @@ def _make_session() -> requests.Session:
 def parse_stream_helper(line: bytes) -> Optional[str]:
     if line and line.startswith(b"data:"):
         if line.startswith(b"data: "):
-            # SSE event may be valid when it contains leading whitespace
+            # SSE event may be valid when it contain whitespace
             line = line[len(b"data: "):]
         else:
             line = line[len(b"data:"):]
-        if line.strip() in b"[DONE]":
+        if line.strip() == b"[DONE]":
             # return here will cause GeneratorExit exception in urllib3
             # and it will close http connection with TCP Reset
             return None
