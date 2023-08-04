@@ -77,6 +77,7 @@ class EngineAPIResource(APIResource):
         stream = params.get("stream", False)
         headers = params.pop("headers", None)
         request_timeout = params.pop("request_timeout", None)
+        verify = params.pop("verify", None)
         typed_api_type = cls._get_api_type_and_version(api_type=api_type)[0]
         if typed_api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
             if deployment_id is None and engine is None:
@@ -121,6 +122,7 @@ class EngineAPIResource(APIResource):
             typed_api_type,
             requestor,
             url,
+            verify,
             params,
         )
 
@@ -145,6 +147,7 @@ class EngineAPIResource(APIResource):
             typed_api_type,
             requestor,
             url,
+            verify,
             params,
         ) = cls.__prepare_create_request(
             api_key, api_base, api_type, api_version, organization, **params
@@ -158,8 +161,9 @@ class EngineAPIResource(APIResource):
             stream=stream,
             request_id=request_id,
             request_timeout=request_timeout,
+            verify=verify,
         )
-
+        
         if stream:
             # must be an iterator
             assert not isinstance(response, OpenAIResponse)
@@ -210,6 +214,7 @@ class EngineAPIResource(APIResource):
             typed_api_type,
             requestor,
             url,
+            verify,
             params,
         ) = cls.__prepare_create_request(
             api_key, api_base, api_type, api_version, organization, **params
@@ -222,6 +227,7 @@ class EngineAPIResource(APIResource):
             stream=stream,
             request_id=request_id,
             request_timeout=request_timeout,
+            verify=verify,
         )
 
         if stream:

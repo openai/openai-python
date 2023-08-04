@@ -228,6 +228,7 @@ class APIRequestor:
         stream: Literal[True],
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         pass
 
@@ -243,6 +244,7 @@ class APIRequestor:
         stream: Literal[True],
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
         pass
 
@@ -257,6 +259,7 @@ class APIRequestor:
         stream: Literal[False] = ...,
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[OpenAIResponse, bool, str]:
         pass
 
@@ -271,6 +274,7 @@ class APIRequestor:
         stream: bool = ...,
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         pass
 
@@ -284,6 +288,7 @@ class APIRequestor:
         stream: bool = False,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+        verify: Optional[bool] = ...,
     ) -> Tuple[Union[OpenAIResponse, Iterator[OpenAIResponse]], bool, str]:
         result = self.request_raw(
             method.lower(),
@@ -294,6 +299,7 @@ class APIRequestor:
             stream=stream,
             request_id=request_id,
             request_timeout=request_timeout,
+            verify=verify,
         )
         resp, got_stream = self._interpret_response(result, stream)
         return resp, got_stream, self.api_key
@@ -309,6 +315,7 @@ class APIRequestor:
         stream: Literal[True],
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[AsyncGenerator[OpenAIResponse, None], bool, str]:
         pass
 
@@ -324,6 +331,7 @@ class APIRequestor:
         stream: Literal[True],
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[AsyncGenerator[OpenAIResponse, None], bool, str]:
         pass
 
@@ -338,6 +346,7 @@ class APIRequestor:
         stream: Literal[False] = ...,
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[OpenAIResponse, bool, str]:
         pass
 
@@ -352,6 +361,7 @@ class APIRequestor:
         stream: bool = ...,
         request_id: Optional[str] = ...,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = ...,
+        verify: Optional[bool] = ...,
     ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool, str]:
         pass
 
@@ -365,6 +375,7 @@ class APIRequestor:
         stream: bool = False,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+        verify: Optional[bool] = None,
     ) -> Tuple[Union[OpenAIResponse, AsyncGenerator[OpenAIResponse, None]], bool, str]:
         ctx = aiohttp_session()
         session = await ctx.__aenter__()
@@ -378,6 +389,7 @@ class APIRequestor:
                 files=files,
                 request_id=request_id,
                 request_timeout=request_timeout,
+                verify=verify,
             )
             resp, got_stream = await self._interpret_async_response(result, stream)
         except Exception:
@@ -577,6 +589,7 @@ class APIRequestor:
         stream: bool = False,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+        verify: Optional[bool] = None,
     ) -> requests.Response:
         abs_url, headers, data = self._prepare_request_raw(
             url, supplied_headers, method, params, files, request_id
@@ -602,6 +615,7 @@ class APIRequestor:
                 stream=stream,
                 timeout=request_timeout if request_timeout else TIMEOUT_SECS,
                 proxies=_thread_context.session.proxies,
+                verify=verify,
             )
         except requests.exceptions.Timeout as e:
             raise error.Timeout("Request timed out: {}".format(e)) from e
@@ -634,6 +648,7 @@ class APIRequestor:
         files=None,
         request_id: Optional[str] = None,
         request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
+        verify: Optional[Union[bool, str]] = None,
     ) -> aiohttp.ClientResponse:
         abs_url, headers, data = self._prepare_request_raw(
             url, supplied_headers, method, params, files, request_id
@@ -663,6 +678,7 @@ class APIRequestor:
             "data": data,
             "proxy": _aiohttp_proxies_arg(openai.proxy),
             "timeout": timeout,
+            "verify": verify,
         }
         try:
             result = await session.request(**request_kwargs)
