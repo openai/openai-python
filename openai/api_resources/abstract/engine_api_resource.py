@@ -163,7 +163,7 @@ class EngineAPIResource(APIResource):
             request_timeout=request_timeout,
             verify=verify,
         )
-        
+
         if stream:
             # must be an iterator
             assert not isinstance(response, OpenAIResponse)
