@@ -1,6 +1,6 @@
 (This document is a preview of the underlying format consumed by
 ChatGPT models. As a developer, you can use our [higher-level
-API](https://platform.openai.com/docs/guides/chat) and won't need to
+API](https://platform.openai.com/docs/guides/gpt/chat-completions-api) and won't need to
 interact directly with this format today — but expect to have the
 option in the future!)
 

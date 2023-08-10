@@ -6,7 +6,7 @@ pre-defined set of classes for API resources that initialize
 themselves dynamically from API responses which makes it compatible
 with a wide range of versions of the OpenAI API.
 
-You can find usage examples for the OpenAI Python library in our [API reference](https://beta.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
+You can find usage examples for the OpenAI Python library in our [API reference](https://platform.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
 ## Installation
 
@@ -31,7 +31,7 @@ Install dependencies for [`openai.embeddings_utils`](openai/embeddings_utils.py)
 pip install openai[embeddings]
 ```
 
-Install support for [Weights & Biases](https://wandb.me/openai-docs):
+Install support for [Weights & Biases](https://docs.wandb.ai/guides/integrations/openai?utm_source=wandb_docs&utm_medium=code&utm_campaign=OpenAI+API):
 
 ```
 pip install openai[wandb]
@@ -96,8 +96,8 @@ print(completion.choices[0].message.content)
 Please note that for the moment, the Microsoft Azure endpoints can only be used for completion, embedding, and fine-tuning operations.
 For a detailed example of how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
 
-- [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
-- [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
+- [Using Azure completions](https://github.com/openai/openai-cookbook/blob/main/examples/azure/completions.ipynb)
+- [Using Azure functions](https://github.com/openai/openai-cookbook/blob/main/examples/azure/functions.ipynb)
 - [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
 
 ### Microsoft Azure Active Directory Authentication
@@ -229,17 +229,17 @@ Examples of fine-tuning are shared in the following Jupyter notebooks:
   - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-2-create-qa.ipynb)
   - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-3-train-qa.ipynb)
 
-Sync your fine-tunes to [Weights & Biases](https://wandb.me/openai-docs) to track experiments, models, and datasets in your central dashboard with:
+Sync your fine-tunes to [Weights & Biases](https://docs.wandb.ai/guides/integrations/openai?utm_source=wandb_docs&utm_medium=code&utm_campaign=OpenAI+API) to track experiments, models, and datasets in your central dashboard with:
 
 ```bash
 openai wandb sync
 ```
 
-For more information on fine-tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
+For more information on fine-tuning, read the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 
 ### Moderation
 
-OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies)
+OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://openai.com/policies/usage-policies)
 
 ```python
 import openai
