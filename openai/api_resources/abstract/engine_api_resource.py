@@ -35,11 +35,13 @@ class EngineAPIResource(APIResource):
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             if not api_version:
                 raise error.InvalidRequestError(
-                    "An API version is required for the Azure API type."
+                    "An API version is required for the Azure API type.",
+                    "api_version"
                 )
             if engine is None:
                 raise error.InvalidRequestError(
-                    "You must provide the deployment name in the 'engine' parameter to access the Azure OpenAI service"
+                    "You must provide the deployment name in the 'engine' parameter to access the Azure OpenAI service",
+                    "engine"
                 )
             extn = quote_plus(engine)
             return "/%s/%s/%s/%s?api-version=%s" % (
@@ -269,7 +271,8 @@ class EngineAPIResource(APIResource):
             api_version = self.api_version or openai.api_version
             if not api_version:
                 raise error.InvalidRequestError(
-                    "An API version is required for the Azure API type."
+                    "An API version is required for the Azure API type.",
+                    "api_version"
                 )
             base = self.OBJECT_NAME.replace(".", "/")
             url = "/%s/%s/%s/%s/%s?api-version=%s" % (
