@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 import time
 import platform
 import sys
@@ -582,16 +583,20 @@ class APIRequestor:
             url, supplied_headers, method, params, files, request_id
         )
 
-        if not hasattr(_thread_context, "session"):
+        def _reset_session():
+            if hasattr(_thread_context, "session"):
+                _thread_context.session.close()
             _thread_context.session = _make_session()
             _thread_context.session_create_time = time.time()
-        elif (
-            time.time() - getattr(_thread_context, "session_create_time", 0)
-            >= MAX_SESSION_LIFETIME_SECS
+            _thread_context.process_id = os.getpid()
+
+        if (
+            not hasattr(_thread_context, "session")
+            or _thread_context.process_id != os.getpid()
+            or time.time() - _thread_context.session_create_time >= MAX_SESSION_LIFETIME_SECS
         ):
-            _thread_context.session.close()
-            _thread_context.session = _make_session()
-            _thread_context.session_create_time = time.time()
+            _reset_session()
+
         try:
             result = _thread_context.session.request(
                 method,
