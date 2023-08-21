@@ -173,7 +173,7 @@ print(completion.choices[0].message.content)
 
 ### Completions
 
-Text models such as `babbage-002` and `davinci-002` (and our [legacy completions models](https://platform.openai.com/docs/deprecations/deprecation-history)) can be called using the completions endpoint.
+Text models such as `babbage-002` or `davinci-002` (and our [legacy completions models](https://platform.openai.com/docs/deprecations/deprecation-history)) can be called using the completions endpoint.
 
 ```python
 import openai
