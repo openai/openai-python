@@ -219,20 +219,26 @@ For more information on embeddings and the types of embeddings OpenAI offers, re
 
 ### Fine-tuning
 
-Fine-tuning a model on training data can both improve the results (by giving the model more examples to learn from) and reduce the cost/latency of API calls (chiefly through reducing the need to include training examples in prompts).
+Fine-tuning a model on training data can both improve the results (by giving the model more examples to learn from) and lower the cost/latency of API calls by reducing the need to include training examples in prompts.
 
-Examples of fine-tuning are shared in the following Jupyter notebooks:
+```python
+# Create a fine-tuning job with an already uploaded file
+openai.FineTuningJob.create(training_file="file-abc123", model="gpt-3.5-turbo")
 
-- [Classification with fine-tuning](https://github.com/openai/openai-cookbook/blob/main/examples/Fine-tuned_classification.ipynb) (a simple notebook that shows the steps required for fine-tuning)
-- Fine-tuning a model that answers questions about the 2020 Olympics
-  - [Step 1: Collecting data](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-1-collect-data.ipynb)
-  - [Step 2: Creating a synthetic Q&A dataset](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-2-create-qa.ipynb)
-  - [Step 3: Train a fine-tuning model specialized for Q&A](https://github.com/openai/openai-cookbook/blob/main/examples/fine-tuned_qa/olympics-3-train-qa.ipynb)
+# List 10 fine-tuning jobs
+openai.FineTuningJob.list(limit=10)
 
-Sync your fine-tunes to [Weights & Biases](https://wandb.me/openai-docs) to track experiments, models, and datasets in your central dashboard with:
+# Retrieve the state of a fine-tune
+openai.FineTuningJob.retrieve("ft-abc123")
 
-```bash
-openai wandb sync
+# Cancel a job
+openai.FineTuningJob.cancel("ft-abc123")
+
+# List up to 10 events from a fine-tuning job
+openai.FineTuningJob.list_events(id="ft-abc123", limit=10)
+
+# Delete a fine-tuned model (must be an owner of the org the model was created in)
+openai.Model.delete("ft-abc123")
 ```
 
 For more information on fine-tuning, read the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
