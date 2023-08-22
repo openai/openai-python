@@ -118,20 +118,14 @@ def convert_to_openai_object(
         return resp
     elif isinstance(resp, list):
         return [
-            convert_to_openai_object(
-                i, api_key, api_version, organization, engine=engine
-            )
+            convert_to_openai_object(i, api_key, api_version, organization, engine=engine)
             for i in resp
         ]
-    elif isinstance(resp, dict) and not isinstance(
-        resp, openai.openai_object.OpenAIObject
-    ):
+    elif isinstance(resp, dict) and not isinstance(resp, openai.openai_object.OpenAIObject):
         resp = resp.copy()
         klass_name = resp.get("object")
         if isinstance(klass_name, str):
-            klass = get_object_classes().get(
-                klass_name, openai.openai_object.OpenAIObject
-            )
+            klass = get_object_classes().get(klass_name, openai.openai_object.OpenAIObject)
         else:
             klass = openai.openai_object.OpenAIObject
 

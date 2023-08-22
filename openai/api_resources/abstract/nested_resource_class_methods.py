@@ -40,12 +40,8 @@ def _nested_resource_class_methods(
             requestor = api_requestor.APIRequestor(
                 api_key, api_version=api_version, organization=organization
             )
-            response, _, api_key = requestor.request(
-                method, url, params, request_id=request_id
-            )
-            return util.convert_to_openai_object(
-                response, api_key, api_version, organization
-            )
+            response, _, api_key = requestor.request(method, url, params, request_id=request_id)
+            return util.convert_to_openai_object(response, api_key, api_version, organization)
 
         async def anested_resource_request(
             cls,
@@ -63,17 +59,13 @@ def _nested_resource_class_methods(
             response, _, api_key = await requestor.arequest(
                 method, url, params, request_id=request_id
             )
-            return util.convert_to_openai_object(
-                response, api_key, api_version, organization
-            )
+            return util.convert_to_openai_object(response, api_key, api_version, organization)
 
         resource_request_method = "%ss_request" % resource
         setattr(
             cls,
             resource_request_method,
-            classmethod(
-                anested_resource_request if async_ else nested_resource_request
-            ),
+            classmethod(anested_resource_request if async_ else nested_resource_request),
         )
 
         for operation in operations:
@@ -108,9 +100,7 @@ def _nested_resource_class_methods(
 
                 def delete_nested_resource(cls, id, nested_id, **params):
                     url = getattr(cls, resource_url_method)(id, nested_id)
-                    return getattr(cls, resource_request_method)(
-                        "delete", url, **params
-                    )
+                    return getattr(cls, resource_request_method)("delete", url, **params)
 
                 delete_method = "delete_%s" % resource
                 setattr(cls, delete_method, classmethod(delete_nested_resource))
@@ -151,9 +141,7 @@ def nested_resource_class_methods(
     operations=None,
     resource_plural=None,
 ):
-    return _nested_resource_class_methods(
-        resource, path, operations, resource_plural, async_=False
-    )
+    return _nested_resource_class_methods(resource, path, operations, resource_plural, async_=False)
 
 
 def anested_resource_class_methods(
@@ -162,6 +150,4 @@ def anested_resource_class_methods(
     operations=None,
     resource_plural=None,
 ):
-    return _nested_resource_class_methods(
-        resource, path, operations, resource_plural, async_=True
-    )
+    return _nested_resource_class_methods(resource, path, operations, resource_plural, async_=True)

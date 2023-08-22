@@ -31,17 +31,15 @@ class File(ListableAPIResource, DeletableAPIResource):
             api_version=api_version,
             organization=organization,
         )
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
-            url = "/%s%s?api-version=%s" % (cls.azure_api_prefix, base, api_version)
+            url = f"/{cls.azure_api_prefix}{base}?api-version={api_version}"
         elif typed_api_type == ApiType.OPEN_AI:
             url = cls.class_url()
         else:
-            raise error.InvalidAPIType("Unsupported API type %s" % api_type)
+            raise error.InvalidAPIType(f"Unsupported API type {api_type}")
 
         # Set the filename on 'purpose' and 'model' to None so they are
         # interpreted as form data.
@@ -49,9 +47,7 @@ class File(ListableAPIResource, DeletableAPIResource):
         if model is not None:
             files.append(("model", (None, model)))
         if user_provided_filename is not None:
-            files.append(
-                ("file", (user_provided_filename, file, "application/octet-stream"))
-            )
+            files.append(("file", (user_provided_filename, file, "application/octet-stream")))
         else:
             files.append(("file", ("file", file, "application/octet-stream")))
 
@@ -82,9 +78,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             user_provided_filename,
         )
         response, _, api_key = requestor.request("post", url, files=files)
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     async def acreate(
@@ -111,9 +105,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             user_provided_filename,
         )
         response, _, api_key = await requestor.arequest("post", url, files=files)
-        return util.convert_to_openai_object(
-            response, api_key, api_version, organization
-        )
+        return util.convert_to_openai_object(response, api_key, api_version, organization)
 
     @classmethod
     def __prepare_file_download(
@@ -132,9 +124,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             api_version=api_version,
             organization=organization,
         )
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             base = cls.class_url()
@@ -142,7 +132,7 @@ class File(ListableAPIResource, DeletableAPIResource):
         elif typed_api_type == ApiType.OPEN_AI:
             url = f"{cls.class_url()}/{id}/content"
         else:
-            raise error.InvalidAPIType("Unsupported API type %s" % api_type)
+            raise error.InvalidAPIType(f"Unsupported API type {api_type}")
 
         return requestor, url
 

@@ -72,7 +72,7 @@ print(chat_completion.choices[0].message.content)
 
 ### Params
 
-All endpoints have a `.create` method that supports a `request_timeout` param. This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+All endpoints have a `.create` method that supports a `request_timeout` param. This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: <https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts>).
 
 ### Microsoft Azure Endpoints
 

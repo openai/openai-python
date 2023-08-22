@@ -58,7 +58,7 @@ implemented as a ChatML query like the following:
  "assistant"
 ]
 ```
-We do not currently allow autocompleting of partial messages, 
+We do not currently allow autocompleting of partial messages,
 ```
 [
  {"token": "<|im_start|>"},

@@ -15,9 +15,7 @@ class DeletableAPIResource(APIResource):
         base = cls.class_url()
         extn = quote_plus(sid)
 
-        typed_api_type, api_version = cls._get_api_type_and_version(
-            api_type, api_version
-        )
+        typed_api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
         if typed_api_type in (ApiType.AZURE, ApiType.AZURE_AD):
             url = "/%s%s/%s?api-version=%s" % (
                 cls.azure_api_prefix,

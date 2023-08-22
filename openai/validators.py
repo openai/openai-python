@@ -26,9 +26,7 @@ def num_examples_validator(df):
         if len(df) >= MIN_EXAMPLES
         else ". In general, we recommend having at least a few hundred examples. We've found that performance tends to linearly increase for every doubling of the number of examples"
     )
-    immediate_msg = (
-        f"\n- Your file contains {len(df)} prompt-completion pairs{optional_suggestion}"
-    )
+    immediate_msg = f"\n- Your file contains {len(df)} prompt-completion pairs{optional_suggestion}"
     return Remediation(name="num_examples", immediate_msg=immediate_msg)
 
 
@@ -54,9 +52,7 @@ def necessary_column_validator(df, necessary_column):
                 return lower_case_column(df, necessary_column)
 
             necessary_fn = lower_case_column_creator
-            immediate_msg = (
-                f"\n- The `{necessary_column}` column/key should be lowercase"
-            )
+            immediate_msg = f"\n- The `{necessary_column}` column/key should be lowercase"
             necessary_msg = f"Lower case column name to `{necessary_column}`"
         else:
             error_msg = f"`{necessary_column}` column/key is missing. Please make sure you name your columns/keys appropriately, then retry"
@@ -161,9 +157,7 @@ def long_examples_validator(df):
     if ft_type != "open-ended generation":
 
         def get_long_indexes(d):
-            long_examples = d.apply(
-                lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1
-            )
+            long_examples = d.apply(lambda x: len(x.prompt) + len(x.completion) > 10000, axis=1)
             return d.reset_index().index[long_examples].tolist()
 
         long_indexes = get_long_indexes(df)
@@ -209,9 +203,8 @@ def common_prompt_suffix_validator(df):
         "\n\n--->\n\n",
     ]
     for suffix_option in suffix_options:
-        if suffix_option == " ->":
-            if df.prompt.str.contains("\n").any():
-                continue
+        if suffix_option == " ->" and df.prompt.str.contains("\n").any():
+            continue
         if df.prompt.str.contains(suffix_option, regex=False).any():
             continue
         suggested_suffix = suffix_option
@@ -233,25 +226,17 @@ def common_prompt_suffix_validator(df):
 
     if common_suffix != "":
         common_suffix_new_line_handled = common_suffix.replace("\n", "\\n")
-        immediate_msg = (
-            f"\n- All prompts end with suffix `{common_suffix_new_line_handled}`"
-        )
+        immediate_msg = f"\n- All prompts end with suffix `{common_suffix_new_line_handled}`"
         if len(common_suffix) > 10:
             immediate_msg += f". This suffix seems very long. Consider replacing with a shorter suffix, such as `{display_suggested_suffix}`"
-        if (
-            df.prompt.str[: -len(common_suffix)]
-            .str.contains(common_suffix, regex=False)
-            .any()
-        ):
+        if df.prompt.str[: -len(common_suffix)].str.contains(common_suffix, regex=False).any():
             immediate_msg += f"\n  WARNING: Some of your prompts contain the suffix `{common_suffix}` more than once. We strongly suggest that you review your prompts and add a unique suffix"
 
     else:
         immediate_msg = "\n- Your data does not contain a common separator at the end of your prompts. Having a separator string appended to the end of the prompt makes it clearer to the fine-tuned model where the completion should begin. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples. If you intend to do open-ended generation, then you should leave the prompts empty"
 
     if common_suffix == "":
-        optional_msg = (
-            f"Add a suffix separator `{display_suggested_suffix}` to all prompts"
-        )
+        optional_msg = f"Add a suffix separator `{display_suggested_suffix}` to all prompts"
 
         def optional_fn(x):
             return add_suffix(x, suggested_suffix)
@@ -350,7 +335,7 @@ def common_completion_suffix_validator(df):
     optional_fn = None
 
     ft_type = infer_task_type(df)
-    if ft_type == "open-ended generation" or ft_type == "classification":
+    if ft_type in ["open-ended generation", "classification"]:
         return Remediation(name="common_suffix")
 
     common_suffix = get_common_xfix(df.completion, xfix="suffix")
@@ -384,25 +369,17 @@ def common_completion_suffix_validator(df):
 
     if common_suffix != "":
         common_suffix_new_line_handled = common_suffix.replace("\n", "\\n")
-        immediate_msg = (
-            f"\n- All completions end with suffix `{common_suffix_new_line_handled}`"
-        )
+        immediate_msg = f"\n- All completions end with suffix `{common_suffix_new_line_handled}`"
         if len(common_suffix) > 10:
             immediate_msg += f". This suffix seems very long. Consider replacing with a shorter suffix, such as `{display_suggested_suffix}`"
-        if (
-            df.completion.str[: -len(common_suffix)]
-            .str.contains(common_suffix, regex=False)
-            .any()
-        ):
+        if df.completion.str[: -len(common_suffix)].str.contains(common_suffix, regex=False).any():
             immediate_msg += f"\n  WARNING: Some of your completions contain the suffix `{common_suffix}` more than once. We suggest that you review your completions and add a unique ending"
 
     else:
         immediate_msg = "\n- Your data does not contain a common ending at the end of your completions. Having a common ending string appended to the end of the completion makes it clearer to the fine-tuned model where the completion should end. See https://platform.openai.com/docs/guides/fine-tuning/preparing-your-dataset for more detail and examples."
 
     if common_suffix == "":
-        optional_msg = (
-            f"Add a suffix ending `{display_suggested_suffix}` to all completions"
-        )
+        optional_msg = f"Add a suffix ending `{display_suggested_suffix}` to all completions"
 
         def optional_fn(x):
             return add_suffix(x, suggested_suffix)
@@ -422,9 +399,7 @@ def completions_space_start_validator(df):
     """
 
     def add_space_start(x):
-        x["completion"] = x["completion"].apply(
-            lambda x: ("" if x[0] == " " else " ") + x
-        )
+        x["completion"] = x["completion"].apply(lambda x: ("" if x[0] == " " else " ") + x)
         return x
 
     optional_msg = None
@@ -452,16 +427,8 @@ def lower_case_validator(df, column):
         x[column] = x[column].str.lower()
         return x
 
-    count_upper = (
-        df[column]
-        .apply(lambda x: sum(1 for c in x if c.isalpha() and c.isupper()))
-        .sum()
-    )
-    count_lower = (
-        df[column]
-        .apply(lambda x: sum(1 for c in x if c.isalpha() and c.islower()))
-        .sum()
-    )
+    count_upper = df[column].apply(lambda x: sum(1 for c in x if c.isalpha() and c.isupper())).sum()
+    count_lower = df[column].apply(lambda x: sum(1 for c in x if c.isalpha() and c.islower())).sum()
 
     if count_upper * 2 > count_lower:
         return Remediation(
@@ -492,12 +459,12 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                     ("CSV", ",") if fname.lower().endswith(".csv") else ("TSV", "\t")
                 )
                 immediate_msg = f"\n- Based on your file extension, your file is formatted as a {file_extension_str} file"
-                necessary_msg = (
-                    f"Your format `{file_extension_str}` will be converted to `JSONL`"
-                )
+                necessary_msg = f"Your format `{file_extension_str}` will be converted to `JSONL`"
                 df = pd.read_csv(fname, sep=separator, dtype=str).fillna("")
             elif fname.lower().endswith(".xlsx"):
-                immediate_msg = "\n- Based on your file extension, your file is formatted as an Excel file"
+                immediate_msg = (
+                    "\n- Based on your file extension, your file is formatted as an Excel file"
+                )
                 necessary_msg = "Your format `XLSX` will be converted to `JSONL`"
                 xls = pd.ExcelFile(fname)
                 sheets = xls.sheet_names
@@ -505,9 +472,7 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                     immediate_msg += "\n- Your Excel file contains more than one sheet. Please either save as csv or ensure all data is present in the first sheet. WARNING: Reading only the first sheet..."
                 df = pd.read_excel(fname, dtype=str).fillna("")
             elif fname.lower().endswith(".txt"):
-                immediate_msg = (
-                    "\n- Based on your file extension, you provided a text file"
-                )
+                immediate_msg = "\n- Based on your file extension, you provided a text file"
                 necessary_msg = "Your format `TXT` will be converted to `JSONL`"
                 with open(fname, "r") as f:
                     content = f.read()
@@ -523,8 +488,6 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                     immediate_msg = "\n- Your JSONL file appears to be in a JSON format. Your file will be converted to JSONL format"
                     necessary_msg = "Your format `JSON` will be converted to `JSONL`"
                     df = pd.read_json(fname, dtype=str).fillna("")
-                else:
-                    pass  # this is what we expect for a .jsonl file
             elif fname.lower().endswith(".json"):
                 try:
                     # to handle case where .json file is actually a .jsonl file
@@ -535,9 +498,7 @@ def read_any_format(fname, fields=["prompt", "completion"]):
                     else:
                         # this is NOT what we expect for a .json file
                         immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
-                        necessary_msg = (
-                            "Your format `JSON` will be converted to `JSONL`"
-                        )
+                        necessary_msg = "Your format `JSON` will be converted to `JSONL`"
                 except ValueError:
                     # this code path corresponds to a .json file that has multiple lines (i.e. it is indented)
                     df = pd.read_json(fname, dtype=str).fillna("")
@@ -606,10 +567,9 @@ def apply_optional_remediation(df, remediation, auto_accept):
     """
     optional_applied = False
     input_text = f"- [Recommended] {remediation.optional_msg} [Y/n]: "
-    if remediation.optional_msg is not None:
-        if accept_suggestion(input_text, auto_accept):
-            df = remediation.optional_fn(df)
-            optional_applied = True
+    if remediation.optional_msg is not None and accept_suggestion(input_text, auto_accept):
+        df = remediation.optional_fn(df)
+        optional_applied = True
     if remediation.necessary_msg is not None:
         sys.stdout.write(f"- [Necessary] {remediation.necessary_msg}\n")
     return df, optional_applied
@@ -650,7 +610,7 @@ def get_outfnames(fname, split):
     while True:
         index_suffix = f" ({i})" if i > 0 else ""
         candidate_fnames = [
-            os.path.splitext(fname)[0] + "_prepared" + suffix + index_suffix + ".jsonl"
+            f"{os.path.splitext(fname)[0]}_prepared{suffix}{index_suffix}.jsonl"
             for suffix in suffixes
         ]
         if not any(os.path.isfile(f) for f in candidate_fnames):
@@ -675,17 +635,11 @@ def write_out_file(df, fname, any_remediations, auto_accept):
     common_prompt_suffix = get_common_xfix(df.prompt, xfix="suffix")
     common_completion_suffix = get_common_xfix(df.completion, xfix="suffix")
 
-    split = False
     input_text = "- [Recommended] Would you like to split into training and validation set? [Y/n]: "
-    if ft_format == "classification":
-        if accept_suggestion(input_text, auto_accept):
-            split = True
-
+    split = bool(ft_format == "classification" and accept_suggestion(input_text, auto_accept))
     additional_params = ""
     common_prompt_suffix_new_line_handled = common_prompt_suffix.replace("\n", "\\n")
-    common_completion_suffix_new_line_handled = common_completion_suffix.replace(
-        "\n", "\\n"
-    )
+    common_completion_suffix_new_line_handled = common_completion_suffix.replace("\n", "\\n")
     optional_ending_string = (
         f' Make sure to include `stop=["{common_completion_suffix_new_line_handled}"]` so that the generated texts ends at the expected place.'
         if len(common_completion_suffix_new_line_handled) > 0
@@ -819,30 +773,21 @@ def apply_validators(
             df = apply_necessary_remediation(df, remediation)
 
     any_optional_or_necessary_remediations = any(
-        [
-            remediation
-            for remediation in optional_remediations
-            if remediation.optional_msg is not None
-            or remediation.necessary_msg is not None
-        ]
+        remediation
+        for remediation in optional_remediations
+        if remediation.optional_msg is not None or remediation.necessary_msg is not None
     )
     any_necessary_applied = any(
-        [
-            remediation
-            for remediation in optional_remediations
-            if remediation.necessary_msg is not None
-        ]
+        remediation
+        for remediation in optional_remediations
+        if remediation.necessary_msg is not None
     )
     any_optional_applied = False
 
     if any_optional_or_necessary_remediations:
-        sys.stdout.write(
-            "\n\nBased on the analysis we will perform the following actions:\n"
-        )
+        sys.stdout.write("\n\nBased on the analysis we will perform the following actions:\n")
         for remediation in optional_remediations:
-            df, optional_applied = apply_optional_remediation(
-                df, remediation, auto_accept
-            )
+            df, optional_applied = apply_optional_remediation(df, remediation, auto_accept)
             any_optional_applied = any_optional_applied or optional_applied
     else:
         sys.stdout.write("\n\nNo remediations found.\n")

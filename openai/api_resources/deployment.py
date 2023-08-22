@@ -12,13 +12,9 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
 
     @classmethod
     def _check_create(cls, *args, **kwargs):
-        typed_api_type, _ = cls._get_api_type_and_version(
-            kwargs.get("api_type", None), None
-        )
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type not in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            raise APIError(
-                "Deployment operations are only available for the Azure API type."
-            )
+            raise APIError("Deployment operations are only available for the Azure API type.")
 
         if kwargs.get("model", None) is None:
             raise InvalidRequestError(
@@ -34,8 +30,7 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
             )
 
         if "scale_type" not in scale_settings or (
-            scale_settings["scale_type"].lower() == "manual"
-            and "capacity" not in scale_settings
+            scale_settings["scale_type"].lower() == "manual" and "capacity" not in scale_settings
         ):
             raise InvalidRequestError(
                 "The 'scale_settings' parameter contains invalid or incomplete values.",
@@ -60,13 +55,9 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
 
     @classmethod
     def _check_list(cls, *args, **kwargs):
-        typed_api_type, _ = cls._get_api_type_and_version(
-            kwargs.get("api_type", None), None
-        )
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type not in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            raise APIError(
-                "Deployment operations are only available for the Azure API type."
-            )
+            raise APIError("Deployment operations are only available for the Azure API type.")
 
     @classmethod
     def list(cls, *args, **kwargs):
@@ -80,13 +71,9 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
 
     @classmethod
     def _check_delete(cls, *args, **kwargs):
-        typed_api_type, _ = cls._get_api_type_and_version(
-            kwargs.get("api_type", None), None
-        )
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type not in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            raise APIError(
-                "Deployment operations are only available for the Azure API type."
-            )
+            raise APIError("Deployment operations are only available for the Azure API type.")
 
     @classmethod
     def delete(cls, *args, **kwargs):
@@ -100,13 +87,9 @@ class Deployment(CreateableAPIResource, ListableAPIResource, DeletableAPIResourc
 
     @classmethod
     def _check_retrieve(cls, *args, **kwargs):
-        typed_api_type, _ = cls._get_api_type_and_version(
-            kwargs.get("api_type", None), None
-        )
+        typed_api_type, _ = cls._get_api_type_and_version(kwargs.get("api_type", None), None)
         if typed_api_type not in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
-            raise APIError(
-                "Deployment operations are only available for the Azure API type."
-            )
+            raise APIError("Deployment operations are only available for the Azure API type.")
 
     @classmethod
     def retrieve(cls, *args, **kwargs):

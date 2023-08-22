@@ -44,7 +44,5 @@ class Engine(ListableAPIResource, UpdateableAPIResource):
                 util.log_info("Waiting for model to warm up", error=e)
 
     def embeddings(self, **params):
-        warnings.warn(
-            "Engine.embeddings is deprecated, use Embedding.create", DeprecationWarning
-        )
+        warnings.warn("Engine.embeddings is deprecated, use Embedding.create", DeprecationWarning)
         return self.request("post", self.instance_url() + "/embeddings", params)

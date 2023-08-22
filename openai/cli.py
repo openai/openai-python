@@ -31,10 +31,7 @@ class bcolors:
 
 def organization_info(obj):
     organization = getattr(obj, "organization", None)
-    if organization is not None:
-        return "[organization={}] ".format(organization)
-    else:
-        return ""
+    return f"[organization={organization}] " if organization is not None else ""
 
 
 def display(obj):
@@ -44,16 +41,8 @@ def display(obj):
 
 
 def display_error(e):
-    extra = (
-        " (HTTP status code: {})".format(e.http_status)
-        if e.http_status is not None
-        else ""
-    )
-    sys.stderr.write(
-        "{}{}Error:{} {}{}\n".format(
-            organization_info(e), bcolors.FAIL, bcolors.ENDC, e, extra
-        )
-    )
+    extra = f" (HTTP status code: {e.http_status})" if e.http_status is not None else ""
+    sys.stderr.write(f"{organization_info(e)}{bcolors.FAIL}Error:{bcolors.ENDC} {e}{extra}\n")
 
 
 class Engine:
@@ -69,9 +58,7 @@ class Engine:
 
     @classmethod
     def generate(cls, args):
-        warnings.warn(
-            "Engine.generate is deprecated, use Completion.create", DeprecationWarning
-        )
+        warnings.warn("Engine.generate is deprecated, use Completion.create", DeprecationWarning)
         if args.completions and args.completions > 1 and args.stream:
             raise ValueError("Can't stream multiple completions with openai CLI")
 
@@ -96,7 +83,7 @@ class Engine:
             completions = len(part["data"])
             for c_idx, c in enumerate(part["data"]):
                 if completions > 1:
-                    sys.stdout.write("===== Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f"===== Completion {c_idx} =====\n")
                 sys.stdout.write("".join(c["text"]))
                 if completions > 1:
                     sys.stdout.write("\n")
@@ -112,13 +99,9 @@ class ChatCompletion:
     @classmethod
     def create(cls, args):
         if args.n is not None and args.n > 1 and args.stream:
-            raise ValueError(
-                "Can't stream chat completions with n>1 with the current CLI"
-            )
+            raise ValueError("Can't stream chat completions with n>1 with the current CLI")
 
-        messages = [
-            {"role": role, "content": content} for role, content in args.message
-        ]
+        messages = [{"role": role, "content": content} for role, content in args.message]
 
         resp = openai.ChatCompletion.create(
             # Required
@@ -140,7 +123,7 @@ class ChatCompletion:
             choices = part["choices"]
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
-                    sys.stdout.write("===== Chat Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f"===== Chat Completion {c_idx} =====\n")
                 if args.stream:
                     delta = c["delta"]
                     if "content" in delta:
@@ -159,9 +142,7 @@ class Completion:
             raise ValueError("Can't stream completions with n>1 with the current CLI")
 
         if args.engine and args.model:
-            warnings.warn(
-                "In most cases, you should not be specifying both engine and model."
-            )
+            warnings.warn("In most cases, you should not be specifying both engine and model.")
 
         resp = openai.Completion.create(
             engine=args.engine,
@@ -183,7 +164,7 @@ class Completion:
             choices = part["choices"]
             for c_idx, c in enumerate(sorted(choices, key=lambda s: s["index"])):
                 if len(choices) > 1:
-                    sys.stdout.write("===== Completion {} =====\n".format(c_idx))
+                    sys.stdout.write(f"===== Completion {c_idx} =====\n")
                 sys.stdout.write(c["text"])
                 if len(choices) > 1:
                     sys.stdout.write("\n")
@@ -395,9 +376,7 @@ class FineTune:
                     )
                     inp = sys.stdin.readline().strip()
                     if inp in file_ids:
-                        sys.stdout.write(
-                            "Reusing already uploaded file: {id}\n".format(id=inp)
-                        )
+                        sys.stdout.write("Reusing already uploaded file: {id}\n".format(id=inp))
                         return inp
                     elif inp == "":
                         break
@@ -431,9 +410,7 @@ class FineTune:
             pass
         if os.path.isfile(file):
             # 2. If it's a file on the filesystem, upload it
-            return cls._maybe_upload_file(
-                file=file, check_if_file_exists=check_if_file_exists
-            )
+            return cls._maybe_upload_file(file=file, check_if_file_exists=check_if_file_exists)
         if cls._is_url(file):
             # 3. If it's a URL, download it temporarily
             content = cls._download_file_from_public_url(file)
@@ -448,9 +425,7 @@ class FineTune:
     @classmethod
     def create(cls, args):
         create_args = {
-            "training_file": cls._get_or_upload(
-                args.training_file, args.check_if_files_exist
-            ),
+            "training_file": cls._get_or_upload(args.training_file, args.check_if_files_exist),
         }
         if args.validation_file:
             create_args["validation_file"] = cls._get_or_upload(
@@ -544,11 +519,7 @@ class FineTune:
         try:
             for event in events:
                 sys.stdout.write(
-                    "[%s] %s"
-                    % (
-                        datetime.datetime.fromtimestamp(event["created_at"]),
-                        event["message"],
-                    )
+                    f'[{datetime.datetime.fromtimestamp(event["created_at"])}] {event["message"]}'
                 )
                 sys.stdout.write("\n")
                 sys.stdout.flush()
@@ -622,9 +593,7 @@ class WandbLogger:
 
 
 def tools_register(parser):
-    subparsers = parser.add_subparsers(
-        title="Tools", help="Convenience client side tools"
-    )
+    subparsers = parser.add_subparsers(title="Tools", help="Convenience client side tools")
 
     def help(args):
         parser.print_help()
@@ -672,9 +641,7 @@ def api_register(parser):
 
     sub = subparsers.add_parser("engines.generate")
     sub.add_argument("-i", "--id", required=True)
-    sub.add_argument(
-        "--stream", help="Stream tokens as they're ready.", action="store_true"
-    )
+    sub.add_argument("--stream", help="Stream tokens as they're ready.", action="store_true")
     sub.add_argument("-c", "--context", help="An optional context to generate from")
     sub.add_argument("-l", "--length", help="How many tokens to generate", type=int)
     sub.add_argument(
@@ -704,9 +671,7 @@ Mutually exclusive with `top_p`.""",
         help="Include the log probabilites on the `logprobs` most likely tokens. So for example, if `logprobs` is 10, the API will return a list of the 10 most likely tokens. If `logprobs` is supplied, the API will always return the logprob of the generated token, so there may be up to `logprobs+1` elements in the response.",
         type=int,
     )
-    sub.add_argument(
-        "--stop", help="A stop sequence at which to stop generating tokens."
-    )
+    sub.add_argument("--stop", help="A stop sequence at which to stop generating tokens.")
     sub.add_argument(
         "-m",
         "--model",
@@ -773,9 +738,7 @@ Mutually exclusive with `top_p`.""",
         "--stop",
         help="A stop sequence at which to stop generating tokens for the message.",
     )
-    opt.add_argument(
-        "--stream", help="Stream messages as they're ready.", action="store_true"
-    )
+    opt.add_argument("--stream", help="Stream messages as they're ready.", action="store_true")
     sub.set_defaults(func=ChatCompletion.create)
 
     # Completions
@@ -790,9 +753,7 @@ Mutually exclusive with `top_p`.""",
         "--model",
         help="The model to use. At most one of `engine` or `model` should be specified.",
     )
-    sub.add_argument(
-        "--stream", help="Stream tokens as they're ready.", action="store_true"
-    )
+    sub.add_argument("--stream", help="Stream tokens as they're ready.", action="store_true")
     sub.add_argument("-p", "--prompt", help="An optional prompt to complete from")
     sub.add_argument(
         "-M", "--max-tokens", help="The maximum number of tokens to generate", type=int
@@ -824,9 +785,7 @@ Mutually exclusive with `top_p`.""",
         help="Include the log probabilites on the `logprobs` most likely tokens, as well the chosen tokens. So for example, if `logprobs` is 10, the API will return a list of the 10 most likely tokens. If `logprobs` is 0, only the chosen tokens will have logprobs returned.",
         type=int,
     )
-    sub.add_argument(
-        "--stop", help="A stop sequence at which to stop generating tokens."
-    )
+    sub.add_argument("--stop", help="A stop sequence at which to stop generating tokens.")
     sub.set_defaults(func=Completion.create)
 
     # Deployments
@@ -1030,9 +989,7 @@ Mutually exclusive with `top_p`.""",
     sub = subparsers.add_parser("image.create")
     sub.add_argument("-p", "--prompt", type=str, required=True)
     sub.add_argument("-n", "--num-images", type=int, default=1)
-    sub.add_argument(
-        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
-    )
+    sub.add_argument("-s", "--size", type=str, default="1024x1024", help="Size of the output image")
     sub.add_argument("--response-format", type=str, default="url")
     sub.set_defaults(func=Image.create)
 
@@ -1046,9 +1003,7 @@ Mutually exclusive with `top_p`.""",
         required=True,
         help="Image to modify. Should be a local path and a PNG encoded image.",
     )
-    sub.add_argument(
-        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
-    )
+    sub.add_argument("-s", "--size", type=str, default="1024x1024", help="Size of the output image")
     sub.add_argument("--response-format", type=str, default="url")
     sub.add_argument(
         "-M",
@@ -1068,9 +1023,7 @@ Mutually exclusive with `top_p`.""",
         required=True,
         help="Image to modify. Should be a local path and a PNG encoded image.",
     )
-    sub.add_argument(
-        "-s", "--size", type=str, default="1024x1024", help="Size of the output image"
-    )
+    sub.add_argument("-s", "--size", type=str, default="1024x1024", help="Size of the output image")
     sub.add_argument("--response-format", type=str, default="url")
     sub.set_defaults(func=Image.create_variation)
 
@@ -1100,9 +1053,7 @@ Mutually exclusive with `top_p`.""",
 
 
 def wandb_register(parser):
-    subparsers = parser.add_subparsers(
-        title="wandb", help="Logging with Weights & Biases"
-    )
+    subparsers = parser.add_subparsers(title="wandb", help="Logging with Weights & Biases")
 
     def help(args):
         parser.print_help()
