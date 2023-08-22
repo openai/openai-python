@@ -1,5 +1,8 @@
+> [!IMPORTANT]
+> This page is not currently maintained and is intended to provide general insight into the ChatML format, not current up-to-date information.
+
 (This document is a preview of the underlying format consumed by
-ChatGPT models. As a developer, you can use our [higher-level
+GPT models. As a developer, you can use our [higher-level
 API](https://platform.openai.com/docs/guides/chat) and won't need to
 interact directly with this format today — but expect to have the
 option in the future!)
