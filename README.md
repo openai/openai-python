@@ -6,7 +6,7 @@ pre-defined set of classes for API resources that initialize
 themselves dynamically from API responses which makes it compatible
 with a wide range of versions of the OpenAI API.
 
-You can find usage examples for the OpenAI Python library in our [API reference](https://beta.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
+You can find usage examples for the OpenAI Python library in our [API reference](https://platform.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
 ## Installation
 
@@ -173,13 +173,13 @@ print(completion.choices[0].message.content)
 
 ### Completions
 
-Text models such as `text-davinci-003`, `text-davinci-002` and earlier (`ada`, `babbage`, `curie`, `davinci`, etc.) can be called using the completions endpoint.
+Text models such as `babbage-002` or `davinci-002` (and our [legacy completions models](https://platform.openai.com/docs/deprecations/deprecation-history)) can be called using the completions endpoint.
 
 ```python
 import openai
 openai.api_key = "sk-..."  # supply your API key however you choose
 
-completion = openai.Completion.create(model="text-davinci-003", prompt="Hello world")
+completion = openai.Completion.create(model="davinci-002", prompt="Hello world")
 print(completion.choices[0].text)
 ```
 
@@ -197,13 +197,13 @@ openai.api_key = "sk-..."  # supply your API key however you choose
 text_string = "sample text"
 
 # choose an embedding
-model_id = "text-similarity-davinci-001"
+model_id = "text-embedding-ada-002"
 
 # compute the embedding of the text
 embedding = openai.Embedding.create(input=text_string, model=model_id)['data'][0]['embedding']
 ```
 
-An example of how to call the embeddings method is shown in this [get embeddings notebook](https://github.com/openai/openai-cookbook/blob/main/examples/Get_embeddings.ipynb).
+An example of how to call the embeddings method is shown in this [embeddings guide](https://platform.openai.com/docs/guides/embeddings/embeddings).
 
 Examples of how to use embeddings are shared in the following Jupyter notebooks:
 
@@ -215,7 +215,7 @@ Examples of how to use embeddings are shared in the following Jupyter notebooks:
 - [Zero-shot classification using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Zero-shot_classification_with_embeddings.ipynb)
 - [Recommendation using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Recommendation_using_embeddings.ipynb)
 
-For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://beta.openai.com/docs/guides/embeddings) in the OpenAI documentation.
+For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://platform.openai.com/docs/guides/embeddings) in the OpenAI documentation.
 
 ### Fine-tuning
 
@@ -235,7 +235,7 @@ Sync your fine-tunes to [Weights & Biases](https://wandb.me/openai-docs) to trac
 openai wandb sync
 ```
 
-For more information on fine-tuning, read the [fine-tuning guide](https://beta.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
+For more information on fine-tuning, read the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 
 ### Moderation
 
