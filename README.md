@@ -238,7 +238,6 @@ openai.FineTuningJob.cancel("ft-abc123")
 openai.FineTuningJob.list_events(id="ft-abc123", limit=10)
 
 # Delete a fine-tuned model (must be an owner of the org the model was created in)
-import openai
 openai.Model.delete("ft-abc123")
 ```
 
