@@ -203,7 +203,7 @@ model_id = "text-embedding-ada-002"
 embedding = openai.Embedding.create(input=text_string, model=model_id)['data'][0]['embedding']
 ```
 
-An example of how to call the embeddings method is shown in this our [embeddings guide](https://platform.openai.com/docs/guides/embeddings/embeddings).
+An example of how to call the embeddings method is shown in this [embeddings guide](https://platform.openai.com/docs/guides/embeddings/embeddings).
 
 Examples of how to use embeddings are shared in the following Jupyter notebooks:
 
