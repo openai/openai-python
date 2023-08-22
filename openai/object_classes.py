@@ -8,4 +8,5 @@ OBJECT_CLASSES = {
     "fine-tune": api_resources.FineTune,
     "model": api_resources.Model,
     "deployment": api_resources.Deployment,
+    "fine_tuning.job": api_resources.FineTuningJob,
 }
