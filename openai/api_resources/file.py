@@ -198,7 +198,7 @@ class File(ListableAPIResource, DeletableAPIResource):
             return result.content
 
     @classmethod
-    def __find_matching_files(cls, name, bytes, all_files, purpose)
+    def __find_matching_files(cls, name, bytes, all_files, purpose):
         matching_files = []
         basename = os.path.basename(name)
         for f in all_files:
