@@ -42,6 +42,12 @@ def get_embeddings(
 ) -> List[List[float]]:
     assert len(list_of_text) <= 2048, "The batch size should not be larger than 2048."
 
+    for i in list_of_text:
+        if i == " ": 
+            # replce the space in the middle of the string
+            list_of_text[i] = i.replace(" ", '')
+        else: continue
+
     # replace newlines, which can negatively affect performance.
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
 
