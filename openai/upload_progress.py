@@ -23,14 +23,13 @@ class BufferReader(io.BytesIO):
         return self._len
 
     def read(self, n=-1):
-        chunk = io.BytesIO.read(self, n)
-        self._progress += len(chunk)
-        if self._callback:
-            try:
-                self._callback(self._progress)
-            except Exception as e:  # catches exception from the callback
-                raise CancelledError("The upload was cancelled: {}".format(e))
-        return chunk
+        try:
+            result = io.BytesIO.read(self, n)
+            self._progress += len(result)
+            self._callback(self._progress)
+            return result
+        except Exception as e:
+            pass
 
 
 def progress(total, desc):
