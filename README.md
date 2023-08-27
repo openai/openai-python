@@ -243,6 +243,14 @@ openai.Model.delete("ft-abc123")
 
 For more information on fine-tuning, read the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
 
+To log the training results from fine-tuning to Weights & Biases use:
+
+```
+openai wandb sync
+```
+
+For more information, read the [wandb documentation](https://docs.wandb.ai/guides/integrations/openai) on Weights & Biases.
+
 ### Moderation
 
 OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies)
