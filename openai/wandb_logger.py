@@ -54,15 +54,13 @@ class WandbLogger:
             return
 
         if id:
-            print("Retrieving fine-tune...")
+            print("Retrieving fine-tune job...")
             if legacy:
                 fine_tune = FineTune.retrieve(id=id)
             else:
                 fine_tune = FineTuningJob.retrieve(id=id)
             fine_tune.pop("events", None)
             fine_tunes = [fine_tune]
-            print(f"FINETUNES list: {fine_tunes}")
-
         else:
             # get list of fine_tune to log
             if legacy:
@@ -80,7 +78,6 @@ class WandbLogger:
         show_individual_warnings = (
             False if id is None and n_fine_tunes is None else True
         )
-        print(f"SHOW IND WARNINGS: {show_individual_warnings}")
         fine_tune_logged = [
             cls._log_fine_tune(
                 fine_tune,
@@ -112,7 +109,7 @@ class WandbLogger:
     ):
         fine_tune_id = fine_tune.get("id")
         status = fine_tune.get("status")
-        print(f"FINE TUNE ID: {fine_tune_id}, FINE TUNE STATUS: {status}")
+
         # check run completed successfully
         if status != "succeeded":
             if show_individual_warnings:
