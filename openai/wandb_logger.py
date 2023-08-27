@@ -13,9 +13,10 @@ if WANDB_AVAILABLE:
     import re
     from pathlib import Path
 
-    from openai import File, FineTune
+    from openai import File, FineTune, FineTuningJob
     from openai.datalib.numpy_helper import numpy as np
     from openai.datalib.pandas_helper import pandas as pd
+    # import pandas as pd
 
 
 class WandbLogger:
@@ -34,9 +35,10 @@ class WandbLogger:
         cls,
         id=None,
         n_fine_tunes=None,
-        project="GPT-3",
+        project="OpenAI-Fine-Tune",
         entity=None,
         force=False,
+        legacy=False,
         **kwargs_wandb_init,
     ):
         """
@@ -52,13 +54,21 @@ class WandbLogger:
             return
 
         if id:
-            fine_tune = FineTune.retrieve(id=id)
+            print("Retrieving fine-tune...")
+            if legacy:
+                fine_tune = FineTune.retrieve(id=id)
+            else:
+                fine_tune = FineTuningJob.retrieve(id=id)
             fine_tune.pop("events", None)
             fine_tunes = [fine_tune]
+            print(f"FINETUNES list: {fine_tunes}")
 
         else:
             # get list of fine_tune to log
-            fine_tunes = FineTune.list()
+            if legacy:
+                fine_tunes = FineTune.list()
+            else:
+                fine_tunes = FineTuningJob.list()
             if not fine_tunes or fine_tunes.get("data") is None:
                 print("No fine-tune has been retrieved")
                 return
@@ -70,12 +80,14 @@ class WandbLogger:
         show_individual_warnings = (
             False if id is None and n_fine_tunes is None else True
         )
+        print(f"SHOW IND WARNINGS: {show_individual_warnings}")
         fine_tune_logged = [
             cls._log_fine_tune(
                 fine_tune,
                 project,
                 entity,
                 force,
+                legacy,
                 show_individual_warnings,
                 **kwargs_wandb_init,
             )
@@ -94,12 +106,13 @@ class WandbLogger:
         project,
         entity,
         force,
+        legacy,
         show_individual_warnings,
         **kwargs_wandb_init,
     ):
         fine_tune_id = fine_tune.get("id")
         status = fine_tune.get("status")
-
+        print(f"FINE TUNE ID: {fine_tune_id}, FINE TUNE STATUS: {status}")
         # check run completed successfully
         if status != "succeeded":
             if show_individual_warnings:
@@ -110,7 +123,10 @@ class WandbLogger:
 
         # check results are present
         try:
-            results_id = fine_tune["result_files"][0]["id"]
+            if legacy:
+                results_id = fine_tune["result_files"][0]["id"]
+            else:
+                results_id = fine_tune["result_files"][0]
             results = File.download(id=results_id).decode("utf-8")
         except:
             if show_individual_warnings:
