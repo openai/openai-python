@@ -15,7 +15,10 @@ if WANDB_AVAILABLE:
 
     from openai import File, FineTune, FineTuningJob
     from openai.datalib.numpy_helper import numpy as np
-    from openai.datalib.pandas_helper import pandas as pd
+    from openai.datalib.pandas_helper import assert_has_pandas, pandas as pd
+
+
+assert_has_pandas()
 
 
 class WandbLogger:
