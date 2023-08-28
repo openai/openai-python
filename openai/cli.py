@@ -541,6 +541,7 @@ class FineTune:
 
         events = openai.FineTune.stream_events(job_id)
         # TODO(rachel): Add a nifty spinner here.
+        spinner = itertools.cycle(['-', '\\', '|', '/']) # Spinner characters
         try:
             for event in events:
                 sys.stdout.write(
