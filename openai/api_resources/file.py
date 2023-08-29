@@ -1,6 +1,7 @@
 import json
 import os
 from typing import cast
+import time
 
 import openai
 from openai import api_requestor, util, error
@@ -259,3 +260,20 @@ class File(ListableAPIResource, DeletableAPIResource):
             )
         ).get("data", [])
         return cls.__find_matching_files(name, bytes, all_files, purpose)
+
+    @classmethod
+    def wait_for_processing(cls, id, max_wait_seconds=30 * 60):
+        TERMINAL_STATES = ["processed", "error", "deleted"]
+
+        start = time.time()
+        file = cls.retrieve(id=id)
+        while file.status not in TERMINAL_STATES:
+            file = cls.retrieve(id=id)
+            time.sleep(5.0)
+            if time.time() - start > max_wait_seconds:
+                raise openai.error.OpenAIError(
+                    message="Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds.".format(
+                        id=id, max_wait_seconds=max_wait_seconds
+                    )
+                )
+        return file.status
