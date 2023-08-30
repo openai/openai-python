@@ -14,8 +14,7 @@ def check_required(*args, method_name, required, **kwargs):
         elif args_count > 0:
             args_count -= 1
             continue
-        else:
-            missing.append(param)
+        missing.append(param)
 
     if missing and "deployment_id" not in kwargs:
         raise TypeError(f"{method_name}() missing {len(missing)} required positional argument(s): {', '.join(missing)}")
@@ -62,9 +61,8 @@ class Audio(APIResource):
     @classmethod
     def transcribe(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
+        model,
+        file,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -78,8 +76,9 @@ class Audio(APIResource):
     @classmethod
     def transcribe(
         cls,
-        model,
-        file,
+        *,
+        deployment_id=None,
+        file=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -133,9 +132,8 @@ class Audio(APIResource):
     @classmethod
     def translate(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
+        model,
+        file,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -145,12 +143,14 @@ class Audio(APIResource):
     ):
         ...
 
+
     @overload
     @classmethod
     def translate(
         cls,
-        model,
-        file,
+        *,
+        deployment_id=None,
+        file=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -204,10 +204,9 @@ class Audio(APIResource):
     @classmethod
     def transcribe_raw(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
-        filename=None,
+        model,
+        file,
+        filename,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -217,13 +216,15 @@ class Audio(APIResource):
     ):
         ...
 
+
     @overload
     @classmethod
     def transcribe_raw(
         cls,
-        model,
-        file,
-        filename,
+        *,
+        deployment_id=None,
+        file=None,
+        filename=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -278,10 +279,9 @@ class Audio(APIResource):
     @classmethod
     def translate_raw(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
-        filename=None,
+        model,
+        file,
+        filename,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -295,9 +295,10 @@ class Audio(APIResource):
     @classmethod
     def translate_raw(
         cls,
-        model,
-        file,
-        filename,
+        *,
+        deployment_id=None,
+        file=None,
+        filename=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -352,9 +353,8 @@ class Audio(APIResource):
     @classmethod
     async def atranscribe(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
+        model,
+        file,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -368,8 +368,9 @@ class Audio(APIResource):
     @classmethod
     async def atranscribe(
         cls,
-        model,
-        file,
+        *,
+        deployment_id=None,
+        file=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -425,9 +426,8 @@ class Audio(APIResource):
     @classmethod
     async def atranslate(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
+        model,
+        file,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -441,8 +441,9 @@ class Audio(APIResource):
     @classmethod
     async def atranslate(
         cls,
-        model,
-        file,
+        *,
+        deployment_id=None,
+        file=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -498,10 +499,9 @@ class Audio(APIResource):
     @classmethod
     async def atranscribe_raw(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
-        filename=None,
+        model,
+        file,
+        filename,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -515,9 +515,10 @@ class Audio(APIResource):
     @classmethod
     async def atranscribe_raw(
         cls,
-        model,
-        file,
-        filename,
+        *,
+        deployment_id=None,
+        file=None,
+        filename=None,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -574,10 +575,9 @@ class Audio(APIResource):
     @classmethod
     async def atranslate_raw(
         cls,
-        *,
-        deployment_id=None,
-        file=None,
-        filename=None,
+        model,
+        file,
+        filename,
         api_key=None,
         api_base=None,
         api_type=None,
@@ -591,9 +591,10 @@ class Audio(APIResource):
     @classmethod
     async def atranslate_raw(
         cls,
-        model,
-        file,
-        filename,
+        *,
+        deployment_id=None,
+        file=None,
+        filename=None,
         api_key=None,
         api_base=None,
         api_type=None,
