@@ -779,15 +779,17 @@ class FineTuningJob:
 
     @classmethod
     def events(cls, args):
-        seen, has_more = 0, True
+        seen, has_more, after = 0, True, None
         while has_more:
-            resp = openai.FineTuningJob.list_events(id=args.id)  # type: ignore
+            resp = openai.FineTuningJob.list_events(id=args.id, after=after)  # type: ignore
             for event in resp["data"]:
                 print(event)
                 seen += 1
                 if args.limit is not None and seen >= args.limit:
                     return
-            has_more = resp["has_more"]
+            has_more = resp.get("has_more", False)
+            if resp["data"]:
+                after = resp["data"][-1]["id"]
 
     @classmethod
     def follow(cls, args):
