@@ -47,7 +47,7 @@ How are you now?<|im_end|>
 ```
 ## Non-chat use-cases
 ChatML can be applied to classic GPT use-cases that are not
-traditionally thought of as chat. For example, instruction following
+traditionally thought of as chat. For example, instructions following
 (where a user requests for the AI to complete an instruction) can be
 implemented as a ChatML query like the following:
 ```
