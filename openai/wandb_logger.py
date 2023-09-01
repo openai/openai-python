@@ -68,7 +68,7 @@ class WandbLogger:
             if legacy:
                 fine_tunes = FineTune.list()
             else:
-                fine_tunes = FineTuningJob.list()
+                fine_tunes =  list(FineTuningJob.auto_paging_iter())
             if not fine_tunes or fine_tunes.get("data") is None:
                 print("No fine-tune has been retrieved")
                 return
