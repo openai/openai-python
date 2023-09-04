@@ -602,6 +602,7 @@ class APIRequestor:
                 stream=stream,
                 timeout=request_timeout if request_timeout else TIMEOUT_SECS,
                 proxies=_thread_context.session.proxies,
+                **openai.request_extra_kwargs,
             )
         except requests.exceptions.Timeout as e:
             raise error.Timeout("Request timed out: {}".format(e)) from e
@@ -663,6 +664,7 @@ class APIRequestor:
             "data": data,
             "proxy": _aiohttp_proxies_arg(openai.proxy),
             "timeout": timeout,
+            **openai.arequest_extra_args,
         }
         try:
             result = await session.request(**request_kwargs)

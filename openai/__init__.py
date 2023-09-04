@@ -56,6 +56,12 @@ api_version = os.environ.get(
 verify_ssl_certs = True  # No effect. Certificates are always verified.
 proxy = None
 app_info = None
+# Extra keyword arguments to pass to
+# https://requests.readthedocs.io/en/latest/api/#requests.Session.request
+request_extra_kwargs = {}
+# Extra keyword arguments to pass to
+# https://docs.aiohttp.org/en/stable/client_reference.html#aiohttp.ClientSession.request
+arequest_extra_kwargs = {}
 enable_telemetry = False  # Ignored; the telemetry feature was removed.
 ca_bundle_path = None  # No longer used, feature was removed
 debug = False
