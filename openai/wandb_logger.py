@@ -18,9 +18,6 @@ if WANDB_AVAILABLE:
     from openai.datalib.pandas_helper import assert_has_pandas, pandas as pd
 
 
-assert_has_pandas()
-
-
 class WandbLogger:
     """
     Log fine-tunes to [Weights & Biases](https://wandb.me/openai-docs)
@@ -51,6 +48,8 @@ class WandbLogger:
         :param entity: Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.
         :param force: Forces logging and overwrite existing wandb run of the same fine-tune.
         """
+        
+        assert_has_pandas()
 
         if not WANDB_AVAILABLE:
             return
