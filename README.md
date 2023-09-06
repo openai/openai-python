@@ -74,6 +74,8 @@ completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"rol
 print(completion.choices[0].message.content)
 ```
 
+You can learn more in our [chat completions guide](https://platform.openai.com/docs/guides/gpt/chat-completions-api).
+
 ### Completions
 
 Text models such as `babbage-002` or `davinci-002` (and our [legacy completions models](https://platform.openai.com/docs/deprecations/deprecation-history)) can be called using the completions endpoint.
@@ -82,6 +84,8 @@ Text models such as `babbage-002` or `davinci-002` (and our [legacy completions 
 completion = openai.Completion.create(model="davinci-002", prompt="Hello world")
 print(completion.choices[0].text)
 ```
+
+You can learn more in our [completions guide](https://platform.openai.com/docs/guides/gpt/completions-api).
 
 ### Embeddings
 
