@@ -65,6 +65,8 @@ openai.api_key = "sk-..."
 
 Examples of how to use this Python library to accomplish various tasks can be found in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/). It contains code examples for: classification using fine-tuning, clustering, code search, customizing embeddings, question answering from a corpus of documents. recommendations, visualization of embeddings, and more.
 
+Most endpoints support a `request_timeout` param. This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+
 ### Chat completions
 
 Conversational models such as `gpt-3.5-turbo` can be called using the [chat completions endpoint](https://platform.openai.com/docs/api-reference/chat/create).
@@ -181,6 +183,29 @@ openai.aiosession.set(ClientSession())
 await openai.aiosession.get().close()
 ```
 
+### Command-line interface
+
+This library additionally provides an `openai` command-line utility
+which makes it easy to interact with the API from your terminal. Run
+`openai api -h` for usage.
+
+```sh
+# list models
+openai api models.list
+
+# create a chat completion (gpt-3.5-turbo, gpt-4, etc.)
+openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
+
+# create a completion (text-davinci-003, text-davinci-002, ada, babbage, curie, davinci, etc.)
+openai api completions.create -m ada -p "Hello world"
+
+# generate images via DALL·E API
+openai api image.create -p "two dogs playing chess, cartoon" -n 1
+
+# using openai through a proxy
+openai --proxy=http://proxy.com api models.list
+```
+
 ### Microsoft Azure Endpoints
 
 In order to use the library with Microsoft Azure endpoints, you need to set the `api_type`, `api_base` and `api_version` in addition to the `api_key`. The `api_type` must be set to 'azure' and the others correspond to the properties of your endpoint.
@@ -224,31 +249,6 @@ openai.api_type = "azure_ad"
 openai.api_key = token.token
 openai.api_base = "https://example-endpoint.openai.azure.com/"
 openai.api_version = "2023-05-15"
-
-# ...
-```
-
-### Command-line interface
-
-This library additionally provides an `openai` command-line utility
-which makes it easy to interact with the API from your terminal. Run
-`openai api -h` for usage.
-
-```sh
-# list models
-openai api models.list
-
-# create a chat completion (gpt-3.5-turbo, gpt-4, etc.)
-openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
-
-# create a completion (text-davinci-003, text-davinci-002, ada, babbage, curie, davinci, etc.)
-openai api completions.create -m ada -p "Hello world"
-
-# generate images via DALL·E API
-openai api image.create -p "two dogs playing chess, cartoon" -n 1
-
-# using openai through a proxy
-openai --proxy=http://proxy.com api models.list
 ```
 
 ## Credit
