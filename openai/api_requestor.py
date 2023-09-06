@@ -84,9 +84,10 @@ def _make_session() -> requests.Session:
         if isinstance(openai.requestssession, requests.Session):
             return openai.requestssession
         return openai.requestssession()
-    if not openai.verify_ssl_certs:
-        warnings.warn("verify_ssl_certs is ignored; openai always verifies.")
     s = requests.Session()
+    if not openai.verify_ssl_certs:
+        warnings.warn("verify_ssl_certs is specified; You are exposed to MITM attack!")
+        s.verify = False    
     proxies = _requests_proxies_arg(openai.proxy)
     if proxies:
         s.proxies = proxies
