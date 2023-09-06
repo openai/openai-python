@@ -69,7 +69,7 @@ Most endpoints support a `request_timeout` param. This param takes a `Union[floa
 
 ### Chat completions
 
-Conversational models such as `gpt-3.5-turbo` can be called using the [chat completions endpoint](https://platform.openai.com/docs/api-reference/chat/create).
+Chat models such as `gpt-3.5-turbo` and `gpt-4` can be called using the [chat completions endpoint](https://platform.openai.com/docs/api-reference/chat/create).
 
 ```python
 completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
