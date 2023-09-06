@@ -131,7 +131,7 @@ You can learn more about in our [fine-tuning guide](https://platform.openai.com/
 
 ### Moderation
 
-OpenAI provides a free Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies)
+OpenAI provides a free Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies).
 
 ```python
 moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
