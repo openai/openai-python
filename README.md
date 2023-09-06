@@ -127,7 +127,7 @@ openai.FineTuningJob.list_events(id="ft-abc123", limit=10)
 openai.Model.delete("ft-abc123")
 ```
 
-You can learn more about in our [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning).
+You can learn more in our [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning).
 
 ### Moderation
 
@@ -137,7 +137,7 @@ OpenAI provides a free Moderation endpoint that can be used to check whether con
 moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
 ```
 
-You can learn more about in our [moderation guide](https://platform.openai.com/docs/guides/moderation).
+You can learn more in our [moderation guide](https://platform.openai.com/docs/guides/moderation).
 
 ### Image generation (DALL·E)
 
@@ -147,7 +147,7 @@ DALL·E is a generative image model that can create new images based on a prompt
 image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
 ```
 
-You can learn more about in our [image generation guide](https://platform.openai.com/docs/guides/images).
+You can learn more in our [image generation guide](https://platform.openai.com/docs/guides/images).
 
 ### Audio (Whisper)
 
@@ -160,7 +160,7 @@ transcript = openai.Audio.transcribe("whisper-1", f)
 transcript = openai.Audio.translate("whisper-1", f)
 ```
 
-You can learn more about in our [speech to text guide](https://platform.openai.com/docs/guides/speech-to-text).
+You can learn more in our [speech to text guide](https://platform.openai.com/docs/guides/speech-to-text).
 
 ### Async API
 
