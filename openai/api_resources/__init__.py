@@ -9,6 +9,7 @@ from openai.api_resources.engine import Engine  # noqa: F401
 from openai.api_resources.error_object import ErrorObject  # noqa: F401
 from openai.api_resources.file import File  # noqa: F401
 from openai.api_resources.fine_tune import FineTune  # noqa: F401
+from openai.api_resources.fine_tuning import FineTuningJob  # noqa: F401
 from openai.api_resources.image import Image  # noqa: F401
 from openai.api_resources.model import Model  # noqa: F401
 from openai.api_resources.moderation import Moderation  # noqa: F401

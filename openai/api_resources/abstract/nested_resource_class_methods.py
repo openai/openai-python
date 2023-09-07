@@ -124,6 +124,19 @@ def _nested_resource_class_methods(
                 list_method = "list_%s" % resource_plural
                 setattr(cls, list_method, classmethod(list_nested_resources))
 
+            elif operation == "paginated_list":
+
+                def paginated_list_nested_resources(
+                    cls, id, limit=None, after=None, **params
+                ):
+                    url = getattr(cls, resource_url_method)(id)
+                    return getattr(cls, resource_request_method)(
+                        "get", url, limit=limit, after=after, **params
+                    )
+
+                list_method = "list_%s" % resource_plural
+                setattr(cls, list_method, classmethod(paginated_list_nested_resources))
+
             else:
                 raise ValueError("Unknown operation: %s" % operation)
 

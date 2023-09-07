@@ -11,6 +11,17 @@ class OpenAIResponse:
         return self._headers.get("request-id")
 
     @property
+    def retry_after(self) -> Optional[int]:
+        try:
+            return int(self._headers.get("retry-after"))
+        except TypeError:
+            return None
+
+    @property
+    def operation_location(self) -> Optional[str]:
+        return self._headers.get("operation-location")
+
+    @property
     def organization(self) -> Optional[str]:
         return self._headers.get("OpenAI-Organization")
 

@@ -1,14 +1,17 @@
 import asyncio
 import json
+import time
 import platform
 import sys
 import threading
+import time
 import warnings
 from contextlib import asynccontextmanager
 from json import JSONDecodeError
 from typing import (
     AsyncGenerator,
     AsyncIterator,
+    Callable,
     Dict,
     Iterator,
     Optional,
@@ -32,6 +35,7 @@ from openai.openai_response import OpenAIResponse
 from openai.util import ApiType
 
 TIMEOUT_SECS = 600
+MAX_SESSION_LIFETIME_SECS = 180
 MAX_CONNECTION_RETRIES = 2
 
 # Has one attribute per thread, 'session'.
@@ -148,6 +152,70 @@ class APIRequestor:
         if info["url"]:
             str += " (%s)" % (info["url"],)
         return str
+
+    def _check_polling_response(self, response: OpenAIResponse, predicate: Callable[[OpenAIResponse], bool]):
+        if not predicate(response):
+            return
+        error_data = response.data['error']
+        message = error_data.get('message', 'Operation failed')
+        code = error_data.get('code')
+        raise error.OpenAIError(message=message, code=code)
+
+    def _poll(
+        self,
+        method,
+        url,
+        until,
+        failed,
+        params = None,
+        headers = None,
+        interval = None,
+        delay = None
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        if delay:
+            time.sleep(delay)
+
+        response, b, api_key = self.request(method, url, params, headers)
+        self._check_polling_response(response, failed)
+        start_time = time.time()
+        while not until(response):
+            if time.time() - start_time > TIMEOUT_SECS:
+                raise error.Timeout("Operation polling timed out.")
+
+            time.sleep(interval or response.retry_after or 10)
+            response, b, api_key = self.request(method, url, params, headers)
+            self._check_polling_response(response, failed)
+
+        response.data = response.data['result']
+        return response, b, api_key
+
+    async def _apoll(
+        self,
+        method,
+        url,
+        until,
+        failed,
+        params = None,
+        headers = None,
+        interval = None,
+        delay = None
+    ) -> Tuple[Iterator[OpenAIResponse], bool, str]:
+        if delay:
+            await asyncio.sleep(delay)
+
+        response, b, api_key = await self.arequest(method, url, params, headers)
+        self._check_polling_response(response, failed)
+        start_time = time.time()
+        while not until(response):
+            if time.time() - start_time > TIMEOUT_SECS:
+                raise error.Timeout("Operation polling timed out.")
+
+            await asyncio.sleep(interval or response.retry_after or 10)
+            response, b, api_key = await self.arequest(method, url, params, headers)
+            self._check_polling_response(response, failed)
+
+        response.data = response.data['result']
+        return response, b, api_key
 
     @overload
     def request(
@@ -516,6 +584,14 @@ class APIRequestor:
 
         if not hasattr(_thread_context, "session"):
             _thread_context.session = _make_session()
+            _thread_context.session_create_time = time.time()
+        elif (
+            time.time() - getattr(_thread_context, "session_create_time", 0)
+            >= MAX_SESSION_LIFETIME_SECS
+        ):
+            _thread_context.session.close()
+            _thread_context.session = _make_session()
+            _thread_context.session_create_time = time.time()
         try:
             result = _thread_context.session.request(
                 method,
@@ -644,6 +720,8 @@ class APIRequestor:
         else:
             try:
                 await result.read()
+            except (aiohttp.ServerTimeoutError, asyncio.TimeoutError) as e:
+                raise error.Timeout("Request timed out") from e
             except aiohttp.ClientError as e:
                 util.log_warn(e, body=result.content)
             return (
