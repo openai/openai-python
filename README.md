@@ -124,7 +124,7 @@ openai.FineTuningJob.cancel("ft-abc123")
 openai.FineTuningJob.list_events(id="ft-abc123", limit=10)
 
 # Delete a fine-tuned model (must be an owner of the org the model was created in)
-openai.Model.delete("ft-abc123")
+openai.Model.delete("ft:gpt-3.5-turbo:acemeco:suffix:abc123")
 ```
 
 You can learn more in our [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning).
