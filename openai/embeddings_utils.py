@@ -40,7 +40,7 @@ async def aget_embedding(
 def get_embeddings(
     list_of_text: List[str], engine="text-embedding-ada-002", **kwargs
 ) -> List[List[float]]:
-    assert len(list_of_text) <= 2048, "The batch size should not be larger than 2048."
+    assert len(list_of_text) <= 8191, "The batch size should not be larger than 8191."
 
     # replace newlines, which can negatively affect performance.
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
@@ -53,7 +53,7 @@ def get_embeddings(
 async def aget_embeddings(
     list_of_text: List[str], engine="text-embedding-ada-002", **kwargs
 ) -> List[List[float]]:
-    assert len(list_of_text) <= 2048, "The batch size should not be larger than 2048."
+    assert len(list_of_text) <= 8191, "The batch size should not be larger than 8191."
 
     # replace newlines, which can negatively affect performance.
     list_of_text = [text.replace("\n", " ") for text in list_of_text]
