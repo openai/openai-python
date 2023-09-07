@@ -229,7 +229,7 @@ Please note that for the moment, the Microsoft Azure endpoints can only be used 
 For a detailed example of how to use fine-tuning and other operations using Azure endpoints, please check out the following Jupyter notebooks:
 
 - [Using Azure completions](https://github.com/openai/openai-cookbook/tree/main/examples/azure/completions.ipynb)
-- [Using Azure fine-tuning](https://github.com/openai/openai-cookbook/tree/main/examples/azure/finetuning.ipynb)
+- [Using Azure chat](https://github.com/openai/openai-cookbook/tree/main/examples/azure/chat.ipynb)
 - [Using Azure embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/azure/embeddings.ipynb)
 
 ### Microsoft Azure Active Directory Authentication
