@@ -10,14 +10,20 @@ You can find usage examples for the OpenAI Python library in our [API reference]
 
 ## Installation
 
-You don't need this source code unless you want to modify the package. If you just
-want to use the package, just run:
+To start, ensure you have Python 3.7.1 or newer. If you just
+want to use the package, run:
 
 ```sh
 pip install --upgrade openai
 ```
 
-Install from source with:
+After you have installed the package, import it at the top of a file:
+
+```python
+import openai
+```
+
+To install this package from source to make modifications to it, run the following command from the root of the repository:
 
 ```sh
 python setup.py install
@@ -33,7 +39,7 @@ pip install openai[embeddings]
 
 Install support for [Weights & Biases](https://wandb.me/openai-docs):
 
-```
+```sh
 pip install openai[wandb]
 ```
 
@@ -54,25 +60,151 @@ export OPENAI_API_KEY='sk-...'
 Or set `openai.api_key` to its value:
 
 ```python
-import openai
 openai.api_key = "sk-..."
-
-# list models
-models = openai.Model.list()
-
-# print the first model's id
-print(models.data[0].id)
-
-# create a chat completion
-chat_completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
-
-# print the chat completion
-print(chat_completion.choices[0].message.content)
 ```
 
-### Params
+Examples of how to use this library to accomplish various tasks can be found in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/). It contains code examples for: classification using fine-tuning, clustering, code search, customizing embeddings, question answering from a corpus of documents. recommendations, visualization of embeddings, and more.
 
-All endpoints have a `.create` method that supports a `request_timeout` param. This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+Most endpoints support a `request_timeout` param. This param takes a `Union[float, Tuple[float, float]]` and will raise an `openai.error.Timeout` error if the request exceeds that time in seconds (See: https://requests.readthedocs.io/en/latest/user/quickstart/#timeouts).
+
+### Chat completions
+
+Chat models such as `gpt-3.5-turbo` and `gpt-4` can be called using the [chat completions endpoint](https://platform.openai.com/docs/api-reference/chat/create).
+
+```python
+completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
+print(completion.choices[0].message.content)
+```
+
+You can learn more in our [chat completions guide](https://platform.openai.com/docs/guides/gpt/chat-completions-api).
+
+### Completions
+
+Text models such as `babbage-002` or `davinci-002` (and our [legacy completions models](https://platform.openai.com/docs/deprecations/deprecation-history)) can be called using the completions endpoint.
+
+```python
+completion = openai.Completion.create(model="davinci-002", prompt="Hello world")
+print(completion.choices[0].text)
+```
+
+You can learn more in our [completions guide](https://platform.openai.com/docs/guides/gpt/completions-api).
+
+### Embeddings
+
+Embeddings are designed to measure the similarity or relevance between text strings. To get an embedding for a text string, you can use following:
+
+```python
+text_string = "sample text"
+
+model_id = "text-embedding-ada-002"
+
+embedding = openai.Embedding.create(input=text_string, model=model_id)['data'][0]['embedding']
+```
+
+You can learn more in our [embeddings guide](https://platform.openai.com/docs/guides/embeddings/embeddings).
+
+### Fine-tuning
+
+Fine-tuning a model on training data can both improve the results (by giving the model more examples to learn from) and lower the cost/latency of API calls by reducing the need to include training examples in prompts.
+
+```python
+# Create a fine-tuning job with an already uploaded file
+openai.FineTuningJob.create(training_file="file-abc123", model="gpt-3.5-turbo")
+
+# List 10 fine-tuning jobs
+openai.FineTuningJob.list(limit=10)
+
+# Retrieve the state of a fine-tune
+openai.FineTuningJob.retrieve("ft-abc123")
+
+# Cancel a job
+openai.FineTuningJob.cancel("ft-abc123")
+
+# List up to 10 events from a fine-tuning job
+openai.FineTuningJob.list_events(id="ft-abc123", limit=10)
+
+# Delete a fine-tuned model (must be an owner of the org the model was created in)
+openai.Model.delete("ft:gpt-3.5-turbo:acemeco:suffix:abc123")
+```
+
+You can learn more in our [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning).
+
+### Moderation
+
+OpenAI provides a free Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies).
+
+```python
+moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
+```
+
+You can learn more in our [moderation guide](https://platform.openai.com/docs/guides/moderation).
+
+### Image generation (DALL·E)
+
+DALL·E is a generative image model that can create new images based on a prompt. 
+
+```python
+image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
+```
+
+You can learn more in our [image generation guide](https://platform.openai.com/docs/guides/images).
+
+### Audio (Whisper)
+
+The speech to text API provides two endpoints, transcriptions and translations, based on our state-of-the-art [open source large-v2 Whisper model](https://github.com/openai/whisper).
+
+```python
+f = open("path/to/file.mp3", "rb")
+transcript = openai.Audio.transcribe("whisper-1", f)
+
+transcript = openai.Audio.translate("whisper-1", f)
+```
+
+You can learn more in our [speech to text guide](https://platform.openai.com/docs/guides/speech-to-text).
+
+### Async API
+
+Async support is available in the API by prepending `a` to a network-bound method:
+
+```python
+async def create_chat_completion():
+    chat_completion_resp = await openai.ChatCompletion.acreate(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
+```
+
+To make async requests more efficient, you can pass in your own
+`aiohttp.ClientSession`, but you must manually close the client session at the end
+of your program/event loop:
+
+```python
+from aiohttp import ClientSession
+openai.aiosession.set(ClientSession())
+
+# At the end of your program, close the http session
+await openai.aiosession.get().close()
+```
+
+### Command-line interface
+
+This library additionally provides an `openai` command-line utility
+which makes it easy to interact with the API from your terminal. Run
+`openai api -h` for usage.
+
+```sh
+# list models
+openai api models.list
+
+# create a chat completion (gpt-3.5-turbo, gpt-4, etc.)
+openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
+
+# create a completion (text-davinci-003, text-davinci-002, ada, babbage, curie, davinci, etc.)
+openai api completions.create -m ada -p "Hello world"
+
+# generate images via DALL·E API
+openai api image.create -p "two dogs playing chess, cartoon" -n 1
+
+# using openai through a proxy
+openai --proxy=http://proxy.com api models.list
+```
 
 ### Microsoft Azure Endpoints
 
@@ -117,200 +249,7 @@ openai.api_type = "azure_ad"
 openai.api_key = token.token
 openai.api_base = "https://example-endpoint.openai.azure.com/"
 openai.api_version = "2023-05-15"
-
-# ...
 ```
-
-### Command-line interface
-
-This library additionally provides an `openai` command-line utility
-which makes it easy to interact with the API from your terminal. Run
-`openai api -h` for usage.
-
-```sh
-# list models
-openai api models.list
-
-# create a chat completion (gpt-3.5-turbo, gpt-4, etc.)
-openai api chat_completions.create -m gpt-3.5-turbo -g user "Hello world"
-
-# create a completion (text-davinci-003, text-davinci-002, ada, babbage, curie, davinci, etc.)
-openai api completions.create -m ada -p "Hello world"
-
-# generate images via DALL·E API
-openai api image.create -p "two dogs playing chess, cartoon" -n 1
-
-# using openai through a proxy
-openai --proxy=http://proxy.com api models.list
-```
-
-## Example code
-
-Examples of how to use this Python library to accomplish various tasks can be found in the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/). It contains code examples for:
-
-- Classification using fine-tuning
-- Clustering
-- Code search
-- Customizing embeddings
-- Question answering from a corpus of documents
-- Recommendations
-- Visualization of embeddings
-- And more
-
-Prior to July 2022, this OpenAI Python library hosted code examples in its examples folder, but since then all examples have been migrated to the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
-
-### Chat Completions
-
-Conversational models such as `gpt-3.5-turbo` can be called using the chat completions endpoint.
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-
-completion = openai.ChatCompletion.create(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
-print(completion.choices[0].message.content)
-```
-
-### Completions
-
-Text models such as `babbage-002` or `davinci-002` (and our [legacy completions models](https://platform.openai.com/docs/deprecations/deprecation-history)) can be called using the completions endpoint.
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-
-completion = openai.Completion.create(model="davinci-002", prompt="Hello world")
-print(completion.choices[0].text)
-```
-
-### Embeddings
-
-In the OpenAI Python library, an embedding represents a text string as a fixed-length vector of floating point numbers. Embeddings are designed to measure the similarity or relevance between text strings.
-
-To get an embedding for a text string, you can use the embeddings method as follows in Python:
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-
-# choose text to embed
-text_string = "sample text"
-
-# choose an embedding
-model_id = "text-embedding-ada-002"
-
-# compute the embedding of the text
-embedding = openai.Embedding.create(input=text_string, model=model_id)['data'][0]['embedding']
-```
-
-An example of how to call the embeddings method is shown in this [embeddings guide](https://platform.openai.com/docs/guides/embeddings/embeddings).
-
-Examples of how to use embeddings are shared in the following Jupyter notebooks:
-
-- [Classification using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Classification_using_embeddings.ipynb)
-- [Clustering using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Clustering.ipynb)
-- [Code search using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Code_search.ipynb)
-- [Semantic text search using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Semantic_text_search_using_embeddings.ipynb)
-- [User and product embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/User_and_product_embeddings.ipynb)
-- [Zero-shot classification using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Zero-shot_classification_with_embeddings.ipynb)
-- [Recommendation using embeddings](https://github.com/openai/openai-cookbook/blob/main/examples/Recommendation_using_embeddings.ipynb)
-
-For more information on embeddings and the types of embeddings OpenAI offers, read the [embeddings guide](https://platform.openai.com/docs/guides/embeddings) in the OpenAI documentation.
-
-### Fine-tuning
-
-Fine-tuning a model on training data can both improve the results (by giving the model more examples to learn from) and lower the cost/latency of API calls by reducing the need to include training examples in prompts.
-
-```python
-# Create a fine-tuning job with an already uploaded file
-openai.FineTuningJob.create(training_file="file-abc123", model="gpt-3.5-turbo")
-
-# List 10 fine-tuning jobs
-openai.FineTuningJob.list(limit=10)
-
-# Retrieve the state of a fine-tune
-openai.FineTuningJob.retrieve("ft-abc123")
-
-# Cancel a job
-openai.FineTuningJob.cancel("ft-abc123")
-
-# List up to 10 events from a fine-tuning job
-openai.FineTuningJob.list_events(id="ft-abc123", limit=10)
-
-# Delete a fine-tuned model (must be an owner of the org the model was created in)
-openai.Model.delete("ft:gpt-3.5-turbo:acemeco:suffix:abc123")
-```
-
-For more information on fine-tuning, read the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning) in the OpenAI documentation.
-
-### Moderation
-
-OpenAI provides a Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies)
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-
-moderation_resp = openai.Moderation.create(input="Here is some perfectly innocuous text that follows all OpenAI content policies.")
-```
-
-See the [moderation guide](https://platform.openai.com/docs/guides/moderation) for more details.
-
-## Image generation (DALL·E)
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-
-image_resp = openai.Image.create(prompt="two dogs playing chess, oil painting", n=4, size="512x512")
-
-```
-
-## Audio transcription (Whisper)
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-f = open("path/to/file.mp3", "rb")
-transcript = openai.Audio.transcribe("whisper-1", f)
-
-```
-
-## Async API
-
-Async support is available in the API by prepending `a` to a network-bound method:
-
-```python
-import openai
-openai.api_key = "sk-..."  # supply your API key however you choose
-
-async def create_chat_completion():
-    chat_completion_resp = await openai.ChatCompletion.acreate(model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello world"}])
-
-```
-
-To make async requests more efficient, you can pass in your own
-`aiohttp.ClientSession`, but you must manually close the client session at the end
-of your program/event loop:
-
-```python
-import openai
-from aiohttp import ClientSession
-
-openai.aiosession.set(ClientSession())
-# At the end of your program, close the http session
-await openai.aiosession.get().close()
-```
-
-See the [usage guide](https://platform.openai.com/docs/guides/images) for more details.
-
-## Requirements
-
-- Python 3.7.1+
-
-In general, we want to support the versions of Python that our
-customers are using. If you run into problems with any version
-issues, please let us know on our [support page](https://help.openai.com/en/).
 
 ## Credit
 
