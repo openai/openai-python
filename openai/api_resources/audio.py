@@ -11,7 +11,7 @@ def check_required(*args, method_name, required, **kwargs):
     for param in required:
         if param in kwargs:
             continue
-        elif args_count > 0:
+        if args_count > 0:
             args_count -= 1
             continue
         missing.append(param)
