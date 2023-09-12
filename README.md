@@ -129,6 +129,14 @@ openai.Model.delete("ft:gpt-3.5-turbo:acemeco:suffix:abc123")
 
 You can learn more in our [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning).
 
+To log the training results from fine-tuning to Weights & Biases use:
+
+```
+openai wandb sync
+```
+
+For more information, read the [wandb documentation](https://docs.wandb.ai/guides/integrations/openai) on Weights & Biases.
+
 ### Moderation
 
 OpenAI provides a free Moderation endpoint that can be used to check whether content complies with the OpenAI [content policy](https://platform.openai.com/docs/usage-policies).
