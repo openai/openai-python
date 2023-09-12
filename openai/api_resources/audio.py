@@ -5,21 +5,6 @@ from openai import api_requestor, util
 from openai.api_resources.abstract import APIResource
 
 
-def check_required(*args, method_name, required, **kwargs):
-    missing = []
-    args_count = len(args)
-    for param in required:
-        if param in kwargs:
-            continue
-        if args_count > 0:
-            args_count -= 1
-            continue
-        missing.append(param)
-
-    if missing and "deployment_id" not in kwargs:
-        raise TypeError(f"{method_name}() missing {len(missing)} required positional argument(s): {', '.join(missing)}")
-
-
 class Audio(APIResource):
     OBJECT_NAME = "audio"
 
@@ -98,7 +83,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"transcribe() takes from 3 to 8 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="transcribe", required=["model", "file"], **params)
+        util.check_required(*args, method_name="transcribe", required=["model", "file"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -170,7 +155,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"translate() takes from 3 to 8 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="translate", required=["model", "file"], **params)
+        util.check_required(*args, method_name="translate", required=["model", "file"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -244,7 +229,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"transcribe_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="transcribe_raw", required=["model", "file", "filename"], **params)
+        util.check_required(*args, method_name="transcribe_raw", required=["model", "file", "filename"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -318,7 +303,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"translate_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="translate_raw", required=["model", "file", "filename"], **params)
+        util.check_required(*args, method_name="translate_raw", required=["model", "file", "filename"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -390,7 +375,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"atranscribe() takes from 3 to 8 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="atranscribe", required=["model", "file"], **params)
+        util.check_required(*args, method_name="atranscribe", required=["model", "file"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -463,7 +448,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"atranslate() takes from 3 to 8 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="atranslate", required=["model", "file"], **params)
+        util.check_required(*args, method_name="atranslate", required=["model", "file"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -538,7 +523,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"atranscribe_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="atranscribe_raw", required=["model", "file", "filename"], **params)
+        util.check_required(*args, method_name="atranscribe_raw", required=["model", "file", "filename"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)
@@ -614,7 +599,7 @@ class Audio(APIResource):
             raise TypeError(
                 f"atranslate_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
             )
-        check_required(*args, method_name="atranslate_raw", required=["model", "file", "filename"], **params)
+        util.check_required(*args, method_name="atranslate_raw", required=["model", "file", "filename"], **params)
 
         positional = list(args)
         model =  positional.pop(0) if positional else params.pop("model", None)

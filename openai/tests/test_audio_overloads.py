@@ -73,7 +73,6 @@ def test_transcribe():
     audio = openai.Audio.transcribe(
         deployment_id="whisper-1",
         file=open(AUDIO_FILE_PATH, "rb"),
-        response_format="verbose_json"
     )
     assert audio
 
