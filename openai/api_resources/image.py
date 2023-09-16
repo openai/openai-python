@@ -1,5 +1,5 @@
 # WARNING: This interface is considered experimental and may changed in the future without warning.
-from typing import Any, List
+from typing import Any, List, Optional, Union, Tuple
 
 import openai
 from openai import api_requestor, error, util
@@ -24,6 +24,7 @@ class Image(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -37,7 +38,8 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = requestor.request(
-            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version), params
+            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version),
+            params, request_timeout=request_timeout
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
@@ -60,6 +62,7 @@ class Image(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        request_timeout: Optional[Union[float, Tuple[float, float]]] = None,
         **params,
     ):
 
@@ -74,7 +77,8 @@ class Image(APIResource):
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
 
         response, _, api_key = await requestor.arequest(
-            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version), params
+            "post", cls._get_url("generations", azure_action="submit", api_type=api_type, api_version=api_version),
+            params, request_timeout=request_timeout
         )
 
         if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
