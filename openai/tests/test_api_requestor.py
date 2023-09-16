@@ -5,6 +5,7 @@ import requests
 from pytest_mock import MockerFixture
 
 from openai import Model
+from openai import Image
 from openai.api_requestor import APIRequestor
 
 
@@ -29,6 +30,26 @@ def test_requestor_sets_request_id(mocker: MockerFixture) -> None:
     got_request_id = got_headers.get("X-Request-Id")
     assert got_request_id == fake_request_id
 
+
+@pytest.mark.requestor
+def test_requestor_sets_timeout(mocker: MockerFixture) -> None:
+    # Fake out 'requests' and confirm that the timeout is set.
+
+    got_timeout = None
+
+    def fake_request(self, *args, **kwargs):
+        nonlocal got_timeout
+        got_timeout = kwargs["timeout"]
+        r = requests.Response()
+        r.status_code = 200
+        r.headers["content-type"] = "application/json"
+        r._content = json.dumps({}).encode("utf-8")
+        return r
+
+    mocker.patch("requests.sessions.Session.request", fake_request)
+    fake_timeout = 30.0
+    Image.create(request_timeout=fake_timeout)
+    assert got_timeout == fake_timeout
 
 @pytest.mark.requestor
 def test_requestor_open_ai_headers() -> None:
