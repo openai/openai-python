@@ -1,4 +1,4 @@
-from typing import Any, List, overload
+from typing import Any, List
 
 import openai
 from openai import api_requestor, util
@@ -42,7 +42,6 @@ class Audio(APIResource):
         files.append(("file", (filename, file, "application/octet-stream")))
         return requestor, files, data
 
-    @overload
     @classmethod
     def transcribe(
         cls,
@@ -53,48 +52,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    def transcribe(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    def transcribe(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 7:
-            raise TypeError(
-                f"transcribe() takes from 3 to 8 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="transcribe", required=["model", "file"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=file.name,
@@ -113,7 +74,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     def translate(
         cls,
@@ -124,49 +84,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-
-    @overload
-    @classmethod
-    def translate(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    def translate(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 7:
-            raise TypeError(
-                f"translate() takes from 3 to 8 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="translate", required=["model", "file"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=file.name,
@@ -185,7 +106,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     def transcribe_raw(
         cls,
@@ -197,51 +117,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-
-    @overload
-    @classmethod
-    def transcribe_raw(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        filename=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    def transcribe_raw(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 8:
-            raise TypeError(
-                f"transcribe_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="transcribe_raw", required=["model", "file", "filename"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        filename = positional.pop(0) if positional else params.pop("filename", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=filename,
@@ -260,7 +139,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     def translate_raw(
         cls,
@@ -272,50 +150,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    def translate_raw(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        filename=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    def translate_raw(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 8:
-            raise TypeError(
-                f"translate_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="translate_raw", required=["model", "file", "filename"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        filename = positional.pop(0) if positional else params.pop("filename", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=filename,
@@ -334,7 +172,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     async def atranscribe(
         cls,
@@ -345,48 +182,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    async def atranscribe(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    async def atranscribe(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 7:
-            raise TypeError(
-                f"atranscribe() takes from 3 to 8 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="atranscribe", required=["model", "file"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=file.name,
@@ -407,7 +206,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     async def atranslate(
         cls,
@@ -418,48 +216,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    async def atranslate(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    async def atranslate(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 7:
-            raise TypeError(
-                f"atranslate() takes from 3 to 8 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="atranslate", required=["model", "file"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=file.name,
@@ -480,7 +240,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     async def atranscribe_raw(
         cls,
@@ -492,50 +251,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    async def atranscribe_raw(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        filename=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    async def atranscribe_raw(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 8:
-            raise TypeError(
-                f"atranscribe_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="atranscribe_raw", required=["model", "file", "filename"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        filename = positional.pop(0) if positional else params.pop("filename", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=filename,
@@ -556,7 +275,6 @@ class Audio(APIResource):
             response, api_key, api_version, organization
         )
 
-    @overload
     @classmethod
     async def atranslate_raw(
         cls,
@@ -568,50 +286,10 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
-        **params,
-    ):
-        ...
-
-    @overload
-    @classmethod
-    async def atranslate_raw(
-        cls,
         *,
         deployment_id=None,
-        file=None,
-        filename=None,
-        api_key=None,
-        api_base=None,
-        api_type=None,
-        api_version=None,
-        organization=None,
         **params,
     ):
-        ...
-
-    @classmethod
-    async def atranslate_raw(
-        cls,
-        *args,
-        **params,
-    ):
-        if len(args) > 8:
-            raise TypeError(
-                f"atranslate_raw() takes from 4 to 9 positional arguments but {len(args)+1} were given"
-            )
-        util.check_required(*args, method_name="atranslate_raw", required=["model", "file", "filename"], **params)
-
-        positional = list(args)
-        model =  positional.pop(0) if positional else params.pop("model", None)
-        file = positional.pop(0) if positional else params.pop("file", None)
-        filename = positional.pop(0) if positional else params.pop("filename", None)
-        api_key = positional.pop(0) if positional else params.pop("api_key", None)
-        api_base = positional.pop(0) if positional else params.pop("api_base", None)
-        api_type = positional.pop(0) if positional else params.pop("api_type", None)
-        api_version = positional.pop(0) if positional else params.pop("api_version", None)
-        organization = positional.pop(0) if positional else params.pop("organization", None)
-        deployment_id = params.pop("deployment_id", None)
-
         requestor, files, data = cls._prepare_request(
             file=file,
             filename=filename,

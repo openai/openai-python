@@ -186,21 +186,3 @@ def default_api_key() -> str:
         raise openai.error.AuthenticationError(
             "No API key provided. You can set your API key in code using 'openai.api_key = <API-KEY>', or you can set the environment variable OPENAI_API_KEY=<API-KEY>). If your API key is stored in a file, you can point the openai module at it with 'openai.api_key_path = <PATH>'. You can generate API keys in the OpenAI web interface. See https://platform.openai.com/account/api-keys for details."
         )
-
-
-def check_required(*args, method_name, required, **kwargs):
-    """Checks that all required parameters have been provided
-    to the method where overloads are used to maintain existing behavior.
-    """
-    missing = []
-    args_count = len(args)
-    for param in required:
-        if param in kwargs:
-            continue
-        if args_count > 0:
-            args_count -= 1
-            continue
-        missing.append(param)
-
-    if missing and "deployment_id" not in kwargs:
-        raise TypeError(f"{method_name}() missing {len(missing)} required positional argument(s): {', '.join(missing)}")
