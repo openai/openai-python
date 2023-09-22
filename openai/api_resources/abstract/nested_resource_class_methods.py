@@ -28,17 +28,18 @@ def _nested_resource_class_methods(
         setattr(cls, resource_url_method, classmethod(nested_resource_url))
 
         def nested_resource_request(
-            cls,
-            method,
-            url,
-            api_key=None,
-            request_id=None,
-            api_version=None,
-            organization=None,
-            **params,
+                cls,
+                method,
+                url,
+                api_base=None,
+                api_key=None,
+                request_id=None,
+                api_version=None,
+                organization=None,
+                **params,
         ):
             requestor = api_requestor.APIRequestor(
-                api_key, api_version=api_version, organization=organization
+                api_key, api_base=api_base, api_version=api_version, organization=organization
             )
             response, _, api_key = requestor.request(
                 method, url, params, request_id=request_id
@@ -48,17 +49,18 @@ def _nested_resource_class_methods(
             )
 
         async def anested_resource_request(
-            cls,
-            method,
-            url,
-            api_key=None,
-            request_id=None,
-            api_version=None,
-            organization=None,
-            **params,
+                cls,
+                method,
+                url,
+                api_key=None,
+                api_base=None,
+                request_id=None,
+                api_version=None,
+                organization=None,
+                **params,
         ):
             requestor = api_requestor.APIRequestor(
-                api_key, api_version=api_version, organization=organization
+                api_key, api_base=api_base, api_version=api_version, organization=organization
             )
             response, _, api_key = await requestor.arequest(
                 method, url, params, request_id=request_id
