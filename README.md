@@ -217,7 +217,7 @@ openai --proxy=http://proxy.com api models.list
 ### Microsoft Azure Endpoints
 
 In order to use the library with Microsoft Azure endpoints, you need to set the `api_type`, `api_base` and `api_version` in addition to the `api_key`. The `api_type` must be set to 'azure' and the others correspond to the properties of your endpoint.
-In addition, the deployment name must be passed as the engine parameter.
+In addition, the deployment name must be passed as the `deployment_id` parameter.
 
 ```python
 import openai
