@@ -37,7 +37,7 @@ Install dependencies for [`openai.embeddings_utils`](openai/embeddings_utils.py)
 pip install openai[embeddings]
 ```
 
-Install support for [Weights & Biases](https://wandb.me/openai-docs):
+Install support for [Weights & Biases](https://wandb.me/openai-docs) which can be used for fine-tuning:
 
 ```sh
 pip install openai[wandb]
@@ -51,7 +51,7 @@ pip install openai[datalib]
 
 ## Usage
 
-The library needs to be configured with your account's secret key which is available on the [website](https://platform.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:
+The library needs to be configured with your OpenAI account's private API key which is available on our [developer platform](https://platform.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:
 
 ```bash
 export OPENAI_API_KEY='sk-...'
