@@ -1,0 +1,108 @@
+[tool.poetry]
+name = "openai"
+version = "1.0.0-beta.1"
+description = "Client library for the openai API"
+readme = "README.md"
+authors = ["OpenAI <support@openai.com>"]
+license = "Apache-2.0"
+repository = "https://github.com/openai/openai-python"
+packages = [
+  { include = "openai", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.7.1"
+httpx = ">= 0.23.0, < 1"
+pydantic = ">= 1.9.0, < 3"
+typing-extensions = ">= 4.5, < 5"
+anyio = ">= 3.5.0, < 4"
+distro = ">= 1.7.0, < 2"
+tqdm = "> 4"
+
+numpy = { version = ">= 1", optional = true }
+pandas = { version = ">= 1.2.3", optional = true }
+pandas-stubs = { version = ">= 1.1.0.11", optional = true }
+
+[tool.poetry.extras]
+datalib = ["numpy", "pandas", "pandas-stubs"]
+
+[tool.poetry.group.dev.dependencies]
+pyright = "1.1.326"
+mypy = "1.4.1"
+black = "23.3.0"
+respx = "0.19.2"
+pytest = "7.1.1"
+pytest-asyncio = "0.21.1"
+ruff = "0.0.282"
+isort = "5.10.1"
+time-machine = "^2.9.0"
+nox = "^2023.4.22"
+nox-poetry = "^1.0.3"
+types-tqdm = "> 4"
+[tool.poetry.scripts]
+openai = "openai.cli:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 120
+target-version = ["py37"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--tb=short"
+xfail_strict = true
+log_cli = true
+log_level = "INFO"
+asyncio_mode = "auto"
+filterwarnings = [
+  "error"
+]
+
+[tool.pyright]
+# this enables practically every flag given by pyright.
+# there are a couple of flags that are still disabled by
+# default in strict mode as they are experimental and niche.
+typeCheckingMode = "strict"
+pythonVersion = "3.7"
+
+exclude = [
+    "_dev",
+    ".venv",
+    ".nox",
+]
+reportImportCycles = false
+reportPrivateUsage = false
+
+[tool.isort]
+profile = "black"
+length_sort = true
+extra_standard_library = ["typing_extensions"]
+
+[tool.ruff]
+line-length = 120
+format = "grouped"
+target-version = "py37"
+select = [
+  # remove unused imports
+  "F401",
+  # bare except statements
+  "E722",
+  # print statements
+  "T201",
+  "T203",
+]
+unfixable = [
+  # disable auto fix for print statements
+  "T201",
+  "T203",
+]
+ignore-init-module-imports = true
+
+
+[tool.ruff.per-file-ignores]
+"bin/**.py" = ["T201", "T203"]
+"tests/**.py" = ["T201", "T203"]
+"examples/**.py" = ["T201", "T203"]

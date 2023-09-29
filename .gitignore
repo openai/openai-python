@@ -1,0 +1,10 @@
+.vscode
+_dev
+
+__pycache__
+.mypy_cache
+
+dist
+
+.env
+codegen.log

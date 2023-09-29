@@ -1,0 +1,118 @@
+# File generated from our OpenAPI spec by Stainless.
+
+from __future__ import annotations
+
+from typing import List, Union
+from typing_extensions import Literal
+
+from ..types import ModerationCreateResponse, moderation_create_params
+from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._utils import maybe_transform
+from .._resource import SyncAPIResource, AsyncAPIResource
+from .._base_client import make_request_options
+
+__all__ = ["Moderations", "AsyncModerations"]
+
+
+class Moderations(SyncAPIResource):
+    def create(
+        self,
+        *,
+        input: Union[str, List[str]],
+        model: Union[str, Literal["text-moderation-latest", "text-moderation-stable"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | None | NotGiven = NOT_GIVEN,
+    ) -> ModerationCreateResponse:
+        """
+        Classifies if text violates OpenAI's Content Policy
+
+        Args:
+          input: The input text to classify
+
+          model: Two content moderations models are available: `text-moderation-stable` and
+              `text-moderation-latest`.
+
+              The default is `text-moderation-latest` which will be automatically upgraded
+              over time. This ensures you are always using our most accurate model. If you use
+              `text-moderation-stable`, we will provide advanced notice before updating the
+              model. Accuracy of `text-moderation-stable` may be slightly lower than for
+              `text-moderation-latest`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._post(
+            "/moderations",
+            body=maybe_transform(
+                {
+                    "input": input,
+                    "model": model,
+                },
+                moderation_create_params.ModerationCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ModerationCreateResponse,
+        )
+
+
+class AsyncModerations(AsyncAPIResource):
+    async def create(
+        self,
+        *,
+        input: Union[str, List[str]],
+        model: Union[str, Literal["text-moderation-latest", "text-moderation-stable"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | None | NotGiven = NOT_GIVEN,
+    ) -> ModerationCreateResponse:
+        """
+        Classifies if text violates OpenAI's Content Policy
+
+        Args:
+          input: The input text to classify
+
+          model: Two content moderations models are available: `text-moderation-stable` and
+              `text-moderation-latest`.
+
+              The default is `text-moderation-latest` which will be automatically upgraded
+              over time. This ensures you are always using our most accurate model. If you use
+              `text-moderation-stable`, we will provide advanced notice before updating the
+              model. Accuracy of `text-moderation-stable` may be slightly lower than for
+              `text-moderation-latest`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._post(
+            "/moderations",
+            body=maybe_transform(
+                {
+                    "input": input,
+                    "model": model,
+                },
+                moderation_create_params.ModerationCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ModerationCreateResponse,
+        )
