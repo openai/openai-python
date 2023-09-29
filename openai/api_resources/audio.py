@@ -25,6 +25,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         **params,
     ):
         requestor = api_requestor.APIRequestor(
@@ -33,6 +34,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
         )
         files: List[Any] = []
         data = {
@@ -52,6 +54,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -65,6 +68,8 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
+
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -84,6 +89,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -97,6 +103,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -117,6 +124,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -130,6 +138,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -150,6 +159,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -163,6 +173,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -182,6 +193,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -195,6 +207,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -216,6 +229,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -229,6 +243,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -251,6 +266,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -264,6 +280,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
@@ -286,6 +303,7 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        headers=None,
         *,
         deployment_id=None,
         **params,
@@ -299,6 +317,7 @@ class Audio(APIResource):
             api_type=api_type,
             api_version=api_version,
             organization=organization,
+            headers=headers,
             **params,
         )
         api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
