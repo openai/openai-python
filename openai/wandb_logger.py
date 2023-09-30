@@ -13,9 +13,9 @@ if WANDB_AVAILABLE:
     import re
     from pathlib import Path
 
-    from openai import File, FineTune
+    from openai import File, FineTune, FineTuningJob
     from openai.datalib.numpy_helper import numpy as np
-    from openai.datalib.pandas_helper import pandas as pd
+    from openai.datalib.pandas_helper import assert_has_pandas, pandas as pd
 
 
 class WandbLogger:
@@ -34,9 +34,10 @@ class WandbLogger:
         cls,
         id=None,
         n_fine_tunes=None,
-        project="GPT-3",
+        project="OpenAI-Fine-Tune",
         entity=None,
         force=False,
+        legacy=False,
         **kwargs_wandb_init,
     ):
         """
@@ -47,18 +48,26 @@ class WandbLogger:
         :param entity: Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.
         :param force: Forces logging and overwrite existing wandb run of the same fine-tune.
         """
+        
+        assert_has_pandas()
 
         if not WANDB_AVAILABLE:
             return
 
         if id:
-            fine_tune = FineTune.retrieve(id=id)
+            print("Retrieving fine-tune job...")
+            if legacy:
+                fine_tune = FineTune.retrieve(id=id)
+            else:
+                fine_tune = FineTuningJob.retrieve(id=id)
             fine_tune.pop("events", None)
             fine_tunes = [fine_tune]
-
         else:
             # get list of fine_tune to log
-            fine_tunes = FineTune.list()
+            if legacy:
+                fine_tunes = FineTune.list()
+            else:
+                fine_tunes =  list(FineTuningJob.auto_paging_iter())
             if not fine_tunes or fine_tunes.get("data") is None:
                 print("No fine-tune has been retrieved")
                 return
@@ -76,6 +85,7 @@ class WandbLogger:
                 project,
                 entity,
                 force,
+                legacy,
                 show_individual_warnings,
                 **kwargs_wandb_init,
             )
@@ -94,6 +104,7 @@ class WandbLogger:
         project,
         entity,
         force,
+        legacy,
         show_individual_warnings,
         **kwargs_wandb_init,
     ):
@@ -110,7 +121,10 @@ class WandbLogger:
 
         # check results are present
         try:
-            results_id = fine_tune["result_files"][0]["id"]
+            if legacy:
+                results_id = fine_tune["result_files"][0]["id"]
+            else:
+                results_id = fine_tune["result_files"][0]
             results = File.download(id=results_id).decode("utf-8")
         except:
             if show_individual_warnings:
