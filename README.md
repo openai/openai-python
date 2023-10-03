@@ -11,7 +11,7 @@ You can find usage examples for the OpenAI Python library in our [API reference]
 ## Beta Release
 
 > [!IMPORTANT]  
-> We're is preparing to release version 1.0 of the OpenAI Python library.
+> We're preparing to release version 1.0 of the OpenAI Python library.
 
 This new version will be a major release and will include breaking changes. We're releasing this beta version to give you a chance to try out the new features and provide feedback before the official release. You can install the beta version with:
 
