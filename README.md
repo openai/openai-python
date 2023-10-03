@@ -9,7 +9,11 @@ with a wide range of versions of the OpenAI API.
 You can find usage examples for the OpenAI Python library in our [API reference](https://platform.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
 ## Beta Release
-We're preparing to release a new version of the OpenAI Python library. This new version will be a major release and will include breaking changes. We're releasing this beta version to give you a chance to try out the new features and provide feedback before the official release. You can install the beta version with:
+
+> [!IMPORTANT]  
+> We're preparing to release version the OpenAI Python library 1.0 version.
+
+This new version will be a major release and will include breaking changes. We're releasing this beta version to give you a chance to try out the new features and provide feedback before the official release. You can install the beta version with:
 
 ```sh
 pip install --pre openai
