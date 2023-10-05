@@ -28,23 +28,24 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> FileObject:
-        """
-        Upload a file that contains document(s) to be used across various
-        endpoints/features. Currently, the size of all the files uploaded by one
-        organization can be up to 1 GB. Please contact us if you need to increase the
-        storage limit.
+        """Upload a file that can be used across various endpoints/features.
+
+        Currently, the
+        size of all the files uploaded by one organization can be up to 1 GB. Please
+        [contact us](https://help.openai.com/) if you need to increase the storage
+        limit.
 
         Args:
-          file: Name of the [JSON Lines](https://jsonlines.readthedocs.io/en/latest/) file to be
-              uploaded.
+          file: The file object (not file name) to be uploaded.
 
               If the `purpose` is set to "fine-tune", the file will be used for fine-tuning.
 
-          purpose: The intended purpose of the uploaded documents.
+          purpose: The intended purpose of the uploaded file.
 
               Use "fine-tune" for
               [fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning). This
-              allows us to validate the format of the uploaded file.
+              allows us to validate the format of the uploaded file is correct for
+              fine-tuning.
 
           extra_headers: Send extra headers
 
@@ -228,23 +229,24 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> FileObject:
-        """
-        Upload a file that contains document(s) to be used across various
-        endpoints/features. Currently, the size of all the files uploaded by one
-        organization can be up to 1 GB. Please contact us if you need to increase the
-        storage limit.
+        """Upload a file that can be used across various endpoints/features.
+
+        Currently, the
+        size of all the files uploaded by one organization can be up to 1 GB. Please
+        [contact us](https://help.openai.com/) if you need to increase the storage
+        limit.
 
         Args:
-          file: Name of the [JSON Lines](https://jsonlines.readthedocs.io/en/latest/) file to be
-              uploaded.
+          file: The file object (not file name) to be uploaded.
 
               If the `purpose` is set to "fine-tune", the file will be used for fine-tuning.
 
-          purpose: The intended purpose of the uploaded documents.
+          purpose: The intended purpose of the uploaded file.
 
               Use "fine-tune" for
               [fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning). This
-              allows us to validate the format of the uploaded file.
+              allows us to validate the format of the uploaded file is correct for
+              fine-tuning.
 
           extra_headers: Send extra headers
 

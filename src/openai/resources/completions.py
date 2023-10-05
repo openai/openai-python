@@ -117,7 +117,7 @@ class Completions(SyncAPIResource):
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many completions to generate for each prompt.
@@ -140,7 +140,7 @@ class Completions(SyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           suffix: The suffix that comes after a completion of inserted text.
 
@@ -233,7 +233,7 @@ class Completions(SyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           best_of: Generates `best_of` completions server-side and returns the "best" (the one with
               the highest log probability per token). Results cannot be streamed.
@@ -278,7 +278,7 @@ class Completions(SyncAPIResource):
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many completions to generate for each prompt.
@@ -499,7 +499,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many completions to generate for each prompt.
@@ -522,7 +522,7 @@ class AsyncCompletions(AsyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           suffix: The suffix that comes after a completion of inserted text.
 
@@ -615,7 +615,7 @@ class AsyncCompletions(AsyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           best_of: Generates `best_of` completions server-side and returns the "best" (the one with
               the highest log probability per token). Results cannot be streamed.
@@ -660,7 +660,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many completions to generate for each prompt.

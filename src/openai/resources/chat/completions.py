@@ -66,7 +66,7 @@ class Completions(SyncAPIResource):
 
         Args:
           messages: A list of messages comprising the conversation so far.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
 
           model: ID of the model to use. See the
               [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
@@ -78,12 +78,12 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          function_call: Controls how the model responds to function calls. `none` means the model does
-              not call a function, and responds to the end-user. `auto` means the model can
-              pick between an end-user or calling a function. Specifying a particular function
-              via `{"name": "my_function"}` forces the model to call that function. `none` is
-              the default when no functions are present. `auto` is the default if functions
-              are present.
+          function_call: Controls how the model calls functions. "none" means the model will not call a
+              function and instead generates a message. "auto" means the model can pick
+              between generating a message or calling a function. Specifying a particular
+              function via `{"name": "my_function"}` forces the model to call that function.
+              "none" is the default when no functions are present. "auto" is the default if
+              functions are present.
 
           functions: A list of functions the model may generate JSON inputs for.
 
@@ -100,7 +100,7 @@ class Completions(SyncAPIResource):
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many chat completion choices to generate for each input message.
@@ -118,7 +118,7 @@ class Completions(SyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -191,7 +191,7 @@ class Completions(SyncAPIResource):
 
         Args:
           messages: A list of messages comprising the conversation so far.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
 
           model: ID of the model to use. See the
               [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
@@ -202,7 +202,7 @@ class Completions(SyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -210,12 +210,12 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          function_call: Controls how the model responds to function calls. `none` means the model does
-              not call a function, and responds to the end-user. `auto` means the model can
-              pick between an end-user or calling a function. Specifying a particular function
-              via `{"name": "my_function"}` forces the model to call that function. `none` is
-              the default when no functions are present. `auto` is the default if functions
-              are present.
+          function_call: Controls how the model calls functions. "none" means the model will not call a
+              function and instead generates a message. "auto" means the model can pick
+              between generating a message or calling a function. Specifying a particular
+              function via `{"name": "my_function"}` forces the model to call that function.
+              "none" is the default when no functions are present. "auto" is the default if
+              functions are present.
 
           functions: A list of functions the model may generate JSON inputs for.
 
@@ -232,7 +232,7 @@ class Completions(SyncAPIResource):
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many chat completion choices to generate for each input message.
@@ -387,7 +387,7 @@ class AsyncCompletions(AsyncAPIResource):
 
         Args:
           messages: A list of messages comprising the conversation so far.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
 
           model: ID of the model to use. See the
               [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
@@ -399,12 +399,12 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          function_call: Controls how the model responds to function calls. `none` means the model does
-              not call a function, and responds to the end-user. `auto` means the model can
-              pick between an end-user or calling a function. Specifying a particular function
-              via `{"name": "my_function"}` forces the model to call that function. `none` is
-              the default when no functions are present. `auto` is the default if functions
-              are present.
+          function_call: Controls how the model calls functions. "none" means the model will not call a
+              function and instead generates a message. "auto" means the model can pick
+              between generating a message or calling a function. Specifying a particular
+              function via `{"name": "my_function"}` forces the model to call that function.
+              "none" is the default when no functions are present. "auto" is the default if
+              functions are present.
 
           functions: A list of functions the model may generate JSON inputs for.
 
@@ -421,7 +421,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many chat completion choices to generate for each input message.
@@ -439,7 +439,7 @@ class AsyncCompletions(AsyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -512,7 +512,7 @@ class AsyncCompletions(AsyncAPIResource):
 
         Args:
           messages: A list of messages comprising the conversation so far.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_format_inputs_to_ChatGPT_models.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
 
           model: ID of the model to use. See the
               [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
@@ -523,7 +523,7 @@ class AsyncCompletions(AsyncAPIResource):
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_stream_completions.ipynb).
+              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -531,12 +531,12 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          function_call: Controls how the model responds to function calls. `none` means the model does
-              not call a function, and responds to the end-user. `auto` means the model can
-              pick between an end-user or calling a function. Specifying a particular function
-              via `{"name": "my_function"}` forces the model to call that function. `none` is
-              the default when no functions are present. `auto` is the default if functions
-              are present.
+          function_call: Controls how the model calls functions. "none" means the model will not call a
+              function and instead generates a message. "auto" means the model can pick
+              between generating a message or calling a function. Specifying a particular
+              function via `{"name": "my_function"}` forces the model to call that function.
+              "none" is the default when no functions are present. "auto" is the default if
+              functions are present.
 
           functions: A list of functions the model may generate JSON inputs for.
 
@@ -553,7 +553,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
-              [Example Python code](https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb)
+              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
           n: How many chat completion choices to generate for each input message.
