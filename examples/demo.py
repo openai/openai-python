@@ -6,18 +6,30 @@ from openai import OpenAI
 client = OpenAI()
 
 # Non-streaming:
-completion = client.completions.create(
-    model="text-davinci-003",
-    prompt="Say this is a test",
+print('----- standard request -----')
+completion = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        },
+    ],
 )
-print(completion.choices[0].text)
+print(completion.choices[0].message.content)
 
 # Streaming:
-stream = client.completions.create(
-    model="text-davinci-003",
-    prompt="Say this is a test",
+print('----- streaming request -----')
+stream = client.chat.completions.create(
+    model="gpt-4",
+    messages=[
+        {
+            "role": "user",
+            "content": "How do I output all files in a directory using Python?",
+        },
+    ],
     stream=True,
 )
 for completion in stream:
-    print(completion.choices[0].text, end="")
+    print(completion.choices[0].delta.content, end="")
 print()
