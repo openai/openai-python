@@ -104,7 +104,7 @@ You can learn more in our [completions guide](https://platform.openai.com/docs/g
 
 ### Embeddings
 
-Embeddings are designed to measure the similarity or relevance between text strings. To get an embedding for a text string, you can use following:
+Embeddings are designed to measure the similarity or relevance between text strings. To get an embedding for a text string, you can use the following:
 
 ```python
 text_string = "sample text"
