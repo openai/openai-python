@@ -18,7 +18,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub.add_argument("-n", "--num-images", type=int, default=1)
     sub.add_argument("-s", "--size", type=str, default="1024x1024", help="Size of the output image")
     sub.add_argument("--response-format", type=str, default="url")
-    sub.set_defaults(func=Image.create, args_model=ImageCreateArgs)
+    sub.set_defaults(func=CLIImage.create, args_model=CLIImageCreateArgs)
 
     sub = subparser.add_parser("images.edit")
     sub.add_argument("-p", "--prompt", type=str, required=True)
@@ -39,7 +39,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         required=False,
         help="Path to a mask image. It should be the same size as the image you're editing and a RGBA PNG image. The Alpha channel acts as the mask.",
     )
-    sub.set_defaults(func=Image.edit, args_model=ImageEditArgs)
+    sub.set_defaults(func=CLIImage.edit, args_model=CLIImageEditArgs)
 
     sub = subparser.add_parser("images.create_variation")
     sub.add_argument("-n", "--num-images", type=int, default=1)
@@ -52,24 +52,24 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     )
     sub.add_argument("-s", "--size", type=str, default="1024x1024", help="Size of the output image")
     sub.add_argument("--response-format", type=str, default="url")
-    sub.set_defaults(func=Image.create_variation, args_model=ImageCreateVariationArgs)
+    sub.set_defaults(func=CLIImage.create_variation, args_model=CLIImageCreateVariationArgs)
 
 
-class ImageCreateArgs(BaseModel):
+class CLIImageCreateArgs(BaseModel):
     prompt: str
     num_images: int
     size: str
     response_format: str
 
 
-class ImageCreateVariationArgs(BaseModel):
+class CLIImageCreateVariationArgs(BaseModel):
     image: str
     num_images: int
     size: str
     response_format: str
 
 
-class ImageEditArgs(BaseModel):
+class CLIImageEditArgs(BaseModel):
     image: str
     num_images: int
     size: str
@@ -78,9 +78,9 @@ class ImageEditArgs(BaseModel):
     mask: NotGivenOr[str] = NOT_GIVEN
 
 
-class Image:
+class CLIImage:
     @staticmethod
-    def create(args: ImageCreateArgs) -> None:
+    def create(args: CLIImageCreateArgs) -> None:
         image = get_client().images.generate(
             prompt=args.prompt,
             n=args.num_images,
@@ -92,7 +92,7 @@ class Image:
         print_model(image)
 
     @staticmethod
-    def create_variation(args: ImageCreateVariationArgs) -> None:
+    def create_variation(args: CLIImageCreateVariationArgs) -> None:
         with open(args.image, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
 
@@ -107,7 +107,7 @@ class Image:
         print_model(image)
 
     @staticmethod
-    def edit(args: ImageEditArgs) -> None:
+    def edit(args: CLIImageEditArgs) -> None:
         with open(args.image, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Image upload progress")
 

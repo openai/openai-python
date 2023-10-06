@@ -73,16 +73,16 @@ Mutually exclusive with `top_p`.""",
         help="A stop sequence at which to stop generating tokens for the message.",
     )
     opt.add_argument("--stream", help="Stream messages as they're ready.", action="store_true")
-    sub.set_defaults(func=ChatCompletion.create, args_model=ChatCompletionCreateArgs)
+    sub.set_defaults(func=CLIChatCompletion.create, args_model=CLIChatCompletionCreateArgs)
 
 
-class Message(NamedTuple):
+class CLIMessage(NamedTuple):
     role: ChatCompletionRole
     content: str
 
 
-class ChatCompletionCreateArgs(BaseModel):
-    message: List[Message]
+class CLIChatCompletionCreateArgs(BaseModel):
+    message: List[CLIMessage]
     model: str
     n: Optional[int] = None
     max_tokens: Optional[int] = None
@@ -92,9 +92,9 @@ class ChatCompletionCreateArgs(BaseModel):
     stream: bool = False
 
 
-class ChatCompletion:
+class CLIChatCompletion:
     @staticmethod
-    def create(args: ChatCompletionCreateArgs) -> None:
+    def create(args: CLIChatCompletionCreateArgs) -> None:
         params: CompletionCreateParams = {
             "model": args.model,
             "messages": [{"role": message.role, "content": message.content} for message in args.message],
@@ -111,9 +111,9 @@ class ChatCompletion:
             params["max_tokens"] = args.max_tokens
 
         if args.stream:
-            return ChatCompletion._stream_create(cast(CompletionCreateParamsStreaming, params))
+            return CLIChatCompletion._stream_create(cast(CompletionCreateParamsStreaming, params))
 
-        return ChatCompletion._create(cast(CompletionCreateParamsNonStreaming, params))
+        return CLIChatCompletion._create(cast(CompletionCreateParamsNonStreaming, params))
 
     @staticmethod
     def _create(params: CompletionCreateParamsNonStreaming) -> None:

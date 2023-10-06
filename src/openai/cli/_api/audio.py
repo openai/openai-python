@@ -24,7 +24,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub.add_argument("--language", type=str)
     sub.add_argument("-t", "--temperature", type=float)
     sub.add_argument("--prompt", type=str)
-    sub.set_defaults(func=Audio.transcribe, args_model=TranscribeArgs)
+    sub.set_defaults(func=CLIAudio.transcribe, args_model=CLITranscribeArgs)
 
     # translations
     sub = subparser.add_parser("audio.translations.create")
@@ -38,10 +38,10 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     # sub.add_argument("--language", type=str)
     sub.add_argument("-t", "--temperature", type=float)
     sub.add_argument("--prompt", type=str)
-    sub.set_defaults(func=Audio.translate, args_model=TranslationArgs)
+    sub.set_defaults(func=CLIAudio.translate, args_model=CLITranslationArgs)
 
 
-class TranscribeArgs(BaseModel):
+class CLITranscribeArgs(BaseModel):
     model: str
     file: str
     response_format: Optional[str] = None
@@ -50,7 +50,7 @@ class TranscribeArgs(BaseModel):
     prompt: Optional[str] = None
 
 
-class TranslationArgs(BaseModel):
+class CLITranslationArgs(BaseModel):
     model: str
     file: str
     response_format: Optional[str] = None
@@ -59,9 +59,9 @@ class TranslationArgs(BaseModel):
     prompt: Optional[str] = None
 
 
-class Audio:
+class CLIAudio:
     @staticmethod
-    def transcribe(args: TranscribeArgs) -> None:
+    def transcribe(args: CLITranscribeArgs) -> None:
         with open(args.file, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
 
@@ -78,7 +78,7 @@ class Audio:
         print_model(model)
 
     @staticmethod
-    def translate(args: TranslationArgs) -> None:
+    def translate(args: CLITranslationArgs) -> None:
         with open(args.file, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
 

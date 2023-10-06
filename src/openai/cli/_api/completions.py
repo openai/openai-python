@@ -87,10 +87,10 @@ Mutually exclusive with `top_p`.""",
         help="A unique identifier representing your end-user, which can help OpenAI to monitor and detect abuse.",
     )
     # TODO: add support for logit_bias
-    sub.set_defaults(func=Completions.create, args_model=CompletionCreateArgs)
+    sub.set_defaults(func=CLICompletions.create, args_model=CLICompletionCreateArgs)
 
 
-class CompletionCreateArgs(BaseModel):
+class CLICompletionCreateArgs(BaseModel):
     model: str
     stream: bool = False
 
@@ -109,9 +109,9 @@ class CompletionCreateArgs(BaseModel):
     frequency_penalty: NotGivenOr[float] = NOT_GIVEN
 
 
-class Completions:
+class CLICompletions:
     @staticmethod
-    def create(args: CompletionCreateArgs) -> None:
+    def create(args: CLICompletionCreateArgs) -> None:
         if is_given(args.n) and args.n > 1 and args.stream:
             raise CLIError("Can't stream completions with n>1 with the current CLI")
 
@@ -134,12 +134,12 @@ class Completions:
         )
 
         if args.stream:
-            return Completions._stream_create(
+            return CLICompletions._stream_create(
                 # mypy doesn't understand the `partial` function but pyright does
                 cast(Stream[Completion], make_request(stream=True))  # pyright: ignore[reportUnnecessaryCast]
             )
 
-        return Completions._create(make_request())
+        return CLICompletions._create(make_request())
 
     @staticmethod
     def _create(completion: Completion) -> None:

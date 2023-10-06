@@ -26,32 +26,32 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         help="Why are you uploading this file? (see https://platform.openai.com/docs/api-reference/ for purposes)",
         required=True,
     )
-    sub.set_defaults(func=File.create, args_model=FileCreateArgs)
+    sub.set_defaults(func=CLIFile.create, args_model=CLIFileCreateArgs)
 
     sub = subparser.add_parser("files.retrieve")
     sub.add_argument("-i", "--id", required=True, help="The files ID")
-    sub.set_defaults(func=File.get, args_model=FileCreateArgs)
+    sub.set_defaults(func=CLIFile.get, args_model=CLIFileCreateArgs)
 
     sub = subparser.add_parser("files.delete")
     sub.add_argument("-i", "--id", required=True, help="The files ID")
-    sub.set_defaults(func=File.delete, args_model=FileCreateArgs)
+    sub.set_defaults(func=CLIFile.delete, args_model=CLIFileCreateArgs)
 
     sub = subparser.add_parser("files.list")
-    sub.set_defaults(func=File.list)
+    sub.set_defaults(func=CLIFile.list)
 
 
-class FileIDArgs(BaseModel):
+class CLIFileIDArgs(BaseModel):
     id: str
 
 
-class FileCreateArgs(BaseModel):
+class CLIFileCreateArgs(BaseModel):
     file: str
     purpose: str
 
 
-class File:
+class CLIFile:
     @staticmethod
-    def create(args: FileCreateArgs) -> None:
+    def create(args: CLIFileCreateArgs) -> None:
         with open(args.file, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
 
@@ -59,12 +59,12 @@ class File:
         print_model(file)
 
     @staticmethod
-    def get(args: FileIDArgs) -> None:
+    def get(args: CLIFileIDArgs) -> None:
         file = get_client().files.retrieve(file_id=args.id)
         print_model(file)
 
     @staticmethod
-    def delete(args: FileIDArgs) -> None:
+    def delete(args: CLIFileIDArgs) -> None:
         file = get_client().files.delete(file_id=args.id)
         print_model(file)
 

@@ -12,29 +12,29 @@ if TYPE_CHECKING:
 
 def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub = subparser.add_parser("models.list")
-    sub.set_defaults(func=Models.list)
+    sub.set_defaults(func=CLIModels.list)
 
     sub = subparser.add_parser("models.retrieve")
     sub.add_argument("-i", "--id", required=True, help="The model ID")
-    sub.set_defaults(func=Models.get, args_model=ModelIDArgs)
+    sub.set_defaults(func=CLIModels.get, args_model=CLIModelIDArgs)
 
     sub = subparser.add_parser("models.delete")
     sub.add_argument("-i", "--id", required=True, help="The model ID")
-    sub.set_defaults(func=Models.delete, args_model=ModelIDArgs)
+    sub.set_defaults(func=CLIModels.delete, args_model=CLIModelIDArgs)
 
 
-class ModelIDArgs(BaseModel):
+class CLIModelIDArgs(BaseModel):
     id: str
 
 
-class Models:
+class CLIModels:
     @staticmethod
-    def get(args: ModelIDArgs) -> None:
+    def get(args: CLIModelIDArgs) -> None:
         model = get_client().models.retrieve(model=args.id)
         print_model(model)
 
     @staticmethod
-    def delete(args: ModelIDArgs) -> None:
+    def delete(args: CLIModelIDArgs) -> None:
         model = get_client().models.delete(model=args.id)
         print_model(model)
 
