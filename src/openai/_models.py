@@ -3,7 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, cast
 from datetime import date, datetime
-from typing_extensions import ClassVar, Protocol, final, runtime_checkable
+from typing_extensions import Literal, ClassVar, Protocol, final, runtime_checkable
 
 import pydantic
 import pydantic.generics
@@ -12,6 +12,7 @@ from pydantic.fields import FieldInfo
 
 from ._types import (
     Body,
+    IncEx,
     Query,
     ModelT,
     Headers,
@@ -123,6 +124,105 @@ class BaseModel(pydantic.BaseModel):
         # because the type signatures are technically different
         # although not in practice
         model_construct = construct
+
+    if not PYDANTIC_V2:
+        # we define aliases for some of the new pydantic v2 methods so
+        # that we can just document these methods without having to specify
+        # a specifc pydantic version as some users may not know which
+        # pydantic version they are currently using
+
+        def model_dump(
+            self,
+            *,
+            mode: Literal["json", "python"] | str = "python",
+            include: IncEx = None,
+            exclude: IncEx = None,
+            by_alias: bool = False,
+            exclude_unset: bool = False,
+            exclude_defaults: bool = False,
+            exclude_none: bool = False,
+            round_trip: bool = False,
+            warnings: bool = True,
+        ) -> dict[str, Any]:
+            """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump
+
+            Generate a dictionary representation of the model, optionally specifying which fields to include or exclude.
+
+            Args:
+                mode: The mode in which `to_python` should run.
+                    If mode is 'json', the dictionary will only contain JSON serializable types.
+                    If mode is 'python', the dictionary may contain any Python objects.
+                include: A list of fields to include in the output.
+                exclude: A list of fields to exclude from the output.
+                by_alias: Whether to use the field's alias in the dictionary key if defined.
+                exclude_unset: Whether to exclude fields that are unset or None from the output.
+                exclude_defaults: Whether to exclude fields that are set to their default value from the output.
+                exclude_none: Whether to exclude fields that have a value of `None` from the output.
+                round_trip: Whether to enable serialization and deserialization round-trip support.
+                warnings: Whether to log warnings when invalid fields are encountered.
+
+            Returns:
+                A dictionary representation of the model.
+            """
+            if mode != "python":
+                raise ValueError("mode is only supported in Pydantic v2")
+            if round_trip != False:
+                raise ValueError("round_trip is only supported in Pydantic v2")
+            if warnings != True:
+                raise ValueError("warnings is only supported in Pydantic v2")
+            return super().dict(  # pyright: ignore[reportDeprecated]
+                include=include,
+                exclude=exclude,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+            )
+
+        def model_dump_json(
+            self,
+            *,
+            indent: int | None = None,
+            include: IncEx = None,
+            exclude: IncEx = None,
+            by_alias: bool = False,
+            exclude_unset: bool = False,
+            exclude_defaults: bool = False,
+            exclude_none: bool = False,
+            round_trip: bool = False,
+            warnings: bool = True,
+        ) -> str:
+            """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump_json
+
+            Generates a JSON representation of the model using Pydantic's `to_json` method.
+
+            Args:
+                indent: Indentation to use in the JSON output. If None is passed, the output will be compact.
+                include: Field(s) to include in the JSON output. Can take either a string or set of strings.
+                exclude: Field(s) to exclude from the JSON output. Can take either a string or set of strings.
+                by_alias: Whether to serialize using field aliases.
+                exclude_unset: Whether to exclude fields that have not been explicitly set.
+                exclude_defaults: Whether to exclude fields that have the default value.
+                exclude_none: Whether to exclude fields that have a value of `None`.
+                round_trip: Whether to use serialization/deserialization between JSON and class instance.
+                warnings: Whether to show any warnings that occurred during serialization.
+
+            Returns:
+                A JSON string representation of the model.
+            """
+            if round_trip != False:
+                raise ValueError("round_trip is only supported in Pydantic v2")
+            if warnings != True:
+                raise ValueError("warnings is only supported in Pydantic v2")
+            return super().json(  # type: ignore[reportDeprecated]
+                indent=indent,
+                include=include,
+                exclude=exclude,
+                by_alias=by_alias,
+                exclude_unset=exclude_unset,
+                exclude_defaults=exclude_defaults,
+                exclude_none=exclude_none,
+            )
 
 
 def _construct_field(value: object, field: FieldInfo, key: str) -> object:

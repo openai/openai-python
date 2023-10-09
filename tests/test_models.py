@@ -1,8 +1,10 @@
+import json
 from typing import Any, Dict, List, Union, Optional, cast
 from datetime import datetime, timezone
 from typing_extensions import Literal
 
 import pytest
+import pydantic
 from pydantic import Field
 
 from openai._compat import PYDANTIC_V2, parse_obj, model_dump, model_json
@@ -485,3 +487,76 @@ def test_omitted_fields() -> None:
 
     m = Model.construct(resource_id="foo")
     assert "resource_id" in m.model_fields_set
+
+
+def test_forwards_compat_model_dump_method() -> None:
+    class Model(BaseModel):
+        foo: Optional[str] = Field(alias="FOO", default=None)
+
+    m = Model(FOO="hello")
+    assert m.model_dump() == {"foo": "hello"}
+    assert m.model_dump(include={"bar"}) == {}
+    assert m.model_dump(exclude={"foo"}) == {}
+    assert m.model_dump(by_alias=True) == {"FOO": "hello"}
+
+    m2 = Model()
+    assert m2.model_dump() == {"foo": None}
+    assert m2.model_dump(exclude_unset=True) == {}
+    assert m2.model_dump(exclude_none=True) == {}
+    assert m2.model_dump(exclude_defaults=True) == {}
+
+    m3 = Model(FOO=None)
+    assert m3.model_dump() == {"foo": None}
+    assert m3.model_dump(exclude_none=True) == {}
+
+    if not PYDANTIC_V2:
+        with pytest.raises(ValueError, match="mode is only supported in Pydantic v2"):
+            m.model_dump(mode="json")
+
+        with pytest.raises(ValueError, match="round_trip is only supported in Pydantic v2"):
+            m.model_dump(round_trip=True)
+
+        with pytest.raises(ValueError, match="warnings is only supported in Pydantic v2"):
+            m.model_dump(warnings=False)
+
+
+def test_forwards_compat_model_dump_json_method() -> None:
+    class Model(BaseModel):
+        foo: Optional[str] = Field(alias="FOO", default=None)
+
+    m = Model(FOO="hello")
+    assert json.loads(m.model_dump_json()) == {"foo": "hello"}
+    assert json.loads(m.model_dump_json(include={"bar"})) == {}
+    assert json.loads(m.model_dump_json(include={"foo"})) == {"foo": "hello"}
+    assert json.loads(m.model_dump_json(by_alias=True)) == {"FOO": "hello"}
+
+    assert m.model_dump_json(indent=2) == '{\n  "foo": "hello"\n}'
+
+    m2 = Model()
+    assert json.loads(m2.model_dump_json()) == {"foo": None}
+    assert json.loads(m2.model_dump_json(exclude_unset=True)) == {}
+    assert json.loads(m2.model_dump_json(exclude_none=True)) == {}
+    assert json.loads(m2.model_dump_json(exclude_defaults=True)) == {}
+
+    m3 = Model(FOO=None)
+    assert json.loads(m3.model_dump_json()) == {"foo": None}
+    assert json.loads(m3.model_dump_json(exclude_none=True)) == {}
+
+    if not PYDANTIC_V2:
+        with pytest.raises(ValueError, match="round_trip is only supported in Pydantic v2"):
+            m.model_dump_json(round_trip=True)
+
+        with pytest.raises(ValueError, match="warnings is only supported in Pydantic v2"):
+            m.model_dump_json(warnings=False)
+
+
+def test_type_compat() -> None:
+    # our model type can be assigned to Pydantic's model type
+
+    def takes_pydantic(model: pydantic.BaseModel) -> None:
+        ...
+
+    class OurModel(BaseModel):
+        foo: Optional[str] = None
+
+    takes_pydantic(OurModel())

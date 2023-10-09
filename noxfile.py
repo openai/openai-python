@@ -9,4 +9,4 @@ def test_pydantic_v1(session: nox.Session) -> None:
     # https://github.com/cjolowicz/nox-poetry/issues/1116
     session._session.run("python", "-m", "pip", "install", "pydantic<2", external=True)  # type: ignore
 
-    session.run("pytest", "--showlocals", "--ignore=tests/functional")
+    session.run("pytest", "--showlocals", "--ignore=tests/functional", *session.posargs)
