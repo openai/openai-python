@@ -11,6 +11,7 @@ pytestmark = [pytest.mark.asyncio]
 
 
 # FILE TESTS
+@pytest.mark.integration
 async def test_file_upload():
     result = await openai.File.acreate(
         file=io.StringIO(
@@ -25,7 +26,8 @@ async def test_file_upload():
     assert result.status == "uploaded"
 
 
-# COMPLETION TESTS
+# COMPLETION TEST
+@pytest.mark.integration
 async def test_completions():
     result = await openai.Completion.acreate(
         prompt="This was a test", n=5, engine="ada"
@@ -33,6 +35,7 @@ async def test_completions():
     assert len(result.choices) == 5
 
 
+@pytest.mark.integration
 async def test_completions_multiple_prompts():
     result = await openai.Completion.acreate(
         prompt=["This was a test", "This was another test"], n=5, engine="ada"
@@ -40,12 +43,14 @@ async def test_completions_multiple_prompts():
     assert len(result.choices) == 10
 
 
+@pytest.mark.integration
 async def test_completions_model():
     result = await openai.Completion.acreate(prompt="This was a test", n=5, model="ada")
     assert len(result.choices) == 5
     assert result.model.startswith("ada")
 
 
+@pytest.mark.integration
 async def test_timeout_raises_error():
     # A query that should take awhile to return
     with pytest.raises(error.Timeout):
@@ -58,6 +63,7 @@ async def test_timeout_raises_error():
         )
 
 
+@pytest.mark.integration
 async def test_timeout_does_not_error():
     # A query that should be fast
     await openai.Completion.acreate(
@@ -67,6 +73,7 @@ async def test_timeout_does_not_error():
     )
 
 
+@pytest.mark.integration
 async def test_completions_stream_finishes_global_session():
     async with ClientSession() as session:
         openai.aiosession.set(session)
@@ -80,6 +87,7 @@ async def test_completions_stream_finishes_global_session():
         assert len(parts) > 1
 
 
+@pytest.mark.integration
 async def test_completions_stream_finishes_local_session():
     # A query that should be fast
     parts = []

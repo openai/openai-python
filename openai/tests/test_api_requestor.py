@@ -8,6 +8,7 @@ from openai import Model
 from openai.api_requestor import APIRequestor
 
 
+@pytest.mark.integration
 @pytest.mark.requestor
 def test_requestor_sets_request_id(mocker: MockerFixture) -> None:
     # Fake out 'requests' and confirm that the X-Request-Id header is set.
@@ -69,6 +70,7 @@ def test_requestor_azure_ad_headers() -> None:
     assert headers["Authorization"] == "Bearer test_key"
 
 
+@pytest.mark.integration
 @pytest.mark.requestor
 def test_requestor_cycle_sessions(mocker: MockerFixture) -> None:
     # HACK: we need to purge the _thread_context to not interfere

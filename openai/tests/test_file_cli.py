@@ -1,4 +1,5 @@
 import json
+import pytest
 import subprocess
 import time
 from tempfile import NamedTemporaryFile
@@ -6,6 +7,7 @@ from tempfile import NamedTemporaryFile
 STILL_PROCESSING = "File is still processing. Check back later."
 
 
+@pytest.mark.integration
 def test_file_cli() -> None:
     contents = json.dumps({"prompt": "1 + 3 =", "completion": "4"}) + "\n"
     with NamedTemporaryFile(suffix=".jsonl", mode="wb") as train_file:

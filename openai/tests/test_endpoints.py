@@ -9,6 +9,7 @@ from openai import error
 
 
 # FILE TESTS
+@pytest.mark.integration
 def test_file_upload():
     result = openai.File.create(
         file=io.StringIO(
@@ -24,6 +25,7 @@ def test_file_upload():
 
 
 # CHAT COMPLETION TESTS
+@pytest.mark.integration
 def test_chat_completions():
     result = openai.ChatCompletion.create(
         model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello!"}]
@@ -31,6 +33,7 @@ def test_chat_completions():
     assert len(result.choices) == 1
 
 
+@pytest.mark.integration
 def test_chat_completions_multiple():
     result = openai.ChatCompletion.create(
         model="gpt-3.5-turbo", messages=[{"role": "user", "content": "Hello!"}], n=5
@@ -38,6 +41,7 @@ def test_chat_completions_multiple():
     assert len(result.choices) == 5
 
 
+@pytest.mark.integration
 def test_chat_completions_streaming():
     result = None
     events = openai.ChatCompletion.create(
@@ -50,11 +54,13 @@ def test_chat_completions_streaming():
 
 
 # COMPLETION TESTS
+@pytest.mark.integration
 def test_completions():
     result = openai.Completion.create(prompt="This was a test", n=5, engine="ada")
     assert len(result.choices) == 5
 
 
+@pytest.mark.integration
 def test_completions_multiple_prompts():
     result = openai.Completion.create(
         prompt=["This was a test", "This was another test"], n=5, engine="ada"
@@ -62,12 +68,14 @@ def test_completions_multiple_prompts():
     assert len(result.choices) == 10
 
 
+@pytest.mark.integration
 def test_completions_model():
     result = openai.Completion.create(prompt="This was a test", n=5, model="ada")
     assert len(result.choices) == 5
     assert result.model.startswith("ada")
 
 
+@pytest.mark.integration
 def test_timeout_raises_error():
     # A query that should take awhile to return
     with pytest.raises(error.Timeout):
@@ -80,6 +88,7 @@ def test_timeout_raises_error():
         )
 
 
+@pytest.mark.integration
 def test_timeout_does_not_error():
     # A query that should be fast
     openai.Completion.create(
@@ -89,6 +98,7 @@ def test_timeout_does_not_error():
     )
 
 
+@pytest.mark.integration
 def test_user_session():
      with requests.Session() as session:
         openai.requestssession = session
@@ -100,6 +110,7 @@ def test_user_session():
         assert completion
 
 
+@pytest.mark.integration
 def test_user_session_factory():
     def factory():
         session = requests.Session()
