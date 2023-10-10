@@ -32,9 +32,9 @@ class FineTunes(SyncAPIResource):
         classification_n_classes: Optional[int] | NotGiven = NOT_GIVEN,
         classification_positive_class: Optional[str] | NotGiven = NOT_GIVEN,
         compute_classification_metrics: Optional[bool] | NotGiven = NOT_GIVEN,
+        hyperparameters: fine_tune_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         learning_rate_multiplier: Optional[float] | NotGiven = NOT_GIVEN,
         model: Union[str, Literal["ada", "babbage", "curie", "davinci"], None] | NotGiven = NOT_GIVEN,
-        n_epochs: Optional[int] | NotGiven = NOT_GIVEN,
         prompt_loss_weight: Optional[float] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         validation_file: Optional[str] | NotGiven = NOT_GIVEN,
@@ -101,6 +101,8 @@ class FineTunes(SyncAPIResource):
               multiclass classification or `classification_positive_class` for binary
               classification.
 
+          hyperparameters: The hyperparameters used for the fine-tuning job.
+
           learning_rate_multiplier: The learning rate multiplier to use for training. The fine-tuning learning rate
               is the original learning rate used for pretraining multiplied by this value.
 
@@ -113,9 +115,6 @@ class FineTunes(SyncAPIResource):
               "curie", "davinci", or a fine-tuned model created after 2022-04-21 and before
               2023-08-22. To learn more about these models, see the
               [Models](https://platform.openai.com/docs/models) documentation.
-
-          n_epochs: The number of epochs to train the model for. An epoch refers to one full cycle
-              through the training dataset.
 
           prompt_loss_weight: The weight to use for loss on the prompt tokens. This controls how much the
               model tries to learn to generate the prompt (as compared to the completion which
@@ -164,9 +163,9 @@ class FineTunes(SyncAPIResource):
                     "classification_n_classes": classification_n_classes,
                     "classification_positive_class": classification_positive_class,
                     "compute_classification_metrics": compute_classification_metrics,
+                    "hyperparameters": hyperparameters,
                     "learning_rate_multiplier": learning_rate_multiplier,
                     "model": model,
-                    "n_epochs": n_epochs,
                     "prompt_loss_weight": prompt_loss_weight,
                     "suffix": suffix,
                     "validation_file": validation_file,
@@ -370,9 +369,9 @@ class AsyncFineTunes(AsyncAPIResource):
         classification_n_classes: Optional[int] | NotGiven = NOT_GIVEN,
         classification_positive_class: Optional[str] | NotGiven = NOT_GIVEN,
         compute_classification_metrics: Optional[bool] | NotGiven = NOT_GIVEN,
+        hyperparameters: fine_tune_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         learning_rate_multiplier: Optional[float] | NotGiven = NOT_GIVEN,
         model: Union[str, Literal["ada", "babbage", "curie", "davinci"], None] | NotGiven = NOT_GIVEN,
-        n_epochs: Optional[int] | NotGiven = NOT_GIVEN,
         prompt_loss_weight: Optional[float] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         validation_file: Optional[str] | NotGiven = NOT_GIVEN,
@@ -439,6 +438,8 @@ class AsyncFineTunes(AsyncAPIResource):
               multiclass classification or `classification_positive_class` for binary
               classification.
 
+          hyperparameters: The hyperparameters used for the fine-tuning job.
+
           learning_rate_multiplier: The learning rate multiplier to use for training. The fine-tuning learning rate
               is the original learning rate used for pretraining multiplied by this value.
 
@@ -451,9 +452,6 @@ class AsyncFineTunes(AsyncAPIResource):
               "curie", "davinci", or a fine-tuned model created after 2022-04-21 and before
               2023-08-22. To learn more about these models, see the
               [Models](https://platform.openai.com/docs/models) documentation.
-
-          n_epochs: The number of epochs to train the model for. An epoch refers to one full cycle
-              through the training dataset.
 
           prompt_loss_weight: The weight to use for loss on the prompt tokens. This controls how much the
               model tries to learn to generate the prompt (as compared to the completion which
@@ -502,9 +500,9 @@ class AsyncFineTunes(AsyncAPIResource):
                     "classification_n_classes": classification_n_classes,
                     "classification_positive_class": classification_positive_class,
                     "compute_classification_metrics": compute_classification_metrics,
+                    "hyperparameters": hyperparameters,
                     "learning_rate_multiplier": learning_rate_multiplier,
                     "model": model,
-                    "n_epochs": n_epochs,
                     "prompt_loss_weight": prompt_loss_weight,
                     "suffix": suffix,
                     "validation_file": validation_file,

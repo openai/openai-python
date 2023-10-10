@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List, Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["FineTuneCreateParams"]
+__all__ = ["FineTuneCreateParams", "Hyperparameters"]
 
 
 class FineTuneCreateParams(TypedDict, total=False):
@@ -72,6 +72,9 @@ class FineTuneCreateParams(TypedDict, total=False):
     classification.
     """
 
+    hyperparameters: Hyperparameters
+    """The hyperparameters used for the fine-tuning job."""
+
     learning_rate_multiplier: Optional[float]
     """
     The learning rate multiplier to use for training. The fine-tuning learning rate
@@ -89,12 +92,6 @@ class FineTuneCreateParams(TypedDict, total=False):
     You can select one of "ada", "babbage", "curie", "davinci", or a fine-tuned
     model created after 2022-04-21 and before 2023-08-22. To learn more about these
     models, see the [Models](https://platform.openai.com/docs/models) documentation.
-    """
-
-    n_epochs: Optional[int]
-    """The number of epochs to train the model for.
-
-    An epoch refers to one full cycle through the training dataset.
     """
 
     prompt_loss_weight: Optional[float]
@@ -132,4 +129,12 @@ class FineTuneCreateParams(TypedDict, total=False):
     See the
     [fine-tuning guide](https://platform.openai.com/docs/guides/legacy-fine-tuning/creating-training-data)
     for more details.
+    """
+
+
+class Hyperparameters(TypedDict, total=False):
+    n_epochs: Union[Literal["auto"], int]
+    """The number of epochs to train the model for.
+
+    An epoch refers to one full cycle through the training dataset.
     """
