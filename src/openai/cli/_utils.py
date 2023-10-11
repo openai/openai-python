@@ -46,3 +46,12 @@ def organization_info() -> str:
 
 def print_model(model: BaseModel) -> None:
     sys.stdout.write(model_json(model, indent=2) + "\n")
+
+
+def can_use_http2() -> bool:
+    try:
+        import h2  # type: ignore  # noqa
+    except ImportError:
+        return False
+
+    return True

@@ -12,7 +12,7 @@ import pydantic
 from . import _tools
 from .. import OpenAI, __version__
 from ._api import register_commands
-from ._utils import set_client
+from ._utils import set_client, can_use_http2
 from .._types import ProxiesDict
 from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V2, ConfigDict, model_parse
@@ -149,6 +149,7 @@ def _main() -> None:
 
     http_client = httpx.Client(
         proxies=proxies or None,
+        http2=can_use_http2(),
     )
 
     try:
@@ -178,13 +179,11 @@ def _main() -> None:
             )
         else:
             parsed.func()
-    except Exception:
+    finally:
         try:
             http_client.close()
         except Exception:
             pass
-
-        raise
 
 
 if __name__ == "__main__":
