@@ -5,9 +5,12 @@ import time
 import uuid
 import inspect
 import platform
+import warnings
+import email.utils
 from types import TracebackType
 from random import random
 from typing import (
+    TYPE_CHECKING,
     Any,
     Dict,
     Type,
@@ -50,11 +53,12 @@ from ._types import (
     AnyMapping,
     ProxiesTypes,
     RequestFiles,
+    AsyncTransport,
     RequestOptions,
     UnknownResponse,
     ModelBuilderProtocol,
 )
-from ._utils import is_dict, is_mapping
+from ._utils import is_dict, is_given, is_mapping
 from ._compat import model_copy
 from ._models import (
     BaseModel,
@@ -81,6 +85,15 @@ _T_co = TypeVar("_T_co", covariant=True)
 
 _StreamT = TypeVar("_StreamT", bound=Stream[Any])
 _AsyncStreamT = TypeVar("_AsyncStreamT", bound=AsyncStream[Any])
+
+if TYPE_CHECKING:
+    from httpx._config import DEFAULT_TIMEOUT_CONFIG as HTTPX_DEFAULT_TIMEOUT
+else:
+    try:
+        from httpx._config import DEFAULT_TIMEOUT_CONFIG as HTTPX_DEFAULT_TIMEOUT
+    except ImportError:
+        # taken from https://github.com/encode/httpx/blob/3ba5fe0d7ac70222590e759c31442b1cab263791/httpx/_config.py#L366
+        HTTPX_DEFAULT_TIMEOUT = Timeout(5.0)
 
 
 # default timeout is 10 minutes
@@ -301,11 +314,12 @@ class BaseAsyncPage(BasePage[ModelT], Generic[ModelT]):
 class BaseClient:
     _client: httpx.Client | httpx.AsyncClient
     _version: str
+    _base_url: URL
     max_retries: int
     timeout: Union[float, Timeout, None]
     _limits: httpx.Limits
     _proxies: ProxiesTypes | None
-    _transport: Transport | None
+    _transport: Transport | AsyncTransport | None
     _strict_response_validation: bool
     _idempotency_header: str | None
 
@@ -313,16 +327,18 @@ class BaseClient:
         self,
         *,
         version: str,
+        base_url: str,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None = DEFAULT_TIMEOUT,
         limits: httpx.Limits,
-        transport: Transport | None,
+        transport: Transport | AsyncTransport | None,
         proxies: ProxiesTypes | None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
         self._version = version
+        self._base_url = self._enforce_trailing_slash(URL(base_url))
         self.max_retries = max_retries
         self.timeout = timeout
         self._limits = limits
@@ -332,6 +348,11 @@ class BaseClient:
         self._custom_query = custom_query or {}
         self._strict_response_validation = _strict_response_validation
         self._idempotency_header = None
+
+    def _enforce_trailing_slash(self, url: URL) -> URL:
+        if url.raw_path.endswith(b"/"):
+            return url
+        return url.copy_with(raw_path=url.raw_path + b"/")
 
     def _make_status_error_from_response(
         self,
@@ -389,6 +410,19 @@ class BaseClient:
         """
         return None
 
+    def _prepare_url(self, url: str) -> URL:
+        """
+        Merge a URL argument together with any 'base_url' on the client,
+        to create the URL used for the outgoing request.
+        """
+        # Copied from httpx's `_merge_url` method.
+        merge_url = URL(url)
+        if merge_url.is_relative_url:
+            merge_raw_path = self.base_url.raw_path + merge_url.raw_path.lstrip(b"/")
+            return self.base_url.copy_with(raw_path=merge_raw_path)
+
+        return merge_url
+
     def _build_request(
         self,
         options: FinalRequestOptions,
@@ -430,7 +464,7 @@ class BaseClient:
             headers=headers,
             timeout=self.timeout if isinstance(options.timeout, NotGiven) else options.timeout,
             method=options.method,
-            url=options.url,
+            url=self._prepare_url(options.url),
             # the `Query` type that we use is incompatible with qs'
             # `Params` type as it needs to be typed as `Mapping[str, object]`
             # so that passing a `TypedDict` doesn't cause an error.
@@ -568,6 +602,7 @@ class BaseClient:
     @property
     def default_headers(self) -> dict[str, str | Omit]:
         return {
+            "Accept": "application/json",
             "Content-Type": "application/json",
             "User-Agent": self.user_agent,
             **self.platform_headers(),
@@ -588,12 +623,11 @@ class BaseClient:
 
     @property
     def base_url(self) -> URL:
-        return self._client.base_url
+        return self._base_url
 
     @base_url.setter
     def base_url(self, url: URL | str) -> None:
-        # mypy doesn't use the type from the setter
-        self._client.base_url = url  # type: ignore[assignment]
+        self._client.base_url = url if isinstance(url, URL) else URL(url)
 
     @lru_cache(maxsize=None)
     def platform_headers(self) -> Dict[str, str]:
@@ -673,6 +707,7 @@ class BaseClient:
 
 class SyncAPIClient(BaseClient):
     _client: httpx.Client
+    _has_custom_http_client: bool
     _default_stream_cls: type[Stream[Any]] | None = None
 
     def __init__(
@@ -681,34 +716,79 @@ class SyncAPIClient(BaseClient):
         version: str,
         base_url: str,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None = DEFAULT_TIMEOUT,
+        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         transport: Transport | None = None,
         proxies: ProxiesTypes | None = None,
-        limits: Limits | None = DEFAULT_LIMITS,
+        limits: Limits | None = None,
+        http_client: httpx.Client | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
     ) -> None:
-        limits = limits or DEFAULT_LIMITS
+        if limits is not None:
+            warnings.warn(
+                "The `connection_pool_limits` argument is deprecated. The `http_client` argument should be passed instead",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+            if http_client is not None:
+                raise ValueError("The `http_client` argument is mutually exclusive with `connection_pool_limits`")
+        else:
+            limits = DEFAULT_LIMITS
+
+        if transport is not None:
+            warnings.warn(
+                "The `transport` argument is deprecated. The `http_client` argument should be passed instead",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+            if http_client is not None:
+                raise ValueError("The `http_client` argument is mutually exclusive with `transport`")
+
+        if proxies is not None:
+            warnings.warn(
+                "The `proxies` argument is deprecated. The `http_client` argument should be passed instead",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+            if http_client is not None:
+                raise ValueError("The `http_client` argument is mutually exclusive with `proxies`")
+
+        if not is_given(timeout):
+            # if the user passed in a custom http client with a non-default
+            # timeout set then we use that timeout.
+            #
+            # note: there is an edge case here where the user passes in a client
+            # where they've explicitly set the timeout to match the default timeout
+            # as this check is structural, meaning that we'll think they didn't
+            # pass in a timeout and will ignore it
+            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
+                timeout = http_client.timeout
+            else:
+                timeout = DEFAULT_TIMEOUT
+
         super().__init__(
             version=version,
             limits=limits,
-            timeout=timeout,
+            # cast to a valid type because mypy doesn't understand our type narrowing
+            timeout=cast(Timeout, timeout),
             proxies=proxies,
+            base_url=base_url,
             transport=transport,
             max_retries=max_retries,
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = httpx.Client(
+        self._client = http_client or httpx.Client(
             base_url=base_url,
-            timeout=timeout,
-            proxies=proxies,  # type: ignore
-            transport=transport,  # type: ignore
+            # cast to a valid type because mypy doesn't understand our type narrowing
+            timeout=cast(Timeout, timeout),
+            proxies=proxies,
+            transport=transport,
             limits=limits,
-            headers={"Accept": "application/json"},
         )
+        self._has_custom_http_client = bool(http_client)
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -1026,6 +1106,7 @@ class SyncAPIClient(BaseClient):
 
 class AsyncAPIClient(BaseClient):
     _client: httpx.AsyncClient
+    _has_custom_http_client: bool
     _default_stream_cls: type[AsyncStream[Any]] | None = None
 
     def __init__(
@@ -1035,18 +1116,62 @@ class AsyncAPIClient(BaseClient):
         base_url: str,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None = DEFAULT_TIMEOUT,
-        transport: Transport | None = None,
+        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        transport: AsyncTransport | None = None,
         proxies: ProxiesTypes | None = None,
-        limits: Limits | None = DEFAULT_LIMITS,
+        limits: Limits | None = None,
+        http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
-        limits = limits or DEFAULT_LIMITS
+        if limits is not None:
+            warnings.warn(
+                "The `connection_pool_limits` argument is deprecated. The `http_client` argument should be passed instead",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+            if http_client is not None:
+                raise ValueError("The `http_client` argument is mutually exclusive with `connection_pool_limits`")
+        else:
+            limits = DEFAULT_LIMITS
+
+        if transport is not None:
+            warnings.warn(
+                "The `transport` argument is deprecated. The `http_client` argument should be passed instead",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+            if http_client is not None:
+                raise ValueError("The `http_client` argument is mutually exclusive with `transport`")
+
+        if proxies is not None:
+            warnings.warn(
+                "The `proxies` argument is deprecated. The `http_client` argument should be passed instead",
+                category=DeprecationWarning,
+                stacklevel=3,
+            )
+            if http_client is not None:
+                raise ValueError("The `http_client` argument is mutually exclusive with `proxies`")
+
+        if not is_given(timeout):
+            # if the user passed in a custom http client with a non-default
+            # timeout set then we use that timeout.
+            #
+            # note: there is an edge case here where the user passes in a client
+            # where they've explicitly set the timeout to match the default timeout
+            # as this check is structural, meaning that we'll think they didn't
+            # pass in a timeout and will ignore it
+            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
+                timeout = http_client.timeout
+            else:
+                timeout = DEFAULT_TIMEOUT
+
         super().__init__(
             version=version,
+            base_url=base_url,
             limits=limits,
-            timeout=timeout,
+            # cast to a valid type because mypy doesn't understand our type narrowing
+            timeout=cast(Timeout, timeout),
             proxies=proxies,
             transport=transport,
             max_retries=max_retries,
@@ -1054,14 +1179,15 @@ class AsyncAPIClient(BaseClient):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = httpx.AsyncClient(
+        self._client = http_client or httpx.AsyncClient(
             base_url=base_url,
-            timeout=timeout,
-            proxies=proxies,  # type: ignore
-            transport=transport,  # type: ignore
+            # cast to a valid type because mypy doesn't understand our type narrowing
+            timeout=cast(Timeout, timeout),
+            proxies=proxies,
+            transport=transport,
             limits=limits,
-            headers={"Accept": "application/json"},
         )
+        self._has_custom_http_client = bool(http_client)
 
     def is_closed(self) -> bool:
         return self._client.is_closed

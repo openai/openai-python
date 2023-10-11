@@ -88,7 +88,7 @@ import typing as _t
 
 import httpx as _httpx
 
-from ._base_client import DEFAULT_LIMITS, DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
+from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = _os.environ.get("OPENAI_API_KEY")
 
@@ -104,14 +104,7 @@ default_headers: _t.Mapping[str, str] | None = None
 
 default_query: _t.Mapping[str, object] | None = None
 
-# See httpx documentation for [custom transports](https://www.python-httpx.org/advanced/#custom-transports)
-transport: Transport | None = None
-
-# See httpx documentation for [proxies](https://www.python-httpx.org/advanced/#http-proxying)
-proxies: ProxiesTypes | None = None
-
-# See httpx documentation for [limits](https://www.python-httpx.org/advanced/#pool-limit-configuration)
-connection_pool_limits: _httpx.Limits = DEFAULT_LIMITS
+http_client: _httpx.Client | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -141,15 +134,13 @@ class _ModuleClient(OpenAI):
     @property
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            # mypy doesn't use the type from the setter
-            self._client.base_url = base_url  # type: ignore[assignment]
+            return _httpx.URL(base_url)
 
-        return self._client.base_url
+        return super().base_url
 
     @base_url.setter
     def base_url(self, url: _httpx.URL | str) -> None:
-        # mypy doesn't use the type from the setter
-        self._client.base_url = url  # type: ignore[assignment]
+        super().base_url = url  # type: ignore[misc]
 
     @property  # type: ignore
     def timeout(self) -> float | Timeout | None:
@@ -191,6 +182,16 @@ class _ModuleClient(OpenAI):
 
         default_query = value
 
+    @property  # type: ignore
+    def _client(self) -> _httpx.Client:
+        return http_client or super()._client
+
+    @_client.setter  # type: ignore
+    def _client(self, value: _httpx.Client) -> None:  # type: ignore
+        global http_client
+
+        http_client = value
+
     def __del__(self) -> None:
         try:
             super().__del__()
@@ -204,14 +205,7 @@ _client: OpenAI | None = None
 def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
-    if (
-        _client is None
-        # if these options have been changed then we need to rebuild
-        # the underlying http client
-        or _client._transport != transport
-        or _client._proxies != proxies
-        or _client._limits != connection_pool_limits
-    ):
+    if _client is None:
         _client = _ModuleClient(
             api_key=api_key,
             organization=organization,
@@ -220,9 +214,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             max_retries=max_retries,
             default_headers=default_headers,
             default_query=default_query,
-            transport=transport,
-            proxies=proxies,
-            connection_pool_limits=connection_pool_limits,
+            http_client=http_client,
         )
         return _client
 

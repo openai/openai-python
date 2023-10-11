@@ -17,7 +17,12 @@ from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import APIResponseValidationError
-from openai._base_client import BaseClient, make_request_options
+from openai._base_client import (
+    DEFAULT_TIMEOUT,
+    HTTPX_DEFAULT_TIMEOUT,
+    BaseClient,
+    make_request_options,
+)
 
 base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:4010")
 api_key = os.environ.get("API_KEY", "something1234")
@@ -150,6 +155,55 @@ class TestOpenAI:
 
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
+
+    def test_request_timeout(self) -> None:
+        request = self.client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == DEFAULT_TIMEOUT
+
+        request = self.client._build_request(
+            FinalRequestOptions(method="get", url="/foo", timeout=httpx.Timeout(100.0))
+        )
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == httpx.Timeout(100.0)
+
+    def test_client_timeout_option(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0))
+
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == httpx.Timeout(0)
+
+    def test_http_client_timeout_option(self) -> None:
+        # custom timeout given to the httpx client should be used
+        with httpx.Client(timeout=None) as http_client:
+            client = OpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == httpx.Timeout(None)
+
+        # no timeout given to the httpx client should not use the httpx default
+        with httpx.Client() as http_client:
+            client = OpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == DEFAULT_TIMEOUT
+
+        # explicitly passing the default timeout currently results in it being ignored
+        with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
+            client = OpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == DEFAULT_TIMEOUT  # our default
 
     def test_default_headers_option(self) -> None:
         client = OpenAI(
@@ -323,10 +377,20 @@ class TestOpenAI:
         assert isinstance(response, Model1)
         assert response.foo == 1
 
-    def test_base_url_trailing_slash(self) -> None:
-        client = OpenAI(
-            base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-        )
+    @pytest.mark.parametrize(
+        "client",
+        [
+            OpenAI(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            OpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=httpx.Client(),
+            ),
+        ],
+        ids=["standard", "custom http client"],
+    )
+    def test_base_url_trailing_slash(self, client: OpenAI) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -336,8 +400,20 @@ class TestOpenAI:
         )
         assert request.url == "http://localhost:5000/custom/path/foo"
 
-    def test_base_url_no_trailing_slash(self) -> None:
-        client = OpenAI(base_url="http://localhost:5000/custom/path", api_key=api_key, _strict_response_validation=True)
+    @pytest.mark.parametrize(
+        "client",
+        [
+            OpenAI(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            OpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=httpx.Client(),
+            ),
+        ],
+        ids=["standard", "custom http client"],
+    )
+    def test_base_url_no_trailing_slash(self, client: OpenAI) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -346,6 +422,29 @@ class TestOpenAI:
             ),
         )
         assert request.url == "http://localhost:5000/custom/path/foo"
+
+    @pytest.mark.parametrize(
+        "client",
+        [
+            OpenAI(base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True),
+            OpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=httpx.Client(),
+            ),
+        ],
+        ids=["standard", "custom http client"],
+    )
+    def test_absolute_request_url(self, client: OpenAI) -> None:
+        request = client._build_request(
+            FinalRequestOptions(
+                method="post",
+                url="https://myapi.com/foo",
+                json_data={"foo": "bar"},
+            ),
+        )
+        assert request.url == "https://myapi.com/foo"
 
     def test_client_del(self) -> None:
         client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
@@ -354,6 +453,18 @@ class TestOpenAI:
         client.__del__()
 
         assert client.is_closed()
+
+    def test_copied_client_does_not_close_http(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        assert not client.is_closed()
+
+        copied = client.copy()
+        assert copied is not client
+
+        copied.__del__()
+
+        assert not copied.is_closed()
+        assert not client.is_closed()
 
     def test_client_context_manager(self) -> None:
         client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
@@ -525,6 +636,57 @@ class TestAsyncOpenAI:
 
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
+
+    async def test_request_timeout(self) -> None:
+        request = self.client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == DEFAULT_TIMEOUT
+
+        request = self.client._build_request(
+            FinalRequestOptions(method="get", url="/foo", timeout=httpx.Timeout(100.0))
+        )
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == httpx.Timeout(100.0)
+
+    async def test_client_timeout_option(self) -> None:
+        client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+        )
+
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == httpx.Timeout(0)
+
+    async def test_http_client_timeout_option(self) -> None:
+        # custom timeout given to the httpx client should be used
+        async with httpx.AsyncClient(timeout=None) as http_client:
+            client = AsyncOpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == httpx.Timeout(None)
+
+        # no timeout given to the httpx client should not use the httpx default
+        async with httpx.AsyncClient() as http_client:
+            client = AsyncOpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == DEFAULT_TIMEOUT
+
+        # explicitly passing the default timeout currently results in it being ignored
+        async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
+            client = AsyncOpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+
+            request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == DEFAULT_TIMEOUT  # our default
 
     def test_default_headers_option(self) -> None:
         client = AsyncOpenAI(
@@ -698,10 +860,22 @@ class TestAsyncOpenAI:
         assert isinstance(response, Model1)
         assert response.foo == 1
 
-    def test_base_url_trailing_slash(self) -> None:
-        client = AsyncOpenAI(
-            base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
-        )
+    @pytest.mark.parametrize(
+        "client",
+        [
+            AsyncOpenAI(
+                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+            ),
+            AsyncOpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=httpx.AsyncClient(),
+            ),
+        ],
+        ids=["standard", "custom http client"],
+    )
+    def test_base_url_trailing_slash(self, client: AsyncOpenAI) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -711,10 +885,22 @@ class TestAsyncOpenAI:
         )
         assert request.url == "http://localhost:5000/custom/path/foo"
 
-    def test_base_url_no_trailing_slash(self) -> None:
-        client = AsyncOpenAI(
-            base_url="http://localhost:5000/custom/path", api_key=api_key, _strict_response_validation=True
-        )
+    @pytest.mark.parametrize(
+        "client",
+        [
+            AsyncOpenAI(
+                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+            ),
+            AsyncOpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=httpx.AsyncClient(),
+            ),
+        ],
+        ids=["standard", "custom http client"],
+    )
+    def test_base_url_no_trailing_slash(self, client: AsyncOpenAI) -> None:
         request = client._build_request(
             FinalRequestOptions(
                 method="post",
@@ -723,6 +909,31 @@ class TestAsyncOpenAI:
             ),
         )
         assert request.url == "http://localhost:5000/custom/path/foo"
+
+    @pytest.mark.parametrize(
+        "client",
+        [
+            AsyncOpenAI(
+                base_url="http://localhost:5000/custom/path/", api_key=api_key, _strict_response_validation=True
+            ),
+            AsyncOpenAI(
+                base_url="http://localhost:5000/custom/path/",
+                api_key=api_key,
+                _strict_response_validation=True,
+                http_client=httpx.AsyncClient(),
+            ),
+        ],
+        ids=["standard", "custom http client"],
+    )
+    def test_absolute_request_url(self, client: AsyncOpenAI) -> None:
+        request = client._build_request(
+            FinalRequestOptions(
+                method="post",
+                url="https://myapi.com/foo",
+                json_data={"foo": "bar"},
+            ),
+        )
+        assert request.url == "https://myapi.com/foo"
 
     async def test_client_del(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
@@ -732,6 +943,19 @@ class TestAsyncOpenAI:
 
         await asyncio.sleep(0.2)
         assert client.is_closed()
+
+    async def test_copied_client_does_not_close_http(self) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        assert not client.is_closed()
+
+        copied = client.copy()
+        assert copied is not client
+
+        copied.__del__()
+
+        await asyncio.sleep(0.2)
+        assert not copied.is_closed()
+        assert not client.is_closed()
 
     async def test_client_context_manager(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)

@@ -6,6 +6,7 @@ import argparse
 from typing import Any, List, Type, Optional
 from typing_extensions import ClassVar
 
+import httpx
 import pydantic
 
 from . import _tools
@@ -146,32 +147,44 @@ def _main() -> None:
 
             proxies[key] = proxy
 
-    client = OpenAI(
-        api_key=args.api_key,
-        base_url=args.api_base,
-        organization=args.organization,
+    http_client = httpx.Client(
         proxies=proxies or None,
     )
-    set_client(client)
 
-    if args.args_model:
-        parsed.func(
-            model_parse(
-                args.args_model,
-                {
-                    **{
-                        # we omit None values so that they can be defaulted to `NotGiven`
-                        # and we'll strip it from the API request
-                        key: value
-                        for key, value in vars(parsed).items()
-                        if value is not None
-                    },
-                    "unknown_args": unknown,
-                },
-            )
+    try:
+        client = OpenAI(
+            api_key=args.api_key,
+            base_url=args.api_base,
+            organization=args.organization,
+            http_client=http_client,
         )
-    else:
-        parsed.func()
+        set_client(client)
+
+        if args.args_model:
+            parsed.func(
+                model_parse(
+                    args.args_model,
+                    {
+                        **{
+                            # we omit None values so that they can be defaulted to `NotGiven`
+                            # and we'll strip it from the API request
+                            key: value
+                            for key, value in vars(parsed).items()
+                            if value is not None
+                        },
+                        "unknown_args": unknown,
+                    },
+                )
+            )
+        else:
+            parsed.func()
+    except Exception:
+        try:
+            http_client.close()
+        except Exception:
+            pass
+
+        raise
 
 
 if __name__ == "__main__":

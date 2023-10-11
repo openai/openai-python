@@ -9,7 +9,7 @@ import pytest
 from httpx import URL
 
 import openai
-from openai import DEFAULT_LIMITS, DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
+from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 
 @pytest.fixture(autouse=True)
@@ -22,9 +22,7 @@ def reset_state() -> None:
     openai.max_retries = DEFAULT_MAX_RETRIES
     openai.default_headers = None
     openai.default_query = None
-    openai.transport = None
-    openai.proxies = None
-    openai.connection_pool_limits = DEFAULT_LIMITS
+    openai.http_client = None
 
 
 def test_api_key_option() -> None:
@@ -89,48 +87,13 @@ def test_default_query_option() -> None:
     assert openai.completions._client._custom_query["Foo"] == {"nested": 1}
 
 
-def test_transport_option() -> None:
-    assert openai.transport is None
+def test_http_client_option() -> None:
+    assert openai.http_client is None
 
-    first_client = openai.completions._client
+    original_http_client = openai.completions._client._client
+    assert original_http_client is not None
 
-    transport = httpx.MockTransport(lambda: None)
-    openai.transport = transport
+    new_client = httpx.Client()
+    openai.http_client = new_client
 
-    second_client = openai.completions._client
-    assert first_client is not second_client
-    assert second_client is openai.completions._client  # should be cached
-
-    assert first_client._transport is None
-    assert second_client._transport is transport
-
-
-def test_proxies_option() -> None:
-    assert openai.proxies is None
-
-    first_client = openai.completions._client
-
-    openai.proxies = {"http://": "http://example.com"}
-
-    second_client = openai.completions._client
-    assert first_client is not second_client
-    assert second_client is openai.completions._client  # cached
-
-    assert first_client._proxies is None
-    assert second_client._proxies == {"http://": "http://example.com"}
-
-
-def test_connection_pool_limits_option() -> None:
-    assert openai.connection_pool_limits is DEFAULT_LIMITS
-
-    first_client = openai.completions._client
-
-    limits = httpx.Limits(max_connections=1000)
-    openai.connection_pool_limits = limits
-
-    second_client = openai.completions._client
-    assert first_client is not second_client
-    assert second_client is openai.completions._client  # cached
-
-    assert first_client._limits is DEFAULT_LIMITS
-    assert second_client._limits is limits
+    assert openai.completions._client._client is new_client

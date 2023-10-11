@@ -19,17 +19,12 @@ from ._types import (
     ProxiesTypes,
     RequestOptions,
 )
+from ._utils import is_given
 from ._version import __version__
 from ._streaming import Stream as Stream
 from ._streaming import AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
-from ._base_client import (
-    DEFAULT_LIMITS,
-    DEFAULT_TIMEOUT,
-    DEFAULT_MAX_RETRIES,
-    SyncAPIClient,
-    AsyncAPIClient,
-)
+from ._base_client import DEFAULT_MAX_RETRIES, SyncAPIClient, AsyncAPIClient
 
 __all__ = [
     "Timeout",
@@ -67,16 +62,12 @@ class OpenAI(SyncAPIClient):
         organization: str | None = None,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        timeout: Union[float, Timeout, None] = DEFAULT_TIMEOUT,
+        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        # See httpx documentation for [custom transports](https://www.python-httpx.org/advanced/#custom-transports)
-        transport: Optional[Transport] = None,
-        # See httpx documentation for [proxies](https://www.python-httpx.org/advanced/#http-proxying)
-        proxies: Optional[ProxiesTypes] = None,
-        # See httpx documentation for [limits](https://www.python-httpx.org/advanced/#pool-limit-configuration)
-        connection_pool_limits: httpx.Limits | None = DEFAULT_LIMITS,
+        # Configure a custom httpx client. See the [httpx documentation](https://www.python-httpx.org/api/#client) for more details.
+        http_client: httpx.Client | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -111,9 +102,7 @@ class OpenAI(SyncAPIClient):
             base_url=base_url,
             max_retries=max_retries,
             timeout=timeout,
-            transport=transport,
-            proxies=proxies,
-            limits=connection_pool_limits,
+            http_client=http_client,
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
@@ -157,7 +146,7 @@ class OpenAI(SyncAPIClient):
         api_key: str | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        connection_pool_limits: httpx.Limits | NotGiven = NOT_GIVEN,
+        http_client: httpx.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -188,16 +177,14 @@ class OpenAI(SyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        # TODO: share the same httpx client between instances
+        http_client = http_client or self._client
         return self.__class__(
             organization=organization or self.organization,
             base_url=base_url or str(self.base_url),
             api_key=api_key or self.api_key,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
-            connection_pool_limits=self._limits
-            if isinstance(connection_pool_limits, NotGiven)
-            else connection_pool_limits,
-            max_retries=self.max_retries if isinstance(max_retries, NotGiven) else max_retries,
+            http_client=http_client,
+            max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
         )
@@ -207,6 +194,13 @@ class OpenAI(SyncAPIClient):
     with_options = copy
 
     def __del__(self) -> None:
+        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close"):
+            # this can happen if the '__init__' method raised an error
+            return
+
+        if self._has_custom_http_client:
+            return
+
         self.close()
 
     def _make_status_error(
@@ -265,16 +259,12 @@ class AsyncOpenAI(AsyncAPIClient):
         organization: str | None = None,
         base_url: Optional[str] = None,
         api_key: Optional[str] = None,
-        timeout: Union[float, Timeout, None] = DEFAULT_TIMEOUT,
+        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
-        # See httpx documentation for [custom transports](https://www.python-httpx.org/advanced/#custom-transports)
-        transport: Optional[Transport] = None,
-        # See httpx documentation for [proxies](https://www.python-httpx.org/advanced/#http-proxying)
-        proxies: Optional[ProxiesTypes] = None,
-        # See httpx documentation for [limits](https://www.python-httpx.org/advanced/#pool-limit-configuration)
-        connection_pool_limits: httpx.Limits | None = DEFAULT_LIMITS,
+        # Configure a custom httpx client. See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
+        http_client: httpx.AsyncClient | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -309,9 +299,7 @@ class AsyncOpenAI(AsyncAPIClient):
             base_url=base_url,
             max_retries=max_retries,
             timeout=timeout,
-            transport=transport,
-            proxies=proxies,
-            limits=connection_pool_limits,
+            http_client=http_client,
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
@@ -355,7 +343,7 @@ class AsyncOpenAI(AsyncAPIClient):
         api_key: str | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        connection_pool_limits: httpx.Limits | NotGiven = NOT_GIVEN,
+        http_client: httpx.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -386,16 +374,14 @@ class AsyncOpenAI(AsyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        # TODO: share the same httpx client between instances
+        http_client = http_client or self._client
         return self.__class__(
             organization=organization or self.organization,
             base_url=base_url or str(self.base_url),
             api_key=api_key or self.api_key,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
-            connection_pool_limits=self._limits
-            if isinstance(connection_pool_limits, NotGiven)
-            else connection_pool_limits,
-            max_retries=self.max_retries if isinstance(max_retries, NotGiven) else max_retries,
+            http_client=http_client,
+            max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
         )
@@ -405,6 +391,13 @@ class AsyncOpenAI(AsyncAPIClient):
     with_options = copy
 
     def __del__(self) -> None:
+        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close"):
+            # this can happen if the '__init__' method raised an error
+            return
+
+        if self._has_custom_http_client:
+            return
+
         try:
             asyncio.get_running_loop().create_task(self.close())
         except Exception:

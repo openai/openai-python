@@ -18,12 +18,13 @@ from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, runtime_c
 
 import httpx
 import pydantic
-from httpx import Proxy, Timeout, Response, BaseTransport
+from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
 if TYPE_CHECKING:
     from ._models import BaseModel
 
 Transport = BaseTransport
+AsyncTransport = AsyncBaseTransport
 Query = Mapping[str, object]
 Body = object
 AnyMapping = Mapping[str, object]
@@ -31,7 +32,7 @@ ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
-ProxiesDict = Dict[str, Union[None, str, Proxy]]
+ProxiesDict = Dict["str | URL", Union[None, str, URL, Proxy]]
 ProxiesTypes = Union[str, Proxy, ProxiesDict]
 FileContent = Union[IO[bytes], bytes]
 FileTypes = Union[
