@@ -10,13 +10,13 @@ function prism_is_running() {
 }
 
 function is_overriding_api_base_url() {
-  [ -n "$API_BASE_URL" ]
+  [ -n "$TEST_API_BASE_URL" ]
 }
 
 if is_overriding_api_base_url ; then
   # If someone is running the tests against the live API, we can trust they know
   # what they're doing and exit early.
-  echo -e "${GREEN}✔ Running tests against ${API_BASE_URL}${NC}"
+  echo -e "${GREEN}✔ Running tests against ${TEST_API_BASE_URL}${NC}"
 
   exit 0
 elif prism_is_running ; then

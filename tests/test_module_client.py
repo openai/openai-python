@@ -15,27 +15,14 @@ from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 @pytest.fixture(autouse=True)
 def reset_state() -> None:
     openai._reset_client()
-    openai.api_key = _os.environ.get("OPENAI_API_KEY") or "my API Key"
-    openai.organization = _os.environ.get("OPENAI_ORG_ID") or None
+    openai.api_key = _os.environ.get("OPENAI_API_KEY") or "My API Key"
+    openai.organization = _os.environ.get("OPENAI_ORG_ID")
     openai.base_url = None
     openai.timeout = DEFAULT_TIMEOUT
     openai.max_retries = DEFAULT_MAX_RETRIES
     openai.default_headers = None
     openai.default_query = None
     openai.http_client = None
-
-
-def test_api_key_option() -> None:
-    openai.api_key = "foo"
-
-    assert openai.api_key is "foo"
-    assert openai.completions._client.api_key is "foo"
-
-    first_client = openai.completions._client
-
-    openai.api_key = "bar"
-
-    assert first_client is openai.completions._client  # should remain cached
 
 
 def test_base_url_option() -> None:

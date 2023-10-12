@@ -7,6 +7,7 @@ import json
 import asyncio
 import inspect
 from typing import Any, Dict, Union, cast
+from unittest import mock
 
 import httpx
 import pytest
@@ -24,8 +25,8 @@ from openai._base_client import (
     make_request_options,
 )
 
-base_url = os.environ.get("API_BASE_URL", "http://127.0.0.1:4010")
-api_key = os.environ.get("API_KEY", "something1234")
+base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
+api_key = "My API Key"
 
 
 def _get_params(client: BaseClient) -> dict[str, str]:
@@ -50,9 +51,9 @@ class TestOpenAI:
         copied = self.client.copy()
         assert id(copied) != id(self.client)
 
-        copied = self.client.copy(api_key="my new api key")
-        assert copied.api_key == "my new api key"
-        assert self.client.api_key == api_key
+        copied = self.client.copy(api_key="another My API Key")
+        assert copied.api_key == "another My API Key"
+        assert self.client.api_key == "My API Key"
 
     def test_copy_default_options(self) -> None:
         # options that have a default are overridden correctly
@@ -225,6 +226,15 @@ class TestOpenAI:
         request = client2._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "stainless"
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
+
+    def test_validate_headers(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+
+        with pytest.raises(Exception):
+            client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
+            _ = client2
 
     def test_default_query_option(self) -> None:
         client = OpenAI(
@@ -513,6 +523,33 @@ class TestOpenAI:
         response = client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
 
+    @pytest.mark.parametrize(
+        "remaining_retries,retry_after,timeout",
+        [
+            [3, "20", 20],
+            [3, "0", 2],
+            [3, "-10", 2],
+            [3, "60", 60],
+            [3, "61", 2],
+            [3, "Fri, 29 Sep 2023 16:26:57 GMT", 20],
+            [3, "Fri, 29 Sep 2023 16:26:37 GMT", 2],
+            [3, "Fri, 29 Sep 2023 16:26:27 GMT", 2],
+            [3, "Fri, 29 Sep 2023 16:27:37 GMT", 60],
+            [3, "Fri, 29 Sep 2023 16:27:38 GMT", 2],
+            [3, "99999999999999999999999999999999999", 2],
+            [3, "Zun, 29 Sep 2023 16:26:27 GMT", 2],
+            [3, "", 2],
+        ],
+    )
+    @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
+    def test_parse_retry_after_header(self, remaining_retries: int, retry_after: str, timeout: float) -> None:
+        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+
+        headers = httpx.Headers({"retry-after": retry_after})
+        options = FinalRequestOptions(method="get", url="/foo", max_retries=2)
+        calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
+        assert calculated == pytest.approx(timeout, 0.6)  # pyright: ignore[reportUnknownMemberType]
+
 
 class TestAsyncOpenAI:
     client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
@@ -531,9 +568,9 @@ class TestAsyncOpenAI:
         copied = self.client.copy()
         assert id(copied) != id(self.client)
 
-        copied = self.client.copy(api_key="my new api key")
-        assert copied.api_key == "my new api key"
-        assert self.client.api_key == api_key
+        copied = self.client.copy(api_key="another My API Key")
+        assert copied.api_key == "another My API Key"
+        assert self.client.api_key == "My API Key"
 
     def test_copy_default_options(self) -> None:
         # options that have a default are overridden correctly
@@ -708,6 +745,15 @@ class TestAsyncOpenAI:
         request = client2._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("x-foo") == "stainless"
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
+
+    def test_validate_headers(self) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        assert request.headers.get("Authorization") == f"Bearer {api_key}"
+
+        with pytest.raises(Exception):
+            client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
+            _ = client2
 
     def test_default_query_option(self) -> None:
         client = AsyncOpenAI(
@@ -1006,3 +1052,31 @@ class TestAsyncOpenAI:
 
         response = await client.get("/foo", cast_to=Model)
         assert isinstance(response, str)  # type: ignore[unreachable]
+
+    @pytest.mark.parametrize(
+        "remaining_retries,retry_after,timeout",
+        [
+            [3, "20", 20],
+            [3, "0", 2],
+            [3, "-10", 2],
+            [3, "60", 60],
+            [3, "61", 2],
+            [3, "Fri, 29 Sep 2023 16:26:57 GMT", 20],
+            [3, "Fri, 29 Sep 2023 16:26:37 GMT", 2],
+            [3, "Fri, 29 Sep 2023 16:26:27 GMT", 2],
+            [3, "Fri, 29 Sep 2023 16:27:37 GMT", 60],
+            [3, "Fri, 29 Sep 2023 16:27:38 GMT", 2],
+            [3, "99999999999999999999999999999999999", 2],
+            [3, "Zun, 29 Sep 2023 16:26:27 GMT", 2],
+            [3, "", 2],
+        ],
+    )
+    @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
+    @pytest.mark.asyncio
+    async def test_parse_retry_after_header(self, remaining_retries: int, retry_after: str, timeout: float) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
+
+        headers = httpx.Headers({"retry-after": retry_after})
+        options = FinalRequestOptions(method="get", url="/foo", max_retries=2)
+        calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
+        assert calculated == pytest.approx(timeout, 0.6)  # pyright: ignore[reportUnknownMemberType]

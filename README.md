@@ -25,7 +25,7 @@ from openai import OpenAI
 
 client = OpenAI(
     # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="my api key",
+    api_key="My API Key",
 )
 
 completion = client.chat.completions.create(
@@ -40,8 +40,10 @@ completion = client.chat.completions.create(
 print(completion.choices)
 ```
 
-While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
-and adding `OPENAI_API_KEY="my api key"` to your `.env` file so that your API Key is not stored in source control.
+While you can provide an `api_key` keyword argument,
+we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
+to add `OPENAI_API_KEY="My API Key"` to your `.env` file
+so that your API Key is not stored in source control.
 
 ## Async usage
 
@@ -52,7 +54,7 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
     # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="my api key",
+    api_key="My API Key",
 )
 
 

@@ -95,7 +95,7 @@ from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = _os.environ.get("OPENAI_API_KEY")
 
-organization: str | None = _os.environ.get("OPENAI_ORG_ID") or None
+organization: str | None = _os.environ.get("OPENAI_ORG_ID")
 
 base_url: str | None = None
 

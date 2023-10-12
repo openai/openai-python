@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import time
 import uuid
+import email
 import inspect
 import logging
 import platform
@@ -655,10 +656,22 @@ class BaseClient:
         try:
             # About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
             #
-            # TODO: we may want to handle the case where the header is using the http-date syntax: "Retry-After:
             # <http-date>". See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After#syntax for
             # details.
-            retry_after = -1 if response_headers is None else int(response_headers.get("retry-after"))
+            if response_headers is not None:
+                retry_header = response_headers.get("retry-after")
+                try:
+                    retry_after = int(retry_header)
+                except Exception:
+                    retry_date_tuple = email.utils.parsedate_tz(retry_header)
+                    if retry_date_tuple is None:
+                        retry_after = -1
+                    else:
+                        retry_date = email.utils.mktime_tz(retry_date_tuple)
+                        retry_after = int(retry_date - time.time())
+            else:
+                retry_after = -1
+
         except Exception:
             retry_after = -1
 
@@ -803,7 +816,10 @@ class SyncAPIClient(BaseClient):
 
         The client will *not* be usable after this.
         """
-        self._client.close()
+        # If an error is thrown while constructing a client, self._client
+        # may not be present
+        if hasattr(self, "_client"):
+            self._client.close()
 
     def __enter__(self: _T) -> _T:
         return self

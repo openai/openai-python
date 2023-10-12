@@ -1,6 +1,6 @@
 import os
-from openai import OpenAI
 
+from openai import OpenAI
 
 # The name of your Azure OpenAI Resource.
 # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource

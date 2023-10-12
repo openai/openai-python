@@ -59,9 +59,9 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
+        api_key: str | None = None,
         organization: str | None = None,
         base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -84,15 +84,17 @@ class OpenAI(SyncAPIClient):
         - `api_key` from `OPENAI_API_KEY`
         - `organization` from `OPENAI_ORG_ID`
         """
-        api_key = api_key or os.environ.get("OPENAI_API_KEY", None)
-        if not api_key:
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         self.api_key = api_key
 
-        organization_envvar = os.environ.get("OPENAI_ORG_ID", None)
-        self.organization = organization or organization_envvar or None
+        if organization is None:
+            organization = os.environ.get("OPENAI_ORG_ID") or None
+        self.organization = organization
 
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
@@ -142,8 +144,8 @@ class OpenAI(SyncAPIClient):
     def copy(
         self,
         *,
-        organization: str | None = None,
         api_key: str | None = None,
+        organization: str | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.Client | None = None,
@@ -179,9 +181,9 @@ class OpenAI(SyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
+            api_key=api_key or self.api_key,
             organization=organization or self.organization,
             base_url=base_url or str(self.base_url),
-            api_key=api_key or self.api_key,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -256,9 +258,9 @@ class AsyncOpenAI(AsyncAPIClient):
     def __init__(
         self,
         *,
+        api_key: str | None = None,
         organization: str | None = None,
         base_url: Optional[str] = None,
-        api_key: Optional[str] = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -281,15 +283,17 @@ class AsyncOpenAI(AsyncAPIClient):
         - `api_key` from `OPENAI_API_KEY`
         - `organization` from `OPENAI_ORG_ID`
         """
-        api_key = api_key or os.environ.get("OPENAI_API_KEY", None)
-        if not api_key:
+        if api_key is None:
+            api_key = os.environ.get("OPENAI_API_KEY")
+        if api_key is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         self.api_key = api_key
 
-        organization_envvar = os.environ.get("OPENAI_ORG_ID", None)
-        self.organization = organization or organization_envvar or None
+        if organization is None:
+            organization = os.environ.get("OPENAI_ORG_ID") or None
+        self.organization = organization
 
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
@@ -339,8 +343,8 @@ class AsyncOpenAI(AsyncAPIClient):
     def copy(
         self,
         *,
-        organization: str | None = None,
         api_key: str | None = None,
+        organization: str | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.AsyncClient | None = None,
@@ -376,9 +380,9 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
+            api_key=api_key or self.api_key,
             organization=organization or self.organization,
             base_url=base_url or str(self.base_url),
-            api_key=api_key or self.api_key,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,

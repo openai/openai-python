@@ -309,6 +309,24 @@ def coerce_boolean(val: str) -> bool:
     return val == "true" or val == "1" or val == "on"
 
 
+def maybe_coerce_integer(val: str | None) -> int | None:
+    if val is None:
+        return None
+    return coerce_integer(val)
+
+
+def maybe_coerce_float(val: str | None) -> float | None:
+    if val is None:
+        return None
+    return coerce_float(val)
+
+
+def maybe_coerce_boolean(val: str | None) -> bool | None:
+    if val is None:
+        return None
+    return coerce_boolean(val)
+
+
 def removeprefix(string: str, prefix: str) -> str:
     """Remove a prefix from a string.
 
