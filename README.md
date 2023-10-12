@@ -110,7 +110,7 @@ async for part in stream:
 
 ## Module-level client
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > We highly recommend instantiating client instances instead of relying on the global client.
 
 We also expose a global client instance that is accessible in a similar fashion to versions prior to v1.
