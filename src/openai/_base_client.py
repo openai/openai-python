@@ -4,6 +4,7 @@ import json
 import time
 import uuid
 import inspect
+import logging
 import platform
 import warnings
 import email.utils
@@ -59,7 +60,7 @@ from ._types import (
     ModelBuilderProtocol,
 )
 from ._utils import is_dict, is_given, is_mapping
-from ._compat import model_copy
+from ._compat import model_copy, model_dump
 from ._models import (
     BaseModel,
     GenericModel,
@@ -74,6 +75,8 @@ from ._exceptions import (
     APIConnectionError,
     APIResponseValidationError,
 )
+
+log: logging.Logger = logging.getLogger(__name__)
 
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
@@ -427,7 +430,8 @@ class BaseClient:
         self,
         options: FinalRequestOptions,
     ) -> httpx.Request:
-        headers = self._build_headers(options)
+        if log.isEnabledFor(logging.DEBUG):
+            log.debug("Request options: %s", model_dump(options, exclude_unset=True))
 
         kwargs: dict[str, Any] = {}
 
@@ -440,6 +444,7 @@ class BaseClient:
             else:
                 raise RuntimeError(f"Unexpected JSON data type, {type(json_data)}, cannot merge with `extra_body`")
 
+        headers = self._build_headers(options)
         params = _merge_mappings(self._custom_query, options.params)
 
         # If the given Content-Type header is multipart/form-data then it
@@ -877,6 +882,9 @@ class SyncAPIClient(BaseClient):
 
         try:
             response = self._client.send(request, auth=self.custom_auth, stream=stream)
+            log.debug(
+                'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+            )
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
@@ -925,6 +933,7 @@ class SyncAPIClient(BaseClient):
     ) -> ResponseT | _StreamT:
         remaining = remaining_retries - 1
         timeout = self._calculate_retry_timeout(remaining, options, response_headers)
+        log.info("Retrying request to %s in %f seconds", options.url, timeout)
 
         # In a synchronous context we are blocking the entire thread. Up to the library user to run the client in a
         # different thread if necessary.
@@ -1276,6 +1285,9 @@ class AsyncAPIClient(BaseClient):
 
         try:
             response = await self._client.send(request, auth=self.custom_auth, stream=stream)
+            log.debug(
+                'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+            )
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
@@ -1334,6 +1346,7 @@ class AsyncAPIClient(BaseClient):
     ) -> ResponseT | _AsyncStreamT:
         remaining = remaining_retries - 1
         timeout = self._calculate_retry_timeout(remaining, options, response_headers)
+        log.info("Retrying request to %s in %f seconds", options.url, timeout)
 
         await anyio.sleep(timeout)
 

@@ -54,8 +54,6 @@ target-version = ["py37"]
 testpaths = ["tests"]
 addopts = "--tb=short"
 xfail_strict = true
-log_cli = true
-log_level = "INFO"
 asyncio_mode = "auto"
 filterwarnings = [
   "error"

@@ -126,10 +126,24 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
     return model.json(indent=indent)  # type: ignore
 
 
-def model_dump(model: pydantic.BaseModel) -> dict[str, Any]:
+def model_dump(
+    model: pydantic.BaseModel,
+    *,
+    exclude_unset: bool = False,
+    exclude_defaults: bool = False,
+) -> dict[str, Any]:
     if PYDANTIC_V2:
-        return model.model_dump()
-    return cast("dict[str, Any]", model.dict())  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+        return model.model_dump(
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+        )
+    return cast(
+        "dict[str, Any]",
+        model.dict(  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+            exclude_unset=exclude_unset,
+            exclude_defaults=exclude_defaults,
+        ),
+    )
 
 
 def model_parse(model: type[_ModelT], data: Any) -> _ModelT:
