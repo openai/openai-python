@@ -332,6 +332,41 @@ class FineTunes(SyncAPIResource):
         """
         ...
 
+    @overload
+    def list_events(
+        self,
+        fine_tune_id: str,
+        *,
+        stream: bool,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | None | NotGiven = 86400,
+    ) -> FineTuneEventsListResponse | Stream[FineTuneEvent]:
+        """
+        Get fine-grained status updates for a fine-tune job.
+
+        Args:
+          stream: Whether to stream events for the fine-tune job. If set to true, events will be
+              sent as data-only
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
+              as they become available. The stream will terminate with a `data: [DONE]`
+              message when the job is finished (succeeded, cancelled, or failed).
+
+              If set to false, only events generated so far will be returned.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
     def list_events(
         self,
         fine_tune_id: str,
@@ -647,6 +682,41 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = 86400,
     ) -> AsyncStream[FineTuneEvent]:
+        """
+        Get fine-grained status updates for a fine-tune job.
+
+        Args:
+          stream: Whether to stream events for the fine-tune job. If set to true, events will be
+              sent as data-only
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
+              as they become available. The stream will terminate with a `data: [DONE]`
+              message when the job is finished (succeeded, cancelled, or failed).
+
+              If set to false, only events generated so far will be returned.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def list_events(
+        self,
+        fine_tune_id: str,
+        *,
+        stream: bool,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | None | NotGiven = 86400,
+    ) -> FineTuneEventsListResponse | AsyncStream[FineTuneEvent]:
         """
         Get fine-grained status updates for a fine-tune job.
 
