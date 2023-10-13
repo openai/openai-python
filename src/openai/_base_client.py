@@ -405,7 +405,10 @@ class BaseClient:
 
         return headers
 
-    def _prepare_request(self, request: httpx.Request) -> None:
+    def _prepare_request(
+        self,
+        request: httpx.Request,  # noqa: ARG002
+    ) -> None:
         """This method is used as a callback for mutating the `Request` object
         after it has been constructed.
 
@@ -509,7 +512,7 @@ class BaseClient:
         self,
         *,
         cast_to: Type[ResponseT],
-        options: FinalRequestOptions,
+        options: FinalRequestOptions,  # noqa: ARG002
         response: httpx.Response,
     ) -> ResponseT:
         if cast_to is NoneType:
@@ -616,7 +619,11 @@ class BaseClient:
             **self._custom_headers,
         }
 
-    def _validate_headers(self, headers: Headers, custom_headers: Headers) -> None:
+    def _validate_headers(
+        self,
+        headers: Headers,  # noqa: ARG002
+        custom_headers: Headers,  # noqa: ARG002
+    ) -> None:
         """Validate the given default headers and custom headers.
 
         Does nothing by default.

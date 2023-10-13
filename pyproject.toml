@@ -88,6 +88,8 @@ select = [
   "F401",
   # bare except statements
   "E722",
+  # unused arguments
+  "ARG",
   # print statements
   "T201",
   "T203",

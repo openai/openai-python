@@ -553,7 +553,7 @@ def test_forwards_compat_model_dump_json_method() -> None:
 def test_type_compat() -> None:
     # our model type can be assigned to Pydantic's model type
 
-    def takes_pydantic(model: pydantic.BaseModel) -> None:
+    def takes_pydantic(model: pydantic.BaseModel) -> None:  # noqa: ARG001
         ...
 
     class OurModel(BaseModel):
