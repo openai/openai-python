@@ -7,6 +7,8 @@ from typing import TYPE_CHECKING, Any, Generic, Iterator, AsyncIterator
 import httpx
 
 from ._types import ResponseT
+from ._utils import is_mapping
+from ._exceptions import APIError
 
 if TYPE_CHECKING:
     from ._base_client import SyncAPIClient, AsyncAPIClient
@@ -50,7 +52,15 @@ class Stream(Generic[ResponseT]):
                 break
 
             if sse.event is None:
-                yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                data = sse.json()
+                if is_mapping(data) and data.get("error"):
+                    raise APIError(
+                        message="An error ocurred during streaming",
+                        request=self.response.request,
+                        body=data["error"],
+                    )
+
+                yield process_data(data=data, cast_to=cast_to, response=response)
 
 
 class AsyncStream(Generic[ResponseT]):
@@ -92,7 +102,15 @@ class AsyncStream(Generic[ResponseT]):
                 break
 
             if sse.event is None:
-                yield process_data(data=sse.json(), cast_to=cast_to, response=response)
+                data = sse.json()
+                if is_mapping(data) and data.get("error"):
+                    raise APIError(
+                        message="An error ocurred during streaming",
+                        request=self.response.request,
+                        body=data["error"],
+                    )
+
+                yield process_data(data=data, cast_to=cast_to, response=response)
 
 
 class ServerSentEvent:
