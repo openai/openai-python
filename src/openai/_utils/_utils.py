@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import os
+import re
 import inspect
 import functools
 from typing import Any, Mapping, TypeVar, Callable, Iterable, Sequence, cast, overload
 from pathlib import Path
 from typing_extensions import Required, Annotated, TypeGuard, get_args, get_origin
 
-from .._types import NotGiven, FileTypes, NotGivenOr
+from .._types import Headers, NotGiven, FileTypes, NotGivenOr, HeadersLike
 from .._compat import is_union as _is_union
 from .._compat import parse_date as parse_date
 from .._compat import parse_datetime as parse_datetime
@@ -351,3 +352,22 @@ def file_from_path(path: str) -> FileTypes:
     contents = Path(path).read_bytes()
     file_name = os.path.basename(path)
     return (file_name, contents)
+
+
+def get_required_header(headers: HeadersLike, header: str) -> str:
+    lower_header = header.lower()
+    if isinstance(headers, Mapping):
+        headers = cast(Headers, headers)
+        for k, v in headers.items():
+            if k.lower() == lower_header and isinstance(v, str):
+                return v
+
+    """ to deal with the case where the header looks like Stainless-Event-Id """
+    intercaps_header = re.sub(r"([^\w])(\w)", lambda pat: pat.group(1) + pat.group(2).upper(), header.capitalize())
+
+    for normalized_header in [header, lower_header, header.upper(), intercaps_header]:
+        value = headers.get(normalized_header)
+        if value:
+            return value
+
+    raise ValueError(f"Could not find {header} header")
