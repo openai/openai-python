@@ -93,7 +93,7 @@ class OpenAI(SyncAPIClient):
         self.api_key = api_key
 
         if organization is None:
-            organization = os.environ.get("OPENAI_ORG_ID") or None
+            organization = os.environ.get("OPENAI_ORG_ID")
         self.organization = organization
 
         if base_url is None:
@@ -292,7 +292,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self.api_key = api_key
 
         if organization is None:
-            organization = os.environ.get("OPENAI_ORG_ID") or None
+            organization = os.environ.get("OPENAI_ORG_ID")
         self.organization = organization
 
         if base_url is None:
