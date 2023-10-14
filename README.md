@@ -8,6 +8,19 @@ with a wide range of versions of the OpenAI API.
 
 You can find usage examples for the OpenAI Python library in our [API reference](https://platform.openai.com/docs/api-reference?lang=python) and the [OpenAI Cookbook](https://github.com/openai/openai-cookbook/).
 
+## Beta Release
+
+> [!IMPORTANT]  
+> We're preparing to release version 1.0 of the OpenAI Python library.
+
+This new version will be a major release and will include breaking changes. We're releasing this beta version to give you a chance to try out the new features and provide feedback before the official release. You can install the beta version with:
+
+```sh
+pip install --pre openai
+```
+And follow along with the [beta release notes](https://github.com/openai/openai-python/discussions/631).
+
+
 ## Installation
 
 To start, ensure you have Python 3.7.1 or newer. If you just
@@ -37,7 +50,7 @@ Install dependencies for [`openai.embeddings_utils`](openai/embeddings_utils.py)
 pip install openai[embeddings]
 ```
 
-Install support for [Weights & Biases](https://wandb.me/openai-docs):
+Install support for [Weights & Biases](https://wandb.me/openai-docs) which can be used for fine-tuning:
 
 ```sh
 pip install openai[wandb]
@@ -51,7 +64,7 @@ pip install openai[datalib]
 
 ## Usage
 
-The library needs to be configured with your account's secret key which is available on the [website](https://platform.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:
+The library needs to be configured with your OpenAI account's private API key which is available on our [developer platform](https://platform.openai.com/account/api-keys). Either set it as the `OPENAI_API_KEY` environment variable before using the library:
 
 ```bash
 export OPENAI_API_KEY='sk-...'
@@ -128,6 +141,14 @@ openai.Model.delete("ft:gpt-3.5-turbo:acemeco:suffix:abc123")
 ```
 
 You can learn more in our [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning).
+
+To log the training results from fine-tuning to Weights & Biases use:
+
+```
+openai wandb sync
+```
+
+For more information, read the [wandb documentation](https://docs.wandb.ai/guides/integrations/openai) on Weights & Biases.
 
 ### Moderation
 
@@ -209,7 +230,7 @@ openai --proxy=http://proxy.com api models.list
 ### Microsoft Azure Endpoints
 
 In order to use the library with Microsoft Azure endpoints, you need to set the `api_type`, `api_base` and `api_version` in addition to the `api_key`. The `api_type` must be set to 'azure' and the others correspond to the properties of your endpoint.
-In addition, the deployment name must be passed as the engine parameter.
+In addition, the deployment name must be passed as the `deployment_id` parameter.
 
 ```python
 import openai

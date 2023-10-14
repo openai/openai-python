@@ -1375,7 +1375,7 @@ Mutually exclusive with `top_p`.""",
 
 def wandb_register(parser):
     subparsers = parser.add_subparsers(
-        title="wandb", help="Logging with Weights & Biases"
+        title="wandb", help="Logging with Weights & Biases, see https://docs.wandb.ai/guides/integrations/openai for documentation"
     )
 
     def help(args):
@@ -1394,17 +1394,23 @@ def wandb_register(parser):
     )
     sub.add_argument(
         "--project",
-        default="GPT-3",
-        help="""Name of the project where you're sending runs. By default, it is "GPT-3".""",
+        default="OpenAI-Fine-Tune",
+        help="""Name of the Weights & Biases project where you're sending runs. By default, it is "OpenAI-Fine-Tune".""",
     )
     sub.add_argument(
         "--entity",
-        help="Username or team name where you're sending runs. By default, your default entity is used, which is usually your username.",
+        help="Weights & Biases username or team name where you're sending runs. By default, your default entity is used, which is usually your username.",
     )
     sub.add_argument(
         "--force",
         action="store_true",
         help="Forces logging and overwrite existing wandb run of the same fine-tune.",
     )
+    sub.add_argument(
+        "--legacy",
+        action="store_true",
+        help="Log results from legacy OpenAI /v1/fine-tunes api",
+    )
     sub.set_defaults(force=False)
+    sub.set_defaults(legacy=False)
     sub.set_defaults(func=WandbLogger.sync)
