@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import io
 import os
 import re
 import inspect
@@ -55,10 +56,10 @@ def _extract_items(
             return []
 
         # We have exhausted the path, return the entry we found.
-        if not isinstance(obj, bytes) and not isinstance(obj, tuple):
+        if not isinstance(obj, bytes) and not isinstance(obj, tuple) and not isinstance(obj, io.IOBase):
             raise RuntimeError(
-                f"Expected entry at {flattened_key} to be bytes or a tuple but received {type(obj)} instead."
-            )
+                f"Expected entry at {flattened_key} to be bytes, an io.IOBase instance or a tuple but received {type(obj)} instead."
+            ) from None
 
         # TODO: validate obj more?
         assert flattened_key is not None
