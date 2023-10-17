@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import asyncio
-from typing import Union, Mapping, Optional
+from typing import cast, Callable, Union, Mapping, Optional, Tuple
 
 import httpx
 
@@ -53,13 +53,14 @@ class OpenAI(SyncAPIClient):
     fine_tunes: resources.FineTunes
 
     # client options
-    api_key: str
+    api_key: str| Callable[[], Tuple[str, str]]
+    api_version: str | None
     organization: str | None
 
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Tuple[str, str]] | None = None,
         organization: str | None = None,
         base_url: Optional[str] = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
@@ -68,6 +69,9 @@ class OpenAI(SyncAPIClient):
         default_query: Mapping[str, object] | None = None,
         # Configure a custom httpx client. See the [httpx documentation](https://www.python-httpx.org/api/#client) for more details.
         http_client: httpx.Client | None = None,
+        # API version is required when calling Azure Open AI endpoints.
+        api_version: str | None = None,
+        api_type: str | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -91,6 +95,16 @@ class OpenAI(SyncAPIClient):
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         self.api_key = api_key
+        
+        api_type = cast(str, api_type or os.environ.get("OPENAI_API_TYPE", default='openai'))
+        self.api_type = api_type.lower()
+
+        # This is a little...questionable... but if OpenAI adds support for an api-version query parameter
+        # we don't have to guard this with the api_type == 'azure' check.
+        if self.api_type == 'azure':
+            dq: dict[str, str] = dict(**default_query) if default_query else {}
+            dq.setdefault('api-version', api_version or '2023-09-01-preview')
+            default_query = dq
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID") or None
@@ -130,7 +144,13 @@ class OpenAI(SyncAPIClient):
 
     @property
     def auth_headers(self) -> dict[str, str]:
+        if callable(self.api_key):
+            name, value = self.api_key()
+            return { name: value }
+        
         api_key = self.api_key
+        if self.api_type == 'azure':
+            return {"api-key": api_key}
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
@@ -144,7 +164,8 @@ class OpenAI(SyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Tuple[str, str]] | None = None,
+        api_version: str | None = None,
         organization: str | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -182,6 +203,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self.api_key,
+            api_version=api_version or self.api_version,
             organization=organization or self.organization,
             base_url=base_url or str(self.base_url),
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,

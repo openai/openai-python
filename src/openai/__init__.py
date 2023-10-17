@@ -97,7 +97,7 @@ api_key: str | None = _os.environ.get("OPENAI_API_KEY")
 
 organization: str | None = _os.environ.get("OPENAI_ORG_ID")
 
-base_url: str | None = None
+base_url: str | None = _os.environ.get("OPENAI_API_BASE")
 
 timeout: float | Timeout | None = DEFAULT_TIMEOUT
 
@@ -109,6 +109,8 @@ default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
 
+api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
+api_type: str | None = _os.environ.get("OPENAI_API_TYPE")
 
 class _ModuleClient(OpenAI):
     # Note: we have to use type: ignores here as overriding class members
@@ -211,6 +213,8 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     if _client is None:
         _client = _ModuleClient(
             api_key=api_key,
+            api_version=api_version,
+            api_type=api_type,
             organization=organization,
             base_url=base_url,
             timeout=timeout,
