@@ -90,7 +90,8 @@ def _build_parser() -> argparse.ArgumentParser:
 
     register_commands(sub_api)
 
-    _tools.register_commands(subparsers)
+    sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
+    _tools.register_commands(sub_tools, subparsers)
 
     return parser
 
