@@ -58,7 +58,7 @@ def _extract_items(
         # We have exhausted the path, return the entry we found.
         if not isinstance(obj, bytes) and not isinstance(obj, tuple) and not isinstance(obj, io.IOBase):
             raise RuntimeError(
-                f"Expected entry at {flattened_key} to be bytes, an io.IOBase instance or a tuple but received {type(obj)} instead."
+                f"Expected entry at {flattened_key} to be bytes, an io.IOBase instance or a tuple but received {type(obj)} instead. See https://github.com/openai/openai-python/tree/v1#file-uploads"
             ) from None
 
         # TODO: validate obj more?
