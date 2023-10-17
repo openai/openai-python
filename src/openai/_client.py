@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 import asyncio
-from typing import Union, Mapping, Optional
+from typing import Union, Mapping
 
 import httpx
 
@@ -61,7 +61,7 @@ class OpenAI(SyncAPIClient):
         *,
         api_key: str | None = None,
         organization: str | None = None,
-        base_url: Optional[str] = None,
+        base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -146,7 +146,7 @@ class OpenAI(SyncAPIClient):
         *,
         api_key: str | None = None,
         organization: str | None = None,
-        base_url: str | None = None,
+        base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.Client | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,
@@ -260,7 +260,7 @@ class AsyncOpenAI(AsyncAPIClient):
         *,
         api_key: str | None = None,
         organization: str | None = None,
-        base_url: Optional[str] = None,
+        base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -345,7 +345,7 @@ class AsyncOpenAI(AsyncAPIClient):
         *,
         api_key: str | None = None,
         organization: str | None = None,
-        base_url: str | None = None,
+        base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.AsyncClient | None = None,
         max_retries: int | NotGiven = NOT_GIVEN,

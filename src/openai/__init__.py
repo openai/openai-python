@@ -97,7 +97,7 @@ api_key: str | None = _os.environ.get("OPENAI_API_KEY")
 
 organization: str | None = _os.environ.get("OPENAI_ORG_ID")
 
-base_url: str | None = None
+base_url: str | _httpx.URL | None = None
 
 timeout: float | Timeout | None = DEFAULT_TIMEOUT
 
