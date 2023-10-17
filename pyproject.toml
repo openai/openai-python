@@ -1,50 +1,71 @@
-[tool.poetry]
+[project]
 name = "openai"
 version = "1.0.0-beta.3"
 description = "Client library for the openai API"
 readme = "README.md"
-authors = ["OpenAI <support@openai.com>"]
 license = "Apache-2.0"
-repository = "https://github.com/openai/openai-python"
-packages = [
-  { include = "openai", from = "src" }
+authors = [
+{ name = "OpenAI", email = "support@openai.com" },
 ]
+dependencies = [
+  "httpx>=0.23.0, <1",
+  "pydantic>=1.9.0, <3",
+  "typing-extensions>=4.5, <5",
+  "anyio>=3.5.0, <4",
+  "distro>=1.7.0, <2",
+  "tqdm > 4"
+]
+requires-python = ">= 3.7.1"
 
-[tool.poetry.dependencies]
-python = "^3.7.1"
-httpx = ">= 0.23.0, < 1"
-pydantic = ">= 1.9.0, < 3"
-typing-extensions = ">= 4.5, < 5"
-anyio = ">= 3.5.0, < 4"
-distro = ">= 1.7.0, < 2"
-tqdm = "> 4"
+[project.optional-dependencies]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 
-numpy = { version = ">= 1", optional = true }
-pandas = { version = ">= 1.2.3", optional = true }
-pandas-stubs = { version = ">= 1.1.0.11", optional = true }
+[project.urls]
+Homepage = "https://github.com/openai/openai-python"
+Repository = "https://github.com/openai/openai-python"
 
-[tool.poetry.extras]
-datalib = ["numpy", "pandas", "pandas-stubs"]
-
-[tool.poetry.group.dev.dependencies]
-pyright = "1.1.326"
-mypy = "1.4.1"
-black = "23.3.0"
-respx = "0.19.2"
-pytest = "7.1.1"
-pytest-asyncio = "0.21.1"
-ruff = "0.0.282"
-isort = "5.10.1"
-time-machine = "^2.9.0"
-nox = "^2023.4.22"
-nox-poetry = "^1.0.3"
-types-tqdm = "> 4"
-[tool.poetry.scripts]
+[project.scripts]
 openai = "openai.cli:main"
 
+[tool.rye]
+managed = true
+dev-dependencies = [
+  "pyright==1.1.326",
+  "mypy==1.4.1",
+  "black==23.3.0",
+  "respx==0.19.2",
+  "pytest==7.1.1",
+  "pytest-asyncio==0.21.1",
+  "ruff==0.0.282",
+  "isort==5.10.1",
+  "time-machine==2.9.0",
+  "nox==2023.4.22",
+  "types-tqdm > 4"
+]
+
+[tool.rye.scripts]
+format = { chain = [
+  "format:black",
+  "format:docs",
+  "format:ruff",
+  "format:isort",
+]}
+"format:black" = "black ."
+"format:docs" = "python bin/blacken-docs.py README.md api.md"
+"format:ruff" = "ruff --fix ."
+"format:isort" = "isort ."
+
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+  "src/*"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openai"]
 
 [tool.black]
 line-length = 120

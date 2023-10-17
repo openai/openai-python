@@ -6,5 +6,7 @@ __pycache__
 
 dist
 
+.venv
+
 .env
 codegen.log

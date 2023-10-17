@@ -7,7 +7,6 @@ from typing_extensions import Literal, ClassVar, Protocol, final, runtime_checka
 
 import pydantic
 import pydantic.generics
-from pydantic import Extra
 from pydantic.fields import FieldInfo
 
 from ._types import (
@@ -56,7 +55,7 @@ class BaseModel(pydantic.BaseModel):
             return self.__fields_set__  # type: ignore
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
-            extra: Any = Extra.allow  # type: ignore
+            extra: Any = pydantic.Extra.allow  # type: ignore
 
     def __str__(self) -> str:
         # mypy complains about an invalid self arg
