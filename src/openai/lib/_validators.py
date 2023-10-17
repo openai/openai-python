@@ -19,7 +19,7 @@ class Remediation(NamedTuple):
     error_msg: Optional[str] = None
 
 
-OptionalDataFrameT = TypeVar("OptionalDataFrameT", bound="Optional[pd.Dataframe]")
+OptionalDataFrameT = TypeVar("OptionalDataFrameT", bound="Optional[pd.DataFrame]")
 
 
 def num_examples_validator(df: pd.DataFrame) -> Remediation:
@@ -490,28 +490,28 @@ def read_any_format(
                         dtype=str,
                     ).fillna("")
             elif fname.lower().endswith(".jsonl"):
-                df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                df = pd.read_json(fname, lines=True, dtype=str).fillna("")  # type: ignore
                 if len(df) == 1:  # type: ignore
                     # this is NOT what we expect for a .jsonl file
                     immediate_msg = "\n- Your JSONL file appears to be in a JSON format. Your file will be converted to JSONL format"
                     necessary_msg = "Your format `JSON` will be converted to `JSONL`"
-                    df = pd.read_json(fname, dtype=str).fillna("")
+                    df = pd.read_json(fname, dtype=str).fillna("")  # type: ignore
                 else:
                     pass  # this is what we expect for a .jsonl file
             elif fname.lower().endswith(".json"):
                 try:
                     # to handle case where .json file is actually a .jsonl file
-                    df = pd.read_json(fname, lines=True, dtype=str).fillna("")
+                    df = pd.read_json(fname, lines=True, dtype=str).fillna("")  # type: ignore
                     if len(df) == 1:  # type: ignore
                         # this code path corresponds to a .json file that has one line
-                        df = pd.read_json(fname, dtype=str).fillna("")
+                        df = pd.read_json(fname, dtype=str).fillna("")  # type: ignore
                     else:
                         # this is NOT what we expect for a .json file
                         immediate_msg = "\n- Your JSON file appears to be in a JSONL format. Your file will be converted to JSONL format"
                         necessary_msg = "Your format `JSON` will be converted to `JSONL`"
                 except ValueError:
                     # this code path corresponds to a .json file that has multiple lines (i.e. it is indented)
-                    df = pd.read_json(fname, dtype=str).fillna("")
+                    df = pd.read_json(fname, dtype=str).fillna("")  # type: ignore
             else:
                 error_msg = (
                     "Your file must have one of the following extensions: .CSV, .TSV, .XLSX, .TXT, .JSON or .JSONL"
