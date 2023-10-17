@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "openai"
-version = "1.0.0-beta.2"
+version = "1.0.0-beta.3"
 description = "Client library for the openai API"
 readme = "README.md"
 authors = ["OpenAI <support@openai.com>"]
