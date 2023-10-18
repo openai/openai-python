@@ -70,6 +70,8 @@ __all__ = [
 ]
 
 from .version import VERSION as VERSION
+from .lib.azure import AzureOpenAI as AzureOpenAI
+from .lib.azure import AsyncAzureOpenAI as AsyncAzureOpenAI
 
 _setup_logging()
 
