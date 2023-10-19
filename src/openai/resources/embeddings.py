@@ -20,6 +20,7 @@ class Embeddings(SyncAPIResource):
         *,
         input: Union[str, List[str], List[int], List[List[int]]],
         model: Union[str, Literal["text-embedding-ada-002"]],
+        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -44,6 +45,9 @@ class Embeddings(SyncAPIResource):
               see all of your available models, or see our
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
+
+          encoding_format: The format to return the embeddings in. Can be either `float` or
+              [`base64`](https://pypi.org/project/pybase64/).
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -63,6 +67,7 @@ class Embeddings(SyncAPIResource):
                 {
                     "input": input,
                     "model": model,
+                    "encoding_format": encoding_format,
                     "user": user,
                 },
                 embedding_create_params.EmbeddingCreateParams,
@@ -80,6 +85,7 @@ class AsyncEmbeddings(AsyncAPIResource):
         *,
         input: Union[str, List[str], List[int], List[List[int]]],
         model: Union[str, Literal["text-embedding-ada-002"]],
+        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -105,6 +111,9 @@ class AsyncEmbeddings(AsyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
+          encoding_format: The format to return the embeddings in. Can be either `float` or
+              [`base64`](https://pypi.org/project/pybase64/).
+
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
@@ -123,6 +132,7 @@ class AsyncEmbeddings(AsyncAPIResource):
                 {
                     "input": input,
                     "model": model,
+                    "encoding_format": encoding_format,
                     "user": user,
                 },
                 embedding_create_params.EmbeddingCreateParams,
