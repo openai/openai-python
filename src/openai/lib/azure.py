@@ -12,7 +12,16 @@ from .._models import FinalRequestOptions
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
 
-_deployments_endpoints = set(["/completions", "/chat/completions"])
+
+_deployments_endpoints = set(
+    [
+        "/completions",
+        "/chat/completions",
+        "/embeddings",
+        "/audio/transcriptions",
+        "/audio/translations",
+    ]
+)
 
 
 class BaseAzureClient(BaseClient):
