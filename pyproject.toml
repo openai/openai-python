@@ -8,12 +8,12 @@ authors = [
 { name = "OpenAI", email = "support@openai.com" },
 ]
 dependencies = [
-  "httpx>=0.23.0, <1",
-  "pydantic>=1.9.0, <3",
-  "typing-extensions>=4.5, <5",
-  "anyio>=3.5.0, <4",
-  "distro>=1.7.0, <2",
-  "tqdm > 4"
+    "httpx>=0.23.0, <1",
+    "pydantic>=1.9.0, <3",
+    "typing-extensions>=4.5, <5",
+    "anyio>=3.5.0, <4",
+    "distro>=1.7.0, <2",
+    "tqdm > 4"
 ]
 requires-python = ">= 3.7.1"
 
@@ -30,17 +30,17 @@ openai = "openai.cli:main"
 [tool.rye]
 managed = true
 dev-dependencies = [
-  "pyright==1.1.326",
-  "mypy==1.4.1",
-  "black==23.3.0",
-  "respx==0.19.2",
-  "pytest==7.1.1",
-  "pytest-asyncio==0.21.1",
-  "ruff==0.0.282",
-  "isort==5.10.1",
-  "time-machine==2.9.0",
-  "nox==2023.4.22",
-  "types-tqdm > 4"
+    "pyright==1.1.332",
+    "mypy==1.4.1",
+    "black==23.3.0",
+    "respx==0.19.2",
+    "pytest==7.1.1",
+    "pytest-asyncio==0.21.1",
+    "ruff==0.0.282",
+    "isort==5.10.1",
+    "time-machine==2.9.0",
+    "nox==2023.4.22",
+    "types-tqdm > 4"
 ]
 
 [tool.rye.scripts]
