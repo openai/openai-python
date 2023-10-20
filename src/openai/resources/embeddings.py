@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+import base64
+from typing import List, Union, cast
 from typing_extensions import Literal
 
 from ..types import CreateEmbeddingResponse, embedding_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from .._utils import maybe_transform
+from .._utils import is_given, maybe_transform
+from .._extras import numpy as np
+from .._extras import has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._base_client import make_request_options
 
@@ -61,22 +64,39 @@ class Embeddings(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        return self._post(
+        params = {
+            "input": input,
+            "model": model,
+            "user": user,
+            "encoding_format": encoding_format,
+        }
+        if not is_given(encoding_format) and has_numpy():
+            params["encoding_format"] = "base64"
+
+        response = self._post(
             "/embeddings",
-            body=maybe_transform(
-                {
-                    "input": input,
-                    "model": model,
-                    "encoding_format": encoding_format,
-                    "user": user,
-                },
-                embedding_create_params.EmbeddingCreateParams,
-            ),
+            body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=CreateEmbeddingResponse,
         )
+
+        if is_given(encoding_format):
+            # don't modify the response object if a user explicitly asked for a format
+            return response
+
+        for embedding in response.data:
+            data = cast(object, embedding.embedding)
+            if not isinstance(data, str):
+                # numpy is not installed / base64 optimisation isn't enabled for this model yet
+                continue
+
+            embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                base64.b64decode(data), dtype="float32"
+            ).tolist()
+
+        return response
 
 
 class AsyncEmbeddings(AsyncAPIResource):
@@ -126,19 +146,36 @@ class AsyncEmbeddings(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        return await self._post(
+        params = {
+            "input": input,
+            "model": model,
+            "user": user,
+            "encoding_format": encoding_format,
+        }
+        if not is_given(encoding_format) and has_numpy():
+            params["encoding_format"] = "base64"
+
+        response = await self._post(
             "/embeddings",
-            body=maybe_transform(
-                {
-                    "input": input,
-                    "model": model,
-                    "encoding_format": encoding_format,
-                    "user": user,
-                },
-                embedding_create_params.EmbeddingCreateParams,
-            ),
+            body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=CreateEmbeddingResponse,
         )
+
+        if is_given(encoding_format):
+            # don't modify the response object if a user explicitly asked for a format
+            return response
+
+        for embedding in response.data:
+            data = cast(object, embedding.embedding)
+            if not isinstance(data, str):
+                # numpy is not installed / base64 optimisation isn't enabled for this model yet
+                continue
+
+            embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                base64.b64decode(data), dtype="float32"
+            ).tolist()
+
+        return response
