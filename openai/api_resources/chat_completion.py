@@ -14,7 +14,7 @@ class ChatCompletion(EngineAPIResource):
         """
         Creates a new chat completion for the provided messages and parameters.
 
-        See https://platform.openai.com/docs/api-reference/chat-completions/create
+        See https://platform.openai.com/docs/api-reference/chat/create
         for a list of valid parameters.
         """
         start = time.time()
@@ -34,7 +34,7 @@ class ChatCompletion(EngineAPIResource):
         """
         Creates a new chat completion for the provided messages and parameters.
 
-        See https://platform.openai.com/docs/api-reference/chat-completions/create
+        See https://platform.openai.com/docs/api-reference/chat/create
         for a list of valid parameters.
         """
         start = time.time()

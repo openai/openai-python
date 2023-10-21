@@ -47,7 +47,7 @@ def main():
     subparsers = parser.add_subparsers()
     sub_api = subparsers.add_parser("api", help="Direct API calls")
     sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
-    sub_wandb = subparsers.add_parser("wandb", help="Logging with Weights & Biases")
+    sub_wandb = subparsers.add_parser("wandb", help="Logging with Weights & Biases, see https://docs.wandb.ai/guides/integrations/openai for documentation")
 
     api_register(sub_api)
     tools_register(sub_tools)

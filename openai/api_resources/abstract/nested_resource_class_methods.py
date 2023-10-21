@@ -28,17 +28,18 @@ def _nested_resource_class_methods(
         setattr(cls, resource_url_method, classmethod(nested_resource_url))
 
         def nested_resource_request(
-            cls,
-            method,
-            url,
-            api_key=None,
-            request_id=None,
-            api_version=None,
-            organization=None,
-            **params,
+                cls,
+                method,
+                url,
+                api_base=None,
+                api_key=None,
+                request_id=None,
+                api_version=None,
+                organization=None,
+                **params,
         ):
             requestor = api_requestor.APIRequestor(
-                api_key, api_version=api_version, organization=organization
+                api_key, api_base=api_base, api_version=api_version, organization=organization
             )
             response, _, api_key = requestor.request(
                 method, url, params, request_id=request_id
@@ -48,17 +49,18 @@ def _nested_resource_class_methods(
             )
 
         async def anested_resource_request(
-            cls,
-            method,
-            url,
-            api_key=None,
-            request_id=None,
-            api_version=None,
-            organization=None,
-            **params,
+                cls,
+                method,
+                url,
+                api_key=None,
+                api_base=None,
+                request_id=None,
+                api_version=None,
+                organization=None,
+                **params,
         ):
             requestor = api_requestor.APIRequestor(
-                api_key, api_version=api_version, organization=organization
+                api_key, api_base=api_base, api_version=api_version, organization=organization
             )
             response, _, api_key = await requestor.arequest(
                 method, url, params, request_id=request_id
@@ -123,6 +125,19 @@ def _nested_resource_class_methods(
 
                 list_method = "list_%s" % resource_plural
                 setattr(cls, list_method, classmethod(list_nested_resources))
+
+            elif operation == "paginated_list":
+
+                def paginated_list_nested_resources(
+                    cls, id, limit=None, after=None, **params
+                ):
+                    url = getattr(cls, resource_url_method)(id)
+                    return getattr(cls, resource_request_method)(
+                        "get", url, limit=limit, after=after, **params
+                    )
+
+                list_method = "list_%s" % resource_plural
+                setattr(cls, list_method, classmethod(paginated_list_nested_resources))
 
             else:
                 raise ValueError("Unknown operation: %s" % operation)

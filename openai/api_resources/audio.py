@@ -9,7 +9,9 @@ class Audio(APIResource):
     OBJECT_NAME = "audio"
 
     @classmethod
-    def _get_url(cls, action):
+    def _get_url(cls, action, deployment_id=None, api_type=None, api_version=None):
+        if api_type in (util.ApiType.AZURE, util.ApiType.AZURE_AD):
+            return f"/{cls.azure_api_prefix}/deployments/{deployment_id}/audio/{action}?api-version={api_version}"
         return cls.class_url() + f"/{action}"
 
     @classmethod
@@ -50,6 +52,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -59,9 +63,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("transcriptions")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("transcriptions", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -77,6 +84,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -86,9 +95,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("translations")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("translations", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -105,6 +117,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -114,9 +128,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("transcriptions")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("transcriptions", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -133,6 +150,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -142,9 +161,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("translations")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("translations", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = requestor.request("post", url, files=files, params=data)
         return util.convert_to_openai_object(
             response, api_key, api_version, organization
@@ -160,6 +182,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -169,9 +193,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("transcriptions")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("transcriptions", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
         )
@@ -189,6 +216,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -198,9 +227,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("translations")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("translations", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
         )
@@ -219,6 +251,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -228,9 +262,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("transcriptions")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("transcriptions", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
         )
@@ -249,6 +286,8 @@ class Audio(APIResource):
         api_type=None,
         api_version=None,
         organization=None,
+        *,
+        deployment_id=None,
         **params,
     ):
         requestor, files, data = cls._prepare_request(
@@ -258,9 +297,12 @@ class Audio(APIResource):
             api_key=api_key,
             api_base=api_base,
             api_type=api_type,
+            api_version=api_version,
+            organization=organization,
             **params,
         )
-        url = cls._get_url("translations")
+        api_type, api_version = cls._get_api_type_and_version(api_type, api_version)
+        url = cls._get_url("translations", deployment_id=deployment_id, api_type=api_type, api_version=api_version)
         response, _, api_key = await requestor.arequest(
             "post", url, files=files, params=data
         )

@@ -7,4 +7,7 @@ from openai.api_resources.abstract.listable_api_resource import ListableAPIResou
 from openai.api_resources.abstract.nested_resource_class_methods import (
     nested_resource_class_methods,
 )
+from openai.api_resources.abstract.paginatable_api_resource import (
+    PaginatableAPIResource,
+)
 from openai.api_resources.abstract.updateable_api_resource import UpdateableAPIResource

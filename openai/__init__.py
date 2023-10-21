@@ -4,7 +4,7 @@
 
 import os
 import sys
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union, Callable
 
 from contextvars import ContextVar
 
@@ -28,6 +28,7 @@ from openai.api_resources import (
     ErrorObject,
     File,
     FineTune,
+    FineTuningJob,
     Image,
     Model,
     Moderation,
@@ -36,6 +37,7 @@ from openai.error import APIError, InvalidRequestError, OpenAIError
 from openai.version import VERSION
 
 if TYPE_CHECKING:
+    import requests
     from aiohttp import ClientSession
 
 api_key = os.environ.get("OPENAI_API_KEY")
@@ -47,8 +49,9 @@ api_key_path: Optional[str] = os.environ.get("OPENAI_API_KEY_PATH")
 organization = os.environ.get("OPENAI_ORGANIZATION")
 api_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
 api_type = os.environ.get("OPENAI_API_TYPE", "open_ai")
-api_version = (
-    "2023-03-15-preview" if api_type in ("azure", "azure_ad", "azuread") else None
+api_version = os.environ.get(
+    "OPENAI_API_VERSION",
+    ("2023-05-15" if api_type in ("azure", "azure_ad", "azuread") else None),
 )
 verify_ssl_certs = True  # No effect. Certificates are always verified.
 proxy = None
@@ -57,6 +60,10 @@ enable_telemetry = False  # Ignored; the telemetry feature was removed.
 ca_bundle_path = None  # No longer used, feature was removed
 debug = False
 log = None  # Set to either 'debug' or 'info', controls console logging
+
+requestssession: Optional[
+    Union["requests.Session", Callable[[], "requests.Session"]]
+] = None # Provide a requests.Session or Session factory.
 
 aiosession: ContextVar[Optional["ClientSession"]] = ContextVar(
     "aiohttp-session", default=None
@@ -78,6 +85,7 @@ __all__ = [
     "ErrorObject",
     "File",
     "FineTune",
+    "FineTuningJob",
     "InvalidRequestError",
     "Model",
     "Moderation",
