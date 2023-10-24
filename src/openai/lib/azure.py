@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Callable, Mapping, Awaitable, overload
+from typing import Callable, Mapping, Awaitable, TypeVar, Union, overload
 from typing_extensions import Literal
 
 import httpx
@@ -29,6 +29,7 @@ _deployments_endpoints = set(
 AzureApiType = Literal["azure", "azure_ad"]
 GetAzureADToken = Callable[[], str]
 AsyncGetAzureADToken = Callable[[], "str | Awaitable[str]"]
+_HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx.Client, httpx.AsyncClient])
 
 
 # we need to use a sentinel API key value for Azure AD
@@ -37,7 +38,7 @@ AsyncGetAzureADToken = Callable[[], "str | Awaitable[str]"]
 API_KEY_SENTINEL = "".join(["<", "missing API key", ">"])
 
 
-class BaseAzureClient(BaseClient):
+class BaseAzureClient(BaseClient[_HttpxClientT]):
     def _build_request(
         self,
         options: FinalRequestOptions,
@@ -50,7 +51,7 @@ class BaseAzureClient(BaseClient):
         return super()._build_request(options)
 
 
-class AzureOpenAI(BaseAzureClient, OpenAI):
+class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
     _api_type: AzureApiType
 
     @overload
@@ -178,7 +179,7 @@ class AzureOpenAI(BaseAzureClient, OpenAI):
         return super()._prepare_options(options)
 
 
-class AsyncAzureOpenAI(BaseAzureClient, AsyncOpenAI):
+class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
     _api_type: AzureApiType
 
     @overload
