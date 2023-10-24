@@ -29,6 +29,12 @@ class EmbeddingCreateParams(TypedDict, total=False):
     descriptions of them.
     """
 
+    encoding_format: Literal["float", "base64"]
+    """The format to return the embeddings in.
+
+    Can be either `float` or [`base64`](https://pypi.org/project/pybase64/).
+    """
+
     user: str
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor

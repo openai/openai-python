@@ -315,8 +315,11 @@ class BaseAsyncPage(BasePage[ModelT], Generic[ModelT]):
         return await self._client._request_api_list(self._model, page=self.__class__, options=options)
 
 
-class BaseClient:
-    _client: httpx.Client | httpx.AsyncClient
+_HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx.Client, httpx.AsyncClient])
+
+
+class BaseClient(Generic[_HttpxClientT]):
+    _client: _HttpxClientT
     _version: str
     _base_url: URL
     max_retries: int
@@ -716,7 +719,7 @@ class BaseClient:
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
-class SyncAPIClient(BaseClient):
+class SyncAPIClient(BaseClient[httpx.Client]):
     _client: httpx.Client
     _has_custom_http_client: bool
     _default_stream_cls: type[Stream[Any]] | None = None
@@ -1131,7 +1134,7 @@ class SyncAPIClient(BaseClient):
         return self._request_api_list(model, page, opts)
 
 
-class AsyncAPIClient(BaseClient):
+class AsyncAPIClient(BaseClient[httpx.AsyncClient]):
     _client: httpx.AsyncClient
     _has_custom_http_client: bool
     _default_stream_cls: type[AsyncStream[Any]] | None = None

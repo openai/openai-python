@@ -32,6 +32,7 @@ class TestEmbeddings:
         embedding = client.embeddings.create(
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
+            encoding_format="float",
             user="user-1234",
         )
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
@@ -55,6 +56,7 @@ class TestAsyncEmbeddings:
         embedding = await client.embeddings.create(
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
+            encoding_format="float",
             user="user-1234",
         )
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
