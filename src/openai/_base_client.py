@@ -158,7 +158,7 @@ class BasePage(GenericModel, Generic[ModelT]):
 
     Methods:
         has_next_page(): Check if there is another page available
-        next_page_info(): Get the necesary information to make a request for the next page
+        next_page_info(): Get the necessary information to make a request for the next page
     """
 
     _options: FinalRequestOptions = PrivateAttr()
@@ -691,15 +691,15 @@ class BaseClient(Generic[_HttpxClientT]):
             return retry_after
 
         initial_retry_delay = 0.5
-        max_retry_delay = 2.0
+        max_retry_delay = 8.0
         nb_retries = max_retries - remaining_retries
 
         # Apply exponential backoff, but not more than the max.
-        sleep_seconds = min(initial_retry_delay * pow(nb_retries - 1, 2), max_retry_delay)
+        sleep_seconds = min(initial_retry_delay * pow(2.0, nb_retries), max_retry_delay)
 
         # Apply some jitter, plus-or-minus half a second.
-        jitter = random() - 0.5
-        timeout = sleep_seconds + jitter
+        jitter = 1 - 0.25 * random()
+        timeout = sleep_seconds * jitter
         return timeout if timeout >= 0 else 0
 
     def _should_retry(self, response: httpx.Response) -> bool:
