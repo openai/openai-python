@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from os import PathLike
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -32,9 +33,10 @@ ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
+# while adding support for `PathLike` instances
 ProxiesDict = Dict["str | URL", Union[None, str, URL, Proxy]]
 ProxiesTypes = Union[str, Proxy, ProxiesDict]
-FileContent = Union[IO[bytes], bytes]
+FileContent = Union[IO[bytes], bytes, PathLike[str]]
 FileTypes = Union[
     # file (or bytes)
     FileContent,
@@ -47,6 +49,19 @@ FileTypes = Union[
 ]
 RequestFiles = Union[Mapping[str, FileTypes], Sequence[Tuple[str, FileTypes]]]
 
+# duplicate of the above but without our custom file support
+HttpxFileContent = Union[IO[bytes], bytes]
+HttpxFileTypes = Union[
+    # file (or bytes)
+    HttpxFileContent,
+    # (filename, file (or bytes))
+    Tuple[Optional[str], HttpxFileContent],
+    # (filename, file (or bytes), content_type)
+    Tuple[Optional[str], HttpxFileContent, Optional[str]],
+    # (filename, file (or bytes), content_type, headers)
+    Tuple[Optional[str], HttpxFileContent, Optional[str], Mapping[str, str]],
+]
+HttpxRequestFiles = Union[Mapping[str, HttpxFileTypes], Sequence[Tuple[str, HttpxFileTypes]]]
 
 # Workaround to support (cast_to: Type[ResponseT]) -> ResponseT
 # where ResponseT includes `None`. In order to support directly

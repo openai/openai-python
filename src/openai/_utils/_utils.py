@@ -1,11 +1,20 @@
 from __future__ import annotations
 
-import io
 import os
 import re
 import inspect
 import functools
-from typing import Any, Mapping, TypeVar, Callable, Iterable, Sequence, cast, overload
+from typing import (
+    Any,
+    Tuple,
+    Mapping,
+    TypeVar,
+    Callable,
+    Iterable,
+    Sequence,
+    cast,
+    overload,
+)
 from pathlib import Path
 from typing_extensions import Required, Annotated, TypeGuard, get_args, get_origin
 
@@ -15,6 +24,9 @@ from .._compat import parse_date as parse_date
 from .._compat import parse_datetime as parse_datetime
 
 _T = TypeVar("_T")
+_TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
+_MappingT = TypeVar("_MappingT", bound=Mapping[str, object])
+_SequenceT = TypeVar("_SequenceT", bound=Sequence[object])
 CallableT = TypeVar("CallableT", bound=Callable[..., Any])
 
 
@@ -55,13 +67,11 @@ def _extract_items(
             # no value was provided - we can safely ignore
             return []
 
-        # We have exhausted the path, return the entry we found.
-        if not isinstance(obj, bytes) and not isinstance(obj, tuple) and not isinstance(obj, io.IOBase):
-            raise RuntimeError(
-                f"Expected entry at {flattened_key} to be bytes, an io.IOBase instance or a tuple but received {type(obj)} instead. See https://github.com/openai/openai-python/tree/v1#file-uploads"
-            ) from None
+        # cyclical import
+        from .._files import assert_is_file_content
 
-        # TODO: validate obj more?
+        # We have exhausted the path, return the entry we found.
+        assert_is_file_content(obj, key=flattened_key)
         assert flattened_key is not None
         return [(flattened_key, cast(FileTypes, obj))]
 
@@ -116,9 +126,33 @@ def is_given(obj: NotGivenOr[_T]) -> TypeGuard[_T]:
 # The default narrowing for isinstance(obj, dict) is dict[unknown, unknown],
 # however this cause Pyright to rightfully report errors. As we know we don't
 # care about the contained types we can safely use `object` in it's place.
+#
+# There are two separate functions defined, `is_*` and `is_*_t` for different use cases.
+# `is_*` is for when you're dealing with an unknown input
+# `is_*_t` is for when you're narrowing a known union type to a specific subset
+
+
+def is_tuple(obj: object) -> TypeGuard[tuple[object, ...]]:
+    return isinstance(obj, tuple)
+
+
+def is_tuple_t(obj: _TupleT | object) -> TypeGuard[_TupleT]:
+    return isinstance(obj, tuple)
+
+
+def is_sequence(obj: object) -> TypeGuard[Sequence[object]]:
+    return isinstance(obj, Sequence)
+
+
+def is_sequence_t(obj: _SequenceT | object) -> TypeGuard[_SequenceT]:
+    return isinstance(obj, Sequence)
 
 
 def is_mapping(obj: object) -> TypeGuard[Mapping[str, object]]:
+    return isinstance(obj, Mapping)
+
+
+def is_mapping_t(obj: _MappingT | object) -> TypeGuard[_MappingT]:
     return isinstance(obj, Mapping)
 
 

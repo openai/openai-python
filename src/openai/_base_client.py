@@ -40,6 +40,7 @@ from pydantic import PrivateAttr
 
 from . import _exceptions
 from ._qs import Querystring
+from ._files import to_httpx_files, async_to_httpx_files
 from ._types import (
     NOT_GIVEN,
     Body,
@@ -1088,7 +1089,9 @@ class SyncAPIClient(BaseClient[httpx.Client]):
         stream: bool = False,
         stream_cls: type[_StreamT] | None = None,
     ) -> ResponseT | _StreamT:
-        opts = FinalRequestOptions.construct(method="post", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="post", url=path, json_data=body, files=to_httpx_files(files), **options
+        )
         return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
 
     def patch(
@@ -1111,7 +1114,9 @@ class SyncAPIClient(BaseClient[httpx.Client]):
         files: RequestFiles | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
-        opts = FinalRequestOptions.construct(method="put", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="put", url=path, json_data=body, files=to_httpx_files(files), **options
+        )
         return self.request(cast_to, opts)
 
     def delete(
@@ -1491,7 +1496,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient]):
         stream: bool = False,
         stream_cls: type[_AsyncStreamT] | None = None,
     ) -> ResponseT | _AsyncStreamT:
-        opts = FinalRequestOptions.construct(method="post", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="post", url=path, json_data=body, files=await async_to_httpx_files(files), **options
+        )
         return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
 
     async def patch(
@@ -1514,7 +1521,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient]):
         files: RequestFiles | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
-        opts = FinalRequestOptions.construct(method="put", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="put", url=path, json_data=body, files=await async_to_httpx_files(files), **options
+        )
         return await self.request(cast_to, opts)
 
     async def delete(

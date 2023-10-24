@@ -40,6 +40,7 @@ dev-dependencies = [
     "isort==5.10.1",
     "time-machine==2.9.0",
     "nox==2023.4.22",
+    "dirty-equals>=0.6.0",
     "types-tqdm > 4"
 ]
 
@@ -54,6 +55,15 @@ format = { chain = [
 "format:docs" = "python bin/blacken-docs.py README.md api.md"
 "format:ruff" = "ruff --fix ."
 "format:isort" = "isort ."
+
+typecheck = { chain = [
+  "typecheck:pyright",
+  "typecheck:verify-types",
+  "typecheck:mypy"
+]}
+"typecheck:pyright" = "pyright"
+"typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
+"typecheck:mypy" = "mypy --enable-incomplete-feature=Unpack ."
 
 [build-system]
 requires = ["hatchling"]
