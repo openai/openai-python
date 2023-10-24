@@ -18,6 +18,7 @@ from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V2, ConfigDict, model_parse
 from .._models import BaseModel
 from .._exceptions import APIError
+from ..lib.azure import AzureOpenAI
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -42,8 +43,12 @@ class Arguments(BaseModel):
     api_key: Optional[str]
     api_base: Optional[str]
     organization: Optional[str]
-
     proxy: Optional[List[str]]
+
+    # azure
+    azure: bool = False
+    azure_endpoint: Optional[str] = None
+    azure_version: Optional[str] = None
 
     # internal, set by subparsers to parse their specific args
     args_model: Optional[Type[BaseModel]] = None
@@ -70,6 +75,22 @@ def _build_parser() -> argparse.ArgumentParser:
         "-o",
         "--organization",
         help="Which organization to run as (will use your default organization if not specified)",
+    )
+
+    # azure
+    parser.add_argument(
+        "-a",
+        "--azure",
+        action="store_true",
+        help="Whether or not to use the Azure OpenAI API",
+    )
+    parser.add_argument(
+        "--azure-endpoint",
+        help="The Azure endpoint, e.g. 'https://stainless.openai.azure.com'",
+    )
+    parser.add_argument(
+        "--azure-version",
+        help="The Azure API version, e.g. 'https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning'",
     )
 
     # prints the package version
@@ -154,12 +175,27 @@ def _main() -> None:
     )
 
     try:
-        client = OpenAI(
-            api_key=args.api_key,
-            base_url=args.api_base,
-            organization=args.organization,
-            http_client=http_client,
-        )
+        if args.azure:
+            if args.azure_endpoint is None:
+                raise CLIError('The `--azure-endpoint` argument must be passed when using Azure')
+
+            if args.azure_version is None:
+                raise CLIError('The `--azure-version` argument must be passed when using Azure')
+
+            client = AzureOpenAI(
+                api_version=args.azure_version,
+                endpoint=args.azure_endpoint,
+                organization=args.organization,
+                http_client=http_client,
+            )
+        else:
+            client = OpenAI(
+                api_key=args.api_key,
+                base_url=args.api_base,
+                organization=args.organization,
+                http_client=http_client,
+            )
+
         set_client(client)
 
         if args.args_model:

@@ -36,6 +36,13 @@ _HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx.Client, httpx.AsyncCl
 API_KEY_SENTINEL = "".join(["<", "missing API key", ">"])
 
 
+class MutuallyExclusiveAuthError(OpenAIError):
+    def __init__(self) -> None:
+        super().__init__(
+            "The `api_key`, `azure_ad_token` and `azure_ad_token_provider` arguments are mutually exclusive; Only one can be passed at a time"
+        )
+
+
 class BaseAzureClient(BaseClient[_HttpxClientT]):
     def _build_request(
         self,
