@@ -95,7 +95,7 @@ import httpx as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
-api_key: str | None = _os.environ.get("OPENAI_API_KEY")
+api_key: str | None = None
 
 organization: str | None = _os.environ.get("OPENAI_ORG_ID")
 
@@ -110,6 +110,12 @@ default_headers: _t.Mapping[str, str] | None = None
 default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
+
+azure: bool = False
+
+api_version: str | None = None
+
+azure_endpoint: str | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -204,6 +210,10 @@ class _ModuleClient(OpenAI):
             pass
 
 
+class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
+    ...
+
+
 _client: OpenAI | None = None
 
 
@@ -211,16 +221,30 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        _client = _ModuleClient(
-            api_key=api_key,
-            organization=organization,
-            base_url=base_url,
-            timeout=timeout,
-            max_retries=max_retries,
-            default_headers=default_headers,
-            default_query=default_query,
-            http_client=http_client,
-        )
+        if azure:
+            _client = AzureOpenAI(  # type: ignore
+                api_version=api_version,
+                endpoint=azure_endpoint,
+                api_key=api_key,
+                organization=organization,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
+        else:
+            _client = _ModuleClient(
+                api_key=api_key,
+                organization=organization,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
         return _client
 
     return _client

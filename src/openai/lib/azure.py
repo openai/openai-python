@@ -121,6 +121,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
                 "The api_key client option must be set either by passing api_key to the client or by setting the AZURE_OPENAI_API_KEY environment variable; If you're using Azure AD you should pass either the `azure_ad_token` or the `azure_ad_token_provider` argument."
             )
 
+        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
+            raise ValueError("Expected `api_version` to be given")
+
         if default_query is None:
             default_query = {"api-version": api_version}
         else:
