@@ -165,7 +165,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
             token = provider()
             if not token or not isinstance(token, str):  # pyright: ignore[reportUnnecessaryIsInstance]
                 raise ValueError(
-                    f"Expected `get_ad_token` argument to return a string but it returned {token}",
+                    f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
                 )
             return token
 
@@ -297,7 +297,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
                 token = await token
             if not token or not isinstance(token, str):
                 raise ValueError(
-                    f"Expected `get_ad_token` argument to return a string but it returned {token}",
+                    f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
                 )
             return token
 
