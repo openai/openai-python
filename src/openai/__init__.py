@@ -315,10 +315,6 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     return _client
 
 
-def _get_client() -> OpenAI | None:
-    return _client
-
-
 def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
     global _client
 
