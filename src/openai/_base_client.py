@@ -40,6 +40,7 @@ from pydantic import PrivateAttr
 
 from . import _exceptions
 from ._qs import Querystring
+from ._files import to_httpx_files, async_to_httpx_files
 from ._types import (
     NOT_GIVEN,
     Body,
@@ -157,7 +158,7 @@ class BasePage(GenericModel, Generic[ModelT]):
 
     Methods:
         has_next_page(): Check if there is another page available
-        next_page_info(): Get the necesary information to make a request for the next page
+        next_page_info(): Get the necessary information to make a request for the next page
     """
 
     _options: FinalRequestOptions = PrivateAttr()
@@ -676,15 +677,15 @@ class BaseClient(Generic[_HttpxClientT]):
             return retry_after
 
         initial_retry_delay = 0.5
-        max_retry_delay = 2.0
+        max_retry_delay = 8.0
         nb_retries = max_retries - remaining_retries
 
         # Apply exponential backoff, but not more than the max.
-        sleep_seconds = min(initial_retry_delay * pow(nb_retries - 1, 2), max_retry_delay)
+        sleep_seconds = min(initial_retry_delay * pow(2.0, nb_retries), max_retry_delay)
 
         # Apply some jitter, plus-or-minus half a second.
-        jitter = random() - 0.5
-        timeout = sleep_seconds + jitter
+        jitter = 1 - 0.25 * random()
+        timeout = sleep_seconds * jitter
         return timeout if timeout >= 0 else 0
 
     def _should_retry(self, response: httpx.Response) -> bool:
@@ -1083,7 +1084,9 @@ class SyncAPIClient(BaseClient[httpx.Client]):
         stream: bool = False,
         stream_cls: type[_StreamT] | None = None,
     ) -> ResponseT | _StreamT:
-        opts = FinalRequestOptions.construct(method="post", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="post", url=path, json_data=body, files=to_httpx_files(files), **options
+        )
         return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
 
     def patch(
@@ -1106,7 +1109,9 @@ class SyncAPIClient(BaseClient[httpx.Client]):
         files: RequestFiles | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
-        opts = FinalRequestOptions.construct(method="put", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="put", url=path, json_data=body, files=to_httpx_files(files), **options
+        )
         return self.request(cast_to, opts)
 
     def delete(
@@ -1492,7 +1497,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient]):
         stream: bool = False,
         stream_cls: type[_AsyncStreamT] | None = None,
     ) -> ResponseT | _AsyncStreamT:
-        opts = FinalRequestOptions.construct(method="post", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="post", url=path, json_data=body, files=await async_to_httpx_files(files), **options
+        )
         return await self.request(cast_to, opts, stream=stream, stream_cls=stream_cls)
 
     async def patch(
@@ -1515,7 +1522,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient]):
         files: RequestFiles | None = None,
         options: RequestOptions = {},
     ) -> ResponseT:
-        opts = FinalRequestOptions.construct(method="put", url=path, json_data=body, files=files, **options)
+        opts = FinalRequestOptions.construct(
+            method="put", url=path, json_data=body, files=await async_to_httpx_files(files), **options
+        )
         return await self.request(cast_to, opts)
 
     async def delete(

@@ -20,6 +20,7 @@ charset-normalizer==3.3.1
 click==8.1.7
 colorlog==6.7.0
 cryptography==41.0.4
+dirty-equals==0.6.0
 distlib==0.3.7
 distro==1.8.0
 exceptiongroup==1.1.3

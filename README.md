@@ -152,7 +152,7 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 
 ## Using types
 
-Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like serializing back into JSON ([v1](https://docs.pydantic.dev/1.10/usage/models/), [v2](https://docs.pydantic.dev/latest/usage/serialization/)). To get a dictionary, call `dict(model)`.
+Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like serializing back into JSON ([v1](https://docs.pydantic.dev/1.10/usage/models/), [v2](https://docs.pydantic.dev/latest/usage/serialization/)). To get a dictionary, call `model.model_dump()`.
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
 
@@ -241,7 +241,7 @@ client.files.list()
 
 ## File Uploads
 
-Request parameters that correspond to file uploads can be passed as `bytes` or a tuple of `(filename, contents, media type)`.
+Request parameters that correspond to file uploads can be passed as `bytes`, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
 
 ```python
 from pathlib import Path
@@ -249,29 +249,13 @@ from openai import OpenAI
 
 client = OpenAI()
 
-contents = Path("input.jsonl").read_bytes()
 client.files.create(
-    file=contents,
+    file=Path("input.jsonl"),
     purpose="fine-tune",
 )
 ```
 
-The async client uses the exact same interface. This example uses `aiofiles` to asynchronously read the file contents but you can use whatever method you would like.
-
-```python
-import aiofiles
-from openai import OpenAI
-
-client = OpenAI()
-
-async with aiofiles.open("input.jsonl", mode="rb") as f:
-    contents = await f.read()
-
-await client.files.create(
-    file=contents,
-    purpose="fine-tune",
-)
-```
+The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
 ## Handling errors
 

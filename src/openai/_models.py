@@ -3,7 +3,16 @@ from __future__ import annotations
 import inspect
 from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, cast
 from datetime import date, datetime
-from typing_extensions import Literal, ClassVar, Protocol, final, runtime_checkable
+from typing_extensions import (
+    Unpack,
+    Literal,
+    ClassVar,
+    Protocol,
+    Required,
+    TypedDict,
+    final,
+    runtime_checkable,
+)
 
 import pydantic
 import pydantic.generics
@@ -18,7 +27,7 @@ from ._types import (
     Timeout,
     NotGiven,
     AnyMapping,
-    RequestFiles,
+    HttpxRequestFiles,
 )
 from ._utils import is_list, is_mapping, parse_date, parse_datetime, strip_not_given
 from ._compat import PYDANTIC_V2, ConfigDict
@@ -363,6 +372,19 @@ elif not TYPE_CHECKING:  # TODO: condition is weird
         return RootModel[type_]  # type: ignore
 
 
+class FinalRequestOptionsInput(TypedDict, total=False):
+    method: Required[str]
+    url: Required[str]
+    params: Query
+    headers: Headers
+    max_retries: int
+    timeout: float | Timeout | None
+    files: HttpxRequestFiles | None
+    idempotency_key: str
+    json_data: Body
+    extra_json: AnyMapping
+
+
 @final
 class FinalRequestOptions(pydantic.BaseModel):
     method: str
@@ -371,7 +393,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     headers: Union[Headers, NotGiven] = NotGiven()
     max_retries: Union[int, NotGiven] = NotGiven()
     timeout: Union[float, Timeout, None, NotGiven] = NotGiven()
-    files: Union[RequestFiles, None] = None
+    files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
 
     # It should be noted that we cannot use `json` here as that would override
@@ -395,11 +417,13 @@ class FinalRequestOptions(pydantic.BaseModel):
     # this is necessary as we don't want to do any actual runtime type checking
     # (which means we can't use validators) but we do want to ensure that `NotGiven`
     # values are not present
+    #
+    # type ignore required because we're adding explicit types to `**values`
     @classmethod
-    def construct(
+    def construct(  # type: ignore
         cls,
         _fields_set: set[str] | None = None,
-        **values: Any,
+        **values: Unpack[FinalRequestOptionsInput],
     ) -> FinalRequestOptions:
         kwargs: dict[str, Any] = {
             # we unconditionally call `strip_not_given` on any value
