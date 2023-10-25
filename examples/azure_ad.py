@@ -1,6 +1,6 @@
-from openai import AzureOpenAI
 from azure.identity import DefaultAzureCredential
 
+from openai import AzureOpenAI
 
 credentials = DefaultAzureCredential()
 
@@ -19,7 +19,7 @@ endpoint = "https://my-resource.openai.azure.com"
 client = AzureOpenAI(
     api_version=api_version,
     endpoint=endpoint,
-    get_ad_token=get_token,
+    azure_ad_token_provider=get_token,
 )
 
 completion = client.chat.completions.create(

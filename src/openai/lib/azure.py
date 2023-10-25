@@ -2,17 +2,16 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Callable, Mapping, Awaitable, TypeVar, Union, overload
+from typing import Union, Mapping, TypeVar, Callable, Awaitable, overload
 
 import httpx
 
-from .._types import NOT_GIVEN, Timeout, NotGiven, Omit
-from .._utils import is_mapping, is_given
+from .._types import NOT_GIVEN, Omit, Timeout, NotGiven
+from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._models import FinalRequestOptions
 from .._exceptions import OpenAIError
 from .._base_client import DEFAULT_MAX_RETRIES, BaseClient
-
 
 _deployments_endpoints = set(
     [
@@ -116,13 +115,20 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
     ) -> None:
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+
+        if azure_ad_token is None:
+            azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
+
         if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the AZURE_OPENAI_API_KEY environment variable; If you're using Azure AD you should pass either the `azure_ad_token` or the `azure_ad_token_provider` argument."
             )
 
         if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
-            raise ValueError("Expected `api_version` to be given")
+            api_version = os.environ.get("OPENAI_API_VERSION")  # type: ignore
+
+        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
+            raise ValueError("Expected `api_version` to be given for the Azure client")
 
         if default_query is None:
             default_query = {"api-version": api_version}
@@ -131,12 +137,18 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
 
         if base_url is None:
             if endpoint is None:
+                endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+            if endpoint is None:
                 raise ValueError("If base_url is not given, then endpoint must be given")
 
             if deployment is not None:
                 base_url = f"{endpoint}/openai/deployments/{deployment}"
             else:
                 base_url = f"{endpoint}/openai"
+        else:
+            if endpoint is not None:
+                raise ValueError("base_url and endpoint are mutually exclusive")
 
         if api_key is None:
             # define a sentinel value to avoid any typing issues
@@ -249,10 +261,20 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
     ) -> None:
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+
+        if azure_ad_token is None:
+            azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
+
         if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the AZURE_OPENAI_API_KEY environment variable; If you're using Azure AD you should pass either the `azure_ad_token` or the `azure_ad_token_provider` argument."
             )
+
+        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
+            api_version = os.environ.get("OPENAI_API_VERSION")  # type: ignore
+
+        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
+            raise ValueError("Expected `api_version` to be given for the Azure client")
 
         if default_query is None:
             default_query = {"api-version": api_version}
@@ -261,12 +283,18 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
 
         if base_url is None:
             if endpoint is None:
+                endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+            if endpoint is None:
                 raise ValueError("If base_url is not given, then endpoint must be given")
 
             if deployment is not None:
                 base_url = f"{endpoint}/openai/deployments/{deployment}"
             else:
                 base_url = f"{endpoint}/openai"
+        else:
+            if endpoint is not None:
+                raise ValueError("base_url and endpoint are mutually exclusive")
 
         if api_key is None:
             # define a sentinel value to avoid any typing issues

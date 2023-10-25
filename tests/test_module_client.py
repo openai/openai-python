@@ -12,17 +12,26 @@ import openai
 from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 
-@pytest.fixture(autouse=True)
 def reset_state() -> None:
     openai._reset_client()
-    openai.api_key = _os.environ.get("OPENAI_API_KEY") or "My API Key"
-    openai.organization = _os.environ.get("OPENAI_ORG_ID")
+    openai.api_key = None
+    openai.organization = None
     openai.base_url = None
     openai.timeout = DEFAULT_TIMEOUT
     openai.max_retries = DEFAULT_MAX_RETRIES
     openai.default_headers = None
     openai.default_query = None
     openai.http_client = None
+    openai.api_type = _os.environ.get("OPENAI_API_TYPE")  # type: ignore
+    openai.api_version = None
+    openai.azure_endpoint = None
+    openai.azure_ad_token = None
+    openai.azure_ad_token_provider = None
+
+
+@pytest.fixture(autouse=True)
+def reset_state_fixture() -> None:
+    reset_state()
 
 
 def test_base_url_option() -> None:
@@ -84,3 +93,81 @@ def test_http_client_option() -> None:
     openai.http_client = new_client
 
     assert openai.completions._client._client is new_client
+
+
+import contextlib
+from typing import Iterator
+
+
+@contextlib.contextmanager
+def fresh_env() -> Iterator[None]:
+    old = _os.environ.copy()
+
+    try:
+        _os.environ.clear()
+        yield
+    finally:
+        _os.environ.update(old)
+
+
+def test_only_api_key_results_in_openai_api() -> None:
+    with fresh_env():
+        openai.api_type = None
+        openai.api_key = "example API key"
+
+        assert type(openai.completions._client).__name__ == "_ModuleClient"
+
+
+def test_azure_api_key_env_without_api_version() -> None:
+    with fresh_env():
+        openai.api_type = None
+        _os.environ["AZURE_OPENAI_API_KEY"] = "example API key"
+
+        with pytest.raises(ValueError, match=r"Expected `api_version` to be given for the Azure client"):
+            openai.completions._client
+
+
+def test_azure_api_key_and_version_env() -> None:
+    with fresh_env():
+        openai.api_type = None
+        _os.environ["AZURE_OPENAI_API_KEY"] = "example API key"
+        _os.environ["OPENAI_API_VERSION"] = "example-version"
+
+        with pytest.raises(ValueError, match=r"If base_url is not given, then endpoint must be given"):
+            openai.completions._client
+
+
+def test_azure_api_key_version_and_endpoint_env() -> None:
+    with fresh_env():
+        openai.api_type = None
+        _os.environ["AZURE_OPENAI_API_KEY"] = "example API key"
+        _os.environ["OPENAI_API_VERSION"] = "example-version"
+        _os.environ["AZURE_OPENAI_ENDPOINT"] = "https://www.example"
+
+        openai.completions._client
+
+        assert openai.api_type == "azure"
+
+
+def test_azure_azure_ad_token_version_and_endpoint_env() -> None:
+    with fresh_env():
+        openai.api_type = None
+        _os.environ["AZURE_OPENAI_AD_TOKEN"] = "example AD token"
+        _os.environ["OPENAI_API_VERSION"] = "example-version"
+        _os.environ["AZURE_OPENAI_ENDPOINT"] = "https://www.example"
+
+        openai.completions._client
+
+        assert openai.api_type == "azure_ad"
+
+
+def test_azure_azure_ad_token_provider_version_and_endpoint_env() -> None:
+    with fresh_env():
+        openai.api_type = None
+        _os.environ["OPENAI_API_VERSION"] = "example-version"
+        _os.environ["AZURE_OPENAI_ENDPOINT"] = "https://www.example"
+        openai.azure_ad_token_provider = lambda: "token"
+
+        openai.completions._client
+
+        assert openai.api_type == "azure_ad"

@@ -1,6 +1,6 @@
 import openai
 
-openai.azure = True
+openai.api_type = "azure"
 openai.azure_endpoint = "https://example-endpoint.openai.azure.com"
 
 # may change in the future

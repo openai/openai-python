@@ -1245,7 +1245,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient]):
     ) -> None:
         await self.close()
 
-    async def _prepare_options(self, options: FinalRequestOptions) -> None:
+    async def _prepare_options(
+        self,
+        options: FinalRequestOptions,  # noqa: ARG002
+    ) -> None:
         """Hook for mutating the given options"""
         return None
 
