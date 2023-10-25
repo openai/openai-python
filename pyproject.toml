@@ -41,8 +41,8 @@ dev-dependencies = [
     "time-machine==2.9.0",
     "nox==2023.4.22",
     "dirty-equals>=0.6.0",
-    "types-tqdm > 4",
-    "azure-identity>=1.14.1",
+    "azure-identity >=1.14.1",
+    "types-tqdm > 4"
 ]
 
 [tool.rye.scripts]
