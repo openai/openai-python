@@ -136,7 +136,8 @@ def test_azure_api_key_and_version_env() -> None:
         _os.environ["OPENAI_API_VERSION"] = "example-version"
 
         with pytest.raises(
-            ValueError, match=r"Must provide one of `base_url` or `azure_endpoint` arguments, or the `OPENAI_BASE_URL`,"
+            ValueError,
+            match=r"Must provide one of the `base_url` or `azure_endpoint` arguments, or the `OPENAI_BASE_URL`",
         ):
             openai.completions._client
 
