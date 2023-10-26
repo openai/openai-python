@@ -29,7 +29,7 @@ from typing import (
     overload,
 )
 from functools import lru_cache
-from typing_extensions import Literal, get_args, get_origin
+from typing_extensions import Literal, get_args, override, get_origin
 
 import anyio
 import httpx
@@ -1588,6 +1588,7 @@ class OtherPlatform:
     def __init__(self, name: str) -> None:
         self.name = name
 
+    @override
     def __str__(self) -> str:
         return f"Other:{self.name}"
 
@@ -1649,6 +1650,7 @@ class OtherArch:
     def __init__(self, name: str) -> None:
         self.name = name
 
+    @override
     def __str__(self) -> str:
         return f"other:{self.name}"
 

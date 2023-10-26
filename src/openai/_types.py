@@ -15,7 +15,14 @@ from typing import (
     Optional,
     Sequence,
 )
-from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, runtime_checkable
+from typing_extensions import (
+    Literal,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+    override,
+    runtime_checkable,
+)
 
 import httpx
 import pydantic
@@ -119,6 +126,7 @@ class NotGiven:
     def __bool__(self) -> Literal[False]:
         return False
 
+    @override
     def __repr__(self) -> str:
         return "NOT_GIVEN"
 

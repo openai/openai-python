@@ -11,6 +11,7 @@ from typing_extensions import (
     Required,
     TypedDict,
     final,
+    override,
     runtime_checkable,
 )
 
@@ -59,6 +60,7 @@ class BaseModel(pydantic.BaseModel):
     else:
 
         @property
+        @override
         def model_fields_set(self) -> set[str]:
             # a forwards-compat shim for pydantic v2
             return self.__fields_set__  # type: ignore
@@ -66,6 +68,7 @@ class BaseModel(pydantic.BaseModel):
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             extra: Any = pydantic.Extra.allow  # type: ignore
 
+    @override
     def __str__(self) -> str:
         # mypy complains about an invalid self arg
         return f'{self.__repr_name__()}({self.__repr_str__(", ")})'  # type: ignore[misc]
@@ -73,6 +76,7 @@ class BaseModel(pydantic.BaseModel):
     # Override the 'construct' method in a way that supports recursive parsing without validation.
     # Based on https://github.com/samuelcolvin/pydantic/issues/1168#issuecomment-817742836.
     @classmethod
+    @override
     def construct(
         cls: Type[ModelT],
         _fields_set: set[str] | None = None,
@@ -139,6 +143,7 @@ class BaseModel(pydantic.BaseModel):
         # a specifc pydantic version as some users may not know which
         # pydantic version they are currently using
 
+        @override
         def model_dump(
             self,
             *,
@@ -187,6 +192,7 @@ class BaseModel(pydantic.BaseModel):
                 exclude_none=exclude_none,
             )
 
+        @override
         def model_dump_json(
             self,
             *,

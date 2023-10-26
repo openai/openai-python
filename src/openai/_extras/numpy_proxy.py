@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
-from typing_extensions import ClassVar
+from typing_extensions import ClassVar, override
 
 from .._utils import LazyProxy
 from ._common import MissingDependencyError, format_instructions
@@ -16,6 +16,7 @@ NUMPY_INSTRUCTIONS = format_instructions(library="numpy", extra="datalib")
 class NumpyProxy(LazyProxy[Any]):
     should_cache: ClassVar[bool] = True
 
+    @override
     def __load__(self) -> Any:
         try:
             import numpy

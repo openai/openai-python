@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os as _os
+from typing_extensions import override
 
 from . import types
 from ._types import NoneType, Transport, ProxiesTypes
@@ -115,6 +116,7 @@ class _ModuleClient(OpenAI):
     # with properties is technically unsafe but it is fine for our use case
 
     @property  # type: ignore
+    @override
     def api_key(self) -> str | None:
         return api_key
 
@@ -125,6 +127,7 @@ class _ModuleClient(OpenAI):
         api_key = value
 
     @property  # type: ignore
+    @override
     def organization(self) -> str | None:
         return organization
 
@@ -135,6 +138,7 @@ class _ModuleClient(OpenAI):
         organization = value
 
     @property
+    @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
             return _httpx.URL(base_url)
@@ -146,6 +150,7 @@ class _ModuleClient(OpenAI):
         super().base_url = url  # type: ignore[misc]
 
     @property  # type: ignore
+    @override
     def timeout(self) -> float | Timeout | None:
         return timeout
 
@@ -156,6 +161,7 @@ class _ModuleClient(OpenAI):
         timeout = value
 
     @property  # type: ignore
+    @override
     def max_retries(self) -> int:
         return max_retries
 
@@ -166,6 +172,7 @@ class _ModuleClient(OpenAI):
         max_retries = value
 
     @property  # type: ignore
+    @override
     def _custom_headers(self) -> _t.Mapping[str, str] | None:
         return default_headers
 
@@ -176,6 +183,7 @@ class _ModuleClient(OpenAI):
         default_headers = value
 
     @property  # type: ignore
+    @override
     def _custom_query(self) -> _t.Mapping[str, object] | None:
         return default_query
 
@@ -186,6 +194,7 @@ class _ModuleClient(OpenAI):
         default_query = value
 
     @property  # type: ignore
+    @override
     def _client(self) -> _httpx.Client:
         return http_client or super()._client
 
@@ -195,6 +204,7 @@ class _ModuleClient(OpenAI):
 
         http_client = value
 
+    @override
     def __del__(self) -> None:
         try:
             super().__del__()

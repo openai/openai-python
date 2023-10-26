@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 from typing import TYPE_CHECKING, Any, Generic, Iterator, AsyncIterator
+from typing_extensions import override
 
 import httpx
 
@@ -149,6 +150,7 @@ class ServerSentEvent:
     def json(self) -> Any:
         return json.loads(self.data)
 
+    @override
     def __repr__(self) -> str:
         return f"ServerSentEvent(event={self.event}, data={self.data}, id={self.id}, retry={self.retry})"
 
