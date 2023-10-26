@@ -50,7 +50,6 @@ class Arguments(BaseModel):
 
     # azure
     azure_endpoint: Optional[str] = None
-    azure_resource: Optional[str] = None
     azure_ad_token: Optional[str] = None
 
     # internal, set by subparsers to parse their specific args
@@ -202,9 +201,6 @@ def _main() -> None:
 
     if args.azure_endpoint is not None:
         openai.azure_endpoint = args.azure_endpoint
-
-    if args.azure_resource is not None:
-        openai.azure_resource = args.azure_resource
 
     if args.api_version is not None:
         openai.api_version = args.api_version

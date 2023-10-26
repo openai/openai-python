@@ -136,8 +136,7 @@ def test_azure_api_key_and_version_env() -> None:
         _os.environ["OPENAI_API_VERSION"] = "example-version"
 
         with pytest.raises(
-            ValueError,
-            match=r"Must provide one of `base_url`, `azure_resource`, `azure_endpoint`, or the `OPENAI_BASE_URL`,",
+            ValueError, match=r"Must provide one of `base_url` or `azure_endpoint` arguments, or the `OPENAI_BASE_URL`,"
         ):
             openai.completions._client
 
@@ -177,14 +176,3 @@ def test_azure_azure_ad_token_provider_version_and_endpoint_env() -> None:
         assert isinstance(client, AzureOpenAI)
         assert client._azure_ad_token_provider is not None
         assert client._azure_ad_token_provider() == "token"
-
-
-def test_azure_resource() -> None:
-    with fresh_env():
-        openai.api_type = None
-        _os.environ["AZURE_OPENAI_API_KEY"] = "api key"
-        _os.environ["OPENAI_API_VERSION"] = "example-version"
-        openai.azure_resource = "example-resource"
-
-        client = openai.completions._client
-        assert client.base_url == "https://example-resource.openai.azure.com/openai/"

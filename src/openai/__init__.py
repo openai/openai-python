@@ -122,8 +122,6 @@ api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
 
-azure_resource: str | None = _os.environ.get("AZURE_OPENAI_RESOURCE")
-
 azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
 azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
@@ -246,9 +244,7 @@ def _has_openai_credentials() -> bool:
 
 
 def _has_azure_credentials() -> bool:
-    return (
-        azure_endpoint is not None or azure_resource is not None or _os.environ.get("AZURE_OPENAI_API_KEY") is not None
-    )
+    return azure_endpoint is not None or _os.environ.get("AZURE_OPENAI_API_KEY") is not None
 
 
 def _has_azure_ad_credentials() -> bool:
@@ -266,13 +262,10 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        global api_type, azure_resource, azure_endpoint, azure_ad_token, api_version
+        global api_type, azure_endpoint, azure_ad_token, api_version
 
         if azure_endpoint is None:
             azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
-
-        if azure_resource is None:
-            azure_resource = _os.environ.get("AZURE_OPENAI_RESOURCE")
 
         if azure_ad_token is None:
             azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
@@ -302,7 +295,6 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             _client = _AzureModuleClient(  # type: ignore
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
-                azure_resource=azure_resource,
                 api_key=api_key,
                 azure_ad_token=azure_ad_token,
                 azure_ad_token_provider=azure_ad_token_provider,

@@ -18,7 +18,7 @@ endpoint = "https://my-resource.openai.azure.com"
 
 client = AzureOpenAI(
     api_version=api_version,
-    endpoint=endpoint,
+    azure_endpoint=endpoint,
     azure_ad_token_provider=get_token,
 )
 
