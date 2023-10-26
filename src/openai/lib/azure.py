@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import inspect
 from typing import Union, Mapping, TypeVar, Callable, Awaitable, overload
+from typing_extensions import override
 
 import httpx
 
@@ -43,6 +44,7 @@ class MutuallyExclusiveAuthError(OpenAIError):
 
 
 class BaseAzureClient(BaseClient[_HttpxClientT]):
+    @override
     def _build_request(
         self,
         options: FinalRequestOptions,
@@ -61,8 +63,28 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
         self,
         *,
         api_version: str,
-        endpoint: str,
-        deployment: str | None = None,
+        azure_endpoint: str,
+        azure_deployment: str | None = None,
+        api_key: str | None = None,
+        azure_ad_token: str | None = None,
+        azure_ad_token_provider: AzureADTokenProvider | None = None,
+        organization: str | None = None,
+        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        http_client: httpx.Client | None = None,
+        _strict_response_validation: bool = False,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        *,
+        api_version: str,
+        azure_resource: str,
+        azure_deployment: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
@@ -99,8 +121,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
         self,
         *,
         api_version: str,
-        endpoint: str | None = None,
-        deployment: str | None = None,
+        azure_endpoint: str | None = None,
+        azure_resource: str | None = None,
+        azure_deployment: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
@@ -113,6 +136,29 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
     ) -> None:
+        """Construct a new synchronous azure openai client instance.
+
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `api_key` from `AZURE_OPENAI_API_KEY`
+        - `organization` from `OPENAI_ORG_ID`
+        - `azure_ad_token` from `AZURE_OPENAI_AD_TOKEN`
+        - `api_version` from `OPENAI_API_VERSION`
+        - `azure_resource` from `AZURE_OPENAI_RESOURCE`
+        - `azure_endpoint` from `AZURE_OPENAI_ENDPOINT`
+
+        Args:
+            azure_resource: Your Azure resource, e.g. `example-resource`
+                https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
+
+            azure_endpoint: Your Azure endpoint, includes the resource, e.g. `https://example-resource.azure.openai.com/`
+
+            azure_ad_token: Your Azure Active Directory token, https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id
+
+            azure_ad_token: A function that returns an Azure Active Directory token, will be invoked on every request.
+
+            azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
+                Note: this means you won't be able to use non-deployment endpoints.
+        """
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
 
@@ -121,7 +167,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
 
         if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the AZURE_OPENAI_API_KEY environment variable; If you're using Azure AD you should pass either the `azure_ad_token` or the `azure_ad_token_provider` argument."
+                "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
 
         if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
@@ -136,19 +182,32 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
             default_query = {"api-version": api_version, **default_query}
 
         if base_url is None:
-            if endpoint is None:
-                endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+            if azure_resource is None:
+                azure_resource = os.environ.get("AZURE_OPENAI_RESOURCE")
 
-            if endpoint is None:
-                raise ValueError("If base_url is not given, then endpoint must be given")
+            if azure_resource is not None:
+                if azure_endpoint is not None:
+                    raise ValueError("azure_resource and azure_endpoint are mutually exclusive")
 
-            if deployment is not None:
-                base_url = f"{endpoint}/openai/deployments/{deployment}"
+                base = f"https://{azure_resource}.openai.azure.com"
             else:
-                base_url = f"{endpoint}/openai"
+                if azure_endpoint is None:
+                    azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+                if azure_endpoint is None:
+                    raise ValueError(
+                        "Must provide one of `base_url`, `azure_resource`, `azure_endpoint`, or the `OPENAI_BASE_URL`, `AZURE_OPENAI_RESOURCE`, or `AZURE_OPENAI_ENDPOINT` environment variables"
+                    )
+
+                base = azure_endpoint
+
+            if azure_deployment is not None:
+                base_url = f"{base}/openai/deployments/{azure_deployment}"
+            else:
+                base_url = f"{base}/openai"
         else:
-            if endpoint is not None:
-                raise ValueError("base_url and endpoint are mutually exclusive")
+            if azure_endpoint is not None or azure_resource is not None:
+                raise ValueError("base_url, azure_resource and azure_endpoint are mutually exclusive")
 
         if api_key is None:
             # define a sentinel value to avoid any typing issues
@@ -166,13 +225,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
             _strict_response_validation=_strict_response_validation,
         )
         self._azure_ad_token = azure_ad_token
-        self._azure_ad_token_provier = azure_ad_token_provider
+        self._azure_ad_token_provider = azure_ad_token_provider
 
     def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
             return self._azure_ad_token
 
-        provider = self._azure_ad_token_provier
+        provider = self._azure_ad_token_provider
         if provider is not None:
             token = provider()
             if not token or not isinstance(token, str):  # pyright: ignore[reportUnnecessaryIsInstance]
@@ -183,6 +242,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client], OpenAI):
 
         return None
 
+    @override
     def _prepare_options(self, options: FinalRequestOptions) -> None:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
         options.headers = headers
@@ -207,8 +267,28 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
         self,
         *,
         api_version: str,
-        endpoint: str,
-        deployment: str | None = None,
+        azure_endpoint: str,
+        azure_deployment: str | None = None,
+        api_key: str | None = None,
+        azure_ad_token: str | None = None,
+        azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
+        organization: str | None = None,
+        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        max_retries: int = DEFAULT_MAX_RETRIES,
+        default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        http_client: httpx.AsyncClient | None = None,
+        _strict_response_validation: bool = False,
+    ) -> None:
+        ...
+
+    @overload
+    def __init__(
+        self,
+        *,
+        api_version: str,
+        azure_resource: str,
+        azure_deployment: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
@@ -245,8 +325,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
         self,
         *,
         api_version: str,
-        endpoint: str | None = None,
-        deployment: str | None = None,
+        azure_endpoint: str | None = None,
+        azure_resource: str | None = None,
+        azure_deployment: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
@@ -259,6 +340,29 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
     ) -> None:
+        """Construct a new asynchronous azure openai client instance.
+
+        This automatically infers the following arguments from their corresponding environment variables if they are not provided:
+        - `api_key` from `AZURE_OPENAI_API_KEY`
+        - `organization` from `OPENAI_ORG_ID`
+        - `azure_ad_token` from `AZURE_OPENAI_AD_TOKEN`
+        - `api_version` from `OPENAI_API_VERSION`
+        - `azure_resource` from `AZURE_OPENAI_RESOURCE`
+        - `azure_endpoint` from `AZURE_OPENAI_ENDPOINT`
+
+        Args:
+            azure_resource: Your Azure resource, e.g. `example-resource`
+                https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
+
+            azure_endpoint: Your Azure endpoint, includes the resource, e.g. `https://example-resource.azure.openai.com/`
+
+            azure_ad_token: Your Azure Active Directory token, https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id
+
+            azure_ad_token: A function that returns an Azure Active Directory token, will be invoked on every request.
+
+            azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
+                Note: this means you won't be able to use non-deployment endpoints.
+        """
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
 
@@ -267,7 +371,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
 
         if api_key is None and azure_ad_token is None and azure_ad_token_provider is None:
             raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the AZURE_OPENAI_API_KEY environment variable; If you're using Azure AD you should pass either the `azure_ad_token` or the `azure_ad_token_provider` argument."
+                "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
 
         if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
@@ -282,19 +386,32 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
             default_query = {"api-version": api_version, **default_query}
 
         if base_url is None:
-            if endpoint is None:
-                endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+            if azure_resource is None:
+                azure_resource = os.environ.get("AZURE_OPENAI_RESOURCE")
 
-            if endpoint is None:
-                raise ValueError("If base_url is not given, then endpoint must be given")
+            if azure_resource is not None:
+                if azure_endpoint is not None:
+                    raise ValueError("azure_resource and azure_endpoint are mutually exclusive")
 
-            if deployment is not None:
-                base_url = f"{endpoint}/openai/deployments/{deployment}"
+                base = f"https://{azure_resource}.openai.azure.com"
             else:
-                base_url = f"{endpoint}/openai"
+                if azure_endpoint is None:
+                    azure_endpoint = os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+                if azure_endpoint is None:
+                    raise ValueError(
+                        "Must provide one of `base_url`, `azure_resource`, `azure_endpoint`, or the `OPENAI_BASE_URL`, `AZURE_OPENAI_RESOURCE`, or `AZURE_OPENAI_ENDPOINT` environment variables"
+                    )
+
+                base = azure_endpoint
+
+            if azure_deployment is not None:
+                base_url = f"{base}/openai/deployments/{azure_deployment}"
+            else:
+                base_url = f"{base}/openai"
         else:
-            if endpoint is not None:
-                raise ValueError("base_url and endpoint are mutually exclusive")
+            if azure_endpoint is not None or azure_resource is not None:
+                raise ValueError("base_url, azure_resource and azure_endpoint are mutually exclusive")
 
         if api_key is None:
             # define a sentinel value to avoid any typing issues
@@ -312,13 +429,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
             _strict_response_validation=_strict_response_validation,
         )
         self._azure_ad_token = azure_ad_token
-        self._azure_ad_token_provier = azure_ad_token_provider
+        self._azure_ad_token_provider = azure_ad_token_provider
 
     async def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
             return self._azure_ad_token
 
-        provider = self._azure_ad_token_provier
+        provider = self._azure_ad_token_provider
         if provider is not None:
             token = provider()
             if inspect.isawaitable(token):
@@ -331,6 +448,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient], AsyncOpenAI):
 
         return None
 
+    @override
     async def _prepare_options(self, options: FinalRequestOptions) -> None:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
         options.headers = headers

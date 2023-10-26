@@ -114,13 +114,15 @@ default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
 
-_ApiType = _te.Literal["openai", "azure", "azure_ad"]
+_ApiType = _te.Literal["openai", "azure"]
 
 api_type: _ApiType | None = _t.cast(_ApiType, _os.environ.get("OPENAI_API_TYPE"))
 
 api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
 
 azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+azure_resource: str | None = _os.environ.get("AZURE_OPENAI_RESOURCE")
 
 azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
 
@@ -235,7 +237,7 @@ class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
-            "Ambiguous use of module client; Both Azure and OpenAI are configured, `openai.api_type` or the `OPENAI_API_TYPE` environment variable must be set to `openai`, `azure` or `azure_ad`"
+            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai`, `azure` or `azure_ad`"
         )
 
 
@@ -244,7 +246,9 @@ def _has_openai_credentials() -> bool:
 
 
 def _has_azure_credentials() -> bool:
-    return azure_endpoint is not None or _os.environ.get("AZURE_OPENAI_API_KEY") is not None
+    return (
+        azure_endpoint is not None or azure_resource is not None or _os.environ.get("AZURE_OPENAI_API_KEY") is not None
+    )
 
 
 def _has_azure_ad_credentials() -> bool:
@@ -262,10 +266,13 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
-        global api_type, azure_endpoint, azure_ad_token, api_version
+        global api_type, azure_resource, azure_endpoint, azure_ad_token, api_version
 
         if azure_endpoint is None:
             azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+        if azure_resource is None:
+            azure_resource = _os.environ.get("AZURE_OPENAI_RESOURCE")
 
         if azure_ad_token is None:
             azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
@@ -286,17 +293,16 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             ) is not None:
                 raise _AmbiguousModuleClientUsageError()
 
-            if has_azure_ad:
-                api_type = "azure_ad"  # type: ignore[unreachable]
-            elif has_azure:
+            if has_azure or has_azure_ad:
                 api_type = "azure"
             else:
                 api_type = "openai"
 
-        if api_type == "azure" or api_type == "azure_ad":
+        if api_type == "azure":
             _client = _AzureModuleClient(  # type: ignore
                 api_version=api_version,
-                endpoint=azure_endpoint,
+                azure_endpoint=azure_endpoint,
+                azure_resource=azure_resource,
                 api_key=api_key,
                 azure_ad_token=azure_ad_token,
                 azure_ad_token_provider=azure_ad_token_provider,

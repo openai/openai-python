@@ -774,6 +774,17 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         """Hook for mutating the given options"""
         return None
 
+    def _prepare_request(
+        self,
+        request: httpx.Request,  # noqa: ARG002
+    ) -> None:
+        """This method is used as a callback for mutating the `Request` object
+        after it has been constructed.
+        This is useful for cases where you want to add certain headers based off of
+        the request properties, e.g. `url`, `method` etc.
+        """
+        return None
+
     @overload
     def request(
         self,
@@ -839,6 +850,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
         retries = self._remaining_retries(remaining_retries, options)
         request = self._build_request(options)
+        self._prepare_request(request)
 
         try:
             response = self._client.send(request, auth=self.custom_auth, stream=stream)
@@ -1203,6 +1215,17 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         """Hook for mutating the given options"""
         return None
 
+    async def _prepare_request(
+        self,
+        request: httpx.Request,  # noqa: ARG002
+    ) -> None:
+        """This method is used as a callback for mutating the `Request` object
+        after it has been constructed.
+        This is useful for cases where you want to add certain headers based off of
+        the request properties, e.g. `url`, `method` etc.
+        """
+        return None
+
     @overload
     async def request(
         self,
@@ -1268,6 +1291,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
         retries = self._remaining_retries(remaining_retries, options)
         request = self._build_request(options)
+        await self._prepare_request(request)
 
         try:
             response = await self._client.send(request, auth=self.custom_auth, stream=stream)

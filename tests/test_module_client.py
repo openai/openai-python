@@ -14,7 +14,7 @@ from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 def reset_state() -> None:
     openai._reset_client()
-    openai.api_key = None
+    openai.api_key = None or "My API Key"
     openai.organization = None
     openai.base_url = None
     openai.timeout = DEFAULT_TIMEOUT
@@ -98,6 +98,8 @@ def test_http_client_option() -> None:
 import contextlib
 from typing import Iterator
 
+from openai.lib.azure import AzureOpenAI
+
 
 @contextlib.contextmanager
 def fresh_env() -> Iterator[None]:
@@ -133,7 +135,10 @@ def test_azure_api_key_and_version_env() -> None:
         _os.environ["AZURE_OPENAI_API_KEY"] = "example API key"
         _os.environ["OPENAI_API_VERSION"] = "example-version"
 
-        with pytest.raises(ValueError, match=r"If base_url is not given, then endpoint must be given"):
+        with pytest.raises(
+            ValueError,
+            match=r"Must provide one of `base_url`, `azure_resource`, `azure_endpoint`, or the `OPENAI_BASE_URL`,",
+        ):
             openai.completions._client
 
 
@@ -156,9 +161,9 @@ def test_azure_azure_ad_token_version_and_endpoint_env() -> None:
         _os.environ["OPENAI_API_VERSION"] = "example-version"
         _os.environ["AZURE_OPENAI_ENDPOINT"] = "https://www.example"
 
-        openai.completions._client
-
-        assert openai.api_type == "azure_ad"
+        client = openai.completions._client
+        assert isinstance(client, AzureOpenAI)
+        assert client._azure_ad_token == "example AD token"
 
 
 def test_azure_azure_ad_token_provider_version_and_endpoint_env() -> None:
@@ -168,6 +173,18 @@ def test_azure_azure_ad_token_provider_version_and_endpoint_env() -> None:
         _os.environ["AZURE_OPENAI_ENDPOINT"] = "https://www.example"
         openai.azure_ad_token_provider = lambda: "token"
 
-        openai.completions._client
+        client = openai.completions._client
+        assert isinstance(client, AzureOpenAI)
+        assert client._azure_ad_token_provider is not None
+        assert client._azure_ad_token_provider() == "token"
 
-        assert openai.api_type == "azure_ad"
+
+def test_azure_resource() -> None:
+    with fresh_env():
+        openai.api_type = None
+        _os.environ["AZURE_OPENAI_API_KEY"] = "api key"
+        _os.environ["OPENAI_API_VERSION"] = "example-version"
+        openai.azure_resource = "example-resource"
+
+        client = openai.completions._client
+        assert client.base_url == "https://example-resource.openai.azure.com/openai/"

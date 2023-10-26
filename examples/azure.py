@@ -8,7 +8,7 @@ api_version = "2023-07-01-preview"
 client = AzureOpenAI(
     api_version=api_version,
     # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
-    endpoint="example-endpoint",
+    azure_resource="example-resource",
 )
 
 completion = client.chat.completions.create(
@@ -26,9 +26,9 @@ print(completion.model_dump_json(indent=2))
 deployment_client = AzureOpenAI(
     api_version=api_version,
     # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
-    endpoint="example-endpoint",
+    azure_endpoint="https://example-resource.azure.openai.com/",
     # Navigate to the Azure OpenAI Studio to deploy a model.
-    deployment="deployment-name",  # e.g. gpt-35-instant
+    azure_deployment="deployment-name",  # e.g. gpt-35-instant
 )
 
 completion = deployment_client.chat.completions.create(
