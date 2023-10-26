@@ -8,6 +8,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai._client import OpenAI, AsyncOpenAI
 from openai.types.audio import Translation
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
@@ -38,6 +39,16 @@ class TestTranslations:
         )
         assert_matches_type(Translation, translation, path=["response"])
 
+    @parametrize
+    def test_raw_response_create(self, client: OpenAI) -> None:
+        response = client.audio.translations.with_raw_response.create(
+            file=b"raw file contents",
+            model="whisper-1",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        translation = response.parse()
+        assert_matches_type(Translation, translation, path=["response"])
+
 
 class TestAsyncTranslations:
     strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
@@ -61,4 +72,14 @@ class TestAsyncTranslations:
             response_format="string",
             temperature=0,
         )
+        assert_matches_type(Translation, translation, path=["response"])
+
+    @parametrize
+    async def test_raw_response_create(self, client: AsyncOpenAI) -> None:
+        response = await client.audio.translations.with_raw_response.create(
+            file=b"raw file contents",
+            model="whisper-1",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        translation = response.parse()
         assert_matches_type(Translation, translation, path=["response"])

@@ -12,10 +12,18 @@ from typing import (
     Union,
     Mapping,
     TypeVar,
+    Callable,
     Optional,
     Sequence,
 )
-from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, runtime_checkable
+from typing_extensions import (
+    Literal,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+    override,
+    runtime_checkable,
+)
 
 import httpx
 import pydantic
@@ -119,6 +127,7 @@ class NotGiven:
     def __bool__(self) -> Literal[False]:
         return False
 
+    @override
     def __repr__(self) -> str:
         return "NOT_GIVEN"
 
@@ -180,3 +189,5 @@ StrBytesIntFloat = Union[str, bytes, int, float]
 # Note: copied from Pydantic
 # https://github.com/pydantic/pydantic/blob/32ea570bf96e84234d2992e1ddf40ab8a565925a/pydantic/main.py#L49
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, Any] | dict[str, Any] | None"
+
+PostParser = Callable[[Any], Any]

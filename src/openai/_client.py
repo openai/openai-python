@@ -5,6 +5,7 @@ from __future__ import annotations
 import os
 import asyncio
 from typing import Union, Mapping
+from typing_extensions import override
 
 import httpx
 
@@ -51,6 +52,7 @@ class OpenAI(SyncAPIClient):
     models: resources.Models
     fine_tuning: resources.FineTuning
     fine_tunes: resources.FineTunes
+    with_raw_response: OpenAIWithRawResponse
 
     # client options
     api_key: str
@@ -123,17 +125,21 @@ class OpenAI(SyncAPIClient):
         self.models = resources.Models(self)
         self.fine_tuning = resources.FineTuning(self)
         self.fine_tunes = resources.FineTunes(self)
+        self.with_raw_response = OpenAIWithRawResponse(self)
 
     @property
+    @override
     def qs(self) -> Querystring:
         return Querystring(array_format="comma")
 
     @property
+    @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
+    @override
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
@@ -205,6 +211,7 @@ class OpenAI(SyncAPIClient):
 
         self.close()
 
+    @override
     def _make_status_error(
         self,
         err_msg: str,
@@ -250,6 +257,7 @@ class AsyncOpenAI(AsyncAPIClient):
     models: resources.AsyncModels
     fine_tuning: resources.AsyncFineTuning
     fine_tunes: resources.AsyncFineTunes
+    with_raw_response: AsyncOpenAIWithRawResponse
 
     # client options
     api_key: str
@@ -322,17 +330,21 @@ class AsyncOpenAI(AsyncAPIClient):
         self.models = resources.AsyncModels(self)
         self.fine_tuning = resources.AsyncFineTuning(self)
         self.fine_tunes = resources.AsyncFineTunes(self)
+        self.with_raw_response = AsyncOpenAIWithRawResponse(self)
 
     @property
+    @override
     def qs(self) -> Querystring:
         return Querystring(array_format="comma")
 
     @property
+    @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
+    @override
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
@@ -407,6 +419,7 @@ class AsyncOpenAI(AsyncAPIClient):
         except Exception:
             pass
 
+    @override
     def _make_status_error(
         self,
         err_msg: str,
@@ -438,6 +451,36 @@ class AsyncOpenAI(AsyncAPIClient):
         if response.status_code >= 500:
             return _exceptions.InternalServerError(err_msg, response=response, body=body)
         return APIStatusError(err_msg, response=response, body=body)
+
+
+class OpenAIWithRawResponse:
+    def __init__(self, client: OpenAI) -> None:
+        self.completions = resources.CompletionsWithRawResponse(client.completions)
+        self.chat = resources.ChatWithRawResponse(client.chat)
+        self.edits = resources.EditsWithRawResponse(client.edits)
+        self.embeddings = resources.EmbeddingsWithRawResponse(client.embeddings)
+        self.files = resources.FilesWithRawResponse(client.files)
+        self.images = resources.ImagesWithRawResponse(client.images)
+        self.audio = resources.AudioWithRawResponse(client.audio)
+        self.moderations = resources.ModerationsWithRawResponse(client.moderations)
+        self.models = resources.ModelsWithRawResponse(client.models)
+        self.fine_tuning = resources.FineTuningWithRawResponse(client.fine_tuning)
+        self.fine_tunes = resources.FineTunesWithRawResponse(client.fine_tunes)
+
+
+class AsyncOpenAIWithRawResponse:
+    def __init__(self, client: AsyncOpenAI) -> None:
+        self.completions = resources.AsyncCompletionsWithRawResponse(client.completions)
+        self.chat = resources.AsyncChatWithRawResponse(client.chat)
+        self.edits = resources.AsyncEditsWithRawResponse(client.edits)
+        self.embeddings = resources.AsyncEmbeddingsWithRawResponse(client.embeddings)
+        self.files = resources.AsyncFilesWithRawResponse(client.files)
+        self.images = resources.AsyncImagesWithRawResponse(client.images)
+        self.audio = resources.AsyncAudioWithRawResponse(client.audio)
+        self.moderations = resources.AsyncModerationsWithRawResponse(client.moderations)
+        self.models = resources.AsyncModelsWithRawResponse(client.models)
+        self.fine_tuning = resources.AsyncFineTuningWithRawResponse(client.fine_tuning)
+        self.fine_tunes = resources.AsyncFineTunesWithRawResponse(client.fine_tunes)
 
 
 Client = OpenAI

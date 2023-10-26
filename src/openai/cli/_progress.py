@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 from typing import Callable
+from typing_extensions import override
 
 
 class CancelledError(Exception):
@@ -9,6 +10,7 @@ class CancelledError(Exception):
         self.msg = msg
         super().__init__(msg)
 
+    @override
     def __str__(self) -> str:
         return self.msg
 
@@ -25,6 +27,7 @@ class BufferReader(io.BytesIO):
     def __len__(self) -> int:
         return self._len
 
+    @override
     def read(self, n: int | None = -1) -> bytes:
         chunk = io.BytesIO.read(self, n)
         self._progress += len(chunk)

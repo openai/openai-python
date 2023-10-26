@@ -3,19 +3,29 @@
 from __future__ import annotations
 
 import typing_extensions
-from typing import Union, Optional
+from typing import TYPE_CHECKING, Union, Optional
 from typing_extensions import Literal
 
 from ..types import Edit, edit_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import maybe_transform
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Edits", "AsyncEdits"]
 
 
 class Edits(SyncAPIResource):
+    with_raw_response: EditsWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = EditsWithRawResponse(self)
+
     @typing_extensions.deprecated(
         "The Edits API is deprecated; please use Chat Completions instead.\n\nhttps://openai.com/blog/gpt-4-api-general-availability#deprecation-of-the-edits-api\n"
     )
@@ -89,6 +99,12 @@ class Edits(SyncAPIResource):
 
 
 class AsyncEdits(AsyncAPIResource):
+    with_raw_response: AsyncEditsWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncEditsWithRawResponse(self)
+
     @typing_extensions.deprecated(
         "The Edits API is deprecated; please use Chat Completions instead.\n\nhttps://openai.com/blog/gpt-4-api-general-availability#deprecation-of-the-edits-api\n"
     )
@@ -158,4 +174,18 @@ class AsyncEdits(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Edit,
+        )
+
+
+class EditsWithRawResponse:
+    def __init__(self, edits: Edits) -> None:
+        self.create = to_raw_response_wrapper(  # pyright: ignore[reportDeprecated]
+            edits.create  # pyright: ignore[reportDeprecated],
+        )
+
+
+class AsyncEditsWithRawResponse:
+    def __init__(self, edits: AsyncEdits) -> None:
+        self.create = async_to_raw_response_wrapper(  # pyright: ignore[reportDeprecated]
+            edits.create  # pyright: ignore[reportDeprecated],
         )

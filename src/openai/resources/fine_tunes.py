@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional, overload
+from typing import TYPE_CHECKING, List, Union, Optional, overload
 from typing_extensions import Literal
 
 from ..types import (
@@ -15,14 +15,24 @@ from ..types import (
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import maybe_transform
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._streaming import Stream, AsyncStream
 from ..pagination import SyncPage, AsyncPage
 from .._base_client import AsyncPaginator, make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["FineTunes", "AsyncFineTunes"]
 
 
 class FineTunes(SyncAPIResource):
+    with_raw_response: FineTunesWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = FineTunesWithRawResponse(self)
+
     def create(
         self,
         *,
@@ -395,6 +405,12 @@ class FineTunes(SyncAPIResource):
 
 
 class AsyncFineTunes(AsyncAPIResource):
+    with_raw_response: AsyncFineTunesWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncFineTunesWithRawResponse(self)
+
     async def create(
         self,
         *,
@@ -763,4 +779,42 @@ class AsyncFineTunes(AsyncAPIResource):
             cast_to=FineTuneEventsListResponse,
             stream=stream or False,
             stream_cls=AsyncStream[FineTuneEvent],
+        )
+
+
+class FineTunesWithRawResponse:
+    def __init__(self, fine_tunes: FineTunes) -> None:
+        self.create = to_raw_response_wrapper(
+            fine_tunes.create,
+        )
+        self.retrieve = to_raw_response_wrapper(
+            fine_tunes.retrieve,
+        )
+        self.list = to_raw_response_wrapper(
+            fine_tunes.list,
+        )
+        self.cancel = to_raw_response_wrapper(
+            fine_tunes.cancel,
+        )
+        self.list_events = to_raw_response_wrapper(
+            fine_tunes.list_events,
+        )
+
+
+class AsyncFineTunesWithRawResponse:
+    def __init__(self, fine_tunes: AsyncFineTunes) -> None:
+        self.create = async_to_raw_response_wrapper(
+            fine_tunes.create,
+        )
+        self.retrieve = async_to_raw_response_wrapper(
+            fine_tunes.retrieve,
+        )
+        self.list = async_to_raw_response_wrapper(
+            fine_tunes.list,
+        )
+        self.cancel = async_to_raw_response_wrapper(
+            fine_tunes.cancel,
+        )
+        self.list_events = async_to_raw_response_wrapper(
+            fine_tunes.list_events,
         )

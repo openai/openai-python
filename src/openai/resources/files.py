@@ -3,19 +3,29 @@
 from __future__ import annotations
 
 import time
-from typing import Mapping, cast
+from typing import TYPE_CHECKING, Mapping, cast
 
 from ..types import FileObject, FileDeleted, file_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from .._utils import extract_files, maybe_transform, deepcopy_minimal
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ..pagination import SyncPage, AsyncPage
 from .._base_client import AsyncPaginator, make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Files", "AsyncFiles"]
 
 
 class Files(SyncAPIResource):
+    with_raw_response: FilesWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = FilesWithRawResponse(self)
+
     def create(
         self,
         *,
@@ -217,6 +227,12 @@ class Files(SyncAPIResource):
 
 
 class AsyncFiles(AsyncAPIResource):
+    with_raw_response: AsyncFilesWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncFilesWithRawResponse(self)
+
     async def create(
         self,
         *,
@@ -415,3 +431,41 @@ class AsyncFiles(AsyncAPIResource):
                 )
 
         return file
+
+
+class FilesWithRawResponse:
+    def __init__(self, files: Files) -> None:
+        self.create = to_raw_response_wrapper(
+            files.create,
+        )
+        self.retrieve = to_raw_response_wrapper(
+            files.retrieve,
+        )
+        self.list = to_raw_response_wrapper(
+            files.list,
+        )
+        self.delete = to_raw_response_wrapper(
+            files.delete,
+        )
+        self.retrieve_content = to_raw_response_wrapper(
+            files.retrieve_content,
+        )
+
+
+class AsyncFilesWithRawResponse:
+    def __init__(self, files: AsyncFiles) -> None:
+        self.create = async_to_raw_response_wrapper(
+            files.create,
+        )
+        self.retrieve = async_to_raw_response_wrapper(
+            files.retrieve,
+        )
+        self.list = async_to_raw_response_wrapper(
+            files.list,
+        )
+        self.delete = async_to_raw_response_wrapper(
+            files.delete,
+        )
+        self.retrieve_content = async_to_raw_response_wrapper(
+            files.retrieve_content,
+        )

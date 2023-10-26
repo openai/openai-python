@@ -388,6 +388,30 @@ if response.my_field is None:
     print('Got json like {"my_field": null}.')
 ```
 
+### Accessing raw response data (e.g. headers)
+
+The "raw" Response object can be accessed by prefixing `.with_raw_response.` to any HTTP method call.
+
+```py
+from openai import OpenAI
+
+client = OpenAI()
+response = client.chat.completions.with_raw_response.create(
+    messages=[{
+        "content": "string",
+        "role": "system",
+    }],
+    model="gpt-3.5-turbo",
+)
+
+print(response.headers.get('X-My-Header'))
+
+completion = response.parse()  # get the object that `chat.completions.create()` would have returned
+print(completion.choices)
+```
+
+These methods return an [`APIResponse`](https://github.com/openai/openai-python/tree/v1/src/openai/_response.py) object.
+
 ### Configuring the HTTP client
 
 You can directly override the [httpx client](https://www.python-httpx.org/api/#client) to customize it for your use case, including:

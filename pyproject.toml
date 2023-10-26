@@ -57,9 +57,10 @@ format = { chain = [
 "format:ruff" = "ruff --fix ."
 "format:isort" = "isort ."
 
+"check:ruff" = "ruff ."
+
 typecheck = { chain = [
   "typecheck:pyright",
-  "typecheck:verify-types",
   "typecheck:mypy"
 ]}
 "typecheck:pyright" = "pyright"
@@ -103,6 +104,9 @@ exclude = [
     ".venv",
     ".nox",
 ]
+
+reportImplicitOverride = true
+
 reportImportCycles = false
 reportPrivateUsage = false
 

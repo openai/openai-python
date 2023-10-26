@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, List, Mapping, TypeVar, cast
 from datetime import date, datetime
-from typing_extensions import Literal, get_args, get_type_hints
+from typing_extensions import Literal, get_args, override, get_type_hints
 
 from ._utils import (
     is_list,
@@ -52,6 +52,7 @@ class PropertyInfo:
         self.format = format
         self.format_template = format_template
 
+    @override
     def __repr__(self) -> str:
         return f"{self.__class__.__name__}(alias='{self.alias}', format={self.format}, format_template='{self.format_template}')"
 

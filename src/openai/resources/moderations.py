@@ -2,19 +2,29 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+from typing import TYPE_CHECKING, List, Union
 from typing_extensions import Literal
 
 from ..types import ModerationCreateResponse, moderation_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import maybe_transform
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Moderations", "AsyncModerations"]
 
 
 class Moderations(SyncAPIResource):
+    with_raw_response: ModerationsWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = ModerationsWithRawResponse(self)
+
     def create(
         self,
         *,
@@ -67,6 +77,12 @@ class Moderations(SyncAPIResource):
 
 
 class AsyncModerations(AsyncAPIResource):
+    with_raw_response: AsyncModerationsWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncModerationsWithRawResponse(self)
+
     async def create(
         self,
         *,
@@ -115,4 +131,18 @@ class AsyncModerations(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=ModerationCreateResponse,
+        )
+
+
+class ModerationsWithRawResponse:
+    def __init__(self, moderations: Moderations) -> None:
+        self.create = to_raw_response_wrapper(
+            moderations.create,
+        )
+
+
+class AsyncModerationsWithRawResponse:
+    def __init__(self, moderations: AsyncModerations) -> None:
+        self.create = async_to_raw_response_wrapper(
+            moderations.create,
         )
