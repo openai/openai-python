@@ -8,6 +8,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai._client import OpenAI, AsyncOpenAI
 from openai.pagination import SyncCursorPage, AsyncCursorPage
 from openai.types.fine_tuning import FineTuningJob, FineTuningJobEvent
 
@@ -40,10 +41,29 @@ class TestJobs:
         assert_matches_type(FineTuningJob, job, path=["response"])
 
     @parametrize
+    def test_raw_response_create(self, client: OpenAI) -> None:
+        response = client.fine_tuning.jobs.with_raw_response.create(
+            model="gpt-3.5-turbo",
+            training_file="file-abc123",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
+        assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.retrieve(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+        assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    def test_raw_response_retrieve(self, client: OpenAI) -> None:
+        response = client.fine_tuning.jobs.with_raw_response.retrieve(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
     @parametrize
@@ -60,10 +80,26 @@ class TestJobs:
         assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
 
     @parametrize
+    def test_raw_response_list(self, client: OpenAI) -> None:
+        response = client.fine_tuning.jobs.with_raw_response.list()
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
+        assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
+
+    @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.cancel(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+        assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    def test_raw_response_cancel(self, client: OpenAI) -> None:
+        response = client.fine_tuning.jobs.with_raw_response.cancel(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
     @parametrize
@@ -80,6 +116,15 @@ class TestJobs:
             after="string",
             limit=0,
         )
+        assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
+
+    @parametrize
+    def test_raw_response_list_events(self, client: OpenAI) -> None:
+        response = client.fine_tuning.jobs.with_raw_response.list_events(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
         assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
 
@@ -108,10 +153,29 @@ class TestAsyncJobs:
         assert_matches_type(FineTuningJob, job, path=["response"])
 
     @parametrize
+    async def test_raw_response_create(self, client: AsyncOpenAI) -> None:
+        response = await client.fine_tuning.jobs.with_raw_response.create(
+            model="gpt-3.5-turbo",
+            training_file="file-abc123",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
+        assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
         job = await client.fine_tuning.jobs.retrieve(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+        assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    async def test_raw_response_retrieve(self, client: AsyncOpenAI) -> None:
+        response = await client.fine_tuning.jobs.with_raw_response.retrieve(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
     @parametrize
@@ -128,10 +192,26 @@ class TestAsyncJobs:
         assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
 
     @parametrize
+    async def test_raw_response_list(self, client: AsyncOpenAI) -> None:
+        response = await client.fine_tuning.jobs.with_raw_response.list()
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
+        assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
+
+    @parametrize
     async def test_method_cancel(self, client: AsyncOpenAI) -> None:
         job = await client.fine_tuning.jobs.cancel(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+        assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    async def test_raw_response_cancel(self, client: AsyncOpenAI) -> None:
+        response = await client.fine_tuning.jobs.with_raw_response.cancel(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
     @parametrize
@@ -148,4 +228,13 @@ class TestAsyncJobs:
             after="string",
             limit=0,
         )
+        assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
+
+    @parametrize
+    async def test_raw_response_list_events(self, client: AsyncOpenAI) -> None:
+        response = await client.fine_tuning.jobs.with_raw_response.list_events(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        job = response.parse()
         assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])

@@ -9,6 +9,7 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import ImagesResponse
+from openai._client import OpenAI, AsyncOpenAI
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
@@ -38,6 +39,15 @@ class TestImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
+    def test_raw_response_create_variation(self, client: OpenAI) -> None:
+        response = client.images.with_raw_response.create_variation(
+            image=b"raw file contents",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
     def test_method_edit(self, client: OpenAI) -> None:
         image = client.images.edit(
             image=b"raw file contents",
@@ -59,6 +69,16 @@ class TestImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
+    def test_raw_response_edit(self, client: OpenAI) -> None:
+        response = client.images.with_raw_response.edit(
+            image=b"raw file contents",
+            prompt="A cute baby sea otter wearing a beret",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
     def test_method_generate(self, client: OpenAI) -> None:
         image = client.images.generate(
             prompt="A cute baby sea otter",
@@ -74,6 +94,15 @@ class TestImages:
             size="1024x1024",
             user="user-1234",
         )
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    def test_raw_response_generate(self, client: OpenAI) -> None:
+        response = client.images.with_raw_response.generate(
+            prompt="A cute baby sea otter",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
 
@@ -101,6 +130,15 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
+    async def test_raw_response_create_variation(self, client: AsyncOpenAI) -> None:
+        response = await client.images.with_raw_response.create_variation(
+            image=b"raw file contents",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
     async def test_method_edit(self, client: AsyncOpenAI) -> None:
         image = await client.images.edit(
             image=b"raw file contents",
@@ -122,6 +160,16 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
+    async def test_raw_response_edit(self, client: AsyncOpenAI) -> None:
+        response = await client.images.with_raw_response.edit(
+            image=b"raw file contents",
+            prompt="A cute baby sea otter wearing a beret",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
     async def test_method_generate(self, client: AsyncOpenAI) -> None:
         image = await client.images.generate(
             prompt="A cute baby sea otter",
@@ -137,4 +185,13 @@ class TestAsyncImages:
             size="1024x1024",
             user="user-1234",
         )
+        assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    async def test_raw_response_generate(self, client: AsyncOpenAI) -> None:
+        response = await client.images.with_raw_response.generate(
+            prompt="A cute baby sea otter",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])

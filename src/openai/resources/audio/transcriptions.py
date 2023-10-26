@@ -2,19 +2,29 @@
 
 from __future__ import annotations
 
-from typing import Union, Mapping, cast
+from typing import TYPE_CHECKING, Union, Mapping, cast
 from typing_extensions import Literal
 
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import extract_files, maybe_transform, deepcopy_minimal
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ...types.audio import Transcription, transcription_create_params
 from ..._base_client import make_request_options
+
+if TYPE_CHECKING:
+    from ..._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
 
 class Transcriptions(SyncAPIResource):
+    with_raw_response: TranscriptionsWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = TranscriptionsWithRawResponse(self)
+
     def create(
         self,
         *,
@@ -96,6 +106,12 @@ class Transcriptions(SyncAPIResource):
 
 
 class AsyncTranscriptions(AsyncAPIResource):
+    with_raw_response: AsyncTranscriptionsWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncTranscriptionsWithRawResponse(self)
+
     async def create(
         self,
         *,
@@ -173,4 +189,18 @@ class AsyncTranscriptions(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Transcription,
+        )
+
+
+class TranscriptionsWithRawResponse:
+    def __init__(self, transcriptions: Transcriptions) -> None:
+        self.create = to_raw_response_wrapper(
+            transcriptions.create,
+        )
+
+
+class AsyncTranscriptionsWithRawResponse:
+    def __init__(self, transcriptions: AsyncTranscriptions) -> None:
+        self.create = async_to_raw_response_wrapper(
+            transcriptions.create,
         )

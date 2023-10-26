@@ -2,16 +2,28 @@
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from ..types import Model, ModelDeleted
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ..pagination import SyncPage, AsyncPage
 from .._base_client import AsyncPaginator, make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Models", "AsyncModels"]
 
 
 class Models(SyncAPIResource):
+    with_raw_response: ModelsWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = ModelsWithRawResponse(self)
+
     def retrieve(
         self,
         model: str,
@@ -102,6 +114,12 @@ class Models(SyncAPIResource):
 
 
 class AsyncModels(AsyncAPIResource):
+    with_raw_response: AsyncModelsWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncModelsWithRawResponse(self)
+
     async def retrieve(
         self,
         model: str,
@@ -188,4 +206,30 @@ class AsyncModels(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=ModelDeleted,
+        )
+
+
+class ModelsWithRawResponse:
+    def __init__(self, models: Models) -> None:
+        self.retrieve = to_raw_response_wrapper(
+            models.retrieve,
+        )
+        self.list = to_raw_response_wrapper(
+            models.list,
+        )
+        self.delete = to_raw_response_wrapper(
+            models.delete,
+        )
+
+
+class AsyncModelsWithRawResponse:
+    def __init__(self, models: AsyncModels) -> None:
+        self.retrieve = async_to_raw_response_wrapper(
+            models.retrieve,
+        )
+        self.list = async_to_raw_response_wrapper(
+            models.list,
+        )
+        self.delete = async_to_raw_response_wrapper(
+            models.delete,
         )

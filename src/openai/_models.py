@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import inspect
-from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, cast
+from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, cast
 from datetime import date, datetime
 from typing_extensions import (
     Unpack,
@@ -30,7 +30,14 @@ from ._types import (
     AnyMapping,
     HttpxRequestFiles,
 )
-from ._utils import is_list, is_mapping, parse_date, parse_datetime, strip_not_given
+from ._utils import (
+    is_list,
+    is_given,
+    is_mapping,
+    parse_date,
+    parse_datetime,
+    strip_not_given,
+)
 from ._compat import PYDANTIC_V2, ConfigDict
 from ._compat import GenericModel as BaseGenericModel
 from ._compat import (
@@ -43,6 +50,7 @@ from ._compat import (
     get_model_fields,
     field_get_default,
 )
+from ._constants import RAW_RESPONSE_HEADER
 
 __all__ = ["BaseModel", "GenericModel"]
 
@@ -401,6 +409,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     timeout: Union[float, Timeout, None, NotGiven] = NotGiven()
     files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
+    post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
 
     # It should be noted that we cannot use `json` here as that would override
     # a BaseModel method in an incompatible fashion.
@@ -418,6 +427,14 @@ class FinalRequestOptions(pydantic.BaseModel):
         if isinstance(self.max_retries, NotGiven):
             return max_retries
         return self.max_retries
+
+    def _strip_raw_response_header(self) -> None:
+        if not is_given(self.headers):
+            return
+
+        if self.headers.get(RAW_RESPONSE_HEADER):
+            self.headers = {**self.headers}
+            self.headers.pop(RAW_RESPONSE_HEADER)
 
     # override the `construct` method so that we can run custom transformations.
     # this is necessary as we don't want to do any actual runtime type checking

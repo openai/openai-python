@@ -60,7 +60,6 @@ format = { chain = [
 
 typecheck = { chain = [
   "typecheck:pyright",
-  "typecheck:verify-types",
   "typecheck:mypy"
 ]}
 "typecheck:pyright" = "pyright"

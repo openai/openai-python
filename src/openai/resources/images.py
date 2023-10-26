@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Mapping, Optional, cast
+from typing import TYPE_CHECKING, Mapping, Optional, cast
 from typing_extensions import Literal
 
 from ..types import (
@@ -14,12 +14,22 @@ from ..types import (
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from .._utils import extract_files, maybe_transform, deepcopy_minimal
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Images", "AsyncImages"]
 
 
 class Images(SyncAPIResource):
+    with_raw_response: ImagesWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = ImagesWithRawResponse(self)
+
     def create_variation(
         self,
         *,
@@ -229,6 +239,12 @@ class Images(SyncAPIResource):
 
 
 class AsyncImages(AsyncAPIResource):
+    with_raw_response: AsyncImagesWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncImagesWithRawResponse(self)
+
     async def create_variation(
         self,
         *,
@@ -434,4 +450,30 @@ class AsyncImages(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=ImagesResponse,
+        )
+
+
+class ImagesWithRawResponse:
+    def __init__(self, images: Images) -> None:
+        self.create_variation = to_raw_response_wrapper(
+            images.create_variation,
+        )
+        self.edit = to_raw_response_wrapper(
+            images.edit,
+        )
+        self.generate = to_raw_response_wrapper(
+            images.generate,
+        )
+
+
+class AsyncImagesWithRawResponse:
+    def __init__(self, images: AsyncImages) -> None:
+        self.create_variation = async_to_raw_response_wrapper(
+            images.create_variation,
+        )
+        self.edit = async_to_raw_response_wrapper(
+            images.edit,
+        )
+        self.generate = async_to_raw_response_wrapper(
+            images.generate,
         )

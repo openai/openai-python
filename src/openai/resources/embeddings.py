@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-from typing import List, Union, cast
+from typing import TYPE_CHECKING, List, Union, cast
 from typing_extensions import Literal
 
 from ..types import CreateEmbeddingResponse, embedding_create_params
@@ -12,12 +12,22 @@ from .._utils import is_given, maybe_transform
 from .._extras import numpy as np
 from .._extras import has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import make_request_options
+
+if TYPE_CHECKING:
+    from .._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
 
 
 class Embeddings(SyncAPIResource):
+    with_raw_response: EmbeddingsWithRawResponse
+
+    def __init__(self, client: OpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = EmbeddingsWithRawResponse(self)
+
     def create(
         self,
         *,
@@ -73,33 +83,44 @@ class Embeddings(SyncAPIResource):
         if not is_given(encoding_format) and has_numpy():
             params["encoding_format"] = "base64"
 
-        response = self._post(
+        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
+            if is_given(encoding_format):
+                # don't modify the response object if a user explicitly asked for a format
+                return obj
+
+            for embedding in obj.data:
+                data = cast(object, embedding.embedding)
+                if not isinstance(data, str):
+                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
+                    continue
+
+                embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                    base64.b64decode(data), dtype="float32"
+                ).tolist()
+
+            return obj
+
+        return self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                post_parser=parser,
             ),
             cast_to=CreateEmbeddingResponse,
         )
 
-        if is_given(encoding_format):
-            # don't modify the response object if a user explicitly asked for a format
-            return response
-
-        for embedding in response.data:
-            data = cast(object, embedding.embedding)
-            if not isinstance(data, str):
-                # numpy is not installed / base64 optimisation isn't enabled for this model yet
-                continue
-
-            embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                base64.b64decode(data), dtype="float32"
-            ).tolist()
-
-        return response
-
 
 class AsyncEmbeddings(AsyncAPIResource):
+    with_raw_response: AsyncEmbeddingsWithRawResponse
+
+    def __init__(self, client: AsyncOpenAI) -> None:
+        super().__init__(client)
+        self.with_raw_response = AsyncEmbeddingsWithRawResponse(self)
+
     async def create(
         self,
         *,
@@ -155,27 +176,46 @@ class AsyncEmbeddings(AsyncAPIResource):
         if not is_given(encoding_format) and has_numpy():
             params["encoding_format"] = "base64"
 
-        response = await self._post(
+        def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
+            if is_given(encoding_format):
+                # don't modify the response object if a user explicitly asked for a format
+                return obj
+
+            for embedding in obj.data:
+                data = cast(object, embedding.embedding)
+                if not isinstance(data, str):
+                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
+                    continue
+
+                embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                    base64.b64decode(data), dtype="float32"
+                ).tolist()
+
+            return obj
+
+        return await self._post(
             "/embeddings",
             body=maybe_transform(params, embedding_create_params.EmbeddingCreateParams),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                post_parser=parser,
             ),
             cast_to=CreateEmbeddingResponse,
         )
 
-        if is_given(encoding_format):
-            # don't modify the response object if a user explicitly asked for a format
-            return response
 
-        for embedding in response.data:
-            data = cast(object, embedding.embedding)
-            if not isinstance(data, str):
-                # numpy is not installed / base64 optimisation isn't enabled for this model yet
-                continue
+class EmbeddingsWithRawResponse:
+    def __init__(self, embeddings: Embeddings) -> None:
+        self.create = to_raw_response_wrapper(
+            embeddings.create,
+        )
 
-            embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                base64.b64decode(data), dtype="float32"
-            ).tolist()
 
-        return response
+class AsyncEmbeddingsWithRawResponse:
+    def __init__(self, embeddings: AsyncEmbeddings) -> None:
+        self.create = async_to_raw_response_wrapper(
+            embeddings.create,
+        )

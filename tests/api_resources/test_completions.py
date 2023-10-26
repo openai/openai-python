@@ -9,6 +9,7 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import Completion
+from openai._client import OpenAI, AsyncOpenAI
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
@@ -50,6 +51,16 @@ class TestCompletions:
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
+    def test_raw_response_create_overload_1(self, client: OpenAI) -> None:
+        response = client.completions.with_raw_response.create(
+            model="string",
+            prompt="This is a test.",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        completion = response.parse()
+        assert_matches_type(Completion, completion, path=["response"])
+
+    @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
         client.completions.create(
             model="string",
@@ -77,6 +88,16 @@ class TestCompletions:
             top_p=1,
             user="user-1234",
         )
+
+    @parametrize
+    def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
+        response = client.completions.with_raw_response.create(
+            model="string",
+            prompt="This is a test.",
+            stream=True,
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response.parse()
 
 
 class TestAsyncCompletions:
@@ -115,6 +136,16 @@ class TestAsyncCompletions:
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
+    async def test_raw_response_create_overload_1(self, client: AsyncOpenAI) -> None:
+        response = await client.completions.with_raw_response.create(
+            model="string",
+            prompt="This is a test.",
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        completion = response.parse()
+        assert_matches_type(Completion, completion, path=["response"])
+
+    @parametrize
     async def test_method_create_overload_2(self, client: AsyncOpenAI) -> None:
         await client.completions.create(
             model="string",
@@ -142,3 +173,13 @@ class TestAsyncCompletions:
             top_p=1,
             user="user-1234",
         )
+
+    @parametrize
+    async def test_raw_response_create_overload_2(self, client: AsyncOpenAI) -> None:
+        response = await client.completions.with_raw_response.create(
+            model="string",
+            prompt="This is a test.",
+            stream=True,
+        )
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response.parse()
