@@ -28,6 +28,10 @@ jobs:
         run: |
           rye sync --all-features
 
+      - name: Run ruff
+        run: |
+          rye run check:ruff
+
       - name: Run type checking
         run: |
           rye run typecheck

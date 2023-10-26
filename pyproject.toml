@@ -56,6 +56,8 @@ format = { chain = [
 "format:ruff" = "ruff --fix ."
 "format:isort" = "isort ."
 
+"check:ruff" = "ruff ."
+
 typecheck = { chain = [
   "typecheck:pyright",
   "typecheck:verify-types",
