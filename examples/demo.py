@@ -6,7 +6,7 @@ from openai import OpenAI
 client = OpenAI()
 
 # Non-streaming:
-print('----- standard request -----')
+print("----- standard request -----")
 completion = client.chat.completions.create(
     model="gpt-4",
     messages=[
@@ -19,7 +19,7 @@ completion = client.chat.completions.create(
 print(completion.choices[0].message.content)
 
 # Streaming:
-print('----- streaming request -----')
+print("----- streaming request -----")
 stream = client.chat.completions.create(
     model="gpt-4",
     messages=[
@@ -30,6 +30,9 @@ stream = client.chat.completions.create(
     ],
     stream=True,
 )
-for completion in stream:
-    print(completion.choices[0].delta.content, end="")
+for chunk in stream:
+    if not chunk.choices:
+        continue
+
+    print(chunk.choices[0].delta.content, end="")
 print()

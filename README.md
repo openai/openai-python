@@ -437,6 +437,48 @@ client = OpenAI(
 
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
 
+## Microsoft Azure OpenAI
+
+To use this library with [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview), use the `AzureOpenAI`
+class instead of the `OpenAI` class.
+
+> [!IMPORTANT]  
+> The Azure API shape differs from the core API shape which means that the static types for responses / params
+> won't always be correct.
+
+```py
+from openai import AzureOpenAI
+
+# gets the API Key from environment variable AZURE_OPENAI_API_KEY
+client = AzureOpenAI(
+    # https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning
+    api_version="2023-07-01-preview"
+    # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
+    azure_endpoint="https://example-endpoint.openai.azure.com",
+)
+
+completion = client.chat.completions.create(
+    model="deployment-name",  # e.g. gpt-35-instant
+    messages=[
+        {
+            "role": "user",
+            "content": "How do I output all files in a directory using Python?",
+        },
+    ],
+)
+print(completion.model_dump_json(indent=2))
+```
+
+In addition to the options provided in the base `OpenAI` client, the following options are provided:
+
+- `azure_endpoint`
+- `azure_deployment`
+- `api_version`
+- `azure_ad_token`
+- `azure_ad_token_provider`
+
+An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/v1/examples/azure_ad.py).
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
