@@ -399,18 +399,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         return headers
 
-    def _prepare_request(
-        self,
-        request: httpx.Request,  # noqa: ARG002
-    ) -> None:
-        """This method is used as a callback for mutating the `Request` object
-        after it has been constructed.
-
-        This is useful for cases where you want to add certain headers based off of
-        the request properties, e.g. `url`, `method` etc.
-        """
-        return None
-
     def _prepare_url(self, url: str) -> URL:
         """
         Merge a URL argument together with any 'base_url' on the client,
@@ -463,7 +451,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 kwargs["data"] = self._serialize_multipartform(json_data)
 
         # TODO: report this error to httpx
-        request = self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
+        return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
             headers=headers,
             timeout=self.timeout if isinstance(options.timeout, NotGiven) else options.timeout,
             method=options.method,
@@ -477,8 +465,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             files=options.files,
             **kwargs,
         )
-        self._prepare_request(request)
-        return request
 
     def _serialize_multipartform(self, data: Mapping[object, object]) -> dict[str, object]:
         items = self.qs.stringify_items(
@@ -781,6 +767,24 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
     ) -> None:
         self.close()
 
+    def _prepare_options(
+        self,
+        options: FinalRequestOptions,  # noqa: ARG002
+    ) -> None:
+        """Hook for mutating the given options"""
+        return None
+
+    def _prepare_request(
+        self,
+        request: httpx.Request,  # noqa: ARG002
+    ) -> None:
+        """This method is used as a callback for mutating the `Request` object
+        after it has been constructed.
+        This is useful for cases where you want to add certain headers based off of
+        the request properties, e.g. `url`, `method` etc.
+        """
+        return None
+
     @overload
     def request(
         self,
@@ -842,8 +846,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         stream: bool,
         stream_cls: type[_StreamT] | None,
     ) -> ResponseT | _StreamT:
+        self._prepare_options(options)
+
         retries = self._remaining_retries(remaining_retries, options)
         request = self._build_request(options)
+        self._prepare_request(request)
 
         try:
             response = self._client.send(request, auth=self.custom_auth, stream=stream)
@@ -1201,6 +1208,24 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
     ) -> None:
         await self.close()
 
+    async def _prepare_options(
+        self,
+        options: FinalRequestOptions,  # noqa: ARG002
+    ) -> None:
+        """Hook for mutating the given options"""
+        return None
+
+    async def _prepare_request(
+        self,
+        request: httpx.Request,  # noqa: ARG002
+    ) -> None:
+        """This method is used as a callback for mutating the `Request` object
+        after it has been constructed.
+        This is useful for cases where you want to add certain headers based off of
+        the request properties, e.g. `url`, `method` etc.
+        """
+        return None
+
     @overload
     async def request(
         self,
@@ -1262,8 +1287,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         stream_cls: type[_AsyncStreamT] | None,
         remaining_retries: int | None,
     ) -> ResponseT | _AsyncStreamT:
+        await self._prepare_options(options)
+
         retries = self._remaining_retries(remaining_retries, options)
         request = self._build_request(options)
+        await self._prepare_request(request)
 
         try:
             response = await self._client.send(request, auth=self.custom_auth, stream=stream)

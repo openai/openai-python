@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import sys
 
-from .. import OpenAI
+import openai
+
+from .. import OpenAI, _load_client
 from .._compat import model_json
 from .._models import BaseModel
 
@@ -18,26 +20,12 @@ class Colours:
     UNDERLINE = "\033[4m"
 
 
-_client: OpenAI | None = None
-
-
-def set_client(client: OpenAI) -> None:
-    global _client
-
-    _client = client
-
-
 def get_client() -> OpenAI:
-    if _client is None:
-        raise RuntimeError("client instance has not been set yet")
-    return _client
+    return _load_client()
 
 
 def organization_info() -> str:
-    if _client is None:
-        return ""
-
-    organization = get_client().organization
+    organization = openai.organization
     if organization is not None:
         return "[organization={}] ".format(organization)
 

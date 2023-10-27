@@ -9,10 +9,12 @@ from typing_extensions import ClassVar
 import httpx
 import pydantic
 
+import openai
+
 from . import _tools
-from .. import OpenAI, __version__
+from .. import _ApiType, __version__
 from ._api import register_commands
-from ._utils import set_client, can_use_http2
+from ._utils import can_use_http2
 from .._types import ProxiesDict
 from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V2, ConfigDict, model_parse
@@ -42,8 +44,13 @@ class Arguments(BaseModel):
     api_key: Optional[str]
     api_base: Optional[str]
     organization: Optional[str]
-
     proxy: Optional[List[str]]
+    api_type: Optional[_ApiType] = None
+    api_version: Optional[str] = None
+
+    # azure
+    azure_endpoint: Optional[str] = None
+    azure_ad_token: Optional[str] = None
 
     # internal, set by subparsers to parse their specific args
     args_model: Optional[Type[BaseModel]] = None
@@ -70,6 +77,27 @@ def _build_parser() -> argparse.ArgumentParser:
         "-o",
         "--organization",
         help="Which organization to run as (will use your default organization if not specified)",
+    )
+    parser.add_argument(
+        "-t",
+        "--api-type",
+        type=str,
+        choices=("openai", "azure"),
+        help="The backend API to call, must be `openai` or `azure`",
+    )
+    parser.add_argument(
+        "--api-version",
+        help="The Azure API version, e.g. 'https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning'",
+    )
+
+    # azure
+    parser.add_argument(
+        "--azure-endpoint",
+        help="The Azure endpoint, e.g. 'https://endpoint.openai.azure.com'",
+    )
+    parser.add_argument(
+        "--azure-ad-token",
+        help="A token from Azure Active Directory, https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id",
     )
 
     # prints the package version
@@ -152,16 +180,31 @@ def _main() -> None:
         proxies=proxies or None,
         http2=can_use_http2(),
     )
+    openai.http_client = http_client
+
+    if args.organization:
+        openai.organization = args.organization
+
+    if args.api_key:
+        openai.api_key = args.api_key
+
+    if args.api_base:
+        openai.base_url = args.api_base
+
+    # azure
+    if args.api_type is not None:
+        openai.api_type = args.api_type
+
+    if args.azure_endpoint is not None:
+        openai.azure_endpoint = args.azure_endpoint
+
+    if args.api_version is not None:
+        openai.api_version = args.api_version
+
+    if args.azure_ad_token is not None:
+        openai.azure_ad_token = args.azure_ad_token
 
     try:
-        client = OpenAI(
-            api_key=args.api_key,
-            base_url=args.api_base,
-            organization=args.organization,
-            http_client=http_client,
-        )
-        set_client(client)
-
         if args.args_model:
             parsed.func(
                 model_parse(

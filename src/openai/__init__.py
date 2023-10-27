@@ -70,7 +70,10 @@ __all__ = [
     "file_from_path",
 ]
 
+from .lib import azure as _azure
 from .version import VERSION as VERSION
+from .lib.azure import AzureOpenAI as AzureOpenAI
+from .lib.azure import AsyncAzureOpenAI as AsyncAzureOpenAI
 
 _setup_logging()
 
@@ -89,14 +92,15 @@ for __name in __all__:
 
 # ------ Module level client ------
 import typing as _t
+import typing_extensions as _te
 
 import httpx as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
-api_key: str | None = _os.environ.get("OPENAI_API_KEY")
+api_key: str | None = None
 
-organization: str | None = _os.environ.get("OPENAI_ORG_ID")
+organization: str | None = None
 
 base_url: str | _httpx.URL | None = None
 
@@ -109,6 +113,18 @@ default_headers: _t.Mapping[str, str] | None = None
 default_query: _t.Mapping[str, object] | None = None
 
 http_client: _httpx.Client | None = None
+
+_ApiType = _te.Literal["openai", "azure"]
+
+api_type: _ApiType | None = _t.cast(_ApiType, _os.environ.get("OPENAI_API_TYPE"))
+
+api_version: str | None = _os.environ.get("OPENAI_API_VERSION")
+
+azure_endpoint: str | None = _os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+azure_ad_token: str | None = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
+
+azure_ad_token_provider: _azure.AzureADTokenProvider | None = None
 
 
 class _ModuleClient(OpenAI):
@@ -212,6 +228,33 @@ class _ModuleClient(OpenAI):
             pass
 
 
+class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
+    ...
+
+
+class _AmbiguousModuleClientUsageError(OpenAIError):
+    def __init__(self) -> None:
+        super().__init__(
+            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai` or `azure`"
+        )
+
+
+def _has_openai_credentials() -> bool:
+    return _os.environ.get("OPENAI_API_KEY") is not None
+
+
+def _has_azure_credentials() -> bool:
+    return azure_endpoint is not None or _os.environ.get("AZURE_OPENAI_API_KEY") is not None
+
+
+def _has_azure_ad_credentials() -> bool:
+    return (
+        _os.environ.get("AZURE_OPENAI_AD_TOKEN") is not None
+        or azure_ad_token is not None
+        or azure_ad_token_provider is not None
+    )
+
+
 _client: OpenAI | None = None
 
 
@@ -219,6 +262,52 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
     global _client
 
     if _client is None:
+        global api_type, azure_endpoint, azure_ad_token, api_version
+
+        if azure_endpoint is None:
+            azure_endpoint = _os.environ.get("AZURE_OPENAI_ENDPOINT")
+
+        if azure_ad_token is None:
+            azure_ad_token = _os.environ.get("AZURE_OPENAI_AD_TOKEN")
+
+        if api_version is None:
+            api_version = _os.environ.get("OPENAI_API_VERSION")
+
+        if api_type is None:
+            has_openai = _has_openai_credentials()
+            has_azure = _has_azure_credentials()
+            has_azure_ad = _has_azure_ad_credentials()
+
+            if has_openai and (has_azure or has_azure_ad):
+                raise _AmbiguousModuleClientUsageError()
+
+            if (azure_ad_token is not None or azure_ad_token_provider is not None) and _os.environ.get(
+                "AZURE_OPENAI_API_KEY"
+            ) is not None:
+                raise _AmbiguousModuleClientUsageError()
+
+            if has_azure or has_azure_ad:
+                api_type = "azure"
+            else:
+                api_type = "openai"
+
+        if api_type == "azure":
+            _client = _AzureModuleClient(  # type: ignore
+                api_version=api_version,
+                azure_endpoint=azure_endpoint,
+                api_key=api_key,
+                azure_ad_token=azure_ad_token,
+                azure_ad_token_provider=azure_ad_token_provider,
+                organization=organization,
+                base_url=base_url,
+                timeout=timeout,
+                max_retries=max_retries,
+                default_headers=default_headers,
+                default_query=default_query,
+                http_client=http_client,
+            )
+            return _client
+
         _client = _ModuleClient(
             api_key=api_key,
             organization=organization,
