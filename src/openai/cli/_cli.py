@@ -205,6 +205,9 @@ def _main() -> None:
     if args.api_version is not None:
         openai.api_version = args.api_version
 
+    if args.azure_ad_token is not None:
+        openai.azure_ad_token = args.azure_ad_token
+
     try:
         if args.args_model:
             parsed.func(

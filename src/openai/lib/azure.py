@@ -64,9 +64,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
     def __init__(
         self,
         *,
-        api_version: str,
         azure_endpoint: str,
         azure_deployment: str | None = None,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
@@ -84,8 +84,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
     def __init__(
         self,
         *,
-        api_version: str,
         azure_deployment: str | None = None,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
@@ -103,8 +103,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
     def __init__(
         self,
         *,
-        api_version: str,
         base_url: str,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
@@ -121,7 +121,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
     def __init__(
         self,
         *,
-        api_version: str,
+        api_version: str | None = None,
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
         api_key: str | None = None,
@@ -166,11 +166,13 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
 
-        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
-            api_version = os.environ.get("OPENAI_API_VERSION")  # type: ignore
+        if api_version is None:
+            api_version = os.environ.get("OPENAI_API_VERSION")
 
-        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
-            raise ValueError("Expected `api_version` to be given for the Azure client")
+        if api_version is None:
+            raise ValueError(
+                "Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable"
+            )
 
         if default_query is None:
             default_query = {"api-version": api_version}
@@ -251,9 +253,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
     def __init__(
         self,
         *,
-        api_version: str,
         azure_endpoint: str,
         azure_deployment: str | None = None,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
@@ -271,8 +273,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
     def __init__(
         self,
         *,
-        api_version: str,
         azure_deployment: str | None = None,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
@@ -290,8 +292,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
     def __init__(
         self,
         *,
-        api_version: str,
         base_url: str,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
@@ -308,9 +310,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
     def __init__(
         self,
         *,
-        api_version: str,
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
+        api_version: str | None = None,
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
@@ -353,11 +355,13 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 "Missing credentials. Please pass one of `api_key`, `azure_ad_token`, `azure_ad_token_provider`, or the `AZURE_OPENAI_API_KEY` or `AZURE_OPENAI_AD_TOKEN` environment variables."
             )
 
-        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
-            api_version = os.environ.get("OPENAI_API_VERSION")  # type: ignore
+        if api_version is None:
+            api_version = os.environ.get("OPENAI_API_VERSION")
 
-        if api_version is None:  # pyright: ignore[reportUnnecessaryComparison]
-            raise ValueError("Expected `api_version` to be given for the Azure client")
+        if api_version is None:
+            raise ValueError(
+                "Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable"
+            )
 
         if default_query is None:
             default_query = {"api-version": api_version}
