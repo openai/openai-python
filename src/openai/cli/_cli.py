@@ -82,8 +82,8 @@ def _build_parser() -> argparse.ArgumentParser:
         "-t",
         "--api-type",
         type=str,
-        choices=("openai", "azure", "azure_ad"),
-        help="The backend API to call, must be one of `openai`, `azure` or `azure_ad`",
+        choices=("openai", "azure"),
+        help="The backend API to call, must be `openai` or `azure`",
     )
     parser.add_argument(
         "--api-version",
@@ -94,10 +94,6 @@ def _build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--azure-endpoint",
         help="The Azure endpoint, e.g. 'https://endpoint.openai.azure.com'",
-    )
-    parser.add_argument(
-        "--azure-resource",
-        help="The Azure resource, e.g. 'example-resource'",
     )
     parser.add_argument(
         "--azure-ad-token",

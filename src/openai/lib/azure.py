@@ -150,7 +150,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
             azure_ad_token: Your Azure Active Directory token, https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id
 
-            azure_ad_token: A function that returns an Azure Active Directory token, will be invoked on every request.
+            azure_ad_token_provider: A function that returns an Azure Active Directory token, will be invoked on every request.
 
             azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
                 Note: this means you won't be able to use non-deployment endpoints.
@@ -339,7 +339,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
             azure_ad_token: Your Azure Active Directory token, https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id
 
-            azure_ad_token: A function that returns an Azure Active Directory token, will be invoked on every request.
+            azure_ad_token_provider: A function that returns an Azure Active Directory token, will be invoked on every request.
 
             azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
                 Note: this means you won't be able to use non-deployment endpoints.

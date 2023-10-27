@@ -235,7 +235,7 @@ class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
 class _AmbiguousModuleClientUsageError(OpenAIError):
     def __init__(self) -> None:
         super().__init__(
-            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai`, `azure` or `azure_ad`"
+            "Ambiguous use of module client; please set `openai.api_type` or the `OPENAI_API_TYPE` environment variable to `openai` or `azure`"
         )
 
 

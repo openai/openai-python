@@ -1,12 +1,8 @@
-from azure.identity import DefaultAzureCredential
+from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 from openai import AzureOpenAI
 
-credentials = DefaultAzureCredential()
-
-
-def get_token() -> str:
-    return credentials.get_token("https://cognitiveservices.azure.com/.default").token
+token_provider = get_bearer_token_provider(DefaultAzureCredential(), "https://cognitiveservices.azure.com/.default")
 
 
 # may change in the future
@@ -19,7 +15,7 @@ endpoint = "https://my-resource.openai.azure.com"
 client = AzureOpenAI(
     api_version=api_version,
     azure_endpoint=endpoint,
-    azure_ad_token_provider=get_token,
+    azure_ad_token_provider=token_provider,
 )
 
 completion = client.chat.completions.create(

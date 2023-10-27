@@ -12,7 +12,7 @@ anyio==3.7.1
 argcomplete==3.1.2
 attrs==23.1.0
 azure-core==1.29.5
-azure-identity==1.14.1
+azure-identity==1.15.0
 black==23.3.0
 certifi==2023.7.22
 cffi==1.16.0
