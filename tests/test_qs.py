@@ -61,6 +61,18 @@ def test_array_repeat() -> None:
     assert unquote(stringify({"in": ["foo", {"b": {"c": ["d", "e"]}}]})) == "in=foo&in[b][c]=d&in[b][c]=e"
 
 
+@pytest.mark.parametrize("method", ["class", "function"])
+def test_array_brackets(method: str) -> None:
+    if method == "class":
+        serialise = Querystring(array_format="brackets").stringify
+    else:
+        serialise = partial(stringify, array_format="brackets")
+
+    assert unquote(serialise({"in": ["foo", "bar"]})) == "in[]=foo&in[]=bar"
+    assert unquote(serialise({"a": {"b": [True, False]}})) == "a[b][]=true&a[b][]=false"
+    assert unquote(serialise({"a": {"b": [True, False, None, True]}})) == "a[b][]=true&a[b][]=false&a[b][]=true"
+
+
 def test_unknown_array_format() -> None:
     with pytest.raises(NotImplementedError, match="Unknown array_format value: foo, choose from comma, repeat"):
         stringify({"a": ["foo", "bar"]}, array_format=cast(Any, "foo"))
