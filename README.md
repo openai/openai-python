@@ -442,7 +442,7 @@ By default the library closes underlying HTTP connections whenever the client is
 To use this library with [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview), use the `AzureOpenAI`
 class instead of the `OpenAI` class.
 
-> [!IMPORTANT]  
+> [!IMPORTANT]
 > The Azure API shape differs from the core API shape which means that the static types for responses / params
 > won't always be correct.
 
