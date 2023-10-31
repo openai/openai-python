@@ -22,7 +22,7 @@ class EngineAPIResource(APIResource):
     def class_url(
         cls,
         engine: Optional[str] = None,
-        api_type: Optional[str] = None,
+        api_type: Optional[str] = custom,
         api_version: Optional[str] = None,
     ):
         # Namespaces are separated in object names with periods (.) and in URLs
