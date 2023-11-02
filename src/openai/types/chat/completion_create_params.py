@@ -10,7 +10,7 @@ from .chat_completion_message_param import ChatCompletionMessageParam
 __all__ = [
     "CompletionCreateParamsBase",
     "FunctionCall",
-    "FunctionCallChatCompletionFunctionCallOption",
+    "FunctionCallFunctionCallOption",
     "Function",
     "CompletionCreateParamsNonStreaming",
     "CompletionCreateParamsStreaming",
@@ -132,12 +132,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
 
-class FunctionCallChatCompletionFunctionCallOption(TypedDict, total=False):
+class FunctionCallFunctionCallOption(TypedDict, total=False):
     name: Required[str]
     """The name of the function to call."""
 
 
-FunctionCall = Union[Literal["none", "auto"], FunctionCallChatCompletionFunctionCallOption]
+FunctionCall = Union[Literal["none", "auto"], FunctionCallFunctionCallOption]
 
 
 class Function(TypedDict, total=False):
