@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import json
 import time
 import uuid
@@ -60,6 +61,7 @@ from ._types import (
     RequestOptions,
     UnknownResponse,
     ModelBuilderProtocol,
+    BinaryResponseContent,
 )
 from ._utils import is_dict, is_given, is_mapping
 from ._compat import model_copy, model_dump
@@ -1672,3 +1674,94 @@ def _merge_mappings(
     """
     merged = {**obj1, **obj2}
     return {key: value for key, value in merged.items() if not isinstance(value, Omit)}
+
+
+class HttpxBinaryResponseContent(BinaryResponseContent):
+    response: httpx.Response
+
+    def __init__(self, response: httpx.Response) -> None:
+        self.response = response
+
+    @property
+    @override
+    def content(self) -> bytes:
+        return self.response.content
+
+    @property
+    @override
+    def text(self) -> str:
+        return self.response.text
+
+    @property
+    @override
+    def encoding(self) -> Optional[str]:
+        return self.response.encoding
+
+    @property
+    @override
+    def charset_encoding(self) -> Optional[str]:
+        return self.response.charset_encoding
+
+    @override
+    def json(self, **kwargs: Any) -> Any:
+        return self.response.json(**kwargs)
+
+    @override
+    def read(self) -> bytes:
+        return self.response.read()
+
+    @override
+    def iter_bytes(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
+        return self.response.iter_bytes(chunk_size)
+
+    @override
+    def iter_text(self, chunk_size: Optional[int] = None) -> Iterator[str]:
+        return self.response.iter_text(chunk_size)
+
+    @override
+    def iter_lines(self) -> Iterator[str]:
+        return self.response.iter_lines()
+
+    @override
+    def iter_raw(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
+        return self.response.iter_raw(chunk_size)
+
+    @override
+    def stream_to_file(self, file: str | os.PathLike[str]) -> None:
+        with open(file, mode="wb") as f:
+            for data in self.response.iter_bytes():
+                f.write(data)
+
+    @override
+    def close(self) -> None:
+        return self.response.close()
+
+    @override
+    async def aread(self) -> bytes:
+        return await self.response.aread()
+
+    @override
+    async def aiter_bytes(self, chunk_size: Optional[int] = None) -> AsyncIterator[bytes]:
+        return self.response.aiter_bytes(chunk_size)
+
+    @override
+    async def aiter_text(self, chunk_size: Optional[int] = None) -> AsyncIterator[str]:
+        return self.response.aiter_text(chunk_size)
+
+    @override
+    async def aiter_lines(self) -> AsyncIterator[str]:
+        return self.response.aiter_lines()
+
+    @override
+    async def aiter_raw(self, chunk_size: Optional[int] = None) -> AsyncIterator[bytes]:
+        return self.response.aiter_raw(chunk_size)
+
+    @override
+    async def astream_to_file(self, file: str | os.PathLike[str]) -> None:
+        with open(file, mode="wb") as f:
+            async for data in self.response.aiter_bytes():
+                f.write(data)
+
+    @override
+    async def aclose(self) -> None:
+        return await self.response.aclose()

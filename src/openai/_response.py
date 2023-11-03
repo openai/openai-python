@@ -9,7 +9,7 @@ from typing_extensions import Awaitable, ParamSpec, get_args, override, get_orig
 import httpx
 import pydantic
 
-from ._types import NoneType, UnknownResponse
+from ._types import NoneType, UnknownResponse, BinaryResponseContent
 from ._utils import is_given
 from ._models import BaseModel
 from ._constants import RAW_RESPONSE_HEADER
@@ -134,6 +134,9 @@ class APIResponse(Generic[R]):
             return cast(R, response.text)
 
         origin = get_origin(cast_to) or cast_to
+
+        if inspect.isclass(origin) and issubclass(origin, BinaryResponseContent):
+            return cast(R, cast_to(response))  # type: ignore
 
         if origin == APIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
