@@ -1758,9 +1758,10 @@ class HttpxBinaryResponseContent(BinaryResponseContent):
 
     @override
     async def astream_to_file(self, file: str | os.PathLike[str]) -> None:
-        with open(file, mode="wb") as f:
+        path = anyio.Path(file)
+        async with await path.open(mode="wb") as f:
             async for data in self.response.aiter_bytes():
-                f.write(data)
+                await f.write(data)
 
     @override
     async def aclose(self) -> None:
