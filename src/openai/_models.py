@@ -313,16 +313,13 @@ def construct_type(*, value: object, type_: type) -> object:
         return [construct_type(value=entry, type_=inner_type) for entry in value]
 
     if origin == float:
-        try:
-            return float(cast(Any, value))
-        except Exception:
-            return value
+        if isinstance(value, int):
+            coerced = float(value)
+            if coerced != value:
+                return value
+            return coerced
 
-    if origin == int:
-        try:
-            return int(cast(Any, value))
-        except Exception:
-            return value
+        return value
 
     if type_ == datetime:
         try:

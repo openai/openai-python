@@ -439,21 +439,32 @@ def test_iso8601_datetime() -> None:
     assert model_json(model) == expected_json
 
 
-def test_coerces_int() -> None:
+def test_does_not_coerce_int() -> None:
     class Model(BaseModel):
         bar: int
 
     assert Model.construct(bar=1).bar == 1
-    assert Model.construct(bar=10.9).bar == 10
-    assert Model.construct(bar="19").bar == 19
-    assert Model.construct(bar=False).bar == 0
+    assert Model.construct(bar=10.9).bar == 10.9
+    assert Model.construct(bar="19").bar == "19"  # type: ignore[comparison-overlap]
+    assert Model.construct(bar=False).bar is False
 
-    # TODO: support this
-    # assert Model.construct(bar="True").bar == 1
 
-    # mismatched types are left as-is
-    m = Model.construct(bar={"foo": "bar"})
-    assert m.bar == {"foo": "bar"}  # type: ignore[comparison-overlap]
+def test_int_to_float_safe_conversion() -> None:
+    class Model(BaseModel):
+        float_field: float
+
+    m = Model.construct(float_field=10)
+    assert m.float_field == 10.0
+    assert isinstance(m.float_field, float)
+
+    m = Model.construct(float_field=10.12)
+    assert m.float_field == 10.12
+    assert isinstance(m.float_field, float)
+
+    # number too big
+    m = Model.construct(float_field=2**53 + 1)
+    assert m.float_field == 2**53 + 1
+    assert isinstance(m.float_field, int)
 
 
 def test_deprecated_alias() -> None:
