@@ -4,6 +4,8 @@ from typing import Any, List, Mapping, TypeVar, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, override, get_type_hints
 
+import pydantic
+
 from ._utils import (
     is_list,
     is_mapping,
@@ -14,7 +16,7 @@ from ._utils import (
     is_annotated_type,
     strip_annotated_type,
 )
-from .._compat import is_typeddict
+from .._compat import model_dump, is_typeddict
 
 _T = TypeVar("_T")
 
@@ -164,6 +166,9 @@ def _transform_recursive(
         for subtype in get_args(stripped_type):
             data = _transform_recursive(data, annotation=annotation, inner_type=subtype)
         return data
+
+    if isinstance(data, pydantic.BaseModel):
+        return model_dump(data, exclude_unset=True, exclude_defaults=True)
 
     return _transform_value(data, annotation)
 

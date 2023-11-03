@@ -1,10 +1,13 @@
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Any, List, Union, Optional
 from datetime import date, datetime
 from typing_extensions import Required, Annotated, TypedDict
 
+import pytest
+
 from openai._utils import PropertyInfo, transform, parse_datetime
+from openai._models import BaseModel
 
 
 class Foo1(TypedDict):
@@ -186,3 +189,44 @@ class DateDictWithRequiredAlias(TypedDict, total=False):
 def test_datetime_with_alias() -> None:
     assert transform({"required_prop": None}, DateDictWithRequiredAlias) == {"prop": None}  # type: ignore[comparison-overlap]
     assert transform({"required_prop": date.fromisoformat("2023-02-23")}, DateDictWithRequiredAlias) == {"prop": "2023-02-23"}  # type: ignore[comparison-overlap]
+
+
+class MyModel(BaseModel):
+    foo: str
+
+
+def test_pydantic_model_to_dictionary() -> None:
+    assert transform(MyModel(foo="hi!"), Any) == {"foo": "hi!"}
+    assert transform(MyModel.construct(foo="hi!"), Any) == {"foo": "hi!"}
+
+
+def test_pydantic_empty_model() -> None:
+    assert transform(MyModel.construct(), Any) == {}
+
+
+def test_pydantic_unknown_field() -> None:
+    assert transform(MyModel.construct(my_untyped_field=True), Any) == {"my_untyped_field": True}
+
+
+def test_pydantic_mismatched_types() -> None:
+    model = MyModel.construct(foo=True)
+    with pytest.warns(UserWarning):
+        params = transform(model, Any)
+    assert params == {"foo": True}
+
+
+def test_pydantic_mismatched_object_type() -> None:
+    model = MyModel.construct(foo=MyModel.construct(hello="world"))
+    with pytest.warns(UserWarning):
+        params = transform(model, Any)
+    assert params == {"foo": {"hello": "world"}}
+
+
+class ModelNestedObjects(BaseModel):
+    nested: MyModel
+
+
+def test_pydantic_nested_objects() -> None:
+    model = ModelNestedObjects.construct(nested={"foo": "stainless"})
+    assert isinstance(model.nested, MyModel)
+    assert transform(model, Any) == {"nested": {"foo": "stainless"}}
