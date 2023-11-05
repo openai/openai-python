@@ -28,16 +28,15 @@ client = OpenAI(
     api_key="My API Key",
 )
 
-completion = client.chat.completions.create(
-    model="gpt-3.5-turbo",
+chat_completion = client.chat.completions.create(
     messages=[
         {
             "role": "user",
             "content": "Say this is a test",
         }
     ],
+    model="gpt-3.5-turbo",
 )
-print(completion.choices)
 ```
 
 While you can provide an `api_key` keyword argument,
@@ -50,6 +49,7 @@ so that your API Key is not stored in source control.
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
 ```python
+import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
@@ -58,17 +58,16 @@ client = AsyncOpenAI(
 )
 
 
-async def main():
-    completion = await client.chat.completions.create(
-        model="gpt-3.5-turbo",
+async def main() -> None:
+    chat_completion = await client.chat.completions.create(
         messages=[
             {
                 "role": "user",
                 "content": "Say this is a test",
             }
         ],
+        model="gpt-3.5-turbo",
     )
-    print(completion.choices)
 
 
 asyncio.run(main())
@@ -236,7 +235,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-client.files.list()
+page = client.files.list()
 ```
 
 ## File Uploads
@@ -319,13 +318,13 @@ client = OpenAI(
 
 # Or, configure per-request:
 client.with_options(max_retries=5).chat.completions.create(
-    model="gpt-3.5-turbo",
     messages=[
         {
             "role": "user",
             "content": "How can I get the name of the current day in Node.js?",
         }
     ],
+    model="gpt-3.5-turbo",
 )
 ```
 
@@ -350,13 +349,13 @@ client = OpenAI(
 
 # Override per-request:
 client.with_options(timeout=5 * 1000).chat.completions.create(
-    model="gpt-3.5-turbo",
     messages=[
         {
             "role": "user",
             "content": "How can I list all files in a directory using Python?",
         }
     ],
+    model="gpt-3.5-turbo",
 )
 ```
 
@@ -398,16 +397,15 @@ from openai import OpenAI
 client = OpenAI()
 response = client.chat.completions.with_raw_response.create(
     messages=[{
-        "content": "string",
-        "role": "system",
+        "role": "user",
+        "content": "Say this is a test",
     }],
     model="gpt-3.5-turbo",
 )
-
 print(response.headers.get('X-My-Header'))
 
 completion = response.parse()  # get the object that `chat.completions.create()` would have returned
-print(completion.choices)
+print(completion)
 ```
 
 These methods return an [`APIResponse`](https://github.com/openai/openai-python/tree/v1/src/openai/_response.py) object.
