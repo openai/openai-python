@@ -191,7 +191,10 @@ class BinaryResponseContent(ABC):
 # while adding support for `PathLike` instances
 ProxiesDict = Dict["str | URL", Union[None, str, URL, Proxy]]
 ProxiesTypes = Union[str, Proxy, ProxiesDict]
-FileContent = Union[IO[bytes], bytes, PathLike[str]]
+if TYPE_CHECKING:
+    FileContent = Union[IO[bytes], bytes, PathLike[str]]
+else:
+    FileContent = Union[IO[bytes], bytes, PathLike]  # PathLike is not subscriptable in Python 3.8.
 FileTypes = Union[
     # file (or bytes)
     FileContent,
