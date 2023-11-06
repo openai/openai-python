@@ -12,23 +12,10 @@ It is generated from our [OpenAPI specification](https://github.com/openai/opena
 
 The API documentation can be found [here](https://platform.openai.com/docs).
 
-## Beta Release
-
-> [!IMPORTANT]  
-> We're preparing to release version 1.0 of the OpenAI Python library.
-
-This new version will be a major release and will include breaking changes. We're releasing this beta version to give you a chance to try out the new features and provide feedback before the official release. You can install the beta version with:
-
-```sh
-pip install --pre openai
-```
-And follow along with the [beta release notes](https://github.com/openai/openai-python/discussions/631).
-
-
 ## Installation
 
 ```sh
-pip install --pre openai
+pip install openai
 ```
 
 ## Usage
