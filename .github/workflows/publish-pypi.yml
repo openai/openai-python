@@ -1,0 +1,27 @@
+# workflow for re-running publishing to PyPI in case it fails for some reason
+# you can run this workflow by navigating to https://www.github.com/openai/openai-python/actions/workflows/publish-pypi.yml
+name: Publish PyPI
+on:
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: publish
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye-up.com/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: 0.15.2
+          RYE_INSTALL_OPTION: "--yes"
+
+      - name: Publish to PyPI
+        run: |
+          bash ./bin/publish-pypi
+        env:
+          PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
