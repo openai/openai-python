@@ -1,13 +1,160 @@
+[project]
+name = "openai"
+version = "1.0.0"
+description = "Client library for the openai API"
+readme = "README.md"
+license = "Apache-2.0"
+authors = [
+{ name = "OpenAI", email = "support@openai.com" },
+]
+dependencies = [
+    "httpx>=0.23.0, <1",
+    "pydantic>=1.9.0, <3",
+    "typing-extensions>=4.5, <5",
+    "anyio>=3.5.0, <4",
+    "distro>=1.7.0, <2",
+    "tqdm > 4"
+]
+requires-python = ">= 3.7.1"
+classifiers = [
+  "Typing :: Typed",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3.7",
+  "Programming Language :: Python :: 3.8",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
+  "Operating System :: POSIX",
+  "Operating System :: MacOS",
+  "Operating System :: POSIX :: Linux",
+  "Operating System :: Microsoft :: Windows",
+  "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+
+[project.urls]
+Homepage = "https://github.com/openai/openai-python"
+Repository = "https://github.com/openai/openai-python"
+
+[project.scripts]
+openai = "openai.cli:main"
+
+[tool.rye]
+managed = true
+dev-dependencies = [
+    "pyright==1.1.332",
+    "mypy==1.6.1",
+    "black==23.3.0",
+    "respx==0.19.2",
+    "pytest==7.1.1",
+    "pytest-asyncio==0.21.1",
+    "ruff==0.0.282",
+    "isort==5.10.1",
+    "time-machine==2.9.0",
+    "nox==2023.4.22",
+    "dirty-equals>=0.6.0",
+    "azure-identity >=1.14.1",
+    "types-tqdm > 4"
+]
+
+[tool.rye.scripts]
+format = { chain = [
+  "format:black",
+  "format:docs",
+  "format:ruff",
+  "format:isort",
+]}
+"format:black" = "black ."
+"format:docs" = "python bin/blacken-docs.py README.md api.md"
+"format:ruff" = "ruff --fix ."
+"format:isort" = "isort ."
+
+"check:ruff" = "ruff ."
+
+typecheck = { chain = [
+  "typecheck:pyright",
+  "typecheck:mypy"
+]}
+"typecheck:pyright" = "pyright"
+"typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
+"typecheck:mypy" = "mypy --enable-incomplete-feature=Unpack ."
+
 [build-system]
-requires = ["setuptools"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+include = [
+  "src/*"
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/openai"]
 
 [tool.black]
-target-version = ['py36']
-exclude = '.*\.ipynb'
+line-length = 120
+target-version = ["py37"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--tb=short"
+xfail_strict = true
+asyncio_mode = "auto"
+filterwarnings = [
+  "error"
+]
+
+[tool.pyright]
+# this enables practically every flag given by pyright.
+# there are a couple of flags that are still disabled by
+# default in strict mode as they are experimental and niche.
+typeCheckingMode = "strict"
+pythonVersion = "3.7"
+
+exclude = [
+    "_dev",
+    ".venv",
+    ".nox",
+]
+
+reportImplicitOverride = true
+
+reportImportCycles = false
+reportPrivateUsage = false
 
 [tool.isort]
-py_version = 36
-include_trailing_comma = "true"
-line_length = 88
-multi_line_output = 3
+profile = "black"
+length_sort = true
+extra_standard_library = ["typing_extensions"]
+
+[tool.ruff]
+line-length = 120
+format = "grouped"
+target-version = "py37"
+select = [
+  # remove unused imports
+  "F401",
+  # bare except statements
+  "E722",
+  # unused arguments
+  "ARG",
+  # print statements
+  "T201",
+  "T203",
+]
+unfixable = [
+  # disable auto fix for print statements
+  "T201",
+  "T203",
+]
+ignore-init-module-imports = true
+
+
+[tool.ruff.per-file-ignores]
+"bin/**.py" = ["T201", "T203"]
+"tests/**.py" = ["T201", "T203"]
+"examples/**.py" = ["T201", "T203"]

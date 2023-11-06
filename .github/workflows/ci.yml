@@ -1,0 +1,41 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    if: github.repository == 'openai/openai-python'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye-up.com/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: 0.15.2
+          RYE_INSTALL_OPTION: "--yes"
+
+      - name: Install dependencies
+        run: |
+          rye sync --all-features
+
+      - name: Run ruff
+        run: |
+          rye run check:ruff
+
+      - name: Run type checking
+        run: |
+          rye run typecheck
+
+      - name: Ensure importable
+        run: |
+          rye run python -c 'import openai'
