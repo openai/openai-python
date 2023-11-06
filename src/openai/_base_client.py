@@ -1537,7 +1537,7 @@ def make_request_options(
     extra_query: Query | None = None,
     extra_body: Body | None = None,
     idempotency_key: str | None = None,
-    timeout: float | None | NotGiven = NOT_GIVEN,
+    timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     post_parser: PostParser | NotGiven = NOT_GIVEN,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""

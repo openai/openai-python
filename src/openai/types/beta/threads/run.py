@@ -47,8 +47,8 @@ class ToolAssistantToolsCode(BaseModel):
 
 
 class ToolAssistantToolsRetrieval(BaseModel):
-    type: Literal["retreival"]
-    """The type of tool being defined: `retreival`"""
+    type: Literal["retrieval"]
+    """The type of tool being defined: `retrieval`"""
 
 
 class ToolAssistantToolsFunctionFunction(BaseModel):

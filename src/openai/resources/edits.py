@@ -6,6 +6,8 @@ import typing_extensions
 from typing import TYPE_CHECKING, Union, Optional
 from typing_extensions import Literal
 
+import httpx
+
 from ..types import Edit, edit_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import maybe_transform
@@ -43,7 +45,7 @@ class Edits(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Edit:
         """
         Creates a new edit for the provided input, instruction, and parameters.
@@ -122,7 +124,7 @@ class AsyncEdits(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Edit:
         """
         Creates a new edit for the provided input, instruction, and parameters.

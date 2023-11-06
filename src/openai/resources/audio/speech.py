@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Union
 from typing_extensions import Literal
 
+import httpx
+
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ..._utils import maybe_transform
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -38,7 +40,7 @@ class Speech(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -105,7 +107,7 @@ class AsyncSpeech(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> HttpxBinaryResponseContent:
         """
         Generates audio from the input text.

@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Union
 from typing_extensions import Literal
 
+import httpx
+
 from ..types import ModerationCreateResponse, moderation_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import maybe_transform
@@ -35,7 +37,7 @@ class Moderations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
         """
         Classifies if text violates OpenAI's Content Policy
@@ -93,7 +95,7 @@ class AsyncModerations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
         """
         Classifies if text violates OpenAI's Content Policy

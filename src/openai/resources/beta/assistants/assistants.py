@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Optional
 from typing_extensions import Literal
 
+import httpx
+
 from .files import Files, AsyncFiles, FilesWithRawResponse, AsyncFilesWithRawResponse
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import maybe_transform
@@ -50,7 +52,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
@@ -119,7 +121,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -158,7 +160,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -233,7 +235,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[Assistant]:
         """Returns a list of assistants.
 
@@ -295,7 +297,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsssitantDeleted:
         """
         Delete an assistant.
@@ -343,7 +345,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
@@ -412,7 +414,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -451,7 +453,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -526,7 +528,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[Assistant, AsyncCursorPage[Assistant]]:
         """Returns a list of assistants.
 
@@ -588,7 +590,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsssitantDeleted:
         """
         Delete an assistant.

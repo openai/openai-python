@@ -6,6 +6,8 @@ import base64
 from typing import TYPE_CHECKING, List, Union, cast
 from typing_extensions import Literal
 
+import httpx
+
 from ..types import CreateEmbeddingResponse, embedding_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import is_given, maybe_transform
@@ -40,7 +42,7 @@ class Embeddings(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -133,7 +135,7 @@ class AsyncEmbeddings(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
