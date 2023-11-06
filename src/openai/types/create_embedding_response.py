@@ -1,6 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import List
+from typing_extensions import Literal
 
 from .._models import BaseModel
 from .embedding import Embedding
@@ -23,7 +24,7 @@ class CreateEmbeddingResponse(BaseModel):
     model: str
     """The name of the model used to generate the embedding."""
 
-    object: str
+    object: Literal["embedding"]
     """The object type, which is always "embedding"."""
 
     usage: Usage

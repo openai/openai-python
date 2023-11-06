@@ -1,6 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import List
+from typing_extensions import Literal
 
 from .._models import BaseModel
 
@@ -18,5 +19,5 @@ class Embedding(BaseModel):
     index: int
     """The index of the embedding in the list of embeddings."""
 
-    object: str
+    object: Literal["embedding"]
     """The object type, which is always "embedding"."""

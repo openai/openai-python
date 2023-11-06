@@ -329,6 +329,7 @@ def _reset_client() -> None:  # type: ignore[reportUnusedFunction]
     _client = None
 
 
+from ._module_client import beta as beta
 from ._module_client import chat as chat
 from ._module_client import audio as audio
 from ._module_client import edits as edits

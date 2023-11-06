@@ -33,7 +33,7 @@ class Edit(BaseModel):
     created: int
     """The Unix timestamp (in seconds) of when the edit was created."""
 
-    object: str
+    object: Literal["edit"]
     """The object type, which is always `edit`."""
 
     usage: CompletionUsage

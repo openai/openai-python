@@ -25,7 +25,7 @@ class TestFiles:
     def test_method_create(self, client: OpenAI) -> None:
         file = client.files.create(
             file=b"raw file contents",
-            purpose="string",
+            purpose="fine-tune",
         )
         assert_matches_type(FileObject, file, path=["response"])
 
@@ -33,7 +33,7 @@ class TestFiles:
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.files.with_raw_response.create(
             file=b"raw file contents",
-            purpose="string",
+            purpose="fine-tune",
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
@@ -58,6 +58,13 @@ class TestFiles:
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         file = client.files.list()
+        assert_matches_type(SyncPage[FileObject], file, path=["response"])
+
+    @parametrize
+    def test_method_list_with_all_params(self, client: OpenAI) -> None:
+        file = client.files.list(
+            purpose="string",
+        )
         assert_matches_type(SyncPage[FileObject], file, path=["response"])
 
     @parametrize
@@ -109,7 +116,7 @@ class TestAsyncFiles:
     async def test_method_create(self, client: AsyncOpenAI) -> None:
         file = await client.files.create(
             file=b"raw file contents",
-            purpose="string",
+            purpose="fine-tune",
         )
         assert_matches_type(FileObject, file, path=["response"])
 
@@ -117,7 +124,7 @@ class TestAsyncFiles:
     async def test_raw_response_create(self, client: AsyncOpenAI) -> None:
         response = await client.files.with_raw_response.create(
             file=b"raw file contents",
-            purpose="string",
+            purpose="fine-tune",
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
@@ -142,6 +149,13 @@ class TestAsyncFiles:
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
         file = await client.files.list()
+        assert_matches_type(AsyncPage[FileObject], file, path=["response"])
+
+    @parametrize
+    async def test_method_list_with_all_params(self, client: AsyncOpenAI) -> None:
+        file = await client.files.list(
+            purpose="string",
+        )
         assert_matches_type(AsyncPage[FileObject], file, path=["response"])
 
     @parametrize

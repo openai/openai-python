@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 from argparse import ArgumentParser
 
 from .._utils import get_client, print_model
@@ -55,7 +55,12 @@ class CLIFile:
         with open(args.file, "rb") as file_reader:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
 
-        file = get_client().files.create(file=(args.file, buffer_reader), purpose=args.purpose)
+        file = get_client().files.create(
+            file=(args.file, buffer_reader),
+            # casts required because the API is typed for enums
+            # but we don't want to validate that here for forwards-compat
+            purpose=cast(Any, args.purpose),
+        )
         print_model(file)
 
     @staticmethod

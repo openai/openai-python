@@ -1,6 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import List, Optional
+from typing_extensions import Literal
 
 from .._models import BaseModel
 from .file_object import FileObject
@@ -63,7 +64,7 @@ class FineTune(BaseModel):
     model: str
     """The base model that is being fine-tuned."""
 
-    object: str
+    object: Literal["fine-tune"]
     """The object type, which is always "fine-tune"."""
 
     organization_id: str

@@ -1,6 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import Optional
+from typing_extensions import Literal
 
 from .._models import BaseModel
 
@@ -9,32 +10,37 @@ __all__ = ["FileObject"]
 
 class FileObject(BaseModel):
     id: str
-    """The file identifier, which can be referenced in the API endpoints."""
+    """The File identifier, which can be referenced in the API endpoints."""
 
     bytes: int
-    """The size of the file in bytes."""
+    """The size of the file, in bytes."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the file was created."""
+    """The Unix timestamp (in seconds) for when the File was created."""
 
     filename: str
-    """The name of the file."""
+    """The name of the File."""
 
-    object: str
-    """The object type, which is always "file"."""
+    object: Literal["file"]
+    """The object type, which is always `file`."""
 
-    purpose: str
-    """The intended purpose of the file. Currently, only "fine-tune" is supported."""
+    purpose: Literal["fine-tune", "fine-tune-results", "assistants", "assistants_output"]
+    """The intended purpose of the File.
 
-    status: Optional[str] = None
+    Supported values are `fine-tune`, `fine-tune-results`, `assistants`, and
+    `assistants_output`.
     """
-    The current status of the file, which can be either `uploaded`, `processed`,
-    `pending`, `error`, `deleting` or `deleted`.
+
+    status: Literal["uploaded", "processed", "error"]
+    """Deprecated.
+
+    The current status of the File, which can be either `uploaded`, `processed`, or
+    `error`.
     """
 
     status_details: Optional[str] = None
-    """Additional details about the status of the file.
+    """Deprecated.
 
-    If the file is in the `error` state, this will include a message describing the
-    error.
+    For details on why a fine-tuning training file failed validation, see the
+    `error` field on `fine_tuning.job`.
     """

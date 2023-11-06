@@ -73,7 +73,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     logit_bias: Optional[Dict[str, int]]
     """Modify the likelihood of specified tokens appearing in the completion.
 
-    Accepts a json object that maps tokens (specified by their token ID in the GPT
+    Accepts a JSON object that maps tokens (specified by their token ID in the GPT
     tokenizer) to an associated bias value from -100 to 100. You can use this
     [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
     convert text to token IDs. Mathematically, the bias is added to the logits
@@ -120,6 +120,16 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     far, increasing the model's likelihood to talk about new topics.
 
     [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+    """
+
+    seed: Optional[int]
+    """
+    If specified, our system will make a best effort to sample deterministically,
+    such that repeated requests with the same `seed` and parameters should return
+    the same result.
+
+    Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+    response parameter to monitor changes in the backend.
     """
 
     stop: Union[Optional[str], List[str], None]

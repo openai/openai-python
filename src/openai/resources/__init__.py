@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Stainless.
 
+from .beta import Beta, AsyncBeta, BetaWithRawResponse, AsyncBetaWithRawResponse
 from .chat import Chat, AsyncChat, ChatWithRawResponse, AsyncChatWithRawResponse
 from .audio import Audio, AsyncAudio, AudioWithRawResponse, AsyncAudioWithRawResponse
 from .edits import Edits, AsyncEdits, EditsWithRawResponse, AsyncEditsWithRawResponse
@@ -92,4 +93,8 @@ __all__ = [
     "AsyncFineTunes",
     "FineTunesWithRawResponse",
     "AsyncFineTunesWithRawResponse",
+    "Beta",
+    "AsyncBeta",
+    "BetaWithRawResponse",
+    "AsyncBetaWithRawResponse",
 ]

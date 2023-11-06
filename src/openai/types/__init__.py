@@ -16,6 +16,7 @@ from .model_deleted import ModelDeleted as ModelDeleted
 from .fine_tune_event import FineTuneEvent as FineTuneEvent
 from .images_response import ImagesResponse as ImagesResponse
 from .completion_usage import CompletionUsage as CompletionUsage
+from .file_list_params import FileListParams as FileListParams
 from .completion_choice import CompletionChoice as CompletionChoice
 from .image_edit_params import ImageEditParams as ImageEditParams
 from .edit_create_params import EditCreateParams as EditCreateParams

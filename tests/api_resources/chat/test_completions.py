@@ -39,11 +39,6 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "function_call": {
-                        "arguments": "string",
-                        "name": "string",
-                    },
-                    "name": "string",
                     "role": "system",
                 }
             ],
@@ -61,9 +56,38 @@ class TestCompletions:
             max_tokens=0,
             n=1,
             presence_penalty=-2,
+            response_format={"type": "json_object"},
+            seed=-9223372036854776000,
             stop="string",
             stream=False,
             temperature=1,
+            tool_choice="none",
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+            ],
             top_p=1,
             user="user-1234",
         )
@@ -103,11 +127,6 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "function_call": {
-                        "arguments": "string",
-                        "name": "string",
-                    },
-                    "name": "string",
                     "role": "system",
                 }
             ],
@@ -126,8 +145,37 @@ class TestCompletions:
             max_tokens=0,
             n=1,
             presence_penalty=-2,
+            response_format={"type": "json_object"},
+            seed=-9223372036854776000,
             stop="string",
             temperature=1,
+            tool_choice="none",
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+            ],
             top_p=1,
             user="user-1234",
         )
@@ -172,11 +220,6 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "function_call": {
-                        "arguments": "string",
-                        "name": "string",
-                    },
-                    "name": "string",
                     "role": "system",
                 }
             ],
@@ -194,9 +237,38 @@ class TestAsyncCompletions:
             max_tokens=0,
             n=1,
             presence_penalty=-2,
+            response_format={"type": "json_object"},
+            seed=-9223372036854776000,
             stop="string",
             stream=False,
             temperature=1,
+            tool_choice="none",
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+            ],
             top_p=1,
             user="user-1234",
         )
@@ -236,11 +308,6 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "function_call": {
-                        "arguments": "string",
-                        "name": "string",
-                    },
-                    "name": "string",
                     "role": "system",
                 }
             ],
@@ -259,8 +326,37 @@ class TestAsyncCompletions:
             max_tokens=0,
             n=1,
             presence_penalty=-2,
+            response_format={"type": "json_object"},
+            seed=-9223372036854776000,
             stop="string",
             temperature=1,
+            tool_choice="none",
+            tools=[
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+                {
+                    "type": "function",
+                    "function": {
+                        "description": "string",
+                        "name": "string",
+                        "parameters": {"foo": "bar"},
+                    },
+                },
+            ],
             top_p=1,
             user="user-1234",
         )

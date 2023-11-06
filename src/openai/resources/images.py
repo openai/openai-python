@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Mapping, Optional, cast
+from typing import TYPE_CHECKING, Union, Mapping, Optional, cast
 from typing_extensions import Literal
 
 from ..types import (
@@ -34,6 +34,7 @@ class Images(SyncAPIResource):
         self,
         *,
         image: FileTypes,
+        model: Union[str, Literal["dall-e-2"], None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
         size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
@@ -52,7 +53,11 @@ class Images(SyncAPIResource):
           image: The image to use as the basis for the variation(s). Must be a valid PNG file,
               less than 4MB, and square.
 
-          n: The number of images to generate. Must be between 1 and 10.
+          model: The model to use for image generation. Only `dall-e-2` is supported at this
+              time.
+
+          n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
+              `n=1` is supported.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`.
@@ -75,6 +80,7 @@ class Images(SyncAPIResource):
         body = deepcopy_minimal(
             {
                 "image": image,
+                "model": model,
                 "n": n,
                 "response_format": response_format,
                 "size": size,
@@ -104,6 +110,7 @@ class Images(SyncAPIResource):
         image: FileTypes,
         prompt: str,
         mask: FileTypes | NotGiven = NOT_GIVEN,
+        model: Union[str, Literal["dall-e-2"], None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
         size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
@@ -128,6 +135,9 @@ class Images(SyncAPIResource):
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
+
+          model: The model to use for image generation. Only `dall-e-2` is supported at this
+              time.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -154,6 +164,7 @@ class Images(SyncAPIResource):
                 "image": image,
                 "prompt": prompt,
                 "mask": mask,
+                "model": model,
                 "n": n,
                 "response_format": response_format,
                 "size": size,
@@ -181,9 +192,12 @@ class Images(SyncAPIResource):
         self,
         *,
         prompt: str,
+        model: Union[str, Literal["dall-e-2", "dall-e-3"], None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
+        quality: Literal["standard", "hd"] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]] | NotGiven = NOT_GIVEN,
+        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -197,15 +211,28 @@ class Images(SyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters.
+              characters for `dall-e-2` and 4000 characters for `dall-e-3`.
 
-          n: The number of images to generate. Must be between 1 and 10.
+          model: The model to use for image generation.
+
+          n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
+              `n=1` is supported.
+
+          quality: The quality of the image that will be generated. `hd` creates images with finer
+              details and greater consistency across the image. This param is only supported
+              for `dall-e-3`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
-              `1024x1024`.
+              `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or
+              `1024x1792` for `dall-e-3` models.
+
+          style: The style of the generated images. Must be one of `vivid` or `natural`. Vivid
+              causes the model to lean towards generating hyper-real and dramatic images.
+              Natural causes the model to produce more natural, less hyper-real looking
+              images. This param is only supported for `dall-e-3`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -224,9 +251,12 @@ class Images(SyncAPIResource):
             body=maybe_transform(
                 {
                     "prompt": prompt,
+                    "model": model,
                     "n": n,
+                    "quality": quality,
                     "response_format": response_format,
                     "size": size,
+                    "style": style,
                     "user": user,
                 },
                 image_generate_params.ImageGenerateParams,
@@ -249,6 +279,7 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         image: FileTypes,
+        model: Union[str, Literal["dall-e-2"], None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
         size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
@@ -267,7 +298,11 @@ class AsyncImages(AsyncAPIResource):
           image: The image to use as the basis for the variation(s). Must be a valid PNG file,
               less than 4MB, and square.
 
-          n: The number of images to generate. Must be between 1 and 10.
+          model: The model to use for image generation. Only `dall-e-2` is supported at this
+              time.
+
+          n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
+              `n=1` is supported.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`.
@@ -290,6 +325,7 @@ class AsyncImages(AsyncAPIResource):
         body = deepcopy_minimal(
             {
                 "image": image,
+                "model": model,
                 "n": n,
                 "response_format": response_format,
                 "size": size,
@@ -319,6 +355,7 @@ class AsyncImages(AsyncAPIResource):
         image: FileTypes,
         prompt: str,
         mask: FileTypes | NotGiven = NOT_GIVEN,
+        model: Union[str, Literal["dall-e-2"], None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
         size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
@@ -343,6 +380,9 @@ class AsyncImages(AsyncAPIResource):
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. Must be a valid PNG file, less than
               4MB, and have the same dimensions as `image`.
+
+          model: The model to use for image generation. Only `dall-e-2` is supported at this
+              time.
 
           n: The number of images to generate. Must be between 1 and 10.
 
@@ -369,6 +409,7 @@ class AsyncImages(AsyncAPIResource):
                 "image": image,
                 "prompt": prompt,
                 "mask": mask,
+                "model": model,
                 "n": n,
                 "response_format": response_format,
                 "size": size,
@@ -396,9 +437,12 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         prompt: str,
+        model: Union[str, Literal["dall-e-2", "dall-e-3"], None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
+        quality: Literal["standard", "hd"] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1792x1024", "1024x1792"]] | NotGiven = NOT_GIVEN,
+        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -412,15 +456,28 @@ class AsyncImages(AsyncAPIResource):
 
         Args:
           prompt: A text description of the desired image(s). The maximum length is 1000
-              characters.
+              characters for `dall-e-2` and 4000 characters for `dall-e-3`.
 
-          n: The number of images to generate. Must be between 1 and 10.
+          model: The model to use for image generation.
+
+          n: The number of images to generate. Must be between 1 and 10. For `dall-e-3`, only
+              `n=1` is supported.
+
+          quality: The quality of the image that will be generated. `hd` creates images with finer
+              details and greater consistency across the image. This param is only supported
+              for `dall-e-3`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
               `b64_json`.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
-              `1024x1024`.
+              `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or
+              `1024x1792` for `dall-e-3` models.
+
+          style: The style of the generated images. Must be one of `vivid` or `natural`. Vivid
+              causes the model to lean towards generating hyper-real and dramatic images.
+              Natural causes the model to produce more natural, less hyper-real looking
+              images. This param is only supported for `dall-e-3`.
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
@@ -439,9 +496,12 @@ class AsyncImages(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "prompt": prompt,
+                    "model": model,
                     "n": n,
+                    "quality": quality,
                     "response_format": response_format,
                     "size": size,
+                    "style": style,
                     "user": user,
                 },
                 image_generate_params.ImageGenerateParams,
