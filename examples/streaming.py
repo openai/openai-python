@@ -13,7 +13,7 @@ from openai import OpenAI, AsyncOpenAI
 def sync_main() -> None:
     client = OpenAI()
     response = client.completions.create(
-        model="text-davinci-002",
+        model="gpt-3.5-turbo",
         prompt="1,2,3,",
         max_tokens=5,
         temperature=0,
