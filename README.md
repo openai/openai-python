@@ -84,9 +84,9 @@ from openai import OpenAI
 
 client = OpenAI()
 
-stream = client.completions.create(
-    prompt="Say this is a test",
-    model="text-davinci-003",
+stream = client.chat.completions.create(
+    model="gpt-4",
+    messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
 for part in stream:
@@ -100,9 +100,9 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
-stream = await client.completions.create(
+stream = await client.chat.completions.create(
     prompt="Say this is a test",
-    model="text-davinci-003",
+    messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
 async for part in stream:
