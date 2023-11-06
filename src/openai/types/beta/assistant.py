@@ -6,7 +6,7 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["Assistant", "Tool", "ToolCodeInterpreter", "ToolRetreival", "ToolFunction", "ToolFunctionFunction"]
+__all__ = ["Assistant", "Tool", "ToolCodeInterpreter", "ToolRetrieval", "ToolFunction", "ToolFunctionFunction"]
 
 
 class ToolCodeInterpreter(BaseModel):
@@ -14,9 +14,9 @@ class ToolCodeInterpreter(BaseModel):
     """The type of tool being defined: `code_interpreter`"""
 
 
-class ToolRetreival(BaseModel):
-    type: Literal["retreival"]
-    """The type of tool being defined: `retreival`"""
+class ToolRetrieval(BaseModel):
+    type: Literal["retrieval"]
+    """The type of tool being defined: `retrieval`"""
 
 
 class ToolFunctionFunction(BaseModel):
@@ -54,7 +54,7 @@ class ToolFunction(BaseModel):
     """The type of tool being defined: `function`"""
 
 
-Tool = Union[ToolCodeInterpreter, ToolRetreival, ToolFunction]
+Tool = Union[ToolCodeInterpreter, ToolRetrieval, ToolFunction]
 
 
 class Assistant(BaseModel):

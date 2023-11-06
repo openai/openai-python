@@ -67,8 +67,8 @@ class ToolAssistantToolsCode(TypedDict, total=False):
 
 
 class ToolAssistantToolsRetrieval(TypedDict, total=False):
-    type: Required[Literal["retreival"]]
-    """The type of tool being defined: `retreival`"""
+    type: Required[Literal["retrieval"]]
+    """The type of tool being defined: `retrieval`"""
 
 
 class ToolAssistantToolsFunctionFunction(TypedDict, total=False):
