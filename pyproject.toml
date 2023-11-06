@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.0.0-rc2"
+version = "1.0.0-rc3"
 description = "Client library for the openai API"
 readme = "README.md"
 license = "Apache-2.0"
