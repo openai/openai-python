@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+import httpx
+
 from ..types import Model, ModelDeleted
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -33,7 +35,7 @@ class Models(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Model:
         """
         Retrieves a model instance, providing basic information about the model such as
@@ -64,7 +66,7 @@ class Models(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SyncPage[Model]:
         """
         Lists the currently available models, and provides basic information about each
@@ -88,7 +90,7 @@ class Models(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModelDeleted:
         """Delete a fine-tuned model.
 
@@ -129,7 +131,7 @@ class AsyncModels(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Model:
         """
         Retrieves a model instance, providing basic information about the model such as
@@ -160,7 +162,7 @@ class AsyncModels(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[Model, AsyncPage[Model]]:
         """
         Lists the currently available models, and provides basic information about each
@@ -184,7 +186,7 @@ class AsyncModels(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModelDeleted:
         """Delete a fine-tuned model.
 

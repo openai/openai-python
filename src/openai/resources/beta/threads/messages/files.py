@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from typing_extensions import Literal
 
+import httpx
+
 from ....._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ....._utils import maybe_transform
 from ....._resource import SyncAPIResource, AsyncAPIResource
@@ -37,7 +39,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> MessageFile:
         """
         Retrieves a message file.
@@ -74,7 +76,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[MessageFile]:
         """Returns a list of message files.
 
@@ -146,7 +148,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> MessageFile:
         """
         Retrieves a message file.
@@ -183,7 +185,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[MessageFile, AsyncCursorPage[MessageFile]]:
         """Returns a list of message files.
 

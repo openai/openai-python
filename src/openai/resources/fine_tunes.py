@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, List, Union, Optional, overload
 from typing_extensions import Literal
 
+import httpx
+
 from ..types import (
     FineTune,
     FineTuneEvent,
@@ -53,7 +55,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTune:
         """
         Creates a job that fine-tunes a specified model from a given dataset.
@@ -197,7 +199,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTune:
         """
         Gets info about the fine-tune job.
@@ -229,7 +231,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SyncPage[FineTune]:
         """List your organization's fine-tuning jobs"""
         return self._get_api_list(
@@ -250,7 +252,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTune:
         """
         Immediately cancel a fine-tune job.
@@ -283,7 +285,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> FineTuneEventsListResponse:
         """
         Get fine-grained status updates for a fine-tune job.
@@ -318,7 +320,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> Stream[FineTuneEvent]:
         """
         Get fine-grained status updates for a fine-tune job.
@@ -353,7 +355,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> FineTuneEventsListResponse | Stream[FineTuneEvent]:
         """
         Get fine-grained status updates for a fine-tune job.
@@ -387,7 +389,7 @@ class FineTunes(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> FineTuneEventsListResponse | Stream[FineTuneEvent]:
         return self._get(
             f"/fine-tunes/{fine_tune_id}/events",
@@ -431,7 +433,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTune:
         """
         Creates a job that fine-tunes a specified model from a given dataset.
@@ -575,7 +577,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTune:
         """
         Gets info about the fine-tune job.
@@ -607,7 +609,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[FineTune, AsyncPage[FineTune]]:
         """List your organization's fine-tuning jobs"""
         return self._get_api_list(
@@ -628,7 +630,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTune:
         """
         Immediately cancel a fine-tune job.
@@ -661,7 +663,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> FineTuneEventsListResponse:
         """
         Get fine-grained status updates for a fine-tune job.
@@ -696,7 +698,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> AsyncStream[FineTuneEvent]:
         """
         Get fine-grained status updates for a fine-tune job.
@@ -731,7 +733,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> FineTuneEventsListResponse | AsyncStream[FineTuneEvent]:
         """
         Get fine-grained status updates for a fine-tune job.
@@ -765,7 +767,7 @@ class AsyncFineTunes(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | None | NotGiven = 86400,
+        timeout: float | httpx.Timeout | None | NotGiven = 86400,
     ) -> FineTuneEventsListResponse | AsyncStream[FineTuneEvent]:
         return await self._get(
             f"/fine-tunes/{fine_tune_id}/events",
