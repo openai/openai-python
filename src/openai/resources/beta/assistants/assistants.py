@@ -53,7 +53,7 @@ class Assistants(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
-        Create an Assistant with a model and instructions.
+        Create an assistant with a model and instructions.
 
         Args:
           model: ID of the model to use. You can use the
@@ -62,13 +62,13 @@ class Assistants(SyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
-          description: The description of the Assistant. The maximum length is 512 characters.
+          description: The description of the assistant. The maximum length is 512 characters.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this Assistant. There can be a maximum of 20 files attached to the
-              Assistant. Files are ordered by their creation date in ascending order.
+          file_ids: A list of [file](https://platform.openai.com/docs/api-reference/files) IDs
+              attached to this assistant. There can be a maximum of 20 files attached to the
+              assistant. Files are ordered by their creation date in ascending order.
 
-          instructions: The system instructions that the Assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 32768
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -76,9 +76,9 @@ class Assistants(SyncAPIResource):
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
-          name: The name of the Assistant. The maximum length is 256 characters.
+          name: The name of the assistant. The maximum length is 256 characters.
 
-          tools: A list of tool enabled on the Assistant. There can be a maximum of 128 tools per
+          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
               assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
 
           extra_headers: Send extra headers
@@ -122,7 +122,7 @@ class Assistants(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
-        Retrieves an Assistant.
+        Retrieves an assistant.
 
         Args:
           extra_headers: Send extra headers
@@ -160,20 +160,20 @@ class Assistants(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
-        """Modifies an Assistant.
+        """Modifies an assistant.
 
         Args:
-          description: The description of the Assistant.
+          description: The description of the assistant.
 
         The maximum length is 512 characters.
 
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this Assistant. There can be a maximum of 20 files attached to the
-              Assistant. Files are ordered by their creation date in ascending order. If a
+              attached to this assistant. There can be a maximum of 20 files attached to the
+              assistant. Files are ordered by their creation date in ascending order. If a
               file was previosuly attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
-          instructions: The system instructions that the Assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 32768
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -187,9 +187,9 @@ class Assistants(SyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
-          name: The name of the Assistant. The maximum length is 256 characters.
+          name: The name of the assistant. The maximum length is 256 characters.
 
-          tools: A list of tool enabled on the Assistant. There can be a maximum of 128 tools per
+          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
               assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
 
           extra_headers: Send extra headers
@@ -235,7 +235,7 @@ class Assistants(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[Assistant]:
-        """Returns a list of Assistants.
+        """Returns a list of assistants.
 
         Args:
           after: A cursor for use in pagination.
@@ -298,7 +298,7 @@ class Assistants(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsssitantDeleted:
         """
-        Delete an Assistant.
+        Delete an assistant.
 
         Args:
           extra_headers: Send extra headers
@@ -346,7 +346,7 @@ class AsyncAssistants(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
-        Create an Assistant with a model and instructions.
+        Create an assistant with a model and instructions.
 
         Args:
           model: ID of the model to use. You can use the
@@ -355,13 +355,13 @@ class AsyncAssistants(AsyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
-          description: The description of the Assistant. The maximum length is 512 characters.
+          description: The description of the assistant. The maximum length is 512 characters.
 
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this Assistant. There can be a maximum of 20 files attached to the
-              Assistant. Files are ordered by their creation date in ascending order.
+          file_ids: A list of [file](https://platform.openai.com/docs/api-reference/files) IDs
+              attached to this assistant. There can be a maximum of 20 files attached to the
+              assistant. Files are ordered by their creation date in ascending order.
 
-          instructions: The system instructions that the Assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 32768
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -369,9 +369,9 @@ class AsyncAssistants(AsyncAPIResource):
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
-          name: The name of the Assistant. The maximum length is 256 characters.
+          name: The name of the assistant. The maximum length is 256 characters.
 
-          tools: A list of tool enabled on the Assistant. There can be a maximum of 128 tools per
+          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
               assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
 
           extra_headers: Send extra headers
@@ -415,7 +415,7 @@ class AsyncAssistants(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
         """
-        Retrieves an Assistant.
+        Retrieves an assistant.
 
         Args:
           extra_headers: Send extra headers
@@ -453,20 +453,20 @@ class AsyncAssistants(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Assistant:
-        """Modifies an Assistant.
+        """Modifies an assistant.
 
         Args:
-          description: The description of the Assistant.
+          description: The description of the assistant.
 
         The maximum length is 512 characters.
 
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this Assistant. There can be a maximum of 20 files attached to the
-              Assistant. Files are ordered by their creation date in ascending order. If a
+              attached to this assistant. There can be a maximum of 20 files attached to the
+              assistant. Files are ordered by their creation date in ascending order. If a
               file was previosuly attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
-          instructions: The system instructions that the Assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 32768
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -480,9 +480,9 @@ class AsyncAssistants(AsyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
-          name: The name of the Assistant. The maximum length is 256 characters.
+          name: The name of the assistant. The maximum length is 256 characters.
 
-          tools: A list of tool enabled on the Assistant. There can be a maximum of 128 tools per
+          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
               assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
 
           extra_headers: Send extra headers
@@ -528,7 +528,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[Assistant, AsyncCursorPage[Assistant]]:
-        """Returns a list of Assistants.
+        """Returns a list of assistants.
 
         Args:
           after: A cursor for use in pagination.
@@ -591,7 +591,7 @@ class AsyncAssistants(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsssitantDeleted:
         """
-        Delete an Assistant.
+        Delete an assistant.
 
         Args:
           extra_headers: Send extra headers

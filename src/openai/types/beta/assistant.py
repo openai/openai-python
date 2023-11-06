@@ -62,20 +62,20 @@ class Assistant(BaseModel):
     """The identifier, which can be referenced in API endpoints."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Assistant was created."""
+    """The Unix timestamp (in seconds) for when the assistant was created."""
 
     description: Optional[str]
-    """The description of the Assistant. The maximum length is 512 characters."""
+    """The description of the assistant. The maximum length is 512 characters."""
 
     file_ids: List[str]
     """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-    attached to this Assistant. There can be a maximum of 20 files attached to the
-    Assistant. Files are ordered by their creation date in ascending order.
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs
+    attached to this assistant. There can be a maximum of 20 files attached to the
+    assistant. Files are ordered by their creation date in ascending order.
     """
 
     instructions: Optional[str]
-    """The system instructions that the Assistant uses.
+    """The system instructions that the assistant uses.
 
     The maximum length is 32768 characters.
     """
@@ -99,13 +99,13 @@ class Assistant(BaseModel):
     """
 
     name: Optional[str]
-    """The name of the Assistant. The maximum length is 256 characters."""
+    """The name of the assistant. The maximum length is 256 characters."""
 
     object: Literal["assistant"]
     """The object type, which is always `assistant`."""
 
     tools: List[Tool]
-    """A list of tool enabled on the Assistant.
+    """A list of tool enabled on the assistant.
 
     There can be a maximum of 128 tools per assistant. Tools can be of types
     `code_interpreter`, `retrieval`, or `function`.

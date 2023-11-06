@@ -35,7 +35,7 @@ class RequiredActionSubmitToolOutputs(BaseModel):
 
 class RequiredAction(BaseModel):
     submit_tool_outputs: RequiredActionSubmitToolOutputs
-    """Details on the tool outputs needed for this Run to continue."""
+    """Details on the tool outputs needed for this run to continue."""
 
     type: Literal["submit_tool_outputs"]
     """For now, this is always `submit_tool_outputs`."""
@@ -96,41 +96,41 @@ class Run(BaseModel):
     assistant_id: str
     """
     The ID of the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    execution of this Run.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
+    execution of this run.
     """
 
     cancelled_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run was cancelled."""
+    """The Unix timestamp (in seconds) for when the run was cancelled."""
 
     completed_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run was completed."""
+    """The Unix timestamp (in seconds) for when the run was completed."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Run was created."""
+    """The Unix timestamp (in seconds) for when the run was created."""
 
     expires_at: int
-    """The Unix timestamp (in seconds) for when the Run will expire."""
+    """The Unix timestamp (in seconds) for when the run will expire."""
 
     failed_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run failed."""
+    """The Unix timestamp (in seconds) for when the run failed."""
 
     file_ids: List[str]
     """
     The list of [File](https://platform.openai.com/docs/api-reference/files) IDs the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this Run.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
+    this run.
     """
 
     instructions: str
     """
     The instructions that the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) used for
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
     this run.
     """
 
     last_error: Optional[LastError]
-    """The last error associated with this Run. Will be `null` if there are no errors."""
+    """The last error associated with this run. Will be `null` if there are no errors."""
 
     metadata: Optional[builtins.object]
     """Set of 16 key-value pairs that can be attached to an object.
@@ -143,21 +143,21 @@ class Run(BaseModel):
     model: str
     """
     The model that the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this Run.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
+    this run.
     """
 
     object: Literal["assistant.run"]
     """The object type, which is always `assistant.run`."""
 
     required_action: Optional[RequiredAction]
-    """Details on the action required to continue the Run.
+    """Details on the action required to continue the run.
 
     Will be `null` if no action is required.
     """
 
     started_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run was started."""
+    """The Unix timestamp (in seconds) for when the run was started."""
 
     status: Literal[
         "queued", "in_progress", "requires_action", "cancelling", "cancelled", "failed", "completed", "expired"
@@ -170,13 +170,13 @@ class Run(BaseModel):
 
     thread_id: str
     """
-    The ID of the [Thread](https://platform.openai.com/docs/api-reference/threads)
-    that was executed on as a part of this Run.
+    The ID of the [thread](https://platform.openai.com/docs/api-reference/threads)
+    that was executed on as a part of this run.
     """
 
     tools: List[Tool]
     """
     The list of tools that the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this Run.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
+    this run.
     """

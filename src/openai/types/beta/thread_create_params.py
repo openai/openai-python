@@ -11,8 +11,8 @@ __all__ = ["ThreadCreateParams", "Message"]
 class ThreadCreateParams(TypedDict, total=False):
     messages: List[Message]
     """
-    A list of [Messages](https://platform.openai.com/docs/api-reference/messages) to
-    start the Thread with.
+    A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
+    start the thread with.
     """
 
     metadata: Optional[object]
@@ -26,10 +26,10 @@ class ThreadCreateParams(TypedDict, total=False):
 
 class Message(TypedDict, total=False):
     content: Required[str]
-    """The content of the Message."""
+    """The content of the message."""
 
     role: Required[Literal["user"]]
-    """The role of the entity that is creating the Message.
+    """The role of the entity that is creating the message.
 
     Currently only `user` is supported.
     """
@@ -37,8 +37,8 @@ class Message(TypedDict, total=False):
     file_ids: List[str]
     """
     A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the Message should use. There can be a maximum of 10 files attached to a
-    Message. Useful for tools like `retrieval` and `code_interpreter` that can
+    the message should use. There can be a maximum of 10 files attached to a
+    message. Useful for tools like `retrieval` and `code_interpreter` that can
     access and use files.
     """
 

@@ -40,7 +40,7 @@ class Steps(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> RunStep:
         """
-        Retrieves a Run Step.
+        Retrieves a run step.
 
         Args:
           extra_headers: Send extra headers
@@ -77,7 +77,7 @@ class Steps(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[RunStep]:
         """
-        Returns a list of Run Steps belonging to a Run.
+        Returns a list of run steps belonging to a run.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place
@@ -148,7 +148,7 @@ class AsyncSteps(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> RunStep:
         """
-        Retrieves a Run Step.
+        Retrieves a run step.
 
         Args:
           extra_headers: Send extra headers
@@ -185,7 +185,7 @@ class AsyncSteps(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[RunStep, AsyncCursorPage[RunStep]]:
         """
-        Returns a list of Run Steps belonging to a Run.
+        Returns a list of run steps belonging to a run.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place

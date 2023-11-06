@@ -20,21 +20,21 @@ class ThreadMessage(BaseModel):
     assistant_id: Optional[str]
     """
     If applicable, the ID of the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) that
-    authored this Message.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) that
+    authored this message.
     """
 
     content: List[Content]
-    """The content of the Message in array of text and/or images."""
+    """The content of the message in array of text and/or images."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Message was created."""
+    """The Unix timestamp (in seconds) for when the message was created."""
 
     file_ids: List[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs that
-    the Assistant should use. Useful for tools like retrieval and code_interpreter
-    that can access files. A maximum of 10 files can be attached to a Message.
+    the assistant should use. Useful for tools like retrieval and code_interpreter
+    that can access files. A maximum of 10 files can be attached to a message.
     """
 
     metadata: Optional[builtins.object]
@@ -49,17 +49,17 @@ class ThreadMessage(BaseModel):
     """The object type, which is always `thread.message`."""
 
     role: Literal["user", "assistant"]
-    """The entity that produced the Message. One of `user` or `assistant`."""
+    """The entity that produced the message. One of `user` or `assistant`."""
 
     run_id: Optional[str]
     """
     If applicable, the ID of the
-    [Run](https://platform.openai.com/docs/api-reference/runs) associated with the
-    authoring of this Message.
+    [run](https://platform.openai.com/docs/api-reference/runs) associated with the
+    authoring of this message.
     """
 
     thread_id: str
     """
-    The [Thread](https://platform.openai.com/docs/api-reference/threads) ID that
-    this Message belongs to.
+    The [thread](https://platform.openai.com/docs/api-reference/threads) ID that
+    this message belongs to.
     """

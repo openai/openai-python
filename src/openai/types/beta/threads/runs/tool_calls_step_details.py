@@ -15,11 +15,11 @@ ToolCall = Union[CodeToolCall, RetrievalToolCall, FunctionToolCall]
 
 class ToolCallsStepDetails(BaseModel):
     tool_calls: List[ToolCall]
-    """An array of tool calls the Run Step was involved in.
+    """An array of tool calls the run step was involved in.
 
     These can be associated with one of three types of tools: `code_interpreter`,
     `retrieval`, or `function`.
     """
 
     type: Literal["tool_calls"]
-    """Will always be `tool_calls`."""
+    """Always `tool_calls`."""

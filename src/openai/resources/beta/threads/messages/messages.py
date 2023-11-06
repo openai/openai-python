@@ -50,17 +50,17 @@ class Messages(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadMessage:
         """
-        Create a Message.
+        Create a message.
 
         Args:
-          content: The content of the Message.
+          content: The content of the message.
 
-          role: The role of the entity that is creating the Message. Currently only `user` is
+          role: The role of the entity that is creating the message. Currently only `user` is
               supported.
 
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the Message should use. There can be a maximum of 10 files attached to a
-              Message. Useful for tools like `retrieval` and `code_interpreter` that can
+              the message should use. There can be a maximum of 10 files attached to a
+              message. Useful for tools like `retrieval` and `code_interpreter` that can
               access and use files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -107,7 +107,7 @@ class Messages(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadMessage:
         """
-        Retrieve a Message.
+        Retrieve a message.
 
         Args:
           extra_headers: Send extra headers
@@ -141,7 +141,7 @@ class Messages(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadMessage:
         """
-        Modifies a Message.
+        Modifies a message.
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -183,7 +183,7 @@ class Messages(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[ThreadMessage]:
         """
-        Returns a list of Messages for a given Thread.
+        Returns a list of messages for a given thread.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place
@@ -258,17 +258,17 @@ class AsyncMessages(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadMessage:
         """
-        Create a Message.
+        Create a message.
 
         Args:
-          content: The content of the Message.
+          content: The content of the message.
 
-          role: The role of the entity that is creating the Message. Currently only `user` is
+          role: The role of the entity that is creating the message. Currently only `user` is
               supported.
 
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the Message should use. There can be a maximum of 10 files attached to a
-              Message. Useful for tools like `retrieval` and `code_interpreter` that can
+              the message should use. There can be a maximum of 10 files attached to a
+              message. Useful for tools like `retrieval` and `code_interpreter` that can
               access and use files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -315,7 +315,7 @@ class AsyncMessages(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadMessage:
         """
-        Retrieve a Message.
+        Retrieve a message.
 
         Args:
           extra_headers: Send extra headers
@@ -349,7 +349,7 @@ class AsyncMessages(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadMessage:
         """
-        Modifies a Message.
+        Modifies a message.
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -391,7 +391,7 @@ class AsyncMessages(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[ThreadMessage, AsyncCursorPage[ThreadMessage]]:
         """
-        Returns a list of Messages for a given Thread.
+        Returns a list of messages for a given thread.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place

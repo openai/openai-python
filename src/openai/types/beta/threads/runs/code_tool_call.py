@@ -20,13 +20,13 @@ class CodeInterpreterOutputLogs(BaseModel):
     """The text output from the Code Interpreter tool call."""
 
     type: Literal["logs"]
-    """Will always be `logs`."""
+    """Always `logs`."""
 
 
 class CodeInterpreterOutputImageImage(BaseModel):
     file_id: str
     """
-    The [File](https://platform.openai.com/docs/api-reference/files) ID of the
+    The [file](https://platform.openai.com/docs/api-reference/files) ID of the
     image.
     """
 
@@ -35,7 +35,7 @@ class CodeInterpreterOutputImage(BaseModel):
     image: CodeInterpreterOutputImageImage
 
     type: Literal["image"]
-    """Will always be `image`."""
+    """Always `image`."""
 
 
 CodeInterpreterOutput = Union[CodeInterpreterOutputLogs, CodeInterpreterOutputImage]
@@ -58,7 +58,7 @@ class CodeToolCall(BaseModel):
     """The ID of the tool call."""
 
     code_interpreter: CodeInterpreter
-    """The code interpreter tool call definition."""
+    """The Code Interpreter tool call definition."""
 
     type: Literal["code_interpreter"]
     """The type of tool call.

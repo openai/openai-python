@@ -123,12 +123,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     seed: Optional[int]
-    """
-    This feature is in Beta. If specified, our system will make a best effort to
-    sample deterministically, such that repeated requests with the same `seed` and
-    parameters should return the same result. Determinism is not guaranteed, and you
-    should refer to the `system_fingerprint` response parameter to monitor changes
-    in the backend.
+    """This feature is in Beta.
+
+    If specified, our system will make a best effort to sample deterministically,
+    such that repeated requests with the same `seed` and parameters should return
+    the same result. Determinism is not guaranteed, and you should refer to the
+    `system_fingerprint` response parameter to monitor changes in the backend.
     """
 
     stop: Union[Optional[str], List[str]]

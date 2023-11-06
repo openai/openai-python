@@ -52,14 +52,14 @@ class Runs(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Create a Run.
+        Create a run.
 
         Args:
           assistant_id: The ID of the
-              [Assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this Run.
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
 
-          instructions: Override the default system message of the Assistant. This is useful for
+          instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -68,11 +68,11 @@ class Runs(SyncAPIResource):
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this Run. If a value is provided here, it will override the
-              model associated with the Assistant. If not, the model associated with the
-              Assistant will be used.
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
 
-          tools: Override the tools the Assistant can use for this Run. This is useful for
+          tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
           extra_headers: Send extra headers
@@ -115,7 +115,7 @@ class Runs(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Retrieves a Run.
+        Retrieves a run.
 
         Args:
           extra_headers: Send extra headers
@@ -149,7 +149,7 @@ class Runs(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Modifies a Run.
+        Modifies a run.
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -191,7 +191,7 @@ class Runs(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[Run]:
         """
-        Returns a list of Runs belonging to a Thread.
+        Returns a list of runs belonging to a thread.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place
@@ -253,7 +253,7 @@ class Runs(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Cancels a Run that is `in_progress`.
+        Cancels a run that is `in_progress`.
 
         Args:
           extra_headers: Send extra headers
@@ -287,7 +287,7 @@ class Runs(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        When a Run has the `status: "requires_action"` and `required_action.type` is
+        When a run has the `status: "requires_action"` and `required_action.type` is
         `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
         tool calls once they're all completed. All outputs must be submitted in a single
         request.
@@ -342,14 +342,14 @@ class AsyncRuns(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Create a Run.
+        Create a run.
 
         Args:
           assistant_id: The ID of the
-              [Assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this Run.
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
 
-          instructions: Override the default system message of the Assistant. This is useful for
+          instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -358,11 +358,11 @@ class AsyncRuns(AsyncAPIResource):
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this Run. If a value is provided here, it will override the
-              model associated with the Assistant. If not, the model associated with the
-              Assistant will be used.
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
 
-          tools: Override the tools the Assistant can use for this Run. This is useful for
+          tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
           extra_headers: Send extra headers
@@ -405,7 +405,7 @@ class AsyncRuns(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Retrieves a Run.
+        Retrieves a run.
 
         Args:
           extra_headers: Send extra headers
@@ -439,7 +439,7 @@ class AsyncRuns(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Modifies a Run.
+        Modifies a run.
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -481,7 +481,7 @@ class AsyncRuns(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[Run, AsyncCursorPage[Run]]:
         """
-        Returns a list of Runs belonging to a Thread.
+        Returns a list of runs belonging to a thread.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place
@@ -543,7 +543,7 @@ class AsyncRuns(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Cancels a Run that is `in_progress`.
+        Cancels a run that is `in_progress`.
 
         Args:
           extra_headers: Send extra headers
@@ -577,7 +577,7 @@ class AsyncRuns(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        When a Run has the `status: "requires_action"` and `required_action.type` is
+        When a run has the `status: "requires_action"` and `required_action.type` is
         `submit_tool_outputs`, this endpoint can be used to submit the outputs from the
         tool calls once they're all completed. All outputs must be submitted in a single
         request.

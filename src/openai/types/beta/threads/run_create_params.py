@@ -19,12 +19,12 @@ class RunCreateParams(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-    execute this Run.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+    execute this run.
     """
 
     instructions: Optional[str]
-    """Override the default system message of the Assistant.
+    """Override the default system message of the assistant.
 
     This is useful for modifying the behavior on a per-run basis.
     """
@@ -40,13 +40,13 @@ class RunCreateParams(TypedDict, total=False):
     model: Optional[str]
     """
     The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-    be used to execute this Run. If a value is provided here, it will override the
-    model associated with the Assistant. If not, the model associated with the
-    Assistant will be used.
+    be used to execute this run. If a value is provided here, it will override the
+    model associated with the assistant. If not, the model associated with the
+    assistant will be used.
     """
 
     tools: Optional[List[Tool]]
-    """Override the tools the Assistant can use for this Run.
+    """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
     """

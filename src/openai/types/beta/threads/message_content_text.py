@@ -21,7 +21,7 @@ class TextAnnotationFileCitationFileCitation(BaseModel):
     """The ID of the specific File the citation is from."""
 
     quote: str
-    """The specific quote in the File."""
+    """The specific quote in the file."""
 
 
 class TextAnnotationFileCitation(BaseModel):
@@ -32,15 +32,15 @@ class TextAnnotationFileCitation(BaseModel):
     start_index: int
 
     text: str
-    """The text in the Message content that needs to be replaced."""
+    """The text in the message content that needs to be replaced."""
 
     type: Literal["file_citation"]
-    """Will always be `file_citation`."""
+    """Always `file_citation`."""
 
 
 class TextAnnotationFilePathFilePath(BaseModel):
     file_id: str
-    """The ID of the File that was generated."""
+    """The ID of the file that was generated."""
 
 
 class TextAnnotationFilePath(BaseModel):
@@ -51,10 +51,10 @@ class TextAnnotationFilePath(BaseModel):
     start_index: int
 
     text: str
-    """The text in the Message content that needs to be replaced."""
+    """The text in the message content that needs to be replaced."""
 
     type: Literal["file_path"]
-    """Will always be `file_path`."""
+    """Always `file_path`."""
 
 
 TextAnnotation = Union[TextAnnotationFileCitation, TextAnnotationFilePath]
@@ -71,4 +71,4 @@ class MessageContentText(BaseModel):
     text: Text
 
     type: Literal["text"]
-    """Will always be `text`."""
+    """Always `text`."""

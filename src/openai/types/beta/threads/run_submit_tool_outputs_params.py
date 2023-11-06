@@ -17,10 +17,10 @@ class RunSubmitToolOutputsParams(TypedDict, total=False):
 
 class ToolOutput(TypedDict, total=False):
     output: str
-    """The output of the tool call to be submitted to continue the Run."""
+    """The output of the tool call to be submitted to continue the run."""
 
     tool_call_id: str
     """
-    The ID of the tool call in the `required_action` object within the Run object
+    The ID of the tool call in the `required_action` object within the run object
     the output is being submitted for.
     """

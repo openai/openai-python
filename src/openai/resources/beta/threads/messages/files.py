@@ -40,7 +40,7 @@ class Files(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> MessageFile:
         """
-        Retrieves a Message File.
+        Retrieves a message file.
 
         Args:
           extra_headers: Send extra headers
@@ -76,7 +76,7 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[MessageFile]:
-        """Returns a list of Message Files.
+        """Returns a list of message files.
 
         Args:
           after: A cursor for use in pagination.
@@ -149,7 +149,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> MessageFile:
         """
-        Retrieves a Message File.
+        Retrieves a message file.
 
         Args:
           extra_headers: Send extra headers
@@ -185,7 +185,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[MessageFile, AsyncCursorPage[MessageFile]]:
-        """Returns a list of Message Files.
+        """Returns a list of message files.
 
         Args:
           after: A cursor for use in pagination.

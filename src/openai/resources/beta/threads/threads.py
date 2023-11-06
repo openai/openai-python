@@ -55,11 +55,11 @@ class Threads(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Thread:
         """
-        Create a Thread.
+        Create a thread.
 
         Args:
-          messages: A list of [Messages](https://platform.openai.com/docs/api-reference/messages) to
-              start the Thread with.
+          messages: A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
+              start the thread with.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
@@ -102,7 +102,7 @@ class Threads(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Thread:
         """
-        Retrieves a Thread.
+        Retrieves a thread.
 
         Args:
           extra_headers: Send extra headers
@@ -135,7 +135,7 @@ class Threads(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Thread:
         """
-        Modifies a Thread.
+        Modifies a thread.
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -173,7 +173,7 @@ class Threads(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadDeleted:
         """
-        Delete a Thread.
+        Delete a thread.
 
         Args:
           extra_headers: Send extra headers
@@ -210,14 +210,14 @@ class Threads(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Create a Thread and Run it in one request.
+        Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [Assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this Run.
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
 
-          instructions: Override the default system message of the Assistant. This is useful for
+          instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -226,13 +226,13 @@ class Threads(SyncAPIResource):
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this Run. If a value is provided here, it will override the
-              model associated with the Assistant. If not, the model associated with the
-              Assistant will be used.
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
 
-          thread: If no Thread is provided, an empty Thread will be created.
+          thread: If no thread is provided, an empty thread will be created.
 
-          tools: Override the tools the Assistant can use for this Run. This is useful for
+          tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
           extra_headers: Send extra headers
@@ -288,11 +288,11 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Thread:
         """
-        Create a Thread.
+        Create a thread.
 
         Args:
-          messages: A list of [Messages](https://platform.openai.com/docs/api-reference/messages) to
-              start the Thread with.
+          messages: A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
+              start the thread with.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
@@ -335,7 +335,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Thread:
         """
-        Retrieves a Thread.
+        Retrieves a thread.
 
         Args:
           extra_headers: Send extra headers
@@ -368,7 +368,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Thread:
         """
-        Modifies a Thread.
+        Modifies a thread.
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -406,7 +406,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> ThreadDeleted:
         """
-        Delete a Thread.
+        Delete a thread.
 
         Args:
           extra_headers: Send extra headers
@@ -443,14 +443,14 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> Run:
         """
-        Create a Thread and Run it in one request.
+        Create a thread and run it in one request.
 
         Args:
           assistant_id: The ID of the
-              [Assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-              execute this Run.
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
 
-          instructions: Override the default system message of the Assistant. This is useful for
+          instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -459,13 +459,13 @@ class AsyncThreads(AsyncAPIResource):
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-              be used to execute this Run. If a value is provided here, it will override the
-              model associated with the Assistant. If not, the model associated with the
-              Assistant will be used.
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
 
-          thread: If no Thread is provided, an empty Thread will be created.
+          thread: If no thread is provided, an empty thread will be created.
 
-          tools: Override the tools the Assistant can use for this Run. This is useful for
+          tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
           extra_headers: Send extra headers

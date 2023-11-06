@@ -44,13 +44,13 @@ class Files(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AssistantFile:
         """
-        Create an Assistant File by attaching a
+        Create an assistant file by attaching a
         [File](https://platform.openai.com/docs/api-reference/files) to an
-        [Assistant](https://platform.openai.com/docs/api-reference/assistants).
+        [assistant](https://platform.openai.com/docs/api-reference/assistants).
 
         Args:
           file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID (with
-              `purpose="assistants"`) that the Assistant should use. Useful for tools like
+              `purpose="assistants"`) that the assistant should use. Useful for tools like
               `retrieval` and `code_interpreter` that can access files.
 
           extra_headers: Send extra headers
@@ -120,7 +120,7 @@ class Files(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[AssistantFile]:
         """
-        Returns a list of Assistant Files.
+        Returns a list of assistant files.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place
@@ -182,7 +182,7 @@ class Files(SyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> FileDeleteResponse:
         """
-        Delete an Assistant File.
+        Delete an assistant file.
 
         Args:
           extra_headers: Send extra headers
@@ -223,13 +223,13 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AssistantFile:
         """
-        Create an Assistant File by attaching a
+        Create an assistant file by attaching a
         [File](https://platform.openai.com/docs/api-reference/files) to an
-        [Assistant](https://platform.openai.com/docs/api-reference/assistants).
+        [assistant](https://platform.openai.com/docs/api-reference/assistants).
 
         Args:
           file_id: A [File](https://platform.openai.com/docs/api-reference/files) ID (with
-              `purpose="assistants"`) that the Assistant should use. Useful for tools like
+              `purpose="assistants"`) that the assistant should use. Useful for tools like
               `retrieval` and `code_interpreter` that can access files.
 
           extra_headers: Send extra headers
@@ -299,7 +299,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[AssistantFile, AsyncCursorPage[AssistantFile]]:
         """
-        Returns a list of Assistant Files.
+        Returns a list of assistant files.
 
         Args:
           after: A cursor for use in pagination. `after` is an object ID that defines your place
@@ -361,7 +361,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> FileDeleteResponse:
         """
-        Delete an Assistant File.
+        Delete an assistant file.
 
         Args:
           extra_headers: Send extra headers

@@ -14,7 +14,7 @@ class Thread(BaseModel):
     """The identifier, which can be referenced in API endpoints."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Thread was created."""
+    """The Unix timestamp (in seconds) for when the thread was created."""
 
     metadata: Optional[builtins.object]
     """Set of 16 key-value pairs that can be attached to an object.

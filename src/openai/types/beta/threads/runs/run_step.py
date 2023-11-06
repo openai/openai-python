@@ -29,30 +29,30 @@ class RunStep(BaseModel):
     assistant_id: str
     """
     The ID of the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants)
-    associated with the Run Step.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants)
+    associated with the run step.
     """
 
     cancelled_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run Step was cancelled."""
+    """The Unix timestamp (in seconds) for when the run step was cancelled."""
 
     completed_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run Step was completed."""
+    """The Unix timestamp (in seconds) for when the run step completed."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Run Step was created."""
+    """The Unix timestamp (in seconds) for when the run step was created."""
 
     expired_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run Step expired.
+    """The Unix timestamp (in seconds) for when the run step expired.
 
-    A step is considered expired if the parent Run is expired.
+    A step is considered expired if the parent run is expired.
     """
 
     failed_at: Optional[int]
-    """The Unix timestamp (in seconds) for when the Run Step failed."""
+    """The Unix timestamp (in seconds) for when the run step failed."""
 
     last_error: Optional[LastError]
-    """The last error associated with this Run Step.
+    """The last error associated with this run step.
 
     Will be `null` if there are no errors.
     """
@@ -70,8 +70,8 @@ class RunStep(BaseModel):
 
     run_id: str
     """
-    The ID of the [Run](https://platform.openai.com/docs/api-reference/runs) that
-    this Run Step is a part of.
+    The ID of the [run](https://platform.openai.com/docs/api-reference/runs) that
+    this run step is a part of.
     """
 
     status: Literal["in_progress", "cancelled", "failed", "completed", "expired"]
@@ -81,13 +81,13 @@ class RunStep(BaseModel):
     """
 
     step_details: StepDetails
-    """The details of the activity the Run Step was involved in."""
+    """The details of the run step."""
 
     thread_id: str
     """
-    The ID of the [Thread](https://platform.openai.com/docs/api-reference/threads)
-    that was Run.
+    The ID of the [thread](https://platform.openai.com/docs/api-reference/threads)
+    that was run.
     """
 
     type: Literal["message_creation", "tool_calls"]
-    """The type of Run Step, which can be either `message_creation` or `tool_calls`."""
+    """The type of run step, which can be either `message_creation` or `tool_calls`."""

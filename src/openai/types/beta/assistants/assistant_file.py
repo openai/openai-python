@@ -12,10 +12,10 @@ class AssistantFile(BaseModel):
     """The identifier, which can be referenced in API endpoints."""
 
     assistant_id: str
-    """The Assistant ID that the File is attached to."""
+    """The assistant ID that the file is attached to."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Assistant File was created."""
+    """The Unix timestamp (in seconds) for when the assistant file was created."""
 
     object: Literal["assistant.file"]
     """The object type, which is always `assistant.file`."""

@@ -11,6 +11,6 @@ class FileCreateParams(TypedDict, total=False):
     file_id: Required[str]
     """
     A [File](https://platform.openai.com/docs/api-reference/files) ID (with
-    `purpose="assistants"`) that the Assistant should use. Useful for tools like
+    `purpose="assistants"`) that the assistant should use. Useful for tools like
     `retrieval` and `code_interpreter` that can access files.
     """

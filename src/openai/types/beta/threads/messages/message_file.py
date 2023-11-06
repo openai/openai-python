@@ -12,11 +12,11 @@ class MessageFile(BaseModel):
     """The identifier, which can be referenced in API endpoints."""
 
     created_at: int
-    """The Unix timestamp (in seconds) for when the Message File was created."""
+    """The Unix timestamp (in seconds) for when the message file was created."""
 
     message_id: str
     """
-    The ID of the [Message](https://platform.openai.com/docs/api-reference/messages)
+    The ID of the [message](https://platform.openai.com/docs/api-reference/messages)
     that the [File](https://platform.openai.com/docs/api-reference/files) is
     attached to.
     """

@@ -21,12 +21,12 @@ class ThreadCreateAndRunParams(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
-    [Assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
-    execute this Run.
+    [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+    execute this run.
     """
 
     instructions: Optional[str]
-    """Override the default system message of the Assistant.
+    """Override the default system message of the assistant.
 
     This is useful for modifying the behavior on a per-run basis.
     """
@@ -42,16 +42,16 @@ class ThreadCreateAndRunParams(TypedDict, total=False):
     model: Optional[str]
     """
     The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
-    be used to execute this Run. If a value is provided here, it will override the
-    model associated with the Assistant. If not, the model associated with the
-    Assistant will be used.
+    be used to execute this run. If a value is provided here, it will override the
+    model associated with the assistant. If not, the model associated with the
+    assistant will be used.
     """
 
     thread: Thread
-    """If no Thread is provided, an empty Thread will be created."""
+    """If no thread is provided, an empty thread will be created."""
 
     tools: Optional[List[Tool]]
-    """Override the tools the Assistant can use for this Run.
+    """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
     """
@@ -59,10 +59,10 @@ class ThreadCreateAndRunParams(TypedDict, total=False):
 
 class ThreadMessage(TypedDict, total=False):
     content: Required[str]
-    """The content of the Message."""
+    """The content of the message."""
 
     role: Required[Literal["user"]]
-    """The role of the entity that is creating the Message.
+    """The role of the entity that is creating the message.
 
     Currently only `user` is supported.
     """
@@ -70,8 +70,8 @@ class ThreadMessage(TypedDict, total=False):
     file_ids: List[str]
     """
     A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the Message should use. There can be a maximum of 10 files attached to a
-    Message. Useful for tools like `retrieval` and `code_interpreter` that can
+    the message should use. There can be a maximum of 10 files attached to a
+    message. Useful for tools like `retrieval` and `code_interpreter` that can
     access and use files.
     """
 
@@ -87,8 +87,8 @@ class ThreadMessage(TypedDict, total=False):
 class Thread(TypedDict, total=False):
     messages: List[ThreadMessage]
     """
-    A list of [Messages](https://platform.openai.com/docs/api-reference/messages) to
-    start the Thread with.
+    A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
+    start the thread with.
     """
 
     metadata: Optional[object]
