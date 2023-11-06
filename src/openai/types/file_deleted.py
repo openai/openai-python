@@ -1,5 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
+from typing_extensions import Literal
+
 from .._models import BaseModel
 
 __all__ = ["FileDeleted"]
@@ -10,4 +12,4 @@ class FileDeleted(BaseModel):
 
     deleted: bool
 
-    object: str
+    object: Literal["file"]

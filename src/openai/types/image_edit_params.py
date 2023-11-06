@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes
@@ -29,6 +29,12 @@ class ImageEditParams(TypedDict, total=False):
 
     where alpha is zero) indicate where `image` should be edited. Must be a valid
     PNG file, less than 4MB, and have the same dimensions as `image`.
+    """
+
+    model: Union[str, Literal["dall-e-2"], None]
+    """The model to use for image generation.
+
+    Only `dall-e-2` is supported at this time.
     """
 
     n: Optional[int]

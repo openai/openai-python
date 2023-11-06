@@ -31,6 +31,7 @@ class TestImages:
     def test_method_create_variation_with_all_params(self, client: OpenAI) -> None:
         image = client.images.create_variation(
             image=b"raw file contents",
+            model="dall-e-2",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -61,6 +62,7 @@ class TestImages:
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
             mask=b"raw file contents",
+            model="dall-e-2",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -89,9 +91,12 @@ class TestImages:
     def test_method_generate_with_all_params(self, client: OpenAI) -> None:
         image = client.images.generate(
             prompt="A cute baby sea otter",
+            model="dall-e-3",
             n=1,
+            quality="standard",
             response_format="url",
             size="1024x1024",
+            style="vivid",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -122,6 +127,7 @@ class TestAsyncImages:
     async def test_method_create_variation_with_all_params(self, client: AsyncOpenAI) -> None:
         image = await client.images.create_variation(
             image=b"raw file contents",
+            model="dall-e-2",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -152,6 +158,7 @@ class TestAsyncImages:
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
             mask=b"raw file contents",
+            model="dall-e-2",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -180,9 +187,12 @@ class TestAsyncImages:
     async def test_method_generate_with_all_params(self, client: AsyncOpenAI) -> None:
         image = await client.images.generate(
             prompt="A cute baby sea otter",
+            model="dall-e-3",
             n=1,
+            quality="standard",
             response_format="url",
             size="1024x1024",
+            style="vivid",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])

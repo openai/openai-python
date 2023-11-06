@@ -3,7 +3,7 @@ from __future__ import annotations
 import sys
 from typing import TYPE_CHECKING, List, Optional, cast
 from argparse import ArgumentParser
-from typing_extensions import NamedTuple
+from typing_extensions import Literal, NamedTuple
 
 from ..._utils import get_client
 from ..._models import BaseModel
@@ -97,7 +97,9 @@ class CLIChatCompletion:
     def create(args: CLIChatCompletionCreateArgs) -> None:
         params: CompletionCreateParams = {
             "model": args.model,
-            "messages": [{"role": message.role, "content": message.content} for message in args.message],
+            "messages": [
+                {"role": cast(Literal["user"], message.role), "content": message.content} for message in args.message
+            ],
             "n": args.n,
             "temperature": args.temperature,
             "top_p": args.top_p,

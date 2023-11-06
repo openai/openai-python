@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import Any, List, Generic, TypeVar, Optional, cast
-from typing_extensions import Protocol, override, runtime_checkable
+from typing_extensions import Literal, Protocol, override, runtime_checkable
 
 from ._types import ModelT
 from ._models import BaseModel
@@ -21,7 +21,7 @@ class SyncPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
     """Note: no pagination actually occurs yet, this is for forwards-compatibility."""
 
     data: List[ModelT]
-    object: str
+    object: Literal["list"]
 
     @override
     def _get_page_items(self) -> List[ModelT]:
@@ -40,7 +40,7 @@ class AsyncPage(BaseAsyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
     """Note: no pagination actually occurs yet, this is for forwards-compatibility."""
 
     data: List[ModelT]
-    object: str
+    object: Literal["list"]
 
     @override
     def _get_page_items(self) -> List[ModelT]:

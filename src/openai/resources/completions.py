@@ -54,6 +54,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -104,7 +105,7 @@ class Completions(SyncAPIResource):
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
-              Accepts a json object that maps tokens (specified by their token ID in the GPT
+              Accepts a JSON object that maps tokens (specified by their token ID in the GPT
               tokenizer) to an associated bias value from -100 to 100. You can use this
               [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
               convert text to token IDs. Mathematically, the bias is added to the logits
@@ -141,6 +142,13 @@ class Completions(SyncAPIResource):
               talk about new topics.
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+
+          seed: If specified, our system will make a best effort to sample deterministically,
+              such that repeated requests with the same `seed` and parameters should return
+              the same result.
+
+              Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+              response parameter to monitor changes in the backend.
 
           stop: Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -209,6 +217,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -265,7 +274,7 @@ class Completions(SyncAPIResource):
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
-              Accepts a json object that maps tokens (specified by their token ID in the GPT
+              Accepts a JSON object that maps tokens (specified by their token ID in the GPT
               tokenizer) to an associated bias value from -100 to 100. You can use this
               [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
               convert text to token IDs. Mathematically, the bias is added to the logits
@@ -302,6 +311,13 @@ class Completions(SyncAPIResource):
               talk about new topics.
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+
+          seed: If specified, our system will make a best effort to sample deterministically,
+              such that repeated requests with the same `seed` and parameters should return
+              the same result.
+
+              Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+              response parameter to monitor changes in the backend.
 
           stop: Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -363,6 +379,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -419,7 +436,7 @@ class Completions(SyncAPIResource):
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
-              Accepts a json object that maps tokens (specified by their token ID in the GPT
+              Accepts a JSON object that maps tokens (specified by their token ID in the GPT
               tokenizer) to an associated bias value from -100 to 100. You can use this
               [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
               convert text to token IDs. Mathematically, the bias is added to the logits
@@ -456,6 +473,13 @@ class Completions(SyncAPIResource):
               talk about new topics.
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+
+          seed: If specified, our system will make a best effort to sample deterministically,
+              such that repeated requests with the same `seed` and parameters should return
+              the same result.
+
+              Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+              response parameter to monitor changes in the backend.
 
           stop: Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -516,6 +540,7 @@ class Completions(SyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -543,6 +568,7 @@ class Completions(SyncAPIResource):
                     "max_tokens": max_tokens,
                     "n": n,
                     "presence_penalty": presence_penalty,
+                    "seed": seed,
                     "stop": stop,
                     "stream": stream,
                     "suffix": suffix,
@@ -596,6 +622,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -646,7 +673,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
-              Accepts a json object that maps tokens (specified by their token ID in the GPT
+              Accepts a JSON object that maps tokens (specified by their token ID in the GPT
               tokenizer) to an associated bias value from -100 to 100. You can use this
               [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
               convert text to token IDs. Mathematically, the bias is added to the logits
@@ -683,6 +710,13 @@ class AsyncCompletions(AsyncAPIResource):
               talk about new topics.
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+
+          seed: If specified, our system will make a best effort to sample deterministically,
+              such that repeated requests with the same `seed` and parameters should return
+              the same result.
+
+              Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+              response parameter to monitor changes in the backend.
 
           stop: Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -751,6 +785,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -807,7 +842,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
-              Accepts a json object that maps tokens (specified by their token ID in the GPT
+              Accepts a JSON object that maps tokens (specified by their token ID in the GPT
               tokenizer) to an associated bias value from -100 to 100. You can use this
               [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
               convert text to token IDs. Mathematically, the bias is added to the logits
@@ -844,6 +879,13 @@ class AsyncCompletions(AsyncAPIResource):
               talk about new topics.
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+
+          seed: If specified, our system will make a best effort to sample deterministically,
+              such that repeated requests with the same `seed` and parameters should return
+              the same result.
+
+              Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+              response parameter to monitor changes in the backend.
 
           stop: Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -905,6 +947,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -961,7 +1004,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
-              Accepts a json object that maps tokens (specified by their token ID in the GPT
+              Accepts a JSON object that maps tokens (specified by their token ID in the GPT
               tokenizer) to an associated bias value from -100 to 100. You can use this
               [tokenizer tool](/tokenizer?view=bpe) (which works for both GPT-2 and GPT-3) to
               convert text to token IDs. Mathematically, the bias is added to the logits
@@ -998,6 +1041,13 @@ class AsyncCompletions(AsyncAPIResource):
               talk about new topics.
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+
+          seed: If specified, our system will make a best effort to sample deterministically,
+              such that repeated requests with the same `seed` and parameters should return
+              the same result.
+
+              Determinism is not guaranteed, and you should refer to the `system_fingerprint`
+              response parameter to monitor changes in the backend.
 
           stop: Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
@@ -1058,6 +1108,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1085,6 +1136,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "max_tokens": max_tokens,
                     "n": n,
                     "presence_penalty": presence_penalty,
+                    "seed": seed,
                     "stop": stop,
                     "stream": stream,
                     "suffix": suffix,

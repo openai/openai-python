@@ -1,5 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
+from typing_extensions import Literal
+
 from .._models import BaseModel
 
 __all__ = ["Model"]
@@ -12,7 +14,7 @@ class Model(BaseModel):
     created: int
     """The Unix timestamp (in seconds) when the model was created."""
 
-    object: str
+    object: Literal["model"]
     """The object type, which is always "model"."""
 
     owned_by: str

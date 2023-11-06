@@ -11,13 +11,14 @@ __all__ = ["ChatCompletion", "Choice"]
 
 
 class Choice(BaseModel):
-    finish_reason: Literal["stop", "length", "function_call", "content_filter"]
+    finish_reason: Literal["stop", "length", "tool_calls", "content_filter", "function_call"]
     """The reason the model stopped generating tokens.
 
     This will be `stop` if the model hit a natural stop point or a provided stop
     sequence, `length` if the maximum number of tokens specified in the request was
     reached, `content_filter` if content was omitted due to a flag from our content
-    filters, or `function_call` if the model called a function.
+    filters, `tool_calls` if the model called a tool, or `function_call`
+    (deprecated) if the model called a function.
     """
 
     index: int
@@ -43,8 +44,15 @@ class ChatCompletion(BaseModel):
     model: str
     """The model used for the chat completion."""
 
-    object: str
+    object: Literal["chat.completion"]
     """The object type, which is always `chat.completion`."""
+
+    system_fingerprint: Optional[str] = None
+    """This fingerprint represents the backend configuration that the model runs with.
+
+    Can be used in conjunction with the `seed` request parameter to understand when
+    backend changes have been made that might impact determinism.
+    """
 
     usage: Optional[CompletionUsage] = None
     """Usage statistics for the completion request."""

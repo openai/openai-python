@@ -58,6 +58,19 @@ class JobCreateParams(TypedDict, total=False):
 
 
 class Hyperparameters(TypedDict, total=False):
+    batch_size: Union[Literal["auto"], int]
+    """Number of examples in each batch.
+
+    A larger batch size means that model parameters are updated less frequently, but
+    with lower variance.
+    """
+
+    learning_rate_multiplier: Union[Literal["auto"], float]
+    """Scaling factor for the learning rate.
+
+    A smaller learning rate may be useful to avoid overfitting.
+    """
+
     n_epochs: Union[Literal["auto"], int]
     """The number of epochs to train the model for.
 

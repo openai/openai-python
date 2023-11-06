@@ -67,7 +67,7 @@ class FineTuningJob(BaseModel):
     model: str
     """The base model that is being fine-tuned."""
 
-    object: str
+    object: Literal["fine_tuning.job"]
     """The object type, which is always "fine_tuning.job"."""
 
     organization_id: str
@@ -80,7 +80,7 @@ class FineTuningJob(BaseModel):
     [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
     """
 
-    status: str
+    status: Literal["validating_files", "queued", "running", "succeeded", "failed", "cancelled"]
     """
     The current status of the fine-tuning job, which can be either
     `validating_files`, `queued`, `running`, `succeeded`, `failed`, or `cancelled`.

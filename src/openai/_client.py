@@ -52,6 +52,7 @@ class OpenAI(SyncAPIClient):
     models: resources.Models
     fine_tuning: resources.FineTuning
     fine_tunes: resources.FineTunes
+    beta: resources.Beta
     with_raw_response: OpenAIWithRawResponse
 
     # client options
@@ -125,6 +126,7 @@ class OpenAI(SyncAPIClient):
         self.models = resources.Models(self)
         self.fine_tuning = resources.FineTuning(self)
         self.fine_tunes = resources.FineTunes(self)
+        self.beta = resources.Beta(self)
         self.with_raw_response = OpenAIWithRawResponse(self)
 
     @property
@@ -257,6 +259,7 @@ class AsyncOpenAI(AsyncAPIClient):
     models: resources.AsyncModels
     fine_tuning: resources.AsyncFineTuning
     fine_tunes: resources.AsyncFineTunes
+    beta: resources.AsyncBeta
     with_raw_response: AsyncOpenAIWithRawResponse
 
     # client options
@@ -330,6 +333,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self.models = resources.AsyncModels(self)
         self.fine_tuning = resources.AsyncFineTuning(self)
         self.fine_tunes = resources.AsyncFineTunes(self)
+        self.beta = resources.AsyncBeta(self)
         self.with_raw_response = AsyncOpenAIWithRawResponse(self)
 
     @property
@@ -466,6 +470,7 @@ class OpenAIWithRawResponse:
         self.models = resources.ModelsWithRawResponse(client.models)
         self.fine_tuning = resources.FineTuningWithRawResponse(client.fine_tuning)
         self.fine_tunes = resources.FineTunesWithRawResponse(client.fine_tunes)
+        self.beta = resources.BetaWithRawResponse(client.beta)
 
 
 class AsyncOpenAIWithRawResponse:
@@ -481,6 +486,7 @@ class AsyncOpenAIWithRawResponse:
         self.models = resources.AsyncModelsWithRawResponse(client.models)
         self.fine_tuning = resources.AsyncFineTuningWithRawResponse(client.fine_tuning)
         self.fine_tunes = resources.AsyncFineTunesWithRawResponse(client.fine_tunes)
+        self.beta = resources.AsyncBetaWithRawResponse(client.beta)
 
 
 Client = OpenAI

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes
@@ -17,8 +17,17 @@ class ImageCreateVariationParams(TypedDict, total=False):
     Must be a valid PNG file, less than 4MB, and square.
     """
 
+    model: Union[str, Literal["dall-e-2"], None]
+    """The model to use for image generation.
+
+    Only `dall-e-2` is supported at this time.
+    """
+
     n: Optional[int]
-    """The number of images to generate. Must be between 1 and 10."""
+    """The number of images to generate.
+
+    Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
+    """
 
     response_format: Optional[Literal["url", "b64_json"]]
     """The format in which the generated images are returned.

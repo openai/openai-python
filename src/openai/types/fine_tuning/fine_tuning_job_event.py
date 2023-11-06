@@ -16,4 +16,4 @@ class FineTuningJobEvent(BaseModel):
 
     message: str
 
-    object: str
+    object: Literal["fine_tuning.job.event"]

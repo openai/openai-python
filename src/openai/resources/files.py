@@ -4,8 +4,9 @@ from __future__ import annotations
 
 import time
 from typing import TYPE_CHECKING, Mapping, cast
+from typing_extensions import Literal
 
-from ..types import FileObject, FileDeleted, file_create_params
+from ..types import FileObject, FileDeleted, file_list_params, file_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from .._utils import extract_files, maybe_transform, deepcopy_minimal
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -30,7 +31,7 @@ class Files(SyncAPIResource):
         self,
         *,
         file: FileTypes,
-        purpose: str,
+        purpose: Literal["fine-tune", "assistants"],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -40,22 +41,28 @@ class Files(SyncAPIResource):
     ) -> FileObject:
         """Upload a file that can be used across various endpoints/features.
 
-        Currently, the
-        size of all the files uploaded by one organization can be up to 1 GB. Please
-        [contact us](https://help.openai.com/) if you need to increase the storage
-        limit.
+        The size of
+        all the files uploaded by one organization can be up to 100 GB.
+
+        The size of individual files for can be a maximum of 512MB. See the
+        [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) to
+        learn more about the types of files supported. The Fine-tuning API only supports
+        `.jsonl` files.
+
+        Please [contact us](https://help.openai.com/) if you need to increase these
+        storage limits.
 
         Args:
-          file: The file object (not file name) to be uploaded.
-
-              If the `purpose` is set to "fine-tune", the file will be used for fine-tuning.
+          file: The File object (not file name) to be uploaded.
 
           purpose: The intended purpose of the uploaded file.
 
               Use "fine-tune" for
-              [fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning). This
-              allows us to validate the format of the uploaded file is correct for
-              fine-tuning.
+              [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning) and
+              "assistants" for
+              [Assistants](https://platform.openai.com/docs/api-reference/assistants) and
+              [Messages](https://platform.openai.com/docs/api-reference/messages). This allows
+              us to validate the format of the uploaded file is correct for fine-tuning.
 
           extra_headers: Send extra headers
 
@@ -122,6 +129,7 @@ class Files(SyncAPIResource):
     def list(
         self,
         *,
+        purpose: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -129,12 +137,29 @@ class Files(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> SyncPage[FileObject]:
-        """Returns a list of files that belong to the user's organization."""
+        """
+        Returns a list of files that belong to the user's organization.
+
+        Args:
+          purpose: Only return files with the given purpose.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
         return self._get_api_list(
             "/files",
             page=SyncPage[FileObject],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"purpose": purpose}, file_list_params.FileListParams),
             ),
             model=FileObject,
         )
@@ -237,7 +262,7 @@ class AsyncFiles(AsyncAPIResource):
         self,
         *,
         file: FileTypes,
-        purpose: str,
+        purpose: Literal["fine-tune", "assistants"],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -247,22 +272,28 @@ class AsyncFiles(AsyncAPIResource):
     ) -> FileObject:
         """Upload a file that can be used across various endpoints/features.
 
-        Currently, the
-        size of all the files uploaded by one organization can be up to 1 GB. Please
-        [contact us](https://help.openai.com/) if you need to increase the storage
-        limit.
+        The size of
+        all the files uploaded by one organization can be up to 100 GB.
+
+        The size of individual files for can be a maximum of 512MB. See the
+        [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) to
+        learn more about the types of files supported. The Fine-tuning API only supports
+        `.jsonl` files.
+
+        Please [contact us](https://help.openai.com/) if you need to increase these
+        storage limits.
 
         Args:
-          file: The file object (not file name) to be uploaded.
-
-              If the `purpose` is set to "fine-tune", the file will be used for fine-tuning.
+          file: The File object (not file name) to be uploaded.
 
           purpose: The intended purpose of the uploaded file.
 
               Use "fine-tune" for
-              [fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning). This
-              allows us to validate the format of the uploaded file is correct for
-              fine-tuning.
+              [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning) and
+              "assistants" for
+              [Assistants](https://platform.openai.com/docs/api-reference/assistants) and
+              [Messages](https://platform.openai.com/docs/api-reference/messages). This allows
+              us to validate the format of the uploaded file is correct for fine-tuning.
 
           extra_headers: Send extra headers
 
@@ -329,6 +360,7 @@ class AsyncFiles(AsyncAPIResource):
     def list(
         self,
         *,
+        purpose: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -336,12 +368,29 @@ class AsyncFiles(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[FileObject, AsyncPage[FileObject]]:
-        """Returns a list of files that belong to the user's organization."""
+        """
+        Returns a list of files that belong to the user's organization.
+
+        Args:
+          purpose: Only return files with the given purpose.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
         return self._get_api_list(
             "/files",
             page=AsyncPage[FileObject],
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"purpose": purpose}, file_list_params.FileListParams),
             ),
             model=FileObject,
         )

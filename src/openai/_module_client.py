@@ -12,6 +12,12 @@ class ChatProxy(LazyProxy[resources.Chat]):
         return _load_client().chat
 
 
+class BetaProxy(LazyProxy[resources.Beta]):
+    @override
+    def __load__(self) -> resources.Beta:
+        return _load_client().beta
+
+
 class EditsProxy(LazyProxy[resources.Edits]):
     @override
     def __load__(self) -> resources.Edits:
@@ -73,6 +79,7 @@ class FineTuningProxy(LazyProxy[resources.FineTuning]):
 
 
 chat: resources.Chat = ChatProxy().__as_proxied__()
+beta: resources.Beta = BetaProxy().__as_proxied__()
 edits: resources.Edits = EditsProxy().__as_proxied__()
 files: resources.Files = FilesProxy().__as_proxied__()
 audio: resources.Audio = AudioProxy().__as_proxied__()
