@@ -15,7 +15,7 @@ from ...._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
 from ....types.beta import (
     Assistant,
-    AsssitantDeleted,
+    AssistantDeleted,
     assistant_list_params,
     assistant_create_params,
     assistant_update_params,
@@ -298,7 +298,7 @@ class Assistants(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsssitantDeleted:
+    ) -> AssistantDeleted:
         """
         Delete an assistant.
 
@@ -317,7 +317,7 @@ class Assistants(SyncAPIResource):
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=AsssitantDeleted,
+            cast_to=AssistantDeleted,
         )
 
 
@@ -591,7 +591,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsssitantDeleted:
+    ) -> AssistantDeleted:
         """
         Delete an assistant.
 
@@ -610,7 +610,7 @@ class AsyncAssistants(AsyncAPIResource):
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=AsssitantDeleted,
+            cast_to=AssistantDeleted,
         )
 
 
