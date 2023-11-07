@@ -410,7 +410,7 @@ completion = response.parse()  # get the object that `chat.completions.create()`
 print(completion)
 ```
 
-These methods return an [`APIResponse`](https://github.com/openai/openai-python/src/openai/_response.py) object.
+These methods return an [`APIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_response.py) object.
 
 ### Configuring the HTTP client
 
