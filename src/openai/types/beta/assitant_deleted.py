@@ -4,10 +4,10 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["AsssitantDeleted"]
+__all__ = ["AssitantDeleted"]
 
 
-class AsssitantDeleted(BaseModel):
+class AssitantDeleted(BaseModel):
     id: str
 
     deleted: bool
