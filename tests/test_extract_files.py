@@ -54,7 +54,7 @@ def test_multiple_files() -> None:
             [],
         ],
     ],
-    ids=["dict expecting array", "arraye expecting dict", "unknown keys"],
+    ids=["dict expecting array", "array expecting dict", "unknown keys"],
 )
 def test_ignores_incorrect_paths(
     query: dict[str, object],
