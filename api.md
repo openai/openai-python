@@ -197,7 +197,7 @@ Methods:
 Types:
 
 ```python
-from openai.types.beta import Assistant, AsssitantDeleted
+from openai.types.beta import Assistant, AssistantDeleted
 ```
 
 Methods:
@@ -206,7 +206,7 @@ Methods:
 - <code title="get /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">retrieve</a>(assistant_id) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
 - <code title="post /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">update</a>(assistant_id, \*\*<a href="src/openai/types/beta/assistant_update_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
 - <code title="get /assistants">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">list</a>(\*\*<a href="src/openai/types/beta/assistant_list_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">SyncCursorPage[Assistant]</a></code>
-- <code title="delete /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">delete</a>(assistant_id) -> <a href="./src/openai/types/beta/asssitant_deleted.py">AsssitantDeleted</a></code>
+- <code title="delete /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">delete</a>(assistant_id) -> <a href="./src/openai/types/beta/assistant_deleted.py">AssistantDeleted</a></code>
 
 ### Files
 
