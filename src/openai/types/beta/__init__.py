@@ -5,7 +5,7 @@ from __future__ import annotations
 from .thread import Thread as Thread
 from .assistant import Assistant as Assistant
 from .thread_deleted import ThreadDeleted as ThreadDeleted
-from .asssitant_deleted import AsssitantDeleted as AsssitantDeleted
+from .assitant_deleted import AssitantDeleted as AssitantDeleted
 from .thread_create_params import ThreadCreateParams as ThreadCreateParams
 from .thread_update_params import ThreadUpdateParams as ThreadUpdateParams
 from .assistant_list_params import AssistantListParams as AssistantListParams
