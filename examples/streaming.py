@@ -33,7 +33,7 @@ def sync_main() -> None:
 async def async_main() -> None:
     client = AsyncOpenAI()
     response = await client.completions.create(
-        model="text-davinci-002",
+        model="gpt-3.5-turbo-instruct",
         prompt="1,2,3,",
         max_tokens=5,
         temperature=0,
