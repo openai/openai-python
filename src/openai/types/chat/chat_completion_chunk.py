@@ -111,8 +111,8 @@ class ChatCompletionChunk(BaseModel):
     """The object type, which is always `chat.completion.chunk`."""
 
     system_fingerprint: Optional[str] = None
-    """This fingerprint represents the backend configuration that the model runs with.
-
+    """
+    This fingerprint represents the backend configuration that the model runs with.
     Can be used in conjunction with the `seed` request parameter to understand when
     backend changes have been made that might impact determinism.
     """

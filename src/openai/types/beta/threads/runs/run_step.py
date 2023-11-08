@@ -65,8 +65,8 @@ class RunStep(BaseModel):
     a maxium of 512 characters long.
     """
 
-    object: Literal["assistant.run.step"]
-    """The object type, which is always `assistant.run.step``."""
+    object: Literal["thread.run.step"]
+    """The object type, which is always `thread.run.step``."""
 
     run_id: str
     """
@@ -76,8 +76,8 @@ class RunStep(BaseModel):
 
     status: Literal["in_progress", "cancelled", "failed", "completed", "expired"]
     """
-    The status of the run, which can be either `in_progress`, `cancelled`, `failed`,
-    `completed`, or `expired`.
+    The status of the run step, which can be either `in_progress`, `cancelled`,
+    `failed`, `completed`, or `expired`.
     """
 
     step_details: StepDetails
