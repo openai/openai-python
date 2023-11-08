@@ -64,7 +64,7 @@ class ToolAssistantToolsRetrieval(TypedDict, total=False):
 
 
 class ToolAssistantToolsFunction(TypedDict, total=False):
-    function: Required[shared_params.FunctionObject]
+    function: Required[shared_params.FunctionDefinition]
 
     type: Required[Literal["function"]]
     """The type of tool being defined: `function`"""

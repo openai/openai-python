@@ -1,7 +1,7 @@
 # Shared Types
 
 ```python
-from openai.types import FunctionObject, FunctionParameters
+from openai.types import FunctionDefinition, FunctionParameters
 ```
 
 # Completions

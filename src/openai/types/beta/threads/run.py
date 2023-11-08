@@ -4,7 +4,7 @@ import builtins
 from typing import List, Union, Optional
 from typing_extensions import Literal
 
-from ...shared import FunctionObject
+from ...shared import FunctionDefinition
 from ...._models import BaseModel
 from .required_action_function_tool_call import RequiredActionFunctionToolCall
 
@@ -52,7 +52,7 @@ class ToolAssistantToolsRetrieval(BaseModel):
 
 
 class ToolAssistantToolsFunction(BaseModel):
-    function: FunctionObject
+    function: FunctionDefinition
 
     type: Literal["function"]
     """The type of tool being defined: `function`"""

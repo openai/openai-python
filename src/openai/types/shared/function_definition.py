@@ -5,10 +5,10 @@ from typing import Optional
 from ..._models import BaseModel
 from .function_parameters import FunctionParameters
 
-__all__ = ["FunctionObject"]
+__all__ = ["FunctionDefinition"]
 
 
-class FunctionObject(BaseModel):
+class FunctionDefinition(BaseModel):
     name: str
     """The name of the function to be called.
 
