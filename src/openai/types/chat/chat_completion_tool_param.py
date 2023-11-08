@@ -10,7 +10,7 @@ __all__ = ["ChatCompletionToolParam"]
 
 
 class ChatCompletionToolParam(TypedDict, total=False):
-    function: Required[shared_params.FunctionObject]
+    function: Required[shared_params.FunctionDefinition]
 
     type: Required[Literal["function"]]
     """The type of the tool. Currently, only `function` is supported."""

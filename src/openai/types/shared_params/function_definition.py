@@ -6,10 +6,10 @@ from typing_extensions import Required, TypedDict
 
 from ...types import shared_params
 
-__all__ = ["FunctionObject"]
+__all__ = ["FunctionDefinition"]
 
 
-class FunctionObject(TypedDict, total=False):
+class FunctionDefinition(TypedDict, total=False):
     name: Required[str]
     """The name of the function to be called.
 
