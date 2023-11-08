@@ -38,7 +38,7 @@ body:
     attributes:
       label: Code snippets
       description: If applicable, add code snippets to help explain your problem.
-      render: JavaScript
+      render: Python
     validations:
       required: false
   - type: input
@@ -51,14 +51,14 @@ body:
   - type: input
     id: language-version
     attributes:
-      label: Node version
-      placeholder: Node v16.14.2
+      label: Python version
+      placeholder: Python v3.11.4
     validations:
       required: true
   - type: input
     id: lib-version
     attributes:
       label: Library version
-      placeholder: openai v3.0.1
+      placeholder: openai v1.0.1
     validations:
       required: true
