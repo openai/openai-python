@@ -8,11 +8,11 @@ __all__ = ["ChatCompletionContentPartImageParam", "ImageURL"]
 
 
 class ImageURL(TypedDict, total=False):
+    url: Required[str]
+    """Either a URL of the image or the base64 encoded image data."""
+
     detail: Literal["auto", "low", "high"]
     """Specifies the detail level of the image."""
-
-    url: str
-    """Either a URL of the image or the base64 encoded image data."""
 
 
 class ChatCompletionContentPartImageParam(TypedDict, total=False):
