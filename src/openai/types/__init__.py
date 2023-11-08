@@ -5,7 +5,7 @@ from __future__ import annotations
 from .edit import Edit as Edit
 from .image import Image as Image
 from .model import Model as Model
-from .shared import FunctionObject as FunctionObject
+from .shared import FunctionDefinition as FunctionDefinition
 from .shared import FunctionParameters as FunctionParameters
 from .embedding import Embedding as Embedding
 from .fine_tune import FineTune as FineTune
