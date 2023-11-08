@@ -1,3 +1,9 @@
+# Shared Types
+
+```python
+from openai.types import FunctionObject, FunctionParameters
+```
+
 # Completions
 
 Types:
