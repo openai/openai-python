@@ -74,6 +74,7 @@ from .lib import azure as _azure
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI
 from .lib.azure import AsyncAzureOpenAI as AsyncAzureOpenAI
+from .lib._old_api import *
 
 _setup_logging()
 
