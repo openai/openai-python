@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from ...types import shared_params
 from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_message_param import ChatCompletionMessageParam
 from .chat_completion_tool_choice_option_param import (
@@ -121,7 +122,16 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
 
-    Used to enable JSON mode.
+    Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+    message the model generates is valid JSON.
+
+    **Important:** when using JSON mode, you **must** also instruct the model to
+    produce JSON yourself via a system or user message. Without this, the model may
+    generate an unending stream of whitespace until the generation reaches the token
+    limit, resulting in increased latency and appearance of a "stuck" request. Also
+    note that the message content may be partially cut off if
+    `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+    or the conversation exceeded the max context length.
     """
 
     seed: Optional[int]
@@ -193,7 +203,7 @@ class Function(TypedDict, total=False):
     of 64.
     """
 
-    parameters: Required[Dict[str, object]]
+    parameters: Required[shared_params.FunctionParameters]
     """The parameters the functions accepts, described as a JSON Schema object.
 
     See the [guide](https://platform.openai.com/docs/guides/gpt/function-calling)
@@ -214,19 +224,7 @@ class Function(TypedDict, total=False):
 
 class ResponseFormat(TypedDict, total=False):
     type: Literal["text", "json_object"]
-    """Setting to `json_object` enables JSON mode.
-
-    This guarantees that the message the model generates is valid JSON.
-
-    Note that your system prompt must still instruct the model to produce JSON, and
-    to help ensure you don't forget, the API will throw an error if the string
-    `JSON` does not appear in your system message. Also note that the message
-    content may be partial (i.e. cut off) if `finish_reason="length"`, which
-    indicates the generation exceeded `max_tokens` or the conversation exceeded the
-    max context length.
-
-    Must be one of `text` or `json_object`.
-    """
+    """Must be one of `text` or `json_object`."""
 
 
 class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):

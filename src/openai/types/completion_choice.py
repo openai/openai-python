@@ -15,7 +15,7 @@ class Logprobs(BaseModel):
 
     tokens: Optional[List[str]] = None
 
-    top_logprobs: Optional[List[Dict[str, int]]] = None
+    top_logprobs: Optional[List[Dict[str, float]]] = None
 
 
 class CompletionChoice(BaseModel):
