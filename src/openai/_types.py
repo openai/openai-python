@@ -123,7 +123,12 @@ class BinaryResponseContent(ABC):
         pass
 
     @abstractmethod
-    def stream_to_file(self, file: str | PathLike[str]) -> None:
+    def stream_to_file(
+        self,
+        file: str | PathLike[str],
+        *,
+        chunk_size: int | None = None,
+    ) -> None:
         """
         Stream the output to the given file.
         """
@@ -172,7 +177,13 @@ class BinaryResponseContent(ABC):
         """
         pass
 
-    async def astream_to_file(self, file: str | PathLike[str]) -> None:
+    @abstractmethod
+    async def astream_to_file(
+        self,
+        file: str | PathLike[str],
+        *,
+        chunk_size: int | None = None,
+    ) -> None:
         """
         Stream the output to the given file.
         """
