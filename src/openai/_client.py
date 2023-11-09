@@ -307,8 +307,9 @@ class AsyncOpenAI(AsyncAPIClient):
         self.organization = organization
 
         if base_url is None:
-            base_url = base_url = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
-
+            base_url = os.environ.get("OPENAI_BASE_URL")
+        if base_url is None:
+            base_url = f"https://api.openai.com/v1"  # default value
 
         super().__init__(
             version=__version__,
