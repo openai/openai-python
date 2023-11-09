@@ -237,7 +237,16 @@ from openai import OpenAI
 
 client = OpenAI()
 
-page = client.files.list()
+completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Can you generate an example json object describing a fruit?",
+        }
+    ],
+    model="gpt-3.5-turbo",
+    response_format={"type": "json_object"},
+)
 ```
 
 ## File Uploads
