@@ -20,7 +20,7 @@ from ._types import (
     ProxiesTypes,
     RequestOptions,
 )
-from ._utils import is_given
+from ._utils import is_given, is_mapping
 from ._version import __version__
 from ._streaming import Stream as Stream
 from ._streaming import AsyncStream as AsyncStream
@@ -221,30 +221,31 @@ class OpenAI(SyncAPIClient):
         body: object,
         response: httpx.Response,
     ) -> APIStatusError:
+        data = body.get("error", body) if is_mapping(body) else body
         if response.status_code == 400:
-            return _exceptions.BadRequestError(err_msg, response=response, body=body)
+            return _exceptions.BadRequestError(err_msg, response=response, body=data)
 
         if response.status_code == 401:
-            return _exceptions.AuthenticationError(err_msg, response=response, body=body)
+            return _exceptions.AuthenticationError(err_msg, response=response, body=data)
 
         if response.status_code == 403:
-            return _exceptions.PermissionDeniedError(err_msg, response=response, body=body)
+            return _exceptions.PermissionDeniedError(err_msg, response=response, body=data)
 
         if response.status_code == 404:
-            return _exceptions.NotFoundError(err_msg, response=response, body=body)
+            return _exceptions.NotFoundError(err_msg, response=response, body=data)
 
         if response.status_code == 409:
-            return _exceptions.ConflictError(err_msg, response=response, body=body)
+            return _exceptions.ConflictError(err_msg, response=response, body=data)
 
         if response.status_code == 422:
-            return _exceptions.UnprocessableEntityError(err_msg, response=response, body=body)
+            return _exceptions.UnprocessableEntityError(err_msg, response=response, body=data)
 
         if response.status_code == 429:
-            return _exceptions.RateLimitError(err_msg, response=response, body=body)
+            return _exceptions.RateLimitError(err_msg, response=response, body=data)
 
         if response.status_code >= 500:
-            return _exceptions.InternalServerError(err_msg, response=response, body=body)
-        return APIStatusError(err_msg, response=response, body=body)
+            return _exceptions.InternalServerError(err_msg, response=response, body=data)
+        return APIStatusError(err_msg, response=response, body=data)
 
 
 class AsyncOpenAI(AsyncAPIClient):
@@ -431,30 +432,31 @@ class AsyncOpenAI(AsyncAPIClient):
         body: object,
         response: httpx.Response,
     ) -> APIStatusError:
+        data = body.get("error", body) if is_mapping(body) else body
         if response.status_code == 400:
-            return _exceptions.BadRequestError(err_msg, response=response, body=body)
+            return _exceptions.BadRequestError(err_msg, response=response, body=data)
 
         if response.status_code == 401:
-            return _exceptions.AuthenticationError(err_msg, response=response, body=body)
+            return _exceptions.AuthenticationError(err_msg, response=response, body=data)
 
         if response.status_code == 403:
-            return _exceptions.PermissionDeniedError(err_msg, response=response, body=body)
+            return _exceptions.PermissionDeniedError(err_msg, response=response, body=data)
 
         if response.status_code == 404:
-            return _exceptions.NotFoundError(err_msg, response=response, body=body)
+            return _exceptions.NotFoundError(err_msg, response=response, body=data)
 
         if response.status_code == 409:
-            return _exceptions.ConflictError(err_msg, response=response, body=body)
+            return _exceptions.ConflictError(err_msg, response=response, body=data)
 
         if response.status_code == 422:
-            return _exceptions.UnprocessableEntityError(err_msg, response=response, body=body)
+            return _exceptions.UnprocessableEntityError(err_msg, response=response, body=data)
 
         if response.status_code == 429:
-            return _exceptions.RateLimitError(err_msg, response=response, body=body)
+            return _exceptions.RateLimitError(err_msg, response=response, body=data)
 
         if response.status_code >= 500:
-            return _exceptions.InternalServerError(err_msg, response=response, body=body)
-        return APIStatusError(err_msg, response=response, body=body)
+            return _exceptions.InternalServerError(err_msg, response=response, body=data)
+        return APIStatusError(err_msg, response=response, body=data)
 
 
 class OpenAIWithRawResponse:
