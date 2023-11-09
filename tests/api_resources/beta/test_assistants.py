@@ -10,7 +10,7 @@ from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai._client import OpenAI, AsyncOpenAI
 from openai.pagination import SyncCursorPage, AsyncCursorPage
-from openai.types.beta import Assistant, AsssitantDeleted
+from openai.types.beta import Assistant, AssistantDeleted
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
@@ -123,7 +123,7 @@ class TestAssistants:
         assistant = client.beta.assistants.delete(
             "string",
         )
-        assert_matches_type(AsssitantDeleted, assistant, path=["response"])
+        assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
     @parametrize
     def test_raw_response_delete(self, client: OpenAI) -> None:
@@ -132,7 +132,7 @@ class TestAssistants:
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
-        assert_matches_type(AsssitantDeleted, assistant, path=["response"])
+        assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
 
 class TestAsyncAssistants:
@@ -242,7 +242,7 @@ class TestAsyncAssistants:
         assistant = await client.beta.assistants.delete(
             "string",
         )
-        assert_matches_type(AsssitantDeleted, assistant, path=["response"])
+        assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
     @parametrize
     async def test_raw_response_delete(self, client: AsyncOpenAI) -> None:
@@ -251,4 +251,4 @@ class TestAsyncAssistants:
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
-        assert_matches_type(AsssitantDeleted, assistant, path=["response"])
+        assert_matches_type(AssistantDeleted, assistant, path=["response"])

@@ -43,6 +43,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -135,8 +137,18 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          response_format: An object specifying the format that the model must output. Used to enable JSON
-              mode.
+          response_format: An object specifying the format that the model must output.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in increased latency and appearance of a "stuck" request. Also
+              note that the message content may be partially cut off if
+              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+              or the conversation exceeded the max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -201,6 +213,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -300,8 +314,18 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          response_format: An object specifying the format that the model must output. Used to enable JSON
-              mode.
+          response_format: An object specifying the format that the model must output.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in increased latency and appearance of a "stuck" request. Also
+              note that the message content may be partially cut off if
+              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+              or the conversation exceeded the max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -359,6 +383,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -458,8 +484,18 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          response_format: An object specifying the format that the model must output. Used to enable JSON
-              mode.
+          response_format: An object specifying the format that the model must output.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in increased latency and appearance of a "stuck" request. Also
+              note that the message content may be partially cut off if
+              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+              or the conversation exceeded the max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -517,6 +553,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -602,6 +640,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -694,8 +734,18 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          response_format: An object specifying the format that the model must output. Used to enable JSON
-              mode.
+          response_format: An object specifying the format that the model must output.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in increased latency and appearance of a "stuck" request. Also
+              note that the message content may be partially cut off if
+              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+              or the conversation exceeded the max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -760,6 +810,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -859,8 +911,18 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          response_format: An object specifying the format that the model must output. Used to enable JSON
-              mode.
+          response_format: An object specifying the format that the model must output.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in increased latency and appearance of a "stuck" request. Also
+              note that the message content may be partially cut off if
+              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+              or the conversation exceeded the max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -918,6 +980,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",
@@ -1017,8 +1081,18 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
 
-          response_format: An object specifying the format that the model must output. Used to enable JSON
-              mode.
+          response_format: An object specifying the format that the model must output.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in increased latency and appearance of a "stuck" request. Also
+              note that the message content may be partially cut off if
+              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
+              or the conversation exceeded the max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1076,6 +1150,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
                 "gpt-4",
                 "gpt-4-0314",
                 "gpt-4-0613",

@@ -1727,9 +1727,14 @@ class HttpxBinaryResponseContent(BinaryResponseContent):
         return self.response.iter_raw(chunk_size)
 
     @override
-    def stream_to_file(self, file: str | os.PathLike[str]) -> None:
+    def stream_to_file(
+        self,
+        file: str | os.PathLike[str],
+        *,
+        chunk_size: int | None = None,
+    ) -> None:
         with open(file, mode="wb") as f:
-            for data in self.response.iter_bytes():
+            for data in self.response.iter_bytes(chunk_size):
                 f.write(data)
 
     @override
@@ -1757,10 +1762,15 @@ class HttpxBinaryResponseContent(BinaryResponseContent):
         return self.response.aiter_raw(chunk_size)
 
     @override
-    async def astream_to_file(self, file: str | os.PathLike[str]) -> None:
+    async def astream_to_file(
+        self,
+        file: str | os.PathLike[str],
+        *,
+        chunk_size: int | None = None,
+    ) -> None:
         path = anyio.Path(file)
         async with await path.open(mode="wb") as f:
-            async for data in self.response.aiter_bytes():
+            async for data in self.response.aiter_bytes(chunk_size):
                 await f.write(data)
 
     @override
