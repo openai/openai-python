@@ -3,7 +3,26 @@
 {
   "name": "Debian",
   "build": {
-    "dockerfile": "Dockerfile"
+    "dockerfile": "Dockerfile",
+    "context": ".."
+  },
+
+  "postStartCommand": "rye sync --all-features",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python"
+      ],
+      "settings": { 
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "python.pythonPath": ".venv/bin/python",
+        "python.typeChecking": "basic",
+        "terminal.integrated.env.linux": {
+          "PATH": "/home/vscode/.rye/shims:${env:PATH}"
+        }
+      }
+    }
   }
 
   // Features to add to the dev container. More info: https://containers.dev/features.

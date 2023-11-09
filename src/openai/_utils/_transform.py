@@ -95,7 +95,7 @@ def transform(
     return cast(_T, transformed)
 
 
-def _get_annoted_type(type_: type) -> type | None:
+def _get_annotated_type(type_: type) -> type | None:
     """If the given type is an `Annotated` type then it is returned, if not `None` is returned.
 
     This also unwraps the type when applicable, e.g. `Required[Annotated[T, ...]]`
@@ -115,7 +115,7 @@ def _maybe_transform_key(key: str, type_: type) -> str:
 
     Note: this function only looks at `Annotated` types that contain `PropertInfo` metadata.
     """
-    annotated_type = _get_annoted_type(type_)
+    annotated_type = _get_annotated_type(type_)
     if annotated_type is None:
         # no `Annotated` definition for this type, no transformation needed
         return key
@@ -174,7 +174,7 @@ def _transform_recursive(
 
 
 def _transform_value(data: object, type_: type) -> object:
-    annotated_type = _get_annoted_type(type_)
+    annotated_type = _get_annotated_type(type_)
     if annotated_type is None:
         return data
 

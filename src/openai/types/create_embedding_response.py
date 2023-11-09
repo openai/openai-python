@@ -24,8 +24,8 @@ class CreateEmbeddingResponse(BaseModel):
     model: str
     """The name of the model used to generate the embedding."""
 
-    object: Literal["embedding"]
-    """The object type, which is always "embedding"."""
+    object: Literal["list"]
+    """The object type, which is always "list"."""
 
     usage: Usage
     """The usage information for the request."""
