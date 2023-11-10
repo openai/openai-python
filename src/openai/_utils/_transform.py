@@ -168,7 +168,7 @@ def _transform_recursive(
         return data
 
     if isinstance(data, pydantic.BaseModel):
-        return model_dump(data, exclude_unset=True, exclude_defaults=True)
+        return model_dump(data, exclude_unset=True)
 
     return _transform_value(data, annotation)
 
