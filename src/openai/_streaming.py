@@ -47,8 +47,9 @@ class Stream(Generic[ResponseT]):
         cast_to = self._cast_to
         response = self.response
         process_data = self._client._process_response_data
+        iterator = self._iter_events()
 
-        for sse in self._iter_events():
+        for sse in iterator:
             if sse.data.startswith("[DONE]"):
                 break
 
@@ -62,6 +63,10 @@ class Stream(Generic[ResponseT]):
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
+
+        # Ensure the entire stream is consumed
+        for sse in iterator:
+            ...
 
 
 class AsyncStream(Generic[ResponseT]):
@@ -97,8 +102,9 @@ class AsyncStream(Generic[ResponseT]):
         cast_to = self._cast_to
         response = self.response
         process_data = self._client._process_response_data
+        iterator = self._iter_events()
 
-        async for sse in self._iter_events():
+        async for sse in iterator:
             if sse.data.startswith("[DONE]"):
                 break
 
@@ -112,6 +118,10 @@ class AsyncStream(Generic[ResponseT]):
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
+
+        # Ensure the entire stream is consumed
+        async for sse in iterator:
+            ...
 
 
 class ServerSentEvent:
