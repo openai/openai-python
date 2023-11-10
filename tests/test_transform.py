@@ -237,3 +237,29 @@ def test_pydantic_nested_objects() -> None:
     model = ModelNestedObjects.construct(nested={"foo": "stainless"})
     assert isinstance(model.nested, MyModel)
     assert transform(model, Any) == {"nested": {"foo": "stainless"}}
+
+
+class ModelWithDefaultField(BaseModel):
+    foo: str
+    with_none_default: Union[str, None] = None
+    with_str_default: str = "foo"
+
+
+def test_pydantic_default_field() -> None:
+    # should be excluded when defaults are used
+    model = ModelWithDefaultField.construct()
+    assert model.with_none_default is None
+    assert model.with_str_default == "foo"
+    assert transform(model, Any) == {}
+
+    # should be included when the default value is explicitly given
+    model = ModelWithDefaultField.construct(with_none_default=None, with_str_default="foo")
+    assert model.with_none_default is None
+    assert model.with_str_default == "foo"
+    assert transform(model, Any) == {"with_none_default": None, "with_str_default": "foo"}
+
+    # should be included when a non-default value is explicitly given
+    model = ModelWithDefaultField.construct(with_none_default="bar", with_str_default="baz")
+    assert model.with_none_default == "bar"
+    assert model.with_str_default == "baz"
+    assert transform(model, Any) == {"with_none_default": "bar", "with_str_default": "baz"}
