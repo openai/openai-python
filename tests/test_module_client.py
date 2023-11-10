@@ -125,7 +125,10 @@ def test_azure_api_key_env_without_api_version() -> None:
         openai.api_type = None
         _os.environ["AZURE_OPENAI_API_KEY"] = "example API key"
 
-        with pytest.raises(ValueError, match=r"Expected `api_version` to be given for the Azure client"):
+        with pytest.raises(
+            ValueError,
+            match=r"Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable",
+        ):
             openai.completions._client
 
 
@@ -137,7 +140,7 @@ def test_azure_api_key_and_version_env() -> None:
 
         with pytest.raises(
             ValueError,
-            match=r"Must provide one of the `base_url` or `azure_endpoint` arguments, or the `OPENAI_BASE_URL`",
+            match=r"Must provide one of the `base_url` or `azure_endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable",
         ):
             openai.completions._client
 
