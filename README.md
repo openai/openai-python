@@ -458,7 +458,9 @@ class instead of the `OpenAI` class.
 > The Azure API shape differs from the core API shape which means that the static types for responses / params
 > won't always be correct.
 
-Azure OpenAI DALL-E is currently not supported in the v1 SDK. We are actively working on adding support. 
+The latest release of the OpenAI Python library doesn't currently support DALL-E when used with Azure OpenAI. DALL-E with Azure OpenAI is still supported with 0.28.1. For those who can't wait for native support for DALL-E and Azure OpenAI we're providing [two code examples](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/migration?tabs=python%2Cdalle-fix#dall-e-fix) which can be used as a workaround.
+
+
 
 ```py
 from openai import AzureOpenAI
