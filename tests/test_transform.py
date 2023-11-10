@@ -7,6 +7,7 @@ from typing_extensions import Required, Annotated, TypedDict
 import pytest
 
 from openai._utils import PropertyInfo, transform, parse_datetime
+from openai._compat import PYDANTIC_V2
 from openai._models import BaseModel
 
 
@@ -210,14 +211,20 @@ def test_pydantic_unknown_field() -> None:
 
 def test_pydantic_mismatched_types() -> None:
     model = MyModel.construct(foo=True)
-    with pytest.warns(UserWarning):
+    if PYDANTIC_V2:
+        with pytest.warns(UserWarning):
+            params = transform(model, Any)
+    else:
         params = transform(model, Any)
     assert params == {"foo": True}
 
 
 def test_pydantic_mismatched_object_type() -> None:
     model = MyModel.construct(foo=MyModel.construct(hello="world"))
-    with pytest.warns(UserWarning):
+    if PYDANTIC_V2:
+        with pytest.warns(UserWarning):
+            params = transform(model, Any)
+    else:
         params = transform(model, Any)
     assert params == {"foo": {"hello": "world"}}
 
