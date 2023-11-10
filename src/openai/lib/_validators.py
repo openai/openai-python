@@ -407,7 +407,7 @@ def completions_space_start_validator(df: pd.DataFrame) -> Remediation:
     """
 
     def add_space_start(x: Any) -> Any:
-        x["completion"] = x["completion"].apply(lambda x: ("" if x[0] == " " else " ") + x)
+        x["completion"] = x["completion"].apply(lambda s: ("" if s.startswith(" ") else " ") + s)
         return x
 
     optional_msg = None
