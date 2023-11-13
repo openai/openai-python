@@ -481,12 +481,12 @@ completion = client.chat.completions.create(
 print(completion.model_dump_json(indent=2))
 ```
 
-In addition to the options provided in the base `OpenAI` client, the following options are provided:
+In addition to the options provided in the base `OpenAI` client, the following options are provided or inferred by their supported environment variables:
 
-- `azure_endpoint`
-- `azure_deployment`
-- `api_version`
-- `azure_ad_token`
+- `azure_endpoint` (or `AZURE_OPENAI_ENDPOINT`)
+- `azure_deployment` 
+- `api_version` (or `OPENAI_API_VERSION`)
+- `azure_ad_token` (or `AZURE_OPENAI_AD_TOKEN`)
 - `azure_ad_token_provider`
 
 An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/v1/examples/azure_ad.py).
