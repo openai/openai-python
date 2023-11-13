@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.2.4 (2023-11-13)
+
+Full Changelog: [v1.2.3...v1.2.4](https://github.com/openai/openai-python/compare/v1.2.3...v1.2.4)
+
+### Bug Fixes
+
+* **client:** retry if SSLWantReadError occurs in the async client ([#804](https://github.com/openai/openai-python/issues/804)) ([be82288](https://github.com/openai/openai-python/commit/be82288f3c88c10c9ac20ba3b8cb53b5c7a4e2f9))
+
+
+### Documentation
+
+* **readme:** fix broken azure_ad notebook link ([#781](https://github.com/openai/openai-python/issues/781)) ([598a55c](https://github.com/openai/openai-python/commit/598a55ca6f9967a4ed1712f54ef7d6b99e4c0e33))
+
 ## 1.2.3 (2023-11-10)
 
 Full Changelog: [v1.2.2...v1.2.3](https://github.com/openai/openai-python/compare/v1.2.2...v1.2.3)
