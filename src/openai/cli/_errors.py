@@ -4,7 +4,7 @@ import sys
 
 import pydantic
 
-from ._utils import Colours, organization_info
+from ._utils import Colors, organization_info
 from .._exceptions import APIError, OpenAIError
 
 
@@ -20,4 +20,4 @@ def display_error(err: CLIError | APIError | pydantic.ValidationError) -> None:
     if isinstance(err, SilentCLIError):
         return
 
-    sys.stderr.write("{}{}Error:{} {}\n".format(organization_info(), Colours.FAIL, Colours.ENDC, err))
+    sys.stderr.write("{}{}Error:{} {}\n".format(organization_info(), Colors.FAIL, Colors.ENDC, err))
