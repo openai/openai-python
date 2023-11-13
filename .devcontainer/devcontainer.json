@@ -17,6 +17,7 @@
       "settings": { 
         "terminal.integrated.shell.linux": "/bin/bash",
         "python.pythonPath": ".venv/bin/python",
+        "python.defaultInterpreterPath": ".venv/bin/python",
         "python.typeChecking": "basic",
         "terminal.integrated.env.linux": {
           "PATH": "/home/vscode/.rye/shims:${env:PATH}"
