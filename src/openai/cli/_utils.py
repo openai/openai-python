@@ -9,7 +9,7 @@ from .._compat import model_json
 from .._models import BaseModel
 
 
-class Colours:
+class Colors:
     HEADER = "\033[95m"
     OKBLUE = "\033[94m"
     OKGREEN = "\033[92m"
