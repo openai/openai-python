@@ -13,7 +13,9 @@ dependencies = [
     "typing-extensions>=4.5, <5",
     "anyio>=3.5.0, <4",
     "distro>=1.7.0, <2",
-    "tqdm > 4"
+    "tqdm > 4",
+    "cohere>=4.34, <5", 
+    "tiktoken>=0.5.1, <1"
 ]
 requires-python = ">= 3.7.1"
 classifiers = [
