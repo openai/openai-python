@@ -279,8 +279,8 @@ class NotGiven:
     ```py
     def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
 
-    get(timout=1) # 1s timeout
-    get(timout=None) # No timeout
+    get(timeout=1) # 1s timeout
+    get(timeout=None) # No timeout
     get() # Default timeout behavior, which may not be statically known at the method definition.
     ```
     """
