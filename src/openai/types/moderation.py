@@ -105,6 +105,24 @@ class CategoryScores(BaseModel):
     violence_graphic: float = FieldInfo(alias="violence/graphic")
     """The score for the category 'violence/graphic'."""
 
+    def to_dict(self):
+        return {
+            "harassment": self.harassment,
+            "harassment/threatening": self.harassment_threatening,
+            "hate": self.hate,
+            "hate/threatening": self.hate_threatening,
+            "self-harm": self.self_minus_harm,
+            "self-harm/instructions": self.self_minus_harm_instructions,
+            "self-harm/intent": self.self_minus_harm_intent,
+            "sexual": self.sexual,
+            "sexual/minors": self.sexual_minors,
+            "violence": self.violence,
+            "violence/graphic": self.violence_graphic,
+        }
+
+    def __dict__(self):
+        return self.to_dict()
+
 
 class Moderation(BaseModel):
     categories: Categories
