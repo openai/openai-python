@@ -121,6 +121,7 @@ class BaseModel(pydantic.BaseModel):
                 if PYDANTIC_V2:
                     _extra[key] = value
                 else:
+                    _fields_set.add(key)
                     fields_values[key] = value
 
         object.__setattr__(m, "__dict__", fields_values)

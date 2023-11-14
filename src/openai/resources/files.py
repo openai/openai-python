@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import time
+import typing_extensions
 from typing import TYPE_CHECKING, Mapping, cast
 from typing_extensions import Literal
 
@@ -14,7 +15,11 @@ from .._utils import extract_files, maybe_transform, deepcopy_minimal
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ..pagination import SyncPage, AsyncPage
-from .._base_client import AsyncPaginator, make_request_options
+from .._base_client import (
+    AsyncPaginator,
+    HttpxBinaryResponseContent,
+    make_request_options,
+)
 
 if TYPE_CHECKING:
     from .._client import OpenAI, AsyncOpenAI
@@ -197,6 +202,38 @@ class Files(SyncAPIResource):
             cast_to=FileDeleted,
         )
 
+    def content(
+        self,
+        file_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> HttpxBinaryResponseContent:
+        """
+        Returns the contents of the specified file.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get(
+            f"/files/{file_id}/content",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=HttpxBinaryResponseContent,
+        )
+
+    @typing_extensions.deprecated("The `.content()` method should be used instead")
     def retrieve_content(
         self,
         file_id: str,
@@ -428,6 +465,38 @@ class AsyncFiles(AsyncAPIResource):
             cast_to=FileDeleted,
         )
 
+    async def content(
+        self,
+        file_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> HttpxBinaryResponseContent:
+        """
+        Returns the contents of the specified file.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._get(
+            f"/files/{file_id}/content",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=HttpxBinaryResponseContent,
+        )
+
+    @typing_extensions.deprecated("The `.content()` method should be used instead")
     async def retrieve_content(
         self,
         file_id: str,
@@ -498,8 +567,11 @@ class FilesWithRawResponse:
         self.delete = to_raw_response_wrapper(
             files.delete,
         )
-        self.retrieve_content = to_raw_response_wrapper(
-            files.retrieve_content,
+        self.content = to_raw_response_wrapper(
+            files.content,
+        )
+        self.retrieve_content = to_raw_response_wrapper(  # pyright: ignore[reportDeprecated]
+            files.retrieve_content  # pyright: ignore[reportDeprecated],
         )
 
 
@@ -517,6 +589,9 @@ class AsyncFilesWithRawResponse:
         self.delete = async_to_raw_response_wrapper(
             files.delete,
         )
-        self.retrieve_content = async_to_raw_response_wrapper(
-            files.retrieve_content,
+        self.content = async_to_raw_response_wrapper(
+            files.content,
+        )
+        self.retrieve_content = async_to_raw_response_wrapper(  # pyright: ignore[reportDeprecated]
+            files.retrieve_content  # pyright: ignore[reportDeprecated],
         )

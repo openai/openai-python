@@ -1320,12 +1320,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             if retries > 0:
                 return await self._retry_request(options, cast_to, retries, stream=stream, stream_cls=stream_cls)
             raise APITimeoutError(request=request) from err
-        except httpx.ReadTimeout as err:
-            # We explicitly do not retry on ReadTimeout errors as this means
-            # that the server processing the request has taken 60 seconds
-            # (our default timeout). This likely indicates that something
-            # is not working as expected on the server side.
-            raise
         except httpx.TimeoutException as err:
             if retries > 0:
                 return await self._retry_request(options, cast_to, retries, stream=stream, stream_cls=stream_cls)
