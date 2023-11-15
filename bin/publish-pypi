@@ -1,6 +1,48 @@
 #!/usr/bin/env bash
 
+# Stop on error, print commands and their arguments as they are executed
 set -eux
-mkdir -p dist
+
+# Define directory names
+SOURCE_DIR="src/openai"
+TEMP_DIR="src/martian"
+DIST_DIR="dist"
+
+# Function to restore directory name
+restore_directory() {
+    echo "Restoring directory name..."
+    mv "$TEMP_DIR" "$SOURCE_DIR"
+}
+
+# Trap to ensure directory name is restored on script exit
+trap restore_directory EXIT
+
+# Echo current task
+echo "Setting up directories..."
+
+# Check if 'dist' directory exists, if not create it
+if [ ! -d "$DIST_DIR" ]; then
+    mkdir -p "$DIST_DIR"
+fi
+
+# Renaming directory
+echo "Renaming $SOURCE_DIR to $TEMP_DIR..."
+mv "$SOURCE_DIR" "$TEMP_DIR"
+
+# Building with rye
+echo "Building with rye..."
 rye build --clean
-rye publish --yes --token=$PYPI_TOKEN
+if [ $? -ne 0 ]; then
+    echo "Build failed"
+    exit 1
+fi
+
+# Publishing with rye
+echo "Publishing with rye..."
+rye publish --yes --token="$PYPI_TOKEN"
+if [ $? -ne 0 ]; then
+    echo "Publish failed"
+    exit 1
+fi
+
+echo "Script completed successfully."
