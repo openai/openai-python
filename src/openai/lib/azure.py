@@ -82,7 +82,9 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
             )
 
         if api_version is None:
-            api_version = os.environ.get("OPENAI_API_VERSION", "v1")
+            raise ValueError(
+                "Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable"
+            )
 
         if default_query is None:
             default_query = {"api-version": api_version}
