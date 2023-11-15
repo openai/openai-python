@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os as _os
 
-os.environ["OPENAI_API_TYPE"] = os.environ.get("MARTIAN_API_KEY")
+_os.environ["OPENAI_API_TYPE"] = _os.environ.get("MARTIAN_API_KEY")
 
 from typing_extensions import override
 
