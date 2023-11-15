@@ -1,11 +1,11 @@
 [project]
-name = "openai"
+name = "martian-python"
 version = "1.2.4"
-description = "The official Python library for the openai API"
+description = "Python client library for the Martian API"
 readme = "README.md"
 license = "Apache-2.0"
 authors = [
-{ name = "OpenAI", email = "support@openai.com" },
+{ name = "Martian", email = "contact@withmartian.com" },
 ]
 dependencies = [
     "httpx>=0.23.0, <1",
@@ -37,11 +37,11 @@ classifiers = [
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 
 [project.urls]
-Homepage = "https://github.com/openai/openai-python"
-Repository = "https://github.com/openai/openai-python"
+Homepage = "https://github.com/withmartian/martian-python-v1"
+Repository = "https://github.com/withmartian/martian-python-v1"
 
 [project.scripts]
-openai = "openai.cli:main"
+martian = "martian.cli:main"
 
 [tool.rye]
 managed = true
@@ -93,7 +93,7 @@ include = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/openai"]
+packages = ["src/martian"]
 
 [tool.black]
 line-length = 120
