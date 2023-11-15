@@ -100,7 +100,7 @@ class OpenAI(SyncAPIClient):
         self.organization = organization
 
         if base_url is None:
-            base_url = f"https://api.openai.com/v1"
+            base_url = f"https://route.withmartian.com/api/openai/v1"
 
         super().__init__(
             version=__version__,
