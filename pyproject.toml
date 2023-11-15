@@ -1,6 +1,6 @@
 [project]
 name = "martian-python"
-version = "1.2.4"
+version = "1.2.5"
 description = "Python client library for the Martian API"
 readme = "README.md"
 license = "Apache-2.0"
