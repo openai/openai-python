@@ -46,6 +46,6 @@ def test_string_not_allowed() -> None:
     with pytest.raises(TypeError, match="Expected file types input to be a FileContent type or to be a tuple"):
         to_httpx_files(
             {
-                "file": "foo",  # type: ignore
+                "file": "foo",
             }
         )
