@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.1 (2023-11-16)
+
+Full Changelog: [v1.3.0...v1.3.1](https://github.com/openai/openai-python/compare/v1.3.0...v1.3.1)
+
+### Chores
+
+* **internal:** add publish script ([#838](https://github.com/openai/openai-python/issues/838)) ([3ea41bc](https://github.com/openai/openai-python/commit/3ea41bcede374c4e5c92d85108281637c3382e12))
+
 ## 1.3.0 (2023-11-15)
 
 Full Changelog: [v1.2.4...v1.3.0](https://github.com/openai/openai-python/compare/v1.2.4...v1.3.0)
