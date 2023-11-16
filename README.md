@@ -156,7 +156,10 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 
 ## Using types
 
-Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like serializing back into JSON ([v1](https://docs.pydantic.dev/1.10/usage/models/), [v2](https://docs.pydantic.dev/latest/usage/serialization/)). To get a dictionary, call `model.model_dump()`.
+Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like:
+
+- Serializing back into JSON, `model.model_dump_json(indent=2, exclude_unset=True)`
+- Converting to a dictionary, `model.model_dump(exclude_unset=True)`
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
 

@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.2 (2023-11-16)
+
+Full Changelog: [v1.3.1...v1.3.2](https://github.com/openai/openai-python/compare/v1.3.1...v1.3.2)
+
+### Documentation
+
+* **readme:** minor updates ([#841](https://github.com/openai/openai-python/issues/841)) ([7273ad1](https://github.com/openai/openai-python/commit/7273ad1510043d3e264969c72403a1a237401910))
+
 ## 1.3.1 (2023-11-16)
 
 Full Changelog: [v1.3.0...v1.3.1](https://github.com/openai/openai-python/compare/v1.3.0...v1.3.1)
