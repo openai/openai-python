@@ -35,20 +35,20 @@ class Categories(BaseModel):
     orientation, disability status, or caste.
     """
 
-    self_minus_harm: bool = FieldInfo(alias="self-harm")
+    self_harm: bool = FieldInfo(alias="self-harm")
     """
     Content that promotes, encourages, or depicts acts of self-harm, such as
     suicide, cutting, and eating disorders.
     """
 
-    self_minus_harm_instructions: bool = FieldInfo(alias="self-harm/instructions")
+    self_harm_instructions: bool = FieldInfo(alias="self-harm/instructions")
     """
     Content that encourages performing acts of self-harm, such as suicide, cutting,
     and eating disorders, or that gives instructions or advice on how to commit such
     acts.
     """
 
-    self_minus_harm_intent: bool = FieldInfo(alias="self-harm/intent")
+    self_harm_intent: bool = FieldInfo(alias="self-harm/intent")
     """
     Content where the speaker expresses that they are engaging or intend to engage
     in acts of self-harm, such as suicide, cutting, and eating disorders.
@@ -84,13 +84,13 @@ class CategoryScores(BaseModel):
     hate_threatening: float = FieldInfo(alias="hate/threatening")
     """The score for the category 'hate/threatening'."""
 
-    self_minus_harm: float = FieldInfo(alias="self-harm")
+    self_harm: float = FieldInfo(alias="self-harm")
     """The score for the category 'self-harm'."""
 
-    self_minus_harm_instructions: float = FieldInfo(alias="self-harm/instructions")
+    self_harm_instructions: float = FieldInfo(alias="self-harm/instructions")
     """The score for the category 'self-harm/instructions'."""
 
-    self_minus_harm_intent: float = FieldInfo(alias="self-harm/intent")
+    self_harm_intent: float = FieldInfo(alias="self-harm/intent")
     """The score for the category 'self-harm/intent'."""
 
     sexual: float

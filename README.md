@@ -15,7 +15,7 @@ The API documentation can be found [here](https://platform.openai.com/docs).
 ## Installation
 
 > [!IMPORTANT]
-> The SDK was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code.
+> The SDK was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code. 
 
 ```sh
 pip install openai
@@ -437,6 +437,7 @@ import httpx
 from openai import OpenAI
 
 client = OpenAI(
+    # Or use the `OPENAI_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=httpx.Client(
         proxies="http://my.test.proxy.example.com",
@@ -457,6 +458,10 @@ class instead of the `OpenAI` class.
 > [!IMPORTANT]
 > The Azure API shape differs from the core API shape which means that the static types for responses / params
 > won't always be correct.
+
+The latest release of the OpenAI Python library doesn't currently support DALL-E when used with Azure OpenAI. DALL-E with Azure OpenAI is still supported with 0.28.1. For those who can't wait for native support for DALL-E and Azure OpenAI we're providing [two code examples](https://learn.microsoft.com/en-us/azure/ai-services/openai/how-to/migration?tabs=python%2Cdalle-fix#dall-e-fix) which can be used as a workaround.
+
+
 
 ```py
 from openai import AzureOpenAI
@@ -483,13 +488,13 @@ print(completion.model_dump_json(indent=2))
 
 In addition to the options provided in the base `OpenAI` client, the following options are provided:
 
-- `azure_endpoint`
+- `azure_endpoint` (or the `AZURE_OPENAI_ENDPOINT` environment variable)
 - `azure_deployment`
-- `api_version`
-- `azure_ad_token`
+- `api_version` (or the `OPENAI_API_VERSION` environment variable)
+- `azure_ad_token` (or the `AZURE_OPENAI_AD_TOKEN` environment variable)
 - `azure_ad_token_provider`
 
-An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/v1/examples/azure_ad.py).
+An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
 ## Versioning
 
