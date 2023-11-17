@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Mapping, TypeVar, cast
+from typing import Any, Mapping, TypeVar, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, override, get_type_hints
 
@@ -60,7 +60,7 @@ class PropertyInfo:
 
 
 def maybe_transform(
-    data: Mapping[str, object] | List[Any] | None,
+    data: object,
     expected_type: object,
 ) -> Any | None:
     """Wrapper over `transform()` that allows `None` to be passed.
