@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.3 (2023-11-17)
+
+Full Changelog: [v1.3.2...v1.3.3](https://github.com/openai/openai-python/compare/v1.3.2...v1.3.3)
+
+### Chores
+
+* **internal:** update type hint for helper function ([#846](https://github.com/openai/openai-python/issues/846)) ([9a5966c](https://github.com/openai/openai-python/commit/9a5966c70fce620a183de580938556730564a405))
+
 ## 1.3.2 (2023-11-16)
 
 Full Changelog: [v1.3.1...v1.3.2](https://github.com/openai/openai-python/compare/v1.3.1...v1.3.2)
