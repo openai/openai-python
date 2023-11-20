@@ -35,7 +35,7 @@ class Embeddings(SyncAPIResource):
         *,
         input: Union[str, List[str], List[int], List[List[int]]],
         model: Union[str, Literal["text-embedding-ada-002"]],
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
+        encoding_format: Literal["float", "base64"] | NotGiven = "float",
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
