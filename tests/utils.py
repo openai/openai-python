@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+import os
 import traceback
-from typing import Any, TypeVar, cast
+import contextlib
+from typing import Any, TypeVar, Iterator, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin, assert_type
 
@@ -103,3 +105,16 @@ def _assert_list_type(type_: type[object], value: object) -> None:
     inner_type = get_args(type_)[0]
     for entry in value:
         assert_type(inner_type, entry)  # type: ignore
+
+
+@contextlib.contextmanager
+def update_env(**new_env: str) -> Iterator[None]:
+    old = os.environ.copy()
+
+    try:
+        os.environ.update(new_env)
+
+        yield None
+    finally:
+        os.environ.clear()
+        os.environ.update(old)

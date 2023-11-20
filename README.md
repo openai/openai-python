@@ -156,7 +156,10 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 
 ## Using types
 
-Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like serializing back into JSON ([v1](https://docs.pydantic.dev/1.10/usage/models/), [v2](https://docs.pydantic.dev/latest/usage/serialization/)). To get a dictionary, call `model.model_dump()`.
+Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like:
+
+- Serializing back into JSON, `model.model_dump_json(indent=2, exclude_unset=True)`
+- Converting to a dictionary, `model.model_dump(exclude_unset=True)`
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
 
@@ -437,6 +440,7 @@ import httpx
 from openai import OpenAI
 
 client = OpenAI(
+    # Or use the `OPENAI_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=httpx.Client(
         proxies="http://my.test.proxy.example.com",
@@ -483,13 +487,13 @@ print(completion.model_dump_json(indent=2))
 
 In addition to the options provided in the base `OpenAI` client, the following options are provided:
 
-- `azure_endpoint`
+- `azure_endpoint` (or the `AZURE_OPENAI_ENDPOINT` environment variable)
 - `azure_deployment`
-- `api_version`
-- `azure_ad_token`
+- `api_version` (or the `OPENAI_API_VERSION` environment variable)
+- `azure_ad_token` (or the `AZURE_OPENAI_AD_TOKEN` environment variable)
 - `azure_ad_token_provider`
 
-An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/v1/examples/azure_ad.py).
+An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
 ## Versioning
 

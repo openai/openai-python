@@ -149,7 +149,7 @@ class BaseModel(pydantic.BaseModel):
     if not PYDANTIC_V2:
         # we define aliases for some of the new pydantic v2 methods so
         # that we can just document these methods without having to specify
-        # a specifc pydantic version as some users may not know which
+        # a specific pydantic version as some users may not know which
         # pydantic version they are currently using
 
         @override
