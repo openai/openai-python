@@ -18,7 +18,7 @@ pip install martian-python
 from martian import OpenAI
 
 client = OpenAI(
-    api_key="My MARTIAN API Key"  # defaults to os.environ.get("MARTIAN_API_KEY")
+    api_key="My MARTIAN API Key",  # defaults to os.environ.get("MARTIAN_API_KEY")
 )
 
 chat_completion = client.chat.completions.create(
