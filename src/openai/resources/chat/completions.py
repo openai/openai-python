@@ -59,7 +59,8 @@ class Completions(SyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -231,7 +232,8 @@ class Completions(SyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         stream: Literal[True],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -403,7 +405,8 @@ class Completions(SyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         stream: bool,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -575,7 +578,8 @@ class Completions(SyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -664,7 +668,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -836,7 +841,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         stream: Literal[True],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -1008,7 +1014,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         stream: bool,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -1180,7 +1187,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "gpt-3.5-turbo-16k-0613",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,

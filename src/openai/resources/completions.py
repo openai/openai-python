@@ -48,7 +48,8 @@ class Completions(SyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -212,7 +213,8 @@ class Completions(SyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -376,7 +378,8 @@ class Completions(SyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -540,7 +543,8 @@ class Completions(SyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -624,7 +628,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -788,7 +793,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -952,7 +958,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1116,7 +1123,8 @@ class AsyncCompletions(AsyncAPIResource):
                     "text-ada-001",
                 ],
             ]
-        ],
+        ]
+        | NotGiven = NOT_GIVEN,
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
