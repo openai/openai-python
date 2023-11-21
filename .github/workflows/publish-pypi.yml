@@ -2,7 +2,9 @@
 # you can run this workflow by navigating to https://www.github.com/openai/openai-python/actions/workflows/publish-pypi.yml
 name: Publish PyPI
 on:
-  workflow_dispatch:
+  push:
+    branches:
+      - main
 
 jobs:
   publish:
