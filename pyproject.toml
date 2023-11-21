@@ -31,7 +31,7 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Topic :: Software Development :: Libraries :: Python Modules",
-  "License :: OSI Approved :: Apache Software License",
+  "License :: OSI Approved :: Apache Software License"
 ]
 
 [project.optional-dependencies]
