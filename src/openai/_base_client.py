@@ -74,7 +74,12 @@ from ._constants import (
     RAW_RESPONSE_HEADER,
 )
 from ._streaming import Stream, AsyncStream
-from ._exceptions import APIStatusError, APITimeoutError, APIConnectionError
+from ._exceptions import (
+    APIStatusError,
+    APITimeoutError,
+    APIConnectionError,
+    APIResponseValidationError,
+)
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -518,13 +523,16 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if cast_to is UnknownResponse:
             return cast(ResponseT, data)
 
-        if inspect.isclass(cast_to) and issubclass(cast_to, ModelBuilderProtocol):
-            return cast(ResponseT, cast_to.build(response=response, data=data))
+        try:
+            if inspect.isclass(cast_to) and issubclass(cast_to, ModelBuilderProtocol):
+                return cast(ResponseT, cast_to.build(response=response, data=data))
 
-        if self._strict_response_validation:
-            return cast(ResponseT, validate_type(type_=cast_to, value=data))
+            if self._strict_response_validation:
+                return cast(ResponseT, validate_type(type_=cast_to, value=data))
 
-        return cast(ResponseT, construct_type(type_=cast_to, value=data))
+            return cast(ResponseT, construct_type(type_=cast_to, value=data))
+        except pydantic.ValidationError as err:
+            raise APIResponseValidationError(response=response, body=data) from err
 
     @property
     def qs(self) -> Querystring:

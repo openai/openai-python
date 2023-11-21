@@ -401,6 +401,27 @@ class TestOpenAI:
         assert isinstance(response, Model1)
         assert response.foo == 1
 
+    @pytest.mark.respx(base_url=base_url)
+    def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter) -> None:
+        """
+        Response that sets Content-Type to something other than application/json but returns json data
+        """
+
+        class Model(BaseModel):
+            foo: int
+
+        respx_mock.get("/foo").mock(
+            return_value=httpx.Response(
+                200,
+                content=json.dumps({"foo": 2}),
+                headers={"Content-Type": "application/text"},
+            )
+        )
+
+        response = self.client.get("/foo", cast_to=Model)
+        assert isinstance(response, Model)
+        assert response.foo == 2
+
     def test_base_url_env(self) -> None:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
             client = OpenAI(api_key=api_key, _strict_response_validation=True)
@@ -938,6 +959,27 @@ class TestAsyncOpenAI:
         response = await self.client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model1)
         assert response.foo == 1
+
+    @pytest.mark.respx(base_url=base_url)
+    async def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter) -> None:
+        """
+        Response that sets Content-Type to something other than application/json but returns json data
+        """
+
+        class Model(BaseModel):
+            foo: int
+
+        respx_mock.get("/foo").mock(
+            return_value=httpx.Response(
+                200,
+                content=json.dumps({"foo": 2}),
+                headers={"Content-Type": "application/text"},
+            )
+        )
+
+        response = await self.client.get("/foo", cast_to=Model)
+        assert isinstance(response, Model)
+        assert response.foo == 2
 
     def test_base_url_env(self) -> None:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
