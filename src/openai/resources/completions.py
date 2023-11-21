@@ -32,20 +32,22 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -194,20 +196,22 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: Literal[True],
@@ -356,20 +360,22 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: bool,
@@ -514,24 +520,26 @@ class Completions(SyncAPIResource):
         """
         ...
 
-    @required_args(["model", "prompt"], ["model", "prompt", "stream"])
+    @required_args(["prompt"], ["prompt", "stream"])
     def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -600,20 +608,22 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -762,20 +772,22 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: Literal[True],
@@ -924,20 +936,22 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: bool,
@@ -1082,24 +1096,26 @@ class AsyncCompletions(AsyncAPIResource):
         """
         ...
 
-    @required_args(["model", "prompt"], ["model", "prompt", "stream"])
+    @required_args(["prompt"], ["prompt", "stream"])
     async def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
+        model: Optional[
+            Union[
+                str,
+                Literal[
+                    "babbage-002",
+                    "davinci-002",
+                    "gpt-3.5-turbo-instruct",
+                    "text-davinci-003",
+                    "text-davinci-002",
+                    "text-davinci-001",
+                    "code-davinci-002",
+                    "text-curie-001",
+                    "text-babbage-001",
+                    "text-ada-001",
+                ],
+            ]
         ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,

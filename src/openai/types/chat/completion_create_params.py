@@ -32,7 +32,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
     """
 
-    model: Required[
+    model: Optional[
         Union[
             str,
             Literal[

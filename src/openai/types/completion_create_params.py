@@ -9,7 +9,7 @@ __all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "
 
 
 class CompletionCreateParamsBase(TypedDict, total=False):
-    model: Required[
+    model: Optional[
         Union[
             str,
             Literal[

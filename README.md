@@ -18,8 +18,7 @@ pip install martian-python
 from martian import OpenAI
 
 client = OpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    api_key="My MARTIAN API Key" # defaults to os.environ.get("MARTIAN_API_KEY")
 )
 
 chat_completion = client.chat.completions.create(
@@ -29,6 +28,6 @@ chat_completion = client.chat.completions.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-3.5-turbo",
+    # model="gpt-3.5-turbo", Optional argument, router chooses the best model for you
 )
 ```
