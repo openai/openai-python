@@ -13,7 +13,10 @@ speech_file_path = Path(__file__).parent / "speech.mp3"
 def main() -> None:
     # Create text-to-speech audio file
     response = openai.audio.speech.create(
-        model="tts-1", voice="alloy", input="the quick brown fox jumped over the lazy dogs"
+        model="tts-1",
+        voice="alloy",
+        input="the quick brown fox jumped over the lazy dogs",
+        stream=True,
     )
 
     response.stream_to_file(speech_file_path)
