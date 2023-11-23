@@ -403,6 +403,7 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     params: Query
     headers: Headers
     max_retries: int
+    stream: bool | None
     timeout: float | Timeout | None
     files: HttpxRequestFiles | None
     idempotency_key: str
@@ -420,6 +421,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     timeout: Union[float, Timeout, None, NotGiven] = NotGiven()
     files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
+    stream: Union[bool, None] = None
     post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
 
     # It should be noted that we cannot use `json` here as that would override
