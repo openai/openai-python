@@ -863,7 +863,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         self._prepare_request(request)
 
         try:
-            response = self._client.send(request, auth=self.custom_auth, stream=stream)
+            response = self._client.send(request, auth=self.custom_auth, stream=stream or options.stream or False)
             log.debug(
                 'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
             )
@@ -1304,7 +1304,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         await self._prepare_request(request)
 
         try:
-            response = await self._client.send(request, auth=self.custom_auth, stream=stream)
+            response = await self._client.send(request, auth=self.custom_auth, stream=stream or options.stream or False)
             log.debug(
                 'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
             )
@@ -1541,6 +1541,7 @@ def make_request_options(
     idempotency_key: str | None = None,
     timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     post_parser: PostParser | NotGiven = NOT_GIVEN,
+    stream: bool | None = None,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""
     options: RequestOptions = {}
@@ -1561,6 +1562,9 @@ def make_request_options(
 
     if idempotency_key is not None:
         options["idempotency_key"] = idempotency_key
+
+    if stream is not None:
+        options["stream"] = stream
 
     if is_given(post_parser):
         # internal
