@@ -41,6 +41,7 @@ class Speech(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        stream: bool | None = None,
     ) -> HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -67,6 +68,9 @@ class Speech(SyncAPIResource):
           extra_body: Add additional JSON properties to the request
 
           timeout: Override the client-level default timeout for this request, in seconds
+
+          stream: Whether or not the response content should be streamed (i.e. not read to
+              completion immediately), default False
         """
         return self._post(
             "/audio/speech",
@@ -81,7 +85,11 @@ class Speech(SyncAPIResource):
                 speech_create_params.SpeechCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                stream=stream,
             ),
             cast_to=HttpxBinaryResponseContent,
         )
@@ -108,6 +116,7 @@ class AsyncSpeech(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        stream: bool | None = None,
     ) -> HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -134,6 +143,9 @@ class AsyncSpeech(AsyncAPIResource):
           extra_body: Add additional JSON properties to the request
 
           timeout: Override the client-level default timeout for this request, in seconds
+
+          stream: Whether or not the response content should be streamed (i.e. not read to
+              completion immediately), default False
         """
         return await self._post(
             "/audio/speech",
@@ -148,7 +160,11 @@ class AsyncSpeech(AsyncAPIResource):
                 speech_create_params.SpeechCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                stream=stream,
             ),
             cast_to=HttpxBinaryResponseContent,
         )
