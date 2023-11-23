@@ -130,16 +130,7 @@ class BinaryResponseContent(ABC):
         chunk_size: int | None = None,
     ) -> None:
         """
-        Stream the output to the given file. NOTE, requires passing `stream=True`
-        to the request for expected behavior, e.g.,
-
-            response = openai.audio.speech.create(
-              model="tts-1",
-              voice="alloy",
-              input="the quick brown fox jumped over the lazy dogs",
-              stream=True,
-            )
-            response.stream_to_file(speech_file_path)
+        Stream the output to the given file.
         """
         pass
 
@@ -194,16 +185,7 @@ class BinaryResponseContent(ABC):
         chunk_size: int | None = None,
     ) -> None:
         """
-        Stream the output to the given file. NOTE, requires passing `stream=True`
-        to the request for expected behavior, e.g.,
-
-            response = await openai.audio.speech.create(
-              model="tts-1",
-              voice="alloy",
-              input="the quick brown fox jumped over the lazy dogs",
-              stream=True,
-            )
-            response.stream_to_file(speech_file_path)
+        Stream the output to the given file.
         """
         pass
 
@@ -275,7 +257,6 @@ else:
 class RequestOptions(TypedDict, total=False):
     headers: Headers
     max_retries: int
-    stream: bool
     timeout: float | Timeout | None
     params: Query
     extra_json: AnyMapping
