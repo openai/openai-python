@@ -1,0 +1,39 @@
+# This file controls the behavior of Trunk: https://docs.trunk.io/cli
+# To learn more about the format of this file, see https://docs.trunk.io/reference/trunk-yaml
+version: 0.1
+cli:
+  version: 1.17.2
+# Trunk provides extensibility via plugins. (https://docs.trunk.io/plugins)
+plugins:
+  sources:
+    - id: trunk
+      ref: v1.3.0
+      uri: https://github.com/trunk-io/plugins
+# Many linters and tools depend on runtimes - configure them here. (https://docs.trunk.io/runtimes)
+runtimes:
+  enabled:
+    - go@1.21.0
+    - node@18.12.1
+    - python@3.10.8
+# This is the section where you manage your linters. (https://docs.trunk.io/check/configuration)
+lint:
+  enabled:
+    - actionlint@1.6.26
+    - bandit@1.7.5
+    - black@23.9.1
+    - checkov@3.1.9
+    - git-diff-check
+    - hadolint@2.12.0
+    - isort@5.12.0
+    - markdownlint@0.37.0
+    - mypy@1.7.0
+    - prettier@3.1.0
+    - pyright@1.1.337
+    - ruff@0.1.6
+    - shellcheck@0.9.0
+    - shfmt@3.6.0
+    - taplo@0.8.1
+    - terrascan@1.18.3
+    - trivy@0.47.0
+    - trufflehog@3.63.2-rc0
+    - yamllint@1.33.0
