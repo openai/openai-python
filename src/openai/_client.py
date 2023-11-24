@@ -20,7 +20,7 @@ from ._types import (
     ProxiesTypes,
     RequestOptions,
 )
-from ._utils import is_given, is_mapping
+from ._utils import is_given, is_mapping, get_async_library
 from ._version import __version__
 from ._streaming import Stream as Stream
 from ._streaming import AsyncStream as AsyncStream
@@ -147,6 +147,7 @@ class OpenAI(SyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
+            "X-Stainless-Async": "false",
             "OpenAI-Organization": self.organization if self.organization is not None else Omit(),
             **self._custom_headers,
         }
@@ -356,6 +357,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
+            "X-Stainless-Async": f"async:{get_async_library()}",
             "OpenAI-Organization": self.organization if self.organization is not None else Omit(),
             **self._custom_headers,
         }

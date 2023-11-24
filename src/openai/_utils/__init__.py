@@ -25,6 +25,7 @@ from ._utils import strip_not_given as strip_not_given
 from ._utils import deepcopy_minimal as deepcopy_minimal
 from ._utils import extract_type_arg as extract_type_arg
 from ._utils import is_required_type as is_required_type
+from ._utils import get_async_library as get_async_library
 from ._utils import is_annotated_type as is_annotated_type
 from ._utils import maybe_coerce_float as maybe_coerce_float
 from ._utils import get_required_header as get_required_header
