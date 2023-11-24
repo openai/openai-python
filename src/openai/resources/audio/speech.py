@@ -32,8 +32,8 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, Literal["tts-1", "tts-1-hd"]],
-        voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
-        response_format: Literal["mp3", "opus", "aac", "flac"] | NotGiven = NOT_GIVEN,
+        voice: Union[str, Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"]],
+        response_format: Union[str, Literal["mp3", "opus", "aac", "flac"]] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
