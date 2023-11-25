@@ -20,9 +20,9 @@ updates:
     directory: "/"
     target-branch: "main"
     schedule:
-      interval: "weekly"
+      interval: "daily"
   - package-ecosystem: "docker"
     target-branch: "main"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "daily"
