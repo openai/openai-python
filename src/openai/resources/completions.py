@@ -36,16 +36,17 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -201,16 +202,17 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -366,16 +368,17 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -531,16 +534,17 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -616,16 +620,17 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -781,16 +786,17 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -946,16 +952,17 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
@@ -1111,16 +1118,17 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
-                    "babbage-002",
-                    "davinci-002",
-                    "gpt-3.5-turbo-instruct",
-                    "text-davinci-003",
-                    "text-davinci-002",
-                    "text-davinci-001",
-                    "code-davinci-002",
-                    "text-curie-001",
-                    "text-babbage-001",
-                    "text-ada-001",
+                    "llama-2-70b"
+                    "gpt-3.5-turbo-instruct"
+                ],
+                List[
+                    Union[
+                        str,
+                        Literal[
+                            "llama-2-70b"
+                            "gpt-3.5-turbo-instruct"
+                        ],
+                    ]
                 ],
             ]
         ]
