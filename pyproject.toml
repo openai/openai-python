@@ -49,7 +49,7 @@ openai = "openai.cli:main"
 managed = true
 dev-dependencies = [
     "pyright==1.1.332",
-    "mypy==1.6.1",
+    "mypy==1.7.1",
     "black==23.3.0",
     "respx==0.19.2",
     "pytest==7.1.1",
