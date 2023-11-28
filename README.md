@@ -252,7 +252,7 @@ completion = client.chat.completions.create(
             "content": "Can you generate an example json object describing a fruit?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-3.5-turbo-1106",
     response_format={"type": "json_object"},
 )
 ```
