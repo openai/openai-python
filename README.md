@@ -94,7 +94,7 @@ stream = client.chat.completions.create(
     messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
-for part in stream:
+for chunk in stream:
     if chunk.choices[0].delta.content is not None:
         print(part.choices[0].delta.content)
 ```
@@ -111,7 +111,7 @@ stream = await client.chat.completions.create(
     messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
-async for part in stream:
+async for chunk in stream:
     if chunk.choices[0].delta.content is not None:
         print(part.choices[0].delta.content)
 ```
