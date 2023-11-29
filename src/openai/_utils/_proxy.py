@@ -18,25 +18,43 @@ class LazyProxy(Generic[T], ABC):
     def __init__(self) -> None:
         self.__proxied: T | None = None
 
+    # Note: we have to special case proxies that themselves return proxies
+    # to support using a proxy as a catch-all for any random access, e.g. `proxy.foo.bar.baz`
+
     def __getattr__(self, attr: str) -> object:
-        return getattr(self.__get_proxied__(), attr)
+        proxied = self.__get_proxied__()
+        if isinstance(proxied, LazyProxy):
+            return proxied  # pyright: ignore
+        return getattr(proxied, attr)
 
     @override
     def __repr__(self) -> str:
+        proxied = self.__get_proxied__()
+        if isinstance(proxied, LazyProxy):
+            return proxied.__class__.__name__
         return repr(self.__get_proxied__())
 
     @override
     def __str__(self) -> str:
-        return str(self.__get_proxied__())
+        proxied = self.__get_proxied__()
+        if isinstance(proxied, LazyProxy):
+            return proxied.__class__.__name__
+        return str(proxied)
 
     @override
     def __dir__(self) -> Iterable[str]:
-        return self.__get_proxied__().__dir__()
+        proxied = self.__get_proxied__()
+        if isinstance(proxied, LazyProxy):
+            return []
+        return proxied.__dir__()
 
     @property  # type: ignore
     @override
     def __class__(self) -> type:
-        return self.__get_proxied__().__class__
+        proxied = self.__get_proxied__()
+        if issubclass(type(proxied), LazyProxy):
+            return type(proxied)
+        return proxied.__class__
 
     def __get_proxied__(self) -> T:
         if not self.should_cache:
