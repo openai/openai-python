@@ -1,3 +1,7 @@
+[![GitHub stars](https://img.shields.io/github/stars/openai/openai-python.svg)](https://github.com/openai/openai-python/stargazers)
+[![License: Apache License 2.0](https://img.shields.io/github/license/openai/openai-python.svg)](https://github.com/openai/openai-python/blob/main/LICENSE)
+
+
 # OpenAI Python API library
 
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg)](https://pypi.org/project/openai/)
