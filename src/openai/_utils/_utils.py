@@ -230,7 +230,7 @@ def human_join(seq: Sequence[str], *, delim: str = ", ", final: str = "or") -> s
 
 def quote(string: str) -> str:
     """Add single quotation marks around the given string. Does *not* do any escaping."""
-    return "'" + string + "'"
+    return f"'{string}'"
 
 
 def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
