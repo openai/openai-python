@@ -26,11 +26,12 @@ pip install openai
 The full API of this library can be found in [api.md](https://www.github.com/openai/openai-python/blob/main/api.md).
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 chat_completion = client.chat.completions.create(
@@ -54,12 +55,13 @@ so that your API Key is not stored in source control.
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
 ```python
+import os
 import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
