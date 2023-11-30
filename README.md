@@ -96,7 +96,7 @@ stream = client.chat.completions.create(
 )
 for chunk in stream:
     if chunk.choices[0].delta.content is not None:
-        print(part.choices[0].delta.content)
+        print(chunk.choices[0].delta.content)
 ```
 
 The async client uses the exact same interface.
@@ -113,7 +113,7 @@ stream = await client.chat.completions.create(
 )
 async for chunk in stream:
     if chunk.choices[0].delta.content is not None:
-        print(part.choices[0].delta.content)
+        print(chunk.choices[0].delta.content)
 ```
 
 ## Module-level client
