@@ -445,6 +445,14 @@ class TestOpenAI:
         assert isinstance(response, Model)
         assert response.foo == 2
 
+    def test_base_url_setter(self) -> None:
+        client = OpenAI(base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True)
+        assert client.base_url == "https://example.com/from_init/"
+
+        client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
+
+        assert client.base_url == "https://example.com/from_setter/"
+
     def test_base_url_env(self) -> None:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
             client = OpenAI(api_key=api_key, _strict_response_validation=True)
@@ -1101,6 +1109,16 @@ class TestAsyncOpenAI:
         response = await self.client.get("/foo", cast_to=Model)
         assert isinstance(response, Model)
         assert response.foo == 2
+
+    def test_base_url_setter(self) -> None:
+        client = AsyncOpenAI(
+            base_url="https://example.com/from_init", api_key=api_key, _strict_response_validation=True
+        )
+        assert client.base_url == "https://example.com/from_init/"
+
+        client.base_url = "https://example.com/from_setter"  # type: ignore[assignment]
+
+        assert client.base_url == "https://example.com/from_setter/"
 
     def test_base_url_env(self) -> None:
         with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
