@@ -986,6 +986,12 @@ class TestAsyncOpenAI:
             client = AsyncOpenAI(api_key=api_key, _strict_response_validation=True)
             assert client.base_url == "http://localhost:5000/from/env/"
 
+    def test_change_base_url(selr) -> None:
+        with update_env(OPENAI_BASE_URL="http://localhost:5000/from/env"):
+            client = AsyncOpenAI(api_key=api_key, _strict_response_validation=True)
+            client.base_url = "http://localhost:5000/custom/path/"
+            assert client.base_url == "http://localhost:5000/custom/path/"
+
     @pytest.mark.parametrize(
         "client",
         [
