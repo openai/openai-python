@@ -36,6 +36,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -43,6 +44,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -202,6 +204,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -209,6 +212,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -368,6 +372,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -375,6 +380,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -534,6 +540,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -541,6 +548,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -620,6 +628,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -627,6 +636,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -786,6 +796,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -793,6 +804,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -952,6 +964,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -959,6 +972,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],
@@ -1118,6 +1132,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "llama-2-70b"
                     "gpt-3.5-turbo-instruct"
                 ],
@@ -1125,6 +1140,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "llama-2-70b"
                             "gpt-3.5-turbo-instruct"
                         ],

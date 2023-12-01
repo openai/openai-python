@@ -29,7 +29,7 @@ chat_completion = client.chat.completions.create(
             "content": "Say this is a test",
         }
     ],
-    # model="gpt-3.5-turbo",  # Optional argument, router chooses the best model for you
+    # model="router",  # Optional argument, router chooses the best model for you
     # model=["gpt-3.5-turbo", "claude-v1"]  # If more than one is specified, the router chooses the best among them
 )
 ```

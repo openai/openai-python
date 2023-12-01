@@ -44,6 +44,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -57,6 +58,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -227,6 +229,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -240,6 +243,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -410,6 +414,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -423,6 +428,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -593,6 +599,7 @@ class Completions(SyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -606,6 +613,7 @@ class Completions(SyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -693,6 +701,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -706,6 +715,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -876,6 +886,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -889,6 +900,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -1059,6 +1071,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -1072,6 +1085,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
@@ -1242,6 +1256,7 @@ class AsyncCompletions(AsyncAPIResource):
             Union[
                 str,
                 Literal[
+                    "router"
                     "claude-v1"
                     "claude-v2"
                     "claude-instant-v1"
@@ -1255,6 +1270,7 @@ class AsyncCompletions(AsyncAPIResource):
                     Union[
                         str,
                         Literal[
+                            "router"
                             "claude-v1"
                             "claude-v2"
                             "claude-instant-v1"
