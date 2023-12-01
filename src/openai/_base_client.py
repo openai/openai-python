@@ -578,7 +578,10 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     @base_url.setter
     def base_url(self, url: URL | str) -> None:
-        self._client.base_url = url if isinstance(url, URL) else URL(url)
+        url = url if isinstance(url, URL) else URL(url)
+        url = self._enforce_trailing_slash(url)
+        self._base_url = url
+        self._client.base_url = url
 
     @lru_cache(maxsize=None)
     def platform_headers(self) -> Dict[str, str]:
