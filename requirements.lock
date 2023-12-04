@@ -8,22 +8,21 @@
 
 -e file:.
 annotated-types==0.6.0
-anyio==3.7.1
+anyio==4.1.0
 certifi==2023.7.22
 distro==1.8.0
 exceptiongroup==1.1.3
-h11==0.12.0
-httpcore==0.15.0
-httpx==0.23.0
+h11==0.14.0
+httpcore==1.0.2
+httpx==0.25.2
 idna==3.4
-numpy==1.26.1
-pandas==2.1.1
+numpy==1.26.2
+pandas==2.1.3
 pandas-stubs==2.1.1.230928
 pydantic==2.4.2
 pydantic-core==2.10.1
 python-dateutil==2.8.2
 pytz==2023.3.post1
-rfc3986==1.5.0
 six==1.16.0
 sniffio==1.3.0
 tqdm==4.66.1
