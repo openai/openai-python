@@ -26,11 +26,12 @@ pip install openai
 The full API of this library can be found in [api.md](https://www.github.com/openai/openai-python/blob/main/api.md).
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 chat_completion = client.chat.completions.create(
@@ -54,12 +55,13 @@ so that your API Key is not stored in source control.
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
 ```python
+import os
 import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
@@ -94,8 +96,9 @@ stream = client.chat.completions.create(
     messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
-for part in stream:
-    print(part.choices[0].delta.content or "")
+for chunk in stream:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content)
 ```
 
 The async client uses the exact same interface.
@@ -110,8 +113,9 @@ stream = await client.chat.completions.create(
     messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
-async for part in stream:
-    print(part.choices[0].delta.content or "")
+async for chunk in stream:
+    if chunk.choices[0].delta.content is not None:
+        print(chunk.choices[0].delta.content)
 ```
 
 ## Module-level client
@@ -250,7 +254,7 @@ completion = client.chat.completions.create(
             "content": "Can you generate an example json object describing a fruit?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-3.5-turbo-1106",
     response_format={"type": "json_object"},
 )
 ```

@@ -312,7 +312,7 @@ def common_completion_prefix_validator(df: pd.DataFrame) -> Remediation:
         x["completion"] = x["completion"].str[len(prefix) :]
         if ws_prefix:
             # keep the single whitespace as prefix
-            x["completion"] = " " + x["completion"]
+            x["completion"] = f" {x['completion']}"
         return x
 
     if (df.completion == common_prefix).all():
@@ -623,9 +623,7 @@ def get_outfnames(fname: str, split: bool) -> list[str]:
     i = 0
     while True:
         index_suffix = f" ({i})" if i > 0 else ""
-        candidate_fnames = [
-            os.path.splitext(fname)[0] + "_prepared" + suffix + index_suffix + ".jsonl" for suffix in suffixes
-        ]
+        candidate_fnames = [f"{os.path.splitext(fname)[0]}_prepared{suffix}{index_suffix}.jsonl" for suffix in suffixes]
         if not any(os.path.isfile(f) for f in candidate_fnames):
             return candidate_fnames
         i += 1

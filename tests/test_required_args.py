@@ -43,7 +43,7 @@ def test_keyword_only_param() -> None:
 def test_multiple_params() -> None:
     @required_args(["a", "b", "c"])
     def foo(a: str = "", *, b: str = "", c: str = "") -> str | None:
-        return a + " " + b + " " + c
+        return f"{a} {b} {c}"
 
     assert foo(a="a", b="b", c="c") == "a b c"
 

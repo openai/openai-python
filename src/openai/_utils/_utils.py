@@ -18,6 +18,8 @@ from typing import (
 from pathlib import Path
 from typing_extensions import Required, Annotated, TypeGuard, get_args, get_origin
 
+import sniffio
+
 from .._types import Headers, NotGiven, FileTypes, NotGivenOr, HeadersLike
 from .._compat import is_union as _is_union
 from .._compat import parse_date as parse_date
@@ -228,7 +230,7 @@ def human_join(seq: Sequence[str], *, delim: str = ", ", final: str = "or") -> s
 
 def quote(string: str) -> str:
     """Add single quotation marks around the given string. Does *not* do any escaping."""
-    return "'" + string + "'"
+    return f"'{string}'"
 
 
 def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
@@ -406,3 +408,10 @@ def get_required_header(headers: HeadersLike, header: str) -> str:
             return value
 
     raise ValueError(f"Could not find {header} header")
+
+
+def get_async_library() -> str:
+    try:
+        return sniffio.current_async_library()
+    except Exception:
+        return "false"

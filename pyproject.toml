@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.3.3"
+version = "1.3.7"
 description = "The official Python library for the openai API"
 readme = "README.md"
 license = "Apache-2.0"
@@ -13,6 +13,7 @@ dependencies = [
     "typing-extensions>=4.5, <5",
     "anyio>=3.5.0, <4",
     "distro>=1.7.0, <2",
+    "sniffio",
     "tqdm > 4"
 ]
 requires-python = ">= 3.7.1"
@@ -31,6 +32,7 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Topic :: Software Development :: Libraries :: Python Modules",
+  "License :: OSI Approved :: Apache Software License"
 ]
 
 [project.optional-dependencies]
@@ -47,7 +49,7 @@ openai = "openai.cli:main"
 managed = true
 dev-dependencies = [
     "pyright==1.1.332",
-    "mypy==1.6.1",
+    "mypy==1.7.1",
     "black==23.3.0",
     "respx==0.19.2",
     "pytest==7.1.1",
