@@ -1,15 +1,12 @@
 # File generated from our OpenAPI spec by Stainless.
 
-from typing import Any, List, Generic, TypeVar, Optional, cast
+from typing import Any, List, Generic, Optional, cast
 from typing_extensions import Literal, Protocol, override, runtime_checkable
 
 from ._types import ModelT
-from ._models import BaseModel
 from ._base_client import BasePage, PageInfo, BaseSyncPage, BaseAsyncPage
 
 __all__ = ["SyncPage", "AsyncPage", "SyncCursorPage", "AsyncCursorPage"]
-
-_BaseModelT = TypeVar("_BaseModelT", bound=BaseModel)
 
 
 @runtime_checkable

@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import inspect
 from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, overload
-from typing_extensions import override
+from typing_extensions import Self, override
 
 import httpx
 
@@ -178,7 +178,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         if default_query is None:
             default_query = {"api-version": api_version}
         else:
-            default_query = {"api-version": api_version, **default_query}
+            default_query = {**default_query, "api-version": api_version}
 
         if base_url is None:
             if azure_endpoint is None:
@@ -212,8 +212,52 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             http_client=http_client,
             _strict_response_validation=_strict_response_validation,
         )
+        self._api_version = api_version
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
+
+    @override
+    def copy(
+        self,
+        *,
+        api_key: str | None = None,
+        organization: str | None = None,
+        api_version: str | None = None,
+        azure_ad_token: str | None = None,
+        azure_ad_token_provider: AzureADTokenProvider | None = None,
+        base_url: str | httpx.URL | None = None,
+        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        http_client: httpx.Client | None = None,
+        max_retries: int | NotGiven = NOT_GIVEN,
+        default_headers: Mapping[str, str] | None = None,
+        set_default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        set_default_query: Mapping[str, object] | None = None,
+        _extra_kwargs: Mapping[str, Any] = {},
+    ) -> Self:
+        """
+        Create a new client instance re-using the same options given to the current client with optional overriding.
+        """
+        return super().copy(
+            api_key=api_key,
+            organization=organization,
+            base_url=base_url,
+            timeout=timeout,
+            http_client=http_client,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            set_default_headers=set_default_headers,
+            default_query=default_query,
+            set_default_query=set_default_query,
+            _extra_kwargs={
+                "api_version": api_version or self._api_version,
+                "azure_ad_token": azure_ad_token or self._azure_ad_token,
+                "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
+                **_extra_kwargs,
+            },
+        )
+
+    with_options = copy
 
     def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
@@ -367,7 +411,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         if default_query is None:
             default_query = {"api-version": api_version}
         else:
-            default_query = {"api-version": api_version, **default_query}
+            default_query = {**default_query, "api-version": api_version}
 
         if base_url is None:
             if azure_endpoint is None:
@@ -401,8 +445,52 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             http_client=http_client,
             _strict_response_validation=_strict_response_validation,
         )
+        self._api_version = api_version
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
+
+    @override
+    def copy(
+        self,
+        *,
+        api_key: str | None = None,
+        organization: str | None = None,
+        api_version: str | None = None,
+        azure_ad_token: str | None = None,
+        azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
+        base_url: str | httpx.URL | None = None,
+        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        http_client: httpx.AsyncClient | None = None,
+        max_retries: int | NotGiven = NOT_GIVEN,
+        default_headers: Mapping[str, str] | None = None,
+        set_default_headers: Mapping[str, str] | None = None,
+        default_query: Mapping[str, object] | None = None,
+        set_default_query: Mapping[str, object] | None = None,
+        _extra_kwargs: Mapping[str, Any] = {},
+    ) -> Self:
+        """
+        Create a new client instance re-using the same options given to the current client with optional overriding.
+        """
+        return super().copy(
+            api_key=api_key,
+            organization=organization,
+            base_url=base_url,
+            timeout=timeout,
+            http_client=http_client,
+            max_retries=max_retries,
+            default_headers=default_headers,
+            set_default_headers=set_default_headers,
+            default_query=default_query,
+            set_default_query=set_default_query,
+            _extra_kwargs={
+                "api_version": api_version or self._api_version,
+                "azure_ad_token": azure_ad_token or self._azure_ad_token,
+                "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
+                **_extra_kwargs,
+            },
+        )
+
+    with_options = copy
 
     async def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
