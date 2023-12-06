@@ -4,9 +4,6 @@ from __future__ import annotations
 
 import os as _os
 
-if _os.environ.get("MARTIAN_API_KEY"):
-    _os.environ["OPENAI_API_KEY"] = _os.environ.get("MARTIAN_API_KEY")
-
 from typing_extensions import override
 
 from . import types
@@ -245,7 +242,7 @@ class _AmbiguousModuleClientUsageError(OpenAIError):
 
 
 def _has_openai_credentials() -> bool:
-    return _os.environ.get("OPENAI_API_KEY") is not None
+    return _os.environ.get("MARTIAN_API_KEY") is not None
 
 
 def _has_azure_credentials() -> bool:

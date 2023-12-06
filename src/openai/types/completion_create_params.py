@@ -9,22 +9,15 @@ __all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "
 
 
 class CompletionCreateParamsBase(TypedDict, total=False):
-    model: Optional[
-        Union[
-            str,
-            Literal[
-                "babbage-002",
-                "davinci-002",
-                "gpt-3.5-turbo-instruct",
-                "text-davinci-003",
-                "text-davinci-002",
-                "text-davinci-001",
-                "code-davinci-002",
-                "text-curie-001",
-                "text-babbage-001",
-                "text-ada-001",
-            ],
-        ]
+    model: Union[
+        str,
+        Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+        List[
+            Union[
+                str,
+                Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            ]
+        ],
     ]
     """ID of the model to use.
 

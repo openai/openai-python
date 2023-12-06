@@ -32,35 +32,35 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
     """
 
-    model: Optional[
-        Union[
-            str,
-            Literal[
-                "claude-v1"
-                "claude-v2"
-                "claude-instant-v1"
-                "llama-2-70b-chat"
-                "gpt-3.5-turbo"
-                "gpt-4-32k"
-                "gpt-4"
-                "gpt-4-turbo-128k"
-            ],
-            List[
-                Union[
-                    str,
-                    Literal[
-                        "claude-v1"
-                        "claude-v2"
-                        "claude-instant-v1"
-                        "llama-2-70b-chat"
-                        "gpt-3.5-turbo"
-                        "gpt-4-32k"
-                        "gpt-4"
-                        "gpt-4-turbo-128k"
-                    ],
-                ]
-            ],
-        ]
+    model: Union[
+        str,
+        Literal[
+            "router",
+            "claude-v1",
+            "claude-v2",
+            "claude-instant-v1",
+            "llama-2-70b-chat",
+            "gpt-3.5-turbo",
+            "gpt-4-32k",
+            "gpt-4",
+            "gpt-4-turbo-128k",
+        ],
+        List[
+            Union[
+                str,
+                Literal[
+                    "router",
+                    "claude-v1",
+                    "claude-v2",
+                    "claude-instant-v1",
+                    "llama-2-70b-chat",
+                    "gpt-3.5-turbo",
+                    "gpt-4-32k",
+                    "gpt-4",
+                    "gpt-4-turbo-128k",
+                ],
+            ]
+        ],
     ]
     """ID of the model to use.
 

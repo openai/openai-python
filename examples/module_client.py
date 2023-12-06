@@ -1,6 +1,6 @@
 import openai
 
-# will default to `os.environ['OPENAI_API_KEY']` if not explicitly set
+# will default to `os.environ['MARTIAN_API_KEY']` if not explicitly set
 openai.api_key = "..."
 
 # all client options can be configured just like the `OpenAI` instantiation counterpart

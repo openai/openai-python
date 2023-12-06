@@ -32,27 +32,16 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -200,27 +189,16 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -368,27 +346,16 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -532,31 +499,20 @@ class Completions(SyncAPIResource):
         """
         ...
 
-    @required_args(["prompt"], ["prompt", "stream"])
+    @required_args(["model", "prompt"], ["model", "prompt", "stream"])
     def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -624,27 +580,16 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -792,27 +737,16 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -960,27 +894,16 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1124,31 +1047,20 @@ class AsyncCompletions(AsyncAPIResource):
         """
         ...
 
-    @required_args(["prompt"], ["prompt", "stream"])
+    @required_args(["model", "prompt"], ["model", "prompt", "stream"])
     async def create(
         self,
         *,
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "llama-2-70b"
-                    "gpt-3.5-turbo-instruct"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "llama-2-70b"
-                            "gpt-3.5-turbo-instruct"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+            List[
+                Union[
+                    str,
+                    Literal["router", "llama-2-70b", "gpt-3.5-turbo-instruct"],
+                ]
+            ],
+        ],
         prompt: Union[str, List[str], List[int], List[List[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,

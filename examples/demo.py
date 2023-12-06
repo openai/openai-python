@@ -2,7 +2,7 @@
 
 from openai import OpenAI
 
-# gets API Key from environment variable OPENAI_API_KEY
+# gets API Key from environment variable MARTIAN_API_KEY
 client = OpenAI()
 
 # Non-streaming:

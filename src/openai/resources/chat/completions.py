@@ -40,39 +40,36 @@ class Completions(SyncAPIResource):
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
-        ]
-        | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
+        ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -225,37 +222,35 @@ class Completions(SyncAPIResource):
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         stream: Literal[True],
@@ -410,37 +405,35 @@ class Completions(SyncAPIResource):
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         stream: bool,
@@ -590,42 +583,40 @@ class Completions(SyncAPIResource):
         """
         ...
 
-    @required_args(["messages"], ["messages", "stream"])
+    @required_args(["model", "messages"], ["model", "messages", "stream"])
     def create(
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -697,37 +688,35 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -882,37 +871,35 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         stream: Literal[True],
@@ -1067,37 +1054,35 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         stream: bool,
@@ -1247,42 +1232,40 @@ class AsyncCompletions(AsyncAPIResource):
         """
         ...
 
-    @required_args(["messages"], ["messages", "stream"])
+    @required_args(["model", "messages"], ["model", "messages", "stream"])
     async def create(
         self,
         *,
         messages: List[ChatCompletionMessageParam],
-        model: Optional[
-            Union[
-                str,
-                Literal[
-                    "router"
-                    "claude-v1"
-                    "claude-v2"
-                    "claude-instant-v1"
-                    "llama-2-70b-chat"
-                    "gpt-3.5-turbo"
-                    "gpt-4-32k"
-                    "gpt-4"
-                    "gpt-4-turbo-128k"
-                ],
-                List[
-                    Union[
-                        str,
-                        Literal[
-                            "router"
-                            "claude-v1"
-                            "claude-v2"
-                            "claude-instant-v1"
-                            "llama-2-70b-chat"
-                            "gpt-3.5-turbo"
-                            "gpt-4-32k"
-                            "gpt-4"
-                            "gpt-4-turbo-128k"
-                        ],
-                    ]
-                ],
-            ]
+        model: Union[
+            str,
+            Literal[
+                "router",
+                "claude-v1",
+                "claude-v2",
+                "claude-instant-v1",
+                "llama-2-70b-chat",
+                "gpt-3.5-turbo",
+                "gpt-4-32k",
+                "gpt-4",
+                "gpt-4-turbo-128k",
+            ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "router",
+                        "claude-v1",
+                        "claude-v2",
+                        "claude-instant-v1",
+                        "llama-2-70b-chat",
+                        "gpt-3.5-turbo",
+                        "gpt-4-32k",
+                        "gpt-4",
+                        "gpt-4-turbo-128k",
+                    ],
+                ]
+            ],
         ]
         | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,

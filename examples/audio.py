@@ -4,7 +4,7 @@ from pathlib import Path
 
 from openai import OpenAI
 
-# gets OPENAI_API_KEY from your environment variables
+# gets MARTIAN_API_KEY from your environment variables
 openai = OpenAI()
 
 speech_file_path = Path(__file__).parent / "speech.mp3"
