@@ -35,7 +35,7 @@ class BufferReader(io.BytesIO):
         try:
             self._callback(self._progress)
         except Exception as e:  # catches exception from the callback
-            raise CancelledError("The upload was cancelled: {}".format(e))
+            raise CancelledError("The upload was cancelled: {}".format(e)) from e
 
         return chunk
 

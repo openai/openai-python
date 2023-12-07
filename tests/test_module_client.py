@@ -129,7 +129,7 @@ def test_azure_api_key_env_without_api_version() -> None:
             ValueError,
             match=r"Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable",
         ):
-            openai.completions._client
+            openai.completions._client  # noqa: B018
 
 
 def test_azure_api_key_and_version_env() -> None:
@@ -142,7 +142,7 @@ def test_azure_api_key_and_version_env() -> None:
             ValueError,
             match=r"Must provide one of the `base_url` or `azure_endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable",
         ):
-            openai.completions._client
+            openai.completions._client  # noqa: B018
 
 
 def test_azure_api_key_version_and_endpoint_env() -> None:
@@ -152,7 +152,7 @@ def test_azure_api_key_version_and_endpoint_env() -> None:
         _os.environ["OPENAI_API_VERSION"] = "example-version"
         _os.environ["AZURE_OPENAI_ENDPOINT"] = "https://www.example"
 
-        openai.completions._client
+        openai.completions._client  # noqa: B018
 
         assert openai.api_type == "azure"
 
