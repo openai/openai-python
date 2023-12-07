@@ -10,10 +10,7 @@ from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai._client import OpenAI, AsyncOpenAI
 from openai.pagination import SyncCursorPage, AsyncCursorPage
-from openai.types.fine_tuning import (
-    FineTuningJob,
-    FineTuningJobEvent,
-)
+from openai.types.fine_tuning import FineTuningJob, FineTuningJobEvent
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
