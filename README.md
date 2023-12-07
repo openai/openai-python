@@ -29,6 +29,7 @@ chat_completion = client.chat.completions.create(
         }
     ],
     model="router",
-    # model=["gpt-3.5-turbo", "claude-v1"]  # If more than one model is specified, the router chooses the best among them
+    # If more than one model is specified, the router chooses the best among them
+    # model=["gpt-3.5-turbo", "claude-v1"]  
 )
 ```
