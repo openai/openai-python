@@ -8,6 +8,4 @@ from .step_list_params import StepListParams as StepListParams
 from .function_tool_call import FunctionToolCall as FunctionToolCall
 from .retrieval_tool_call import RetrievalToolCall as RetrievalToolCall
 from .tool_calls_step_details import ToolCallsStepDetails as ToolCallsStepDetails
-from .message_creation_step_details import (
-    MessageCreationStepDetails as MessageCreationStepDetails,
-)
+from .message_creation_step_details import MessageCreationStepDetails as MessageCreationStepDetails

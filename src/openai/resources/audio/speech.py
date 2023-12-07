@@ -7,12 +7,21 @@ from typing_extensions import Literal
 
 import httpx
 
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ..._types import (
+    NOT_GIVEN,
+    Body,
+    Query,
+    Headers,
+    NotGiven,
+)
 from ..._utils import maybe_transform
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ...types.audio import speech_create_params
-from ..._base_client import HttpxBinaryResponseContent, make_request_options
+from ..._base_client import (
+    HttpxBinaryResponseContent,
+    make_request_options,
+)
 
 if TYPE_CHECKING:
     from ..._client import OpenAI, AsyncOpenAI
