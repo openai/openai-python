@@ -22,8 +22,7 @@ from ._types import (
 )
 from ._utils import is_given, is_mapping, get_async_library
 from ._version import __version__
-from ._streaming import Stream as Stream
-from ._streaming import AsyncStream as AsyncStream
+from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
 from ._base_client import DEFAULT_MAX_RETRIES, SyncAPIClient, AsyncAPIClient
 
