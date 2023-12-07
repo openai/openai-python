@@ -91,7 +91,7 @@ def assert_matches_type(
                 traceback.print_exc()
                 continue
 
-        assert False, "Did not match any variants"
+        raise AssertionError("Did not match any variants")
     elif issubclass(origin, BaseModel):
         assert isinstance(value, type_)
         assert assert_matches_model(type_, cast(Any, value), path=path)

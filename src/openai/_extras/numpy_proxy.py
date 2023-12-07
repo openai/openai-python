@@ -20,8 +20,8 @@ class NumpyProxy(LazyProxy[Any]):
     def __load__(self) -> Any:
         try:
             import numpy
-        except ImportError:
-            raise MissingDependencyError(NUMPY_INSTRUCTIONS)
+        except ImportError as err:
+            raise MissingDependencyError(NUMPY_INSTRUCTIONS) from err
 
         return numpy
 

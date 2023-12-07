@@ -19,5 +19,5 @@ def test_recursive_proxy() -> None:
     assert repr(proxy) == "RecursiveLazyProxy"
     assert str(proxy) == "RecursiveLazyProxy"
     assert dir(proxy) == []
-    assert getattr(type(proxy), "__name__") == "RecursiveLazyProxy"
+    assert type(proxy).__name__ == "RecursiveLazyProxy"
     assert type(operator.attrgetter("name.foo.bar.baz")(proxy)).__name__ == "RecursiveLazyProxy"

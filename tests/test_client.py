@@ -19,6 +19,7 @@ from openai._client import OpenAI, AsyncOpenAI
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import (
+    OpenAIError,
     APIStatusError,
     APITimeoutError,
     APIConnectionError,
@@ -269,7 +270,7 @@ class TestOpenAI:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(Exception):
+        with pytest.raises(OpenAIError):
             client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
@@ -934,7 +935,7 @@ class TestAsyncOpenAI:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(Exception):
+        with pytest.raises(OpenAIError):
             client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 

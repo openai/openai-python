@@ -41,7 +41,7 @@ def grit(args: GritArgs) -> None:
     except subprocess.CalledProcessError:
         # stdout and stderr are forwarded by subprocess so an error will already
         # have been displayed
-        raise SilentCLIError()
+        raise SilentCLIError() from None
 
 
 class MigrateArgs(BaseModel):
@@ -57,7 +57,7 @@ def migrate(args: MigrateArgs) -> None:
     except subprocess.CalledProcessError:
         # stdout and stderr are forwarded by subprocess so an error will already
         # have been displayed
-        raise SilentCLIError()
+        raise SilentCLIError() from None
 
 
 # handles downloading the Grit CLI until they provide their own PyPi package
