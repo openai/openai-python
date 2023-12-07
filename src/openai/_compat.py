@@ -43,23 +43,21 @@ if TYPE_CHECKING:
 
 else:
     if PYDANTIC_V2:
-        from pydantic.v1.typing import (
-            get_args as get_args,
-            is_union as is_union,
-            get_origin as get_origin,
-            is_typeddict as is_typeddict,
-            is_literal_type as is_literal_type,
-        )
-        from pydantic.v1.datetime_parse import parse_date as parse_date, parse_datetime as parse_datetime
+        from pydantic.v1.typing import get_args as get_args
+        from pydantic.v1.typing import is_union as is_union
+        from pydantic.v1.typing import get_origin as get_origin
+        from pydantic.v1.typing import is_typeddict as is_typeddict
+        from pydantic.v1.typing import is_literal_type as is_literal_type
+        from pydantic.v1.datetime_parse import parse_date as parse_date
+        from pydantic.v1.datetime_parse import parse_datetime as parse_datetime
     else:
-        from pydantic.typing import (
-            get_args as get_args,
-            is_union as is_union,
-            get_origin as get_origin,
-            is_typeddict as is_typeddict,
-            is_literal_type as is_literal_type,
-        )
-        from pydantic.datetime_parse import parse_date as parse_date, parse_datetime as parse_datetime
+        from pydantic.typing import get_args as get_args
+        from pydantic.typing import is_union as is_union
+        from pydantic.typing import get_origin as get_origin
+        from pydantic.typing import is_typeddict as is_typeddict
+        from pydantic.typing import is_literal_type as is_literal_type
+        from pydantic.datetime_parse import parse_date as parse_date
+        from pydantic.datetime_parse import parse_datetime as parse_datetime
 
 
 # refactored config

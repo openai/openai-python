@@ -4,9 +4,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .speech import Speech, AsyncSpeech, SpeechWithRawResponse, AsyncSpeechWithRawResponse
+from .speech import (
+    Speech,
+    AsyncSpeech,
+    SpeechWithRawResponse,
+    AsyncSpeechWithRawResponse,
+)
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from .translations import Translations, AsyncTranslations, TranslationsWithRawResponse, AsyncTranslationsWithRawResponse
+from .translations import (
+    Translations,
+    AsyncTranslations,
+    TranslationsWithRawResponse,
+    AsyncTranslationsWithRawResponse,
+)
 from .transcriptions import (
     Transcriptions,
     AsyncTranscriptions,
