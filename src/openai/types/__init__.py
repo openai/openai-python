@@ -5,7 +5,8 @@ from __future__ import annotations
 from .edit import Edit as Edit
 from .image import Image as Image
 from .model import Model as Model
-from .shared import FunctionDefinition as FunctionDefinition, FunctionParameters as FunctionParameters
+from .shared import FunctionDefinition as FunctionDefinition
+from .shared import FunctionParameters as FunctionParameters
 from .embedding import Embedding as Embedding
 from .fine_tune import FineTune as FineTune
 from .completion import Completion as Completion
@@ -27,8 +28,18 @@ from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreatePar
 from .fine_tune_create_params import FineTuneCreateParams as FineTuneCreateParams
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
 from .moderation_create_params import ModerationCreateParams as ModerationCreateParams
-from .create_embedding_response import CreateEmbeddingResponse as CreateEmbeddingResponse
-from .moderation_create_response import ModerationCreateResponse as ModerationCreateResponse
-from .fine_tune_list_events_params import FineTuneListEventsParams as FineTuneListEventsParams
-from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
-from .fine_tune_events_list_response import FineTuneEventsListResponse as FineTuneEventsListResponse
+from .create_embedding_response import (
+    CreateEmbeddingResponse as CreateEmbeddingResponse,
+)
+from .moderation_create_response import (
+    ModerationCreateResponse as ModerationCreateResponse,
+)
+from .fine_tune_list_events_params import (
+    FineTuneListEventsParams as FineTuneListEventsParams,
+)
+from .image_create_variation_params import (
+    ImageCreateVariationParams as ImageCreateVariationParams,
+)
+from .fine_tune_events_list_response import (
+    FineTuneEventsListResponse as FineTuneEventsListResponse,
+)
