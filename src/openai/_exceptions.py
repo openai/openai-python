@@ -48,6 +48,7 @@ class APIError(OpenAIError):
         super().__init__(message)
         self.request = request
         self.message = message
+        self.body = body
 
         if is_dict(body):
             self.code = cast(Any, body.get("code"))
