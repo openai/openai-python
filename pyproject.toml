@@ -47,17 +47,18 @@ openai = "openai.cli:main"
 
 [tool.rye]
 managed = true
+# version pins are in requirements-dev.lock
 dev-dependencies = [
-    "pyright==1.1.332",
-    "mypy==1.7.1",
-    "black==23.3.0",
-    "respx==0.20.2",
-    "pytest==7.1.1",
-    "pytest-asyncio==0.21.1",
-    "ruff==0.0.282",
-    "isort==5.10.1",
-    "time-machine==2.9.0",
-    "nox==2023.4.22",
+    "pyright",
+    "mypy",
+    "black",
+    "respx",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "isort",
+    "time-machine",
+    "nox",
     "dirty-equals>=0.6.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4"
@@ -135,9 +136,11 @@ extra_standard_library = ["typing_extensions"]
 
 [tool.ruff]
 line-length = 120
-format = "grouped"
+output-format = "grouped"
 target-version = "py37"
 select = [
+  # bugbear rules
+  "B",
   # remove unused imports
   "F401",
   # bare except statements
@@ -147,6 +150,12 @@ select = [
   # print statements
   "T201",
   "T203",
+]
+ignore = [
+  # lru_cache in methods, will be fixed separately
+  "B019",
+  # mutable defaults
+  "B006",
 ]
 unfixable = [
   # disable auto fix for print statements

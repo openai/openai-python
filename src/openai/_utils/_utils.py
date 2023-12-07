@@ -194,8 +194,8 @@ def extract_type_arg(typ: type, index: int) -> type:
     args = get_args(typ)
     try:
         return cast(type, args[index])
-    except IndexError:
-        raise RuntimeError(f"Expected type {typ} to have a type argument at index {index} but it did not")
+    except IndexError as err:
+        raise RuntimeError(f"Expected type {typ} to have a type argument at index {index} but it did not") from err
 
 
 def deepcopy_minimal(item: _T) -> _T:
@@ -275,7 +275,9 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
                 try:
                     given_params.add(positional[i])
                 except IndexError:
-                    raise TypeError(f"{func.__name__}() takes {len(positional)} argument(s) but {len(args)} were given")
+                    raise TypeError(
+                        f"{func.__name__}() takes {len(positional)} argument(s) but {len(args)} were given"
+                    ) from None
 
             for key in kwargs.keys():
                 given_params.add(key)
