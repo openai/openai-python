@@ -890,6 +890,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
+                time.sleep(10)
                 err.response.close()
                 return self._retry_request(
                     options,
