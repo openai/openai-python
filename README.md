@@ -109,7 +109,7 @@ from openai import AsyncOpenAI
 client = AsyncOpenAI()
 
 stream = await client.chat.completions.create(
-    prompt="Say this is a test",
+    model="gpt-4",
     messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
