@@ -192,7 +192,7 @@ class OpenAI(SyncAPIClient):
         return self.__class__(
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
-            base_url=base_url or str(self.base_url),
+            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -402,7 +402,7 @@ class AsyncOpenAI(AsyncAPIClient):
         return self.__class__(
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
-            base_url=base_url or str(self.base_url),
+            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,

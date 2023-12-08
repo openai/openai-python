@@ -152,8 +152,6 @@ select = [
   "T203",
 ]
 ignore = [
-  # lru_cache in methods, will be fixed separately
-  "B019",
   # mutable defaults
   "B006",
 ]
