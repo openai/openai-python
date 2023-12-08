@@ -359,7 +359,7 @@ from openai import OpenAI
 
 # Configure the default for all requests:
 client = OpenAI(
-    # default is 60s
+    # default timeout is 10 minutes
     timeout=20.0,
 )
 
