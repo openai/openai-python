@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import Any, List, Generic, Optional, cast
-from typing_extensions import Literal, Protocol, override, runtime_checkable
+from typing_extensions import Protocol, override, runtime_checkable
 
 from ._types import ModelT
 from ._base_client import BasePage, PageInfo, BaseSyncPage, BaseAsyncPage
@@ -11,18 +11,21 @@ __all__ = ["SyncPage", "AsyncPage", "SyncCursorPage", "AsyncCursorPage"]
 
 @runtime_checkable
 class CursorPageItem(Protocol):
-    id: str
+    id: Optional[str]
 
 
 class SyncPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
     """Note: no pagination actually occurs yet, this is for forwards-compatibility."""
 
     data: List[ModelT]
-    object: Literal["list"]
+    object: str
 
     @override
     def _get_page_items(self) -> List[ModelT]:
-        return self.data
+        data = self.data
+        if not data:
+            return []
+        return data
 
     @override
     def next_page_info(self) -> None:
@@ -37,11 +40,14 @@ class AsyncPage(BaseAsyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
     """Note: no pagination actually occurs yet, this is for forwards-compatibility."""
 
     data: List[ModelT]
-    object: Literal["list"]
+    object: str
 
     @override
     def _get_page_items(self) -> List[ModelT]:
-        return self.data
+        data = self.data
+        if not data:
+            return []
+        return data
 
     @override
     def next_page_info(self) -> None:
@@ -57,15 +63,19 @@ class SyncCursorPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
 
     @override
     def _get_page_items(self) -> List[ModelT]:
-        return self.data
+        data = self.data
+        if not data:
+            return []
+        return data
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
-        if not self.data:
+        data = self.data
+        if not data:
             return None
 
-        item = cast(Any, self.data[-1])
-        if not isinstance(item, CursorPageItem):
+        item = cast(Any, data[-1])
+        if not isinstance(item, CursorPageItem) or item.id is None:
             # TODO emit warning log
             return None
 
@@ -77,15 +87,19 @@ class AsyncCursorPage(BaseAsyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
 
     @override
     def _get_page_items(self) -> List[ModelT]:
-        return self.data
+        data = self.data
+        if not data:
+            return []
+        return data
 
     @override
     def next_page_info(self) -> Optional[PageInfo]:
-        if not self.data:
+        data = self.data
+        if not data:
             return None
 
-        item = cast(Any, self.data[-1])
-        if not isinstance(item, CursorPageItem):
+        item = cast(Any, data[-1])
+        if not isinstance(item, CursorPageItem) or item.id is None:
             # TODO emit warning log
             return None
 

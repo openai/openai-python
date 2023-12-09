@@ -20,8 +20,8 @@ class PandasProxy(LazyProxy[Any]):
     def __load__(self) -> Any:
         try:
             import pandas
-        except ImportError:
-            raise MissingDependencyError(PANDAS_INSTRUCTIONS)
+        except ImportError as err:
+            raise MissingDependencyError(PANDAS_INSTRUCTIONS) from err
 
         return pandas
 

@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import gc
 import os
 import json
 import asyncio
 import inspect
-from typing import Any, Dict, Union, cast
+import tracemalloc
+from typing import Any, Union, cast
 from unittest import mock
 
 import httpx
@@ -19,6 +21,7 @@ from openai._client import OpenAI, AsyncOpenAI
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import (
+    OpenAIError,
     APIStatusError,
     APITimeoutError,
     APIConnectionError,
@@ -194,6 +197,67 @@ class TestOpenAI:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
+    def test_copy_build_request(self) -> None:
+        options = FinalRequestOptions(method="get", url="/foo")
+
+        def build_request(options: FinalRequestOptions) -> None:
+            client = self.client.copy()
+            client._build_request(options)
+
+        # ensure that the machinery is warmed up before tracing starts.
+        build_request(options)
+        gc.collect()
+
+        tracemalloc.start(1000)
+
+        snapshot_before = tracemalloc.take_snapshot()
+
+        ITERATIONS = 10
+        for _ in range(ITERATIONS):
+            build_request(options)
+            gc.collect()
+
+        snapshot_after = tracemalloc.take_snapshot()
+
+        tracemalloc.stop()
+
+        def add_leak(leaks: list[tracemalloc.StatisticDiff], diff: tracemalloc.StatisticDiff) -> None:
+            if diff.count == 0:
+                # Avoid false positives by considering only leaks (i.e. allocations that persist).
+                return
+
+            if diff.count % ITERATIONS != 0:
+                # Avoid false positives by considering only leaks that appear per iteration.
+                return
+
+            for frame in diff.traceback:
+                if any(
+                    frame.filename.endswith(fragment)
+                    for fragment in [
+                        # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
+                        #
+                        # removing the decorator fixes the leak for reasons we don't understand.
+                        "openai/_response.py",
+                        # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
+                        "openai/_compat.py",
+                        # Standard library leaks we don't care about.
+                        "/logging/__init__.py",
+                    ]
+                ):
+                    return
+
+            leaks.append(diff)
+
+        leaks: list[tracemalloc.StatisticDiff] = []
+        for diff in snapshot_after.compare_to(snapshot_before, "traceback"):
+            add_leak(leaks, diff)
+        if leaks:
+            for leak in leaks:
+                print("MEMORY LEAK:", leak)
+                for frame in leak.traceback:
+                    print(frame)
+            raise AssertionError()
+
     def test_request_timeout(self) -> None:
         request = self.client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
@@ -269,7 +333,7 @@ class TestOpenAI:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(Exception):
+        with pytest.raises(OpenAIError):
             client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
@@ -357,7 +421,7 @@ class TestOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"my_query_param": "Foo"}
 
         # if both `query` and `extra_query` are given, they are merged
@@ -371,7 +435,7 @@ class TestOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"bar": "1", "foo": "2"}
 
         # `extra_query` takes priority over `query` when keys clash
@@ -385,7 +449,7 @@ class TestOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"foo": "2"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -857,6 +921,67 @@ class TestAsyncOpenAI:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
+    def test_copy_build_request(self) -> None:
+        options = FinalRequestOptions(method="get", url="/foo")
+
+        def build_request(options: FinalRequestOptions) -> None:
+            client = self.client.copy()
+            client._build_request(options)
+
+        # ensure that the machinery is warmed up before tracing starts.
+        build_request(options)
+        gc.collect()
+
+        tracemalloc.start(1000)
+
+        snapshot_before = tracemalloc.take_snapshot()
+
+        ITERATIONS = 10
+        for _ in range(ITERATIONS):
+            build_request(options)
+            gc.collect()
+
+        snapshot_after = tracemalloc.take_snapshot()
+
+        tracemalloc.stop()
+
+        def add_leak(leaks: list[tracemalloc.StatisticDiff], diff: tracemalloc.StatisticDiff) -> None:
+            if diff.count == 0:
+                # Avoid false positives by considering only leaks (i.e. allocations that persist).
+                return
+
+            if diff.count % ITERATIONS != 0:
+                # Avoid false positives by considering only leaks that appear per iteration.
+                return
+
+            for frame in diff.traceback:
+                if any(
+                    frame.filename.endswith(fragment)
+                    for fragment in [
+                        # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
+                        #
+                        # removing the decorator fixes the leak for reasons we don't understand.
+                        "openai/_response.py",
+                        # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
+                        "openai/_compat.py",
+                        # Standard library leaks we don't care about.
+                        "/logging/__init__.py",
+                    ]
+                ):
+                    return
+
+            leaks.append(diff)
+
+        leaks: list[tracemalloc.StatisticDiff] = []
+        for diff in snapshot_after.compare_to(snapshot_before, "traceback"):
+            add_leak(leaks, diff)
+        if leaks:
+            for leak in leaks:
+                print("MEMORY LEAK:", leak)
+                for frame in leak.traceback:
+                    print(frame)
+            raise AssertionError()
+
     async def test_request_timeout(self) -> None:
         request = self.client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
@@ -934,7 +1059,7 @@ class TestAsyncOpenAI:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(Exception):
+        with pytest.raises(OpenAIError):
             client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
@@ -1022,7 +1147,7 @@ class TestAsyncOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"my_query_param": "Foo"}
 
         # if both `query` and `extra_query` are given, they are merged
@@ -1036,7 +1161,7 @@ class TestAsyncOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"bar": "1", "foo": "2"}
 
         # `extra_query` takes priority over `query` when keys clash
@@ -1050,7 +1175,7 @@ class TestAsyncOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"foo": "2"}
 
     @pytest.mark.respx(base_url=base_url)

@@ -403,14 +403,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         headers_dict = _merge_mappings(self.default_headers, custom_headers)
         self._validate_headers(headers_dict, custom_headers)
 
+        # headers are case-insensitive while dictionaries are not.
         headers = httpx.Headers(headers_dict)
 
         idempotency_header = self._idempotency_header
         if idempotency_header and options.method.lower() != "get" and idempotency_header not in headers:
-            if not options.idempotency_key:
-                options.idempotency_key = self._idempotency_key()
-
-            headers[idempotency_header] = options.idempotency_key
+            headers[idempotency_header] = options.idempotency_key or self._idempotency_key()
 
         return headers
 
@@ -594,16 +592,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     def base_url(self, url: URL | str) -> None:
         self._base_url = self._enforce_trailing_slash(url if isinstance(url, URL) else URL(url))
 
-    @lru_cache(maxsize=None)
     def platform_headers(self) -> Dict[str, str]:
-        return {
-            "X-Stainless-Lang": "python",
-            "X-Stainless-Package-Version": self._version,
-            "X-Stainless-OS": str(get_platform()),
-            "X-Stainless-Arch": str(get_architecture()),
-            "X-Stainless-Runtime": platform.python_implementation(),
-            "X-Stainless-Runtime-Version": platform.python_version(),
-        }
+        return platform_headers(self._version)
 
     def _calculate_retry_timeout(
         self,
@@ -1689,6 +1679,18 @@ def get_platform() -> Platform:
         return OtherPlatform(platform_name)
 
     return "Unknown"
+
+
+@lru_cache(maxsize=None)
+def platform_headers(version: str) -> Dict[str, str]:
+    return {
+        "X-Stainless-Lang": "python",
+        "X-Stainless-Package-Version": version,
+        "X-Stainless-OS": str(get_platform()),
+        "X-Stainless-Arch": str(get_architecture()),
+        "X-Stainless-Runtime": platform.python_implementation(),
+        "X-Stainless-Runtime-Version": platform.python_version(),
+    }
 
 
 class OtherArch:
