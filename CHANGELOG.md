@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.3.8 (2023-12-08)
+
+Full Changelog: [v1.3.7...v1.3.8](https://github.com/openai/openai-python/compare/v1.3.7...v1.3.8)
+
+### Bug Fixes
+
+* avoid leaking memory when Client.with_options is used ([#956](https://github.com/openai/openai-python/issues/956)) ([e37ecca](https://github.com/openai/openai-python/commit/e37ecca04040ce946822a7e40f5604532a59ee85))
+* **errors:** properly assign APIError.body ([#949](https://github.com/openai/openai-python/issues/949)) ([c70e194](https://github.com/openai/openai-python/commit/c70e194f0a253409ec851607ae5219e3b5a8c442))
+* **pagination:** use correct type hint for .object ([#943](https://github.com/openai/openai-python/issues/943)) ([23fe7ee](https://github.com/openai/openai-python/commit/23fe7ee48a71539b0d1e95ceff349264aae4090e))
+
+
+### Chores
+
+* **internal:** enable more lint rules ([#945](https://github.com/openai/openai-python/issues/945)) ([2c8add6](https://github.com/openai/openai-python/commit/2c8add64a261dea731bd162bb0cca222518d5440))
+* **internal:** reformat imports ([#939](https://github.com/openai/openai-python/issues/939)) ([ec65124](https://github.com/openai/openai-python/commit/ec651249de2f4e4cf959f816e1b52f03d3b1017a))
+* **internal:** reformat imports ([#944](https://github.com/openai/openai-python/issues/944)) ([5290639](https://github.com/openai/openai-python/commit/52906391c9b6633656ec7934e6bbac553ec667cd))
+* **internal:** update formatting ([#941](https://github.com/openai/openai-python/issues/941)) ([8e5a156](https://github.com/openai/openai-python/commit/8e5a156d555fe68731ba0604a7455cc03cb451ce))
+* **package:** lift anyio v4 restriction ([#927](https://github.com/openai/openai-python/issues/927)) ([be0438a](https://github.com/openai/openai-python/commit/be0438a2e399bb0e0a94907229d02fc61ab479c0))
+
+
+### Documentation
+
+* fix typo in example ([#950](https://github.com/openai/openai-python/issues/950)) ([54f0ce0](https://github.com/openai/openai-python/commit/54f0ce0000abe32e97ae400f2975c028b8a84273))
+
 ## 1.3.7 (2023-12-01)
 
 Full Changelog: [v1.3.6...v1.3.7](https://github.com/openai/openai-python/compare/v1.3.6...v1.3.7)
