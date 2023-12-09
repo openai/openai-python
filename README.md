@@ -108,14 +108,17 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
-stream = await client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Say this is a test"}],
-    stream=True,
-)
-async for chunk in stream:
-    if chunk.choices[0].delta.content is not None:
-        print(chunk.choices[0].delta.content)
+async def main():
+    stream = await client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": "Say this is a test"}],
+        stream=True,
+    )
+    async for chunk in stream:
+        if chunk.choices[0].delta.content is not None:
+            print(chunk.choices[0].delta.content)
+
+asyncio.run(main())
 ```
 
 ## Module-level client
