@@ -97,8 +97,7 @@ stream = client.chat.completions.create(
     stream=True,
 )
 for chunk in stream:
-    if chunk.choices[0].delta.content is not None:
-        print(chunk.choices[0].delta.content)
+    print(chunk.choices[0].delta.content or "", end="")
 ```
 
 The async client uses the exact same interface.
@@ -108,6 +107,7 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
+
 async def main():
     stream = await client.chat.completions.create(
         model="gpt-4",
@@ -115,8 +115,8 @@ async def main():
         stream=True,
     )
     async for chunk in stream:
-        if chunk.choices[0].delta.content is not None:
-            print(chunk.choices[0].delta.content)
+        print(chunk.choices[0].delta.content or "", end="")
+
 
 asyncio.run(main())
 ```
