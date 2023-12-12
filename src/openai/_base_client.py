@@ -873,17 +873,42 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         request = self._build_request(options)
         self._prepare_request(request)
 
-        response = None
-
         try:
             response = self._client.send(
                 request,
                 auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
             )
-            log.debug(
-                'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
-            )
+        except httpx.TimeoutException as err:
+            if retries > 0:
+                return self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APITimeoutError(request=request) from err
+        except Exception as err:
+            if retries > 0:
+                return self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APIConnectionError(request=request) from err
+
+        log.debug(
+            'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+        )
+
+        try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
@@ -903,36 +928,6 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 err.response.read()
 
             raise self._make_status_error_from_response(err.response) from None
-        except httpx.TimeoutException as err:
-            if response is not None:
-                response.close()
-
-            if retries > 0:
-                return self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APITimeoutError(request=request) from err
-        except Exception as err:
-            if response is not None:
-                response.close()
-
-            if retries > 0:
-                return self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APIConnectionError(request=request) from err
 
         return self._process_response(
             cast_to=cast_to,
@@ -1340,17 +1335,42 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         request = self._build_request(options)
         await self._prepare_request(request)
 
-        response = None
-
         try:
             response = await self._client.send(
                 request,
                 auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
             )
-            log.debug(
-                'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
-            )
+        except httpx.TimeoutException as err:
+            if retries > 0:
+                return await self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APITimeoutError(request=request) from err
+        except Exception as err:
+            if retries > 0:
+                return await self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APIConnectionError(request=request) from err
+
+        log.debug(
+            'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+        )
+
+        try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
@@ -1370,36 +1390,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 await err.response.aread()
 
             raise self._make_status_error_from_response(err.response) from None
-        except httpx.TimeoutException as err:
-            if response is not None:
-                await response.aclose()
-
-            if retries > 0:
-                return await self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APITimeoutError(request=request) from err
-        except Exception as err:
-            if response is not None:
-                await response.aclose()
-
-            if retries > 0:
-                return await self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APIConnectionError(request=request) from err
 
         return self._process_response(
             cast_to=cast_to,
