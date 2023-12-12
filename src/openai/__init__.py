@@ -221,13 +221,6 @@ class _ModuleClient(OpenAI):
 
         http_client = value
 
-    @override
-    def __del__(self) -> None:
-        try:
-            super().__del__()
-        except Exception:
-            pass
-
 
 class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
     ...

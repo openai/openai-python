@@ -5,6 +5,7 @@ import json
 import time
 import uuid
 import email
+import asyncio
 import inspect
 import logging
 import platform
@@ -672,9 +673,16 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+class SyncHttpxClientWrapper(httpx.Client):
+    def __del__(self) -> None:
+        try:
+            self.close()
+        except Exception:
+            pass
+
+
 class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
     _client: httpx.Client
-    _has_custom_http_client: bool
     _default_stream_cls: type[Stream[Any]] | None = None
 
     def __init__(
@@ -747,7 +755,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or httpx.Client(
+        self._client = http_client or SyncHttpxClientWrapper(
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
@@ -755,7 +763,6 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             transport=transport,
             limits=limits,
         )
-        self._has_custom_http_client = bool(http_client)
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -1135,9 +1142,17 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         return self._request_api_list(model, page, opts)
 
 
+class AsyncHttpxClientWrapper(httpx.AsyncClient):
+    def __del__(self) -> None:
+        try:
+            # TODO(someday): support non asyncio runtimes here
+            asyncio.get_running_loop().create_task(self.aclose())
+        except Exception:
+            pass
+
+
 class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
     _client: httpx.AsyncClient
-    _has_custom_http_client: bool
     _default_stream_cls: type[AsyncStream[Any]] | None = None
 
     def __init__(
@@ -1210,7 +1225,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or httpx.AsyncClient(
+        self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
@@ -1218,7 +1233,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             transport=transport,
             limits=limits,
         )
-        self._has_custom_http_client = bool(http_client)
 
     def is_closed(self) -> bool:
         return self._client.is_closed
