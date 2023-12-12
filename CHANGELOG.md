@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.3.9 (2023-12-12)
+
+Full Changelog: [v1.3.8...v1.3.9](https://github.com/openai/openai-python/compare/v1.3.8...v1.3.9)
+
+### Documentation
+
+* improve README timeout comment ([#964](https://github.com/openai/openai-python/issues/964)) ([3c3ed5e](https://github.com/openai/openai-python/commit/3c3ed5edd938a9333e8d2fa47cb4b44178eef89a))
+* small Improvement in the async chat response code ([#959](https://github.com/openai/openai-python/issues/959)) ([fb9d0a3](https://github.com/openai/openai-python/commit/fb9d0a358fa232043d9d5c149b6a888d50127c7b))
+* small streaming readme improvements ([#962](https://github.com/openai/openai-python/issues/962)) ([f3be2e5](https://github.com/openai/openai-python/commit/f3be2e5cc24988471e6cedb3e34bdfd3123edc63))
+
+
+### Refactors
+
+* **client:** simplify cleanup ([#966](https://github.com/openai/openai-python/issues/966)) ([5c138f4](https://github.com/openai/openai-python/commit/5c138f4a7947e5b4aae8779fae78ca51269b355a))
+* simplify internal error handling ([#968](https://github.com/openai/openai-python/issues/968)) ([d187f6b](https://github.com/openai/openai-python/commit/d187f6b6e4e646cca39c6ca35c618aa5c1bfbd61))
+
 ## 1.3.8 (2023-12-08)
 
 Full Changelog: [v1.3.7...v1.3.8](https://github.com/openai/openai-python/compare/v1.3.7...v1.3.8)
