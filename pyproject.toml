@@ -84,7 +84,7 @@ typecheck = { chain = [
 ]}
 "typecheck:pyright" = "pyright"
 "typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
-"typecheck:mypy" = "mypy --enable-incomplete-feature=Unpack ."
+"typecheck:mypy" = "mypy ."
 
 [build-system]
 requires = ["hatchling"]

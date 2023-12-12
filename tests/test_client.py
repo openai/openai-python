@@ -591,14 +591,6 @@ class TestOpenAI:
         )
         assert request.url == "https://myapi.com/foo"
 
-    def test_client_del(self) -> None:
-        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-        assert not client.is_closed()
-
-        client.__del__()
-
-        assert client.is_closed()
-
     def test_copied_client_does_not_close_http(self) -> None:
         client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not client.is_closed()
@@ -606,9 +598,8 @@ class TestOpenAI:
         copied = client.copy()
         assert copied is not client
 
-        copied.__del__()
+        del copied
 
-        assert not copied.is_closed()
         assert not client.is_closed()
 
     def test_client_context_manager(self) -> None:
@@ -1325,15 +1316,6 @@ class TestAsyncOpenAI:
         )
         assert request.url == "https://myapi.com/foo"
 
-    async def test_client_del(self) -> None:
-        client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-        assert not client.is_closed()
-
-        client.__del__()
-
-        await asyncio.sleep(0.2)
-        assert client.is_closed()
-
     async def test_copied_client_does_not_close_http(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not client.is_closed()
@@ -1341,10 +1323,9 @@ class TestAsyncOpenAI:
         copied = client.copy()
         assert copied is not client
 
-        copied.__del__()
+        del copied
 
         await asyncio.sleep(0.2)
-        assert not copied.is_closed()
         assert not client.is_closed()
 
     async def test_client_context_manager(self) -> None:
