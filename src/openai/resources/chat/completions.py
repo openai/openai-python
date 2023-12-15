@@ -51,11 +51,11 @@ class Completions(SyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -97,7 +97,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -130,13 +130,15 @@ class Completions(SyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output.
 
@@ -146,10 +148,10 @@ class Completions(SyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -222,11 +224,11 @@ class Completions(SyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -275,7 +277,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -308,13 +310,15 @@ class Completions(SyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output.
 
@@ -324,10 +328,10 @@ class Completions(SyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -393,11 +397,11 @@ class Completions(SyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -446,7 +450,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -479,13 +483,15 @@ class Completions(SyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output.
 
@@ -495,10 +501,10 @@ class Completions(SyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -564,11 +570,11 @@ class Completions(SyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -652,11 +658,11 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -698,7 +704,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -731,13 +737,15 @@ class AsyncCompletions(AsyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output.
 
@@ -747,10 +755,10 @@ class AsyncCompletions(AsyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -823,11 +831,11 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -876,7 +884,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -909,13 +917,15 @@ class AsyncCompletions(AsyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output.
 
@@ -925,10 +935,10 @@ class AsyncCompletions(AsyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -994,11 +1004,11 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -1047,7 +1057,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -1080,13 +1090,15 @@ class AsyncCompletions(AsyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output.
 
@@ -1096,10 +1108,10 @@ class AsyncCompletions(AsyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1165,11 +1177,11 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-4-32k",
                 "gpt-4-32k-0314",
                 "gpt-4-32k-0613",
-                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo",
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],

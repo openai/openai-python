@@ -24,7 +24,7 @@ class TestFiles:
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
         file = client.beta.assistants.files.create(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
             file_id="string",
         )
         assert_matches_type(AssistantFile, file, path=["response"])
@@ -32,7 +32,7 @@ class TestFiles:
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.beta.assistants.files.with_raw_response.create(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
             file_id="string",
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -111,7 +111,7 @@ class TestAsyncFiles:
     @parametrize
     async def test_method_create(self, client: AsyncOpenAI) -> None:
         file = await client.beta.assistants.files.create(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
             file_id="string",
         )
         assert_matches_type(AssistantFile, file, path=["response"])
@@ -119,7 +119,7 @@ class TestAsyncFiles:
     @parametrize
     async def test_raw_response_create(self, client: AsyncOpenAI) -> None:
         response = await client.beta.assistants.files.with_raw_response.create(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
             file_id="string",
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
