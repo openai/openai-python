@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0 (2023-12-15)
+
+Full Changelog: [v1.3.9...v1.4.0](https://github.com/openai/openai-python/compare/v1.3.9...v1.4.0)
+
+### Features
+
+* **api:** add optional `name` argument + improve docs ([#972](https://github.com/openai/openai-python/issues/972)) ([7972010](https://github.com/openai/openai-python/commit/7972010615820099f662c02821cfbd59e7d6ea44))
+
 ## 1.3.9 (2023-12-12)
 
 Full Changelog: [v1.3.8...v1.3.9](https://github.com/openai/openai-python/compare/v1.3.8...v1.3.9)
