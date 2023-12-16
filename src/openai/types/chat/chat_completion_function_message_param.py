@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["ChatCompletionFunctionMessageParam"]
 
 
 class ChatCompletionFunctionMessageParam(TypedDict, total=False):
-    content: Required[Optional[str]]
-    """The return value from the function call, to return to the model."""
+    content: Required[str]
+    """The contents of the function message."""
 
     name: Required[str]
     """The name of the function to call."""

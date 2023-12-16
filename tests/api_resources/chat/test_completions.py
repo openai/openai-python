@@ -40,6 +40,7 @@ class TestCompletions:
                 {
                     "content": "string",
                     "role": "system",
+                    "name": "string",
                 }
             ],
             model="gpt-3.5-turbo",
@@ -128,6 +129,7 @@ class TestCompletions:
                 {
                     "content": "string",
                     "role": "system",
+                    "name": "string",
                 }
             ],
             model="gpt-3.5-turbo",
@@ -221,6 +223,7 @@ class TestAsyncCompletions:
                 {
                     "content": "string",
                     "role": "system",
+                    "name": "string",
                 }
             ],
             model="gpt-3.5-turbo",
@@ -309,6 +312,7 @@ class TestAsyncCompletions:
                 {
                     "content": "string",
                     "role": "system",
+                    "name": "string",
                 }
             ],
             model="gpt-3.5-turbo",

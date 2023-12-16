@@ -44,6 +44,7 @@ _T = TypeVar("_T")
 
 
 class BinaryResponseContent(ABC):
+    @abstractmethod
     def __init__(
         self,
         response: Any,

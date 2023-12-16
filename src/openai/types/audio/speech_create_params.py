@@ -22,6 +22,8 @@ class SpeechCreateParams(TypedDict, total=False):
     """The voice to use when generating the audio.
 
     Supported voices are `alloy`, `echo`, `fable`, `onyx`, `nova`, and `shimmer`.
+    Previews of the voices are available in the
+    [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
     """
 
     response_format: Literal["mp3", "opus", "aac", "flac"]

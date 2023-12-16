@@ -5,6 +5,7 @@ import json
 import time
 import uuid
 import email
+import asyncio
 import inspect
 import logging
 import platform
@@ -403,14 +404,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         headers_dict = _merge_mappings(self.default_headers, custom_headers)
         self._validate_headers(headers_dict, custom_headers)
 
+        # headers are case-insensitive while dictionaries are not.
         headers = httpx.Headers(headers_dict)
 
         idempotency_header = self._idempotency_header
         if idempotency_header and options.method.lower() != "get" and idempotency_header not in headers:
-            if not options.idempotency_key:
-                options.idempotency_key = self._idempotency_key()
-
-            headers[idempotency_header] = options.idempotency_key
+            headers[idempotency_header] = options.idempotency_key or self._idempotency_key()
 
         return headers
 
@@ -594,16 +593,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     def base_url(self, url: URL | str) -> None:
         self._base_url = self._enforce_trailing_slash(url if isinstance(url, URL) else URL(url))
 
-    @lru_cache(maxsize=None)
     def platform_headers(self) -> Dict[str, str]:
-        return {
-            "X-Stainless-Lang": "python",
-            "X-Stainless-Package-Version": self._version,
-            "X-Stainless-OS": str(get_platform()),
-            "X-Stainless-Arch": str(get_architecture()),
-            "X-Stainless-Runtime": platform.python_implementation(),
-            "X-Stainless-Runtime-Version": platform.python_version(),
-        }
+        return platform_headers(self._version)
 
     def _calculate_retry_timeout(
         self,
@@ -682,9 +673,16 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
+class SyncHttpxClientWrapper(httpx.Client):
+    def __del__(self) -> None:
+        try:
+            self.close()
+        except Exception:
+            pass
+
+
 class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
     _client: httpx.Client
-    _has_custom_http_client: bool
     _default_stream_cls: type[Stream[Any]] | None = None
 
     def __init__(
@@ -757,7 +755,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or httpx.Client(
+        self._client = http_client or SyncHttpxClientWrapper(
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
@@ -765,7 +763,6 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             transport=transport,
             limits=limits,
         )
-        self._has_custom_http_client = bool(http_client)
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -876,17 +873,42 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         request = self._build_request(options)
         self._prepare_request(request)
 
-        response = None
-
         try:
             response = self._client.send(
                 request,
                 auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
             )
-            log.debug(
-                'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
-            )
+        except httpx.TimeoutException as err:
+            if retries > 0:
+                return self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APITimeoutError(request=request) from err
+        except Exception as err:
+            if retries > 0:
+                return self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APIConnectionError(request=request) from err
+
+        log.debug(
+            'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+        )
+
+        try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
@@ -906,36 +928,6 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 err.response.read()
 
             raise self._make_status_error_from_response(err.response) from None
-        except httpx.TimeoutException as err:
-            if response is not None:
-                response.close()
-
-            if retries > 0:
-                return self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APITimeoutError(request=request) from err
-        except Exception as err:
-            if response is not None:
-                response.close()
-
-            if retries > 0:
-                return self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APIConnectionError(request=request) from err
 
         return self._process_response(
             cast_to=cast_to,
@@ -1145,9 +1137,17 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         return self._request_api_list(model, page, opts)
 
 
+class AsyncHttpxClientWrapper(httpx.AsyncClient):
+    def __del__(self) -> None:
+        try:
+            # TODO(someday): support non asyncio runtimes here
+            asyncio.get_running_loop().create_task(self.aclose())
+        except Exception:
+            pass
+
+
 class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
     _client: httpx.AsyncClient
-    _has_custom_http_client: bool
     _default_stream_cls: type[AsyncStream[Any]] | None = None
 
     def __init__(
@@ -1220,7 +1220,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
-        self._client = http_client or httpx.AsyncClient(
+        self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
@@ -1228,7 +1228,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             transport=transport,
             limits=limits,
         )
-        self._has_custom_http_client = bool(http_client)
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -1336,17 +1335,42 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         request = self._build_request(options)
         await self._prepare_request(request)
 
-        response = None
-
         try:
             response = await self._client.send(
                 request,
                 auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
             )
-            log.debug(
-                'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
-            )
+        except httpx.TimeoutException as err:
+            if retries > 0:
+                return await self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APITimeoutError(request=request) from err
+        except Exception as err:
+            if retries > 0:
+                return await self._retry_request(
+                    options,
+                    cast_to,
+                    retries,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    response_headers=None,
+                )
+
+            raise APIConnectionError(request=request) from err
+
+        log.debug(
+            'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+        )
+
+        try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
             if retries > 0 and self._should_retry(err.response):
@@ -1366,36 +1390,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 await err.response.aread()
 
             raise self._make_status_error_from_response(err.response) from None
-        except httpx.TimeoutException as err:
-            if response is not None:
-                await response.aclose()
-
-            if retries > 0:
-                return await self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APITimeoutError(request=request) from err
-        except Exception as err:
-            if response is not None:
-                await response.aclose()
-
-            if retries > 0:
-                return await self._retry_request(
-                    options,
-                    cast_to,
-                    retries,
-                    stream=stream,
-                    stream_cls=stream_cls,
-                    response_headers=response.headers if response is not None else None,
-                )
-
-            raise APIConnectionError(request=request) from err
 
         return self._process_response(
             cast_to=cast_to,
@@ -1689,6 +1683,18 @@ def get_platform() -> Platform:
         return OtherPlatform(platform_name)
 
     return "Unknown"
+
+
+@lru_cache(maxsize=None)
+def platform_headers(version: str) -> Dict[str, str]:
+    return {
+        "X-Stainless-Lang": "python",
+        "X-Stainless-Package-Version": version,
+        "X-Stainless-OS": str(get_platform()),
+        "X-Stainless-Arch": str(get_architecture()),
+        "X-Stainless-Runtime": platform.python_implementation(),
+        "X-Stainless-Runtime-Version": platform.python_version(),
+    }
 
 
 class OtherArch:

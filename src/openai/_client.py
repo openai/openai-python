@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import os
-import asyncio
 from typing import Any, Union, Mapping
 from typing_extensions import Self, override
 
@@ -192,7 +191,7 @@ class OpenAI(SyncAPIClient):
         return self.__class__(
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
-            base_url=base_url or str(self.base_url),
+            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -204,16 +203,6 @@ class OpenAI(SyncAPIClient):
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
     with_options = copy
-
-    def __del__(self) -> None:
-        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close"):
-            # this can happen if the '__init__' method raised an error
-            return
-
-        if self._has_custom_http_client:
-            return
-
-        self.close()
 
     @override
     def _make_status_error(
@@ -402,7 +391,7 @@ class AsyncOpenAI(AsyncAPIClient):
         return self.__class__(
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
-            base_url=base_url or str(self.base_url),
+            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
@@ -414,19 +403,6 @@ class AsyncOpenAI(AsyncAPIClient):
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
     with_options = copy
-
-    def __del__(self) -> None:
-        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close"):
-            # this can happen if the '__init__' method raised an error
-            return
-
-        if self._has_custom_http_client:
-            return
-
-        try:
-            asyncio.get_running_loop().create_task(self.close())
-        except Exception:
-            pass
 
     @override
     def _make_status_error(

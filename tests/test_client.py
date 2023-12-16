@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import gc
 import os
 import json
 import asyncio
 import inspect
-from typing import Any, Dict, Union, cast
+import tracemalloc
+from typing import Any, Union, cast
 from unittest import mock
 
 import httpx
@@ -19,9 +21,9 @@ from openai._client import OpenAI, AsyncOpenAI
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import (
+    OpenAIError,
     APIStatusError,
     APITimeoutError,
-    APIConnectionError,
     APIResponseValidationError,
 )
 from openai._base_client import (
@@ -43,14 +45,8 @@ def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
     return dict(url.params)
 
 
-_original_response_init = cast(Any, httpx.Response.__init__)  # type: ignore
-
-
-def _low_retry_response_init(*args: Any, **kwargs: Any) -> Any:
-    headers = cast("list[tuple[bytes, bytes]]", kwargs["headers"])
-    headers.append((b"retry-after", b"0.1"))
-
-    return _original_response_init(*args, **kwargs)
+def _low_retry_timeout(*_args: Any, **_kwargs: Any) -> float:
+    return 0.1
 
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
@@ -194,6 +190,67 @@ class TestOpenAI:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
+    def test_copy_build_request(self) -> None:
+        options = FinalRequestOptions(method="get", url="/foo")
+
+        def build_request(options: FinalRequestOptions) -> None:
+            client = self.client.copy()
+            client._build_request(options)
+
+        # ensure that the machinery is warmed up before tracing starts.
+        build_request(options)
+        gc.collect()
+
+        tracemalloc.start(1000)
+
+        snapshot_before = tracemalloc.take_snapshot()
+
+        ITERATIONS = 10
+        for _ in range(ITERATIONS):
+            build_request(options)
+            gc.collect()
+
+        snapshot_after = tracemalloc.take_snapshot()
+
+        tracemalloc.stop()
+
+        def add_leak(leaks: list[tracemalloc.StatisticDiff], diff: tracemalloc.StatisticDiff) -> None:
+            if diff.count == 0:
+                # Avoid false positives by considering only leaks (i.e. allocations that persist).
+                return
+
+            if diff.count % ITERATIONS != 0:
+                # Avoid false positives by considering only leaks that appear per iteration.
+                return
+
+            for frame in diff.traceback:
+                if any(
+                    frame.filename.endswith(fragment)
+                    for fragment in [
+                        # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
+                        #
+                        # removing the decorator fixes the leak for reasons we don't understand.
+                        "openai/_response.py",
+                        # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
+                        "openai/_compat.py",
+                        # Standard library leaks we don't care about.
+                        "/logging/__init__.py",
+                    ]
+                ):
+                    return
+
+            leaks.append(diff)
+
+        leaks: list[tracemalloc.StatisticDiff] = []
+        for diff in snapshot_after.compare_to(snapshot_before, "traceback"):
+            add_leak(leaks, diff)
+        if leaks:
+            for leak in leaks:
+                print("MEMORY LEAK:", leak)
+                for frame in leak.traceback:
+                    print(frame)
+            raise AssertionError()
+
     def test_request_timeout(self) -> None:
         request = self.client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
@@ -269,7 +326,7 @@ class TestOpenAI:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(Exception):
+        with pytest.raises(OpenAIError):
             client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
@@ -357,7 +414,7 @@ class TestOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"my_query_param": "Foo"}
 
         # if both `query` and `extra_query` are given, they are merged
@@ -371,7 +428,7 @@ class TestOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"bar": "1", "foo": "2"}
 
         # `extra_query` takes priority over `query` when keys clash
@@ -385,7 +442,7 @@ class TestOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"foo": "2"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -527,14 +584,6 @@ class TestOpenAI:
         )
         assert request.url == "https://myapi.com/foo"
 
-    def test_client_del(self) -> None:
-        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-        assert not client.is_closed()
-
-        client.__del__()
-
-        assert client.is_closed()
-
     def test_copied_client_does_not_close_http(self) -> None:
         client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not client.is_closed()
@@ -542,9 +591,8 @@ class TestOpenAI:
         copied = client.copy()
         assert copied is not client
 
-        copied.__del__()
+        del copied
 
-        assert not copied.is_closed()
         assert not client.is_closed()
 
     def test_client_context_manager(self) -> None:
@@ -623,103 +671,51 @@ class TestOpenAI:
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("httpx.Response.__init__", _low_retry_response_init)
-    def test_retrying_timeout_errors_doesnt_leak(self) -> None:
-        def raise_for_status(response: httpx.Response) -> None:
-            raise httpx.TimeoutException("Test timeout error", request=response.request)
-
-        with mock.patch("httpx.Response.raise_for_status", raise_for_status):
-            with pytest.raises(APITimeoutError):
-                self.client.post(
-                    "/chat/completions",
-                    body=dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-3.5-turbo",
-                    ),
-                    cast_to=httpx.Response,
-                    options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
-                )
-
-        assert _get_open_connections(self.client) == 0
-
-    @mock.patch("httpx.Response.__init__", _low_retry_response_init)
-    def test_retrying_runtime_errors_doesnt_leak(self) -> None:
-        def raise_for_status(_response: httpx.Response) -> None:
-            raise RuntimeError("Test error")
-
-        with mock.patch("httpx.Response.raise_for_status", raise_for_status):
-            with pytest.raises(APIConnectionError):
-                self.client.post(
-                    "/chat/completions",
-                    body=dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-3.5-turbo",
-                    ),
-                    cast_to=httpx.Response,
-                    options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
-                )
-
-        assert _get_open_connections(self.client) == 0
-
-    @mock.patch("httpx.Response.__init__", _low_retry_response_init)
-    def test_retrying_status_errors_doesnt_leak(self) -> None:
-        def raise_for_status(response: httpx.Response) -> None:
-            response.status_code = 500
-            raise httpx.HTTPStatusError("Test 500 error", response=response, request=response.request)
-
-        with mock.patch("httpx.Response.raise_for_status", raise_for_status):
-            with pytest.raises(APIStatusError):
-                self.client.post(
-                    "/chat/completions",
-                    body=dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-3.5-turbo",
-                    ),
-                    cast_to=httpx.Response,
-                    options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
-                )
-
-        assert _get_open_connections(self.client) == 0
-
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_status_error_within_httpx(self, respx_mock: MockRouter) -> None:
-        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+        respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
-        def on_response(response: httpx.Response) -> None:
-            raise httpx.HTTPStatusError(
-                "Simulating an error inside httpx",
-                response=response,
-                request=response.request,
+        with pytest.raises(APITimeoutError):
+            self.client.post(
+                "/chat/completions",
+                body=dict(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": "Say this is a test",
+                        }
+                    ],
+                    model="gpt-3.5-turbo",
+                ),
+                cast_to=httpx.Response,
+                options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
             )
 
-        client = OpenAI(
-            base_url=base_url,
-            api_key=api_key,
-            _strict_response_validation=True,
-            http_client=httpx.Client(
-                event_hooks={
-                    "response": [on_response],
-                }
-            ),
-            max_retries=0,
-        )
+        assert _get_open_connections(self.client) == 0
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(500))
+
         with pytest.raises(APIStatusError):
-            client.post("/foo", cast_to=httpx.Response)
+            self.client.post(
+                "/chat/completions",
+                body=dict(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": "Say this is a test",
+                        }
+                    ],
+                    model="gpt-3.5-turbo",
+                ),
+                cast_to=httpx.Response,
+                options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
+            )
+
+        assert _get_open_connections(self.client) == 0
 
 
 class TestAsyncOpenAI:
@@ -857,6 +853,67 @@ class TestAsyncOpenAI:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
+    def test_copy_build_request(self) -> None:
+        options = FinalRequestOptions(method="get", url="/foo")
+
+        def build_request(options: FinalRequestOptions) -> None:
+            client = self.client.copy()
+            client._build_request(options)
+
+        # ensure that the machinery is warmed up before tracing starts.
+        build_request(options)
+        gc.collect()
+
+        tracemalloc.start(1000)
+
+        snapshot_before = tracemalloc.take_snapshot()
+
+        ITERATIONS = 10
+        for _ in range(ITERATIONS):
+            build_request(options)
+            gc.collect()
+
+        snapshot_after = tracemalloc.take_snapshot()
+
+        tracemalloc.stop()
+
+        def add_leak(leaks: list[tracemalloc.StatisticDiff], diff: tracemalloc.StatisticDiff) -> None:
+            if diff.count == 0:
+                # Avoid false positives by considering only leaks (i.e. allocations that persist).
+                return
+
+            if diff.count % ITERATIONS != 0:
+                # Avoid false positives by considering only leaks that appear per iteration.
+                return
+
+            for frame in diff.traceback:
+                if any(
+                    frame.filename.endswith(fragment)
+                    for fragment in [
+                        # to_raw_response_wrapper leaks through the @functools.wraps() decorator.
+                        #
+                        # removing the decorator fixes the leak for reasons we don't understand.
+                        "openai/_response.py",
+                        # pydantic.BaseModel.model_dump || pydantic.BaseModel.dict leak memory for some reason.
+                        "openai/_compat.py",
+                        # Standard library leaks we don't care about.
+                        "/logging/__init__.py",
+                    ]
+                ):
+                    return
+
+            leaks.append(diff)
+
+        leaks: list[tracemalloc.StatisticDiff] = []
+        for diff in snapshot_after.compare_to(snapshot_before, "traceback"):
+            add_leak(leaks, diff)
+        if leaks:
+            for leak in leaks:
+                print("MEMORY LEAK:", leak)
+                for frame in leak.traceback:
+                    print(frame)
+            raise AssertionError()
+
     async def test_request_timeout(self) -> None:
         request = self.client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
@@ -934,7 +991,7 @@ class TestAsyncOpenAI:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
-        with pytest.raises(Exception):
+        with pytest.raises(OpenAIError):
             client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
@@ -1022,7 +1079,7 @@ class TestAsyncOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"my_query_param": "Foo"}
 
         # if both `query` and `extra_query` are given, they are merged
@@ -1036,7 +1093,7 @@ class TestAsyncOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"bar": "1", "foo": "2"}
 
         # `extra_query` takes priority over `query` when keys clash
@@ -1050,7 +1107,7 @@ class TestAsyncOpenAI:
                 ),
             ),
         )
-        params = cast(Dict[str, str], dict(request.url.params))
+        params = dict(request.url.params)
         assert params == {"foo": "2"}
 
     @pytest.mark.respx(base_url=base_url)
@@ -1200,15 +1257,6 @@ class TestAsyncOpenAI:
         )
         assert request.url == "https://myapi.com/foo"
 
-    async def test_client_del(self) -> None:
-        client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-        assert not client.is_closed()
-
-        client.__del__()
-
-        await asyncio.sleep(0.2)
-        assert client.is_closed()
-
     async def test_copied_client_does_not_close_http(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         assert not client.is_closed()
@@ -1216,10 +1264,9 @@ class TestAsyncOpenAI:
         copied = client.copy()
         assert copied is not client
 
-        copied.__del__()
+        del copied
 
         await asyncio.sleep(0.2)
-        assert not copied.is_closed()
         assert not client.is_closed()
 
     async def test_client_context_manager(self) -> None:
@@ -1302,101 +1349,48 @@ class TestAsyncOpenAI:
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
-    @mock.patch("httpx.Response.__init__", _low_retry_response_init)
-    async def test_retrying_timeout_errors_doesnt_leak(self) -> None:
-        def raise_for_status(response: httpx.Response) -> None:
-            raise httpx.TimeoutException("Test timeout error", request=response.request)
-
-        with mock.patch("httpx.Response.raise_for_status", raise_for_status):
-            with pytest.raises(APITimeoutError):
-                await self.client.post(
-                    "/chat/completions",
-                    body=dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-3.5-turbo",
-                    ),
-                    cast_to=httpx.Response,
-                    options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
-                )
-
-        assert _get_open_connections(self.client) == 0
-
-    @mock.patch("httpx.Response.__init__", _low_retry_response_init)
-    async def test_retrying_runtime_errors_doesnt_leak(self) -> None:
-        def raise_for_status(_response: httpx.Response) -> None:
-            raise RuntimeError("Test error")
-
-        with mock.patch("httpx.Response.raise_for_status", raise_for_status):
-            with pytest.raises(APIConnectionError):
-                await self.client.post(
-                    "/chat/completions",
-                    body=dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-3.5-turbo",
-                    ),
-                    cast_to=httpx.Response,
-                    options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
-                )
-
-        assert _get_open_connections(self.client) == 0
-
-    @mock.patch("httpx.Response.__init__", _low_retry_response_init)
-    async def test_retrying_status_errors_doesnt_leak(self) -> None:
-        def raise_for_status(response: httpx.Response) -> None:
-            response.status_code = 500
-            raise httpx.HTTPStatusError("Test 500 error", response=response, request=response.request)
-
-        with mock.patch("httpx.Response.raise_for_status", raise_for_status):
-            with pytest.raises(APIStatusError):
-                await self.client.post(
-                    "/chat/completions",
-                    body=dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-3.5-turbo",
-                    ),
-                    cast_to=httpx.Response,
-                    options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
-                )
-
-        assert _get_open_connections(self.client) == 0
-
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    @pytest.mark.asyncio
-    async def test_status_error_within_httpx(self, respx_mock: MockRouter) -> None:
-        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+        respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
-        def on_response(response: httpx.Response) -> None:
-            raise httpx.HTTPStatusError(
-                "Simulating an error inside httpx",
-                response=response,
-                request=response.request,
+        with pytest.raises(APITimeoutError):
+            await self.client.post(
+                "/chat/completions",
+                body=dict(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": "Say this is a test",
+                        }
+                    ],
+                    model="gpt-3.5-turbo",
+                ),
+                cast_to=httpx.Response,
+                options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
             )
 
-        client = AsyncOpenAI(
-            base_url=base_url,
-            api_key=api_key,
-            _strict_response_validation=True,
-            http_client=httpx.AsyncClient(
-                event_hooks={
-                    "response": [on_response],
-                }
-            ),
-            max_retries=0,
-        )
+        assert _get_open_connections(self.client) == 0
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(500))
+
         with pytest.raises(APIStatusError):
-            await client.post("/foo", cast_to=httpx.Response)
+            await self.client.post(
+                "/chat/completions",
+                body=dict(
+                    messages=[
+                        {
+                            "role": "user",
+                            "content": "Say this is a test",
+                        }
+                    ],
+                    model="gpt-3.5-turbo",
+                ),
+                cast_to=httpx.Response,
+                options={"headers": {"X-Stainless-Streamed-Raw-Response": "true"}},
+            )
+
+        assert _get_open_connections(self.client) == 0

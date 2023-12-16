@@ -97,8 +97,7 @@ stream = client.chat.completions.create(
     stream=True,
 )
 for chunk in stream:
-    if chunk.choices[0].delta.content is not None:
-        print(chunk.choices[0].delta.content)
+    print(chunk.choices[0].delta.content or "", end="")
 ```
 
 The async client uses the exact same interface.
@@ -108,14 +107,18 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
-stream = await client.chat.completions.create(
-    prompt="Say this is a test",
-    messages=[{"role": "user", "content": "Say this is a test"}],
-    stream=True,
-)
-async for chunk in stream:
-    if chunk.choices[0].delta.content is not None:
-        print(chunk.choices[0].delta.content)
+
+async def main():
+    stream = await client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": "Say this is a test"}],
+        stream=True,
+    )
+    async for chunk in stream:
+        print(chunk.choices[0].delta.content or "", end="")
+
+
+asyncio.run(main())
 ```
 
 ## Module-level client
@@ -359,7 +362,7 @@ from openai import OpenAI
 
 # Configure the default for all requests:
 client = OpenAI(
-    # default is 60s
+    # 20 seconds (default is 10 minutes)
     timeout=20.0,
 )
 
