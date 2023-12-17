@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.5.0 (2023-12-17)
+
+Full Changelog: [v1.4.0...v1.5.0](https://github.com/openai/openai-python/compare/v1.4.0...v1.5.0)
+
+### Features
+
+* **api:** add token logprobs to chat completions ([#980](https://github.com/openai/openai-python/issues/980)) ([f50e962](https://github.com/openai/openai-python/commit/f50e962b930bd682a4299143b2995337e8571273))
+
+
+### Chores
+
+* **ci:** run release workflow once per day ([#978](https://github.com/openai/openai-python/issues/978)) ([215476a](https://github.com/openai/openai-python/commit/215476a0b99e0c92ab3e44ddd25de207af32d160))
+
 ## 1.4.0 (2023-12-15)
 
 Full Changelog: [v1.3.9...v1.4.0](https://github.com/openai/openai-python/compare/v1.3.9...v1.4.0)
