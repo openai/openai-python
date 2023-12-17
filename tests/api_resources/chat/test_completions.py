@@ -54,6 +54,7 @@ class TestCompletions:
                 }
             ],
             logit_bias={"foo": 0},
+            logprobs=True,
             max_tokens=0,
             n=1,
             presence_penalty=-2,
@@ -89,6 +90,7 @@ class TestCompletions:
                     },
                 },
             ],
+            top_logprobs=0,
             top_p=1,
             user="user-1234",
         )
@@ -144,6 +146,7 @@ class TestCompletions:
                 }
             ],
             logit_bias={"foo": 0},
+            logprobs=True,
             max_tokens=0,
             n=1,
             presence_penalty=-2,
@@ -178,6 +181,7 @@ class TestCompletions:
                     },
                 },
             ],
+            top_logprobs=0,
             top_p=1,
             user="user-1234",
         )
@@ -237,6 +241,7 @@ class TestAsyncCompletions:
                 }
             ],
             logit_bias={"foo": 0},
+            logprobs=True,
             max_tokens=0,
             n=1,
             presence_penalty=-2,
@@ -272,6 +277,7 @@ class TestAsyncCompletions:
                     },
                 },
             ],
+            top_logprobs=0,
             top_p=1,
             user="user-1234",
         )
@@ -327,6 +333,7 @@ class TestAsyncCompletions:
                 }
             ],
             logit_bias={"foo": 0},
+            logprobs=True,
             max_tokens=0,
             n=1,
             presence_penalty=-2,
@@ -361,6 +368,7 @@ class TestAsyncCompletions:
                     },
                 },
             ],
+            top_logprobs=0,
             top_p=1,
             user="user-1234",
         )
