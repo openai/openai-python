@@ -63,6 +63,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -73,6 +74,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -107,7 +109,7 @@ class Completions(SyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -123,7 +125,13 @@ class Completions(SyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
@@ -140,7 +148,8 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -187,6 +196,10 @@ class Completions(SyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -237,6 +250,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -246,6 +260,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -287,7 +302,7 @@ class Completions(SyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -303,7 +318,13 @@ class Completions(SyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
@@ -320,7 +341,8 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -360,6 +382,10 @@ class Completions(SyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -410,6 +436,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -419,6 +446,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -460,7 +488,7 @@ class Completions(SyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -476,7 +504,13 @@ class Completions(SyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
@@ -493,7 +527,8 @@ class Completions(SyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -533,6 +568,10 @@ class Completions(SyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -582,6 +621,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -592,6 +632,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -611,6 +652,7 @@ class Completions(SyncAPIResource):
                     "function_call": function_call,
                     "functions": functions,
                     "logit_bias": logit_bias,
+                    "logprobs": logprobs,
                     "max_tokens": max_tokens,
                     "n": n,
                     "presence_penalty": presence_penalty,
@@ -621,6 +663,7 @@ class Completions(SyncAPIResource):
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
                 },
@@ -670,6 +713,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -680,6 +724,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -714,7 +759,7 @@ class AsyncCompletions(AsyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -730,7 +775,13 @@ class AsyncCompletions(AsyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
@@ -747,7 +798,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -794,6 +846,10 @@ class AsyncCompletions(AsyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -844,6 +900,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -853,6 +910,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -894,7 +952,7 @@ class AsyncCompletions(AsyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -910,7 +968,13 @@ class AsyncCompletions(AsyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
@@ -927,7 +991,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -967,6 +1032,10 @@ class AsyncCompletions(AsyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1017,6 +1086,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1026,6 +1096,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1067,7 +1138,7 @@ class AsyncCompletions(AsyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -1083,7 +1154,13 @@ class AsyncCompletions(AsyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
@@ -1100,7 +1177,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1140,6 +1218,10 @@ class AsyncCompletions(AsyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1189,6 +1271,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1199,6 +1282,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1218,6 +1302,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "function_call": function_call,
                     "functions": functions,
                     "logit_bias": logit_bias,
+                    "logprobs": logprobs,
                     "max_tokens": max_tokens,
                     "n": n,
                     "presence_penalty": presence_penalty,
@@ -1228,6 +1313,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
                 },
