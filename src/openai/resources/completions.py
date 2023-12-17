@@ -119,14 +119,15 @@ class Completions(SyncAPIResource):
               As an example, you can pass `{"50256": -100}` to prevent the <|endoftext|> token
               from being generated.
 
-          logprobs: Include the log probabilities on the `logprobs` most likely tokens, as well the
-              chosen tokens. For example, if `logprobs` is 5, the API will return a list of
-              the 5 most likely tokens. The API will always return the `logprob` of the
-              sampled token, so there may be up to `logprobs+1` elements in the response.
+          logprobs: Include the log probabilities on the `logprobs` most likely output tokens, as
+              well the chosen tokens. For example, if `logprobs` is 5, the API will return a
+              list of the 5 most likely tokens. The API will always return the `logprob` of
+              the sampled token, so there may be up to `logprobs+1` elements in the response.
 
               The maximum value for `logprobs` is 5.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the completion.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the
+              completion.
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
@@ -288,14 +289,15 @@ class Completions(SyncAPIResource):
               As an example, you can pass `{"50256": -100}` to prevent the <|endoftext|> token
               from being generated.
 
-          logprobs: Include the log probabilities on the `logprobs` most likely tokens, as well the
-              chosen tokens. For example, if `logprobs` is 5, the API will return a list of
-              the 5 most likely tokens. The API will always return the `logprob` of the
-              sampled token, so there may be up to `logprobs+1` elements in the response.
+          logprobs: Include the log probabilities on the `logprobs` most likely output tokens, as
+              well the chosen tokens. For example, if `logprobs` is 5, the API will return a
+              list of the 5 most likely tokens. The API will always return the `logprob` of
+              the sampled token, so there may be up to `logprobs+1` elements in the response.
 
               The maximum value for `logprobs` is 5.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the completion.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the
+              completion.
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
@@ -450,14 +452,15 @@ class Completions(SyncAPIResource):
               As an example, you can pass `{"50256": -100}` to prevent the <|endoftext|> token
               from being generated.
 
-          logprobs: Include the log probabilities on the `logprobs` most likely tokens, as well the
-              chosen tokens. For example, if `logprobs` is 5, the API will return a list of
-              the 5 most likely tokens. The API will always return the `logprob` of the
-              sampled token, so there may be up to `logprobs+1` elements in the response.
+          logprobs: Include the log probabilities on the `logprobs` most likely output tokens, as
+              well the chosen tokens. For example, if `logprobs` is 5, the API will return a
+              list of the 5 most likely tokens. The API will always return the `logprob` of
+              the sampled token, so there may be up to `logprobs+1` elements in the response.
 
               The maximum value for `logprobs` is 5.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the completion.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the
+              completion.
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
@@ -687,14 +690,15 @@ class AsyncCompletions(AsyncAPIResource):
               As an example, you can pass `{"50256": -100}` to prevent the <|endoftext|> token
               from being generated.
 
-          logprobs: Include the log probabilities on the `logprobs` most likely tokens, as well the
-              chosen tokens. For example, if `logprobs` is 5, the API will return a list of
-              the 5 most likely tokens. The API will always return the `logprob` of the
-              sampled token, so there may be up to `logprobs+1` elements in the response.
+          logprobs: Include the log probabilities on the `logprobs` most likely output tokens, as
+              well the chosen tokens. For example, if `logprobs` is 5, the API will return a
+              list of the 5 most likely tokens. The API will always return the `logprob` of
+              the sampled token, so there may be up to `logprobs+1` elements in the response.
 
               The maximum value for `logprobs` is 5.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the completion.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the
+              completion.
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
@@ -856,14 +860,15 @@ class AsyncCompletions(AsyncAPIResource):
               As an example, you can pass `{"50256": -100}` to prevent the <|endoftext|> token
               from being generated.
 
-          logprobs: Include the log probabilities on the `logprobs` most likely tokens, as well the
-              chosen tokens. For example, if `logprobs` is 5, the API will return a list of
-              the 5 most likely tokens. The API will always return the `logprob` of the
-              sampled token, so there may be up to `logprobs+1` elements in the response.
+          logprobs: Include the log probabilities on the `logprobs` most likely output tokens, as
+              well the chosen tokens. For example, if `logprobs` is 5, the API will return a
+              list of the 5 most likely tokens. The API will always return the `logprob` of
+              the sampled token, so there may be up to `logprobs+1` elements in the response.
 
               The maximum value for `logprobs` is 5.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the completion.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the
+              completion.
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.
@@ -1018,14 +1023,15 @@ class AsyncCompletions(AsyncAPIResource):
               As an example, you can pass `{"50256": -100}` to prevent the <|endoftext|> token
               from being generated.
 
-          logprobs: Include the log probabilities on the `logprobs` most likely tokens, as well the
-              chosen tokens. For example, if `logprobs` is 5, the API will return a list of
-              the 5 most likely tokens. The API will always return the `logprob` of the
-              sampled token, so there may be up to `logprobs+1` elements in the response.
+          logprobs: Include the log probabilities on the `logprobs` most likely output tokens, as
+              well the chosen tokens. For example, if `logprobs` is 5, the API will return a
+              list of the 5 most likely tokens. The API will always return the `logprob` of
+              the sampled token, so there may be up to `logprobs+1` elements in the response.
 
               The maximum value for `logprobs` is 5.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the completion.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the
+              completion.
 
               The token count of your prompt plus `max_tokens` cannot exceed the model's
               context length.

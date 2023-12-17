@@ -66,7 +66,7 @@ class RunStep(BaseModel):
     """
 
     object: Literal["thread.run.step"]
-    """The object type, which is always `thread.run.step``."""
+    """The object type, which is always `thread.run.step`."""
 
     run_id: str
     """
