@@ -78,7 +78,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     particular function via `{"name": "my_function"}` forces the model to call that
     function.
 
-    `none` is the default when no functions are present. `auto`` is the default if
+    `none` is the default when no functions are present. `auto` is the default if
     functions are present.
     """
 
@@ -99,8 +99,18 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     or exclusive selection of the relevant token.
     """
 
+    logprobs: Optional[bool]
+    """Whether to return log probabilities of the output tokens or not.
+
+    If true, returns the log probabilities of each output token returned in the
+    `content` of `message`. This option is currently not available on the
+    `gpt-4-vision-preview` model.
+    """
+
     max_tokens: Optional[int]
-    """The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+    """
+    The maximum number of [tokens](/tokenizer) that can be generated in the chat
+    completion.
 
     The total length of input tokens and generated tokens is limited by the model's
     context length.
@@ -126,6 +136,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
+
+    Compatible with `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -178,6 +190,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     Currently, only functions are supported as a tool. Use this to provide a list of
     functions the model may generate JSON inputs for.
+    """
+
+    top_logprobs: Optional[int]
+    """
+    An integer between 0 and 5 specifying the number of most likely tokens to return
+    at each token position, each with an associated log probability. `logprobs` must
+    be set to `true` if this parameter is used.
     """
 
     top_p: Optional[float]

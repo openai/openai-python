@@ -38,6 +38,7 @@ from openai.types.chat import (
     ChatCompletionNamedToolChoice,
     ChatCompletionRole,
     ChatCompletionSystemMessageParam,
+    ChatCompletionTokenLogprob,
     ChatCompletionTool,
     ChatCompletionToolChoiceOption,
     ChatCompletionToolMessageParam,
