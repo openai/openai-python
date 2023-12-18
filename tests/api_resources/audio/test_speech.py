@@ -39,8 +39,7 @@ class TestSpeech:
     @pytest.mark.respx(base_url=base_url)
     def test_method_create_with_all_params(self, client: OpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        speech = respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        client.audio.speech.create(
+        speech = client.audio.speech.create(
             input="string",
             model="string",
             voice="alloy",
@@ -89,8 +88,7 @@ class TestAsyncSpeech:
     @pytest.mark.respx(base_url=base_url)
     async def test_method_create_with_all_params(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        speech = respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        await client.audio.speech.create(
+        speech = await client.audio.speech.create(
             input="string",
             model="string",
             voice="alloy",
