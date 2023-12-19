@@ -107,7 +107,7 @@ else:
 
 
 class PageInfo:
-    """Stores the necesary information to build the request to retrieve the next page.
+    """Stores the necessary information to build the request to retrieve the next page.
 
     Either `url` or `params` must be set.
     """
