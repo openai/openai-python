@@ -42,6 +42,7 @@ class Runs(SyncAPIResource):
         thread_id: str,
         *,
         assistant_id: str,
+        additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -61,8 +62,13 @@ class Runs(SyncAPIResource):
               [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
               execute this run.
 
-          instructions: Override the default system message of the assistant. This is useful for
-              modifying the behavior on a per-run basis.
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          instructions: Overrides the
+              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
+              of the assistant. This is useful for modifying the behavior on a per-run basis.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
@@ -91,6 +97,7 @@ class Runs(SyncAPIResource):
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
+                    "additional_instructions": additional_instructions,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
@@ -332,6 +339,7 @@ class AsyncRuns(AsyncAPIResource):
         thread_id: str,
         *,
         assistant_id: str,
+        additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -351,8 +359,13 @@ class AsyncRuns(AsyncAPIResource):
               [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
               execute this run.
 
-          instructions: Override the default system message of the assistant. This is useful for
-              modifying the behavior on a per-run basis.
+          additional_instructions: Appends additional instructions at the end of the instructions for the run. This
+              is useful for modifying the behavior on a per-run basis without overriding other
+              instructions.
+
+          instructions: Overrides the
+              [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
+              of the assistant. This is useful for modifying the behavior on a per-run basis.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
@@ -381,6 +394,7 @@ class AsyncRuns(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
+                    "additional_instructions": additional_instructions,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
