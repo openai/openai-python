@@ -24,10 +24,18 @@ class RunCreateParams(TypedDict, total=False):
     execute this run.
     """
 
-    instructions: Optional[str]
-    """Override the default system message of the assistant.
+    additional_instructions: Optional[str]
+    """Appends additional instructions at the end of the instructions for the run.
 
-    This is useful for modifying the behavior on a per-run basis.
+    This is useful for modifying the behavior on a per-run basis without overriding
+    other instructions.
+    """
+
+    instructions: Optional[str]
+    """
+    Overrides the
+    [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
+    of the assistant. This is useful for modifying the behavior on a per-run basis.
     """
 
     metadata: Optional[object]
