@@ -57,7 +57,7 @@ class Stream(Generic[ResponseT]):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     raise APIError(
-                        message="An error ocurred during streaming",
+                        message="An error occurred during streaming",
                         request=self.response.request,
                         body=data["error"],
                     )
@@ -112,7 +112,7 @@ class AsyncStream(Generic[ResponseT]):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     raise APIError(
-                        message="An error ocurred during streaming",
+                        message="An error occurred during streaming",
                         request=self.response.request,
                         body=data["error"],
                     )
