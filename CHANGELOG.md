@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.6.0 (2023-12-19)
+
+Full Changelog: [v1.5.0...v1.6.0](https://github.com/openai/openai-python/compare/v1.5.0...v1.6.0)
+
+### Features
+
+* **api:** add additional instructions for runs ([#995](https://github.com/openai/openai-python/issues/995)) ([7bf9b75](https://github.com/openai/openai-python/commit/7bf9b75067905449e83e828c12eb384022cff6ca))
+
+
+### Chores
+
+* **cli:** fix typo in completions ([#985](https://github.com/openai/openai-python/issues/985)) ([d1e9e8f](https://github.com/openai/openai-python/commit/d1e9e8f24df366bb7b796c55a98247c025d229f5))
+* **cli:** fix typo in completions ([#986](https://github.com/openai/openai-python/issues/986)) ([626bc34](https://github.com/openai/openai-python/commit/626bc34d82a7057bac99f8b556f9e5f60c261ee7))
+* **internal:** fix binary response tests ([#983](https://github.com/openai/openai-python/issues/983)) ([cfb7e30](https://github.com/openai/openai-python/commit/cfb7e308393f2e912e959dd10d68096dd5b3ab9c))
+* **internal:** fix typos ([#993](https://github.com/openai/openai-python/issues/993)) ([3b338a4](https://github.com/openai/openai-python/commit/3b338a401b206618774291ff8137deb0cc5f6b4c))
+* **internal:** minor utils restructuring ([#992](https://github.com/openai/openai-python/issues/992)) ([5ba576a](https://github.com/openai/openai-python/commit/5ba576ae38d2c4c4d32a21933e0d68e0bc2f0d49))
+* **package:** bump minimum typing-extensions to 4.7 ([#994](https://github.com/openai/openai-python/issues/994)) ([0c2da84](https://github.com/openai/openai-python/commit/0c2da84badf416f8b2213983f68bd2b6f9e52f2b))
+* **streaming:** update constructor to use direct client names ([#991](https://github.com/openai/openai-python/issues/991)) ([6c3427d](https://github.com/openai/openai-python/commit/6c3427dac8c414658516aeb4caf5d5fd8b11097b))
+
+
+### Documentation
+
+* upgrade models in examples to latest version ([#989](https://github.com/openai/openai-python/issues/989)) ([cedd574](https://github.com/openai/openai-python/commit/cedd574e5611f3e71e92b523a72ba87bcfe546f1))
+
 ## 1.5.0 (2023-12-17)
 
 Full Changelog: [v1.4.0...v1.5.0](https://github.com/openai/openai-python/compare/v1.4.0...v1.5.0)
