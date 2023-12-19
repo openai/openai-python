@@ -12,7 +12,7 @@ from ._utils import is_mapping
 from ._exceptions import APIError
 
 if TYPE_CHECKING:
-    from ._base_client import SyncAPIClient, AsyncAPIClient
+    from ._client import OpenAI, AsyncOpenAI
 
 
 class Stream(Generic[ResponseT]):
@@ -25,7 +25,7 @@ class Stream(Generic[ResponseT]):
         *,
         cast_to: type[ResponseT],
         response: httpx.Response,
-        client: SyncAPIClient,
+        client: OpenAI,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
@@ -79,7 +79,7 @@ class AsyncStream(Generic[ResponseT]):
         *,
         cast_to: type[ResponseT],
         response: httpx.Response,
-        client: AsyncAPIClient,
+        client: AsyncOpenAI,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
