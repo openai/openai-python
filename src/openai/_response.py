@@ -5,12 +5,12 @@ import logging
 import datetime
 import functools
 from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, cast
-from typing_extensions import Awaitable, ParamSpec, get_args, override, get_origin
+from typing_extensions import Awaitable, ParamSpec, override, get_origin
 
 import httpx
 
 from ._types import NoneType, UnknownResponse, BinaryResponseContent
-from ._utils import is_given
+from ._utils import is_given, extract_type_var_from_base
 from ._models import BaseModel, is_basemodel
 from ._constants import RAW_RESPONSE_HEADER
 from ._exceptions import APIResponseValidationError
@@ -221,12 +221,13 @@ class MissingStreamClassError(TypeError):
 
 
 def _extract_stream_chunk_type(stream_cls: type) -> type:
-    args = get_args(stream_cls)
-    if not args:
-        raise TypeError(
-            f"Expected stream_cls to have been given a generic type argument, e.g. Stream[Foo] but received {stream_cls}",
-        )
-    return cast(type, args[0])
+    from ._base_client import Stream, AsyncStream
+
+    return extract_type_var_from_base(
+        stream_cls,
+        index=0,
+        generic_bases=cast("tuple[type, ...]", (Stream, AsyncStream)),
+    )
 
 
 def to_raw_response_wrapper(func: Callable[P, R]) -> Callable[P, APIResponse[R]]:
