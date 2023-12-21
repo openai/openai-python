@@ -34,6 +34,7 @@ class TestRuns:
         run = client.beta.threads.runs.create(
             "string",
             assistant_id="string",
+            additional_instructions="string",
             instructions="string",
             metadata={},
             model="string",
@@ -180,6 +181,7 @@ class TestAsyncRuns:
         run = await client.beta.threads.runs.create(
             "string",
             assistant_id="string",
+            additional_instructions="string",
             instructions="string",
             metadata={},
             model="string",
