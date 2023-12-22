@@ -211,13 +211,15 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
     def foo(*, a: str) -> str:
         ...
 
+
     @overload
     def foo(*, b: bool) -> str:
         ...
 
+
     # This enforces the same constraints that a static type checker would
     # i.e. that either a or b must be passed to the function
-    @required_args(['a'], ['b'])
+    @required_args(["a"], ["b"])
     def foo(*, a: str | None = None, b: bool | None = None) -> str:
         ...
     ```
