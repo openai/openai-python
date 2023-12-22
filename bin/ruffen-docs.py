@@ -1,15 +1,13 @@
-# fork of https://github.com/asottile/blacken-docs implementing https://github.com/asottile/blacken-docs/issues/170
+# fork of https://github.com/asottile/blacken-docs adapted for ruff
 from __future__ import annotations
 
 import re
+import sys
 import argparse
 import textwrap
 import contextlib
+import subprocess
 from typing import Match, Optional, Sequence, Generator, NamedTuple, cast
-
-import black
-from black.mode import TargetVersion
-from black.const import DEFAULT_LINE_LENGTH
 
 MD_RE = re.compile(
     r"(?P<before>^(?P<indent> *)```\s*python\n)" r"(?P<code>.*?)" r"(?P<after>^(?P=indent)```\s*$)",
@@ -19,55 +17,12 @@ MD_PYCON_RE = re.compile(
     r"(?P<before>^(?P<indent> *)```\s*pycon\n)" r"(?P<code>.*?)" r"(?P<after>^(?P=indent)```.*$)",
     re.DOTALL | re.MULTILINE,
 )
-RST_PY_LANGS = frozenset(("python", "py", "sage", "python3", "py3", "numpy"))
-BLOCK_TYPES = "(code|code-block|sourcecode|ipython)"
-DOCTEST_TYPES = "(testsetup|testcleanup|testcode)"
-RST_RE = re.compile(
-    rf"(?P<before>"
-    rf"^(?P<indent> *)\.\. ("
-    rf"jupyter-execute::|"
-    rf"{BLOCK_TYPES}:: (?P<lang>\w+)|"
-    rf"{DOCTEST_TYPES}::.*"
-    rf")\n"
-    rf"((?P=indent) +:.*\n)*"
-    rf"\n*"
-    rf")"
-    rf"(?P<code>(^((?P=indent) +.*)?\n)+)",
-    re.MULTILINE,
-)
-RST_PYCON_RE = re.compile(
-    r"(?P<before>"
-    r"(?P<indent> *)\.\. ((code|code-block):: pycon|doctest::.*)\n"
-    r"((?P=indent) +:.*\n)*"
-    r"\n*"
-    r")"
-    r"(?P<code>(^((?P=indent) +.*)?(\n|$))+)",
-    re.MULTILINE,
-)
 PYCON_PREFIX = ">>> "
 PYCON_CONTINUATION_PREFIX = "..."
 PYCON_CONTINUATION_RE = re.compile(
     rf"^{re.escape(PYCON_CONTINUATION_PREFIX)}( |$)",
 )
-LATEX_RE = re.compile(
-    r"(?P<before>^(?P<indent> *)\\begin{minted}{python}\n)"
-    r"(?P<code>.*?)"
-    r"(?P<after>^(?P=indent)\\end{minted}\s*$)",
-    re.DOTALL | re.MULTILINE,
-)
-LATEX_PYCON_RE = re.compile(
-    r"(?P<before>^(?P<indent> *)\\begin{minted}{pycon}\n)" r"(?P<code>.*?)" r"(?P<after>^(?P=indent)\\end{minted}\s*$)",
-    re.DOTALL | re.MULTILINE,
-)
-PYTHONTEX_LANG = r"(?P<lang>pyblock|pycode|pyconsole|pyverbatim)"
-PYTHONTEX_RE = re.compile(
-    rf"(?P<before>^(?P<indent> *)\\begin{{{PYTHONTEX_LANG}}}\n)"
-    rf"(?P<code>.*?)"
-    rf"(?P<after>^(?P=indent)\\end{{(?P=lang)}}\s*$)",
-    re.DOTALL | re.MULTILINE,
-)
-INDENT_RE = re.compile("^ +(?=[^ ])", re.MULTILINE)
-TRAILING_NL_RE = re.compile(r"\n+\Z", re.MULTILINE)
+DEFAULT_LINE_LENGTH = 100
 
 
 class CodeBlockError(NamedTuple):
@@ -77,7 +32,6 @@ class CodeBlockError(NamedTuple):
 
 def format_str(
     src: str,
-    black_mode: black.FileMode,
 ) -> tuple[str, Sequence[CodeBlockError]]:
     errors: list[CodeBlockError] = []
 
@@ -91,23 +45,9 @@ def format_str(
     def _md_match(match: Match[str]) -> str:
         code = textwrap.dedent(match["code"])
         with _collect_error(match):
-            code = black.format_str(code, mode=black_mode)
+            code = format_code_block(code)
         code = textwrap.indent(code, match["indent"])
         return f'{match["before"]}{code}{match["after"]}'
-
-    def _rst_match(match: Match[str]) -> str:
-        lang = match["lang"]
-        if lang is not None and lang not in RST_PY_LANGS:
-            return match[0]
-        min_indent = min(INDENT_RE.findall(match["code"]))
-        trailing_ws_match = TRAILING_NL_RE.search(match["code"])
-        assert trailing_ws_match
-        trailing_ws = trailing_ws_match.group()
-        code = textwrap.dedent(match["code"])
-        with _collect_error(match):
-            code = black.format_str(code, mode=black_mode)
-        code = textwrap.indent(code, min_indent)
-        return f'{match["before"]}{code.rstrip()}{trailing_ws}'
 
     def _pycon_match(match: Match[str]) -> str:
         code = ""
@@ -119,7 +59,7 @@ def format_str(
 
             if fragment is not None:
                 with _collect_error(match):
-                    fragment = black.format_str(fragment, mode=black_mode)
+                    fragment = format_code_block(fragment)
                 fragment_lines = fragment.splitlines()
                 code += f"{PYCON_PREFIX}{fragment_lines[0]}\n"
                 for line in fragment_lines[1:]:
@@ -159,42 +99,33 @@ def format_str(
         code = textwrap.indent(code, match["indent"])
         return f'{match["before"]}{code}{match["after"]}'
 
-    def _rst_pycon_match(match: Match[str]) -> str:
-        code = _pycon_match(match)
-        min_indent = min(INDENT_RE.findall(match["code"]))
-        code = textwrap.indent(code, min_indent)
-        return f'{match["before"]}{code}'
-
-    def _latex_match(match: Match[str]) -> str:
-        code = textwrap.dedent(match["code"])
-        with _collect_error(match):
-            code = black.format_str(code, mode=black_mode)
-        code = textwrap.indent(code, match["indent"])
-        return f'{match["before"]}{code}{match["after"]}'
-
-    def _latex_pycon_match(match: Match[str]) -> str:
-        code = _pycon_match(match)
-        code = textwrap.indent(code, match["indent"])
-        return f'{match["before"]}{code}{match["after"]}'
-
     src = MD_RE.sub(_md_match, src)
     src = MD_PYCON_RE.sub(_md_pycon_match, src)
-    src = RST_RE.sub(_rst_match, src)
-    src = RST_PYCON_RE.sub(_rst_pycon_match, src)
-    src = LATEX_RE.sub(_latex_match, src)
-    src = LATEX_PYCON_RE.sub(_latex_pycon_match, src)
-    src = PYTHONTEX_RE.sub(_latex_match, src)
     return src, errors
+
+
+def format_code_block(code: str) -> str:
+    return subprocess.check_output(
+        [
+            sys.executable,
+            "-m",
+            "ruff",
+            "format",
+            "--stdin-filename=script.py",
+            f"--line-length={DEFAULT_LINE_LENGTH}",
+        ],
+        encoding="utf-8",
+        input=code,
+    )
 
 
 def format_file(
     filename: str,
-    black_mode: black.FileMode,
     skip_errors: bool,
 ) -> int:
     with open(filename, encoding="UTF-8") as f:
         contents = f.read()
-    new_contents, errors = format_str(contents, black_mode)
+    new_contents, errors = format_str(contents)
     for error in errors:
         lineno = contents[: error.offset].count("\n") + 1
         print(f"{filename}:{lineno}: code block parse error {error.exc}")
@@ -218,15 +149,6 @@ def main(argv: Sequence[str] | None = None) -> int:
         default=DEFAULT_LINE_LENGTH,
     )
     parser.add_argument(
-        "-t",
-        "--target-version",
-        action="append",
-        type=lambda v: TargetVersion[v.upper()],
-        default=[],
-        help=f"choices: {[v.name.lower() for v in TargetVersion]}",
-        dest="target_versions",
-    )
-    parser.add_argument(
         "-S",
         "--skip-string-normalization",
         action="store_true",
@@ -235,15 +157,9 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("filenames", nargs="*")
     args = parser.parse_args(argv)
 
-    black_mode = black.FileMode(
-        target_versions=set(args.target_versions),
-        line_length=args.line_length,
-        string_normalization=not args.skip_string_normalization,
-    )
-
     retv = 0
     for filename in args.filenames:
-        retv |= format_file(filename, black_mode, skip_errors=args.skip_errors)
+        retv |= format_file(filename, skip_errors=args.skip_errors)
     return retv
 
 

@@ -80,9 +80,10 @@ def transform(
 
     ```py
     class Params(TypedDict, total=False):
-        card_id: Required[Annotated[str, PropertyInfo(alias='cardID')]]
+        card_id: Required[Annotated[str, PropertyInfo(alias="cardID")]]
 
-    transformed = transform({'card_id': '<my card ID>'}, Params)
+
+    transformed = transform({"card_id": "<my card ID>"}, Params)
     # {'cardID': '<my card ID>'}
     ```
 
