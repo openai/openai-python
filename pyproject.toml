@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.6.0"
+version = "1.6.1"
 description = "The official Python library for the openai API"
 readme = "README.md"
 license = "Apache-2.0"
@@ -51,7 +51,6 @@ managed = true
 dev-dependencies = [
     "pyright",
     "mypy",
-    "black",
     "respx",
     "pytest",
     "pytest-asyncio",
@@ -60,23 +59,25 @@ dev-dependencies = [
     "time-machine",
     "nox",
     "dirty-equals>=0.6.0",
+    "importlib-metadata>=6.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4"
 ]
 
 [tool.rye.scripts]
 format = { chain = [
-  "format:black",
-  "format:docs",
   "format:ruff",
+  "format:docs",
+  "fix:ruff",
   "format:isort",
 ]}
 "format:black" = "black ."
-"format:docs" = "python bin/blacken-docs.py README.md api.md"
-"format:ruff" = "ruff --fix ."
+"format:docs" = "python bin/ruffen-docs.py README.md api.md"
+"format:ruff" = "ruff format"
 "format:isort" = "isort ."
 
 "check:ruff" = "ruff ."
+"fix:ruff" = "ruff --fix ."
 
 typecheck = { chain = [
   "typecheck:pyright",
@@ -162,6 +163,8 @@ unfixable = [
 ]
 ignore-init-module-imports = true
 
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.ruff.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]
