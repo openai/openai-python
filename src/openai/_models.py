@@ -382,7 +382,7 @@ elif not TYPE_CHECKING:  # TODO: condition is weird
 
         For example:
         ```py
-        validated = RootModel[int](__root__='5').__root__
+        validated = RootModel[int](__root__="5").__root__
         # validated: 5
         ```
         """
