@@ -172,7 +172,7 @@ class Assistants(SyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
               attached to this assistant. There can be a maximum of 20 files attached to the
               assistant. Files are ordered by their creation date in ascending order. If a
-              file was previously attached to the list but does not show up in the list, it
+              file was previosuly attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
           instructions: The system instructions that the assistant uses. The maximum length is 32768
@@ -465,7 +465,7 @@ class AsyncAssistants(AsyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
               attached to this assistant. There can be a maximum of 20 files attached to the
               assistant. Files are ordered by their creation date in ascending order. If a
-              file was previously attached to the list but does not show up in the list, it
+              file was previosuly attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
           instructions: The system instructions that the assistant uses. The maximum length is 32768

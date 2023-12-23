@@ -30,7 +30,7 @@ class Choice(BaseModel):
     index: int
     """The index of the choice in the list of choices."""
 
-    logprobs: Optional[ChoiceLogprobs] = None
+    logprobs: Optional[ChoiceLogprobs]
     """Log probability information for the choice."""
 
     message: ChatCompletionMessage
