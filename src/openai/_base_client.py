@@ -562,7 +562,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     @property
     def default_headers(self) -> dict[str, str | Omit]:
         return {
-            "Accept": "application/json",
+            "Accept": "application/json, text/event-stream",
             "Content-Type": "application/json",
             "User-Agent": self.user_agent,
             **self.platform_headers(),
