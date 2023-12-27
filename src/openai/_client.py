@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from enum import IntEnum
 import os
 from typing import Any, Union, Mapping
 from typing_extensions import Self, override
@@ -37,6 +38,29 @@ __all__ = [
     "Client",
     "AsyncClient",
 ]
+
+
+class HTTP(IntEnum):
+    """ Human readable http codes """
+    BAD_REQUEST = 400
+    UNAUTHORIZED = 401
+    FORBIDDEN = 403
+    NOT_FOUND = 404
+    CONFLICT = 409
+    UNPROCESSABLE_CONTENT = 422
+    TOO_MANY_REQUESTS = 429
+
+    INTERNAL_SERVER_ERROR = 500
+    NOT_IMPLEMENTED = 501
+    BAD_GATEWAY = 502
+    SERVICE_UNAVAILABLE = 503
+    GATEWAY_TIMEOUT = 504
+    HTTP_VERSION_NOT_SUPPORTED = 505
+    VARIANT_ALSO_NEGOTIATES = 506
+    INSUFFICIENT_STORAGE = 507
+    LOOP_DETECTED = 508
+    NOT_EXTENDED = 510
+    NETWORK_AUTHENTICATION_REQUIRED = 511
 
 
 class OpenAI(SyncAPIClient):
@@ -213,28 +237,28 @@ class OpenAI(SyncAPIClient):
         response: httpx.Response,
     ) -> APIStatusError:
         data = body.get("error", body) if is_mapping(body) else body
-        if response.status_code == 400:
+        if response.status_code == HTTP.BAD_REQUEST:
             return _exceptions.BadRequestError(err_msg, response=response, body=data)
 
-        if response.status_code == 401:
+        if response.status_code == HTTP.UNAUTHORIZED:
             return _exceptions.AuthenticationError(err_msg, response=response, body=data)
 
-        if response.status_code == 403:
+        if response.status_code == HTTP.FORBIDDEN:
             return _exceptions.PermissionDeniedError(err_msg, response=response, body=data)
 
-        if response.status_code == 404:
+        if response.status_code == HTTP.NOT_FOUND:
             return _exceptions.NotFoundError(err_msg, response=response, body=data)
 
-        if response.status_code == 409:
+        if response.status_code == HTTP.CONFLICT:
             return _exceptions.ConflictError(err_msg, response=response, body=data)
 
-        if response.status_code == 422:
+        if response.status_code == HTTP.UNPROCESSABLE_CONTENT:
             return _exceptions.UnprocessableEntityError(err_msg, response=response, body=data)
 
-        if response.status_code == 429:
+        if response.status_code == HTTP.TOO_MANY_REQUESTS:
             return _exceptions.RateLimitError(err_msg, response=response, body=data)
 
-        if response.status_code >= 500:
+        if response.status_code >= HTTP.INTERNAL_SERVER_ERROR:
             return _exceptions.InternalServerError(err_msg, response=response, body=data)
         return APIStatusError(err_msg, response=response, body=data)
 
@@ -413,28 +437,28 @@ class AsyncOpenAI(AsyncAPIClient):
         response: httpx.Response,
     ) -> APIStatusError:
         data = body.get("error", body) if is_mapping(body) else body
-        if response.status_code == 400:
+        if response.status_code == HTTP.BAD_REQUEST:
             return _exceptions.BadRequestError(err_msg, response=response, body=data)
 
-        if response.status_code == 401:
+        if response.status_code == HTTP.UNAUTHORIZED:
             return _exceptions.AuthenticationError(err_msg, response=response, body=data)
 
-        if response.status_code == 403:
+        if response.status_code == HTTP.FORBIDDEN:
             return _exceptions.PermissionDeniedError(err_msg, response=response, body=data)
 
-        if response.status_code == 404:
+        if response.status_code == HTTP.NOT_FOUND:
             return _exceptions.NotFoundError(err_msg, response=response, body=data)
 
-        if response.status_code == 409:
+        if response.status_code == HTTP.CONFLICT:
             return _exceptions.ConflictError(err_msg, response=response, body=data)
 
-        if response.status_code == 422:
+        if response.status_code == HTTP.UNPROCESSABLE_CONTENT:
             return _exceptions.UnprocessableEntityError(err_msg, response=response, body=data)
 
-        if response.status_code == 429:
+        if response.status_code == HTTP.TOO_MANY_REQUESTS:
             return _exceptions.RateLimitError(err_msg, response=response, body=data)
 
-        if response.status_code >= 500:
+        if response.status_code >= HTTP.INTERNAL_SERVER_ERROR:
             return _exceptions.InternalServerError(err_msg, response=response, body=data)
         return APIStatusError(err_msg, response=response, body=data)
 
