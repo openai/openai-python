@@ -58,6 +58,7 @@ from ._types import (
     PostParser,
     ProxiesTypes,
     RequestFiles,
+    HttpxSendArgs,
     AsyncTransport,
     RequestOptions,
     UnknownResponse,
@@ -873,11 +874,15 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         request = self._build_request(options)
         self._prepare_request(request)
 
+        kwargs: HttpxSendArgs = {}
+        if self.custom_auth is not None:
+            kwargs["auth"] = self.custom_auth
+
         try:
             response = self._client.send(
                 request,
-                auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
+                **kwargs,
             )
         except httpx.TimeoutException as err:
             if retries > 0:
@@ -1335,11 +1340,15 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         request = self._build_request(options)
         await self._prepare_request(request)
 
+        kwargs: HttpxSendArgs = {}
+        if self.custom_auth is not None:
+            kwargs["auth"] = self.custom_auth
+
         try:
             response = await self._client.send(
                 request,
-                auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
+                **kwargs,
             )
         except httpx.TimeoutException as err:
             if retries > 0:
