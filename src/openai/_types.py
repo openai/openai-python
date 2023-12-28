@@ -28,6 +28,7 @@ from typing_extensions import (
     runtime_checkable,
 )
 
+import httpx
 import pydantic
 from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
 
@@ -369,3 +370,7 @@ class InheritsGeneric(Protocol):
 
 class _GenericAlias(Protocol):
     __origin__: type[object]
+
+
+class HttpxSendArgs(TypedDict, total=False):
+    auth: httpx.Auth
