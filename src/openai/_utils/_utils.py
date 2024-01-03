@@ -21,8 +21,7 @@ from typing_extensions import TypeGuard
 import sniffio
 
 from .._types import Headers, NotGiven, FileTypes, NotGivenOr, HeadersLike
-from .._compat import parse_date as parse_date
-from .._compat import parse_datetime as parse_datetime
+from .._compat import parse_date as parse_date, parse_datetime as parse_datetime
 
 _T = TypeVar("_T")
 _TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
