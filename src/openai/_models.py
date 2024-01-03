@@ -30,17 +30,11 @@ from ._types import (
     AnyMapping,
     HttpxRequestFiles,
 )
-from ._utils import (
-    is_list,
-    is_given,
-    is_mapping,
-    parse_date,
-    parse_datetime,
-    strip_not_given,
-)
-from ._compat import PYDANTIC_V2, ConfigDict
-from ._compat import GenericModel as BaseGenericModel
+from ._utils import is_list, is_given, is_mapping, parse_date, parse_datetime, strip_not_given
 from ._compat import (
+    PYDANTIC_V2,
+    ConfigDict,
+    GenericModel as BaseGenericModel,
     get_args,
     is_union,
     parse_obj,

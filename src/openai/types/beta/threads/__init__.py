@@ -11,12 +11,6 @@ from .message_list_params import MessageListParams as MessageListParams
 from .message_content_text import MessageContentText as MessageContentText
 from .message_create_params import MessageCreateParams as MessageCreateParams
 from .message_update_params import MessageUpdateParams as MessageUpdateParams
-from .message_content_image_file import (
-    MessageContentImageFile as MessageContentImageFile,
-)
-from .run_submit_tool_outputs_params import (
-    RunSubmitToolOutputsParams as RunSubmitToolOutputsParams,
-)
-from .required_action_function_tool_call import (
-    RequiredActionFunctionToolCall as RequiredActionFunctionToolCall,
-)
+from .message_content_image_file import MessageContentImageFile as MessageContentImageFile
+from .run_submit_tool_outputs_params import RunSubmitToolOutputsParams as RunSubmitToolOutputsParams
+from .required_action_function_tool_call import RequiredActionFunctionToolCall as RequiredActionFunctionToolCall
