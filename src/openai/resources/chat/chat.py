@@ -5,12 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from .completions import (
-    Completions,
-    AsyncCompletions,
-    CompletionsWithRawResponse,
-    AsyncCompletionsWithRawResponse,
-)
+from .completions import Completions, AsyncCompletions, CompletionsWithRawResponse, AsyncCompletionsWithRawResponse
 
 if TYPE_CHECKING:
     from ..._client import OpenAI, AsyncOpenAI

@@ -7,30 +7,14 @@ from .chat_completion_role import ChatCompletionRole as ChatCompletionRole
 from .chat_completion_chunk import ChatCompletionChunk as ChatCompletionChunk
 from .chat_completion_message import ChatCompletionMessage as ChatCompletionMessage
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
-from .chat_completion_tool_param import (
-    ChatCompletionToolParam as ChatCompletionToolParam,
-)
-from .chat_completion_message_param import (
-    ChatCompletionMessageParam as ChatCompletionMessageParam,
-)
-from .chat_completion_token_logprob import (
-    ChatCompletionTokenLogprob as ChatCompletionTokenLogprob,
-)
-from .chat_completion_message_tool_call import (
-    ChatCompletionMessageToolCall as ChatCompletionMessageToolCall,
-)
-from .chat_completion_content_part_param import (
-    ChatCompletionContentPartParam as ChatCompletionContentPartParam,
-)
-from .chat_completion_tool_message_param import (
-    ChatCompletionToolMessageParam as ChatCompletionToolMessageParam,
-)
-from .chat_completion_user_message_param import (
-    ChatCompletionUserMessageParam as ChatCompletionUserMessageParam,
-)
-from .chat_completion_system_message_param import (
-    ChatCompletionSystemMessageParam as ChatCompletionSystemMessageParam,
-)
+from .chat_completion_tool_param import ChatCompletionToolParam as ChatCompletionToolParam
+from .chat_completion_message_param import ChatCompletionMessageParam as ChatCompletionMessageParam
+from .chat_completion_token_logprob import ChatCompletionTokenLogprob as ChatCompletionTokenLogprob
+from .chat_completion_message_tool_call import ChatCompletionMessageToolCall as ChatCompletionMessageToolCall
+from .chat_completion_content_part_param import ChatCompletionContentPartParam as ChatCompletionContentPartParam
+from .chat_completion_tool_message_param import ChatCompletionToolMessageParam as ChatCompletionToolMessageParam
+from .chat_completion_user_message_param import ChatCompletionUserMessageParam as ChatCompletionUserMessageParam
+from .chat_completion_system_message_param import ChatCompletionSystemMessageParam as ChatCompletionSystemMessageParam
 from .chat_completion_function_message_param import (
     ChatCompletionFunctionMessageParam as ChatCompletionFunctionMessageParam,
 )

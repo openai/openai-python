@@ -19,14 +19,7 @@ from typing import (
     Sequence,
     AsyncIterator,
 )
-from typing_extensions import (
-    Literal,
-    Protocol,
-    TypeAlias,
-    TypedDict,
-    override,
-    runtime_checkable,
-)
+from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
 
 import httpx
 import pydantic

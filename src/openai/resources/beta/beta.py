@@ -4,18 +4,8 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from .threads import (
-    Threads,
-    AsyncThreads,
-    ThreadsWithRawResponse,
-    AsyncThreadsWithRawResponse,
-)
-from .assistants import (
-    Assistants,
-    AsyncAssistants,
-    AssistantsWithRawResponse,
-    AsyncAssistantsWithRawResponse,
-)
+from .threads import Threads, AsyncThreads, ThreadsWithRawResponse, AsyncThreadsWithRawResponse
+from .assistants import Assistants, AsyncAssistants, AssistantsWithRawResponse, AsyncAssistantsWithRawResponse
 from ..._resource import SyncAPIResource, AsyncAPIResource
 
 if TYPE_CHECKING:
