@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 import httpx
 
 from ..types import Model, ModelDeleted
@@ -14,6 +12,7 @@ from .._types import (
     Headers,
     NotGiven,
 )
+from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ..pagination import SyncPage, AsyncPage
@@ -22,18 +21,13 @@ from .._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from .._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Models", "AsyncModels"]
 
 
 class Models(SyncAPIResource):
-    with_raw_response: ModelsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = ModelsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> ModelsWithRawResponse:
+        return ModelsWithRawResponse(self)
 
     def retrieve(
         self,
@@ -125,11 +119,9 @@ class Models(SyncAPIResource):
 
 
 class AsyncModels(AsyncAPIResource):
-    with_raw_response: AsyncModelsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncModelsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncModelsWithRawResponse:
+        return AsyncModelsWithRawResponse(self)
 
     async def retrieve(
         self,

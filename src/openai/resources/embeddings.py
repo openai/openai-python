@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-from typing import TYPE_CHECKING, List, Union, cast
+from typing import List, Union, cast
 from typing_extensions import Literal
 
 import httpx
@@ -17,6 +17,7 @@ from .._types import (
     NotGiven,
 )
 from .._utils import is_given, maybe_transform
+from .._compat import cached_property
 from .._extras import numpy as np, has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
@@ -24,18 +25,13 @@ from .._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from .._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Embeddings", "AsyncEmbeddings"]
 
 
 class Embeddings(SyncAPIResource):
-    with_raw_response: EmbeddingsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = EmbeddingsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> EmbeddingsWithRawResponse:
+        return EmbeddingsWithRawResponse(self)
 
     def create(
         self,
@@ -125,11 +121,9 @@ class Embeddings(SyncAPIResource):
 
 
 class AsyncEmbeddings(AsyncAPIResource):
-    with_raw_response: AsyncEmbeddingsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncEmbeddingsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncEmbeddingsWithRawResponse:
+        return AsyncEmbeddingsWithRawResponse(self)
 
     async def create(
         self,

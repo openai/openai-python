@@ -173,3 +173,13 @@ else:
 
         class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel):
             ...
+
+
+# cached properties
+if TYPE_CHECKING:
+    cached_property = property
+else:
+    try:
+        from functools import cached_property as cached_property
+    except ImportError:
+        from cached_property import cached_property as cached_property

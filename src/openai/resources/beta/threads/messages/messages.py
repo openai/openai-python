@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -16,6 +16,7 @@ from ....._types import (
     NotGiven,
 )
 from ....._utils import maybe_transform
+from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
@@ -23,27 +24,19 @@ from ....._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from .....types.beta.threads import (
-    ThreadMessage,
-    message_list_params,
-    message_create_params,
-    message_update_params,
-)
-
-if TYPE_CHECKING:
-    from ....._client import OpenAI, AsyncOpenAI
+from .....types.beta.threads import ThreadMessage, message_list_params, message_create_params, message_update_params
 
 __all__ = ["Messages", "AsyncMessages"]
 
 
 class Messages(SyncAPIResource):
-    files: Files
-    with_raw_response: MessagesWithRawResponse
+    @cached_property
+    def files(self) -> Files:
+        return Files(self._client)
 
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.files = Files(client)
-        self.with_raw_response = MessagesWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> MessagesWithRawResponse:
+        return MessagesWithRawResponse(self)
 
     def create(
         self,
@@ -245,13 +238,13 @@ class Messages(SyncAPIResource):
 
 
 class AsyncMessages(AsyncAPIResource):
-    files: AsyncFiles
-    with_raw_response: AsyncMessagesWithRawResponse
+    @cached_property
+    def files(self) -> AsyncFiles:
+        return AsyncFiles(self._client)
 
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.files = AsyncFiles(client)
-        self.with_raw_response = AsyncMessagesWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncMessagesWithRawResponse:
+        return AsyncMessagesWithRawResponse(self)
 
     async def create(
         self,

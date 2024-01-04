@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union, Mapping, cast
+from typing import Union, Mapping, cast
 from typing_extensions import Literal
 
 import httpx
@@ -16,6 +16,7 @@ from ..._types import (
     FileTypes,
 )
 from ..._utils import extract_files, maybe_transform, deepcopy_minimal
+from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ...types.audio import Transcription, transcription_create_params
@@ -23,18 +24,13 @@ from ..._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from ..._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
 
 class Transcriptions(SyncAPIResource):
-    with_raw_response: TranscriptionsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = TranscriptionsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> TranscriptionsWithRawResponse:
+        return TranscriptionsWithRawResponse(self)
 
     def create(
         self,
@@ -117,11 +113,9 @@ class Transcriptions(SyncAPIResource):
 
 
 class AsyncTranscriptions(AsyncAPIResource):
-    with_raw_response: AsyncTranscriptionsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncTranscriptionsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncTranscriptionsWithRawResponse:
+        return AsyncTranscriptionsWithRawResponse(self)
 
     async def create(
         self,

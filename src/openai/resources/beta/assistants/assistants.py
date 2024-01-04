@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -16,6 +16,7 @@ from ...._types import (
     NotGiven,
 )
 from ...._utils import maybe_transform
+from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
@@ -31,20 +32,17 @@ from ...._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from ...._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Assistants", "AsyncAssistants"]
 
 
 class Assistants(SyncAPIResource):
-    files: Files
-    with_raw_response: AssistantsWithRawResponse
+    @cached_property
+    def files(self) -> Files:
+        return Files(self._client)
 
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.files = Files(client)
-        self.with_raw_response = AssistantsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AssistantsWithRawResponse:
+        return AssistantsWithRawResponse(self)
 
     def create(
         self,
@@ -331,13 +329,13 @@ class Assistants(SyncAPIResource):
 
 
 class AsyncAssistants(AsyncAPIResource):
-    files: AsyncFiles
-    with_raw_response: AsyncAssistantsWithRawResponse
+    @cached_property
+    def files(self) -> AsyncFiles:
+        return AsyncFiles(self._client)
 
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.files = AsyncFiles(client)
-        self.with_raw_response = AsyncAssistantsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
+        return AsyncAssistantsWithRawResponse(self)
 
     async def create(
         self,

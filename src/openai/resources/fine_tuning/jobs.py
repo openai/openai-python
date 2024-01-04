@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union, Optional
+from typing import Union, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -15,6 +15,7 @@ from ..._types import (
     NotGiven,
 )
 from ..._utils import maybe_transform
+from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
@@ -30,18 +31,13 @@ from ...types.fine_tuning import (
     job_list_events_params,
 )
 
-if TYPE_CHECKING:
-    from ..._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Jobs", "AsyncJobs"]
 
 
 class Jobs(SyncAPIResource):
-    with_raw_response: JobsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = JobsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> JobsWithRawResponse:
+        return JobsWithRawResponse(self)
 
     def create(
         self,
@@ -289,11 +285,9 @@ class Jobs(SyncAPIResource):
 
 
 class AsyncJobs(AsyncAPIResource):
-    with_raw_response: AsyncJobsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncJobsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncJobsWithRawResponse:
+        return AsyncJobsWithRawResponse(self)
 
     async def create(
         self,

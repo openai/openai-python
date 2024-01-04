@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Union, Optional, overload
+from typing import List, Union, Optional, overload
 from typing_extensions import Literal
 
 import httpx
@@ -22,6 +22,7 @@ from .._types import (
     NotGiven,
 )
 from .._utils import maybe_transform
+from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._streaming import Stream, AsyncStream
@@ -31,18 +32,13 @@ from .._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from .._client import OpenAI, AsyncOpenAI
-
 __all__ = ["FineTunes", "AsyncFineTunes"]
 
 
 class FineTunes(SyncAPIResource):
-    with_raw_response: FineTunesWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = FineTunesWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> FineTunesWithRawResponse:
+        return FineTunesWithRawResponse(self)
 
     def create(
         self,
@@ -416,11 +412,9 @@ class FineTunes(SyncAPIResource):
 
 
 class AsyncFineTunes(AsyncAPIResource):
-    with_raw_response: AsyncFineTunesWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncFineTunesWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncFineTunesWithRawResponse:
+        return AsyncFineTunesWithRawResponse(self)
 
     async def create(
         self,

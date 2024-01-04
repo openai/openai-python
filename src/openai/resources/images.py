@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Union, Mapping, Optional, cast
+from typing import Union, Mapping, Optional, cast
 from typing_extensions import Literal
 
 import httpx
@@ -22,24 +22,20 @@ from .._types import (
     FileTypes,
 )
 from .._utils import extract_files, maybe_transform, deepcopy_minimal
+from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from .._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Images", "AsyncImages"]
 
 
 class Images(SyncAPIResource):
-    with_raw_response: ImagesWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = ImagesWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> ImagesWithRawResponse:
+        return ImagesWithRawResponse(self)
 
     def create_variation(
         self,
@@ -280,11 +276,9 @@ class Images(SyncAPIResource):
 
 
 class AsyncImages(AsyncAPIResource):
-    with_raw_response: AsyncImagesWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncImagesWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncImagesWithRawResponse:
+        return AsyncImagesWithRawResponse(self)
 
     async def create_variation(
         self,
