@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Union
+from typing import List, Union
 from typing_extensions import Literal
 
 import httpx
@@ -16,24 +16,20 @@ from .._types import (
     NotGiven,
 )
 from .._utils import maybe_transform
+from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from .._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Moderations", "AsyncModerations"]
 
 
 class Moderations(SyncAPIResource):
-    with_raw_response: ModerationsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = ModerationsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> ModerationsWithRawResponse:
+        return ModerationsWithRawResponse(self)
 
     def create(
         self,
@@ -87,11 +83,9 @@ class Moderations(SyncAPIResource):
 
 
 class AsyncModerations(AsyncAPIResource):
-    with_raw_response: AsyncModerationsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncModerationsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncModerationsWithRawResponse:
+        return AsyncModerationsWithRawResponse(self)
 
     async def create(
         self,

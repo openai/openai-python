@@ -2,35 +2,31 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from .jobs import Jobs, AsyncJobs, JobsWithRawResponse, AsyncJobsWithRawResponse
+from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
-
-if TYPE_CHECKING:
-    from ..._client import OpenAI, AsyncOpenAI
 
 __all__ = ["FineTuning", "AsyncFineTuning"]
 
 
 class FineTuning(SyncAPIResource):
-    jobs: Jobs
-    with_raw_response: FineTuningWithRawResponse
+    @cached_property
+    def jobs(self) -> Jobs:
+        return Jobs(self._client)
 
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.jobs = Jobs(client)
-        self.with_raw_response = FineTuningWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> FineTuningWithRawResponse:
+        return FineTuningWithRawResponse(self)
 
 
 class AsyncFineTuning(AsyncAPIResource):
-    jobs: AsyncJobs
-    with_raw_response: AsyncFineTuningWithRawResponse
+    @cached_property
+    def jobs(self) -> AsyncJobs:
+        return AsyncJobs(self._client)
 
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.jobs = AsyncJobs(client)
-        self.with_raw_response = AsyncFineTuningWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncFineTuningWithRawResponse:
+        return AsyncFineTuningWithRawResponse(self)
 
 
 class FineTuningWithRawResponse:
