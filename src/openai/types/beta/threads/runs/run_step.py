@@ -33,31 +33,31 @@ class RunStep(BaseModel):
     associated with the run step.
     """
 
-    cancelled_at: Optional[int]
+    cancelled_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run step was cancelled."""
 
-    completed_at: Optional[int]
+    completed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run step completed."""
 
     created_at: int
     """The Unix timestamp (in seconds) for when the run step was created."""
 
-    expired_at: Optional[int]
+    expired_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run step expired.
 
     A step is considered expired if the parent run is expired.
     """
 
-    failed_at: Optional[int]
+    failed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run step failed."""
 
-    last_error: Optional[LastError]
+    last_error: Optional[LastError] = None
     """The last error associated with this run step.
 
     Will be `null` if there are no errors.
     """
 
-    metadata: Optional[builtins.object]
+    metadata: Optional[builtins.object] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a

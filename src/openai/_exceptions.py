@@ -40,8 +40,8 @@ class APIError(OpenAIError):
     If there was no response associated with this error then it will be `None`.
     """
 
-    code: Optional[str]
-    param: Optional[str]
+    code: Optional[str] = None
+    param: Optional[str] = None
     type: Optional[str]
 
     def __init__(self, message: str, request: httpx.Request, *, body: object | None) -> None:
