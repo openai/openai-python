@@ -114,7 +114,7 @@ def test_no_retry_after_header(client: Client, headers: httpx.Headers) -> None:
     "client,headers",
     [
         (sync_client, {"retry-after-ms": "invalid"}),
-        (sync_client, {"retry-after-ms": "invalid"}),
+        (async_client, {"retry-after-ms": "invalid"}),
     ],
 )
 def test_invalid_retry_after_header(client: Client, headers: httpx.Headers) -> None:
