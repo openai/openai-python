@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, overload
+from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, overload, Optional
 from typing_extensions import Self, override
 
 import httpx
@@ -275,6 +275,21 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return None
 
     @override
+    def _calculate_retry_timeout(
+        self,
+        remaining_retries: int,
+        options: FinalRequestOptions,
+        response_headers: Optional[httpx.Headers] = None,
+    ) -> float:
+        try:
+            if response_headers:
+                return float(response_headers["retry-after-ms"]) / 1000
+        except (KeyError, ValueError):
+            pass
+
+        return super()._calculate_retry_timeout(remaining_retries, options, response_headers)
+
+    @override
     def _prepare_options(self, options: FinalRequestOptions) -> None:
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
         options.headers = headers
@@ -508,6 +523,21 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             return token
 
         return None
+
+    @override
+    def _calculate_retry_timeout(
+        self,
+        remaining_retries: int,
+        options: FinalRequestOptions,
+        response_headers: Optional[httpx.Headers] = None,
+    ) -> float:
+        try:
+            if response_headers:
+                return float(response_headers["retry-after-ms"]) / 1000
+        except (KeyError, ValueError):
+            pass
+
+        return super()._calculate_retry_timeout(remaining_retries, options, response_headers)
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> None:

@@ -2,6 +2,7 @@ from typing import Union
 from typing_extensions import Literal
 
 import pytest
+import httpx
 
 from openai._models import FinalRequestOptions
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
@@ -64,3 +65,41 @@ def test_client_copying_override_options(client: Client) -> None:
         api_version="2022-05-01",
     )
     assert copied._custom_query == {"api-version": "2022-05-01"}
+
+
+@pytest.mark.parametrize(
+    "client,headers,timeout",
+    [
+        (sync_client, {"retry-after-ms": "2000"}, 2.0),
+        (sync_client, {"retry-after-ms": "2", "retry-after": "1"}, 0.002),
+        (async_client, {"retry-after-ms": "2000"}, 2.0),
+        (async_client, {"retry-after-ms": "2", "retry-after": "1"}, 0.002),
+    ],
+)
+def test_parse_retry_after_ms_header(client: Client, headers: httpx.Headers, timeout: float) -> None:
+    headers = httpx.Headers(headers)
+    options = FinalRequestOptions(method="post", url="/completions")
+    retry_timeout = client._calculate_retry_timeout(
+        remaining_retries=2,
+        options=options,
+        response_headers=headers
+    )
+    assert retry_timeout == timeout
+
+
+@pytest.mark.parametrize(
+    "client,headers",
+    [
+        (sync_client, {}),
+        (async_client, {}),
+    ],
+)
+def test_no_retry_after_header(client: Client, headers: httpx.Headers) -> None:
+    headers = httpx.Headers(headers)
+    options = FinalRequestOptions(method="post", url="/completions")
+    retry_timeout = client._calculate_retry_timeout(
+        remaining_retries=2,
+        options=options,
+        response_headers=headers
+    )
+    assert retry_timeout
