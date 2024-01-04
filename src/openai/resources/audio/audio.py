@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from .speech import Speech, AsyncSpeech, SpeechWithRawResponse, AsyncSpeechWithRawResponse
+from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from .translations import Translations, AsyncTranslations, TranslationsWithRawResponse, AsyncTranslationsWithRawResponse
 from .transcriptions import (
@@ -14,38 +13,43 @@ from .transcriptions import (
     AsyncTranscriptionsWithRawResponse,
 )
 
-if TYPE_CHECKING:
-    from ..._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Audio", "AsyncAudio"]
 
 
 class Audio(SyncAPIResource):
-    transcriptions: Transcriptions
-    translations: Translations
-    speech: Speech
-    with_raw_response: AudioWithRawResponse
+    @cached_property
+    def transcriptions(self) -> Transcriptions:
+        return Transcriptions(self._client)
 
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.transcriptions = Transcriptions(client)
-        self.translations = Translations(client)
-        self.speech = Speech(client)
-        self.with_raw_response = AudioWithRawResponse(self)
+    @cached_property
+    def translations(self) -> Translations:
+        return Translations(self._client)
+
+    @cached_property
+    def speech(self) -> Speech:
+        return Speech(self._client)
+
+    @cached_property
+    def with_raw_response(self) -> AudioWithRawResponse:
+        return AudioWithRawResponse(self)
 
 
 class AsyncAudio(AsyncAPIResource):
-    transcriptions: AsyncTranscriptions
-    translations: AsyncTranslations
-    speech: AsyncSpeech
-    with_raw_response: AsyncAudioWithRawResponse
+    @cached_property
+    def transcriptions(self) -> AsyncTranscriptions:
+        return AsyncTranscriptions(self._client)
 
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.transcriptions = AsyncTranscriptions(client)
-        self.translations = AsyncTranslations(client)
-        self.speech = AsyncSpeech(client)
-        self.with_raw_response = AsyncAudioWithRawResponse(self)
+    @cached_property
+    def translations(self) -> AsyncTranslations:
+        return AsyncTranslations(self._client)
+
+    @cached_property
+    def speech(self) -> AsyncSpeech:
+        return AsyncSpeech(self._client)
+
+    @cached_property
+    def with_raw_response(self) -> AsyncAudioWithRawResponse:
+        return AsyncAudioWithRawResponse(self)
 
 
 class AudioWithRawResponse:

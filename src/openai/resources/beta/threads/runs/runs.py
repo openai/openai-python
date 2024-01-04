@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -16,6 +16,7 @@ from ....._types import (
     NotGiven,
 )
 from ....._utils import maybe_transform
+from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
@@ -31,20 +32,17 @@ from .....types.beta.threads import (
     run_submit_tool_outputs_params,
 )
 
-if TYPE_CHECKING:
-    from ....._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
-    steps: Steps
-    with_raw_response: RunsWithRawResponse
+    @cached_property
+    def steps(self) -> Steps:
+        return Steps(self._client)
 
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.steps = Steps(client)
-        self.with_raw_response = RunsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> RunsWithRawResponse:
+        return RunsWithRawResponse(self)
 
     def create(
         self,
@@ -335,13 +333,13 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
-    steps: AsyncSteps
-    with_raw_response: AsyncRunsWithRawResponse
+    @cached_property
+    def steps(self) -> AsyncSteps:
+        return AsyncSteps(self._client)
 
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.steps = AsyncSteps(client)
-        self.with_raw_response = AsyncRunsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncRunsWithRawResponse:
+        return AsyncRunsWithRawResponse(self)
 
     async def create(
         self,

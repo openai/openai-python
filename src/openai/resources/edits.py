@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import typing_extensions
-from typing import TYPE_CHECKING, Union, Optional
+from typing import Union, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -17,24 +17,20 @@ from .._types import (
     NotGiven,
 )
 from .._utils import maybe_transform
+from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from .._base_client import (
     make_request_options,
 )
 
-if TYPE_CHECKING:
-    from .._client import OpenAI, AsyncOpenAI
-
 __all__ = ["Edits", "AsyncEdits"]
 
 
 class Edits(SyncAPIResource):
-    with_raw_response: EditsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = EditsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> EditsWithRawResponse:
+        return EditsWithRawResponse(self)
 
     @typing_extensions.deprecated(
         "The Edits API is deprecated; please use Chat Completions instead.\n\nhttps://openai.com/blog/gpt-4-api-general-availability#deprecation-of-the-edits-api\n"
@@ -109,11 +105,9 @@ class Edits(SyncAPIResource):
 
 
 class AsyncEdits(AsyncAPIResource):
-    with_raw_response: AsyncEditsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncEditsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncEditsWithRawResponse:
+        return AsyncEditsWithRawResponse(self)
 
     @typing_extensions.deprecated(
         "The Edits API is deprecated; please use Chat Completions instead.\n\nhttps://openai.com/blog/gpt-4-api-general-availability#deprecation-of-the-edits-api\n"
