@@ -50,7 +50,7 @@ class FineTune(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) for when the fine-tuning job was created."""
 
-    fine_tuned_model: Optional[str]
+    fine_tuned_model: Optional[str] = None
     """The name of the fine-tuned model that is being created."""
 
     hyperparams: Hyperparams

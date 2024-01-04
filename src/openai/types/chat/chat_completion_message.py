@@ -23,7 +23,7 @@ class FunctionCall(BaseModel):
 
 
 class ChatCompletionMessage(BaseModel):
-    content: Optional[str]
+    content: Optional[str] = None
     """The contents of the message."""
 
     role: Literal["assistant"]

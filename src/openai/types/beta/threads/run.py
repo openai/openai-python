@@ -72,10 +72,10 @@ class Run(BaseModel):
     execution of this run.
     """
 
-    cancelled_at: Optional[int]
+    cancelled_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run was cancelled."""
 
-    completed_at: Optional[int]
+    completed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run was completed."""
 
     created_at: int
@@ -84,7 +84,7 @@ class Run(BaseModel):
     expires_at: int
     """The Unix timestamp (in seconds) for when the run will expire."""
 
-    failed_at: Optional[int]
+    failed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run failed."""
 
     file_ids: List[str]
@@ -101,10 +101,10 @@ class Run(BaseModel):
     this run.
     """
 
-    last_error: Optional[LastError]
+    last_error: Optional[LastError] = None
     """The last error associated with this run. Will be `null` if there are no errors."""
 
-    metadata: Optional[builtins.object]
+    metadata: Optional[builtins.object] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
@@ -122,13 +122,13 @@ class Run(BaseModel):
     object: Literal["thread.run"]
     """The object type, which is always `thread.run`."""
 
-    required_action: Optional[RequiredAction]
+    required_action: Optional[RequiredAction] = None
     """Details on the action required to continue the run.
 
     Will be `null` if no action is required.
     """
 
-    started_at: Optional[int]
+    started_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run was started."""
 
     status: Literal[
