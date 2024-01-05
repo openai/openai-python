@@ -48,7 +48,6 @@ from ._types import (
     Body,
     Omit,
     Query,
-    ModelT,
     Headers,
     Timeout,
     NotGiven,
@@ -61,7 +60,6 @@ from ._types import (
     HttpxSendArgs,
     AsyncTransport,
     RequestOptions,
-    UnknownResponse,
     ModelBuilderProtocol,
     BinaryResponseContent,
 )
@@ -142,7 +140,7 @@ class PageInfo:
         self.params = params
 
 
-class BasePage(GenericModel, Generic[ModelT]):
+class BasePage(GenericModel, Generic[_T]):
     """
     Defines the core interface for pagination.
 
@@ -155,7 +153,7 @@ class BasePage(GenericModel, Generic[ModelT]):
     """
 
     _options: FinalRequestOptions = PrivateAttr()
-    _model: Type[ModelT] = PrivateAttr()
+    _model: Type[_T] = PrivateAttr()
 
     def has_next_page(self) -> bool:
         items = self._get_page_items()
@@ -166,7 +164,7 @@ class BasePage(GenericModel, Generic[ModelT]):
     def next_page_info(self) -> Optional[PageInfo]:
         ...
 
-    def _get_page_items(self) -> Iterable[ModelT]:  # type: ignore[empty-body]
+    def _get_page_items(self) -> Iterable[_T]:  # type: ignore[empty-body]
         ...
 
     def _params_from_url(self, url: URL) -> httpx.QueryParams:
@@ -191,13 +189,13 @@ class BasePage(GenericModel, Generic[ModelT]):
         raise ValueError("Unexpected PageInfo state")
 
 
-class BaseSyncPage(BasePage[ModelT], Generic[ModelT]):
+class BaseSyncPage(BasePage[_T], Generic[_T]):
     _client: SyncAPIClient = pydantic.PrivateAttr()
 
     def _set_private_attributes(
         self,
         client: SyncAPIClient,
-        model: Type[ModelT],
+        model: Type[_T],
         options: FinalRequestOptions,
     ) -> None:
         self._model = model
@@ -212,7 +210,7 @@ class BaseSyncPage(BasePage[ModelT], Generic[ModelT]):
     # methods should continue to work as expected as there is an alternative method
     # to cast a model to a dictionary, model.dict(), which is used internally
     # by pydantic.
-    def __iter__(self) -> Iterator[ModelT]:  # type: ignore
+    def __iter__(self) -> Iterator[_T]:  # type: ignore
         for page in self.iter_pages():
             for item in page._get_page_items():
                 yield item
@@ -237,13 +235,13 @@ class BaseSyncPage(BasePage[ModelT], Generic[ModelT]):
         return self._client._request_api_list(self._model, page=self.__class__, options=options)
 
 
-class AsyncPaginator(Generic[ModelT, AsyncPageT]):
+class AsyncPaginator(Generic[_T, AsyncPageT]):
     def __init__(
         self,
         client: AsyncAPIClient,
         options: FinalRequestOptions,
         page_cls: Type[AsyncPageT],
-        model: Type[ModelT],
+        model: Type[_T],
     ) -> None:
         self._model = model
         self._client = client
@@ -266,7 +264,7 @@ class AsyncPaginator(Generic[ModelT, AsyncPageT]):
 
         return await self._client.request(self._page_cls, self._options)
 
-    async def __aiter__(self) -> AsyncIterator[ModelT]:
+    async def __aiter__(self) -> AsyncIterator[_T]:
         # https://github.com/microsoft/pyright/issues/3464
         page = cast(
             AsyncPageT,
@@ -276,12 +274,12 @@ class AsyncPaginator(Generic[ModelT, AsyncPageT]):
             yield item
 
 
-class BaseAsyncPage(BasePage[ModelT], Generic[ModelT]):
+class BaseAsyncPage(BasePage[_T], Generic[_T]):
     _client: AsyncAPIClient = pydantic.PrivateAttr()
 
     def _set_private_attributes(
         self,
-        model: Type[ModelT],
+        model: Type[_T],
         client: AsyncAPIClient,
         options: FinalRequestOptions,
     ) -> None:
@@ -289,7 +287,7 @@ class BaseAsyncPage(BasePage[ModelT], Generic[ModelT]):
         self._client = client
         self._options = options
 
-    async def __aiter__(self) -> AsyncIterator[ModelT]:
+    async def __aiter__(self) -> AsyncIterator[_T]:
         async for page in self.iter_pages():
             for item in page._get_page_items():
                 yield item
@@ -528,7 +526,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if data is None:
             return cast(ResponseT, None)
 
-        if cast_to is UnknownResponse:
+        if cast_to is object:
             return cast(ResponseT, data)
 
         try:
@@ -970,7 +968,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
     def _request_api_list(
         self,
-        model: Type[ModelT],
+        model: Type[object],
         page: Type[SyncPageT],
         options: FinalRequestOptions,
     ) -> SyncPageT:
@@ -1132,7 +1130,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         self,
         path: str,
         *,
-        model: Type[ModelT],
+        model: Type[object],
         page: Type[SyncPageT],
         body: Body | None = None,
         options: RequestOptions = {},
@@ -1434,10 +1432,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
     def _request_api_list(
         self,
-        model: Type[ModelT],
+        model: Type[_T],
         page: Type[AsyncPageT],
         options: FinalRequestOptions,
-    ) -> AsyncPaginator[ModelT, AsyncPageT]:
+    ) -> AsyncPaginator[_T, AsyncPageT]:
         return AsyncPaginator(client=self, options=options, page_cls=page, model=model)
 
     @overload
@@ -1584,13 +1582,12 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         self,
         path: str,
         *,
-        # TODO: support paginating `str`
-        model: Type[ModelT],
+        model: Type[_T],
         page: Type[AsyncPageT],
         body: Body | None = None,
         options: RequestOptions = {},
         method: str = "get",
-    ) -> AsyncPaginator[ModelT, AsyncPageT]:
+    ) -> AsyncPaginator[_T, AsyncPageT]:
         opts = FinalRequestOptions.construct(method=method, url=path, json_data=body, **options)
         return self._request_api_list(model, page, opts)
 
