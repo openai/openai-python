@@ -44,6 +44,7 @@ _T = TypeVar("_T")
 
 
 class BinaryResponseContent(ABC):
+    @abstractmethod
     def __init__(
         self,
         response: Any,
@@ -277,11 +278,13 @@ class NotGiven:
     For example:
 
     ```py
-    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
+    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response:
+        ...
 
-    get(timout=1) # 1s timeout
-    get(timout=None) # No timeout
-    get() # Default timeout behavior, which may not be statically known at the method definition.
+
+    get(timeout=1)  # 1s timeout
+    get(timeout=None)  # No timeout
+    get()  # Default timeout behavior, which may not be statically known at the method definition.
     ```
     """
 
@@ -303,14 +306,14 @@ class Omit:
 
     ```py
     # as the default `Content-Type` header is `application/json` that will be sent
-    client.post('/upload/files', files={'file': b'my raw file content'})
+    client.post("/upload/files", files={"file": b"my raw file content"})
 
     # you can't explicitly override the header as it has to be dynamically generated
     # to look something like: 'multipart/form-data; boundary=0d8382fcf5f8c3be01ca2e11002d2983'
-    client.post(..., headers={'Content-Type': 'multipart/form-data'})
+    client.post(..., headers={"Content-Type": "multipart/form-data"})
 
     # instead you can remove the default `application/json` header by passing Omit
-    client.post(..., headers={'Content-Type': Omit()})
+    client.post(..., headers={"Content-Type": Omit()})
     ```
     """
 
@@ -352,3 +355,17 @@ StrBytesIntFloat = Union[str, bytes, int, float]
 IncEx: TypeAlias = "set[int] | set[str] | dict[int, Any] | dict[str, Any] | None"
 
 PostParser = Callable[[Any], Any]
+
+
+@runtime_checkable
+class InheritsGeneric(Protocol):
+    """Represents a type that has inherited from `Generic`
+    The `__orig_bases__` property can be used to determine the resolved
+    type variable for a given base class.
+    """
+
+    __orig_bases__: tuple[_GenericAlias]
+
+
+class _GenericAlias(Protocol):
+    __origin__: type[object]

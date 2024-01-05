@@ -24,18 +24,18 @@ class TestFiles:
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         file = client.beta.threads.messages.files.retrieve(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
-            thread_id="thread_AF1WoRqd3aJAHsqc9NY7iL8F",
-            message_id="msg_AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
+            thread_id="thread_abc123",
+            message_id="msg_abc123",
         )
         assert_matches_type(MessageFile, file, path=["response"])
 
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.beta.threads.messages.files.with_raw_response.retrieve(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
-            thread_id="thread_AF1WoRqd3aJAHsqc9NY7iL8F",
-            message_id="msg_AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
+            thread_id="thread_abc123",
+            message_id="msg_abc123",
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
@@ -80,18 +80,18 @@ class TestAsyncFiles:
     @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
         file = await client.beta.threads.messages.files.retrieve(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
-            thread_id="thread_AF1WoRqd3aJAHsqc9NY7iL8F",
-            message_id="msg_AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
+            thread_id="thread_abc123",
+            message_id="msg_abc123",
         )
         assert_matches_type(MessageFile, file, path=["response"])
 
     @parametrize
     async def test_raw_response_retrieve(self, client: AsyncOpenAI) -> None:
         response = await client.beta.threads.messages.files.with_raw_response.retrieve(
-            "file-AF1WoRqd3aJAHsqc9NY7iL8F",
-            thread_id="thread_AF1WoRqd3aJAHsqc9NY7iL8F",
-            message_id="msg_AF1WoRqd3aJAHsqc9NY7iL8F",
+            "file-abc123",
+            thread_id="thread_abc123",
+            message_id="msg_abc123",
         )
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()

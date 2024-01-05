@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, List, Mapping, TypeVar, cast
+from typing import Any, Mapping, TypeVar, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, override, get_type_hints
 
 import pydantic
 
-from ._utils import (
-    is_list,
-    is_mapping,
+from ._utils import is_list, is_mapping
+from ._typing import (
     is_list_type,
     is_union_type,
     extract_type_arg,
@@ -60,7 +59,7 @@ class PropertyInfo:
 
 
 def maybe_transform(
-    data: Mapping[str, object] | List[Any] | None,
+    data: object,
     expected_type: object,
 ) -> Any | None:
     """Wrapper over `transform()` that allows `None` to be passed.
@@ -81,9 +80,10 @@ def transform(
 
     ```py
     class Params(TypedDict, total=False):
-        card_id: Required[Annotated[str, PropertyInfo(alias='cardID')]]
+        card_id: Required[Annotated[str, PropertyInfo(alias="cardID")]]
 
-    transformed = transform({'card_id': '<my card ID>'}, Params)
+
+    transformed = transform({"card_id": "<my card ID>"}, Params)
     # {'cardID': '<my card ID>'}
     ```
 

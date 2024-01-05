@@ -26,11 +26,12 @@ pip install openai
 The full API of this library can be found in [api.md](https://www.github.com/openai/openai-python/blob/main/api.md).
 
 ```python
+import os
 from openai import OpenAI
 
 client = OpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 chat_completion = client.chat.completions.create(
@@ -54,12 +55,13 @@ so that your API Key is not stored in source control.
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
 ```python
+import os
 import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key="My API Key",
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
@@ -94,8 +96,8 @@ stream = client.chat.completions.create(
     messages=[{"role": "user", "content": "Say this is a test"}],
     stream=True,
 )
-for part in stream:
-    print(part.choices[0].delta.content or "")
+for chunk in stream:
+    print(chunk.choices[0].delta.content or "", end="")
 ```
 
 The async client uses the exact same interface.
@@ -105,13 +107,18 @@ from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
-stream = await client.chat.completions.create(
-    prompt="Say this is a test",
-    messages=[{"role": "user", "content": "Say this is a test"}],
-    stream=True,
-)
-async for part in stream:
-    print(part.choices[0].delta.content or "")
+
+async def main():
+    stream = await client.chat.completions.create(
+        model="gpt-4",
+        messages=[{"role": "user", "content": "Say this is a test"}],
+        stream=True,
+    )
+    async for chunk in stream:
+        print(chunk.choices[0].delta.content or "", end="")
+
+
+asyncio.run(main())
 ```
 
 ## Module-level client
@@ -156,7 +163,10 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 
 ## Using types
 
-Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like serializing back into JSON ([v1](https://docs.pydantic.dev/1.10/usage/models/), [v2](https://docs.pydantic.dev/latest/usage/serialization/)). To get a dictionary, call `model.model_dump()`.
+Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like:
+
+- Serializing back into JSON, `model.model_dump_json(indent=2, exclude_unset=True)`
+- Converting to a dictionary, `model.model_dump(exclude_unset=True)`
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
 
@@ -247,7 +257,7 @@ completion = client.chat.completions.create(
             "content": "Can you generate an example json object describing a fruit?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-3.5-turbo-1106",
     response_format={"type": "json_object"},
 )
 ```
@@ -352,7 +362,7 @@ from openai import OpenAI
 
 # Configure the default for all requests:
 client = OpenAI(
-    # default is 60s
+    # 20 seconds (default is 10 minutes)
     timeout=20.0,
 )
 
@@ -437,6 +447,7 @@ import httpx
 from openai import OpenAI
 
 client = OpenAI(
+    # Or use the `OPENAI_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083",
     http_client=httpx.Client(
         proxies="http://my.test.proxy.example.com",
@@ -464,7 +475,7 @@ from openai import AzureOpenAI
 # gets the API Key from environment variable AZURE_OPENAI_API_KEY
 client = AzureOpenAI(
     # https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning
-    api_version="2023-07-01-preview"
+    api_version="2023-07-01-preview",
     # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
     azure_endpoint="https://example-endpoint.openai.azure.com",
 )
@@ -483,13 +494,13 @@ print(completion.model_dump_json(indent=2))
 
 In addition to the options provided in the base `OpenAI` client, the following options are provided:
 
-- `azure_endpoint`
+- `azure_endpoint` (or the `AZURE_OPENAI_ENDPOINT` environment variable)
 - `azure_deployment`
-- `api_version`
-- `azure_ad_token`
+- `api_version` (or the `OPENAI_API_VERSION` environment variable)
+- `azure_ad_token` (or the `AZURE_OPENAI_AD_TOKEN` environment variable)
 - `azure_ad_token_provider`
 
-An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/v1/examples/azure_ad.py).
+An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
 ## Versioning
 

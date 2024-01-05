@@ -48,6 +48,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ]
@@ -65,7 +66,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Positive values penalize new tokens based on their existing frequency in the
     text so far, decreasing the model's likelihood to repeat the same line verbatim.
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
     """
 
     function_call: FunctionCall
@@ -77,7 +78,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     particular function via `{"name": "my_function"}` forces the model to call that
     function.
 
-    `none` is the default when no functions are present. `auto`` is the default if
+    `none` is the default when no functions are present. `auto` is the default if
     functions are present.
     """
 
@@ -98,8 +99,18 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     or exclusive selection of the relevant token.
     """
 
+    logprobs: Optional[bool]
+    """Whether to return log probabilities of the output tokens or not.
+
+    If true, returns the log probabilities of each output token returned in the
+    `content` of `message`. This option is currently not available on the
+    `gpt-4-vision-preview` model.
+    """
+
     max_tokens: Optional[int]
-    """The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+    """
+    The maximum number of [tokens](/tokenizer) that can be generated in the chat
+    completion.
 
     The total length of input tokens and generated tokens is limited by the model's
     context length.
@@ -108,7 +119,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     n: Optional[int]
-    """How many chat completion choices to generate for each input message."""
+    """How many chat completion choices to generate for each input message.
+
+    Note that you will be charged based on the number of generated tokens across all
+    of the choices. Keep `n` as `1` to minimize costs.
+    """
 
     presence_penalty: Optional[float]
     """Number between -2.0 and 2.0.
@@ -116,11 +131,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Positive values penalize new tokens based on whether they appear in the text so
     far, increasing the model's likelihood to talk about new topics.
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
     """
 
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
+
+    Compatible with `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -128,19 +145,19 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     **Important:** when using JSON mode, you **must** also instruct the model to
     produce JSON yourself via a system or user message. Without this, the model may
     generate an unending stream of whitespace until the generation reaches the token
-    limit, resulting in increased latency and appearance of a "stuck" request. Also
-    note that the message content may be partially cut off if
-    `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-    or the conversation exceeded the max context length.
+    limit, resulting in a long-running and seemingly "stuck" request. Also note that
+    the message content may be partially cut off if `finish_reason="length"`, which
+    indicates the generation exceeded `max_tokens` or the conversation exceeded the
+    max context length.
     """
 
     seed: Optional[int]
-    """This feature is in Beta.
-
-    If specified, our system will make a best effort to sample deterministically,
-    such that repeated requests with the same `seed` and parameters should return
-    the same result. Determinism is not guaranteed, and you should refer to the
-    `system_fingerprint` response parameter to monitor changes in the backend.
+    """
+    This feature is in Beta. If specified, our system will make a best effort to
+    sample deterministically, such that repeated requests with the same `seed` and
+    parameters should return the same result. Determinism is not guaranteed, and you
+    should refer to the `system_fingerprint` response parameter to monitor changes
+    in the backend.
     """
 
     stop: Union[Optional[str], List[str]]
@@ -175,6 +192,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     functions the model may generate JSON inputs for.
     """
 
+    top_logprobs: Optional[int]
+    """
+    An integer between 0 and 5 specifying the number of most likely tokens to return
+    at each token position, each with an associated log probability. `logprobs` must
+    be set to `true` if this parameter is used.
+    """
+
     top_p: Optional[float]
     """
     An alternative to sampling with temperature, called nucleus sampling, where the
@@ -203,22 +227,22 @@ class Function(TypedDict, total=False):
     of 64.
     """
 
-    parameters: Required[shared_params.FunctionParameters]
-    """The parameters the functions accepts, described as a JSON Schema object.
-
-    See the [guide](https://platform.openai.com/docs/guides/gpt/function-calling)
-    for examples, and the
-    [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for
-    documentation about the format.
-
-    To describe a function that accepts no parameters, provide the value
-    `{"type": "object", "properties": {}}`.
-    """
-
     description: str
     """
     A description of what the function does, used by the model to choose when and
     how to call the function.
+    """
+
+    parameters: shared_params.FunctionParameters
+    """The parameters the functions accepts, described as a JSON Schema object.
+
+    See the
+    [guide](https://platform.openai.com/docs/guides/text-generation/function-calling)
+    for examples, and the
+    [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for
+    documentation about the format.
+
+    Omitting `parameters` defines a function with an empty parameter list.
     """
 
 

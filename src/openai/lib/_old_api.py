@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 from typing_extensions import override
 
 from .._utils import LazyProxy
@@ -23,13 +23,19 @@ class APIRemovedInV1(OpenAIError):
         super().__init__(INSTRUCTIONS.format(symbol=symbol))
 
 
-class APIRemovedInV1Proxy(LazyProxy[None]):
+class APIRemovedInV1Proxy(LazyProxy[Any]):
     def __init__(self, *, symbol: str) -> None:
         super().__init__()
         self._symbol = symbol
 
     @override
-    def __load__(self) -> None:
+    def __load__(self) -> Any:
+        # return the proxy until it is eventually called so that
+        # we don't break people that are just checking the attributes
+        # of a module
+        return self
+
+    def __call__(self, *_args: Any, **_kwargs: Any) -> Any:
         raise APIRemovedInV1(symbol=self._symbol)
 
 

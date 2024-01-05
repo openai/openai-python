@@ -149,7 +149,7 @@ class BaseModel(pydantic.BaseModel):
     if not PYDANTIC_V2:
         # we define aliases for some of the new pydantic v2 methods so
         # that we can just document these methods without having to specify
-        # a specifc pydantic version as some users may not know which
+        # a specific pydantic version as some users may not know which
         # pydantic version they are currently using
 
         @override
@@ -263,6 +263,19 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
     return construct_type(value=value, type_=type_)
 
 
+def is_basemodel(type_: type) -> bool:
+    """Returns whether or not the given type is either a `BaseModel` or a union of `BaseModel`"""
+    origin = get_origin(type_) or type_
+    if is_union(type_):
+        for variant in get_args(type_):
+            if is_basemodel(variant):
+                return True
+
+        return False
+
+    return issubclass(origin, BaseModel) or issubclass(origin, GenericModel)
+
+
 def construct_type(*, value: object, type_: type) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
@@ -369,7 +382,7 @@ elif not TYPE_CHECKING:  # TODO: condition is weird
 
         For example:
         ```py
-        validated = RootModel[int](__root__='5').__root__
+        validated = RootModel[int](__root__="5").__root__
         # validated: 5
         ```
         """

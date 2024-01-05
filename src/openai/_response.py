@@ -1,17 +1,17 @@
 from __future__ import annotations
 
 import inspect
+import logging
 import datetime
 import functools
 from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, cast
-from typing_extensions import Awaitable, ParamSpec, get_args, override, get_origin
+from typing_extensions import Awaitable, ParamSpec, override, get_origin
 
 import httpx
-import pydantic
 
 from ._types import NoneType, UnknownResponse, BinaryResponseContent
-from ._utils import is_given
-from ._models import BaseModel
+from ._utils import is_given, extract_type_var_from_base
+from ._models import BaseModel, is_basemodel
 from ._constants import RAW_RESPONSE_HEADER
 from ._exceptions import APIResponseValidationError
 
@@ -22,6 +22,8 @@ if TYPE_CHECKING:
 
 P = ParamSpec("P")
 R = TypeVar("R")
+
+log: logging.Logger = logging.getLogger(__name__)
 
 
 class APIResponse(Generic[R]):
@@ -174,6 +176,18 @@ class APIResponse(Generic[R]):
         # in the response, e.g. application/json; charset=utf-8
         content_type, *_ = response.headers.get("content-type").split(";")
         if content_type != "application/json":
+            if is_basemodel(cast_to):
+                try:
+                    data = response.json()
+                except Exception as exc:
+                    log.debug("Could not read JSON from response data due to %s - %s", type(exc), exc)
+                else:
+                    return self._client._process_response_data(
+                        data=data,
+                        cast_to=cast_to,  # type: ignore
+                        response=response,
+                    )
+
             if self._client._strict_response_validation:
                 raise APIResponseValidationError(
                     response=response,
@@ -188,14 +202,11 @@ class APIResponse(Generic[R]):
 
         data = response.json()
 
-        try:
-            return self._client._process_response_data(
-                data=data,
-                cast_to=cast_to,  # type: ignore
-                response=response,
-            )
-        except pydantic.ValidationError as err:
-            raise APIResponseValidationError(response=response, body=data) from err
+        return self._client._process_response_data(
+            data=data,
+            cast_to=cast_to,  # type: ignore
+            response=response,
+        )
 
     @override
     def __repr__(self) -> str:
@@ -210,12 +221,13 @@ class MissingStreamClassError(TypeError):
 
 
 def _extract_stream_chunk_type(stream_cls: type) -> type:
-    args = get_args(stream_cls)
-    if not args:
-        raise TypeError(
-            f"Expected stream_cls to have been given a generic type argument, e.g. Stream[Foo] but received {stream_cls}",
-        )
-    return cast(type, args[0])
+    from ._base_client import Stream, AsyncStream
+
+    return extract_type_var_from_base(
+        stream_cls,
+        index=0,
+        generic_bases=cast("tuple[type, ...]", (Stream, AsyncStream)),
+    )
 
 
 def to_raw_response_wrapper(func: Callable[P, R]) -> Callable[P, APIResponse[R]]:

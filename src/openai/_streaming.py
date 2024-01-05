@@ -2,20 +2,23 @@
 from __future__ import annotations
 
 import json
-from typing import TYPE_CHECKING, Any, Generic, Iterator, AsyncIterator
-from typing_extensions import override
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, AsyncIterator, cast
+from typing_extensions import Self, override
 
 import httpx
 
-from ._types import ResponseT
 from ._utils import is_mapping
 from ._exceptions import APIError
 
 if TYPE_CHECKING:
-    from ._base_client import SyncAPIClient, AsyncAPIClient
+    from ._client import OpenAI, AsyncOpenAI
 
 
-class Stream(Generic[ResponseT]):
+_T = TypeVar("_T")
+
+
+class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
 
     response: httpx.Response
@@ -23,9 +26,9 @@ class Stream(Generic[ResponseT]):
     def __init__(
         self,
         *,
-        cast_to: type[ResponseT],
+        cast_to: type[_T],
         response: httpx.Response,
-        client: SyncAPIClient,
+        client: OpenAI,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
@@ -33,18 +36,18 @@ class Stream(Generic[ResponseT]):
         self._decoder = SSEDecoder()
         self._iterator = self.__stream__()
 
-    def __next__(self) -> ResponseT:
+    def __next__(self) -> _T:
         return self._iterator.__next__()
 
-    def __iter__(self) -> Iterator[ResponseT]:
+    def __iter__(self) -> Iterator[_T]:
         for item in self._iterator:
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
         yield from self._decoder.iter(self.response.iter_lines())
 
-    def __stream__(self) -> Iterator[ResponseT]:
-        cast_to = self._cast_to
+    def __stream__(self) -> Iterator[_T]:
+        cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
@@ -57,7 +60,7 @@ class Stream(Generic[ResponseT]):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     raise APIError(
-                        message="An error ocurred during streaming",
+                        message="An error occurred during streaming",
                         request=self.response.request,
                         body=data["error"],
                     )
@@ -65,11 +68,30 @@ class Stream(Generic[ResponseT]):
                 yield process_data(data=data, cast_to=cast_to, response=response)
 
         # Ensure the entire stream is consumed
-        for sse in iterator:
+        for _sse in iterator:
             ...
 
+    def __enter__(self) -> Self:
+        return self
 
-class AsyncStream(Generic[ResponseT]):
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        self.close()
+
+    def close(self) -> None:
+        """
+        Close the response and release the connection.
+
+        Automatically called if the response body is read to completion.
+        """
+        self.response.close()
+
+
+class AsyncStream(Generic[_T]):
     """Provides the core interface to iterate over an asynchronous stream response."""
 
     response: httpx.Response
@@ -77,9 +99,9 @@ class AsyncStream(Generic[ResponseT]):
     def __init__(
         self,
         *,
-        cast_to: type[ResponseT],
+        cast_to: type[_T],
         response: httpx.Response,
-        client: AsyncAPIClient,
+        client: AsyncOpenAI,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
@@ -87,10 +109,10 @@ class AsyncStream(Generic[ResponseT]):
         self._decoder = SSEDecoder()
         self._iterator = self.__stream__()
 
-    async def __anext__(self) -> ResponseT:
+    async def __anext__(self) -> _T:
         return await self._iterator.__anext__()
 
-    async def __aiter__(self) -> AsyncIterator[ResponseT]:
+    async def __aiter__(self) -> AsyncIterator[_T]:
         async for item in self._iterator:
             yield item
 
@@ -98,8 +120,8 @@ class AsyncStream(Generic[ResponseT]):
         async for sse in self._decoder.aiter(self.response.aiter_lines()):
             yield sse
 
-    async def __stream__(self) -> AsyncIterator[ResponseT]:
-        cast_to = self._cast_to
+    async def __stream__(self) -> AsyncIterator[_T]:
+        cast_to = cast(Any, self._cast_to)
         response = self.response
         process_data = self._client._process_response_data
         iterator = self._iter_events()
@@ -112,7 +134,7 @@ class AsyncStream(Generic[ResponseT]):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     raise APIError(
-                        message="An error ocurred during streaming",
+                        message="An error occurred during streaming",
                         request=self.response.request,
                         body=data["error"],
                     )
@@ -120,8 +142,27 @@ class AsyncStream(Generic[ResponseT]):
                 yield process_data(data=data, cast_to=cast_to, response=response)
 
         # Ensure the entire stream is consumed
-        async for sse in iterator:
+        async for _sse in iterator:
             ...
+
+    async def __aenter__(self) -> Self:
+        return self
+
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        exc_tb: TracebackType | None,
+    ) -> None:
+        await self.close()
+
+    async def close(self) -> None:
+        """
+        Close the response and release the connection.
+
+        Automatically called if the response body is read to completion.
+        """
+        await self.response.aclose()
 
 
 class ServerSentEvent:

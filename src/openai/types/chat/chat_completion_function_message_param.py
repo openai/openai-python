@@ -10,7 +10,7 @@ __all__ = ["ChatCompletionFunctionMessageParam"]
 
 class ChatCompletionFunctionMessageParam(TypedDict, total=False):
     content: Required[Optional[str]]
-    """The return value from the function call, to return to the model."""
+    """The contents of the function message."""
 
     name: Required[str]
     """The name of the function to call."""

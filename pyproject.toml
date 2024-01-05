@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.2.3"
+version = "1.6.1"
 description = "The official Python library for the openai API"
 readme = "README.md"
 license = "Apache-2.0"
@@ -10,9 +10,10 @@ authors = [
 dependencies = [
     "httpx>=0.23.0, <1",
     "pydantic>=1.9.0, <3",
-    "typing-extensions>=4.5, <5",
-    "anyio>=3.5.0, <4",
+    "typing-extensions>=4.7, <5",
+    "anyio>=3.5.0, <5",
     "distro>=1.7.0, <2",
+    "sniffio",
     "tqdm > 4"
 ]
 requires-python = ">= 3.7.1"
@@ -31,6 +32,7 @@ classifiers = [
   "Operating System :: POSIX :: Linux",
   "Operating System :: Microsoft :: Windows",
   "Topic :: Software Development :: Libraries :: Python Modules",
+  "License :: OSI Approved :: Apache Software License"
 ]
 
 [project.optional-dependencies]
@@ -45,35 +47,37 @@ openai = "openai.cli:main"
 
 [tool.rye]
 managed = true
+# version pins are in requirements-dev.lock
 dev-dependencies = [
-    "pyright==1.1.332",
-    "mypy==1.6.1",
-    "black==23.3.0",
-    "respx==0.19.2",
-    "pytest==7.1.1",
-    "pytest-asyncio==0.21.1",
-    "ruff==0.0.282",
-    "isort==5.10.1",
-    "time-machine==2.9.0",
-    "nox==2023.4.22",
+    "pyright",
+    "mypy",
+    "respx",
+    "pytest",
+    "pytest-asyncio",
+    "ruff",
+    "isort",
+    "time-machine",
+    "nox",
     "dirty-equals>=0.6.0",
+    "importlib-metadata>=6.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4"
 ]
 
 [tool.rye.scripts]
 format = { chain = [
-  "format:black",
-  "format:docs",
   "format:ruff",
+  "format:docs",
+  "fix:ruff",
   "format:isort",
 ]}
 "format:black" = "black ."
-"format:docs" = "python bin/blacken-docs.py README.md api.md"
-"format:ruff" = "ruff --fix ."
+"format:docs" = "python bin/ruffen-docs.py README.md api.md"
+"format:ruff" = "ruff format"
 "format:isort" = "isort ."
 
 "check:ruff" = "ruff ."
+"fix:ruff" = "ruff --fix ."
 
 typecheck = { chain = [
   "typecheck:pyright",
@@ -81,7 +85,7 @@ typecheck = { chain = [
 ]}
 "typecheck:pyright" = "pyright"
 "typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
-"typecheck:mypy" = "mypy --enable-incomplete-feature=Unpack ."
+"typecheck:mypy" = "mypy ."
 
 [build-system]
 requires = ["hatchling"]
@@ -133,9 +137,11 @@ extra_standard_library = ["typing_extensions"]
 
 [tool.ruff]
 line-length = 120
-format = "grouped"
+output-format = "grouped"
 target-version = "py37"
 select = [
+  # bugbear rules
+  "B",
   # remove unused imports
   "F401",
   # bare except statements
@@ -146,6 +152,10 @@ select = [
   "T201",
   "T203",
 ]
+ignore = [
+  # mutable defaults
+  "B006",
+]
 unfixable = [
   # disable auto fix for print statements
   "T201",
@@ -153,6 +163,8 @@ unfixable = [
 ]
 ignore-init-module-imports = true
 
+[tool.ruff.format]
+docstring-code-format = true
 
 [tool.ruff.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]

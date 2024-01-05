@@ -55,6 +55,7 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -62,6 +63,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -72,6 +74,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -96,7 +99,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -106,7 +109,7 @@ class Completions(SyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -122,22 +125,31 @@ class Completions(SyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -145,10 +157,10 @@ class Completions(SyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -184,6 +196,10 @@ class Completions(SyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -225,6 +241,7 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -233,6 +250,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -242,6 +260,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -273,7 +292,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -283,7 +302,7 @@ class Completions(SyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -299,22 +318,31 @@ class Completions(SyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -322,10 +350,10 @@ class Completions(SyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -354,6 +382,10 @@ class Completions(SyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -395,6 +427,7 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -403,6 +436,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -412,6 +446,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -443,7 +478,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -453,7 +488,7 @@ class Completions(SyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -469,22 +504,31 @@ class Completions(SyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -492,10 +536,10 @@ class Completions(SyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -524,6 +568,10 @@ class Completions(SyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -565,6 +613,7 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -572,6 +621,7 @@ class Completions(SyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -582,6 +632,7 @@ class Completions(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -601,6 +652,7 @@ class Completions(SyncAPIResource):
                     "function_call": function_call,
                     "functions": functions,
                     "logit_bias": logit_bias,
+                    "logprobs": logprobs,
                     "max_tokens": max_tokens,
                     "n": n,
                     "presence_penalty": presence_penalty,
@@ -611,6 +663,7 @@ class Completions(SyncAPIResource):
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
                 },
@@ -652,6 +705,7 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -659,6 +713,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -669,6 +724,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -693,7 +749,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -703,7 +759,7 @@ class AsyncCompletions(AsyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -719,22 +775,31 @@ class AsyncCompletions(AsyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -742,10 +807,10 @@ class AsyncCompletions(AsyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -781,6 +846,10 @@ class AsyncCompletions(AsyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -822,6 +891,7 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -830,6 +900,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -839,6 +910,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -870,7 +942,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -880,7 +952,7 @@ class AsyncCompletions(AsyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -896,22 +968,31 @@ class AsyncCompletions(AsyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -919,10 +1000,10 @@ class AsyncCompletions(AsyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -951,6 +1032,10 @@ class AsyncCompletions(AsyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -992,6 +1077,7 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -1000,6 +1086,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1009,6 +1096,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1040,7 +1128,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -1050,7 +1138,7 @@ class AsyncCompletions(AsyncAPIResource):
               particular function via `{"name": "my_function"}` forces the model to call that
               function.
 
-              `none` is the default when no functions are present. `auto`` is the default if
+              `none` is the default when no functions are present. `auto` is the default if
               functions are present.
 
           functions: Deprecated in favor of `tools`.
@@ -1066,22 +1154,31 @@ class AsyncCompletions(AsyncAPIResource):
               increase likelihood of selection; values like -100 or 100 should result in a ban
               or exclusive selection of the relevant token.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) to generate in the chat completion.
+          logprobs: Whether to return log probabilities of the output tokens or not. If true,
+              returns the log probabilities of each output token returned in the `content` of
+              `message`. This option is currently not available on the `gpt-4-vision-preview`
+              model.
+
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion.
 
               The total length of input tokens and generated tokens is limited by the model's
               context length.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
               for counting tokens.
 
-          n: How many chat completion choices to generate for each input message.
+          n: How many chat completion choices to generate for each input message. Note that
+              you will be charged based on the number of generated tokens across all of the
+              choices. Keep `n` as `1` to minimize costs.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/gpt/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
-          response_format: An object specifying the format that the model must output.
+          response_format: An object specifying the format that the model must output. Compatible with
+              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1089,10 +1186,10 @@ class AsyncCompletions(AsyncAPIResource):
               **Important:** when using JSON mode, you **must** also instruct the model to
               produce JSON yourself via a system or user message. Without this, the model may
               generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in increased latency and appearance of a "stuck" request. Also
-              note that the message content may be partially cut off if
-              `finish_reason="length"`, which indicates the generation exceeded `max_tokens`
-              or the conversation exceeded the max context length.
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1121,6 +1218,10 @@ class AsyncCompletions(AsyncAPIResource):
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
               for.
+
+          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
+              at each token position, each with an associated log probability. `logprobs` must
+              be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1162,6 +1263,7 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-16k",
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
@@ -1169,6 +1271,7 @@ class AsyncCompletions(AsyncAPIResource):
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
+        logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1179,6 +1282,7 @@ class AsyncCompletions(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1198,6 +1302,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "function_call": function_call,
                     "functions": functions,
                     "logit_bias": logit_bias,
+                    "logprobs": logprobs,
                     "max_tokens": max_tokens,
                     "n": n,
                     "presence_penalty": presence_penalty,
@@ -1208,6 +1313,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
                 },

@@ -10,7 +10,7 @@ client = AsyncOpenAI()
 
 async def main() -> None:
     stream = await client.completions.create(
-        model="text-davinci-003",
+        model="gpt-3.5-turbo-instruct",
         prompt="Say this is a test",
         stream=True,
     )

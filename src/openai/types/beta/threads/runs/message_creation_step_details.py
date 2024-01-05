@@ -16,4 +16,4 @@ class MessageCreationStepDetails(BaseModel):
     message_creation: MessageCreation
 
     type: Literal["message_creation"]
-    """Always `message_creation``."""
+    """Always `message_creation`."""

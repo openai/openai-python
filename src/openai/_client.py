@@ -3,9 +3,8 @@
 from __future__ import annotations
 
 import os
-import asyncio
-from typing import Union, Mapping
-from typing_extensions import override
+from typing import Any, Union, Mapping
+from typing_extensions import Self, override
 
 import httpx
 
@@ -20,7 +19,7 @@ from ._types import (
     ProxiesTypes,
     RequestOptions,
 )
-from ._utils import is_given, is_mapping
+from ._utils import is_given, is_mapping, get_async_library
 from ._version import __version__
 from ._streaming import Stream as Stream
 from ._streaming import AsyncStream as AsyncStream
@@ -100,6 +99,8 @@ class OpenAI(SyncAPIClient):
         self.organization = organization
 
         if base_url is None:
+            base_url = os.environ.get("OPENAI_BASE_URL")
+        if base_url is None:
             base_url = f"https://api.openai.com/v1"
 
         super().__init__(
@@ -145,6 +146,7 @@ class OpenAI(SyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
+            "X-Stainless-Async": "false",
             "OpenAI-Organization": self.organization if self.organization is not None else Omit(),
             **self._custom_headers,
         }
@@ -162,12 +164,10 @@ class OpenAI(SyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
-    ) -> OpenAI:
+        _extra_kwargs: Mapping[str, Any] = {},
+    ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
-
-        It should be noted that this does not share the underlying httpx client class which may lead
-        to performance issues.
         """
         if default_headers is not None and set_default_headers is not None:
             raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
@@ -191,27 +191,18 @@ class OpenAI(SyncAPIClient):
         return self.__class__(
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
-            base_url=base_url or str(self.base_url),
+            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            **_extra_kwargs,
         )
 
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
     with_options = copy
-
-    def __del__(self) -> None:
-        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close"):
-            # this can happen if the '__init__' method raised an error
-            return
-
-        if self._has_custom_http_client:
-            return
-
-        self.close()
 
     @override
     def _make_status_error(
@@ -308,6 +299,8 @@ class AsyncOpenAI(AsyncAPIClient):
         self.organization = organization
 
         if base_url is None:
+            base_url = os.environ.get("OPENAI_BASE_URL")
+        if base_url is None:
             base_url = f"https://api.openai.com/v1"
 
         super().__init__(
@@ -353,6 +346,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
+            "X-Stainless-Async": f"async:{get_async_library()}",
             "OpenAI-Organization": self.organization if self.organization is not None else Omit(),
             **self._custom_headers,
         }
@@ -370,12 +364,10 @@ class AsyncOpenAI(AsyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
-    ) -> AsyncOpenAI:
+        _extra_kwargs: Mapping[str, Any] = {},
+    ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
-
-        It should be noted that this does not share the underlying httpx client class which may lead
-        to performance issues.
         """
         if default_headers is not None and set_default_headers is not None:
             raise ValueError("The `default_headers` and `set_default_headers` arguments are mutually exclusive")
@@ -399,30 +391,18 @@ class AsyncOpenAI(AsyncAPIClient):
         return self.__class__(
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
-            base_url=base_url or str(self.base_url),
+            base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            **_extra_kwargs,
         )
 
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
     with_options = copy
-
-    def __del__(self) -> None:
-        if not hasattr(self, "_has_custom_http_client") or not hasattr(self, "close"):
-            # this can happen if the '__init__' method raised an error
-            return
-
-        if self._has_custom_http_client:
-            return
-
-        try:
-            asyncio.get_running_loop().create_task(self.close())
-        except Exception:
-            pass
 
     @override
     def _make_status_error(

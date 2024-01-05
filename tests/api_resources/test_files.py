@@ -95,22 +95,20 @@ class TestFiles:
         file = response.parse()
         assert_matches_type(FileDeleted, file, path=["response"])
 
-    @pytest.mark.skip(reason="mocked response isn't working yet")
     @parametrize
     @pytest.mark.respx(base_url=base_url)
     def test_method_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/files/{file_id}/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/files/string/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         file = client.files.content(
             "string",
         )
         assert isinstance(file, BinaryResponseContent)
         assert file.json() == {"foo": "bar"}
 
-    @pytest.mark.skip(reason="mocked response isn't working yet")
     @parametrize
     @pytest.mark.respx(base_url=base_url)
     def test_raw_response_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/files/{file_id}/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/files/string/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         response = client.files.with_raw_response.content(
             "string",
         )
@@ -212,22 +210,20 @@ class TestAsyncFiles:
         file = response.parse()
         assert_matches_type(FileDeleted, file, path=["response"])
 
-    @pytest.mark.skip(reason="mocked response isn't working yet")
     @parametrize
     @pytest.mark.respx(base_url=base_url)
     async def test_method_content(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/files/{file_id}/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/files/string/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         file = await client.files.content(
             "string",
         )
         assert isinstance(file, BinaryResponseContent)
         assert file.json() == {"foo": "bar"}
 
-    @pytest.mark.skip(reason="mocked response isn't working yet")
     @parametrize
     @pytest.mark.respx(base_url=base_url)
     async def test_raw_response_content(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
-        respx_mock.get("/files/{file_id}/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/files/string/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         response = await client.files.with_raw_response.content(
             "string",
         )

@@ -13,6 +13,9 @@ from .chat_completion_tool_param import (
 from .chat_completion_message_param import (
     ChatCompletionMessageParam as ChatCompletionMessageParam,
 )
+from .chat_completion_token_logprob import (
+    ChatCompletionTokenLogprob as ChatCompletionTokenLogprob,
+)
 from .chat_completion_message_tool_call import (
     ChatCompletionMessageToolCall as ChatCompletionMessageToolCall,
 )
