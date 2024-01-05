@@ -8,13 +8,7 @@ import httpx
 
 from .runs import Runs, AsyncRuns, RunsWithRawResponse, AsyncRunsWithRawResponse
 from .messages import Messages, AsyncMessages, MessagesWithRawResponse, AsyncMessagesWithRawResponse
-from ...._types import (
-    NOT_GIVEN,
-    Body,
-    Query,
-    Headers,
-    NotGiven,
-)
+from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import maybe_transform
 from .runs.runs import Runs, AsyncRuns
 from ...._compat import cached_property

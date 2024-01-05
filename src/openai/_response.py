@@ -9,7 +9,7 @@ from typing_extensions import Awaitable, ParamSpec, override, get_origin
 
 import httpx
 
-from ._types import NoneType, UnknownResponse, BinaryResponseContent
+from ._types import NoneType, BinaryResponseContent
 from ._utils import is_given, extract_type_var_from_base
 from ._models import BaseModel, is_basemodel
 from ._constants import RAW_RESPONSE_HEADER
@@ -162,7 +162,7 @@ class APIResponse(Generic[R]):
         # `ResponseT` TypeVar, however if that TypeVar is ever updated in the future, then
         # this function would become unsafe but a type checker would not report an error.
         if (
-            cast_to is not UnknownResponse
+            cast_to is not object
             and not origin is list
             and not origin is dict
             and not origin is Union
