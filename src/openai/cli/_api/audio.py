@@ -75,7 +75,18 @@ class CLIAudio:
             # but we don't want to validate that here for forwards-compat
             response_format=cast(Any, args.response_format),
         )
-        print_model(model)
+
+        if args.response_format == 'json':
+            print_model(model)
+        elif args.response_format == 'srt':
+            # Handle SRT response format
+            print(model.get('srt'))
+        elif args.response_format == 'vtt':
+            # Handle VTT response format
+            print(model.get('vtt'))
+        else:
+            raise CLIError(f"Unsupported response format: {args.response_format}")
+
 
     @staticmethod
     def translate(args: CLITranslationArgs) -> None:
@@ -91,4 +102,14 @@ class CLIAudio:
             # but we don't want to validate that here for forwards-compat
             response_format=cast(Any, args.response_format),
         )
-        print_model(model)
+
+        if args.response_format == 'json':
+            print_model(model)
+        elif args.response_format == 'srt':
+            # Handle SRT response format
+            print(model.get('srt'))
+        elif args.response_format == 'vtt':
+            # Handle VTT response format
+            print(model.get('vtt'))
+        else:
+            raise CLIError(f"Unsupported response format: {args.response_format}")
