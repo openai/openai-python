@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.7.0 (2024-01-08)
+
+Full Changelog: [v1.6.1...v1.7.0](https://github.com/openai/openai-python/compare/v1.6.1...v1.7.0)
+
+### Features
+
+* add `None` default value to nullable response properties ([#1043](https://github.com/openai/openai-python/issues/1043)) ([d94b4d3](https://github.com/openai/openai-python/commit/d94b4d3d0adcd1a49a1c25cc9730cef013a3e9c9))
+
+
+### Bug Fixes
+
+* **client:** correctly use custom http client auth ([#1028](https://github.com/openai/openai-python/issues/1028)) ([3d7d93e](https://github.com/openai/openai-python/commit/3d7d93e951eb7fe09cd9d94d10a62a020398c7f9))
+
+
+### Chores
+
+* add .keep files for examples and custom code directories ([#1057](https://github.com/openai/openai-python/issues/1057)) ([7524097](https://github.com/openai/openai-python/commit/7524097a47af0fdc8b560186ef3b111b59430741))
+* **internal:** bump license ([#1037](https://github.com/openai/openai-python/issues/1037)) ([d828527](https://github.com/openai/openai-python/commit/d828527540ebd97679075f48744818f06311b0cb))
+* **internal:** loosen type var restrictions ([#1049](https://github.com/openai/openai-python/issues/1049)) ([e00876b](https://github.com/openai/openai-python/commit/e00876b20b93038450eb317899d8775c7661b8eb))
+* **internal:** replace isort with ruff ([#1042](https://github.com/openai/openai-python/issues/1042)) ([f1fbc9c](https://github.com/openai/openai-python/commit/f1fbc9c0d62e7d89ab32c8bdfa39cd94b560690b))
+* **internal:** update formatting ([#1041](https://github.com/openai/openai-python/issues/1041)) ([2e9ecee](https://github.com/openai/openai-python/commit/2e9ecee9bdfa8ec33b1b1527d5187483b700fad3))
+* **src:** fix typos ([#988](https://github.com/openai/openai-python/issues/988)) ([6a8b806](https://github.com/openai/openai-python/commit/6a8b80624636f9a0e5ada151b2509710a6f74808))
+* use property declarations for resource members ([#1047](https://github.com/openai/openai-python/issues/1047)) ([131f6bc](https://github.com/openai/openai-python/commit/131f6bc6b0ccf79119096057079e10906b3d4678))
+
+
+### Documentation
+
+* fix docstring typos ([#1022](https://github.com/openai/openai-python/issues/1022)) ([ad3fd2c](https://github.com/openai/openai-python/commit/ad3fd2cd19bf91f94473e368554dff39a8f9ad16))
+* improve audio example to show how to stream to a file ([#1017](https://github.com/openai/openai-python/issues/1017)) ([d45ed7f](https://github.com/openai/openai-python/commit/d45ed7f0513b167555ae875f1877fa205c5790d2))
+
 ## 1.6.1 (2023-12-22)
 
 Full Changelog: [v1.6.0...v1.6.1](https://github.com/openai/openai-python/compare/v1.6.0...v1.6.1)
