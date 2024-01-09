@@ -11,7 +11,7 @@ class TopLogprob(BaseModel):
     token: str
     """The token."""
 
-    bytes: Optional[List[int]]
+    bytes: Optional[List[int]] = None
     """A list of integers representing the UTF-8 bytes representation of the token.
 
     Useful in instances where characters are represented by multiple tokens and
@@ -27,7 +27,7 @@ class ChatCompletionTokenLogprob(BaseModel):
     token: str
     """The token."""
 
-    bytes: Optional[List[int]]
+    bytes: Optional[List[int]] = None
     """A list of integers representing the UTF-8 bytes representation of the token.
 
     Useful in instances where characters are represented by multiple tokens and

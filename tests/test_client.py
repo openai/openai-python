@@ -20,18 +20,8 @@ from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from openai._client import OpenAI, AsyncOpenAI
 from openai._models import BaseModel, FinalRequestOptions
 from openai._streaming import Stream, AsyncStream
-from openai._exceptions import (
-    OpenAIError,
-    APIStatusError,
-    APITimeoutError,
-    APIResponseValidationError,
-)
-from openai._base_client import (
-    DEFAULT_TIMEOUT,
-    HTTPX_DEFAULT_TIMEOUT,
-    BaseClient,
-    make_request_options,
-)
+from openai._exceptions import OpenAIError, APIStatusError, APITimeoutError, APIResponseValidationError
+from openai._base_client import DEFAULT_TIMEOUT, HTTPX_DEFAULT_TIMEOUT, BaseClient, make_request_options
 
 from .utils import update_env
 

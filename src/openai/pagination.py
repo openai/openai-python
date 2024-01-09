@@ -1,12 +1,13 @@
 # File generated from our OpenAPI spec by Stainless.
 
-from typing import Any, List, Generic, Optional, cast
+from typing import Any, List, Generic, TypeVar, Optional, cast
 from typing_extensions import Protocol, override, runtime_checkable
 
-from ._types import ModelT
 from ._base_client import BasePage, PageInfo, BaseSyncPage, BaseAsyncPage
 
 __all__ = ["SyncPage", "AsyncPage", "SyncCursorPage", "AsyncCursorPage"]
+
+_T = TypeVar("_T")
 
 
 @runtime_checkable
@@ -14,14 +15,14 @@ class CursorPageItem(Protocol):
     id: Optional[str]
 
 
-class SyncPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
+class SyncPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
     """Note: no pagination actually occurs yet, this is for forwards-compatibility."""
 
-    data: List[ModelT]
+    data: List[_T]
     object: str
 
     @override
-    def _get_page_items(self) -> List[ModelT]:
+    def _get_page_items(self) -> List[_T]:
         data = self.data
         if not data:
             return []
@@ -36,14 +37,14 @@ class SyncPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
         return None
 
 
-class AsyncPage(BaseAsyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
+class AsyncPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
     """Note: no pagination actually occurs yet, this is for forwards-compatibility."""
 
-    data: List[ModelT]
+    data: List[_T]
     object: str
 
     @override
-    def _get_page_items(self) -> List[ModelT]:
+    def _get_page_items(self) -> List[_T]:
         data = self.data
         if not data:
             return []
@@ -58,11 +59,11 @@ class AsyncPage(BaseAsyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
         return None
 
 
-class SyncCursorPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
-    data: List[ModelT]
+class SyncCursorPage(BaseSyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
 
     @override
-    def _get_page_items(self) -> List[ModelT]:
+    def _get_page_items(self) -> List[_T]:
         data = self.data
         if not data:
             return []
@@ -82,11 +83,11 @@ class SyncCursorPage(BaseSyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
         return PageInfo(params={"after": item.id})
 
 
-class AsyncCursorPage(BaseAsyncPage[ModelT], BasePage[ModelT], Generic[ModelT]):
-    data: List[ModelT]
+class AsyncCursorPage(BaseAsyncPage[_T], BasePage[_T], Generic[_T]):
+    data: List[_T]
 
     @override
-    def _get_page_items(self) -> List[ModelT]:
+    def _get_page_items(self) -> List[_T]:
         data = self.data
         if not data:
             return []

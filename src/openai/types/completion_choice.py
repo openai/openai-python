@@ -30,6 +30,6 @@ class CompletionChoice(BaseModel):
 
     index: int
 
-    logprobs: Optional[Logprobs]
+    logprobs: Optional[Logprobs] = None
 
     text: str

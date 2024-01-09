@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.6.1"
+version = "1.7.0"
 description = "The official Python library for the openai API"
 readme = "README.md"
 license = "Apache-2.0"
@@ -14,6 +14,7 @@ dependencies = [
     "anyio>=3.5.0, <5",
     "distro>=1.7.0, <2",
     "sniffio",
+    "cached-property; python_version < '3.8'",
     "tqdm > 4"
 ]
 requires-python = ">= 3.7.1"
@@ -55,7 +56,6 @@ dev-dependencies = [
     "pytest",
     "pytest-asyncio",
     "ruff",
-    "isort",
     "time-machine",
     "nox",
     "dirty-equals>=0.6.0",
@@ -69,7 +69,6 @@ format = { chain = [
   "format:ruff",
   "format:docs",
   "fix:ruff",
-  "format:isort",
 ]}
 "format:black" = "black ."
 "format:docs" = "python bin/ruffen-docs.py README.md api.md"
@@ -130,16 +129,13 @@ reportImplicitOverride = true
 reportImportCycles = false
 reportPrivateUsage = false
 
-[tool.isort]
-profile = "black"
-length_sort = true
-extra_standard_library = ["typing_extensions"]
-
 [tool.ruff]
 line-length = 120
 output-format = "grouped"
 target-version = "py37"
 select = [
+  # isort
+  "I",
   # bugbear rules
   "B",
   # remove unused imports
@@ -165,6 +161,13 @@ ignore-init-module-imports = true
 
 [tool.ruff.format]
 docstring-code-format = true
+
+[tool.ruff.lint.isort]
+length-sort = true
+length-sort-straight = true
+combine-as-imports = true
+extra-standard-library = ["typing_extensions"]
+known-first-party = ["openai", "tests"]
 
 [tool.ruff.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]

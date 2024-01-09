@@ -11,6 +11,4 @@ from .thread_update_params import ThreadUpdateParams as ThreadUpdateParams
 from .assistant_list_params import AssistantListParams as AssistantListParams
 from .assistant_create_params import AssistantCreateParams as AssistantCreateParams
 from .assistant_update_params import AssistantUpdateParams as AssistantUpdateParams
-from .thread_create_and_run_params import (
-    ThreadCreateAndRunParams as ThreadCreateAndRunParams,
-)
+from .thread_create_and_run_params import ThreadCreateAndRunParams as ThreadCreateAndRunParams

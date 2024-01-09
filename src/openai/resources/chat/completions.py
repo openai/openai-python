@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Dict, List, Union, Optional, overload
+from typing import Dict, List, Union, Optional, overload
 from typing_extensions import Literal
 
 import httpx
 
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ..._utils import required_args, maybe_transform
+from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ..._streaming import Stream, AsyncStream
@@ -20,20 +21,17 @@ from ...types.chat import (
     ChatCompletionToolChoiceOptionParam,
     completion_create_params,
 )
-from ..._base_client import make_request_options
-
-if TYPE_CHECKING:
-    from ..._client import OpenAI, AsyncOpenAI
+from ..._base_client import (
+    make_request_options,
+)
 
 __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
-    with_raw_response: CompletionsWithRawResponse
-
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = CompletionsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> CompletionsWithRawResponse:
+        return CompletionsWithRawResponse(self)
 
     @overload
     def create(
@@ -679,11 +677,9 @@ class Completions(SyncAPIResource):
 
 
 class AsyncCompletions(AsyncAPIResource):
-    with_raw_response: AsyncCompletionsWithRawResponse
-
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.with_raw_response = AsyncCompletionsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
+        return AsyncCompletionsWithRawResponse(self)
 
     @overload
     async def create(
