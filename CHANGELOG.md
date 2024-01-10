@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.7.1 (2024-01-10)
+
+Full Changelog: [v1.7.0...v1.7.1](https://github.com/openai/openai-python/compare/v1.7.0...v1.7.1)
+
+### Chores
+
+* **client:** improve debug logging for failed requests ([#1060](https://github.com/openai/openai-python/issues/1060)) ([cf9a651](https://github.com/openai/openai-python/commit/cf9a6517b4aa0f24bcbe143c54ea908d43dfda92))
+
 ## 1.7.0 (2024-01-08)
 
 Full Changelog: [v1.6.1...v1.7.0](https://github.com/openai/openai-python/compare/v1.6.1...v1.7.0)
