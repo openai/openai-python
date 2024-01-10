@@ -646,26 +646,33 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         # If the server explicitly says whether or not to retry, obey.
         if should_retry_header == "true":
+            log.debug("Retrying as header `x-should-retry` is set to `true`")
             return True
         if should_retry_header == "false":
+            log.debug("Not retrying as header `x-should-retry` is set to `false`")
             return False
 
         # Retry on request timeouts.
         if response.status_code == 408:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
         # Retry on lock timeouts.
         if response.status_code == 409:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
         # Retry on rate limits.
         if response.status_code == 429:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
         # Retry internal errors.
         if response.status_code >= 500:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
+        log.debug("Not retrying")
         return False
 
     def _idempotency_key(self) -> str:
@@ -883,6 +890,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 **kwargs,
             )
         except httpx.TimeoutException as err:
+            log.debug("Encountered httpx.TimeoutException", exc_info=True)
+
             if retries > 0:
                 return self._retry_request(
                     options,
@@ -893,8 +902,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising timeout error")
             raise APITimeoutError(request=request) from err
         except Exception as err:
+            log.debug("Encountered Exception", exc_info=True)
+
             if retries > 0:
                 return self._retry_request(
                     options,
@@ -905,6 +917,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising connection error")
             raise APIConnectionError(request=request) from err
 
         log.debug(
@@ -914,6 +927,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+            log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+
             if retries > 0 and self._should_retry(err.response):
                 err.response.close()
                 return self._retry_request(
@@ -930,6 +945,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             if not err.response.is_closed:
                 err.response.read()
 
+            log.debug("Re-raising status error")
             raise self._make_status_error_from_response(err.response) from None
 
         return self._process_response(
@@ -951,6 +967,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         stream_cls: type[_StreamT] | None,
     ) -> ResponseT | _StreamT:
         remaining = remaining_retries - 1
+        if remaining == 1:
+            log.debug("1 retry left")
+        else:
+            log.debug("%i retries left", remaining)
+
         timeout = self._calculate_retry_timeout(remaining, options, response_headers)
         log.info("Retrying request to %s in %f seconds", options.url, timeout)
 
@@ -1349,6 +1370,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 **kwargs,
             )
         except httpx.TimeoutException as err:
+            log.debug("Encountered httpx.TimeoutException", exc_info=True)
+
             if retries > 0:
                 return await self._retry_request(
                     options,
@@ -1359,8 +1382,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising timeout error")
             raise APITimeoutError(request=request) from err
         except Exception as err:
+            log.debug("Encountered Exception", exc_info=True)
+
             if retries > 0:
                 return await self._retry_request(
                     options,
@@ -1371,6 +1397,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising connection error")
             raise APIConnectionError(request=request) from err
 
         log.debug(
@@ -1380,6 +1407,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+            log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+
             if retries > 0 and self._should_retry(err.response):
                 await err.response.aclose()
                 return await self._retry_request(
@@ -1396,6 +1425,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             if not err.response.is_closed:
                 await err.response.aread()
 
+            log.debug("Re-raising status error")
             raise self._make_status_error_from_response(err.response) from None
 
         return self._process_response(
@@ -1417,6 +1447,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         stream_cls: type[_AsyncStreamT] | None,
     ) -> ResponseT | _AsyncStreamT:
         remaining = remaining_retries - 1
+        if remaining == 1:
+            log.debug("1 retry left")
+        else:
+            log.debug("%i retries left", remaining)
+
         timeout = self._calculate_retry_timeout(remaining, options, response_headers)
         log.info("Retrying request to %s in %f seconds", options.url, timeout)
 
