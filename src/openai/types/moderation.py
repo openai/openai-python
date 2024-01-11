@@ -25,7 +25,7 @@ class Categories(BaseModel):
     Content that expresses, incites, or promotes hate based on race, gender,
     ethnicity, religion, nationality, sexual orientation, disability status, or
     caste. Hateful content aimed at non-protected groups (e.g., chess players) is
-    harrassment.
+    harassment.
     """
 
     hate_threatening: bool = FieldInfo(alias="hate/threatening")

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -10,6 +10,7 @@ import httpx
 from .files import Files, AsyncFiles, FilesWithRawResponse, AsyncFilesWithRawResponse
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import maybe_transform
+from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_raw_response_wrapper, async_to_raw_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
@@ -20,22 +21,22 @@ from ....types.beta import (
     assistant_create_params,
     assistant_update_params,
 )
-from ...._base_client import AsyncPaginator, make_request_options
-
-if TYPE_CHECKING:
-    from ...._client import OpenAI, AsyncOpenAI
+from ...._base_client import (
+    AsyncPaginator,
+    make_request_options,
+)
 
 __all__ = ["Assistants", "AsyncAssistants"]
 
 
 class Assistants(SyncAPIResource):
-    files: Files
-    with_raw_response: AssistantsWithRawResponse
+    @cached_property
+    def files(self) -> Files:
+        return Files(self._client)
 
-    def __init__(self, client: OpenAI) -> None:
-        super().__init__(client)
-        self.files = Files(client)
-        self.with_raw_response = AssistantsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AssistantsWithRawResponse:
+        return AssistantsWithRawResponse(self)
 
     def create(
         self,
@@ -172,7 +173,7 @@ class Assistants(SyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
               attached to this assistant. There can be a maximum of 20 files attached to the
               assistant. Files are ordered by their creation date in ascending order. If a
-              file was previosuly attached to the list but does not show up in the list, it
+              file was previously attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
           instructions: The system instructions that the assistant uses. The maximum length is 32768
@@ -322,13 +323,13 @@ class Assistants(SyncAPIResource):
 
 
 class AsyncAssistants(AsyncAPIResource):
-    files: AsyncFiles
-    with_raw_response: AsyncAssistantsWithRawResponse
+    @cached_property
+    def files(self) -> AsyncFiles:
+        return AsyncFiles(self._client)
 
-    def __init__(self, client: AsyncOpenAI) -> None:
-        super().__init__(client)
-        self.files = AsyncFiles(client)
-        self.with_raw_response = AsyncAssistantsWithRawResponse(self)
+    @cached_property
+    def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
+        return AsyncAssistantsWithRawResponse(self)
 
     async def create(
         self,
@@ -465,7 +466,7 @@ class AsyncAssistants(AsyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
               attached to this assistant. There can be a maximum of 20 files attached to the
               assistant. Files are ordered by their creation date in ascending order. If a
-              file was previosuly attached to the list but does not show up in the list, it
+              file was previously attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
           instructions: The system instructions that the assistant uses. The maximum length is 32768

@@ -15,7 +15,7 @@ class Function(BaseModel):
     name: str
     """The name of the function."""
 
-    output: Optional[str]
+    output: Optional[str] = None
     """The output of the function.
 
     This will be `null` if the outputs have not been

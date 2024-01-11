@@ -48,7 +48,6 @@ from ._types import (
     Body,
     Omit,
     Query,
-    ModelT,
     Headers,
     Timeout,
     NotGiven,
@@ -58,9 +57,9 @@ from ._types import (
     PostParser,
     ProxiesTypes,
     RequestFiles,
+    HttpxSendArgs,
     AsyncTransport,
     RequestOptions,
-    UnknownResponse,
     ModelBuilderProtocol,
     BinaryResponseContent,
 )
@@ -141,7 +140,7 @@ class PageInfo:
         self.params = params
 
 
-class BasePage(GenericModel, Generic[ModelT]):
+class BasePage(GenericModel, Generic[_T]):
     """
     Defines the core interface for pagination.
 
@@ -154,7 +153,7 @@ class BasePage(GenericModel, Generic[ModelT]):
     """
 
     _options: FinalRequestOptions = PrivateAttr()
-    _model: Type[ModelT] = PrivateAttr()
+    _model: Type[_T] = PrivateAttr()
 
     def has_next_page(self) -> bool:
         items = self._get_page_items()
@@ -165,7 +164,7 @@ class BasePage(GenericModel, Generic[ModelT]):
     def next_page_info(self) -> Optional[PageInfo]:
         ...
 
-    def _get_page_items(self) -> Iterable[ModelT]:  # type: ignore[empty-body]
+    def _get_page_items(self) -> Iterable[_T]:  # type: ignore[empty-body]
         ...
 
     def _params_from_url(self, url: URL) -> httpx.QueryParams:
@@ -190,13 +189,13 @@ class BasePage(GenericModel, Generic[ModelT]):
         raise ValueError("Unexpected PageInfo state")
 
 
-class BaseSyncPage(BasePage[ModelT], Generic[ModelT]):
+class BaseSyncPage(BasePage[_T], Generic[_T]):
     _client: SyncAPIClient = pydantic.PrivateAttr()
 
     def _set_private_attributes(
         self,
         client: SyncAPIClient,
-        model: Type[ModelT],
+        model: Type[_T],
         options: FinalRequestOptions,
     ) -> None:
         self._model = model
@@ -211,7 +210,7 @@ class BaseSyncPage(BasePage[ModelT], Generic[ModelT]):
     # methods should continue to work as expected as there is an alternative method
     # to cast a model to a dictionary, model.dict(), which is used internally
     # by pydantic.
-    def __iter__(self) -> Iterator[ModelT]:  # type: ignore
+    def __iter__(self) -> Iterator[_T]:  # type: ignore
         for page in self.iter_pages():
             for item in page._get_page_items():
                 yield item
@@ -236,13 +235,13 @@ class BaseSyncPage(BasePage[ModelT], Generic[ModelT]):
         return self._client._request_api_list(self._model, page=self.__class__, options=options)
 
 
-class AsyncPaginator(Generic[ModelT, AsyncPageT]):
+class AsyncPaginator(Generic[_T, AsyncPageT]):
     def __init__(
         self,
         client: AsyncAPIClient,
         options: FinalRequestOptions,
         page_cls: Type[AsyncPageT],
-        model: Type[ModelT],
+        model: Type[_T],
     ) -> None:
         self._model = model
         self._client = client
@@ -265,7 +264,7 @@ class AsyncPaginator(Generic[ModelT, AsyncPageT]):
 
         return await self._client.request(self._page_cls, self._options)
 
-    async def __aiter__(self) -> AsyncIterator[ModelT]:
+    async def __aiter__(self) -> AsyncIterator[_T]:
         # https://github.com/microsoft/pyright/issues/3464
         page = cast(
             AsyncPageT,
@@ -275,12 +274,12 @@ class AsyncPaginator(Generic[ModelT, AsyncPageT]):
             yield item
 
 
-class BaseAsyncPage(BasePage[ModelT], Generic[ModelT]):
+class BaseAsyncPage(BasePage[_T], Generic[_T]):
     _client: AsyncAPIClient = pydantic.PrivateAttr()
 
     def _set_private_attributes(
         self,
-        model: Type[ModelT],
+        model: Type[_T],
         client: AsyncAPIClient,
         options: FinalRequestOptions,
     ) -> None:
@@ -288,7 +287,7 @@ class BaseAsyncPage(BasePage[ModelT], Generic[ModelT]):
         self._client = client
         self._options = options
 
-    async def __aiter__(self) -> AsyncIterator[ModelT]:
+    async def __aiter__(self) -> AsyncIterator[_T]:
         async for page in self.iter_pages():
             for item in page._get_page_items():
                 yield item
@@ -527,7 +526,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if data is None:
             return cast(ResponseT, None)
 
-        if cast_to is UnknownResponse:
+        if cast_to is object:
             return cast(ResponseT, data)
 
         try:
@@ -647,26 +646,33 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         # If the server explicitly says whether or not to retry, obey.
         if should_retry_header == "true":
+            log.debug("Retrying as header `x-should-retry` is set to `true`")
             return True
         if should_retry_header == "false":
+            log.debug("Not retrying as header `x-should-retry` is set to `false`")
             return False
 
         # Retry on request timeouts.
         if response.status_code == 408:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
         # Retry on lock timeouts.
         if response.status_code == 409:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
         # Retry on rate limits.
         if response.status_code == 429:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
         # Retry internal errors.
         if response.status_code >= 500:
+            log.debug("Retrying due to status code %i", response.status_code)
             return True
 
+        log.debug("Not retrying")
         return False
 
     def _idempotency_key(self) -> str:
@@ -873,13 +879,19 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         request = self._build_request(options)
         self._prepare_request(request)
 
+        kwargs: HttpxSendArgs = {}
+        if self.custom_auth is not None:
+            kwargs["auth"] = self.custom_auth
+
         try:
             response = self._client.send(
                 request,
-                auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
+                **kwargs,
             )
         except httpx.TimeoutException as err:
+            log.debug("Encountered httpx.TimeoutException", exc_info=True)
+
             if retries > 0:
                 return self._retry_request(
                     options,
@@ -890,8 +902,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising timeout error")
             raise APITimeoutError(request=request) from err
         except Exception as err:
+            log.debug("Encountered Exception", exc_info=True)
+
             if retries > 0:
                 return self._retry_request(
                     options,
@@ -902,6 +917,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising connection error")
             raise APIConnectionError(request=request) from err
 
         log.debug(
@@ -911,6 +927,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+            log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+
             if retries > 0 and self._should_retry(err.response):
                 err.response.close()
                 return self._retry_request(
@@ -927,6 +945,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             if not err.response.is_closed:
                 err.response.read()
 
+            log.debug("Re-raising status error")
             raise self._make_status_error_from_response(err.response) from None
 
         return self._process_response(
@@ -948,6 +967,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         stream_cls: type[_StreamT] | None,
     ) -> ResponseT | _StreamT:
         remaining = remaining_retries - 1
+        if remaining == 1:
+            log.debug("1 retry left")
+        else:
+            log.debug("%i retries left", remaining)
+
         timeout = self._calculate_retry_timeout(remaining, options, response_headers)
         log.info("Retrying request to %s in %f seconds", options.url, timeout)
 
@@ -965,7 +989,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
     def _request_api_list(
         self,
-        model: Type[ModelT],
+        model: Type[object],
         page: Type[SyncPageT],
         options: FinalRequestOptions,
     ) -> SyncPageT:
@@ -1127,7 +1151,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         self,
         path: str,
         *,
-        model: Type[ModelT],
+        model: Type[object],
         page: Type[SyncPageT],
         body: Body | None = None,
         options: RequestOptions = {},
@@ -1335,13 +1359,19 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         request = self._build_request(options)
         await self._prepare_request(request)
 
+        kwargs: HttpxSendArgs = {}
+        if self.custom_auth is not None:
+            kwargs["auth"] = self.custom_auth
+
         try:
             response = await self._client.send(
                 request,
-                auth=self.custom_auth,
                 stream=stream or self._should_stream_response_body(request=request),
+                **kwargs,
             )
         except httpx.TimeoutException as err:
+            log.debug("Encountered httpx.TimeoutException", exc_info=True)
+
             if retries > 0:
                 return await self._retry_request(
                     options,
@@ -1352,8 +1382,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising timeout error")
             raise APITimeoutError(request=request) from err
         except Exception as err:
+            log.debug("Encountered Exception", exc_info=True)
+
             if retries > 0:
                 return await self._retry_request(
                     options,
@@ -1364,6 +1397,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     response_headers=None,
                 )
 
+            log.debug("Raising connection error")
             raise APIConnectionError(request=request) from err
 
         log.debug(
@@ -1373,6 +1407,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         try:
             response.raise_for_status()
         except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+            log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+
             if retries > 0 and self._should_retry(err.response):
                 await err.response.aclose()
                 return await self._retry_request(
@@ -1389,6 +1425,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             if not err.response.is_closed:
                 await err.response.aread()
 
+            log.debug("Re-raising status error")
             raise self._make_status_error_from_response(err.response) from None
 
         return self._process_response(
@@ -1410,6 +1447,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         stream_cls: type[_AsyncStreamT] | None,
     ) -> ResponseT | _AsyncStreamT:
         remaining = remaining_retries - 1
+        if remaining == 1:
+            log.debug("1 retry left")
+        else:
+            log.debug("%i retries left", remaining)
+
         timeout = self._calculate_retry_timeout(remaining, options, response_headers)
         log.info("Retrying request to %s in %f seconds", options.url, timeout)
 
@@ -1425,10 +1467,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
     def _request_api_list(
         self,
-        model: Type[ModelT],
+        model: Type[_T],
         page: Type[AsyncPageT],
         options: FinalRequestOptions,
-    ) -> AsyncPaginator[ModelT, AsyncPageT]:
+    ) -> AsyncPaginator[_T, AsyncPageT]:
         return AsyncPaginator(client=self, options=options, page_cls=page, model=model)
 
     @overload
@@ -1575,13 +1617,12 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         self,
         path: str,
         *,
-        # TODO: support paginating `str`
-        model: Type[ModelT],
+        model: Type[_T],
         page: Type[AsyncPageT],
         body: Body | None = None,
         options: RequestOptions = {},
         method: str = "get",
-    ) -> AsyncPaginator[ModelT, AsyncPageT]:
+    ) -> AsyncPaginator[_T, AsyncPageT]:
         opts = FinalRequestOptions.construct(method=method, url=path, json_data=body, **options)
         return self._request_api_list(model, page, opts)
 

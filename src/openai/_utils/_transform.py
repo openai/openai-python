@@ -6,7 +6,10 @@ from typing_extensions import Literal, get_args, override, get_type_hints
 
 import pydantic
 
-from ._utils import is_list, is_mapping
+from ._utils import (
+    is_list,
+    is_mapping,
+)
 from ._typing import (
     is_list_type,
     is_union_type,

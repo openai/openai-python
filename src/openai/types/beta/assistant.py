@@ -37,7 +37,7 @@ class Assistant(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) for when the assistant was created."""
 
-    description: Optional[str]
+    description: Optional[str] = None
     """The description of the assistant. The maximum length is 512 characters."""
 
     file_ids: List[str]
@@ -47,13 +47,13 @@ class Assistant(BaseModel):
     assistant. Files are ordered by their creation date in ascending order.
     """
 
-    instructions: Optional[str]
+    instructions: Optional[str] = None
     """The system instructions that the assistant uses.
 
     The maximum length is 32768 characters.
     """
 
-    metadata: Optional[builtins.object]
+    metadata: Optional[builtins.object] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
@@ -71,7 +71,7 @@ class Assistant(BaseModel):
     descriptions of them.
     """
 
-    name: Optional[str]
+    name: Optional[str] = None
     """The name of the assistant. The maximum length is 256 characters."""
 
     object: Literal["assistant"]
