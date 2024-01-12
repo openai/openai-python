@@ -296,8 +296,9 @@ from openai import OpenAI
 client = OpenAI()
 
 try:
-    client.fine_tunes.create(
-        training_file="file-XGinujblHPwGLSztz8cPS8XY",
+    client.fine_tuning.jobs.create(
+        model="gpt-3.5-turbo",
+        training_file="file-abc123",
     )
 except openai.APIConnectionError as e:
     print("The server could not be reached")
