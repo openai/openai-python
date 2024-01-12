@@ -10,7 +10,7 @@ It is generated from our [OpenAPI specification](https://github.com/openai/opena
 
 ## Documentation
 
-The API documentation can be found [here](https://platform.openai.com/docs).
+The REST API documentation can be found [on platform.openai.com](https://platform.openai.com/docs). The full API of this library can be found in [api.md](https://www.github.com/openai/openai-python/blob/main/api.md).
 
 ## Installation
 
