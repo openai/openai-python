@@ -56,8 +56,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         "-t",
         "--temperature",
         help="""What sampling temperature to use. Higher values means the model will take more risks. Try 0.9 for more creative applications, and 0 (argmax sampling) for ones with a well-defined answer.
-
-Mutually exclusive with `top_p`.""",
+        Mutually exclusive with `top_p`.""",
         type=float,
     )
     opt.add_argument(
@@ -73,6 +72,12 @@ Mutually exclusive with `top_p`.""",
         help="A stop sequence at which to stop generating tokens for the message.",
     )
     opt.add_argument("--stream", help="Stream messages as they're ready.", action="store_true")
+    opt.add_argument(
+        "-v",
+        "--verbose",
+        help="Display the entire completion response instead of just the content of the completion.",
+        action="store_true",
+    )
     sub.set_defaults(func=CLIChatCompletion.create, args_model=CLIChatCompletionCreateArgs)
 
 
@@ -90,6 +95,7 @@ class CLIChatCompletionCreateArgs(BaseModel):
     top_p: Optional[float] = None
     stop: Optional[str] = None
     stream: bool = False
+    verbose: bool = False
 
 
 class CLIChatCompletion:
@@ -115,11 +121,17 @@ class CLIChatCompletion:
         if args.stream:
             return CLIChatCompletion._stream_create(cast(CompletionCreateParamsStreaming, params))
 
-        return CLIChatCompletion._create(cast(CompletionCreateParamsNonStreaming, params))
+        return CLIChatCompletion._create(cast(CompletionCreateParamsNonStreaming, params), verbose_output=args.verbose)
 
     @staticmethod
-    def _create(params: CompletionCreateParamsNonStreaming) -> None:
+    def _create(params: CompletionCreateParamsNonStreaming, verbose_output: bool = False) -> None:
         completion = get_client().chat.completions.create(**params)
+
+        # If verbose output requested, print the entire completion
+        if verbose_output:
+            sys.stdout.write(completion.model_dump_json(indent=2))
+            return
+
         should_print_header = len(completion.choices) > 1
         for choice in completion.choices:
             if should_print_header:
