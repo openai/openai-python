@@ -49,7 +49,8 @@ class Jobs(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTuningJob:
         """
-        Creates a job that fine-tunes a specified model from a given dataset.
+        Creates a fine-tuning job which begins the process of creating a new model from
+        a given dataset.
 
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
@@ -299,7 +300,8 @@ class AsyncJobs(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> FineTuningJob:
         """
-        Creates a job that fine-tunes a specified model from a given dataset.
+        Creates a fine-tuning job which begins the process of creating a new model from
+        a given dataset.
 
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.

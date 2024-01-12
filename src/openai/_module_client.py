@@ -18,12 +18,6 @@ class BetaProxy(LazyProxy[resources.Beta]):
         return _load_client().beta
 
 
-class EditsProxy(LazyProxy[resources.Edits]):
-    @override
-    def __load__(self) -> resources.Edits:
-        return _load_client().edits
-
-
 class FilesProxy(LazyProxy[resources.Files]):
     @override
     def __load__(self) -> resources.Files:
@@ -54,12 +48,6 @@ class EmbeddingsProxy(LazyProxy[resources.Embeddings]):
         return _load_client().embeddings
 
 
-class FineTunesProxy(LazyProxy[resources.FineTunes]):
-    @override
-    def __load__(self) -> resources.FineTunes:
-        return _load_client().fine_tunes
-
-
 class CompletionsProxy(LazyProxy[resources.Completions]):
     @override
     def __load__(self) -> resources.Completions:
@@ -80,13 +68,11 @@ class FineTuningProxy(LazyProxy[resources.FineTuning]):
 
 chat: resources.Chat = ChatProxy().__as_proxied__()
 beta: resources.Beta = BetaProxy().__as_proxied__()
-edits: resources.Edits = EditsProxy().__as_proxied__()
 files: resources.Files = FilesProxy().__as_proxied__()
 audio: resources.Audio = AudioProxy().__as_proxied__()
 images: resources.Images = ImagesProxy().__as_proxied__()
 models: resources.Models = ModelsProxy().__as_proxied__()
 embeddings: resources.Embeddings = EmbeddingsProxy().__as_proxied__()
-fine_tunes: resources.FineTunes = FineTunesProxy().__as_proxied__()
 completions: resources.Completions = CompletionsProxy().__as_proxied__()
 moderations: resources.Moderations = ModerationsProxy().__as_proxied__()
 fine_tuning: resources.FineTuning = FineTuningProxy().__as_proxied__()
