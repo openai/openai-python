@@ -80,10 +80,10 @@ class CLIAudio:
             print_model(model)
         elif args.response_format == 'srt':
             # Handle SRT response format
-            print(model.get('srt'))
+            print_model(model.get('srt'))
         elif args.response_format == 'vtt':
             # Handle VTT response format
-            print(model.get('vtt'))
+            print_model(model.get('vtt'))
         else:
             raise CLIError(f"Unsupported response format: {args.response_format}")
 
@@ -107,9 +107,9 @@ class CLIAudio:
             print_model(model)
         elif args.response_format == 'srt':
             # Handle SRT response format
-            print(model.get('srt'))
+            print_model(model.get('srt'))
         elif args.response_format == 'vtt':
             # Handle VTT response format
-            print(model.get('vtt'))
+            print_model(model.get('vtt'))
         else:
             raise CLIError(f"Unsupported response format: {args.response_format}")
