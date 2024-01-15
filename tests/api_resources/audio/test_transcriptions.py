@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -46,9 +47,25 @@ class TestTranscriptions:
             file=b"raw file contents",
             model="whisper-1",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         transcription = response.parse()
         assert_matches_type(Transcription, transcription, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create(self, client: OpenAI) -> None:
+        with client.audio.transcriptions.with_streaming_response.create(
+            file=b"raw file contents",
+            model="whisper-1",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            transcription = response.parse()
+            assert_matches_type(Transcription, transcription, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncTranscriptions:
@@ -82,6 +99,22 @@ class TestAsyncTranscriptions:
             file=b"raw file contents",
             model="whisper-1",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         transcription = response.parse()
         assert_matches_type(Transcription, transcription, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
+        async with client.audio.transcriptions.with_streaming_response.create(
+            file=b"raw file contents",
+            model="whisper-1",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            transcription = await response.parse()
+            assert_matches_type(Transcription, transcription, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

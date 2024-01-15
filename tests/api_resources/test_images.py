@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -44,9 +45,24 @@ class TestImages:
         response = client.images.with_raw_response.create_variation(
             image=b"raw file contents",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create_variation(self, client: OpenAI) -> None:
+        with client.images.with_streaming_response.create_variation(
+            image=b"raw file contents",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            image = response.parse()
+            assert_matches_type(ImagesResponse, image, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_edit(self, client: OpenAI) -> None:
@@ -76,9 +92,25 @@ class TestImages:
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    def test_streaming_response_edit(self, client: OpenAI) -> None:
+        with client.images.with_streaming_response.edit(
+            image=b"raw file contents",
+            prompt="A cute baby sea otter wearing a beret",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            image = response.parse()
+            assert_matches_type(ImagesResponse, image, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_generate(self, client: OpenAI) -> None:
@@ -106,9 +138,24 @@ class TestImages:
         response = client.images.with_raw_response.generate(
             prompt="A cute baby sea otter",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    def test_streaming_response_generate(self, client: OpenAI) -> None:
+        with client.images.with_streaming_response.generate(
+            prompt="A cute baby sea otter",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            image = response.parse()
+            assert_matches_type(ImagesResponse, image, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncImages:
@@ -140,9 +187,24 @@ class TestAsyncImages:
         response = await client.images.with_raw_response.create_variation(
             image=b"raw file contents",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create_variation(self, client: AsyncOpenAI) -> None:
+        async with client.images.with_streaming_response.create_variation(
+            image=b"raw file contents",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            image = await response.parse()
+            assert_matches_type(ImagesResponse, image, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_edit(self, client: AsyncOpenAI) -> None:
@@ -172,9 +234,25 @@ class TestAsyncImages:
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_edit(self, client: AsyncOpenAI) -> None:
+        async with client.images.with_streaming_response.edit(
+            image=b"raw file contents",
+            prompt="A cute baby sea otter wearing a beret",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            image = await response.parse()
+            assert_matches_type(ImagesResponse, image, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_generate(self, client: AsyncOpenAI) -> None:
@@ -202,6 +280,21 @@ class TestAsyncImages:
         response = await client.images.with_raw_response.generate(
             prompt="A cute baby sea otter",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_generate(self, client: AsyncOpenAI) -> None:
+        async with client.images.with_streaming_response.generate(
+            prompt="A cute baby sea otter",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            image = await response.parse()
+            assert_matches_type(ImagesResponse, image, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

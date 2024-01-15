@@ -7,12 +7,20 @@ from typing_extensions import Literal
 
 import httpx
 
-from .files import Files, AsyncFiles, FilesWithRawResponse, AsyncFilesWithRawResponse
+from .... import _legacy_response
+from .files import (
+    Files,
+    AsyncFiles,
+    FilesWithRawResponse,
+    AsyncFilesWithRawResponse,
+    FilesWithStreamingResponse,
+    AsyncFilesWithStreamingResponse,
+)
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
-from ...._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
 from ....types.beta import (
     Assistant,
@@ -37,6 +45,10 @@ class Assistants(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AssistantsWithRawResponse:
         return AssistantsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AssistantsWithStreamingResponse:
+        return AssistantsWithStreamingResponse(self)
 
     def create(
         self,
@@ -331,6 +343,10 @@ class AsyncAssistants(AsyncAPIResource):
     def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
         return AsyncAssistantsWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncAssistantsWithStreamingResponse:
+        return AsyncAssistantsWithStreamingResponse(self)
+
     async def create(
         self,
         *,
@@ -619,19 +635,19 @@ class AssistantsWithRawResponse:
     def __init__(self, assistants: Assistants) -> None:
         self.files = FilesWithRawResponse(assistants.files)
 
-        self.create = to_raw_response_wrapper(
+        self.create = _legacy_response.to_raw_response_wrapper(
             assistants.create,
         )
-        self.retrieve = to_raw_response_wrapper(
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
             assistants.retrieve,
         )
-        self.update = to_raw_response_wrapper(
+        self.update = _legacy_response.to_raw_response_wrapper(
             assistants.update,
         )
-        self.list = to_raw_response_wrapper(
+        self.list = _legacy_response.to_raw_response_wrapper(
             assistants.list,
         )
-        self.delete = to_raw_response_wrapper(
+        self.delete = _legacy_response.to_raw_response_wrapper(
             assistants.delete,
         )
 
@@ -640,18 +656,60 @@ class AsyncAssistantsWithRawResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
         self.files = AsyncFilesWithRawResponse(assistants.files)
 
-        self.create = async_to_raw_response_wrapper(
+        self.create = _legacy_response.async_to_raw_response_wrapper(
             assistants.create,
         )
-        self.retrieve = async_to_raw_response_wrapper(
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             assistants.retrieve,
         )
-        self.update = async_to_raw_response_wrapper(
+        self.update = _legacy_response.async_to_raw_response_wrapper(
             assistants.update,
         )
-        self.list = async_to_raw_response_wrapper(
+        self.list = _legacy_response.async_to_raw_response_wrapper(
             assistants.list,
         )
-        self.delete = async_to_raw_response_wrapper(
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            assistants.delete,
+        )
+
+
+class AssistantsWithStreamingResponse:
+    def __init__(self, assistants: Assistants) -> None:
+        self.files = FilesWithStreamingResponse(assistants.files)
+
+        self.create = to_streamed_response_wrapper(
+            assistants.create,
+        )
+        self.retrieve = to_streamed_response_wrapper(
+            assistants.retrieve,
+        )
+        self.update = to_streamed_response_wrapper(
+            assistants.update,
+        )
+        self.list = to_streamed_response_wrapper(
+            assistants.list,
+        )
+        self.delete = to_streamed_response_wrapper(
+            assistants.delete,
+        )
+
+
+class AsyncAssistantsWithStreamingResponse:
+    def __init__(self, assistants: AsyncAssistants) -> None:
+        self.files = AsyncFilesWithStreamingResponse(assistants.files)
+
+        self.create = async_to_streamed_response_wrapper(
+            assistants.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            assistants.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            assistants.update,
+        )
+        self.list = async_to_streamed_response_wrapper(
+            assistants.list,
+        )
+        self.delete = async_to_streamed_response_wrapper(
             assistants.delete,
         )

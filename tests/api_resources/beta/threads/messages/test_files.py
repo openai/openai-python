@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -37,9 +38,26 @@ class TestFiles:
             thread_id="thread_abc123",
             message_id="msg_abc123",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
         assert_matches_type(MessageFile, file, path=["response"])
+
+    @parametrize
+    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+        with client.beta.threads.messages.files.with_streaming_response.retrieve(
+            "file-abc123",
+            thread_id="thread_abc123",
+            message_id="msg_abc123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            file = response.parse()
+            assert_matches_type(MessageFile, file, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
@@ -67,9 +85,25 @@ class TestFiles:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
         assert_matches_type(SyncCursorPage[MessageFile], file, path=["response"])
+
+    @parametrize
+    def test_streaming_response_list(self, client: OpenAI) -> None:
+        with client.beta.threads.messages.files.with_streaming_response.list(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            file = response.parse()
+            assert_matches_type(SyncCursorPage[MessageFile], file, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncFiles:
@@ -93,9 +127,26 @@ class TestAsyncFiles:
             thread_id="thread_abc123",
             message_id="msg_abc123",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
         assert_matches_type(MessageFile, file, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_retrieve(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.messages.files.with_streaming_response.retrieve(
+            "file-abc123",
+            thread_id="thread_abc123",
+            message_id="msg_abc123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            file = await response.parse()
+            assert_matches_type(MessageFile, file, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -123,6 +174,22 @@ class TestAsyncFiles:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
         assert_matches_type(AsyncCursorPage[MessageFile], file, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_list(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.messages.files.with_streaming_response.list(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            file = await response.parse()
+            assert_matches_type(AsyncCursorPage[MessageFile], file, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

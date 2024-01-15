@@ -7,11 +7,12 @@ from typing_extensions import Literal
 
 import httpx
 
+from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import extract_files, maybe_transform, deepcopy_minimal
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...types.audio import Transcription, transcription_create_params
 from ..._base_client import (
     make_request_options,
@@ -24,6 +25,10 @@ class Transcriptions(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> TranscriptionsWithRawResponse:
         return TranscriptionsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> TranscriptionsWithStreamingResponse:
+        return TranscriptionsWithStreamingResponse(self)
 
     def create(
         self,
@@ -110,6 +115,10 @@ class AsyncTranscriptions(AsyncAPIResource):
     def with_raw_response(self) -> AsyncTranscriptionsWithRawResponse:
         return AsyncTranscriptionsWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncTranscriptionsWithStreamingResponse:
+        return AsyncTranscriptionsWithStreamingResponse(self)
+
     async def create(
         self,
         *,
@@ -192,13 +201,27 @@ class AsyncTranscriptions(AsyncAPIResource):
 
 class TranscriptionsWithRawResponse:
     def __init__(self, transcriptions: Transcriptions) -> None:
-        self.create = to_raw_response_wrapper(
+        self.create = _legacy_response.to_raw_response_wrapper(
             transcriptions.create,
         )
 
 
 class AsyncTranscriptionsWithRawResponse:
     def __init__(self, transcriptions: AsyncTranscriptions) -> None:
-        self.create = async_to_raw_response_wrapper(
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            transcriptions.create,
+        )
+
+
+class TranscriptionsWithStreamingResponse:
+    def __init__(self, transcriptions: Transcriptions) -> None:
+        self.create = to_streamed_response_wrapper(
+            transcriptions.create,
+        )
+
+
+class AsyncTranscriptionsWithStreamingResponse:
+    def __init__(self, transcriptions: AsyncTranscriptions) -> None:
+        self.create = async_to_streamed_response_wrapper(
             transcriptions.create,
         )
