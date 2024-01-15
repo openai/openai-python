@@ -7,11 +7,12 @@ from typing_extensions import Literal
 
 import httpx
 
+from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ..._utils import required_args, maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from ..._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._streaming import Stream, AsyncStream
 from ...types.chat import (
     ChatCompletion,
@@ -32,6 +33,10 @@ class Completions(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> CompletionsWithRawResponse:
         return CompletionsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> CompletionsWithStreamingResponse:
+        return CompletionsWithStreamingResponse(self)
 
     @overload
     def create(
@@ -681,6 +686,10 @@ class AsyncCompletions(AsyncAPIResource):
     def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
         return AsyncCompletionsWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncCompletionsWithStreamingResponse:
+        return AsyncCompletionsWithStreamingResponse(self)
+
     @overload
     async def create(
         self,
@@ -1326,13 +1335,27 @@ class AsyncCompletions(AsyncAPIResource):
 
 class CompletionsWithRawResponse:
     def __init__(self, completions: Completions) -> None:
-        self.create = to_raw_response_wrapper(
+        self.create = _legacy_response.to_raw_response_wrapper(
             completions.create,
         )
 
 
 class AsyncCompletionsWithRawResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
-        self.create = async_to_raw_response_wrapper(
+        self.create = _legacy_response.async_to_raw_response_wrapper(
+            completions.create,
+        )
+
+
+class CompletionsWithStreamingResponse:
+    def __init__(self, completions: Completions) -> None:
+        self.create = to_streamed_response_wrapper(
+            completions.create,
+        )
+
+
+class AsyncCompletionsWithStreamingResponse:
+    def __init__(self, completions: AsyncCompletions) -> None:
+        self.create = async_to_streamed_response_wrapper(
             completions.create,
         )

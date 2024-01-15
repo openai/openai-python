@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -50,9 +51,25 @@ class TestRuns:
             "string",
             assistant_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create(self, client: OpenAI) -> None:
+        with client.beta.threads.runs.with_streaming_response.create(
+            "string",
+            assistant_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
@@ -68,9 +85,25 @@ class TestRuns:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+        with client.beta.threads.runs.with_streaming_response.retrieve(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_update(self, client: OpenAI) -> None:
@@ -95,9 +128,25 @@ class TestRuns:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    def test_streaming_response_update(self, client: OpenAI) -> None:
+        with client.beta.threads.runs.with_streaming_response.update(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
@@ -122,9 +171,24 @@ class TestRuns:
         response = client.beta.threads.runs.with_raw_response.list(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(SyncCursorPage[Run], run, path=["response"])
+
+    @parametrize
+    def test_streaming_response_list(self, client: OpenAI) -> None:
+        with client.beta.threads.runs.with_streaming_response.list(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = response.parse()
+            assert_matches_type(SyncCursorPage[Run], run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
@@ -140,9 +204,25 @@ class TestRuns:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    def test_streaming_response_cancel(self, client: OpenAI) -> None:
+        with client.beta.threads.runs.with_streaming_response.cancel(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_submit_tool_outputs(self, client: OpenAI) -> None:
@@ -160,9 +240,26 @@ class TestRuns:
             thread_id="string",
             tool_outputs=[{}, {}, {}],
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    def test_streaming_response_submit_tool_outputs(self, client: OpenAI) -> None:
+        with client.beta.threads.runs.with_streaming_response.submit_tool_outputs(
+            "string",
+            thread_id="string",
+            tool_outputs=[{}, {}, {}],
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncRuns:
@@ -197,9 +294,25 @@ class TestAsyncRuns:
             "string",
             assistant_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.runs.with_streaming_response.create(
+            "string",
+            assistant_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = await response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
@@ -215,9 +328,25 @@ class TestAsyncRuns:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_retrieve(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.runs.with_streaming_response.retrieve(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = await response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_update(self, client: AsyncOpenAI) -> None:
@@ -242,9 +371,25 @@ class TestAsyncRuns:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_update(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.runs.with_streaming_response.update(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = await response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -269,9 +414,24 @@ class TestAsyncRuns:
         response = await client.beta.threads.runs.with_raw_response.list(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(AsyncCursorPage[Run], run, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_list(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.runs.with_streaming_response.list(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = await response.parse()
+            assert_matches_type(AsyncCursorPage[Run], run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_cancel(self, client: AsyncOpenAI) -> None:
@@ -287,9 +447,25 @@ class TestAsyncRuns:
             "string",
             thread_id="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_cancel(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.runs.with_streaming_response.cancel(
+            "string",
+            thread_id="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = await response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_submit_tool_outputs(self, client: AsyncOpenAI) -> None:
@@ -307,6 +483,23 @@ class TestAsyncRuns:
             thread_id="string",
             tool_outputs=[{}, {}, {}],
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_submit_tool_outputs(self, client: AsyncOpenAI) -> None:
+        async with client.beta.threads.runs.with_streaming_response.submit_tool_outputs(
+            "string",
+            thread_id="string",
+            tool_outputs=[{}, {}, {}],
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            run = await response.parse()
+            assert_matches_type(Run, run, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

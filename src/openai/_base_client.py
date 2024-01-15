@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import os
 import json
 import time
 import uuid
@@ -31,7 +30,7 @@ from typing import (
     overload,
 )
 from functools import lru_cache
-from typing_extensions import Literal, override
+from typing_extensions import Literal, override, get_origin
 
 import anyio
 import httpx
@@ -61,18 +60,22 @@ from ._types import (
     AsyncTransport,
     RequestOptions,
     ModelBuilderProtocol,
-    BinaryResponseContent,
 )
 from ._utils import is_dict, is_given, is_mapping
 from ._compat import model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
-from ._response import APIResponse
+from ._response import (
+    APIResponse,
+    BaseAPIResponse,
+    AsyncAPIResponse,
+    extract_response_type,
+)
 from ._constants import (
     DEFAULT_LIMITS,
     DEFAULT_TIMEOUT,
     DEFAULT_MAX_RETRIES,
     RAW_RESPONSE_HEADER,
-    STREAMED_RAW_RESPONSE_HEADER,
+    OVERRIDE_CAST_TO_HEADER,
 )
 from ._streaming import Stream, AsyncStream
 from ._exceptions import (
@@ -81,6 +84,7 @@ from ._exceptions import (
     APIConnectionError,
     APIResponseValidationError,
 )
+from ._legacy_response import LegacyAPIResponse
 
 log: logging.Logger = logging.getLogger(__name__)
 
@@ -493,28 +497,25 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             serialized[key] = value
         return serialized
 
-    def _process_response(
-        self,
-        *,
-        cast_to: Type[ResponseT],
-        options: FinalRequestOptions,
-        response: httpx.Response,
-        stream: bool,
-        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
-    ) -> ResponseT:
-        api_response = APIResponse(
-            raw=response,
-            client=self,
-            cast_to=cast_to,
-            stream=stream,
-            stream_cls=stream_cls,
-            options=options,
-        )
+    def _maybe_override_cast_to(self, cast_to: type[ResponseT], options: FinalRequestOptions) -> type[ResponseT]:
+        if not is_given(options.headers):
+            return cast_to
 
-        if response.request.headers.get(RAW_RESPONSE_HEADER) == "true":
-            return cast(ResponseT, api_response)
+        # make a copy of the headers so we don't mutate user-input
+        headers = dict(options.headers)
 
-        return api_response.parse()
+        # we internally support defining a temporary header to override the
+        # default `cast_to` type for use with `.with_raw_response` and `.with_streaming_response`
+        # see _response.py for implementation details
+        override_cast_to = headers.pop(OVERRIDE_CAST_TO_HEADER, NOT_GIVEN)
+        if is_given(override_cast_to):
+            options.headers = headers
+            return cast(Type[ResponseT], override_cast_to)
+
+        return cast_to
+
+    def _should_stream_response_body(self, request: httpx.Request) -> bool:
+        return request.headers.get(RAW_RESPONSE_HEADER) == "stream"  # type: ignore[no-any-return]
 
     def _process_response_data(
         self,
@@ -539,12 +540,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             return cast(ResponseT, construct_type(type_=cast_to, value=data))
         except pydantic.ValidationError as err:
             raise APIResponseValidationError(response=response, body=data) from err
-
-    def _should_stream_response_body(self, *, request: httpx.Request) -> bool:
-        if request.headers.get(STREAMED_RAW_RESPONSE_HEADER) == "true":
-            return True
-
-        return False
 
     @property
     def qs(self) -> Querystring:
@@ -610,6 +605,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             if response_headers is not None:
                 retry_header = response_headers.get("retry-after")
                 try:
+                    # note: the spec indicates that this should only ever be an integer
+                    # but if someone sends a float there's no reason for us to not respect it
                     retry_after = float(retry_header)
                 except Exception:
                     retry_date_tuple = email.utils.parsedate_tz(retry_header)
@@ -873,6 +870,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         stream: bool,
         stream_cls: type[_StreamT] | None,
     ) -> ResponseT | _StreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
         self._prepare_options(options)
 
         retries = self._remaining_retries(remaining_retries, options)
@@ -986,6 +984,63 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             stream=stream,
             stream_cls=stream_cls,
         )
+
+    def _process_response(
+        self,
+        *,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        response: httpx.Response,
+        stream: bool,
+        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
+    ) -> ResponseT:
+        if response.request.headers.get(RAW_RESPONSE_HEADER) == "true":
+            return cast(
+                ResponseT,
+                LegacyAPIResponse(
+                    raw=response,
+                    client=self,
+                    cast_to=cast_to,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    options=options,
+                ),
+            )
+
+        origin = get_origin(cast_to) or cast_to
+
+        if inspect.isclass(origin) and issubclass(origin, BaseAPIResponse):
+            if not issubclass(origin, APIResponse):
+                raise TypeError(f"API Response types must subclass {APIResponse}; Received {origin}")
+
+            response_cls = cast("type[BaseAPIResponse[Any]]", cast_to)
+            return cast(
+                ResponseT,
+                response_cls(
+                    raw=response,
+                    client=self,
+                    cast_to=extract_response_type(response_cls),
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    options=options,
+                ),
+            )
+
+        if cast_to == httpx.Response:
+            return cast(ResponseT, response)
+
+        api_response = APIResponse(
+            raw=response,
+            client=self,
+            cast_to=cast("type[ResponseT]", cast_to),  # pyright: ignore[reportUnnecessaryCast]
+            stream=stream,
+            stream_cls=stream_cls,
+            options=options,
+        )
+        if bool(response.request.headers.get(RAW_RESPONSE_HEADER)):
+            return cast(ResponseT, api_response)
+
+        return api_response.parse()
 
     def _request_api_list(
         self,
@@ -1353,6 +1408,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         stream_cls: type[_AsyncStreamT] | None,
         remaining_retries: int | None,
     ) -> ResponseT | _AsyncStreamT:
+        cast_to = self._maybe_override_cast_to(cast_to, options)
         await self._prepare_options(options)
 
         retries = self._remaining_retries(remaining_retries, options)
@@ -1428,7 +1484,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             log.debug("Re-raising status error")
             raise self._make_status_error_from_response(err.response) from None
 
-        return self._process_response(
+        return await self._process_response(
             cast_to=cast_to,
             options=options,
             response=response,
@@ -1464,6 +1520,63 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             stream=stream,
             stream_cls=stream_cls,
         )
+
+    async def _process_response(
+        self,
+        *,
+        cast_to: Type[ResponseT],
+        options: FinalRequestOptions,
+        response: httpx.Response,
+        stream: bool,
+        stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
+    ) -> ResponseT:
+        if response.request.headers.get(RAW_RESPONSE_HEADER) == "true":
+            return cast(
+                ResponseT,
+                LegacyAPIResponse(
+                    raw=response,
+                    client=self,
+                    cast_to=cast_to,
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    options=options,
+                ),
+            )
+
+        origin = get_origin(cast_to) or cast_to
+
+        if inspect.isclass(origin) and issubclass(origin, BaseAPIResponse):
+            if not issubclass(origin, AsyncAPIResponse):
+                raise TypeError(f"API Response types must subclass {AsyncAPIResponse}; Received {origin}")
+
+            response_cls = cast("type[BaseAPIResponse[Any]]", cast_to)
+            return cast(
+                "ResponseT",
+                response_cls(
+                    raw=response,
+                    client=self,
+                    cast_to=extract_response_type(response_cls),
+                    stream=stream,
+                    stream_cls=stream_cls,
+                    options=options,
+                ),
+            )
+
+        if cast_to == httpx.Response:
+            return cast(ResponseT, response)
+
+        api_response = AsyncAPIResponse(
+            raw=response,
+            client=self,
+            cast_to=cast("type[ResponseT]", cast_to),  # pyright: ignore[reportUnnecessaryCast]
+            stream=stream,
+            stream_cls=stream_cls,
+            options=options,
+        )
+        if bool(response.request.headers.get(RAW_RESPONSE_HEADER)):
+            return cast(ResponseT, api_response)
+
+        return await api_response.parse()
 
     def _request_api_list(
         self,
@@ -1783,105 +1896,3 @@ def _merge_mappings(
     """
     merged = {**obj1, **obj2}
     return {key: value for key, value in merged.items() if not isinstance(value, Omit)}
-
-
-class HttpxBinaryResponseContent(BinaryResponseContent):
-    response: httpx.Response
-
-    def __init__(self, response: httpx.Response) -> None:
-        self.response = response
-
-    @property
-    @override
-    def content(self) -> bytes:
-        return self.response.content
-
-    @property
-    @override
-    def text(self) -> str:
-        return self.response.text
-
-    @property
-    @override
-    def encoding(self) -> Optional[str]:
-        return self.response.encoding
-
-    @property
-    @override
-    def charset_encoding(self) -> Optional[str]:
-        return self.response.charset_encoding
-
-    @override
-    def json(self, **kwargs: Any) -> Any:
-        return self.response.json(**kwargs)
-
-    @override
-    def read(self) -> bytes:
-        return self.response.read()
-
-    @override
-    def iter_bytes(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-        return self.response.iter_bytes(chunk_size)
-
-    @override
-    def iter_text(self, chunk_size: Optional[int] = None) -> Iterator[str]:
-        return self.response.iter_text(chunk_size)
-
-    @override
-    def iter_lines(self) -> Iterator[str]:
-        return self.response.iter_lines()
-
-    @override
-    def iter_raw(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-        return self.response.iter_raw(chunk_size)
-
-    @override
-    def stream_to_file(
-        self,
-        file: str | os.PathLike[str],
-        *,
-        chunk_size: int | None = None,
-    ) -> None:
-        with open(file, mode="wb") as f:
-            for data in self.response.iter_bytes(chunk_size):
-                f.write(data)
-
-    @override
-    def close(self) -> None:
-        return self.response.close()
-
-    @override
-    async def aread(self) -> bytes:
-        return await self.response.aread()
-
-    @override
-    async def aiter_bytes(self, chunk_size: Optional[int] = None) -> AsyncIterator[bytes]:
-        return self.response.aiter_bytes(chunk_size)
-
-    @override
-    async def aiter_text(self, chunk_size: Optional[int] = None) -> AsyncIterator[str]:
-        return self.response.aiter_text(chunk_size)
-
-    @override
-    async def aiter_lines(self) -> AsyncIterator[str]:
-        return self.response.aiter_lines()
-
-    @override
-    async def aiter_raw(self, chunk_size: Optional[int] = None) -> AsyncIterator[bytes]:
-        return self.response.aiter_raw(chunk_size)
-
-    @override
-    async def astream_to_file(
-        self,
-        file: str | os.PathLike[str],
-        *,
-        chunk_size: int | None = None,
-    ) -> None:
-        path = anyio.Path(file)
-        async with await path.open(mode="wb") as f:
-            async for data in self.response.aiter_bytes(chunk_size):
-                await f.write(data)
-
-    @override
-    async def aclose(self) -> None:
-        return await self.response.aclose()

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -53,9 +54,25 @@ class TestJobs:
             model="gpt-3.5-turbo",
             training_file="file-abc123",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create(self, client: OpenAI) -> None:
+        with client.fine_tuning.jobs.with_streaming_response.create(
+            model="gpt-3.5-turbo",
+            training_file="file-abc123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = response.parse()
+            assert_matches_type(FineTuningJob, job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
@@ -69,9 +86,24 @@ class TestJobs:
         response = client.fine_tuning.jobs.with_raw_response.retrieve(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+        with client.fine_tuning.jobs.with_streaming_response.retrieve(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = response.parse()
+            assert_matches_type(FineTuningJob, job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
@@ -89,9 +121,22 @@ class TestJobs:
     @parametrize
     def test_raw_response_list(self, client: OpenAI) -> None:
         response = client.fine_tuning.jobs.with_raw_response.list()
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
+
+    @parametrize
+    def test_streaming_response_list(self, client: OpenAI) -> None:
+        with client.fine_tuning.jobs.with_streaming_response.list() as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = response.parse()
+            assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
@@ -105,9 +150,24 @@ class TestJobs:
         response = client.fine_tuning.jobs.with_raw_response.cancel(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    def test_streaming_response_cancel(self, client: OpenAI) -> None:
+        with client.fine_tuning.jobs.with_streaming_response.cancel(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = response.parse()
+            assert_matches_type(FineTuningJob, job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_list_events(self, client: OpenAI) -> None:
@@ -130,9 +190,24 @@ class TestJobs:
         response = client.fine_tuning.jobs.with_raw_response.list_events(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
+
+    @parametrize
+    def test_streaming_response_list_events(self, client: OpenAI) -> None:
+        with client.fine_tuning.jobs.with_streaming_response.list_events(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = response.parse()
+            assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncJobs:
@@ -169,9 +244,25 @@ class TestAsyncJobs:
             model="gpt-3.5-turbo",
             training_file="file-abc123",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
+        async with client.fine_tuning.jobs.with_streaming_response.create(
+            model="gpt-3.5-turbo",
+            training_file="file-abc123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = await response.parse()
+            assert_matches_type(FineTuningJob, job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
@@ -185,9 +276,24 @@ class TestAsyncJobs:
         response = await client.fine_tuning.jobs.with_raw_response.retrieve(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_retrieve(self, client: AsyncOpenAI) -> None:
+        async with client.fine_tuning.jobs.with_streaming_response.retrieve(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = await response.parse()
+            assert_matches_type(FineTuningJob, job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -205,9 +311,22 @@ class TestAsyncJobs:
     @parametrize
     async def test_raw_response_list(self, client: AsyncOpenAI) -> None:
         response = await client.fine_tuning.jobs.with_raw_response.list()
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_list(self, client: AsyncOpenAI) -> None:
+        async with client.fine_tuning.jobs.with_streaming_response.list() as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = await response.parse()
+            assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_cancel(self, client: AsyncOpenAI) -> None:
@@ -221,9 +340,24 @@ class TestAsyncJobs:
         response = await client.fine_tuning.jobs.with_raw_response.cancel(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_cancel(self, client: AsyncOpenAI) -> None:
+        async with client.fine_tuning.jobs.with_streaming_response.cancel(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = await response.parse()
+            assert_matches_type(FineTuningJob, job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_list_events(self, client: AsyncOpenAI) -> None:
@@ -246,6 +380,21 @@ class TestAsyncJobs:
         response = await client.fine_tuning.jobs.with_raw_response.list_events(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         job = response.parse()
         assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_list_events(self, client: AsyncOpenAI) -> None:
+        async with client.fine_tuning.jobs.with_streaming_response.list_events(
+            "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            job = await response.parse()
+            assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

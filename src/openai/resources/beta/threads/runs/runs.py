@@ -7,12 +7,20 @@ from typing_extensions import Literal
 
 import httpx
 
-from .steps import Steps, AsyncSteps, StepsWithRawResponse, AsyncStepsWithRawResponse
+from ..... import _legacy_response
+from .steps import (
+    Steps,
+    AsyncSteps,
+    StepsWithRawResponse,
+    AsyncStepsWithRawResponse,
+    StepsWithStreamingResponse,
+    AsyncStepsWithStreamingResponse,
+)
 from ....._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ....._utils import maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
-from ....._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import (
     AsyncPaginator,
@@ -37,6 +45,10 @@ class Runs(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> RunsWithRawResponse:
         return RunsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> RunsWithStreamingResponse:
+        return RunsWithStreamingResponse(self)
 
     def create(
         self,
@@ -335,6 +347,10 @@ class AsyncRuns(AsyncAPIResource):
     def with_raw_response(self) -> AsyncRunsWithRawResponse:
         return AsyncRunsWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncRunsWithStreamingResponse:
+        return AsyncRunsWithStreamingResponse(self)
+
     async def create(
         self,
         thread_id: str,
@@ -627,22 +643,22 @@ class RunsWithRawResponse:
     def __init__(self, runs: Runs) -> None:
         self.steps = StepsWithRawResponse(runs.steps)
 
-        self.create = to_raw_response_wrapper(
+        self.create = _legacy_response.to_raw_response_wrapper(
             runs.create,
         )
-        self.retrieve = to_raw_response_wrapper(
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
             runs.retrieve,
         )
-        self.update = to_raw_response_wrapper(
+        self.update = _legacy_response.to_raw_response_wrapper(
             runs.update,
         )
-        self.list = to_raw_response_wrapper(
+        self.list = _legacy_response.to_raw_response_wrapper(
             runs.list,
         )
-        self.cancel = to_raw_response_wrapper(
+        self.cancel = _legacy_response.to_raw_response_wrapper(
             runs.cancel,
         )
-        self.submit_tool_outputs = to_raw_response_wrapper(
+        self.submit_tool_outputs = _legacy_response.to_raw_response_wrapper(
             runs.submit_tool_outputs,
         )
 
@@ -651,21 +667,69 @@ class AsyncRunsWithRawResponse:
     def __init__(self, runs: AsyncRuns) -> None:
         self.steps = AsyncStepsWithRawResponse(runs.steps)
 
-        self.create = async_to_raw_response_wrapper(
+        self.create = _legacy_response.async_to_raw_response_wrapper(
             runs.create,
         )
-        self.retrieve = async_to_raw_response_wrapper(
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             runs.retrieve,
         )
-        self.update = async_to_raw_response_wrapper(
+        self.update = _legacy_response.async_to_raw_response_wrapper(
             runs.update,
         )
-        self.list = async_to_raw_response_wrapper(
+        self.list = _legacy_response.async_to_raw_response_wrapper(
             runs.list,
         )
-        self.cancel = async_to_raw_response_wrapper(
+        self.cancel = _legacy_response.async_to_raw_response_wrapper(
             runs.cancel,
         )
-        self.submit_tool_outputs = async_to_raw_response_wrapper(
+        self.submit_tool_outputs = _legacy_response.async_to_raw_response_wrapper(
+            runs.submit_tool_outputs,
+        )
+
+
+class RunsWithStreamingResponse:
+    def __init__(self, runs: Runs) -> None:
+        self.steps = StepsWithStreamingResponse(runs.steps)
+
+        self.create = to_streamed_response_wrapper(
+            runs.create,
+        )
+        self.retrieve = to_streamed_response_wrapper(
+            runs.retrieve,
+        )
+        self.update = to_streamed_response_wrapper(
+            runs.update,
+        )
+        self.list = to_streamed_response_wrapper(
+            runs.list,
+        )
+        self.cancel = to_streamed_response_wrapper(
+            runs.cancel,
+        )
+        self.submit_tool_outputs = to_streamed_response_wrapper(
+            runs.submit_tool_outputs,
+        )
+
+
+class AsyncRunsWithStreamingResponse:
+    def __init__(self, runs: AsyncRuns) -> None:
+        self.steps = AsyncStepsWithStreamingResponse(runs.steps)
+
+        self.create = async_to_streamed_response_wrapper(
+            runs.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            runs.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            runs.update,
+        )
+        self.list = async_to_streamed_response_wrapper(
+            runs.list,
+        )
+        self.cancel = async_to_streamed_response_wrapper(
+            runs.cancel,
+        )
+        self.submit_tool_outputs = async_to_streamed_response_wrapper(
             runs.submit_tool_outputs,
         )

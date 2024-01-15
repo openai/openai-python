@@ -7,12 +7,20 @@ from typing_extensions import Literal
 
 import httpx
 
-from .files import Files, AsyncFiles, FilesWithRawResponse, AsyncFilesWithRawResponse
+from ..... import _legacy_response
+from .files import (
+    Files,
+    AsyncFiles,
+    FilesWithRawResponse,
+    AsyncFilesWithRawResponse,
+    FilesWithStreamingResponse,
+    AsyncFilesWithStreamingResponse,
+)
 from ....._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ....._utils import maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
-from ....._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import (
     AsyncPaginator,
@@ -31,6 +39,10 @@ class Messages(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> MessagesWithRawResponse:
         return MessagesWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> MessagesWithStreamingResponse:
+        return MessagesWithStreamingResponse(self)
 
     def create(
         self,
@@ -240,6 +252,10 @@ class AsyncMessages(AsyncAPIResource):
     def with_raw_response(self) -> AsyncMessagesWithRawResponse:
         return AsyncMessagesWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncMessagesWithStreamingResponse:
+        return AsyncMessagesWithStreamingResponse(self)
+
     async def create(
         self,
         thread_id: str,
@@ -443,16 +459,16 @@ class MessagesWithRawResponse:
     def __init__(self, messages: Messages) -> None:
         self.files = FilesWithRawResponse(messages.files)
 
-        self.create = to_raw_response_wrapper(
+        self.create = _legacy_response.to_raw_response_wrapper(
             messages.create,
         )
-        self.retrieve = to_raw_response_wrapper(
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
             messages.retrieve,
         )
-        self.update = to_raw_response_wrapper(
+        self.update = _legacy_response.to_raw_response_wrapper(
             messages.update,
         )
-        self.list = to_raw_response_wrapper(
+        self.list = _legacy_response.to_raw_response_wrapper(
             messages.list,
         )
 
@@ -461,15 +477,51 @@ class AsyncMessagesWithRawResponse:
     def __init__(self, messages: AsyncMessages) -> None:
         self.files = AsyncFilesWithRawResponse(messages.files)
 
-        self.create = async_to_raw_response_wrapper(
+        self.create = _legacy_response.async_to_raw_response_wrapper(
             messages.create,
         )
-        self.retrieve = async_to_raw_response_wrapper(
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             messages.retrieve,
         )
-        self.update = async_to_raw_response_wrapper(
+        self.update = _legacy_response.async_to_raw_response_wrapper(
             messages.update,
         )
-        self.list = async_to_raw_response_wrapper(
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            messages.list,
+        )
+
+
+class MessagesWithStreamingResponse:
+    def __init__(self, messages: Messages) -> None:
+        self.files = FilesWithStreamingResponse(messages.files)
+
+        self.create = to_streamed_response_wrapper(
+            messages.create,
+        )
+        self.retrieve = to_streamed_response_wrapper(
+            messages.retrieve,
+        )
+        self.update = to_streamed_response_wrapper(
+            messages.update,
+        )
+        self.list = to_streamed_response_wrapper(
+            messages.list,
+        )
+
+
+class AsyncMessagesWithStreamingResponse:
+    def __init__(self, messages: AsyncMessages) -> None:
+        self.files = AsyncFilesWithStreamingResponse(messages.files)
+
+        self.create = async_to_streamed_response_wrapper(
+            messages.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            messages.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            messages.update,
+        )
+        self.list = async_to_streamed_response_wrapper(
             messages.list,
         )

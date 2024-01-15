@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -57,21 +58,38 @@ class TestCompletions:
             model="string",
             prompt="This is a test.",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         completion = response.parse()
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
+    def test_streaming_response_create_overload_1(self, client: OpenAI) -> None:
+        with client.completions.with_streaming_response.create(
+            model="string",
+            prompt="This is a test.",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            completion = response.parse()
+            assert_matches_type(Completion, completion, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
-        client.completions.create(
+        completion_stream = client.completions.create(
             model="string",
             prompt="This is a test.",
             stream=True,
         )
+        completion_stream.response.close()
 
     @parametrize
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
-        client.completions.create(
+        completion_stream = client.completions.create(
             model="string",
             prompt="This is a test.",
             stream=True,
@@ -90,6 +108,7 @@ class TestCompletions:
             top_p=1,
             user="user-1234",
         )
+        completion_stream.response.close()
 
     @parametrize
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
@@ -98,8 +117,25 @@ class TestCompletions:
             prompt="This is a test.",
             stream=True,
         )
+
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        response.parse()
+        stream = response.parse()
+        stream.close()
+
+    @parametrize
+    def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
+        with client.completions.with_streaming_response.create(
+            model="string",
+            prompt="This is a test.",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncCompletions:
@@ -144,21 +180,38 @@ class TestAsyncCompletions:
             model="string",
             prompt="This is a test.",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         completion = response.parse()
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
+    async def test_streaming_response_create_overload_1(self, client: AsyncOpenAI) -> None:
+        async with client.completions.with_streaming_response.create(
+            model="string",
+            prompt="This is a test.",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            completion = await response.parse()
+            assert_matches_type(Completion, completion, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     async def test_method_create_overload_2(self, client: AsyncOpenAI) -> None:
-        await client.completions.create(
+        completion_stream = await client.completions.create(
             model="string",
             prompt="This is a test.",
             stream=True,
         )
+        await completion_stream.response.aclose()
 
     @parametrize
     async def test_method_create_with_all_params_overload_2(self, client: AsyncOpenAI) -> None:
-        await client.completions.create(
+        completion_stream = await client.completions.create(
             model="string",
             prompt="This is a test.",
             stream=True,
@@ -177,6 +230,7 @@ class TestAsyncCompletions:
             top_p=1,
             user="user-1234",
         )
+        await completion_stream.response.aclose()
 
     @parametrize
     async def test_raw_response_create_overload_2(self, client: AsyncOpenAI) -> None:
@@ -185,5 +239,22 @@ class TestAsyncCompletions:
             prompt="This is a test.",
             stream=True,
         )
+
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        response.parse()
+        stream = response.parse()
+        await stream.close()
+
+    @parametrize
+    async def test_streaming_response_create_overload_2(self, client: AsyncOpenAI) -> None:
+        async with client.completions.with_streaming_response.create(
+            model="string",
+            prompt="This is a test.",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True

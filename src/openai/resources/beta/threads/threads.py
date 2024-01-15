@@ -6,14 +6,29 @@ from typing import List, Optional
 
 import httpx
 
-from .runs import Runs, AsyncRuns, RunsWithRawResponse, AsyncRunsWithRawResponse
-from .messages import Messages, AsyncMessages, MessagesWithRawResponse, AsyncMessagesWithRawResponse
+from .... import _legacy_response
+from .runs import (
+    Runs,
+    AsyncRuns,
+    RunsWithRawResponse,
+    AsyncRunsWithRawResponse,
+    RunsWithStreamingResponse,
+    AsyncRunsWithStreamingResponse,
+)
+from .messages import (
+    Messages,
+    AsyncMessages,
+    MessagesWithRawResponse,
+    AsyncMessagesWithRawResponse,
+    MessagesWithStreamingResponse,
+    AsyncMessagesWithStreamingResponse,
+)
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import maybe_transform
 from .runs.runs import Runs, AsyncRuns
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
-from ...._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....types.beta import (
     Thread,
     ThreadDeleted,
@@ -42,6 +57,10 @@ class Threads(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> ThreadsWithRawResponse:
         return ThreadsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> ThreadsWithStreamingResponse:
+        return ThreadsWithStreamingResponse(self)
 
     def create(
         self,
@@ -278,6 +297,10 @@ class AsyncThreads(AsyncAPIResource):
     def with_raw_response(self) -> AsyncThreadsWithRawResponse:
         return AsyncThreadsWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncThreadsWithStreamingResponse:
+        return AsyncThreadsWithStreamingResponse(self)
+
     async def create(
         self,
         *,
@@ -505,19 +528,19 @@ class ThreadsWithRawResponse:
         self.runs = RunsWithRawResponse(threads.runs)
         self.messages = MessagesWithRawResponse(threads.messages)
 
-        self.create = to_raw_response_wrapper(
+        self.create = _legacy_response.to_raw_response_wrapper(
             threads.create,
         )
-        self.retrieve = to_raw_response_wrapper(
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
             threads.retrieve,
         )
-        self.update = to_raw_response_wrapper(
+        self.update = _legacy_response.to_raw_response_wrapper(
             threads.update,
         )
-        self.delete = to_raw_response_wrapper(
+        self.delete = _legacy_response.to_raw_response_wrapper(
             threads.delete,
         )
-        self.create_and_run = to_raw_response_wrapper(
+        self.create_and_run = _legacy_response.to_raw_response_wrapper(
             threads.create_and_run,
         )
 
@@ -527,18 +550,62 @@ class AsyncThreadsWithRawResponse:
         self.runs = AsyncRunsWithRawResponse(threads.runs)
         self.messages = AsyncMessagesWithRawResponse(threads.messages)
 
-        self.create = async_to_raw_response_wrapper(
+        self.create = _legacy_response.async_to_raw_response_wrapper(
             threads.create,
         )
-        self.retrieve = async_to_raw_response_wrapper(
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             threads.retrieve,
         )
-        self.update = async_to_raw_response_wrapper(
+        self.update = _legacy_response.async_to_raw_response_wrapper(
             threads.update,
         )
-        self.delete = async_to_raw_response_wrapper(
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
             threads.delete,
         )
-        self.create_and_run = async_to_raw_response_wrapper(
+        self.create_and_run = _legacy_response.async_to_raw_response_wrapper(
+            threads.create_and_run,
+        )
+
+
+class ThreadsWithStreamingResponse:
+    def __init__(self, threads: Threads) -> None:
+        self.runs = RunsWithStreamingResponse(threads.runs)
+        self.messages = MessagesWithStreamingResponse(threads.messages)
+
+        self.create = to_streamed_response_wrapper(
+            threads.create,
+        )
+        self.retrieve = to_streamed_response_wrapper(
+            threads.retrieve,
+        )
+        self.update = to_streamed_response_wrapper(
+            threads.update,
+        )
+        self.delete = to_streamed_response_wrapper(
+            threads.delete,
+        )
+        self.create_and_run = to_streamed_response_wrapper(
+            threads.create_and_run,
+        )
+
+
+class AsyncThreadsWithStreamingResponse:
+    def __init__(self, threads: AsyncThreads) -> None:
+        self.runs = AsyncRunsWithStreamingResponse(threads.runs)
+        self.messages = AsyncMessagesWithStreamingResponse(threads.messages)
+
+        self.create = async_to_streamed_response_wrapper(
+            threads.create,
+        )
+        self.retrieve = async_to_streamed_response_wrapper(
+            threads.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            threads.update,
+        )
+        self.delete = async_to_streamed_response_wrapper(
+            threads.delete,
+        )
+        self.create_and_run = async_to_streamed_response_wrapper(
             threads.create_and_run,
         )
