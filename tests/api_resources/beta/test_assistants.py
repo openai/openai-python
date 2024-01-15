@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -49,9 +50,24 @@ class TestAssistants:
         response = client.beta.assistants.with_raw_response.create(
             model="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create(self, client: OpenAI) -> None:
+        with client.beta.assistants.with_streaming_response.create(
+            model="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = response.parse()
+            assert_matches_type(Assistant, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
@@ -65,9 +81,24 @@ class TestAssistants:
         response = client.beta.assistants.with_raw_response.retrieve(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
+
+    @parametrize
+    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+        with client.beta.assistants.with_streaming_response.retrieve(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = response.parse()
+            assert_matches_type(Assistant, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_update(self, client: OpenAI) -> None:
@@ -95,9 +126,24 @@ class TestAssistants:
         response = client.beta.assistants.with_raw_response.update(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
+
+    @parametrize
+    def test_streaming_response_update(self, client: OpenAI) -> None:
+        with client.beta.assistants.with_streaming_response.update(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = response.parse()
+            assert_matches_type(Assistant, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
@@ -117,9 +163,22 @@ class TestAssistants:
     @parametrize
     def test_raw_response_list(self, client: OpenAI) -> None:
         response = client.beta.assistants.with_raw_response.list()
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(SyncCursorPage[Assistant], assistant, path=["response"])
+
+    @parametrize
+    def test_streaming_response_list(self, client: OpenAI) -> None:
+        with client.beta.assistants.with_streaming_response.list() as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = response.parse()
+            assert_matches_type(SyncCursorPage[Assistant], assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
@@ -133,9 +192,24 @@ class TestAssistants:
         response = client.beta.assistants.with_raw_response.delete(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(AssistantDeleted, assistant, path=["response"])
+
+    @parametrize
+    def test_streaming_response_delete(self, client: OpenAI) -> None:
+        with client.beta.assistants.with_streaming_response.delete(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = response.parse()
+            assert_matches_type(AssistantDeleted, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncAssistants:
@@ -168,9 +242,24 @@ class TestAsyncAssistants:
         response = await client.beta.assistants.with_raw_response.create(
             model="string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
+        async with client.beta.assistants.with_streaming_response.create(
+            model="string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = await response.parse()
+            assert_matches_type(Assistant, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
@@ -184,9 +273,24 @@ class TestAsyncAssistants:
         response = await client.beta.assistants.with_raw_response.retrieve(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_retrieve(self, client: AsyncOpenAI) -> None:
+        async with client.beta.assistants.with_streaming_response.retrieve(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = await response.parse()
+            assert_matches_type(Assistant, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_update(self, client: AsyncOpenAI) -> None:
@@ -214,9 +318,24 @@ class TestAsyncAssistants:
         response = await client.beta.assistants.with_raw_response.update(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_update(self, client: AsyncOpenAI) -> None:
+        async with client.beta.assistants.with_streaming_response.update(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = await response.parse()
+            assert_matches_type(Assistant, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -236,9 +355,22 @@ class TestAsyncAssistants:
     @parametrize
     async def test_raw_response_list(self, client: AsyncOpenAI) -> None:
         response = await client.beta.assistants.with_raw_response.list()
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(AsyncCursorPage[Assistant], assistant, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_list(self, client: AsyncOpenAI) -> None:
+        async with client.beta.assistants.with_streaming_response.list() as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = await response.parse()
+            assert_matches_type(AsyncCursorPage[Assistant], assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_delete(self, client: AsyncOpenAI) -> None:
@@ -252,6 +384,21 @@ class TestAsyncAssistants:
         response = await client.beta.assistants.with_raw_response.delete(
             "string",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(AssistantDeleted, assistant, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_delete(self, client: AsyncOpenAI) -> None:
+        async with client.beta.assistants.with_streaming_response.delete(
+            "string",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            assistant = await response.parse()
+            assert_matches_type(AssistantDeleted, assistant, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

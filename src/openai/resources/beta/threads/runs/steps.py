@@ -6,11 +6,12 @@ from typing_extensions import Literal
 
 import httpx
 
+from ..... import _legacy_response
 from ....._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ....._utils import maybe_transform
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
-from ....._response import to_raw_response_wrapper, async_to_raw_response_wrapper
+from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .....pagination import SyncCursorPage, AsyncCursorPage
 from ....._base_client import (
     AsyncPaginator,
@@ -25,6 +26,10 @@ class Steps(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> StepsWithRawResponse:
         return StepsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> StepsWithStreamingResponse:
+        return StepsWithStreamingResponse(self)
 
     def retrieve(
         self,
@@ -132,6 +137,10 @@ class AsyncSteps(AsyncAPIResource):
     def with_raw_response(self) -> AsyncStepsWithRawResponse:
         return AsyncStepsWithRawResponse(self)
 
+    @cached_property
+    def with_streaming_response(self) -> AsyncStepsWithStreamingResponse:
+        return AsyncStepsWithStreamingResponse(self)
+
     async def retrieve(
         self,
         step_id: str,
@@ -235,19 +244,39 @@ class AsyncSteps(AsyncAPIResource):
 
 class StepsWithRawResponse:
     def __init__(self, steps: Steps) -> None:
-        self.retrieve = to_raw_response_wrapper(
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
             steps.retrieve,
         )
-        self.list = to_raw_response_wrapper(
+        self.list = _legacy_response.to_raw_response_wrapper(
             steps.list,
         )
 
 
 class AsyncStepsWithRawResponse:
     def __init__(self, steps: AsyncSteps) -> None:
-        self.retrieve = async_to_raw_response_wrapper(
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             steps.retrieve,
         )
-        self.list = async_to_raw_response_wrapper(
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            steps.list,
+        )
+
+
+class StepsWithStreamingResponse:
+    def __init__(self, steps: Steps) -> None:
+        self.retrieve = to_streamed_response_wrapper(
+            steps.retrieve,
+        )
+        self.list = to_streamed_response_wrapper(
+            steps.list,
+        )
+
+
+class AsyncStepsWithStreamingResponse:
+    def __init__(self, steps: AsyncSteps) -> None:
+        self.retrieve = async_to_streamed_response_wrapper(
+            steps.retrieve,
+        )
+        self.list = async_to_streamed_response_wrapper(
             steps.list,
         )

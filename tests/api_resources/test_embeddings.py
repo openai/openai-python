@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -44,9 +45,25 @@ class TestEmbeddings:
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         embedding = response.parse()
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create(self, client: OpenAI) -> None:
+        with client.embeddings.with_streaming_response.create(
+            input="The quick brown fox jumped over the lazy dog",
+            model="text-embedding-ada-002",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            embedding = response.parse()
+            assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncEmbeddings:
@@ -78,6 +95,22 @@ class TestAsyncEmbeddings:
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         embedding = response.parse()
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
+        async with client.embeddings.with_streaming_response.create(
+            input="The quick brown fox jumped over the lazy dog",
+            model="text-embedding-ada-002",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            embedding = await response.parse()
+            assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
+
+        assert cast(Any, response.is_closed) is True

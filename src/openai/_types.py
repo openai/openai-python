@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from os import PathLike
-from abc import ABC, abstractmethod
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -14,10 +13,8 @@ from typing import (
     Mapping,
     TypeVar,
     Callable,
-    Iterator,
     Optional,
     Sequence,
-    AsyncIterator,
 )
 from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
 
@@ -27,6 +24,8 @@ from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTranspo
 
 if TYPE_CHECKING:
     from ._models import BaseModel
+    from ._response import APIResponse, AsyncAPIResponse
+    from ._legacy_response import HttpxBinaryResponseContent
 
 Transport = BaseTransport
 AsyncTransport = AsyncBaseTransport
@@ -35,162 +34,6 @@ Body = object
 AnyMapping = Mapping[str, object]
 ModelT = TypeVar("ModelT", bound=pydantic.BaseModel)
 _T = TypeVar("_T")
-
-
-class BinaryResponseContent(ABC):
-    @abstractmethod
-    def __init__(
-        self,
-        response: Any,
-    ) -> None:
-        ...
-
-    @property
-    @abstractmethod
-    def content(self) -> bytes:
-        pass
-
-    @property
-    @abstractmethod
-    def text(self) -> str:
-        pass
-
-    @property
-    @abstractmethod
-    def encoding(self) -> Optional[str]:
-        """
-        Return an encoding to use for decoding the byte content into text.
-        The priority for determining this is given by...
-
-        * `.encoding = <>` has been set explicitly.
-        * The encoding as specified by the charset parameter in the Content-Type header.
-        * The encoding as determined by `default_encoding`, which may either be
-          a string like "utf-8" indicating the encoding to use, or may be a callable
-          which enables charset autodetection.
-        """
-        pass
-
-    @property
-    @abstractmethod
-    def charset_encoding(self) -> Optional[str]:
-        """
-        Return the encoding, as specified by the Content-Type header.
-        """
-        pass
-
-    @abstractmethod
-    def json(self, **kwargs: Any) -> Any:
-        pass
-
-    @abstractmethod
-    def read(self) -> bytes:
-        """
-        Read and return the response content.
-        """
-        pass
-
-    @abstractmethod
-    def iter_bytes(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-        """
-        A byte-iterator over the decoded response content.
-        This allows us to handle gzip, deflate, and brotli encoded responses.
-        """
-        pass
-
-    @abstractmethod
-    def iter_text(self, chunk_size: Optional[int] = None) -> Iterator[str]:
-        """
-        A str-iterator over the decoded response content
-        that handles both gzip, deflate, etc but also detects the content's
-        string encoding.
-        """
-        pass
-
-    @abstractmethod
-    def iter_lines(self) -> Iterator[str]:
-        pass
-
-    @abstractmethod
-    def iter_raw(self, chunk_size: Optional[int] = None) -> Iterator[bytes]:
-        """
-        A byte-iterator over the raw response content.
-        """
-        pass
-
-    @abstractmethod
-    def stream_to_file(
-        self,
-        file: str | PathLike[str],
-        *,
-        chunk_size: int | None = None,
-    ) -> None:
-        """
-        Stream the output to the given file.
-        """
-        pass
-
-    @abstractmethod
-    def close(self) -> None:
-        """
-        Close the response and release the connection.
-        Automatically called if the response body is read to completion.
-        """
-        pass
-
-    @abstractmethod
-    async def aread(self) -> bytes:
-        """
-        Read and return the response content.
-        """
-        pass
-
-    @abstractmethod
-    async def aiter_bytes(self, chunk_size: Optional[int] = None) -> AsyncIterator[bytes]:
-        """
-        A byte-iterator over the decoded response content.
-        This allows us to handle gzip, deflate, and brotli encoded responses.
-        """
-        pass
-
-    @abstractmethod
-    async def aiter_text(self, chunk_size: Optional[int] = None) -> AsyncIterator[str]:
-        """
-        A str-iterator over the decoded response content
-        that handles both gzip, deflate, etc but also detects the content's
-        string encoding.
-        """
-        pass
-
-    @abstractmethod
-    async def aiter_lines(self) -> AsyncIterator[str]:
-        pass
-
-    @abstractmethod
-    async def aiter_raw(self, chunk_size: Optional[int] = None) -> AsyncIterator[bytes]:
-        """
-        A byte-iterator over the raw response content.
-        """
-        pass
-
-    @abstractmethod
-    async def astream_to_file(
-        self,
-        file: str | PathLike[str],
-        *,
-        chunk_size: int | None = None,
-    ) -> None:
-        """
-        Stream the output to the given file.
-        """
-        pass
-
-    @abstractmethod
-    async def aclose(self) -> None:
-        """
-        Close the response and release the connection.
-        Automatically called if the response body is read to completion.
-        """
-        pass
 
 
 # Approximates httpx internal ProxiesTypes and RequestFiles types
@@ -343,7 +186,9 @@ ResponseT = TypeVar(
         Dict[str, Any],
         Response,
         ModelBuilderProtocol,
-        BinaryResponseContent,
+        "APIResponse[Any]",
+        "AsyncAPIResponse[Any]",
+        "HttpxBinaryResponseContent",
     ],
 )
 
@@ -359,6 +204,7 @@ PostParser = Callable[[Any], Any]
 @runtime_checkable
 class InheritsGeneric(Protocol):
     """Represents a type that has inherited from `Generic`
+
     The `__orig_bases__` property can be used to determine the resolved
     type variable for a given base class.
     """

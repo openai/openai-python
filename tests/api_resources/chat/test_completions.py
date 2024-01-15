@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import pytest
 
@@ -107,13 +108,34 @@ class TestCompletions:
             ],
             model="gpt-3.5-turbo",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
     @parametrize
+    def test_streaming_response_create_overload_1(self, client: OpenAI) -> None:
+        with client.chat.completions.with_streaming_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "system",
+                }
+            ],
+            model="gpt-3.5-turbo",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            completion = response.parse()
+            assert_matches_type(ChatCompletion, completion, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
-        client.chat.completions.create(
+        completion_stream = client.chat.completions.create(
             messages=[
                 {
                     "content": "string",
@@ -123,10 +145,11 @@ class TestCompletions:
             model="gpt-3.5-turbo",
             stream=True,
         )
+        completion_stream.response.close()
 
     @parametrize
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
-        client.chat.completions.create(
+        completion_stream = client.chat.completions.create(
             messages=[
                 {
                     "content": "string",
@@ -185,6 +208,7 @@ class TestCompletions:
             top_p=1,
             user="user-1234",
         )
+        completion_stream.response.close()
 
     @parametrize
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
@@ -198,8 +222,30 @@ class TestCompletions:
             model="gpt-3.5-turbo",
             stream=True,
         )
+
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        response.parse()
+        stream = response.parse()
+        stream.close()
+
+    @parametrize
+    def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
+        with client.chat.completions.with_streaming_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "system",
+                }
+            ],
+            model="gpt-3.5-turbo",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
 
 
 class TestAsyncCompletions:
@@ -294,13 +340,34 @@ class TestAsyncCompletions:
             ],
             model="gpt-3.5-turbo",
         )
+
+        assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
     @parametrize
+    async def test_streaming_response_create_overload_1(self, client: AsyncOpenAI) -> None:
+        async with client.chat.completions.with_streaming_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "system",
+                }
+            ],
+            model="gpt-3.5-turbo",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            completion = await response.parse()
+            assert_matches_type(ChatCompletion, completion, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     async def test_method_create_overload_2(self, client: AsyncOpenAI) -> None:
-        await client.chat.completions.create(
+        completion_stream = await client.chat.completions.create(
             messages=[
                 {
                     "content": "string",
@@ -310,10 +377,11 @@ class TestAsyncCompletions:
             model="gpt-3.5-turbo",
             stream=True,
         )
+        await completion_stream.response.aclose()
 
     @parametrize
     async def test_method_create_with_all_params_overload_2(self, client: AsyncOpenAI) -> None:
-        await client.chat.completions.create(
+        completion_stream = await client.chat.completions.create(
             messages=[
                 {
                     "content": "string",
@@ -372,6 +440,7 @@ class TestAsyncCompletions:
             top_p=1,
             user="user-1234",
         )
+        await completion_stream.response.aclose()
 
     @parametrize
     async def test_raw_response_create_overload_2(self, client: AsyncOpenAI) -> None:
@@ -385,5 +454,27 @@ class TestAsyncCompletions:
             model="gpt-3.5-turbo",
             stream=True,
         )
+
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
-        response.parse()
+        stream = response.parse()
+        await stream.close()
+
+    @parametrize
+    async def test_streaming_response_create_overload_2(self, client: AsyncOpenAI) -> None:
+        async with client.chat.completions.with_streaming_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "system",
+                }
+            ],
+            model="gpt-3.5-turbo",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
