@@ -99,7 +99,6 @@ class Files(SyncAPIResource):
             # sent to the server will contain a `boundary` parameter, e.g.
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-
         return self._post(
             "/files",
             body=maybe_transform(body, file_create_params.FileCreateParams),
@@ -133,6 +132,8 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
             f"/files/{file_id}",
             options=make_request_options(
@@ -202,6 +203,8 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._delete(
             f"/files/{file_id}",
             options=make_request_options(
@@ -233,6 +236,8 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return self._get(
             f"/files/{file_id}/content",
             options=make_request_options(
@@ -265,6 +270,8 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/json", **(extra_headers or {})}
         return self._get(
             f"/files/{file_id}/content",
@@ -365,7 +372,6 @@ class AsyncFiles(AsyncAPIResource):
             # sent to the server will contain a `boundary` parameter, e.g.
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-
         return await self._post(
             "/files",
             body=maybe_transform(body, file_create_params.FileCreateParams),
@@ -399,6 +405,8 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
             f"/files/{file_id}",
             options=make_request_options(
@@ -468,6 +476,8 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._delete(
             f"/files/{file_id}",
             options=make_request_options(
@@ -499,6 +509,8 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         return await self._get(
             f"/files/{file_id}/content",
             options=make_request_options(
@@ -531,6 +543,8 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"Accept": "application/json", **(extra_headers or {})}
         return await self._get(
             f"/files/{file_id}/content",

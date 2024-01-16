@@ -98,7 +98,6 @@ class Images(SyncAPIResource):
             # sent to the server will contain a `boundary` parameter, e.g.
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-
         return self._post(
             "/images/variations",
             body=maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
@@ -182,7 +181,6 @@ class Images(SyncAPIResource):
             # sent to the server will contain a `boundary` parameter, e.g.
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-
         return self._post(
             "/images/edits",
             body=maybe_transform(body, image_edit_params.ImageEditParams),
@@ -345,7 +343,6 @@ class AsyncImages(AsyncAPIResource):
             # sent to the server will contain a `boundary` parameter, e.g.
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-
         return await self._post(
             "/images/variations",
             body=maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
@@ -429,7 +426,6 @@ class AsyncImages(AsyncAPIResource):
             # sent to the server will contain a `boundary` parameter, e.g.
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-
         return await self._post(
             "/images/edits",
             body=maybe_transform(body, image_edit_params.ImageEditParams),

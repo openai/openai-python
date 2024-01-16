@@ -149,6 +149,8 @@ class Jobs(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not fine_tuning_job_id:
+            raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get(
             f"/fine_tuning/jobs/{fine_tuning_job_id}",
             options=make_request_options(
@@ -227,6 +229,8 @@ class Jobs(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not fine_tuning_job_id:
+            raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._post(
             f"/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
             options=make_request_options(
@@ -264,6 +268,8 @@ class Jobs(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not fine_tuning_job_id:
+            raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get_api_list(
             f"/fine_tuning/jobs/{fine_tuning_job_id}/events",
             page=SyncCursorPage[FineTuningJobEvent],
@@ -404,6 +410,8 @@ class AsyncJobs(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not fine_tuning_job_id:
+            raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return await self._get(
             f"/fine_tuning/jobs/{fine_tuning_job_id}",
             options=make_request_options(
@@ -482,6 +490,8 @@ class AsyncJobs(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not fine_tuning_job_id:
+            raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return await self._post(
             f"/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
             options=make_request_options(
@@ -519,6 +529,8 @@ class AsyncJobs(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not fine_tuning_job_id:
+            raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get_api_list(
             f"/fine_tuning/jobs/{fine_tuning_job_id}/events",
             page=AsyncCursorPage[FineTuningJobEvent],

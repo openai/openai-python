@@ -57,6 +57,14 @@ class TestFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_create(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.files.with_raw_response.create(
+                "",
+                file_id="string",
+            )
+
+    @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         file = client.beta.assistants.files.retrieve(
             "string",
@@ -89,6 +97,20 @@ class TestFiles:
             assert_matches_type(AssistantFile, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.files.with_raw_response.retrieve(
+                "string",
+                assistant_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            client.beta.assistants.files.with_raw_response.retrieve(
+                "",
+                assistant_id="string",
+            )
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
@@ -133,6 +155,13 @@ class TestFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_list(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.files.with_raw_response.list(
+                "",
+            )
+
+    @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
         file = client.beta.assistants.files.delete(
             "string",
@@ -165,6 +194,20 @@ class TestFiles:
             assert_matches_type(FileDeleteResponse, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_delete(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.files.with_raw_response.delete(
+                "string",
+                assistant_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            client.beta.assistants.files.with_raw_response.delete(
+                "",
+                assistant_id="string",
+            )
 
 
 class TestAsyncFiles:
@@ -207,6 +250,14 @@ class TestAsyncFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_create(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.files.with_raw_response.create(
+                "",
+                file_id="string",
+            )
+
+    @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
         file = await client.beta.assistants.files.retrieve(
             "string",
@@ -239,6 +290,20 @@ class TestAsyncFiles:
             assert_matches_type(AssistantFile, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.files.with_raw_response.retrieve(
+                "string",
+                assistant_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            await client.beta.assistants.files.with_raw_response.retrieve(
+                "",
+                assistant_id="string",
+            )
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -283,6 +348,13 @@ class TestAsyncFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_list(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.files.with_raw_response.list(
+                "",
+            )
+
+    @parametrize
     async def test_method_delete(self, client: AsyncOpenAI) -> None:
         file = await client.beta.assistants.files.delete(
             "string",
@@ -315,3 +387,17 @@ class TestAsyncFiles:
             assert_matches_type(FileDeleteResponse, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_delete(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.files.with_raw_response.delete(
+                "string",
+                assistant_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            await client.beta.assistants.files.with_raw_response.delete(
+                "",
+                assistant_id="string",
+            )

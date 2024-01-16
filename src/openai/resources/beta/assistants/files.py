@@ -61,6 +61,8 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._post(
             f"/assistants/{assistant_id}/files",
@@ -95,6 +97,10 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._get(
             f"/assistants/{assistant_id}/files/{file_id}",
@@ -147,6 +153,8 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._get_api_list(
             f"/assistants/{assistant_id}/files",
@@ -193,6 +201,10 @@ class Files(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._delete(
             f"/assistants/{assistant_id}/files/{file_id}",
@@ -242,6 +254,8 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/assistants/{assistant_id}/files",
@@ -276,6 +290,10 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._get(
             f"/assistants/{assistant_id}/files/{file_id}",
@@ -328,6 +346,8 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._get_api_list(
             f"/assistants/{assistant_id}/files",
@@ -374,6 +394,10 @@ class AsyncFiles(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
+        if not file_id:
+            raise ValueError(f"Expected a non-empty value for `file_id` but received {file_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._delete(
             f"/assistants/{assistant_id}/files/{file_id}",

@@ -60,6 +60,29 @@ class TestFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.messages.files.with_raw_response.retrieve(
+                "file-abc123",
+                thread_id="",
+                message_id="msg_abc123",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `message_id` but received ''"):
+            client.beta.threads.messages.files.with_raw_response.retrieve(
+                "file-abc123",
+                thread_id="thread_abc123",
+                message_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            client.beta.threads.messages.files.with_raw_response.retrieve(
+                "",
+                thread_id="thread_abc123",
+                message_id="msg_abc123",
+            )
+
+    @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         file = client.beta.threads.messages.files.list(
             "string",
@@ -105,6 +128,20 @@ class TestFiles:
 
         assert cast(Any, response.is_closed) is True
 
+    @parametrize
+    def test_path_params_list(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.messages.files.with_raw_response.list(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `message_id` but received ''"):
+            client.beta.threads.messages.files.with_raw_response.list(
+                "",
+                thread_id="string",
+            )
+
 
 class TestAsyncFiles:
     strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
@@ -147,6 +184,29 @@ class TestAsyncFiles:
             assert_matches_type(MessageFile, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.messages.files.with_raw_response.retrieve(
+                "file-abc123",
+                thread_id="",
+                message_id="msg_abc123",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `message_id` but received ''"):
+            await client.beta.threads.messages.files.with_raw_response.retrieve(
+                "file-abc123",
+                thread_id="thread_abc123",
+                message_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            await client.beta.threads.messages.files.with_raw_response.retrieve(
+                "",
+                thread_id="thread_abc123",
+                message_id="msg_abc123",
+            )
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -193,3 +253,17 @@ class TestAsyncFiles:
             assert_matches_type(AsyncCursorPage[MessageFile], file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_list(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.messages.files.with_raw_response.list(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `message_id` but received ''"):
+            await client.beta.threads.messages.files.with_raw_response.list(
+                "",
+                thread_id="string",
+            )
