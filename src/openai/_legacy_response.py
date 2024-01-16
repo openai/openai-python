@@ -336,6 +336,22 @@ class HttpxBinaryResponseContent:
     def iter_raw(self, chunk_size: int | None = None) -> Iterator[bytes]:
         return self.response.iter_raw(chunk_size)
 
+    def write_to_file(
+        self,
+        file: str | os.PathLike[str],
+    ) -> None:
+        """Write the output to the given file.
+
+        Accepts a filename or any path-like object, e.g. pathlib.Path
+
+        Note: if you want to stream the data to the file instead of writing
+        all at once then you should use `.with_streaming_response` when making
+        the API request, e.g. `client.with_streaming_response.foo().stream_to_file('my_filename.txt')`
+        """
+        with open(file, mode="wb") as f:
+            for data in self.response.iter_bytes():
+                f.write(data)
+
     @deprecated(
         "Due to a bug, this method doesn't actually stream the response content, `.with_streaming_response.method()` should be used instead"
     )
