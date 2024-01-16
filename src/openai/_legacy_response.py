@@ -372,16 +372,16 @@ class HttpxBinaryResponseContent:
         return await self.response.aread()
 
     async def aiter_bytes(self, chunk_size: int | None = None) -> AsyncIterator[bytes]:
-        return self.response.aiter_bytes(chunk_size)
+        return await self.response.aiter_bytes(chunk_size)
 
     async def aiter_text(self, chunk_size: int | None = None) -> AsyncIterator[str]:
-        return self.response.aiter_text(chunk_size)
+        return await self.response.aiter_text(chunk_size)
 
     async def aiter_lines(self) -> AsyncIterator[str]:
-        return self.response.aiter_lines()
+        return await self.response.aiter_lines()
 
     async def aiter_raw(self, chunk_size: int | None = None) -> AsyncIterator[bytes]:
-        return self.response.aiter_raw(chunk_size)
+        return await self.response.aiter_raw(chunk_size)
 
     @deprecated(
         "Due to a bug, this method doesn't actually stream the response content, `.with_streaming_response.method()` should be used instead"
