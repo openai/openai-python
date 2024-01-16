@@ -72,6 +72,14 @@ class TestRuns:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_create(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.create(
+                "",
+                assistant_id="string",
+            )
+
+    @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         run = client.beta.threads.runs.retrieve(
             "string",
@@ -104,6 +112,20 @@ class TestRuns:
             assert_matches_type(Run, run, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.retrieve(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.retrieve(
+                "",
+                thread_id="string",
+            )
 
     @parametrize
     def test_method_update(self, client: OpenAI) -> None:
@@ -149,6 +171,20 @@ class TestRuns:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_update(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.update(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.update(
+                "",
+                thread_id="string",
+            )
+
+    @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         run = client.beta.threads.runs.list(
             "string",
@@ -191,6 +227,13 @@ class TestRuns:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_list(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.list(
+                "",
+            )
+
+    @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
         run = client.beta.threads.runs.cancel(
             "string",
@@ -223,6 +266,20 @@ class TestRuns:
             assert_matches_type(Run, run, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_cancel(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.cancel(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.cancel(
+                "",
+                thread_id="string",
+            )
 
     @parametrize
     def test_method_submit_tool_outputs(self, client: OpenAI) -> None:
@@ -260,6 +317,22 @@ class TestRuns:
             assert_matches_type(Run, run, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_submit_tool_outputs(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.submit_tool_outputs(
+                "string",
+                thread_id="",
+                tool_outputs=[{}, {}, {}],
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            client.beta.threads.runs.with_raw_response.submit_tool_outputs(
+                "",
+                thread_id="string",
+                tool_outputs=[{}, {}, {}],
+            )
 
 
 class TestAsyncRuns:
@@ -315,6 +388,14 @@ class TestAsyncRuns:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_create(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.create(
+                "",
+                assistant_id="string",
+            )
+
+    @parametrize
     async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
         run = await client.beta.threads.runs.retrieve(
             "string",
@@ -347,6 +428,20 @@ class TestAsyncRuns:
             assert_matches_type(Run, run, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.retrieve(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.retrieve(
+                "",
+                thread_id="string",
+            )
 
     @parametrize
     async def test_method_update(self, client: AsyncOpenAI) -> None:
@@ -392,6 +487,20 @@ class TestAsyncRuns:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_update(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.update(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.update(
+                "",
+                thread_id="string",
+            )
+
+    @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
         run = await client.beta.threads.runs.list(
             "string",
@@ -434,6 +543,13 @@ class TestAsyncRuns:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_list(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.list(
+                "",
+            )
+
+    @parametrize
     async def test_method_cancel(self, client: AsyncOpenAI) -> None:
         run = await client.beta.threads.runs.cancel(
             "string",
@@ -466,6 +582,20 @@ class TestAsyncRuns:
             assert_matches_type(Run, run, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_cancel(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.cancel(
+                "string",
+                thread_id="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.cancel(
+                "",
+                thread_id="string",
+            )
 
     @parametrize
     async def test_method_submit_tool_outputs(self, client: AsyncOpenAI) -> None:
@@ -503,3 +633,19 @@ class TestAsyncRuns:
             assert_matches_type(Run, run, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_submit_tool_outputs(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.submit_tool_outputs(
+                "string",
+                thread_id="",
+                tool_outputs=[{}, {}, {}],
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
+            await client.beta.threads.runs.with_raw_response.submit_tool_outputs(
+                "",
+                thread_id="string",
+                tool_outputs=[{}, {}, {}],
+            )

@@ -106,6 +106,13 @@ class TestJobs:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
+            client.fine_tuning.jobs.with_raw_response.retrieve(
+                "",
+            )
+
+    @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.list()
         assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
@@ -170,6 +177,13 @@ class TestJobs:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_cancel(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
+            client.fine_tuning.jobs.with_raw_response.cancel(
+                "",
+            )
+
+    @parametrize
     def test_method_list_events(self, client: OpenAI) -> None:
         job = client.fine_tuning.jobs.list_events(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
@@ -208,6 +222,13 @@ class TestJobs:
             assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_list_events(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
+            client.fine_tuning.jobs.with_raw_response.list_events(
+                "",
+            )
 
 
 class TestAsyncJobs:
@@ -296,6 +317,13 @@ class TestAsyncJobs:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
+            await client.fine_tuning.jobs.with_raw_response.retrieve(
+                "",
+            )
+
+    @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
         job = await client.fine_tuning.jobs.list()
         assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
@@ -360,6 +388,13 @@ class TestAsyncJobs:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_cancel(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
+            await client.fine_tuning.jobs.with_raw_response.cancel(
+                "",
+            )
+
+    @parametrize
     async def test_method_list_events(self, client: AsyncOpenAI) -> None:
         job = await client.fine_tuning.jobs.list_events(
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
@@ -398,3 +433,10 @@ class TestAsyncJobs:
             assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_list_events(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `fine_tuning_job_id` but received ''"):
+            await client.fine_tuning.jobs.with_raw_response.list_events(
+                "",
+            )

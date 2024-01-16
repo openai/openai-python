@@ -148,6 +148,8 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._get(
             f"/assistants/{assistant_id}",
@@ -215,6 +217,8 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._post(
             f"/assistants/{assistant_id}",
@@ -324,6 +328,8 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._delete(
             f"/assistants/{assistant_id}",
@@ -445,6 +451,8 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._get(
             f"/assistants/{assistant_id}",
@@ -512,6 +520,8 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/assistants/{assistant_id}",
@@ -621,6 +631,8 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not assistant_id:
+            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._delete(
             f"/assistants/{assistant_id}",
