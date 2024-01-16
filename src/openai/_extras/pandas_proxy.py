@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
-from typing_extensions import ClassVar, override
+from typing_extensions import override
 
 from .._utils import LazyProxy
 from ._common import MissingDependencyError, format_instructions
@@ -14,8 +14,6 @@ PANDAS_INSTRUCTIONS = format_instructions(library="pandas", extra="datalib")
 
 
 class PandasProxy(LazyProxy[Any]):
-    should_cache: ClassVar[bool] = True
-
     @override
     def __load__(self) -> Any:
         try:
