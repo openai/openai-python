@@ -133,6 +133,8 @@ class Threads(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._get(
             f"/threads/{thread_id}",
@@ -171,6 +173,8 @@ class Threads(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._post(
             f"/threads/{thread_id}",
@@ -204,6 +208,8 @@ class Threads(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._delete(
             f"/threads/{thread_id}",
@@ -372,6 +378,8 @@ class AsyncThreads(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._get(
             f"/threads/{thread_id}",
@@ -410,6 +418,8 @@ class AsyncThreads(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/threads/{thread_id}",
@@ -443,6 +453,8 @@ class AsyncThreads(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._delete(
             f"/threads/{thread_id}",

@@ -101,6 +101,13 @@ class TestAssistants:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.with_raw_response.retrieve(
+                "",
+            )
+
+    @parametrize
     def test_method_update(self, client: OpenAI) -> None:
         assistant = client.beta.assistants.update(
             "string",
@@ -144,6 +151,13 @@ class TestAssistants:
             assert_matches_type(Assistant, assistant, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_update(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.with_raw_response.update(
+                "",
+            )
 
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
@@ -210,6 +224,13 @@ class TestAssistants:
             assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_delete(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            client.beta.assistants.with_raw_response.delete(
+                "",
+            )
 
 
 class TestAsyncAssistants:
@@ -293,6 +314,13 @@ class TestAsyncAssistants:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.with_raw_response.retrieve(
+                "",
+            )
+
+    @parametrize
     async def test_method_update(self, client: AsyncOpenAI) -> None:
         assistant = await client.beta.assistants.update(
             "string",
@@ -336,6 +364,13 @@ class TestAsyncAssistants:
             assert_matches_type(Assistant, assistant, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_update(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.with_raw_response.update(
+                "",
+            )
 
     @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
@@ -402,3 +437,10 @@ class TestAsyncAssistants:
             assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_delete(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `assistant_id` but received ''"):
+            await client.beta.assistants.with_raw_response.delete(
+                "",
+            )

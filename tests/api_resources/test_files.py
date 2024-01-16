@@ -93,6 +93,13 @@ class TestFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_retrieve(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            client.files.with_raw_response.retrieve(
+                "",
+            )
+
+    @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         file = client.files.list()
         assert_matches_type(SyncPage[FileObject], file, path=["response"])
@@ -156,6 +163,13 @@ class TestFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    def test_path_params_delete(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            client.files.with_raw_response.delete(
+                "",
+            )
+
+    @parametrize
     @pytest.mark.respx(base_url=base_url)
     def test_method_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
         respx_mock.get("/files/string/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
@@ -195,6 +209,14 @@ class TestFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    def test_path_params_content(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            client.files.with_raw_response.content(
+                "",
+            )
+
+    @parametrize
     def test_method_retrieve_content(self, client: OpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             file = client.files.retrieve_content(
@@ -228,6 +250,14 @@ class TestFiles:
                 assert_matches_type(str, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve_content(self, client: OpenAI) -> None:
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+                client.files.with_raw_response.retrieve_content(
+                    "",
+                )
 
 
 class TestAsyncFiles:
@@ -301,6 +331,13 @@ class TestAsyncFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            await client.files.with_raw_response.retrieve(
+                "",
+            )
+
+    @parametrize
     async def test_method_list(self, client: AsyncOpenAI) -> None:
         file = await client.files.list()
         assert_matches_type(AsyncPage[FileObject], file, path=["response"])
@@ -364,6 +401,13 @@ class TestAsyncFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    async def test_path_params_delete(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            await client.files.with_raw_response.delete(
+                "",
+            )
+
+    @parametrize
     @pytest.mark.respx(base_url=base_url)
     async def test_method_content(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.get("/files/string/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
@@ -403,6 +447,14 @@ class TestAsyncFiles:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    async def test_path_params_content(self, client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+            await client.files.with_raw_response.content(
+                "",
+            )
+
+    @parametrize
     async def test_method_retrieve_content(self, client: AsyncOpenAI) -> None:
         with pytest.warns(DeprecationWarning):
             file = await client.files.retrieve_content(
@@ -436,3 +488,11 @@ class TestAsyncFiles:
                 assert_matches_type(str, file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve_content(self, client: AsyncOpenAI) -> None:
+        with pytest.warns(DeprecationWarning):
+            with pytest.raises(ValueError, match=r"Expected a non-empty value for `file_id` but received ''"):
+                await client.files.with_raw_response.retrieve_content(
+                    "",
+                )

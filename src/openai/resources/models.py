@@ -52,6 +52,8 @@ class Models(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not model:
+            raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return self._get(
             f"/models/{model}",
             options=make_request_options(
@@ -108,6 +110,8 @@ class Models(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not model:
+            raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return self._delete(
             f"/models/{model}",
             options=make_request_options(
@@ -150,6 +154,8 @@ class AsyncModels(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not model:
+            raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return await self._get(
             f"/models/{model}",
             options=make_request_options(
@@ -206,6 +212,8 @@ class AsyncModels(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        if not model:
+            raise ValueError(f"Expected a non-empty value for `model` but received {model!r}")
         return await self._delete(
             f"/models/{model}",
             options=make_request_options(
