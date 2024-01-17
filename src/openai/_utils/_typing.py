@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, TypeVar, cast
 from typing_extensions import Required, Annotated, get_args, get_origin
 
 from .._types import InheritsGeneric
@@ -21,6 +21,12 @@ def is_union_type(typ: type) -> bool:
 
 def is_required_type(typ: type) -> bool:
     return get_origin(typ) == Required
+
+
+def is_typevar(typ: type) -> bool:
+    # type ignore is required because type checkers
+    # think this expression will always return False
+    return type(typ) == TypeVar  # type: ignore
 
 
 # Extracts T from Annotated[T, ...] or from Required[Annotated[T, ...]]
@@ -49,6 +55,15 @@ def extract_type_var_from_base(typ: type, *, generic_bases: tuple[type, ...], in
 
     extract_type_var(MyResponse, bases=(Foo,), index=0) -> bytes
     ```
+
+    And where a generic subclass is given:
+    ```py
+    _T = TypeVar('_T')
+    class MyResponse(Foo[_T]):
+        ...
+
+    extract_type_var(MyResponse[bytes], bases=(Foo,), index=0) -> bytes
+    ```
     """
     cls = cast(object, get_origin(typ) or typ)
     if cls in generic_bases:
@@ -75,6 +90,18 @@ def extract_type_var_from_base(typ: type, *, generic_bases: tuple[type, ...], in
                 f"Does {cls} inherit from one of {generic_bases} ?"
             )
 
-        return extract_type_arg(target_base_class, index)
+        extracted = extract_type_arg(target_base_class, index)
+        if is_typevar(extracted):
+            # If the extracted type argument is itself a type variable
+            # then that means the subclass itself is generic, so we have
+            # to resolve the type argument from the class itself, not
+            # the base class.
+            #
+            # Note: if there is more than 1 type argument, the subclass could
+            # change the ordering of the type arguments, this is not currently
+            # supported.
+            return extract_type_arg(typ, index)
+
+        return extracted
 
     raise RuntimeError(f"Could not resolve inner type variable at index {index} for {typ}")
