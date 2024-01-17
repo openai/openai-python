@@ -217,6 +217,8 @@ class AsyncEmbeddings(AsyncAPIResource):
 
 class EmbeddingsWithRawResponse:
     def __init__(self, embeddings: Embeddings) -> None:
+        self._embeddings = embeddings
+
         self.create = _legacy_response.to_raw_response_wrapper(
             embeddings.create,
         )
@@ -224,6 +226,8 @@ class EmbeddingsWithRawResponse:
 
 class AsyncEmbeddingsWithRawResponse:
     def __init__(self, embeddings: AsyncEmbeddings) -> None:
+        self._embeddings = embeddings
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             embeddings.create,
         )
@@ -231,6 +235,8 @@ class AsyncEmbeddingsWithRawResponse:
 
 class EmbeddingsWithStreamingResponse:
     def __init__(self, embeddings: Embeddings) -> None:
+        self._embeddings = embeddings
+
         self.create = to_streamed_response_wrapper(
             embeddings.create,
         )
@@ -238,6 +244,8 @@ class EmbeddingsWithStreamingResponse:
 
 class AsyncEmbeddingsWithStreamingResponse:
     def __init__(self, embeddings: AsyncEmbeddings) -> None:
+        self._embeddings = embeddings
+
         self.create = async_to_streamed_response_wrapper(
             embeddings.create,
         )

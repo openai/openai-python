@@ -518,6 +518,8 @@ class AsyncImages(AsyncAPIResource):
 
 class ImagesWithRawResponse:
     def __init__(self, images: Images) -> None:
+        self._images = images
+
         self.create_variation = _legacy_response.to_raw_response_wrapper(
             images.create_variation,
         )
@@ -531,6 +533,8 @@ class ImagesWithRawResponse:
 
 class AsyncImagesWithRawResponse:
     def __init__(self, images: AsyncImages) -> None:
+        self._images = images
+
         self.create_variation = _legacy_response.async_to_raw_response_wrapper(
             images.create_variation,
         )
@@ -544,6 +548,8 @@ class AsyncImagesWithRawResponse:
 
 class ImagesWithStreamingResponse:
     def __init__(self, images: Images) -> None:
+        self._images = images
+
         self.create_variation = to_streamed_response_wrapper(
             images.create_variation,
         )
@@ -557,6 +563,8 @@ class ImagesWithStreamingResponse:
 
 class AsyncImagesWithStreamingResponse:
     def __init__(self, images: AsyncImages) -> None:
+        self._images = images
+
         self.create_variation = async_to_streamed_response_wrapper(
             images.create_variation,
         )

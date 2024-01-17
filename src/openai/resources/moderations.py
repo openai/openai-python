@@ -143,6 +143,8 @@ class AsyncModerations(AsyncAPIResource):
 
 class ModerationsWithRawResponse:
     def __init__(self, moderations: Moderations) -> None:
+        self._moderations = moderations
+
         self.create = _legacy_response.to_raw_response_wrapper(
             moderations.create,
         )
@@ -150,6 +152,8 @@ class ModerationsWithRawResponse:
 
 class AsyncModerationsWithRawResponse:
     def __init__(self, moderations: AsyncModerations) -> None:
+        self._moderations = moderations
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             moderations.create,
         )
@@ -157,6 +161,8 @@ class AsyncModerationsWithRawResponse:
 
 class ModerationsWithStreamingResponse:
     def __init__(self, moderations: Moderations) -> None:
+        self._moderations = moderations
+
         self.create = to_streamed_response_wrapper(
             moderations.create,
         )
@@ -164,6 +170,8 @@ class ModerationsWithStreamingResponse:
 
 class AsyncModerationsWithStreamingResponse:
     def __init__(self, moderations: AsyncModerations) -> None:
+        self._moderations = moderations
+
         self.create = async_to_streamed_response_wrapper(
             moderations.create,
         )

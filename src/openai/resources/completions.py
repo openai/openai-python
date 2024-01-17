@@ -1052,6 +1052,8 @@ class AsyncCompletions(AsyncAPIResource):
 
 class CompletionsWithRawResponse:
     def __init__(self, completions: Completions) -> None:
+        self._completions = completions
+
         self.create = _legacy_response.to_raw_response_wrapper(
             completions.create,
         )
@@ -1059,6 +1061,8 @@ class CompletionsWithRawResponse:
 
 class AsyncCompletionsWithRawResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
+        self._completions = completions
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             completions.create,
         )
@@ -1066,6 +1070,8 @@ class AsyncCompletionsWithRawResponse:
 
 class CompletionsWithStreamingResponse:
     def __init__(self, completions: Completions) -> None:
+        self._completions = completions
+
         self.create = to_streamed_response_wrapper(
             completions.create,
         )
@@ -1073,6 +1079,8 @@ class CompletionsWithStreamingResponse:
 
 class AsyncCompletionsWithStreamingResponse:
     def __init__(self, completions: AsyncCompletions) -> None:
+        self._completions = completions
+
         self.create = async_to_streamed_response_wrapper(
             completions.create,
         )

@@ -266,6 +266,8 @@ class AsyncFiles(AsyncAPIResource):
 
 class FilesWithRawResponse:
     def __init__(self, files: Files) -> None:
+        self._files = files
+
         self.retrieve = _legacy_response.to_raw_response_wrapper(
             files.retrieve,
         )
@@ -276,6 +278,8 @@ class FilesWithRawResponse:
 
 class AsyncFilesWithRawResponse:
     def __init__(self, files: AsyncFiles) -> None:
+        self._files = files
+
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             files.retrieve,
         )
@@ -286,6 +290,8 @@ class AsyncFilesWithRawResponse:
 
 class FilesWithStreamingResponse:
     def __init__(self, files: Files) -> None:
+        self._files = files
+
         self.retrieve = to_streamed_response_wrapper(
             files.retrieve,
         )
@@ -296,6 +302,8 @@ class FilesWithStreamingResponse:
 
 class AsyncFilesWithStreamingResponse:
     def __init__(self, files: AsyncFiles) -> None:
+        self._files = files
+
         self.retrieve = async_to_streamed_response_wrapper(
             files.retrieve,
         )

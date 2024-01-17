@@ -185,6 +185,8 @@ class AsyncTranslations(AsyncAPIResource):
 
 class TranslationsWithRawResponse:
     def __init__(self, translations: Translations) -> None:
+        self._translations = translations
+
         self.create = _legacy_response.to_raw_response_wrapper(
             translations.create,
         )
@@ -192,6 +194,8 @@ class TranslationsWithRawResponse:
 
 class AsyncTranslationsWithRawResponse:
     def __init__(self, translations: AsyncTranslations) -> None:
+        self._translations = translations
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             translations.create,
         )
@@ -199,6 +203,8 @@ class AsyncTranslationsWithRawResponse:
 
 class TranslationsWithStreamingResponse:
     def __init__(self, translations: Translations) -> None:
+        self._translations = translations
+
         self.create = to_streamed_response_wrapper(
             translations.create,
         )
@@ -206,6 +212,8 @@ class TranslationsWithStreamingResponse:
 
 class AsyncTranslationsWithStreamingResponse:
     def __init__(self, translations: AsyncTranslations) -> None:
+        self._translations = translations
+
         self.create = async_to_streamed_response_wrapper(
             translations.create,
         )

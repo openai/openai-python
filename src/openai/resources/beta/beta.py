@@ -64,23 +64,51 @@ class AsyncBeta(AsyncAPIResource):
 
 class BetaWithRawResponse:
     def __init__(self, beta: Beta) -> None:
-        self.assistants = AssistantsWithRawResponse(beta.assistants)
-        self.threads = ThreadsWithRawResponse(beta.threads)
+        self._beta = beta
+
+    @cached_property
+    def assistants(self) -> AssistantsWithRawResponse:
+        return AssistantsWithRawResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> ThreadsWithRawResponse:
+        return ThreadsWithRawResponse(self._beta.threads)
 
 
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
-        self.assistants = AsyncAssistantsWithRawResponse(beta.assistants)
-        self.threads = AsyncThreadsWithRawResponse(beta.threads)
+        self._beta = beta
+
+    @cached_property
+    def assistants(self) -> AsyncAssistantsWithRawResponse:
+        return AsyncAssistantsWithRawResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> AsyncThreadsWithRawResponse:
+        return AsyncThreadsWithRawResponse(self._beta.threads)
 
 
 class BetaWithStreamingResponse:
     def __init__(self, beta: Beta) -> None:
-        self.assistants = AssistantsWithStreamingResponse(beta.assistants)
-        self.threads = ThreadsWithStreamingResponse(beta.threads)
+        self._beta = beta
+
+    @cached_property
+    def assistants(self) -> AssistantsWithStreamingResponse:
+        return AssistantsWithStreamingResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> ThreadsWithStreamingResponse:
+        return ThreadsWithStreamingResponse(self._beta.threads)
 
 
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
-        self.assistants = AsyncAssistantsWithStreamingResponse(beta.assistants)
-        self.threads = AsyncThreadsWithStreamingResponse(beta.threads)
+        self._beta = beta
+
+    @cached_property
+    def assistants(self) -> AsyncAssistantsWithStreamingResponse:
+        return AsyncAssistantsWithStreamingResponse(self._beta.assistants)
+
+    @cached_property
+    def threads(self) -> AsyncThreadsWithStreamingResponse:
+        return AsyncThreadsWithStreamingResponse(self._beta.threads)

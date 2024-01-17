@@ -537,8 +537,7 @@ class AsyncThreads(AsyncAPIResource):
 
 class ThreadsWithRawResponse:
     def __init__(self, threads: Threads) -> None:
-        self.runs = RunsWithRawResponse(threads.runs)
-        self.messages = MessagesWithRawResponse(threads.messages)
+        self._threads = threads
 
         self.create = _legacy_response.to_raw_response_wrapper(
             threads.create,
@@ -556,11 +555,18 @@ class ThreadsWithRawResponse:
             threads.create_and_run,
         )
 
+    @cached_property
+    def runs(self) -> RunsWithRawResponse:
+        return RunsWithRawResponse(self._threads.runs)
+
+    @cached_property
+    def messages(self) -> MessagesWithRawResponse:
+        return MessagesWithRawResponse(self._threads.messages)
+
 
 class AsyncThreadsWithRawResponse:
     def __init__(self, threads: AsyncThreads) -> None:
-        self.runs = AsyncRunsWithRawResponse(threads.runs)
-        self.messages = AsyncMessagesWithRawResponse(threads.messages)
+        self._threads = threads
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             threads.create,
@@ -578,11 +584,18 @@ class AsyncThreadsWithRawResponse:
             threads.create_and_run,
         )
 
+    @cached_property
+    def runs(self) -> AsyncRunsWithRawResponse:
+        return AsyncRunsWithRawResponse(self._threads.runs)
+
+    @cached_property
+    def messages(self) -> AsyncMessagesWithRawResponse:
+        return AsyncMessagesWithRawResponse(self._threads.messages)
+
 
 class ThreadsWithStreamingResponse:
     def __init__(self, threads: Threads) -> None:
-        self.runs = RunsWithStreamingResponse(threads.runs)
-        self.messages = MessagesWithStreamingResponse(threads.messages)
+        self._threads = threads
 
         self.create = to_streamed_response_wrapper(
             threads.create,
@@ -600,11 +613,18 @@ class ThreadsWithStreamingResponse:
             threads.create_and_run,
         )
 
+    @cached_property
+    def runs(self) -> RunsWithStreamingResponse:
+        return RunsWithStreamingResponse(self._threads.runs)
+
+    @cached_property
+    def messages(self) -> MessagesWithStreamingResponse:
+        return MessagesWithStreamingResponse(self._threads.messages)
+
 
 class AsyncThreadsWithStreamingResponse:
     def __init__(self, threads: AsyncThreads) -> None:
-        self.runs = AsyncRunsWithStreamingResponse(threads.runs)
-        self.messages = AsyncMessagesWithStreamingResponse(threads.messages)
+        self._threads = threads
 
         self.create = async_to_streamed_response_wrapper(
             threads.create,
@@ -621,3 +641,11 @@ class AsyncThreadsWithStreamingResponse:
         self.create_and_run = async_to_streamed_response_wrapper(
             threads.create_and_run,
         )
+
+    @cached_property
+    def runs(self) -> AsyncRunsWithStreamingResponse:
+        return AsyncRunsWithStreamingResponse(self._threads.runs)
+
+    @cached_property
+    def messages(self) -> AsyncMessagesWithStreamingResponse:
+        return AsyncMessagesWithStreamingResponse(self._threads.messages)

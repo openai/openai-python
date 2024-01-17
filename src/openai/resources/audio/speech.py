@@ -170,6 +170,8 @@ class AsyncSpeech(AsyncAPIResource):
 
 class SpeechWithRawResponse:
     def __init__(self, speech: Speech) -> None:
+        self._speech = speech
+
         self.create = _legacy_response.to_raw_response_wrapper(
             speech.create,
         )
@@ -177,6 +179,8 @@ class SpeechWithRawResponse:
 
 class AsyncSpeechWithRawResponse:
     def __init__(self, speech: AsyncSpeech) -> None:
+        self._speech = speech
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             speech.create,
         )
@@ -184,6 +188,8 @@ class AsyncSpeechWithRawResponse:
 
 class SpeechWithStreamingResponse:
     def __init__(self, speech: Speech) -> None:
+        self._speech = speech
+
         self.create = to_custom_streamed_response_wrapper(
             speech.create,
             StreamedBinaryAPIResponse,
@@ -192,6 +198,8 @@ class SpeechWithStreamingResponse:
 
 class AsyncSpeechWithStreamingResponse:
     def __init__(self, speech: AsyncSpeech) -> None:
+        self._speech = speech
+
         self.create = async_to_custom_streamed_response_wrapper(
             speech.create,
             AsyncStreamedBinaryAPIResponse,
