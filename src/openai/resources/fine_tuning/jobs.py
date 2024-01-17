@@ -553,6 +553,8 @@ class AsyncJobs(AsyncAPIResource):
 
 class JobsWithRawResponse:
     def __init__(self, jobs: Jobs) -> None:
+        self._jobs = jobs
+
         self.create = _legacy_response.to_raw_response_wrapper(
             jobs.create,
         )
@@ -572,6 +574,8 @@ class JobsWithRawResponse:
 
 class AsyncJobsWithRawResponse:
     def __init__(self, jobs: AsyncJobs) -> None:
+        self._jobs = jobs
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             jobs.create,
         )
@@ -591,6 +595,8 @@ class AsyncJobsWithRawResponse:
 
 class JobsWithStreamingResponse:
     def __init__(self, jobs: Jobs) -> None:
+        self._jobs = jobs
+
         self.create = to_streamed_response_wrapper(
             jobs.create,
         )
@@ -610,6 +616,8 @@ class JobsWithStreamingResponse:
 
 class AsyncJobsWithStreamingResponse:
     def __init__(self, jobs: AsyncJobs) -> None:
+        self._jobs = jobs
+
         self.create = async_to_streamed_response_wrapper(
             jobs.create,
         )

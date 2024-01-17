@@ -199,6 +199,8 @@ class AsyncTranscriptions(AsyncAPIResource):
 
 class TranscriptionsWithRawResponse:
     def __init__(self, transcriptions: Transcriptions) -> None:
+        self._transcriptions = transcriptions
+
         self.create = _legacy_response.to_raw_response_wrapper(
             transcriptions.create,
         )
@@ -206,6 +208,8 @@ class TranscriptionsWithRawResponse:
 
 class AsyncTranscriptionsWithRawResponse:
     def __init__(self, transcriptions: AsyncTranscriptions) -> None:
+        self._transcriptions = transcriptions
+
         self.create = _legacy_response.async_to_raw_response_wrapper(
             transcriptions.create,
         )
@@ -213,6 +217,8 @@ class AsyncTranscriptionsWithRawResponse:
 
 class TranscriptionsWithStreamingResponse:
     def __init__(self, transcriptions: Transcriptions) -> None:
+        self._transcriptions = transcriptions
+
         self.create = to_streamed_response_wrapper(
             transcriptions.create,
         )
@@ -220,6 +226,8 @@ class TranscriptionsWithStreamingResponse:
 
 class AsyncTranscriptionsWithStreamingResponse:
     def __init__(self, transcriptions: AsyncTranscriptions) -> None:
+        self._transcriptions = transcriptions
+
         self.create = async_to_streamed_response_wrapper(
             transcriptions.create,
         )

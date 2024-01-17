@@ -78,27 +78,67 @@ class AsyncAudio(AsyncAPIResource):
 
 class AudioWithRawResponse:
     def __init__(self, audio: Audio) -> None:
-        self.transcriptions = TranscriptionsWithRawResponse(audio.transcriptions)
-        self.translations = TranslationsWithRawResponse(audio.translations)
-        self.speech = SpeechWithRawResponse(audio.speech)
+        self._audio = audio
+
+    @cached_property
+    def transcriptions(self) -> TranscriptionsWithRawResponse:
+        return TranscriptionsWithRawResponse(self._audio.transcriptions)
+
+    @cached_property
+    def translations(self) -> TranslationsWithRawResponse:
+        return TranslationsWithRawResponse(self._audio.translations)
+
+    @cached_property
+    def speech(self) -> SpeechWithRawResponse:
+        return SpeechWithRawResponse(self._audio.speech)
 
 
 class AsyncAudioWithRawResponse:
     def __init__(self, audio: AsyncAudio) -> None:
-        self.transcriptions = AsyncTranscriptionsWithRawResponse(audio.transcriptions)
-        self.translations = AsyncTranslationsWithRawResponse(audio.translations)
-        self.speech = AsyncSpeechWithRawResponse(audio.speech)
+        self._audio = audio
+
+    @cached_property
+    def transcriptions(self) -> AsyncTranscriptionsWithRawResponse:
+        return AsyncTranscriptionsWithRawResponse(self._audio.transcriptions)
+
+    @cached_property
+    def translations(self) -> AsyncTranslationsWithRawResponse:
+        return AsyncTranslationsWithRawResponse(self._audio.translations)
+
+    @cached_property
+    def speech(self) -> AsyncSpeechWithRawResponse:
+        return AsyncSpeechWithRawResponse(self._audio.speech)
 
 
 class AudioWithStreamingResponse:
     def __init__(self, audio: Audio) -> None:
-        self.transcriptions = TranscriptionsWithStreamingResponse(audio.transcriptions)
-        self.translations = TranslationsWithStreamingResponse(audio.translations)
-        self.speech = SpeechWithStreamingResponse(audio.speech)
+        self._audio = audio
+
+    @cached_property
+    def transcriptions(self) -> TranscriptionsWithStreamingResponse:
+        return TranscriptionsWithStreamingResponse(self._audio.transcriptions)
+
+    @cached_property
+    def translations(self) -> TranslationsWithStreamingResponse:
+        return TranslationsWithStreamingResponse(self._audio.translations)
+
+    @cached_property
+    def speech(self) -> SpeechWithStreamingResponse:
+        return SpeechWithStreamingResponse(self._audio.speech)
 
 
 class AsyncAudioWithStreamingResponse:
     def __init__(self, audio: AsyncAudio) -> None:
-        self.transcriptions = AsyncTranscriptionsWithStreamingResponse(audio.transcriptions)
-        self.translations = AsyncTranslationsWithStreamingResponse(audio.translations)
-        self.speech = AsyncSpeechWithStreamingResponse(audio.speech)
+        self._audio = audio
+
+    @cached_property
+    def transcriptions(self) -> AsyncTranscriptionsWithStreamingResponse:
+        return AsyncTranscriptionsWithStreamingResponse(self._audio.transcriptions)
+
+    @cached_property
+    def translations(self) -> AsyncTranslationsWithStreamingResponse:
+        return AsyncTranslationsWithStreamingResponse(self._audio.translations)
+
+    @cached_property
+    def speech(self) -> AsyncSpeechWithStreamingResponse:
+        return AsyncSpeechWithStreamingResponse(self._audio.speech)

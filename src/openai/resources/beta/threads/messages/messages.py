@@ -481,7 +481,7 @@ class AsyncMessages(AsyncAPIResource):
 
 class MessagesWithRawResponse:
     def __init__(self, messages: Messages) -> None:
-        self.files = FilesWithRawResponse(messages.files)
+        self._messages = messages
 
         self.create = _legacy_response.to_raw_response_wrapper(
             messages.create,
@@ -496,10 +496,14 @@ class MessagesWithRawResponse:
             messages.list,
         )
 
+    @cached_property
+    def files(self) -> FilesWithRawResponse:
+        return FilesWithRawResponse(self._messages.files)
+
 
 class AsyncMessagesWithRawResponse:
     def __init__(self, messages: AsyncMessages) -> None:
-        self.files = AsyncFilesWithRawResponse(messages.files)
+        self._messages = messages
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             messages.create,
@@ -514,10 +518,14 @@ class AsyncMessagesWithRawResponse:
             messages.list,
         )
 
+    @cached_property
+    def files(self) -> AsyncFilesWithRawResponse:
+        return AsyncFilesWithRawResponse(self._messages.files)
+
 
 class MessagesWithStreamingResponse:
     def __init__(self, messages: Messages) -> None:
-        self.files = FilesWithStreamingResponse(messages.files)
+        self._messages = messages
 
         self.create = to_streamed_response_wrapper(
             messages.create,
@@ -532,10 +540,14 @@ class MessagesWithStreamingResponse:
             messages.list,
         )
 
+    @cached_property
+    def files(self) -> FilesWithStreamingResponse:
+        return FilesWithStreamingResponse(self._messages.files)
+
 
 class AsyncMessagesWithStreamingResponse:
     def __init__(self, messages: AsyncMessages) -> None:
-        self.files = AsyncFilesWithStreamingResponse(messages.files)
+        self._messages = messages
 
         self.create = async_to_streamed_response_wrapper(
             messages.create,
@@ -549,3 +561,7 @@ class AsyncMessagesWithStreamingResponse:
         self.list = async_to_streamed_response_wrapper(
             messages.list,
         )
+
+    @cached_property
+    def files(self) -> AsyncFilesWithStreamingResponse:
+        return AsyncFilesWithStreamingResponse(self._messages.files)
