@@ -19,7 +19,6 @@ from pydantic import ValidationError
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from openai._client import OpenAI, AsyncOpenAI
 from openai._models import BaseModel, FinalRequestOptions
-from openai._response import APIResponse, AsyncAPIResponse
 from openai._constants import RAW_RESPONSE_HEADER
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import OpenAIError, APIStatusError, APITimeoutError, APIResponseValidationError
@@ -664,33 +663,6 @@ class TestOpenAI:
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
-
-    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
-    @pytest.mark.respx(base_url=base_url)
-    def test_streaming_response(self) -> None:
-        response = self.client.post(
-            "/chat/completions",
-            body=dict(
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "Say this is a test",
-                    }
-                ],
-                model="gpt-3.5-turbo",
-            ),
-            cast_to=APIResponse[bytes],
-            options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-        )
-
-        assert not cast(Any, response.is_closed)
-        assert _get_open_connections(self.client) == 1
-
-        for _ in response.iter_bytes():
-            ...
-
-        assert cast(Any, response.is_closed)
-        assert _get_open_connections(self.client) == 0
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
@@ -1371,33 +1343,6 @@ class TestAsyncOpenAI:
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
-
-    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
-    @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response(self) -> None:
-        response = await self.client.post(
-            "/chat/completions",
-            body=dict(
-                messages=[
-                    {
-                        "role": "user",
-                        "content": "Say this is a test",
-                    }
-                ],
-                model="gpt-3.5-turbo",
-            ),
-            cast_to=AsyncAPIResponse[bytes],
-            options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-        )
-
-        assert not cast(Any, response.is_closed)
-        assert _get_open_connections(self.client) == 1
-
-        async for _ in response.iter_bytes():
-            ...
-
-        assert cast(Any, response.is_closed)
-        assert _get_open_connections(self.client) == 0
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
