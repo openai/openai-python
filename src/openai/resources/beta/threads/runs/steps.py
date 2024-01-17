@@ -264,6 +264,8 @@ class AsyncSteps(AsyncAPIResource):
 
 class StepsWithRawResponse:
     def __init__(self, steps: Steps) -> None:
+        self._steps = steps
+
         self.retrieve = _legacy_response.to_raw_response_wrapper(
             steps.retrieve,
         )
@@ -274,6 +276,8 @@ class StepsWithRawResponse:
 
 class AsyncStepsWithRawResponse:
     def __init__(self, steps: AsyncSteps) -> None:
+        self._steps = steps
+
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             steps.retrieve,
         )
@@ -284,6 +288,8 @@ class AsyncStepsWithRawResponse:
 
 class StepsWithStreamingResponse:
     def __init__(self, steps: Steps) -> None:
+        self._steps = steps
+
         self.retrieve = to_streamed_response_wrapper(
             steps.retrieve,
         )
@@ -294,6 +300,8 @@ class StepsWithStreamingResponse:
 
 class AsyncStepsWithStreamingResponse:
     def __init__(self, steps: AsyncSteps) -> None:
+        self._steps = steps
+
         self.retrieve = async_to_streamed_response_wrapper(
             steps.retrieve,
         )

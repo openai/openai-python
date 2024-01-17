@@ -645,7 +645,7 @@ class AsyncAssistants(AsyncAPIResource):
 
 class AssistantsWithRawResponse:
     def __init__(self, assistants: Assistants) -> None:
-        self.files = FilesWithRawResponse(assistants.files)
+        self._assistants = assistants
 
         self.create = _legacy_response.to_raw_response_wrapper(
             assistants.create,
@@ -663,10 +663,14 @@ class AssistantsWithRawResponse:
             assistants.delete,
         )
 
+    @cached_property
+    def files(self) -> FilesWithRawResponse:
+        return FilesWithRawResponse(self._assistants.files)
+
 
 class AsyncAssistantsWithRawResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
-        self.files = AsyncFilesWithRawResponse(assistants.files)
+        self._assistants = assistants
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             assistants.create,
@@ -684,10 +688,14 @@ class AsyncAssistantsWithRawResponse:
             assistants.delete,
         )
 
+    @cached_property
+    def files(self) -> AsyncFilesWithRawResponse:
+        return AsyncFilesWithRawResponse(self._assistants.files)
+
 
 class AssistantsWithStreamingResponse:
     def __init__(self, assistants: Assistants) -> None:
-        self.files = FilesWithStreamingResponse(assistants.files)
+        self._assistants = assistants
 
         self.create = to_streamed_response_wrapper(
             assistants.create,
@@ -705,10 +713,14 @@ class AssistantsWithStreamingResponse:
             assistants.delete,
         )
 
+    @cached_property
+    def files(self) -> FilesWithStreamingResponse:
+        return FilesWithStreamingResponse(self._assistants.files)
+
 
 class AsyncAssistantsWithStreamingResponse:
     def __init__(self, assistants: AsyncAssistants) -> None:
-        self.files = AsyncFilesWithStreamingResponse(assistants.files)
+        self._assistants = assistants
 
         self.create = async_to_streamed_response_wrapper(
             assistants.create,
@@ -725,3 +737,7 @@ class AsyncAssistantsWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             assistants.delete,
         )
+
+    @cached_property
+    def files(self) -> AsyncFilesWithStreamingResponse:
+        return AsyncFilesWithStreamingResponse(self._assistants.files)

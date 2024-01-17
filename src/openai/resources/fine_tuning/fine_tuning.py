@@ -46,19 +46,35 @@ class AsyncFineTuning(AsyncAPIResource):
 
 class FineTuningWithRawResponse:
     def __init__(self, fine_tuning: FineTuning) -> None:
-        self.jobs = JobsWithRawResponse(fine_tuning.jobs)
+        self._fine_tuning = fine_tuning
+
+    @cached_property
+    def jobs(self) -> JobsWithRawResponse:
+        return JobsWithRawResponse(self._fine_tuning.jobs)
 
 
 class AsyncFineTuningWithRawResponse:
     def __init__(self, fine_tuning: AsyncFineTuning) -> None:
-        self.jobs = AsyncJobsWithRawResponse(fine_tuning.jobs)
+        self._fine_tuning = fine_tuning
+
+    @cached_property
+    def jobs(self) -> AsyncJobsWithRawResponse:
+        return AsyncJobsWithRawResponse(self._fine_tuning.jobs)
 
 
 class FineTuningWithStreamingResponse:
     def __init__(self, fine_tuning: FineTuning) -> None:
-        self.jobs = JobsWithStreamingResponse(fine_tuning.jobs)
+        self._fine_tuning = fine_tuning
+
+    @cached_property
+    def jobs(self) -> JobsWithStreamingResponse:
+        return JobsWithStreamingResponse(self._fine_tuning.jobs)
 
 
 class AsyncFineTuningWithStreamingResponse:
     def __init__(self, fine_tuning: AsyncFineTuning) -> None:
-        self.jobs = AsyncJobsWithStreamingResponse(fine_tuning.jobs)
+        self._fine_tuning = fine_tuning
+
+    @cached_property
+    def jobs(self) -> AsyncJobsWithStreamingResponse:
+        return AsyncJobsWithStreamingResponse(self._fine_tuning.jobs)

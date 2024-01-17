@@ -225,6 +225,8 @@ class AsyncModels(AsyncAPIResource):
 
 class ModelsWithRawResponse:
     def __init__(self, models: Models) -> None:
+        self._models = models
+
         self.retrieve = _legacy_response.to_raw_response_wrapper(
             models.retrieve,
         )
@@ -238,6 +240,8 @@ class ModelsWithRawResponse:
 
 class AsyncModelsWithRawResponse:
     def __init__(self, models: AsyncModels) -> None:
+        self._models = models
+
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             models.retrieve,
         )
@@ -251,6 +255,8 @@ class AsyncModelsWithRawResponse:
 
 class ModelsWithStreamingResponse:
     def __init__(self, models: Models) -> None:
+        self._models = models
+
         self.retrieve = to_streamed_response_wrapper(
             models.retrieve,
         )
@@ -264,6 +270,8 @@ class ModelsWithStreamingResponse:
 
 class AsyncModelsWithStreamingResponse:
     def __init__(self, models: AsyncModels) -> None:
+        self._models = models
+
         self.retrieve = async_to_streamed_response_wrapper(
             models.retrieve,
         )

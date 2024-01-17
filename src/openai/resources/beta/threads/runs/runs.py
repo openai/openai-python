@@ -681,7 +681,7 @@ class AsyncRuns(AsyncAPIResource):
 
 class RunsWithRawResponse:
     def __init__(self, runs: Runs) -> None:
-        self.steps = StepsWithRawResponse(runs.steps)
+        self._runs = runs
 
         self.create = _legacy_response.to_raw_response_wrapper(
             runs.create,
@@ -702,10 +702,14 @@ class RunsWithRawResponse:
             runs.submit_tool_outputs,
         )
 
+    @cached_property
+    def steps(self) -> StepsWithRawResponse:
+        return StepsWithRawResponse(self._runs.steps)
+
 
 class AsyncRunsWithRawResponse:
     def __init__(self, runs: AsyncRuns) -> None:
-        self.steps = AsyncStepsWithRawResponse(runs.steps)
+        self._runs = runs
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
             runs.create,
@@ -726,10 +730,14 @@ class AsyncRunsWithRawResponse:
             runs.submit_tool_outputs,
         )
 
+    @cached_property
+    def steps(self) -> AsyncStepsWithRawResponse:
+        return AsyncStepsWithRawResponse(self._runs.steps)
+
 
 class RunsWithStreamingResponse:
     def __init__(self, runs: Runs) -> None:
-        self.steps = StepsWithStreamingResponse(runs.steps)
+        self._runs = runs
 
         self.create = to_streamed_response_wrapper(
             runs.create,
@@ -750,10 +758,14 @@ class RunsWithStreamingResponse:
             runs.submit_tool_outputs,
         )
 
+    @cached_property
+    def steps(self) -> StepsWithStreamingResponse:
+        return StepsWithStreamingResponse(self._runs.steps)
+
 
 class AsyncRunsWithStreamingResponse:
     def __init__(self, runs: AsyncRuns) -> None:
-        self.steps = AsyncStepsWithStreamingResponse(runs.steps)
+        self._runs = runs
 
         self.create = async_to_streamed_response_wrapper(
             runs.create,
@@ -773,3 +785,7 @@ class AsyncRunsWithStreamingResponse:
         self.submit_tool_outputs = async_to_streamed_response_wrapper(
             runs.submit_tool_outputs,
         )
+
+    @cached_property
+    def steps(self) -> AsyncStepsWithStreamingResponse:
+        return AsyncStepsWithStreamingResponse(self._runs.steps)
