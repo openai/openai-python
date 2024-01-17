@@ -73,7 +73,9 @@ from ._response import (
 from ._constants import (
     DEFAULT_LIMITS,
     DEFAULT_TIMEOUT,
+    MAX_RETRY_DELAY,
     DEFAULT_MAX_RETRIES,
+    INITIAL_RETRY_DELAY,
     RAW_RESPONSE_HEADER,
     OVERRIDE_CAST_TO_HEADER,
 )
@@ -590,6 +592,40 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     def platform_headers(self) -> Dict[str, str]:
         return platform_headers(self._version)
 
+    def _parse_retry_after_header(self, response_headers: Optional[httpx.Headers] = None) -> float | None:
+        """Returns a float of the number of seconds (not milliseconds) to wait after retrying, or None if unspecified.
+
+        About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
+        See also  https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After#syntax
+        """
+        if response_headers is None:
+            return None
+
+        # First, try the non-standard `retry-after-ms` header for milliseconds,
+        # which is more precise than integer-seconds `retry-after`
+        try:
+            retry_ms_header = response_headers.get("retry-after-ms", None)
+            return float(retry_ms_header) / 1000
+        except (TypeError, ValueError):
+            pass
+
+        # Next, try parsing `retry-after` header as seconds (allowing nonstandard floats).
+        retry_header = response_headers.get("retry-after")
+        try:
+            # note: the spec indicates that this should only ever be an integer
+            # but if someone sends a float there's no reason for us to not respect it
+            return float(retry_header)
+        except (TypeError, ValueError):
+            pass
+
+        # Last, try parsing `retry-after` as a date.
+        retry_date_tuple = email.utils.parsedate_tz(retry_header)
+        if retry_date_tuple is None:
+            return None
+
+        retry_date = email.utils.mktime_tz(retry_date_tuple)
+        return float(retry_date - time.time())
+
     def _calculate_retry_timeout(
         self,
         remaining_retries: int,
@@ -597,40 +633,16 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         response_headers: Optional[httpx.Headers] = None,
     ) -> float:
         max_retries = options.get_max_retries(self.max_retries)
-        try:
-            # About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
-            #
-            # <http-date>". See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After#syntax for
-            # details.
-            if response_headers is not None:
-                retry_header = response_headers.get("retry-after")
-                try:
-                    # note: the spec indicates that this should only ever be an integer
-                    # but if someone sends a float there's no reason for us to not respect it
-                    retry_after = float(retry_header)
-                except Exception:
-                    retry_date_tuple = email.utils.parsedate_tz(retry_header)
-                    if retry_date_tuple is None:
-                        retry_after = -1
-                    else:
-                        retry_date = email.utils.mktime_tz(retry_date_tuple)
-                        retry_after = int(retry_date - time.time())
-            else:
-                retry_after = -1
-
-        except Exception:
-            retry_after = -1
 
         # If the API asks us to wait a certain amount of time (and it's a reasonable amount), just do what it says.
-        if 0 < retry_after <= 60:
+        retry_after = self._parse_retry_after_header(response_headers)
+        if retry_after is not None and 0 < retry_after <= 60:
             return retry_after
 
-        initial_retry_delay = 0.5
-        max_retry_delay = 8.0
         nb_retries = max_retries - remaining_retries
 
         # Apply exponential backoff, but not more than the max.
-        sleep_seconds = min(initial_retry_delay * pow(2.0, nb_retries), max_retry_delay)
+        sleep_seconds = min(INITIAL_RETRY_DELAY * pow(2.0, nb_retries), MAX_RETRY_DELAY)
 
         # Apply some jitter, plus-or-minus half a second.
         jitter = 1 - 0.25 * random()
