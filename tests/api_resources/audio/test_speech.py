@@ -12,18 +12,14 @@ from respx import MockRouter
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai._client import OpenAI, AsyncOpenAI
 
 # pyright: reportDeprecated=false
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
 
 
 class TestSpeech:
-    strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
@@ -86,15 +82,13 @@ class TestSpeech:
 
 
 class TestAsyncSpeech:
-    strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_method_create(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_method_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        speech = await client.audio.speech.create(
+        speech = await async_client.audio.speech.create(
             input="string",
             model="string",
             voice="alloy",
@@ -104,9 +98,9 @@ class TestAsyncSpeech:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_method_create_with_all_params(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        speech = await client.audio.speech.create(
+        speech = await async_client.audio.speech.create(
             input="string",
             model="string",
             voice="alloy",
@@ -118,10 +112,10 @@ class TestAsyncSpeech:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_create(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_raw_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
 
-        response = await client.audio.speech.with_raw_response.create(
+        response = await async_client.audio.speech.with_raw_response.create(
             input="string",
             model="string",
             voice="alloy",
@@ -134,9 +128,9 @@ class TestAsyncSpeech:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response_create(self, client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_streaming_response_create(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
-        async with client.audio.speech.with_streaming_response.create(
+        async with async_client.audio.speech.with_streaming_response.create(
             input="string",
             model="string",
             voice="alloy",
