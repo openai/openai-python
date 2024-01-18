@@ -10,16 +10,12 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import ImagesResponse
-from openai._client import OpenAI, AsyncOpenAI
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
 
 
 class TestImages:
-    strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
     def test_method_create_variation(self, client: OpenAI) -> None:
@@ -159,20 +155,18 @@ class TestImages:
 
 
 class TestAsyncImages:
-    strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
-    async def test_method_create_variation(self, client: AsyncOpenAI) -> None:
-        image = await client.images.create_variation(
+    async def test_method_create_variation(self, async_client: AsyncOpenAI) -> None:
+        image = await async_client.images.create_variation(
             image=b"raw file contents",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_method_create_variation_with_all_params(self, client: AsyncOpenAI) -> None:
-        image = await client.images.create_variation(
+    async def test_method_create_variation_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        image = await async_client.images.create_variation(
             image=b"raw file contents",
             model="dall-e-2",
             n=1,
@@ -183,8 +177,8 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_raw_response_create_variation(self, client: AsyncOpenAI) -> None:
-        response = await client.images.with_raw_response.create_variation(
+    async def test_raw_response_create_variation(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.images.with_raw_response.create_variation(
             image=b"raw file contents",
         )
 
@@ -194,8 +188,8 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_streaming_response_create_variation(self, client: AsyncOpenAI) -> None:
-        async with client.images.with_streaming_response.create_variation(
+    async def test_streaming_response_create_variation(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.images.with_streaming_response.create_variation(
             image=b"raw file contents",
         ) as response:
             assert not response.is_closed
@@ -207,16 +201,16 @@ class TestAsyncImages:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_method_edit(self, client: AsyncOpenAI) -> None:
-        image = await client.images.edit(
+    async def test_method_edit(self, async_client: AsyncOpenAI) -> None:
+        image = await async_client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_method_edit_with_all_params(self, client: AsyncOpenAI) -> None:
-        image = await client.images.edit(
+    async def test_method_edit_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        image = await async_client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
             mask=b"raw file contents",
@@ -229,8 +223,8 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_raw_response_edit(self, client: AsyncOpenAI) -> None:
-        response = await client.images.with_raw_response.edit(
+    async def test_raw_response_edit(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.images.with_raw_response.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
         )
@@ -241,8 +235,8 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_streaming_response_edit(self, client: AsyncOpenAI) -> None:
-        async with client.images.with_streaming_response.edit(
+    async def test_streaming_response_edit(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.images.with_streaming_response.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
         ) as response:
@@ -255,15 +249,15 @@ class TestAsyncImages:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_method_generate(self, client: AsyncOpenAI) -> None:
-        image = await client.images.generate(
+    async def test_method_generate(self, async_client: AsyncOpenAI) -> None:
+        image = await async_client.images.generate(
             prompt="A cute baby sea otter",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_method_generate_with_all_params(self, client: AsyncOpenAI) -> None:
-        image = await client.images.generate(
+    async def test_method_generate_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        image = await async_client.images.generate(
             prompt="A cute baby sea otter",
             model="dall-e-3",
             n=1,
@@ -276,8 +270,8 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_raw_response_generate(self, client: AsyncOpenAI) -> None:
-        response = await client.images.with_raw_response.generate(
+    async def test_raw_response_generate(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.images.with_raw_response.generate(
             prompt="A cute baby sea otter",
         )
 
@@ -287,8 +281,8 @@ class TestAsyncImages:
         assert_matches_type(ImagesResponse, image, path=["response"])
 
     @parametrize
-    async def test_streaming_response_generate(self, client: AsyncOpenAI) -> None:
-        async with client.images.with_streaming_response.generate(
+    async def test_streaming_response_generate(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.images.with_streaming_response.generate(
             prompt="A cute baby sea otter",
         ) as response:
             assert not response.is_closed

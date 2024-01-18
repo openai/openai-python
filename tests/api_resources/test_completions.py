@@ -10,16 +10,12 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import Completion
-from openai._client import OpenAI, AsyncOpenAI
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
 
 
 class TestCompletions:
-    strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
     def test_method_create_overload_1(self, client: OpenAI) -> None:
@@ -139,21 +135,19 @@ class TestCompletions:
 
 
 class TestAsyncCompletions:
-    strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
-    async def test_method_create_overload_1(self, client: AsyncOpenAI) -> None:
-        completion = await client.completions.create(
+    async def test_method_create_overload_1(self, async_client: AsyncOpenAI) -> None:
+        completion = await async_client.completions.create(
             model="string",
             prompt="This is a test.",
         )
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
-    async def test_method_create_with_all_params_overload_1(self, client: AsyncOpenAI) -> None:
-        completion = await client.completions.create(
+    async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
+        completion = await async_client.completions.create(
             model="string",
             prompt="This is a test.",
             best_of=0,
@@ -175,8 +169,8 @@ class TestAsyncCompletions:
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
-    async def test_raw_response_create_overload_1(self, client: AsyncOpenAI) -> None:
-        response = await client.completions.with_raw_response.create(
+    async def test_raw_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.completions.with_raw_response.create(
             model="string",
             prompt="This is a test.",
         )
@@ -187,8 +181,8 @@ class TestAsyncCompletions:
         assert_matches_type(Completion, completion, path=["response"])
 
     @parametrize
-    async def test_streaming_response_create_overload_1(self, client: AsyncOpenAI) -> None:
-        async with client.completions.with_streaming_response.create(
+    async def test_streaming_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.completions.with_streaming_response.create(
             model="string",
             prompt="This is a test.",
         ) as response:
@@ -201,8 +195,8 @@ class TestAsyncCompletions:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_method_create_overload_2(self, client: AsyncOpenAI) -> None:
-        completion_stream = await client.completions.create(
+    async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
+        completion_stream = await async_client.completions.create(
             model="string",
             prompt="This is a test.",
             stream=True,
@@ -210,8 +204,8 @@ class TestAsyncCompletions:
         await completion_stream.response.aclose()
 
     @parametrize
-    async def test_method_create_with_all_params_overload_2(self, client: AsyncOpenAI) -> None:
-        completion_stream = await client.completions.create(
+    async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
+        completion_stream = await async_client.completions.create(
             model="string",
             prompt="This is a test.",
             stream=True,
@@ -233,8 +227,8 @@ class TestAsyncCompletions:
         await completion_stream.response.aclose()
 
     @parametrize
-    async def test_raw_response_create_overload_2(self, client: AsyncOpenAI) -> None:
-        response = await client.completions.with_raw_response.create(
+    async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.completions.with_raw_response.create(
             model="string",
             prompt="This is a test.",
             stream=True,
@@ -245,8 +239,8 @@ class TestAsyncCompletions:
         await stream.close()
 
     @parametrize
-    async def test_streaming_response_create_overload_2(self, client: AsyncOpenAI) -> None:
-        async with client.completions.with_streaming_response.create(
+    async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.completions.with_streaming_response.create(
             model="string",
             prompt="This is a test.",
             stream=True,

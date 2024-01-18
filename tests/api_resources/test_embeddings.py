@@ -10,16 +10,12 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import CreateEmbeddingResponse
-from openai._client import OpenAI, AsyncOpenAI
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
 
 
 class TestEmbeddings:
-    strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
@@ -67,21 +63,19 @@ class TestEmbeddings:
 
 
 class TestAsyncEmbeddings:
-    strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
-    async def test_method_create(self, client: AsyncOpenAI) -> None:
-        embedding = await client.embeddings.create(
+    async def test_method_create(self, async_client: AsyncOpenAI) -> None:
+        embedding = await async_client.embeddings.create(
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
         )
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
 
     @parametrize
-    async def test_method_create_with_all_params(self, client: AsyncOpenAI) -> None:
-        embedding = await client.embeddings.create(
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        embedding = await async_client.embeddings.create(
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
             encoding_format="float",
@@ -90,8 +84,8 @@ class TestAsyncEmbeddings:
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
 
     @parametrize
-    async def test_raw_response_create(self, client: AsyncOpenAI) -> None:
-        response = await client.embeddings.with_raw_response.create(
+    async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.embeddings.with_raw_response.create(
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
         )
@@ -102,8 +96,8 @@ class TestAsyncEmbeddings:
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
 
     @parametrize
-    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
-        async with client.embeddings.with_streaming_response.create(
+    async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.embeddings.with_streaming_response.create(
             input="The quick brown fox jumped over the lazy dog",
             model="text-embedding-ada-002",
         ) as response:
