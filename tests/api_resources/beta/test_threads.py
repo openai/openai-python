@@ -9,7 +9,6 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai._client import OpenAI, AsyncOpenAI
 from openai.types.beta import (
     Thread,
     ThreadDeleted,
@@ -17,13 +16,10 @@ from openai.types.beta import (
 from openai.types.beta.threads import Run
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
-api_key = "My API Key"
 
 
 class TestThreads:
-    strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
@@ -266,18 +262,16 @@ class TestThreads:
 
 
 class TestAsyncThreads:
-    strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-    loose_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=False)
-    parametrize = pytest.mark.parametrize("client", [strict_client, loose_client], ids=["strict", "loose"])
+    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
 
     @parametrize
-    async def test_method_create(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.create()
+    async def test_method_create(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.create()
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_method_create_with_all_params(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.create(
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.create(
             messages=[
                 {
                     "role": "user",
@@ -303,8 +297,8 @@ class TestAsyncThreads:
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_raw_response_create(self, client: AsyncOpenAI) -> None:
-        response = await client.beta.threads.with_raw_response.create()
+    async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.beta.threads.with_raw_response.create()
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -312,8 +306,8 @@ class TestAsyncThreads:
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_streaming_response_create(self, client: AsyncOpenAI) -> None:
-        async with client.beta.threads.with_streaming_response.create() as response:
+    async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.beta.threads.with_streaming_response.create() as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
@@ -323,15 +317,15 @@ class TestAsyncThreads:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_method_retrieve(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.retrieve(
+    async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.retrieve(
             "string",
         )
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_raw_response_retrieve(self, client: AsyncOpenAI) -> None:
-        response = await client.beta.threads.with_raw_response.retrieve(
+    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.beta.threads.with_raw_response.retrieve(
             "string",
         )
 
@@ -341,8 +335,8 @@ class TestAsyncThreads:
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_streaming_response_retrieve(self, client: AsyncOpenAI) -> None:
-        async with client.beta.threads.with_streaming_response.retrieve(
+    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.beta.threads.with_streaming_response.retrieve(
             "string",
         ) as response:
             assert not response.is_closed
@@ -354,30 +348,30 @@ class TestAsyncThreads:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_path_params_retrieve(self, client: AsyncOpenAI) -> None:
+    async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
-            await client.beta.threads.with_raw_response.retrieve(
+            await async_client.beta.threads.with_raw_response.retrieve(
                 "",
             )
 
     @parametrize
-    async def test_method_update(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.update(
+    async def test_method_update(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.update(
             "string",
         )
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_method_update_with_all_params(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.update(
+    async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.update(
             "string",
             metadata={},
         )
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_raw_response_update(self, client: AsyncOpenAI) -> None:
-        response = await client.beta.threads.with_raw_response.update(
+    async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.beta.threads.with_raw_response.update(
             "string",
         )
 
@@ -387,8 +381,8 @@ class TestAsyncThreads:
         assert_matches_type(Thread, thread, path=["response"])
 
     @parametrize
-    async def test_streaming_response_update(self, client: AsyncOpenAI) -> None:
-        async with client.beta.threads.with_streaming_response.update(
+    async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.beta.threads.with_streaming_response.update(
             "string",
         ) as response:
             assert not response.is_closed
@@ -400,22 +394,22 @@ class TestAsyncThreads:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_path_params_update(self, client: AsyncOpenAI) -> None:
+    async def test_path_params_update(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
-            await client.beta.threads.with_raw_response.update(
+            await async_client.beta.threads.with_raw_response.update(
                 "",
             )
 
     @parametrize
-    async def test_method_delete(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.delete(
+    async def test_method_delete(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.delete(
             "string",
         )
         assert_matches_type(ThreadDeleted, thread, path=["response"])
 
     @parametrize
-    async def test_raw_response_delete(self, client: AsyncOpenAI) -> None:
-        response = await client.beta.threads.with_raw_response.delete(
+    async def test_raw_response_delete(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.beta.threads.with_raw_response.delete(
             "string",
         )
 
@@ -425,8 +419,8 @@ class TestAsyncThreads:
         assert_matches_type(ThreadDeleted, thread, path=["response"])
 
     @parametrize
-    async def test_streaming_response_delete(self, client: AsyncOpenAI) -> None:
-        async with client.beta.threads.with_streaming_response.delete(
+    async def test_streaming_response_delete(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.beta.threads.with_streaming_response.delete(
             "string",
         ) as response:
             assert not response.is_closed
@@ -438,22 +432,22 @@ class TestAsyncThreads:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_path_params_delete(self, client: AsyncOpenAI) -> None:
+    async def test_path_params_delete(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
-            await client.beta.threads.with_raw_response.delete(
+            await async_client.beta.threads.with_raw_response.delete(
                 "",
             )
 
     @parametrize
-    async def test_method_create_and_run(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.create_and_run(
+    async def test_method_create_and_run(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.create_and_run(
             assistant_id="string",
         )
         assert_matches_type(Run, thread, path=["response"])
 
     @parametrize
-    async def test_method_create_and_run_with_all_params(self, client: AsyncOpenAI) -> None:
-        thread = await client.beta.threads.create_and_run(
+    async def test_method_create_and_run_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        thread = await async_client.beta.threads.create_and_run(
             assistant_id="string",
             instructions="string",
             metadata={},
@@ -486,8 +480,8 @@ class TestAsyncThreads:
         assert_matches_type(Run, thread, path=["response"])
 
     @parametrize
-    async def test_raw_response_create_and_run(self, client: AsyncOpenAI) -> None:
-        response = await client.beta.threads.with_raw_response.create_and_run(
+    async def test_raw_response_create_and_run(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.beta.threads.with_raw_response.create_and_run(
             assistant_id="string",
         )
 
@@ -497,8 +491,8 @@ class TestAsyncThreads:
         assert_matches_type(Run, thread, path=["response"])
 
     @parametrize
-    async def test_streaming_response_create_and_run(self, client: AsyncOpenAI) -> None:
-        async with client.beta.threads.with_streaming_response.create_and_run(
+    async def test_streaming_response_create_and_run(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.beta.threads.with_streaming_response.create_and_run(
             assistant_id="string",
         ) as response:
             assert not response.is_closed
