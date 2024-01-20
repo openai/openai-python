@@ -17,6 +17,7 @@ __all__ = [
     "ToolAssistantToolsCode",
     "ToolAssistantToolsRetrieval",
     "ToolAssistantToolsFunction",
+    "Usage",
 ]
 
 
@@ -59,6 +60,17 @@ class ToolAssistantToolsFunction(BaseModel):
 
 
 Tool = Union[ToolAssistantToolsCode, ToolAssistantToolsRetrieval, ToolAssistantToolsFunction]
+
+
+class Usage(BaseModel):
+    completion_tokens: int
+    """Number of completion tokens used over the course of the run."""
+
+    prompt_tokens: int
+    """Number of prompt tokens used over the course of the run."""
+
+    total_tokens: int
+    """Total number of tokens used (prompt + completion)."""
 
 
 class Run(BaseModel):
@@ -151,4 +163,11 @@ class Run(BaseModel):
     The list of tools that the
     [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
     this run.
+    """
+
+    usage: Optional[Usage] = None
+    """Usage statistics related to the run.
+
+    This value will be `null` if the run is not in a terminal state (i.e.
+    `in_progress`, `queued`, etc.).
     """
