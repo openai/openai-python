@@ -8,7 +8,7 @@ from ....._models import BaseModel
 from .tool_calls_step_details import ToolCallsStepDetails
 from .message_creation_step_details import MessageCreationStepDetails
 
-__all__ = ["RunStep", "LastError", "StepDetails"]
+__all__ = ["RunStep", "LastError", "StepDetails", "Usage"]
 
 
 class LastError(BaseModel):
@@ -20,6 +20,17 @@ class LastError(BaseModel):
 
 
 StepDetails = Union[MessageCreationStepDetails, ToolCallsStepDetails]
+
+
+class Usage(BaseModel):
+    completion_tokens: int
+    """Number of completion tokens used over the course of the run step."""
+
+    prompt_tokens: int
+    """Number of prompt tokens used over the course of the run step."""
+
+    total_tokens: int
+    """Total number of tokens used (prompt + completion)."""
 
 
 class RunStep(BaseModel):
@@ -91,3 +102,9 @@ class RunStep(BaseModel):
 
     type: Literal["message_creation", "tool_calls"]
     """The type of run step, which can be either `message_creation` or `tool_calls`."""
+
+    usage: Optional[Usage] = None
+    """Usage statistics related to the run step.
+
+    This value will be `null` while the run step's status is `in_progress`.
+    """
