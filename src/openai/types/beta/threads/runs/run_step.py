@@ -1,6 +1,5 @@
 # File generated from our OpenAPI spec by Stainless.
 
-import builtins
 from typing import Union, Optional
 from typing_extensions import Literal
 
@@ -68,7 +67,7 @@ class RunStep(BaseModel):
     Will be `null` if there are no errors.
     """
 
-    metadata: Optional[builtins.object] = None
+    metadata: Optional[object] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
