@@ -22,6 +22,7 @@ _deployments_endpoints = set(
         "/embeddings",
         "/audio/transcriptions",
         "/audio/translations",
+        "/audio/speech",
         "/images/generations",
     ]
 )
