@@ -32,6 +32,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
         Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -133,7 +135,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
 
-    Compatible with `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+    Compatible with
+    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+    `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.

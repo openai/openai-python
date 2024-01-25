@@ -46,6 +46,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -152,7 +154,8 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -232,6 +235,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -345,7 +350,8 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -418,6 +424,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -531,7 +539,8 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -604,6 +613,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -698,6 +709,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -804,7 +817,8 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -884,6 +898,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -997,7 +1013,8 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1070,6 +1087,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
@@ -1183,7 +1202,8 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              `gpt-4-1106-preview` and `gpt-3.5-turbo-1106`.
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1256,6 +1276,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
                 "gpt-4-vision-preview",
                 "gpt-4",
