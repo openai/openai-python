@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.10.0 (2024-01-25)
+
+Full Changelog: [v1.9.0...v1.10.0](https://github.com/openai/openai-python/compare/v1.9.0...v1.10.0)
+
+### Features
+
+* **api:** add text embeddings dimensions param ([#1103](https://github.com/openai/openai-python/issues/1103)) ([94abfa0](https://github.com/openai/openai-python/commit/94abfa0f988c199ea95a9c870c4ae9808823186d))
+* **azure:** proactively add audio/speech to deployment endpoints ([#1099](https://github.com/openai/openai-python/issues/1099)) ([fdf8742](https://github.com/openai/openai-python/commit/fdf87429b45ceb47ae6fd068ab70cc07bcb8da44))
+* **client:** enable follow redirects by default ([#1100](https://github.com/openai/openai-python/issues/1100)) ([d325b7c](https://github.com/openai/openai-python/commit/d325b7ca594c2abaada536249b5633b106943333))
+
+
+### Chores
+
+* **internal:** add internal helpers ([#1092](https://github.com/openai/openai-python/issues/1092)) ([629bde5](https://github.com/openai/openai-python/commit/629bde5800d84735e22d924db23109a141f48644))
+
+
+### Refactors
+
+* remove unnecessary builtin import ([#1094](https://github.com/openai/openai-python/issues/1094)) ([504b7d4](https://github.com/openai/openai-python/commit/504b7d4a0b4715bd49a1a076a8d4868e51fb3351))
+
 ## 1.9.0 (2024-01-21)
 
 Full Changelog: [v1.8.0...v1.9.0](https://github.com/openai/openai-python/compare/v1.8.0...v1.9.0)
