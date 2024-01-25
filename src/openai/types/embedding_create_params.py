@@ -20,7 +20,7 @@ class EmbeddingCreateParams(TypedDict, total=False):
     for counting tokens.
     """
 
-    model: Required[Union[str, Literal["text-embedding-ada-002"]]]
+    model: Required[Union[str, Literal["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"]]]
     """ID of the model to use.
 
     You can use the
@@ -28,6 +28,12 @@ class EmbeddingCreateParams(TypedDict, total=False):
     see all of your available models, or see our
     [Model overview](https://platform.openai.com/docs/models/overview) for
     descriptions of them.
+    """
+
+    dimensions: int
+    """The number of dimensions the resulting output embeddings should have.
+
+    Only supported in `text-embedding-3` and later models.
     """
 
     encoding_format: Literal["float", "base64"]
