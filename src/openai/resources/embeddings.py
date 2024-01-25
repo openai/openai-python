@@ -36,7 +36,8 @@ class Embeddings(SyncAPIResource):
         self,
         *,
         input: Union[str, List[str], List[int], List[List[int]]],
-        model: Union[str, Literal["text-embedding-ada-002"]],
+        model: Union[str, Literal["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"]],
+        dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -64,6 +65,9 @@ class Embeddings(SyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
+          dimensions: The number of dimensions the resulting output embeddings should have. Only
+              supported in `text-embedding-3` and later models.
+
           encoding_format: The format to return the embeddings in. Can be either `float` or
               [`base64`](https://pypi.org/project/pybase64/).
 
@@ -83,6 +87,7 @@ class Embeddings(SyncAPIResource):
             "input": input,
             "model": model,
             "user": user,
+            "dimensions": dimensions,
             "encoding_format": encoding_format,
         }
         if not is_given(encoding_format) and has_numpy():
@@ -132,7 +137,8 @@ class AsyncEmbeddings(AsyncAPIResource):
         self,
         *,
         input: Union[str, List[str], List[int], List[List[int]]],
-        model: Union[str, Literal["text-embedding-ada-002"]],
+        model: Union[str, Literal["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"]],
+        dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -160,6 +166,9 @@ class AsyncEmbeddings(AsyncAPIResource):
               [Model overview](https://platform.openai.com/docs/models/overview) for
               descriptions of them.
 
+          dimensions: The number of dimensions the resulting output embeddings should have. Only
+              supported in `text-embedding-3` and later models.
+
           encoding_format: The format to return the embeddings in. Can be either `float` or
               [`base64`](https://pypi.org/project/pybase64/).
 
@@ -179,6 +188,7 @@ class AsyncEmbeddings(AsyncAPIResource):
             "input": input,
             "model": model,
             "user": user,
+            "dimensions": dimensions,
             "encoding_format": encoding_format,
         }
         if not is_given(encoding_format) and has_numpy():
