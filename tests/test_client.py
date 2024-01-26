@@ -437,6 +437,35 @@ class TestOpenAI:
         params = dict(request.url.params)
         assert params == {"foo": "2"}
 
+    def test_multipart_repeating_array(self, client: OpenAI) -> None:
+        request = client._build_request(
+            FinalRequestOptions.construct(
+                method="get",
+                url="/foo",
+                headers={"Content-Type": "multipart/form-data; boundary=6b7ba517decee4a450543ea6ae821c82"},
+                json_data={"array": ["foo", "bar"]},
+                files=[("foo.txt", b"hello world")],
+            )
+        )
+
+        assert request.read().split(b"\r\n") == [
+            b"--6b7ba517decee4a450543ea6ae821c82",
+            b'Content-Disposition: form-data; name="array[]"',
+            b"",
+            b"foo",
+            b"--6b7ba517decee4a450543ea6ae821c82",
+            b'Content-Disposition: form-data; name="array[]"',
+            b"",
+            b"bar",
+            b"--6b7ba517decee4a450543ea6ae821c82",
+            b'Content-Disposition: form-data; name="foo.txt"; filename="upload"',
+            b"Content-Type: application/octet-stream",
+            b"",
+            b"hello world",
+            b"--6b7ba517decee4a450543ea6ae821c82--",
+            b"",
+        ]
+
     @pytest.mark.respx(base_url=base_url)
     def test_basic_union_response(self, respx_mock: MockRouter) -> None:
         class Model1(BaseModel):
@@ -1103,6 +1132,35 @@ class TestAsyncOpenAI:
         )
         params = dict(request.url.params)
         assert params == {"foo": "2"}
+
+    def test_multipart_repeating_array(self, async_client: AsyncOpenAI) -> None:
+        request = async_client._build_request(
+            FinalRequestOptions.construct(
+                method="get",
+                url="/foo",
+                headers={"Content-Type": "multipart/form-data; boundary=6b7ba517decee4a450543ea6ae821c82"},
+                json_data={"array": ["foo", "bar"]},
+                files=[("foo.txt", b"hello world")],
+            )
+        )
+
+        assert request.read().split(b"\r\n") == [
+            b"--6b7ba517decee4a450543ea6ae821c82",
+            b'Content-Disposition: form-data; name="array[]"',
+            b"",
+            b"foo",
+            b"--6b7ba517decee4a450543ea6ae821c82",
+            b'Content-Disposition: form-data; name="array[]"',
+            b"",
+            b"bar",
+            b"--6b7ba517decee4a450543ea6ae821c82",
+            b'Content-Disposition: form-data; name="foo.txt"; filename="upload"',
+            b"Content-Type: application/octet-stream",
+            b"",
+            b"hello world",
+            b"--6b7ba517decee4a450543ea6ae821c82--",
+            b"",
+        ]
 
     @pytest.mark.respx(base_url=base_url)
     async def test_basic_union_response(self, respx_mock: MockRouter) -> None:
