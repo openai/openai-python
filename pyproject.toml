@@ -147,6 +147,8 @@ select = [
   # print statements
   "T201",
   "T203",
+  # misuse of typing.TYPE_CHECKING
+  "TCH004"
 ]
 ignore = [
   # mutable defaults
