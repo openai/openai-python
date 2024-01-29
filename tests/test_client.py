@@ -701,14 +701,17 @@ class TestOpenAI:
         with pytest.raises(APITimeoutError):
             self.client.post(
                 "/chat/completions",
-                body=dict(
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "Say this is a test",
-                        }
-                    ],
-                    model="gpt-3.5-turbo",
+                body=cast(
+                    object,
+                    dict(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": "Say this is a test",
+                            }
+                        ],
+                        model="gpt-3.5-turbo",
+                    ),
                 ),
                 cast_to=httpx.Response,
                 options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
@@ -724,14 +727,17 @@ class TestOpenAI:
         with pytest.raises(APIStatusError):
             self.client.post(
                 "/chat/completions",
-                body=dict(
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "Say this is a test",
-                        }
-                    ],
-                    model="gpt-3.5-turbo",
+                body=cast(
+                    object,
+                    dict(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": "Say this is a test",
+                            }
+                        ],
+                        model="gpt-3.5-turbo",
+                    ),
                 ),
                 cast_to=httpx.Response,
                 options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
@@ -1410,14 +1416,17 @@ class TestAsyncOpenAI:
         with pytest.raises(APITimeoutError):
             await self.client.post(
                 "/chat/completions",
-                body=dict(
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "Say this is a test",
-                        }
-                    ],
-                    model="gpt-3.5-turbo",
+                body=cast(
+                    object,
+                    dict(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": "Say this is a test",
+                            }
+                        ],
+                        model="gpt-3.5-turbo",
+                    ),
                 ),
                 cast_to=httpx.Response,
                 options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
@@ -1433,14 +1442,17 @@ class TestAsyncOpenAI:
         with pytest.raises(APIStatusError):
             await self.client.post(
                 "/chat/completions",
-                body=dict(
-                    messages=[
-                        {
-                            "role": "user",
-                            "content": "Say this is a test",
-                        }
-                    ],
-                    model="gpt-3.5-turbo",
+                body=cast(
+                    object,
+                    dict(
+                        messages=[
+                            {
+                                "role": "user",
+                                "content": "Say this is a test",
+                            }
+                        ],
+                        model="gpt-3.5-turbo",
+                    ),
                 ),
                 cast_to=httpx.Response,
                 options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
