@@ -45,7 +45,13 @@ def extract_type_arg(typ: type, index: int) -> type:
         raise RuntimeError(f"Expected type {typ} to have a type argument at index {index} but it did not") from err
 
 
-def extract_type_var_from_base(typ: type, *, generic_bases: tuple[type, ...], index: int) -> type:
+def extract_type_var_from_base(
+    typ: type,
+    *,
+    generic_bases: tuple[type, ...],
+    index: int,
+    failure_message: str | None = None,
+) -> type:
     """Given a type like `Foo[T]`, returns the generic type variable `T`.
 
     This also handles the case where a concrete subclass is given, e.g.
@@ -104,4 +110,4 @@ def extract_type_var_from_base(typ: type, *, generic_bases: tuple[type, ...], in
 
         return extracted
 
-    raise RuntimeError(f"Could not resolve inner type variable at index {index} for {typ}")
+    raise RuntimeError(failure_message or f"Could not resolve inner type variable at index {index} for {typ}")
