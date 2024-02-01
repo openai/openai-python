@@ -363,7 +363,12 @@ else:
 
 
 if PYDANTIC_V2:
-    from pydantic import TypeAdapter
+    from functools import lru_cache
+    from pydantic import TypeAdapter as PyTypeAdapter
+
+    @lru_cache
+    def TypeAdapter(type_: type[_T]) -> PyTypeAdapter:
+        return PyTypeAdapter(type_)
 
     def _validate_non_model_type(*, type_: type[_T], value: object) -> _T:
         return TypeAdapter(type_).validate_python(value)
