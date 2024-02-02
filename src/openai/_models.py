@@ -364,6 +364,7 @@ else:
 
 if PYDANTIC_V2:
     from functools import lru_cache
+
     from pydantic import TypeAdapter as PyTypeAdapter
 
     @lru_cache
