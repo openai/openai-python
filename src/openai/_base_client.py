@@ -1836,8 +1836,12 @@ Platform = Union[
 
 
 def get_platform() -> Platform:
-    system = platform.system().lower()
-    platform_name = platform.platform().lower()
+    try:
+        system = platform.system().lower()
+        platform_name = platform.platform().lower()
+    except Exception:
+        return "Unknown"
+
     if "iphone" in platform_name or "ipad" in platform_name:
         # Tested using Python3IDE on an iPhone 11 and Pythonista on an iPad 7
         # system is Darwin and platform_name is a string like:
@@ -1880,8 +1884,8 @@ def platform_headers(version: str) -> Dict[str, str]:
         "X-Stainless-Package-Version": version,
         "X-Stainless-OS": str(get_platform()),
         "X-Stainless-Arch": str(get_architecture()),
-        "X-Stainless-Runtime": platform.python_implementation(),
-        "X-Stainless-Runtime-Version": platform.python_version(),
+        "X-Stainless-Runtime": get_python_runtime(),
+        "X-Stainless-Runtime-Version": get_python_version(),
     }
 
 
@@ -1897,9 +1901,27 @@ class OtherArch:
 Arch = Union[OtherArch, Literal["x32", "x64", "arm", "arm64", "unknown"]]
 
 
+def get_python_runtime() -> str:
+    try:
+        return platform.python_implementation()
+    except Exception:
+        return "unknown"
+
+
+def get_python_version() -> str:
+    try:
+        return platform.python_version()
+    except Exception:
+        return "unknown"
+
+
 def get_architecture() -> Arch:
-    python_bitness, _ = platform.architecture()
-    machine = platform.machine().lower()
+    try:
+        python_bitness, _ = platform.architecture()
+        machine = platform.machine().lower()
+    except Exception:
+        return "unknown"
+
     if machine in ("arm64", "aarch64"):
         return "arm64"
 
