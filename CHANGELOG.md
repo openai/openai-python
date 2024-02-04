@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.11.1 (2024-02-04)
+
+Full Changelog: [v1.11.0...v1.11.1](https://github.com/openai/openai-python/compare/v1.11.0...v1.11.1)
+
+### Bug Fixes
+
+* prevent crash when platform.architecture() is not allowed ([#1120](https://github.com/openai/openai-python/issues/1120)) ([9490554](https://github.com/openai/openai-python/commit/949055488488e93597cbc6c2cdd81f14f203e53b))
+
 ## 1.11.0 (2024-02-03)
 
 Full Changelog: [v1.10.0...v1.11.0](https://github.com/openai/openai-python/compare/v1.10.0...v1.11.0)
