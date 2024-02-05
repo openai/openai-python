@@ -10,6 +10,7 @@ import httpx
 from ._types import ResponseT
 from ._utils import is_mapping
 from ._exceptions import APIError
+from .types.chat.chat_completion_chunk import ChatCompletionChunk, Choice, ChoiceDelta, ChoiceDeltaFunctionCall, ChoiceDeltaToolCall, ChoiceDeltaToolCallFunction
 
 if TYPE_CHECKING:
     from ._base_client import SyncAPIClient, AsyncAPIClient
@@ -196,6 +197,15 @@ class SSEDecoder:
     def decode(self, line: str) -> ServerSentEvent | None:
         # See: https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation  # noqa: E501
 
+        try:
+            if line and 'ChatCompletionChunk' in line:
+                #TODO: This is a hack to not require the to wrap the streaming correctly.
+                chunk = eval(line.replace('data: ', ''))
+                cleaned = f'data: {json.dumps(chunk.dict())}'
+                line = cleaned
+        except Exception as e:
+            pass
+        
         if not line:
             if not self._event and not self._data and not self._last_event_id and self._retry is None:
                 return None
