@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Mapping, cast
+from typing import List, Union, Mapping, cast
 from typing_extensions import Literal
 
 import httpx
@@ -39,6 +39,7 @@ class Transcriptions(SyncAPIResource):
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -74,6 +75,10 @@ class Transcriptions(SyncAPIResource):
               [log probability](https://en.wikipedia.org/wiki/Log_probability) to
               automatically increase the temperature until certain thresholds are hit.
 
+          timestamp_granularities: The timestamp granularities to populate for this transcription. Any of these
+              options: `word`, or `segment`. Note: There is no additional latency for segment
+              timestamps, but generating word timestamps incurs additional latency.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -90,6 +95,7 @@ class Transcriptions(SyncAPIResource):
                 "prompt": prompt,
                 "response_format": response_format,
                 "temperature": temperature,
+                "timestamp_granularities": timestamp_granularities,
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
@@ -127,6 +133,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -162,6 +169,10 @@ class AsyncTranscriptions(AsyncAPIResource):
               [log probability](https://en.wikipedia.org/wiki/Log_probability) to
               automatically increase the temperature until certain thresholds are hit.
 
+          timestamp_granularities: The timestamp granularities to populate for this transcription. Any of these
+              options: `word`, or `segment`. Note: There is no additional latency for segment
+              timestamps, but generating word timestamps incurs additional latency.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -178,6 +189,7 @@ class AsyncTranscriptions(AsyncAPIResource):
                 "prompt": prompt,
                 "response_format": response_format,
                 "temperature": temperature,
+                "timestamp_granularities": timestamp_granularities,
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
