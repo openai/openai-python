@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -59,7 +59,7 @@ class Assistants(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: List[assistant_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[assistant_create_params.Tool] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -169,7 +169,7 @@ class Assistants(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: str | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: List[assistant_update_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[assistant_update_params.Tool] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -362,7 +362,7 @@ class AsyncAssistants(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: List[assistant_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[assistant_create_params.Tool] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -472,7 +472,7 @@ class AsyncAssistants(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: str | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: List[assistant_update_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[assistant_update_params.Tool] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,

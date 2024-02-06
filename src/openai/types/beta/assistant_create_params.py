@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ...types import shared_params
@@ -54,7 +54,7 @@ class AssistantCreateParams(TypedDict, total=False):
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
 
-    tools: List[Tool]
+    tools: Iterable[Tool]
     """A list of tool enabled on the assistant.
 
     There can be a maximum of 128 tools per assistant. Tools can be of types

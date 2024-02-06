@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Iterable
 from typing_extensions import Required, TypedDict
 
 __all__ = ["RunSubmitToolOutputsParams", "ToolOutput"]
@@ -11,7 +11,7 @@ __all__ = ["RunSubmitToolOutputsParams", "ToolOutput"]
 class RunSubmitToolOutputsParams(TypedDict, total=False):
     thread_id: Required[str]
 
-    tool_outputs: Required[List[ToolOutput]]
+    tool_outputs: Required[Iterable[ToolOutput]]
     """A list of tools for which the outputs are being submitted."""
 
 

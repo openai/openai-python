@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["ThreadCreateParams", "Message"]
 
 
 class ThreadCreateParams(TypedDict, total=False):
-    messages: List[Message]
+    messages: Iterable[Message]
     """
     A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
     start the thread with.
