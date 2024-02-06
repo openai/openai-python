@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ...types import shared_params
@@ -51,7 +51,7 @@ class ThreadCreateAndRunParams(TypedDict, total=False):
     thread: Thread
     """If no thread is provided, an empty thread will be created."""
 
-    tools: Optional[List[Tool]]
+    tools: Optional[Iterable[Tool]]
     """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
@@ -86,7 +86,7 @@ class ThreadMessage(TypedDict, total=False):
 
 
 class Thread(TypedDict, total=False):
-    messages: List[ThreadMessage]
+    messages: Iterable[ThreadMessage]
     """
     A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
     start the thread with.

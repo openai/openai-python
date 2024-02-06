@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -59,7 +59,7 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Optional[List[run_create_params.Tool]] | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[run_create_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -316,7 +316,7 @@ class Runs(SyncAPIResource):
         run_id: str,
         *,
         thread_id: str,
-        tool_outputs: List[run_submit_tool_outputs_params.ToolOutput],
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -380,7 +380,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Optional[List[run_create_params.Tool]] | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[run_create_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -637,7 +637,7 @@ class AsyncRuns(AsyncAPIResource):
         run_id: str,
         *,
         thread_id: str,
-        tool_outputs: List[run_submit_tool_outputs_params.ToolOutput],
+        tool_outputs: Iterable[run_submit_tool_outputs_params.ToolOutput],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
