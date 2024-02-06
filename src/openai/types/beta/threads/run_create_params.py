@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ....types import shared_params
@@ -54,7 +54,7 @@ class RunCreateParams(TypedDict, total=False):
     assistant will be used.
     """
 
-    tools: Optional[List[Tool]]
+    tools: Optional[Iterable[Tool]]
     """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.

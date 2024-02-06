@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "CompletionCreateParamsStreaming"]
@@ -19,7 +19,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     descriptions of them.
     """
 
-    prompt: Required[Union[str, List[str], List[int], List[List[int]], None]]
+    prompt: Required[Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None]]
     """
     The prompt(s) to generate completions for, encoded as a string, array of
     strings, array of tokens, or array of token arrays.
