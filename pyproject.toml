@@ -75,6 +75,10 @@ format = { chain = [
 "format:ruff" = "ruff format"
 "format:isort" = "isort ."
 
+"lint" = { chain = [
+  "check:ruff",
+  "typecheck",
+]}
 "check:ruff" = "ruff ."
 "fix:ruff" = "ruff --fix ."
 
