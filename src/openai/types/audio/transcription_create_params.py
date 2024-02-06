@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Union
-from typing_extensions import Literal, Required, TypedDict
+from typing import List, Union
+from typing_extensions import Literal, Required, Annotated, TypedDict
 
 from ..._types import FileTypes
+from ..._utils import PropertyInfo
 
 __all__ = ["TranscriptionCreateParams"]
 
@@ -49,4 +50,14 @@ class TranscriptionCreateParams(TypedDict, total=False):
     0.2 will make it more focused and deterministic. If set to 0, the model will use
     [log probability](https://en.wikipedia.org/wiki/Log_probability) to
     automatically increase the temperature until certain thresholds are hit.
+    """
+
+    timestamp_granularities: Annotated[
+        List[Literal["word", "segment"]], PropertyInfo(alias="timestamp_granularities[]")
+    ]
+    """The timestamp granularities to populate for this transcription.
+
+    Any of these options: `word`, or `segment`. Note: There is no additional latency
+    for segment timestamps, but generating word timestamps incurs additional
+    latency.
     """
