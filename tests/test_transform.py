@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, List, Union, Optional
+from typing import Any, List, Union, Iterable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import Required, Annotated, TypedDict
 
@@ -265,3 +265,35 @@ def test_pydantic_default_field() -> None:
     assert model.with_none_default == "bar"
     assert model.with_str_default == "baz"
     assert transform(model, Any) == {"with_none_default": "bar", "with_str_default": "baz"}
+
+
+class TypedDictIterableUnion(TypedDict):
+    foo: Annotated[Union[Bar8, Iterable[Baz8]], PropertyInfo(alias="FOO")]
+
+
+class Bar8(TypedDict):
+    foo_bar: Annotated[str, PropertyInfo(alias="fooBar")]
+
+
+class Baz8(TypedDict):
+    foo_baz: Annotated[str, PropertyInfo(alias="fooBaz")]
+
+
+def test_iterable_of_dictionaries() -> None:
+    assert transform({"foo": [{"foo_baz": "bar"}]}, TypedDictIterableUnion) == {"FOO": [{"fooBaz": "bar"}]}
+    assert cast(Any, transform({"foo": ({"foo_baz": "bar"},)}, TypedDictIterableUnion)) == {"FOO": [{"fooBaz": "bar"}]}
+
+    def my_iter() -> Iterable[Baz8]:
+        yield {"foo_baz": "hello"}
+        yield {"foo_baz": "world"}
+
+    assert transform({"foo": my_iter()}, TypedDictIterableUnion) == {"FOO": [{"fooBaz": "hello"}, {"fooBaz": "world"}]}
+
+
+class TypedDictIterableUnionStr(TypedDict):
+    foo: Annotated[Union[str, Iterable[Baz8]], PropertyInfo(alias="FOO")]
+
+
+def test_iterable_union_str() -> None:
+    assert transform({"foo": "bar"}, TypedDictIterableUnionStr) == {"FOO": "bar"}
+    assert cast(Any, transform(iter([{"foo_baz": "bar"}]), Union[str, Iterable[Baz8]])) == [{"fooBaz": "bar"}]
