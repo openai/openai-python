@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.12.0 (2024-02-08)
+
+Full Changelog: [v1.11.1...v1.12.0](https://github.com/openai/openai-python/compare/v1.11.1...v1.12.0)
+
+### Features
+
+* **api:** add `timestamp_granularities`, add `gpt-3.5-turbo-0125` model ([#1125](https://github.com/openai/openai-python/issues/1125)) ([1ecf8f6](https://github.com/openai/openai-python/commit/1ecf8f6b12323ed09fb6a2815c85b9533ee52a50))
+* **cli/images:** add support for `--model` arg ([#1132](https://github.com/openai/openai-python/issues/1132)) ([0d53866](https://github.com/openai/openai-python/commit/0d5386615cda7cd50d5db90de2119b84dba29519))
+
+
+### Bug Fixes
+
+* remove double brackets from timestamp_granularities param ([#1140](https://github.com/openai/openai-python/issues/1140)) ([3db0222](https://github.com/openai/openai-python/commit/3db022216a81fa86470b53ec1246669bc7b17897))
+* **types:** loosen most List params types to Iterable ([#1129](https://github.com/openai/openai-python/issues/1129)) ([bdb31a3](https://github.com/openai/openai-python/commit/bdb31a3b1db6ede4e02b3c951c4fd23f70260038))
+
+
+### Chores
+
+* **internal:** add lint command ([#1128](https://github.com/openai/openai-python/issues/1128)) ([4c021c0](https://github.com/openai/openai-python/commit/4c021c0ab0151c2ec092d860c9b60e22e658cd03))
+* **internal:** support serialising iterable types ([#1127](https://github.com/openai/openai-python/issues/1127)) ([98d4e59](https://github.com/openai/openai-python/commit/98d4e59afcf2d65d4e660d91eb9462240ef5cd63))
+
+
+### Documentation
+
+* add CONTRIBUTING.md ([#1138](https://github.com/openai/openai-python/issues/1138)) ([79c8f0e](https://github.com/openai/openai-python/commit/79c8f0e8bf5470e2e31e781e8d279331e89ddfbe))
+
 ## 1.11.1 (2024-02-04)
 
 Full Changelog: [v1.11.0...v1.11.1](https://github.com/openai/openai-python/compare/v1.11.0...v1.11.1)
