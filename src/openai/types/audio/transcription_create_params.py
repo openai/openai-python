@@ -3,10 +3,9 @@
 from __future__ import annotations
 
 from typing import List, Union
-from typing_extensions import Literal, Required, Annotated, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
 from ..._types import FileTypes
-from ..._utils import PropertyInfo
 
 __all__ = ["TranscriptionCreateParams"]
 
@@ -52,9 +51,7 @@ class TranscriptionCreateParams(TypedDict, total=False):
     automatically increase the temperature until certain thresholds are hit.
     """
 
-    timestamp_granularities: Annotated[
-        List[Literal["word", "segment"]], PropertyInfo(alias="timestamp_granularities[]")
-    ]
+    timestamp_granularities: List[Literal["word", "segment"]]
     """The timestamp granularities to populate for this transcription.
 
     Any of these options: `word`, or `segment`. Note: There is no additional latency
