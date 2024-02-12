@@ -87,6 +87,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     A list of functions the model may generate JSON inputs for.
     """
 
+    instance_id: Optional[str]
+    """An unique identifier to a custom instance to execute the request.
+
+    The requesting organization is required to have access to the instance.
+    """
+
     logit_bias: Optional[Dict[str, int]]
     """Modify the likelihood of specified tokens appearing in the completion.
 

@@ -50,6 +50,7 @@ class TestCompletions:
                     "parameters": {"foo": "bar"},
                 }
             ],
+            instance_id="string",
             logit_bias={"foo": 0},
             logprobs=True,
             max_tokens=0,
@@ -164,6 +165,7 @@ class TestCompletions:
                     "parameters": {"foo": "bar"},
                 }
             ],
+            instance_id="string",
             logit_bias={"foo": 0},
             logprobs=True,
             max_tokens=0,
@@ -280,6 +282,7 @@ class TestAsyncCompletions:
                     "parameters": {"foo": "bar"},
                 }
             ],
+            instance_id="string",
             logit_bias={"foo": 0},
             logprobs=True,
             max_tokens=0,
@@ -394,6 +397,7 @@ class TestAsyncCompletions:
                     "parameters": {"foo": "bar"},
                 }
             ],
+            instance_id="string",
             logit_bias={"foo": 0},
             logprobs=True,
             max_tokens=0,
