@@ -1,5 +1,65 @@
 # Changelog
 
+## 0.0.1 (2024-02-15)
+
+Full Changelog: [...abc-v0.0.1](https://github.com/openai/openai-python/compare/...abc-v0.0.1)
+
+### Features
+
+* add `None` default value to nullable response properties ([#1043](https://github.com/openai/openai-python/issues/1043)) ([c4db321](https://github.com/openai/openai-python/commit/c4db321ba157282f8db03442ceb3528e030b94ad))
+* **api:** add `timestamp_granularities`, add `gpt-3.5-turbo-0125` model ([#1125](https://github.com/openai/openai-python/issues/1125)) ([489dadf](https://github.com/openai/openai-python/commit/489dadfb4ddf08007c6054acf05e782f6ef4f9bb))
+* **api:** add additional instructions for runs ([#995](https://github.com/openai/openai-python/issues/995)) ([53bca49](https://github.com/openai/openai-python/commit/53bca49e184091c4d71eeee86aacf7e974ff6c46))
+* **api:** add gpt-3.5-turbo-1106 ([#813](https://github.com/openai/openai-python/issues/813)) ([98b3240](https://github.com/openai/openai-python/commit/98b3240b8696472c43b954b8643cc7c0deb22908))
+* **api:** add optional `name` argument + improve docs ([#972](https://github.com/openai/openai-python/issues/972)) ([d161688](https://github.com/openai/openai-python/commit/d1616886b57db690dad97c046836b138b87adb45))
+* **api:** add text embeddings dimensions param ([#1103](https://github.com/openai/openai-python/issues/1103)) ([20d97ef](https://github.com/openai/openai-python/commit/20d97ef0deb4e415b232d041bb6c0bede32a1553))
+* **api:** add token logprobs to chat completions ([#980](https://github.com/openai/openai-python/issues/980)) ([ccae821](https://github.com/openai/openai-python/commit/ccae821bd90110161dd061945d4ecfb410531836))
+* **api:** add usage to runs and run steps ([#1090](https://github.com/openai/openai-python/issues/1090)) ([7f18183](https://github.com/openai/openai-python/commit/7f18183fe329eb94dcdcb7ddb34447699b3ce70e))
+* **api:** releases from DevDay; assistants, multimodality, tools, dall-e-3, tts, and more ([#682](https://github.com/openai/openai-python/issues/682)) ([baa9f07](https://github.com/openai/openai-python/commit/baa9f07f5b503017ea6dae8f047d3cfc1ee22c37))
+* **api:** unify function types ([#741](https://github.com/openai/openai-python/issues/741)) ([a228a53](https://github.com/openai/openai-python/commit/a228a539a2efc85ac73dfae06443d079383fb82e))
+* **api:** updates ([#1146](https://github.com/openai/openai-python/issues/1146)) ([79b7675](https://github.com/openai/openai-python/commit/79b7675e51fb7d269a6ea281a568bc7812ba2ace))
+* **azure:** proactively add audio/speech to deployment endpoints ([#1099](https://github.com/openai/openai-python/issues/1099)) ([f66d33e](https://github.com/openai/openai-python/commit/f66d33e4a6c3e75add6c367f4d032bac036dffe1))
+* **cli/images:** add support for `--model` arg ([#1132](https://github.com/openai/openai-python/issues/1132)) ([a061daf](https://github.com/openai/openai-python/commit/a061daf64616dba32d229f491fff009e20232645))
+* **client:** add support for streaming raw responses ([#1072](https://github.com/openai/openai-python/issues/1072)) ([86379b4](https://github.com/openai/openai-python/commit/86379b4471d67a9d2e85f0b0c098787fb99aa4e0))
+* **client:** enable follow redirects by default ([#1100](https://github.com/openai/openai-python/issues/1100)) ([62cd463](https://github.com/openai/openai-python/commit/62cd46330374c8ec0db9821b1e967fa87fde3c29))
+* **client:** support parsing custom response types ([#1111](https://github.com/openai/openai-python/issues/1111)) ([61f3346](https://github.com/openai/openai-python/commit/61f3346b4c6fec20a4109ad884c998e706593137))
+* **client:** support passing chunk size for binary responses ([#747](https://github.com/openai/openai-python/issues/747)) ([cbdafb5](https://github.com/openai/openai-python/commit/cbdafb591c89a9080d66807dc186a398b8c83c79))
+* **client:** support reading the base url from an env variable ([#829](https://github.com/openai/openai-python/issues/829)) ([0733934](https://github.com/openai/openai-python/commit/0733934fbcdda57ae4506563924b63c867f3dcf7))
+
+
+### Bug Fixes
+
+* **api:** accidentally required params, add new models & other fixes ([#729](https://github.com/openai/openai-python/issues/729)) ([4f89244](https://github.com/openai/openai-python/commit/4f89244dbf937ba1ba1e7688480813acc05b85a0))
+* **api:** update embedding response object type ([#739](https://github.com/openai/openai-python/issues/739)) ([ee28c46](https://github.com/openai/openai-python/commit/ee28c46f8178951dc72591883d07927bf27d0199))
+* asssitant_deleted -&gt; assistant_deleted ([#711](https://github.com/openai/openai-python/issues/711)) ([f5ef2b3](https://github.com/openai/openai-python/commit/f5ef2b3a45ba7764d04dc93b87379e6e2f3063e7))
+* avoid leaking memory when Client.with_options is used ([#956](https://github.com/openai/openai-python/issues/956)) ([d052708](https://github.com/openai/openai-python/commit/d052708a5b7f61c17d858419c625d70dbd661e3b))
+* **azure:** ensure custom options can be passed to copy ([#858](https://github.com/openai/openai-python/issues/858)) ([97a6895](https://github.com/openai/openai-python/commit/97a6895b9d137a8ca8996f773917773de5f5b4c4))
+* **breaking!:** correct broken type names in moderation categories  ([#811](https://github.com/openai/openai-python/issues/811)) ([ea4fa23](https://github.com/openai/openai-python/commit/ea4fa238abdcddbf14aa7d42b7689cdd00a2d290))
+* **cli/audio:** file format detection failing for whisper ([#733](https://github.com/openai/openai-python/issues/733)) ([2425c15](https://github.com/openai/openai-python/commit/2425c15243f92d6c05918f3a731d43bf86c6d08f))
+* **client:** add support for streaming binary responses ([#866](https://github.com/openai/openai-python/issues/866)) ([2fc3204](https://github.com/openai/openai-python/commit/2fc3204ecef7839296314b7248d9b63292aeb49e))
+* **client:** attempt to parse unknown json content types ([#854](https://github.com/openai/openai-python/issues/854)) ([c26014e](https://github.com/openai/openai-python/commit/c26014e26c119eb9cf396175bcad2002082d1526))
+* **client:** correct base_url setter implementation ([#919](https://github.com/openai/openai-python/issues/919)) ([f6f38a9](https://github.com/openai/openai-python/commit/f6f38a9bc42b371c2f9f889471f319bf82208970))
+* **client:** correctly assign error properties ([#759](https://github.com/openai/openai-python/issues/759)) ([1455a7c](https://github.com/openai/openai-python/commit/1455a7c122cc7c8f522576c269cf642925f56869))
+* **client:** correctly flush the stream response body ([#771](https://github.com/openai/openai-python/issues/771)) ([7e2b254](https://github.com/openai/openai-python/commit/7e2b2544f0206254d3ca094a3a4247397578497f))
+* **client:** correctly use custom http client auth ([#1028](https://github.com/openai/openai-python/issues/1028)) ([6279b26](https://github.com/openai/openai-python/commit/6279b267be1f8d28c080d0282d029e7f0b50948a))
+* **client:** don't cause crashes when inspecting the module ([#897](https://github.com/openai/openai-python/issues/897)) ([84c85bd](https://github.com/openai/openai-python/commit/84c85bdffde6bdfe8fd152ba5eec371e9260d0a8))
+* **client:** ensure path params are non-empty ([#1075](https://github.com/openai/openai-python/issues/1075)) ([023a4e6](https://github.com/openai/openai-python/commit/023a4e665150e20f77ace0bce80c399d7d766085))
+* **client:** ensure retried requests are closed ([#902](https://github.com/openai/openai-python/issues/902)) ([7aad340](https://github.com/openai/openai-python/commit/7aad3405c2d460259bfc35d93e8d062e7e11c3e3))
+* **client:** retry if SSLWantReadError occurs in the async client ([#804](https://github.com/openai/openai-python/issues/804)) ([b607e20](https://github.com/openai/openai-python/commit/b607e20a7ec75542212fb2e8a1a34602558ea3bd))
+* **client:** serialise pydantic v1 default fields correctly in params ([#776](https://github.com/openai/openai-python/issues/776)) ([a10655a](https://github.com/openai/openai-python/commit/a10655ad0c7b00d1047f36636f9f8b7cfd1e2c23))
+* **client:** show a helpful error message if the v0 API is used ([#743](https://github.com/openai/openai-python/issues/743)) ([d3d7e1b](https://github.com/openai/openai-python/commit/d3d7e1be4a69a97b473340b8b707893e39cee42e))
+* **download:** Fix download url by reverting change ([#197](https://github.com/openai/openai-python/issues/197)) ([88b267b](https://github.com/openai/openai-python/commit/88b267b922b821d74d7b253f8ce2a56aa3e497ee))
+* **errors:** properly assign APIError.body ([#949](https://github.com/openai/openai-python/issues/949)) ([d468f30](https://github.com/openai/openai-python/commit/d468f301a897ee1f15c5d01b245a37aa03fe0da0))
+* fix response format bug ([#282](https://github.com/openai/openai-python/issues/282)) ([9b5f8db](https://github.com/openai/openai-python/commit/9b5f8dbd9fda64c997621704283b11bb747778dd))
+* **models:** mark unknown fields as set in pydantic v1 ([#772](https://github.com/openai/openai-python/issues/772)) ([c5975bd](https://github.com/openai/openai-python/commit/c5975bd02faf2e2b107a2cbfaead0c68b42c85b9))
+* **pagination:** use correct type hint for .object ([#943](https://github.com/openai/openai-python/issues/943)) ([60ccec6](https://github.com/openai/openai-python/commit/60ccec6baa826c5d434bde29e6444b62ab3aee2e))
+* prevent crash when platform.architecture() is not allowed ([#1120](https://github.com/openai/openai-python/issues/1120)) ([2384e27](https://github.com/openai/openai-python/commit/2384e276969d5908eebff2ca12bdfcd69b3cfa93))
+* prevent IndexError in fine-tunes CLI ([#768](https://github.com/openai/openai-python/issues/768)) ([460a282](https://github.com/openai/openai-python/commit/460a28217e86b66aaeaf867f3d2f64dbae57a692))
+* **proxy:** prevent recursion errors when debugging pycharm ([#1076](https://github.com/openai/openai-python/issues/1076)) ([a05b160](https://github.com/openai/openai-python/commit/a05b1607440d1b5917a015e6e761acbb15f47cf4))
+* remove double brackets from timestamp_granularities param ([#1140](https://github.com/openai/openai-python/issues/1140)) ([d6f9334](https://github.com/openai/openai-python/commit/d6f9334ec83711a5a6a244150782590a87054994))
+* SSE Stream parser expects additional space after colon "data:" ([#559](https://github.com/openai/openai-python/issues/559)) ([8944bd1](https://github.com/openai/openai-python/commit/8944bd1609227d42e6283967a4eeb2ae800d6bb6))
+* **types:** loosen most List params types to Iterable ([#1129](https://github.com/openai/openai-python/issues/1129)) ([2dc3976](https://github.com/openai/openai-python/commit/2dc397628a7e13734086a5fe703f0e7d0c891e90))
+* **wandb:** encoding on Windows ([#148](https://github.com/openai/openai-python/issues/148)) ([af59037](https://github.com/openai/openai-python/commit/af59037ab47478103fa02f02e167d8bab1ef5f7c)), closes [#143](https://github.com/openai/openai-python/issues/143)
+
 ## 1.12.0 (2024-02-08)
 
 Full Changelog: [v1.11.1...v1.12.0](https://github.com/openai/openai-python/compare/v1.11.1...v1.12.0)
