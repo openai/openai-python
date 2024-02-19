@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.13.0 (2024-02-19)
+
+Full Changelog: [v1.12.0...v1.13.0](https://github.com/openai/openai-python/compare/v1.12.0...v1.13.0)
+
+### Features
+
+* **api:** updates ([#1146](https://github.com/openai/openai-python/issues/1146)) ([79b7675](https://github.com/openai/openai-python/commit/79b7675e51fb7d269a6ea281a568bc7812ba2ace))
+
+
+### Bug Fixes
+
+* **api:** remove non-GA instance_id param ([#1164](https://github.com/openai/openai-python/issues/1164)) ([1abe139](https://github.com/openai/openai-python/commit/1abe139b1a5f5cc41263738fc12856056dce5697))
+
+
+### Chores
+
+* **ci:** move github release logic to github app ([#1155](https://github.com/openai/openai-python/issues/1155)) ([67cfac2](https://github.com/openai/openai-python/commit/67cfac2564dfb718da0465e34b90ac6928fa962a))
+* **client:** use correct accept headers for binary data ([#1161](https://github.com/openai/openai-python/issues/1161)) ([e536437](https://github.com/openai/openai-python/commit/e536437ae0b2cb0ddf2d74618722005d37403f32))
+* **internal:** refactor release environment script ([#1158](https://github.com/openai/openai-python/issues/1158)) ([7fe8ec3](https://github.com/openai/openai-python/commit/7fe8ec3bf04ecf85e3bd5adf0d9992c051f87b81))
+
 ## 1.12.0 (2024-02-08)
 
 Full Changelog: [v1.11.1...v1.12.0](https://github.com/openai/openai-python/compare/v1.11.1...v1.12.0)
