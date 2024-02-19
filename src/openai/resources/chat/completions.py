@@ -68,7 +68,6 @@ class Completions(SyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -122,9 +121,6 @@ class Completions(SyncAPIResource):
           functions: Deprecated in favor of `tools`.
 
               A list of functions the model may generate JSON inputs for.
-
-          instance_id: An unique identifier to a custom instance to execute the request. The requesting
-              organization is required to have access to the instance.
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
@@ -263,7 +259,6 @@ class Completions(SyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -323,9 +318,6 @@ class Completions(SyncAPIResource):
           functions: Deprecated in favor of `tools`.
 
               A list of functions the model may generate JSON inputs for.
-
-          instance_id: An unique identifier to a custom instance to execute the request. The requesting
-              organization is required to have access to the instance.
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
@@ -457,7 +449,6 @@ class Completions(SyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -517,9 +508,6 @@ class Completions(SyncAPIResource):
           functions: Deprecated in favor of `tools`.
 
               A list of functions the model may generate JSON inputs for.
-
-          instance_id: An unique identifier to a custom instance to execute the request. The requesting
-              organization is required to have access to the instance.
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
@@ -650,7 +638,6 @@ class Completions(SyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -682,7 +669,6 @@ class Completions(SyncAPIResource):
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,
-                    "instance_id": instance_id,
                     "logit_bias": logit_bias,
                     "logprobs": logprobs,
                     "max_tokens": max_tokens,
@@ -749,7 +735,6 @@ class AsyncCompletions(AsyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -803,9 +788,6 @@ class AsyncCompletions(AsyncAPIResource):
           functions: Deprecated in favor of `tools`.
 
               A list of functions the model may generate JSON inputs for.
-
-          instance_id: An unique identifier to a custom instance to execute the request. The requesting
-              organization is required to have access to the instance.
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
@@ -944,7 +926,6 @@ class AsyncCompletions(AsyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1004,9 +985,6 @@ class AsyncCompletions(AsyncAPIResource):
           functions: Deprecated in favor of `tools`.
 
               A list of functions the model may generate JSON inputs for.
-
-          instance_id: An unique identifier to a custom instance to execute the request. The requesting
-              organization is required to have access to the instance.
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
@@ -1138,7 +1116,6 @@ class AsyncCompletions(AsyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1198,9 +1175,6 @@ class AsyncCompletions(AsyncAPIResource):
           functions: Deprecated in favor of `tools`.
 
               A list of functions the model may generate JSON inputs for.
-
-          instance_id: An unique identifier to a custom instance to execute the request. The requesting
-              organization is required to have access to the instance.
 
           logit_bias: Modify the likelihood of specified tokens appearing in the completion.
 
@@ -1331,7 +1305,6 @@ class AsyncCompletions(AsyncAPIResource):
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
-        instance_id: Optional[str] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1363,7 +1336,6 @@ class AsyncCompletions(AsyncAPIResource):
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,
-                    "instance_id": instance_id,
                     "logit_bias": logit_bias,
                     "logprobs": logprobs,
                     "max_tokens": max_tokens,
