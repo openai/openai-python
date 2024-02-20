@@ -1,0 +1,39 @@
+name: Create releases
+on:
+  schedule:
+    - cron: '0 5 * * *' # every day at 5am UTC
+  push:
+    branches:
+      - main
+
+jobs:
+  release:
+    name: release
+    if: github.ref == 'refs/heads/main' && github.repository == 'openai/openai-python'
+    runs-on: ubuntu-latest
+    environment: publish
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: stainless-api/trigger-release-please@v1
+        id: release
+        with:
+          repo: ${{ github.event.repository.full_name }}
+          stainless-api-key: ${{ secrets.STAINLESS_API_KEY }}
+
+      - name: Install Rye
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          curl -sSf https://rye-up.com/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: 0.24.0
+          RYE_INSTALL_OPTION: "--yes"
+
+      - name: Publish to PyPI
+        if: ${{ steps.release.outputs.releases_created }}
+        run: |
+          bash ./bin/publish-pypi
+        env:
+          PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
