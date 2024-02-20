@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.13.2 (2024-02-20)
+
+Full Changelog: [v1.13.1...v1.13.2](https://github.com/openai/openai-python/compare/v1.13.1...v1.13.2)
+
+### Bug Fixes
+
+* **ci:** revert "move github release logic to github app" ([#1170](https://github.com/openai/openai-python/issues/1170)) ([f1adc2e](https://github.com/openai/openai-python/commit/f1adc2e6f2f29acb4404e84137a9d3109714c585))
+
 ## 1.13.1 (2024-02-20)
 
 Full Changelog: [v1.13.0...v1.13.1](https://github.com/openai/openai-python/compare/v1.13.0...v1.13.1)
