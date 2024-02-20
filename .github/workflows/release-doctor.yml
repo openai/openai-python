@@ -19,4 +19,5 @@ jobs:
         run: |
           bash ./bin/check-release-environment
         env:
+          STAINLESS_API_KEY: ${{ secrets.STAINLESS_API_KEY }}
           PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
