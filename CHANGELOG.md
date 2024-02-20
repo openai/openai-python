@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.13.1 (2024-02-20)
+
+Full Changelog: [v1.13.0...v1.13.1](https://github.com/openai/openai-python/compare/v1.13.0...v1.13.1)
+
+### Chores
+
+* **internal:** bump rye to v0.24.0 ([#1168](https://github.com/openai/openai-python/issues/1168)) ([84c4256](https://github.com/openai/openai-python/commit/84c4256316f2a79068ecadb852e5e69b6b104a1f))
+
 ## 1.13.0 (2024-02-19)
 
 Full Changelog: [v1.12.0...v1.13.0](https://github.com/openai/openai-python/compare/v1.12.0...v1.13.0)
