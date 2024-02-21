@@ -226,6 +226,8 @@ class SSEDecoder:
             sse = self.decode(line)
             if sse is not None:
                 yield sse
+            else:
+                yield self.decode(sse)
 
     async def aiter(self, iterator: AsyncIterator[str]) -> AsyncIterator[ServerSentEvent]:
         """Given an async iterator that yields lines, iterate over it & yield every event encountered"""
@@ -234,6 +236,8 @@ class SSEDecoder:
             sse = self.decode(line)
             if sse is not None:
                 yield sse
+            else:
+                yield self.decode(sse)
 
     def decode(self, line: str) -> ServerSentEvent | None:
         # See: https://html.spec.whatwg.org/multipage/server-sent-events.html#event-stream-interpretation  # noqa: E501
