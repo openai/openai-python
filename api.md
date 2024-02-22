@@ -224,7 +224,7 @@ Methods:
 Types:
 
 ```python
-from openai.types.beta.threads import RequiredActionFunctionToolCall, Run
+from openai.types.beta.threads import RequiredActionFunctionToolCall, Run, RunStatus
 ```
 
 Methods:

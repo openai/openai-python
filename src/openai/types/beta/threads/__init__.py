@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from .run import Run as Run
+from .run_status import RunStatus as RunStatus
 from .thread_message import ThreadMessage as ThreadMessage
 from .run_list_params import RunListParams as RunListParams
 from .run_create_params import RunCreateParams as RunCreateParams
