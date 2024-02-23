@@ -92,9 +92,9 @@ class OpenAI(SyncAPIClient):
         - `api_key` from `OPENAI_API_KEY`
         - `organization` from `OPENAI_ORG_ID`
         """
-        if api_key is None:
+        if not api_key:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
+        if not api_key:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
@@ -290,9 +290,9 @@ class AsyncOpenAI(AsyncAPIClient):
         - `api_key` from `OPENAI_API_KEY`
         - `organization` from `OPENAI_ORG_ID`
         """
-        if api_key is None:
+        if not api_key:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
+        if not api_key:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
