@@ -5,67 +5,141 @@
 #   pre: false
 #   features: []
 #   all-features: true
+#   with-sources: false
 
 -e file:.
 annotated-types==0.6.0
+    # via pydantic
 anyio==4.1.0
+    # via httpx
+    # via openai
 argcomplete==3.1.2
+    # via nox
 attrs==23.1.0
-azure-core==1.29.6
+    # via pytest
+azure-core==1.30.0
+    # via azure-identity
 azure-identity==1.15.0
 certifi==2023.7.22
+    # via httpcore
+    # via httpx
+    # via requests
 cffi==1.16.0
+    # via cryptography
 charset-normalizer==3.3.2
+    # via requests
 colorlog==6.7.0
-cryptography==41.0.7
+    # via nox
+cryptography==42.0.3
+    # via azure-identity
+    # via msal
+    # via pyjwt
 dirty-equals==0.6.0
 distlib==0.3.7
+    # via virtualenv
 distro==1.8.0
+    # via openai
 exceptiongroup==1.1.3
+    # via anyio
 filelock==3.12.4
+    # via virtualenv
 h11==0.14.0
+    # via httpcore
 httpcore==1.0.2
+    # via httpx
 httpx==0.25.2
+    # via openai
+    # via respx
 idna==3.4
+    # via anyio
+    # via httpx
+    # via requests
 importlib-metadata==7.0.0
 iniconfig==2.0.0
+    # via pytest
 msal==1.26.0
+    # via azure-identity
+    # via msal-extensions
 msal-extensions==1.1.0
+    # via azure-identity
 mypy==1.7.1
 mypy-extensions==1.0.0
+    # via mypy
 nodeenv==1.8.0
+    # via pyright
 nox==2023.4.22
 numpy==1.26.3
+    # via openai
+    # via pandas
+    # via pandas-stubs
 packaging==23.2
+    # via msal-extensions
+    # via nox
+    # via pytest
 pandas==2.1.4
+    # via openai
 pandas-stubs==2.1.4.231227
+    # via openai
 platformdirs==3.11.0
+    # via virtualenv
 pluggy==1.3.0
+    # via pytest
 portalocker==2.8.2
+    # via msal-extensions
 py==1.11.0
+    # via pytest
 pycparser==2.21
+    # via cffi
 pydantic==2.4.2
+    # via openai
 pydantic-core==2.10.1
+    # via pydantic
 pyjwt==2.8.0
+    # via msal
 pyright==1.1.332
 pytest==7.1.1
+    # via pytest-asyncio
 pytest-asyncio==0.21.1
 python-dateutil==2.8.2
+    # via pandas
+    # via time-machine
 pytz==2023.3.post1
+    # via dirty-equals
+    # via pandas
 requests==2.31.0
+    # via azure-core
+    # via msal
 respx==0.20.2
 ruff==0.1.9
+setuptools==68.2.2
+    # via nodeenv
 six==1.16.0
+    # via azure-core
+    # via python-dateutil
 sniffio==1.3.0
+    # via anyio
+    # via httpx
+    # via openai
 time-machine==2.9.0
 tomli==2.0.1
+    # via mypy
+    # via pytest
 tqdm==4.66.1
-types-pytz==2023.3.1.1
+    # via openai
+types-pytz==2024.1.0.20240203
+    # via pandas-stubs
 types-tqdm==4.66.0.2
 typing-extensions==4.8.0
-tzdata==2023.4
-urllib3==2.1.0
+    # via azure-core
+    # via mypy
+    # via openai
+    # via pydantic
+    # via pydantic-core
+tzdata==2024.1
+    # via pandas
+urllib3==2.2.1
+    # via requests
 virtualenv==20.24.5
+    # via nox
 zipp==3.17.0
-# The following packages are considered to be unsafe in a requirements file:
-setuptools==68.2.2
+    # via importlib-metadata

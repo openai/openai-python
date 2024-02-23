@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional, overload
+from typing import Dict, List, Union, Iterable, Optional, overload
 from typing_extensions import Literal
 
 import httpx
@@ -42,7 +42,7 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -61,12 +61,13 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -78,7 +79,7 @@ class Completions(SyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -155,7 +156,7 @@ class Completions(SyncAPIResource):
 
           response_format: An object specifying the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -231,7 +232,7 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -250,13 +251,14 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         stream: Literal[True],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -267,7 +269,7 @@ class Completions(SyncAPIResource):
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -351,7 +353,7 @@ class Completions(SyncAPIResource):
 
           response_format: An object specifying the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -420,7 +422,7 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -439,13 +441,14 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         stream: bool,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -456,7 +459,7 @@ class Completions(SyncAPIResource):
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -540,7 +543,7 @@ class Completions(SyncAPIResource):
 
           response_format: An object specifying the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -609,7 +612,7 @@ class Completions(SyncAPIResource):
     def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -628,12 +631,13 @@ class Completions(SyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -645,7 +649,7 @@ class Completions(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -705,7 +709,7 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -724,12 +728,13 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -741,7 +746,7 @@ class AsyncCompletions(AsyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -818,7 +823,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           response_format: An object specifying the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -894,7 +899,7 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -913,13 +918,14 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         stream: Literal[True],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -930,7 +936,7 @@ class AsyncCompletions(AsyncAPIResource):
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -1014,7 +1020,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           response_format: An object specifying the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1083,7 +1089,7 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -1102,13 +1108,14 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         stream: bool,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1119,7 +1126,7 @@ class AsyncCompletions(AsyncAPIResource):
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -1203,7 +1210,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           response_format: An object specifying the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1272,7 +1279,7 @@ class AsyncCompletions(AsyncAPIResource):
     async def create(
         self,
         *,
-        messages: List[ChatCompletionMessageParam],
+        messages: Iterable[ChatCompletionMessageParam],
         model: Union[
             str,
             Literal[
@@ -1291,12 +1298,13 @@ class AsyncCompletions(AsyncAPIResource):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
-        functions: List[completion_create_params.Function] | NotGiven = NOT_GIVEN,
+        functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1308,7 +1316,7 @@ class AsyncCompletions(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: List[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,

@@ -78,6 +78,7 @@ class Speech(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        extra_headers = {"Accept": "application/octet-stream", **(extra_headers or {})}
         return self._post(
             "/audio/speech",
             body=maybe_transform(
@@ -149,6 +150,7 @@ class AsyncSpeech(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        extra_headers = {"Accept": "application/octet-stream", **(extra_headers or {})}
         return await self._post(
             "/audio/speech",
             body=maybe_transform(

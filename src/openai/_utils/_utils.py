@@ -164,6 +164,10 @@ def is_list(obj: object) -> TypeGuard[list[object]]:
     return isinstance(obj, list)
 
 
+def is_iterable(obj: object) -> TypeGuard[Iterable[object]]:
+    return isinstance(obj, Iterable)
+
+
 def deepcopy_minimal(item: _T) -> _T:
     """Minimal reimplementation of copy.deepcopy() that will only copy certain object types:
 

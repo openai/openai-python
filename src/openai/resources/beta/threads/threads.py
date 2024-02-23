@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Iterable, Optional
 
 import httpx
 
@@ -65,7 +65,7 @@ class Threads(SyncAPIResource):
     def create(
         self,
         *,
-        messages: List[thread_create_params.Message] | NotGiven = NOT_GIVEN,
+        messages: Iterable[thread_create_params.Message] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -227,7 +227,7 @@ class Threads(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tools: Optional[List[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -310,7 +310,7 @@ class AsyncThreads(AsyncAPIResource):
     async def create(
         self,
         *,
-        messages: List[thread_create_params.Message] | NotGiven = NOT_GIVEN,
+        messages: Iterable[thread_create_params.Message] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -472,7 +472,7 @@ class AsyncThreads(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tools: Optional[List[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,

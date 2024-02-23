@@ -61,7 +61,7 @@ from ._types import (
     RequestOptions,
     ModelBuilderProtocol,
 )
-from ._utils import is_dict, is_given, is_mapping
+from ._utils import is_dict, is_list, is_given, is_mapping
 from ._compat import model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
@@ -451,14 +451,18 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         headers = self._build_headers(options)
         params = _merge_mappings(self._custom_query, options.params)
+        content_type = headers.get("Content-Type")
 
         # If the given Content-Type header is multipart/form-data then it
         # has to be removed so that httpx can generate the header with
         # additional information for us as it has to be in this form
         # for the server to be able to correctly parse the request:
         # multipart/form-data; boundary=---abc--
-        if headers.get("Content-Type") == "multipart/form-data":
-            headers.pop("Content-Type")
+        if content_type is not None and content_type.startswith("multipart/form-data"):
+            if "boundary" not in content_type:
+                # only remove the header if the boundary hasn't been explicitly set
+                # as the caller doesn't want httpx to come up with their own boundary
+                headers.pop("Content-Type")
 
             # As we are now sending multipart/form-data instead of application/json
             # we need to tell httpx to use it, https://www.python-httpx.org/advanced/#multipart-file-encoding
@@ -494,9 +498,25 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         )
         serialized: dict[str, object] = {}
         for key, value in items:
-            if key in serialized:
-                raise ValueError(f"Duplicate key encountered: {key}; This behaviour is not supported")
-            serialized[key] = value
+            existing = serialized.get(key)
+
+            if not existing:
+                serialized[key] = value
+                continue
+
+            # If a value has already been set for this key then that
+            # means we're sending data like `array[]=[1, 2, 3]` and we
+            # need to tell httpx that we want to send multiple values with
+            # the same key which is done by using a list or a tuple.
+            #
+            # Note: 2d arrays should never result in the same key at both
+            # levels so it's safe to assume that if the value is a list,
+            # it was because we changed it to be a list.
+            if is_list(existing):
+                existing.append(value)
+            else:
+                serialized[key] = [existing, value]
+
         return serialized
 
     def _maybe_override_cast_to(self, cast_to: type[ResponseT], options: FinalRequestOptions) -> type[ResponseT]:
@@ -1816,8 +1836,12 @@ Platform = Union[
 
 
 def get_platform() -> Platform:
-    system = platform.system().lower()
-    platform_name = platform.platform().lower()
+    try:
+        system = platform.system().lower()
+        platform_name = platform.platform().lower()
+    except Exception:
+        return "Unknown"
+
     if "iphone" in platform_name or "ipad" in platform_name:
         # Tested using Python3IDE on an iPhone 11 and Pythonista on an iPad 7
         # system is Darwin and platform_name is a string like:
@@ -1860,8 +1884,8 @@ def platform_headers(version: str) -> Dict[str, str]:
         "X-Stainless-Package-Version": version,
         "X-Stainless-OS": str(get_platform()),
         "X-Stainless-Arch": str(get_architecture()),
-        "X-Stainless-Runtime": platform.python_implementation(),
-        "X-Stainless-Runtime-Version": platform.python_version(),
+        "X-Stainless-Runtime": get_python_runtime(),
+        "X-Stainless-Runtime-Version": get_python_version(),
     }
 
 
@@ -1877,9 +1901,27 @@ class OtherArch:
 Arch = Union[OtherArch, Literal["x32", "x64", "arm", "arm64", "unknown"]]
 
 
+def get_python_runtime() -> str:
+    try:
+        return platform.python_implementation()
+    except Exception:
+        return "unknown"
+
+
+def get_python_version() -> str:
+    try:
+        return platform.python_version()
+    except Exception:
+        return "unknown"
+
+
 def get_architecture() -> Arch:
-    python_bitness, _ = platform.architecture()
-    machine = platform.machine().lower()
+    try:
+        python_bitness, _ = platform.architecture()
+        machine = platform.machine().lower()
+    except Exception:
+        return "unknown"
+
     if machine in ("arm64", "aarch64"):
         return "arm64"
 

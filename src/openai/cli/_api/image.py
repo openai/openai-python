@@ -14,6 +14,7 @@ if TYPE_CHECKING:
 
 def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub = subparser.add_parser("images.generate")
+    sub.add_argument("-m", "--model", type=str)
     sub.add_argument("-p", "--prompt", type=str, required=True)
     sub.add_argument("-n", "--num-images", type=int, default=1)
     sub.add_argument("-s", "--size", type=str, default="1024x1024", help="Size of the output image")
@@ -21,6 +22,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub.set_defaults(func=CLIImage.create, args_model=CLIImageCreateArgs)
 
     sub = subparser.add_parser("images.edit")
+    sub.add_argument("-m", "--model", type=str)
     sub.add_argument("-p", "--prompt", type=str, required=True)
     sub.add_argument("-n", "--num-images", type=int, default=1)
     sub.add_argument(
@@ -42,6 +44,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub.set_defaults(func=CLIImage.edit, args_model=CLIImageEditArgs)
 
     sub = subparser.add_parser("images.create_variation")
+    sub.add_argument("-m", "--model", type=str)
     sub.add_argument("-n", "--num-images", type=int, default=1)
     sub.add_argument(
         "-I",
@@ -60,6 +63,7 @@ class CLIImageCreateArgs(BaseModel):
     num_images: int
     size: str
     response_format: str
+    model: NotGivenOr[str] = NOT_GIVEN
 
 
 class CLIImageCreateVariationArgs(BaseModel):
@@ -67,6 +71,7 @@ class CLIImageCreateVariationArgs(BaseModel):
     num_images: int
     size: str
     response_format: str
+    model: NotGivenOr[str] = NOT_GIVEN
 
 
 class CLIImageEditArgs(BaseModel):
@@ -76,12 +81,14 @@ class CLIImageEditArgs(BaseModel):
     response_format: str
     prompt: str
     mask: NotGivenOr[str] = NOT_GIVEN
+    model: NotGivenOr[str] = NOT_GIVEN
 
 
 class CLIImage:
     @staticmethod
     def create(args: CLIImageCreateArgs) -> None:
         image = get_client().images.generate(
+            model=args.model,
             prompt=args.prompt,
             n=args.num_images,
             # casts required because the API is typed for enums
@@ -97,6 +104,7 @@ class CLIImage:
             buffer_reader = BufferReader(file_reader.read(), desc="Upload progress")
 
         image = get_client().images.create_variation(
+            model=args.model,
             image=("image", buffer_reader),
             n=args.num_images,
             # casts required because the API is typed for enums
@@ -118,6 +126,7 @@ class CLIImage:
                 mask = BufferReader(file_reader.read(), desc="Mask progress")
 
         image = get_client().images.edit(
+            model=args.model,
             prompt=args.prompt,
             image=("image", buffer_reader),
             n=args.num_images,

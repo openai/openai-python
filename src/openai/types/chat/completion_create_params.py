@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ...types import shared_params
@@ -22,7 +22,7 @@ __all__ = [
 
 
 class CompletionCreateParamsBase(TypedDict, total=False):
-    messages: Required[List[ChatCompletionMessageParam]]
+    messages: Required[Iterable[ChatCompletionMessageParam]]
     """A list of messages comprising the conversation so far.
 
     [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
@@ -47,6 +47,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
                 "gpt-3.5-turbo-0301",
                 "gpt-3.5-turbo-0613",
                 "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
                 "gpt-3.5-turbo-16k-0613",
             ],
         ]
@@ -80,7 +81,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     functions are present.
     """
 
-    functions: List[Function]
+    functions: Iterable[Function]
     """Deprecated in favor of `tools`.
 
     A list of functions the model may generate JSON inputs for.
@@ -137,7 +138,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     Compatible with
     [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    `gpt-3.5-turbo-1106`.
+    all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -185,7 +186,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     functions are present.
     """
 
-    tools: List[ChatCompletionToolParam]
+    tools: Iterable[ChatCompletionToolParam]
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of

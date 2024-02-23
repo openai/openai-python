@@ -9,11 +9,13 @@ import pydantic
 from ._utils import (
     is_list,
     is_mapping,
+    is_iterable,
 )
 from ._typing import (
     is_list_type,
     is_union_type,
     extract_type_arg,
+    is_iterable_type,
     is_required_type,
     is_annotated_type,
     strip_annotated_type,
@@ -157,7 +159,12 @@ def _transform_recursive(
     if is_typeddict(stripped_type) and is_mapping(data):
         return _transform_typeddict(data, stripped_type)
 
-    if is_list_type(stripped_type) and is_list(data):
+    if (
+        # List[T]
+        (is_list_type(stripped_type) and is_list(data))
+        # Iterable[T]
+        or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+    ):
         inner_type = extract_type_arg(stripped_type, 0)
         return [_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
 
