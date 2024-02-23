@@ -367,9 +367,11 @@ if PYDANTIC_V2:
 
     from pydantic import TypeAdapter as PyTypeAdapter
 
-    @lru_cache
-    def TypeAdapter(type_: type[_T]) -> PyTypeAdapter:
+    def TypeAdapter(type_: type[_T]) -> PyTypeAdapter[_T]:
         return PyTypeAdapter(type_)
+    
+    if not TYPE_CHECKING:
+        TypeAdapter = lru_cache(TypeAdapter)
 
     def _validate_non_model_type(*, type_: type[_T], value: object) -> _T:
         return TypeAdapter(type_).validate_python(value)
