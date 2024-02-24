@@ -26,8 +26,14 @@ class SpeechCreateParams(TypedDict, total=False):
     [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
     """
 
-    response_format: Literal["mp3", "opus", "aac", "flac"]
-    """The format to audio in. Supported formats are `mp3`, `opus`, `aac`, and `flac`."""
+    response_format: Literal["mp3", "opus", "aac", "flac", "pcm", "wav"]
+    """The format to return audio in.
+
+    Supported formats are `mp3`, `opus`, `aac`, `flac`, `pcm`, and `wav`.
+
+    The `pcm` audio format, similar to `wav` but without a header, utilizes a 24kHz
+    sample rate, mono channel, and 16-bit depth in signed little-endian format.
+    """
 
     speed: float
     """The speed of the generated audio.
