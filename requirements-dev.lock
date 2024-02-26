@@ -30,7 +30,7 @@ charset-normalizer==3.3.2
     # via requests
 colorlog==6.7.0
     # via nox
-cryptography==42.0.3
+cryptography==42.0.5
     # via azure-identity
     # via msal
     # via pyjwt
@@ -57,7 +57,7 @@ idna==3.4
 importlib-metadata==7.0.0
 iniconfig==2.0.0
     # via pytest
-msal==1.26.0
+msal==1.27.0
     # via azure-identity
     # via msal-extensions
 msal-extensions==1.1.0
@@ -96,7 +96,7 @@ pydantic-core==2.10.1
     # via pydantic
 pyjwt==2.8.0
     # via msal
-pyright==1.1.332
+pyright==1.1.351
 pytest==7.1.1
     # via pytest-asyncio
 pytest-asyncio==0.21.1
