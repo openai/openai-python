@@ -126,6 +126,7 @@ tomli==2.0.1
     # via pytest
 tqdm==4.66.1
     # via openai
+types-pyaudio==0.2.16.20240106
 types-pytz==2024.1.0.20240203
     # via pandas-stubs
 types-tqdm==4.66.0.2

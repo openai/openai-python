@@ -61,7 +61,8 @@ dev-dependencies = [
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
     "azure-identity >=1.14.1",
-    "types-tqdm > 4"
+    "types-tqdm > 4",
+    "types-pyaudio > 0"
 ]
 
 [tool.rye.scripts]
