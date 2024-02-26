@@ -283,7 +283,7 @@ def construct_type(*, value: object, type_: type) -> object:
 
     if is_union(origin):
         try:
-            return validate_type(type_=type_, value=value)
+            return validate_type(type_=cast("type[object]", type_), value=value)
         except Exception:
             pass
 
