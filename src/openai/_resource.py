@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import time
-import asyncio
 from typing import TYPE_CHECKING
+
+import anyio
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
@@ -39,4 +40,4 @@ class AsyncAPIResource:
         self._get_api_list = client.get_api_list
 
     async def _sleep(self, seconds: float) -> None:
-        await asyncio.sleep(seconds)
+        await anyio.sleep(seconds)
