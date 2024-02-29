@@ -5,6 +5,9 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional, overload
 from typing_extensions import Literal
 
+from notdiamond.prompts.prompt import NDChatPromptTemplate
+from notdiamond.llms.llm import NDLLM
+
 import httpx
 
 from ... import _legacy_response
@@ -46,24 +49,18 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
                 "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
                 "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0301",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
             ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "gpt-4",
+                        "gpt-3.5-turbo",
+                    ]
+                ]
+            ]
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -236,24 +233,18 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
                 "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
                 "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0301",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
             ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "gpt-4",
+                        "gpt-3.5-turbo",
+                    ]
+                ]
+            ]
         ],
         stream: Literal[True],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -426,24 +417,18 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
                 "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
                 "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0301",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
             ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "gpt-4",
+                        "gpt-3.5-turbo",
+                    ]
+                ]
+            ]
         ],
         stream: bool,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -616,24 +601,18 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
                 "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
                 "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0301",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
             ],
+            List[
+                Union[
+                    str,
+                    Literal[
+                        "gpt-4",
+                        "gpt-3.5-turbo",
+                    ]
+                ]
+            ]
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -660,12 +639,28 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
+        models = model
+        if type(model) is str:
+            models = [model]
+
+        # TODO: to be removed when we simplify model naming
+        models = list(map(lambda x: f"openai/{x}", models))
+
+        prompt_template = NDChatPromptTemplate.from_messages(
+            list(map(lambda msg: (msg['role'], msg['content']), messages))
+        )
+        nd_llm = NDLLM(
+            llm_providers=models,
+            api_key=self._client.notdiamond_api_key
+        )
+        best_llm_model = nd_llm.openai_model_select(prompt_template=prompt_template)
+
         return self._post(
             "/chat/completions",
             body=maybe_transform(
                 {
                     "messages": messages,
-                    "model": model,
+                    "model": best_llm_model,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,

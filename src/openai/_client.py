@@ -64,10 +64,14 @@ class OpenAI(SyncAPIClient):
     api_key: str
     organization: str | None
 
+    # NotDiamond API keys
+    notdiamond_api_key: str
+
     def __init__(
         self,
         *,
         api_key: str | None = None,
+        notdiamond_api_key: str | None = None,
         organization: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
@@ -99,6 +103,14 @@ class OpenAI(SyncAPIClient):
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         self.api_key = api_key
+
+        if notdiamond_api_key is None:
+            notdiamond_api_key = os.environ.get("NOTDIAMOND_API_KEY")
+        if notdiamond_api_key is None:
+            raise OpenAIError(
+                "The notdiamond_api_key client option must be set either by passing notdiamond_api_key to the client or by setting the NOTDIAMOND_API_KEY environment variable"
+            )
+        self.notdiamond_api_key = notdiamond_api_key
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -160,6 +172,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        notdiamond_api_key: str | None = None,
         organization: str | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -195,6 +208,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self.api_key,
+            notdiamond_api_key=notdiamond_api_key or self.notdiamond_api_key,
             organization=organization or self.organization,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
