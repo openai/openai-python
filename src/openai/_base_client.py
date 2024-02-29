@@ -79,7 +79,7 @@ from ._constants import (
     RAW_RESPONSE_HEADER,
     OVERRIDE_CAST_TO_HEADER,
 )
-from ._streaming import Stream, AsyncStream
+from ._streaming import Stream, SSEDecoder, AsyncStream, SSEBytesDecoder
 from ._exceptions import (
     APIStatusError,
     APITimeoutError,
@@ -430,6 +430,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             return self.base_url.copy_with(raw_path=merge_raw_path)
 
         return merge_url
+
+    def _make_sse_decoder(self) -> SSEDecoder | SSEBytesDecoder:
+        return SSEDecoder()
 
     def _build_request(
         self,
