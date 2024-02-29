@@ -45,7 +45,7 @@ class LazyProxy(Generic[T], ABC):
 
     @property  # type: ignore
     @override
-    def __class__(self) -> type:
+    def __class__(self) -> type:  # pyright: ignore
         proxied = self.__get_proxied__()
         if issubclass(type(proxied), LazyProxy):
             return type(proxied)

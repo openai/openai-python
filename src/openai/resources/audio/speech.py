@@ -41,7 +41,7 @@ class Speech(SyncAPIResource):
         input: str,
         model: Union[str, Literal["tts-1", "tts-1-hd"]],
         voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
-        response_format: Literal["mp3", "opus", "aac", "flac"] | NotGiven = NOT_GIVEN,
+        response_format: Literal["mp3", "opus", "aac", "flac", "pcm", "wav"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -65,7 +65,11 @@ class Speech(SyncAPIResource):
               available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
 
-          response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, and `flac`.
+          response_format: The format to return audio in. Supported formats are `mp3`, `opus`, `aac`,
+              `flac`, `pcm`, and `wav`.
+
+              The `pcm` audio format, similar to `wav` but without a header, utilizes a 24kHz
+              sample rate, mono channel, and 16-bit depth in signed little-endian format.
 
           speed: The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is
               the default.
@@ -113,7 +117,7 @@ class AsyncSpeech(AsyncAPIResource):
         input: str,
         model: Union[str, Literal["tts-1", "tts-1-hd"]],
         voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
-        response_format: Literal["mp3", "opus", "aac", "flac"] | NotGiven = NOT_GIVEN,
+        response_format: Literal["mp3", "opus", "aac", "flac", "pcm", "wav"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -137,7 +141,11 @@ class AsyncSpeech(AsyncAPIResource):
               available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech/voice-options).
 
-          response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, and `flac`.
+          response_format: The format to return audio in. Supported formats are `mp3`, `opus`, `aac`,
+              `flac`, `pcm`, and `wav`.
+
+              The `pcm` audio format, similar to `wav` but without a header, utilizes a 24kHz
+              sample rate, mono channel, and 16-bit depth in signed little-endian format.
 
           speed: The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is
               the default.

@@ -5,6 +5,7 @@ from typing_extensions import Literal
 
 from ...shared import FunctionDefinition
 from ...._models import BaseModel
+from .run_status import RunStatus
 from .required_action_function_tool_call import RequiredActionFunctionToolCall
 
 __all__ = [
@@ -142,9 +143,7 @@ class Run(BaseModel):
     started_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run was started."""
 
-    status: Literal[
-        "queued", "in_progress", "requires_action", "cancelling", "cancelled", "failed", "completed", "expired"
-    ]
+    status: RunStatus
     """
     The status of the run, which can be either `queued`, `in_progress`,
     `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, or
