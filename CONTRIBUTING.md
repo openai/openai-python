@@ -82,7 +82,7 @@ pip install ./path-to-wheel-file.whl
 
 ## Running tests
 
-Most tests will require you to [setup a mock server](https://github.com/stoplightio/prism) against the OpenAPI spec to run the tests.
+Most tests require you to [set up a mock server](https://github.com/stoplightio/prism) against the OpenAPI spec to run the tests.
 
 ```bash
 # you will need npm installed
@@ -117,7 +117,7 @@ the changes aren't made through the automated pipeline, you may want to make rel
 
 ### Publish with a GitHub workflow
 
-You can release to package managers by using [the `Publish PyPI` GitHub action](https://www.github.com/openai/openai-python/actions/workflows/publish-pypi.yml). This will require a setup organization or repository secret to be set up.
+You can release to package managers by using [the `Publish PyPI` GitHub action](https://www.github.com/openai/openai-python/actions/workflows/publish-pypi.yml). This requires a setup organization or repository secret to be set up.
 
 ### Publish manually
 
