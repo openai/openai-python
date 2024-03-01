@@ -328,6 +328,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _base_url: URL
     max_retries: int
     timeout: Union[float, Timeout, None]
+    verify: httpx._types.VerifyTypes = True
     _limits: httpx.Limits
     _proxies: ProxiesTypes | None
     _transport: Transport | AsyncTransport | None
@@ -343,6 +344,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None = DEFAULT_TIMEOUT,
+        verify: httpx._types.VerifyTypes = True,
         limits: httpx.Limits,
         transport: Transport | AsyncTransport | None,
         proxies: ProxiesTypes | None,
@@ -353,6 +355,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._base_url = self._enforce_trailing_slash(URL(base_url))
         self.max_retries = max_retries
         self.timeout = timeout
+        self.verify = verify
         self._limits = limits
         self._proxies = proxies
         self._transport = transport
@@ -727,6 +730,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         base_url: str | URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        verify: httpx._types.VerifyTypes = True,
         transport: Transport | None = None,
         proxies: ProxiesTypes | None = None,
         limits: Limits | None = None,
@@ -786,6 +790,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             base_url=base_url,
             transport=transport,
             max_retries=max_retries,
+            verify=verify,
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
@@ -794,6 +799,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
+            verify=verify,
             proxies=proxies,
             transport=transport,
             limits=limits,
@@ -1270,6 +1276,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        verify: httpx._types.VerifyTypes = True,
         transport: AsyncTransport | None = None,
         proxies: ProxiesTypes | None = None,
         limits: Limits | None = None,
@@ -1328,6 +1335,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             proxies=proxies,
             transport=transport,
             max_retries=max_retries,
+            verify=verify,
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
@@ -1336,6 +1344,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
+            verify=verify,
             proxies=proxies,
             transport=transport,
             limits=limits,
