@@ -70,7 +70,8 @@ class Images(SyncAPIResource):
               `n=1` is supported.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -151,7 +152,8 @@ class Images(SyncAPIResource):
           n: The number of images to generate. Must be between 1 and 10.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -231,7 +233,8 @@ class Images(SyncAPIResource):
               for `dall-e-3`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or
@@ -315,7 +318,8 @@ class AsyncImages(AsyncAPIResource):
               `n=1` is supported.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -396,7 +400,8 @@ class AsyncImages(AsyncAPIResource):
           n: The number of images to generate. Must be between 1 and 10.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -476,7 +481,8 @@ class AsyncImages(AsyncAPIResource):
               for `dall-e-3`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or

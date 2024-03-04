@@ -46,7 +46,7 @@ class Moderations(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
         """
-        Classifies if text violates OpenAI's Content Policy
+        Classifies if text is potentially harmful.
 
         Args:
           input: The input text to classify
@@ -106,7 +106,7 @@ class AsyncModerations(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
         """
-        Classifies if text violates OpenAI's Content Policy
+        Classifies if text is potentially harmful.
 
         Args:
           input: The input text to classify

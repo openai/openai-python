@@ -57,7 +57,8 @@ class Translations(SyncAPIResource):
           file: The audio file object (not file name) translate, in one of these formats: flac,
               mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -138,7 +139,8 @@ class AsyncTranslations(AsyncAPIResource):
           file: The audio file object (not file name) translate, in one of these formats: flac,
               mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
