@@ -18,7 +18,11 @@ class TranslationCreateParams(TypedDict, total=False):
     """
 
     model: Required[Union[str, Literal["whisper-1"]]]
-    """ID of the model to use. Only `whisper-1` is currently available."""
+    """ID of the model to use.
+
+    Only `whisper-1` (which is powered by our open source Whisper V2 model) is
+    currently available.
+    """
 
     prompt: str
     """An optional text to guide the model's style or continue a previous audio
