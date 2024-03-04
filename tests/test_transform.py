@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import io
+import pathlib
 from typing import Any, List, Union, TypeVar, Iterable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import Required, Annotated, TypedDict
 
 import pytest
 
+from openai._types import Base64FileInput
 from openai._utils import (
     PropertyInfo,
     transform as _transform,
@@ -16,6 +19,8 @@ from openai._compat import PYDANTIC_V2
 from openai._models import BaseModel
 
 _T = TypeVar("_T")
+
+SAMPLE_FILE_PATH = pathlib.Path(__file__).parent.joinpath("sample_file.txt")
 
 
 async def transform(
@@ -377,3 +382,27 @@ async def test_iterable_union_str(use_async: bool) -> None:
     assert cast(Any, await transform(iter([{"foo_baz": "bar"}]), Union[str, Iterable[Baz8]], use_async)) == [
         {"fooBaz": "bar"}
     ]
+
+
+class TypedDictBase64Input(TypedDict):
+    foo: Annotated[Union[str, Base64FileInput], PropertyInfo(format="base64")]
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_base64_file_input(use_async: bool) -> None:
+    # strings are left as-is
+    assert await transform({"foo": "bar"}, TypedDictBase64Input, use_async) == {"foo": "bar"}
+
+    # pathlib.Path is automatically converted to base64
+    assert await transform({"foo": SAMPLE_FILE_PATH}, TypedDictBase64Input, use_async) == {
+        "foo": "SGVsbG8sIHdvcmxkIQo="
+    }  # type: ignore[comparison-overlap]
+
+    # io instances are automatically converted to base64
+    assert await transform({"foo": io.StringIO("Hello, world!")}, TypedDictBase64Input, use_async) == {
+        "foo": "SGVsbG8sIHdvcmxkIQ=="
+    }  # type: ignore[comparison-overlap]
+    assert await transform({"foo": io.BytesIO(b"Hello, world!")}, TypedDictBase64Input, use_async) == {
+        "foo": "SGVsbG8sIHdvcmxkIQ=="
+    }  # type: ignore[comparison-overlap]
