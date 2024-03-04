@@ -17,7 +17,10 @@ from .steps import (
     AsyncStepsWithStreamingResponse,
 )
 from ....._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ....._utils import maybe_transform
+from ....._utils import (
+    maybe_transform,
+    async_maybe_transform,
+)
 from ....._compat import cached_property
 from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -430,7 +433,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/threads/{thread_id}/runs",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
@@ -521,7 +524,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/threads/{thread_id}/runs/{run_id}",
-            body=maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
+            body=await async_maybe_transform({"metadata": metadata}, run_update_params.RunUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -669,7 +672,7 @@ class AsyncRuns(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/threads/{thread_id}/runs/{run_id}/submit_tool_outputs",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {"tool_outputs": tool_outputs}, run_submit_tool_outputs_params.RunSubmitToolOutputsParams
             ),
             options=make_request_options(
