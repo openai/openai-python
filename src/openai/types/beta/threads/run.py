@@ -22,8 +22,8 @@ __all__ = [
 
 
 class LastError(BaseModel):
-    code: Literal["server_error", "rate_limit_exceeded"]
-    """One of `server_error` or `rate_limit_exceeded`."""
+    code: Literal["server_error", "rate_limit_exceeded", "invalid_prompt"]
+    """One of `server_error`, `rate_limit_exceeded`, or `invalid_prompt`."""
 
     message: str
     """A human-readable description of the error."""

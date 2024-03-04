@@ -60,7 +60,8 @@ class Transcriptions(SyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will
@@ -80,9 +81,11 @@ class Transcriptions(SyncAPIResource):
               [log probability](https://en.wikipedia.org/wiki/Log_probability) to
               automatically increase the temperature until certain thresholds are hit.
 
-          timestamp_granularities: The timestamp granularities to populate for this transcription. Any of these
-              options: `word`, or `segment`. Note: There is no additional latency for segment
-              timestamps, but generating word timestamps incurs additional latency.
+          timestamp_granularities: The timestamp granularities to populate for this transcription.
+              `response_format` must be set `verbose_json` to use timestamp granularities.
+              Either or both of these options are supported: `word`, or `segment`. Note: There
+              is no additional latency for segment timestamps, but generating word timestamps
+              incurs additional latency.
 
           extra_headers: Send extra headers
 
@@ -154,7 +157,8 @@ class AsyncTranscriptions(AsyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will
@@ -174,9 +178,11 @@ class AsyncTranscriptions(AsyncAPIResource):
               [log probability](https://en.wikipedia.org/wiki/Log_probability) to
               automatically increase the temperature until certain thresholds are hit.
 
-          timestamp_granularities: The timestamp granularities to populate for this transcription. Any of these
-              options: `word`, or `segment`. Note: There is no additional latency for segment
-              timestamps, but generating word timestamps incurs additional latency.
+          timestamp_granularities: The timestamp granularities to populate for this transcription.
+              `response_format` must be set `verbose_json` to use timestamp granularities.
+              Either or both of these options are supported: `word`, or `segment`. Note: There
+              is no additional latency for segment timestamps, but generating word timestamps
+              incurs additional latency.
 
           extra_headers: Send extra headers
 
