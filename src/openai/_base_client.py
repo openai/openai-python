@@ -780,6 +780,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             else:
                 timeout = DEFAULT_TIMEOUT
 
+        if http_client is not None and not isinstance(http_client, httpx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+            )
+
         super().__init__(
             version=version,
             limits=limits,
@@ -1321,6 +1326,11 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 timeout = http_client.timeout
             else:
                 timeout = DEFAULT_TIMEOUT
+
+        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+            )
 
         super().__init__(
             version=version,
