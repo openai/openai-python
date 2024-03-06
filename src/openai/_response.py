@@ -172,6 +172,12 @@ class BaseAPIResponse(Generic[R]):
         if cast_to == bytes:
             return cast(R, response.content)
 
+        if cast_to == int:
+            return cast(R, int(response.text))
+
+        if cast_to == float:
+            return cast(R, float(response.text))
+
         origin = get_origin(cast_to) or cast_to
 
         # handle the legacy binary response case
@@ -277,6 +283,8 @@ class APIResponse(BaseAPIResponse[R]):
           - `list`
           - `Union`
           - `str`
+          - `int`
+          - `float`
           - `httpx.Response`
         """
         cache_key = to if to is not None else self._cast_to
