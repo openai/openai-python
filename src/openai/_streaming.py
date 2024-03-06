@@ -65,8 +65,15 @@ class Stream(Generic[_T]):
             if sse.event is None:
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
                     raise APIError(
-                        message="An error occurred during streaming",
+                        message=message,
                         request=self.response.request,
                         body=data["error"],
                     )
@@ -145,8 +152,15 @@ class AsyncStream(Generic[_T]):
             if sse.event is None:
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
                     raise APIError(
-                        message="An error occurred during streaming",
+                        message=message,
                         request=self.response.request,
                         body=data["error"],
                     )
