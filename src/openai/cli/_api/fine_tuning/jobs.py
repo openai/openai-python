@@ -18,6 +18,32 @@ if TYPE_CHECKING:
 
 def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub = subparser.add_parser("fine_tuning.jobs.create")
+    sub.add_argument(
+        "-m",
+        "--model",
+        help="The model to fine-tune.",
+        required=True,
+    )
+    sub.add_argument(
+        "-F",
+        "--training-file",
+        help="The training file to fine-tune the model on.",
+        required=True,
+    )
+    sub.add_argument(
+        "-s",
+        "--suffix",
+        help="A suffix to add to the fine-tuned model name.",
+    )
+    sub.add_argument(
+        "-V",
+        "--validation-file",
+        help="The validation file to use for fine-tuning.",
+    )
+    sub.set_defaults(
+        func=CLIFineTuningJobs.create, args_model=CLIFineTuningJobsCreateArgs
+    )
+
 
     sub = subparser.add_parser("fine_tuning.jobs.retrieve")
     sub.add_argument(
@@ -77,6 +103,11 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         func=CLIFineTuningJobs.list_events, args_model=CLIFineTuningJobsListEventsArgs
     )
 
+class CLIFineTuningJobsCreateArgs(BaseModel):
+    model: str
+    training_file: str
+    suffix: NotGivenOr[str] = NOT_GIVEN
+    validation_file: NotGivenOr[str] = NOT_GIVEN
 
 class CLIFineTuningJobsRetrieveArgs(BaseModel):
     id: str
@@ -95,6 +126,16 @@ class CLIFineTuningJobsListEventsArgs(BaseModel):
 
 
 class CLIFineTuningJobs:
+    @staticmethod
+    def create(args: CLIFineTuningJobsCreateArgs) -> None:
+        fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.create(
+            model=args.model,
+            training_file=args.training_file,
+            suffix=args.suffix,
+            validation_file=args.validation_file,
+        )
+        print_model(fine_tuning_job)
+        
     @staticmethod
     def retrieve(args: CLIFineTuningJobsRetrieveArgs) -> None:
         fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.retrieve(
