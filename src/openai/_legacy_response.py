@@ -315,7 +315,7 @@ def to_raw_response_wrapper(func: Callable[P, R]) -> Callable[P, LegacyAPIRespon
 
     @functools.wraps(func)
     def wrapped(*args: P.args, **kwargs: P.kwargs) -> LegacyAPIResponse[R]:
-        extra_headers = {**(cast(Any, kwargs.get("extra_headers")) or {})}
+        extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "true"
 
         kwargs["extra_headers"] = extra_headers
@@ -332,7 +332,7 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
 
     @functools.wraps(func)
     async def wrapped(*args: P.args, **kwargs: P.kwargs) -> LegacyAPIResponse[R]:
-        extra_headers = {**(cast(Any, kwargs.get("extra_headers")) or {})}
+        extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "true"
 
         kwargs["extra_headers"] = extra_headers
