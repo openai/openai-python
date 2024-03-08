@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING
 from argparse import ArgumentParser
 
@@ -29,6 +30,12 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         "--training-file",
         help="The training file to fine-tune the model on.",
         required=True,
+    )
+    sub.add_argument(
+        "-H",
+        "--hyperparameters",
+        help="JSON string of hyperparameters to use for fine-tuning.",
+        type=str,
     )
     sub.add_argument(
         "-s",
@@ -106,6 +113,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
 class CLIFineTuningJobsCreateArgs(BaseModel):
     model: str
     training_file: str
+    hyperparameters: NotGivenOr[str] = NOT_GIVEN
     suffix: NotGivenOr[str] = NOT_GIVEN
     validation_file: NotGivenOr[str] = NOT_GIVEN
 
@@ -128,14 +136,16 @@ class CLIFineTuningJobsListEventsArgs(BaseModel):
 class CLIFineTuningJobs:
     @staticmethod
     def create(args: CLIFineTuningJobsCreateArgs) -> None:
+        hyperparameters = json.loads(args.hyperparameters) if args.hyperparameters is not NOT_GIVEN else NOT_GIVEN
         fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.create(
             model=args.model,
             training_file=args.training_file,
+            hyperparameters=hyperparameters,
             suffix=args.suffix,
             validation_file=args.validation_file,
         )
         print_model(fine_tuning_job)
-        
+
     @staticmethod
     def retrieve(args: CLIFineTuningJobsRetrieveArgs) -> None:
         fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.retrieve(
