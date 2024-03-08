@@ -136,7 +136,7 @@ class CLIFineTuningJobsListEventsArgs(BaseModel):
 class CLIFineTuningJobs:
     @staticmethod
     def create(args: CLIFineTuningJobsCreateArgs) -> None:
-        hyperparameters = json.loads(args.hyperparameters) if args.hyperparameters is not NOT_GIVEN else NOT_GIVEN
+        hyperparameters = json.loads(str(args.hyperparameters)) if args.hyperparameters is not NOT_GIVEN else NOT_GIVEN
         fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.create(
             model=args.model,
             training_file=args.training_file,
