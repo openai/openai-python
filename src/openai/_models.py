@@ -30,7 +30,16 @@ from ._types import (
     AnyMapping,
     HttpxRequestFiles,
 )
-from ._utils import is_list, is_given, is_mapping, parse_date, parse_datetime, strip_not_given
+from ._utils import (
+    is_list,
+    is_given,
+    is_mapping,
+    parse_date,
+    parse_datetime,
+    strip_not_given,
+    extract_type_arg,
+    is_annotated_type,
+)
 from ._compat import (
     PYDANTIC_V2,
     ConfigDict,
@@ -275,6 +284,9 @@ def construct_type(*, value: object, type_: type) -> object:
 
     If the given value does not match the expected type then it is returned as-is.
     """
+    # unwrap `Annotated[T, ...]` -> `T`
+    if is_annotated_type(type_):
+        type_ = extract_type_arg(type_, 0)
 
     # we need to use the origin class for any types that are subscripted generics
     # e.g. Dict[str, object]

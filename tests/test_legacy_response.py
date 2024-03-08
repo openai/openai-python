@@ -1,4 +1,6 @@
 import json
+from typing import cast
+from typing_extensions import Annotated
 
 import httpx
 import pytest
@@ -61,5 +63,22 @@ def test_response_parse_custom_model(client: OpenAI) -> None:
     )
 
     obj = response.parse(to=CustomModel)
+    assert obj.foo == "hello!"
+    assert obj.bar == 2
+
+
+def test_response_parse_annotated_type(client: OpenAI) -> None:
+    response = LegacyAPIResponse(
+        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        client=client,
+        stream=False,
+        stream_cls=None,
+        cast_to=str,
+        options=FinalRequestOptions.construct(method="get", url="/foo"),
+    )
+
+    obj = response.parse(
+        to=cast("type[CustomModel]", Annotated[CustomModel, "random metadata"]),
+    )
     assert obj.foo == "hello!"
     assert obj.bar == 2
