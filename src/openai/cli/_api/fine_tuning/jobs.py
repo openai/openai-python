@@ -9,6 +9,7 @@ from ..._models import BaseModel
 from ....pagination import SyncCursorPage
 from ....types.fine_tuning import (
     FineTuningJob,
+    FineTuningJobEvent,
 )
 
 if TYPE_CHECKING:
@@ -55,6 +56,26 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     )
 
     sub = subparser.add_parser("fine_tuning.jobs.list_events")
+    sub.add_argument(
+        "-i",
+        "--id",
+        help="The ID of the fine-tuning job to list events for.",
+        required=True,
+    )
+    sub.add_argument(
+        "-a",
+        "--after",
+        help="Identifier for the last event from the previous pagination request. If provided, only events created after this event will be returned.",
+    )
+    sub.add_argument(
+        "-l",
+        "--limit",
+        help="Number of fine-tuning job events to retrieve.",
+        type=int,
+    )
+    sub.set_defaults(
+        func=CLIFineTuningJobs.list_events, args_model=CLIFineTuningJobsListEventsArgs
+    )
 
 
 class CLIFineTuningJobsRetrieveArgs(BaseModel):
@@ -66,6 +87,12 @@ class CLIFineTuningJobsListArgs(BaseModel):
 
 class CLIFineTuningJobsCancelArgs(BaseModel):
     id: str
+
+class CLIFineTuningJobsListEventsArgs(BaseModel):
+    id: str
+    after: NotGivenOr[str] = NOT_GIVEN
+    limit: NotGivenOr[int] = NOT_GIVEN
+
 
 class CLIFineTuningJobs:
     @staticmethod
@@ -90,3 +117,14 @@ class CLIFineTuningJobs:
             fine_tuning_job_id=args.id
         )
         print_model(fine_tuning_job)
+    
+    @staticmethod
+    def list_events(args: CLIFineTuningJobsListEventsArgs) -> None:
+        fine_tuning_job_events: SyncCursorPage[
+            FineTuningJobEvent
+        ] = get_client().fine_tuning.jobs.list_events(
+            fine_tuning_job_id=args.id,
+            after=args.after or NOT_GIVEN,
+            limit=args.limit or NOT_GIVEN,
+        )
+        print_model(fine_tuning_job_events)
