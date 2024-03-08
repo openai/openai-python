@@ -44,6 +44,16 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
     sub.set_defaults(func=CLIFineTuningJobs.list, args_model=CLIFineTuningJobsListArgs)
 
     sub = subparser.add_parser("fine_tuning.jobs.cancel")
+    sub.add_argument(
+        "-i",
+        "--id",
+        help="The ID of the fine-tuning job to cancel.",
+        required=True,
+    )
+    sub.set_defaults(
+        func=CLIFineTuningJobs.cancel, args_model=CLIFineTuningJobsCancelArgs
+    )
+
     sub = subparser.add_parser("fine_tuning.jobs.list_events")
 
 
@@ -54,6 +64,8 @@ class CLIFineTuningJobsListArgs(BaseModel):
     after: NotGivenOr[str] = NOT_GIVEN
     limit: NotGivenOr[int] = NOT_GIVEN
 
+class CLIFineTuningJobsCancelArgs(BaseModel):
+    id: str
 
 class CLIFineTuningJobs:
     @staticmethod
@@ -71,3 +83,10 @@ class CLIFineTuningJobs:
             after=args.after or NOT_GIVEN, limit=args.limit or NOT_GIVEN
         )
         print_model(fine_tuning_jobs)
+    
+    @staticmethod
+    def cancel(args: CLIFineTuningJobsCancelArgs) -> None:
+        fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.cancel(
+            fine_tuning_job_id=args.id
+        )
+        print_model(fine_tuning_job)
