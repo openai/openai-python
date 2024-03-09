@@ -47,10 +47,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         "--validation-file",
         help="The validation file to use for fine-tuning.",
     )
-    sub.set_defaults(
-        func=CLIFineTuningJobs.create, args_model=CLIFineTuningJobsCreateArgs
-    )
-
+    sub.set_defaults(func=CLIFineTuningJobs.create, args_model=CLIFineTuningJobsCreateArgs)
 
     sub = subparser.add_parser("fine_tuning.jobs.retrieve")
     sub.add_argument(
@@ -59,9 +56,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         help="The ID of the fine-tuning job to retrieve.",
         required=True,
     )
-    sub.set_defaults(
-        func=CLIFineTuningJobs.retrieve, args_model=CLIFineTuningJobsRetrieveArgs
-    )
+    sub.set_defaults(func=CLIFineTuningJobs.retrieve, args_model=CLIFineTuningJobsRetrieveArgs)
 
     sub = subparser.add_parser("fine_tuning.jobs.list")
     sub.add_argument(
@@ -84,9 +79,7 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         help="The ID of the fine-tuning job to cancel.",
         required=True,
     )
-    sub.set_defaults(
-        func=CLIFineTuningJobs.cancel, args_model=CLIFineTuningJobsCancelArgs
-    )
+    sub.set_defaults(func=CLIFineTuningJobs.cancel, args_model=CLIFineTuningJobsCancelArgs)
 
     sub = subparser.add_parser("fine_tuning.jobs.list_events")
     sub.add_argument(
@@ -106,9 +99,8 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
         help="Number of fine-tuning job events to retrieve.",
         type=int,
     )
-    sub.set_defaults(
-        func=CLIFineTuningJobs.list_events, args_model=CLIFineTuningJobsListEventsArgs
-    )
+    sub.set_defaults(func=CLIFineTuningJobs.list_events, args_model=CLIFineTuningJobsListEventsArgs)
+
 
 class CLIFineTuningJobsCreateArgs(BaseModel):
     model: str
@@ -117,15 +109,19 @@ class CLIFineTuningJobsCreateArgs(BaseModel):
     suffix: NotGivenOr[str] = NOT_GIVEN
     validation_file: NotGivenOr[str] = NOT_GIVEN
 
+
 class CLIFineTuningJobsRetrieveArgs(BaseModel):
     id: str
+
 
 class CLIFineTuningJobsListArgs(BaseModel):
     after: NotGivenOr[str] = NOT_GIVEN
     limit: NotGivenOr[int] = NOT_GIVEN
 
+
 class CLIFineTuningJobsCancelArgs(BaseModel):
     id: str
+
 
 class CLIFineTuningJobsListEventsArgs(BaseModel):
     id: str
@@ -148,32 +144,24 @@ class CLIFineTuningJobs:
 
     @staticmethod
     def retrieve(args: CLIFineTuningJobsRetrieveArgs) -> None:
-        fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.retrieve(
-            fine_tuning_job_id=args.id
-        )
+        fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.retrieve(fine_tuning_job_id=args.id)
         print_model(fine_tuning_job)
-    
+
     @staticmethod
     def list(args: CLIFineTuningJobsListArgs) -> None:
-        fine_tuning_jobs: SyncCursorPage[
-            FineTuningJob
-        ] = get_client().fine_tuning.jobs.list(
+        fine_tuning_jobs: SyncCursorPage[FineTuningJob] = get_client().fine_tuning.jobs.list(
             after=args.after or NOT_GIVEN, limit=args.limit or NOT_GIVEN
         )
         print_model(fine_tuning_jobs)
-    
+
     @staticmethod
     def cancel(args: CLIFineTuningJobsCancelArgs) -> None:
-        fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.cancel(
-            fine_tuning_job_id=args.id
-        )
+        fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.cancel(fine_tuning_job_id=args.id)
         print_model(fine_tuning_job)
-    
+
     @staticmethod
     def list_events(args: CLIFineTuningJobsListEventsArgs) -> None:
-        fine_tuning_job_events: SyncCursorPage[
-            FineTuningJobEvent
-        ] = get_client().fine_tuning.jobs.list_events(
+        fine_tuning_job_events: SyncCursorPage[FineTuningJobEvent] = get_client().fine_tuning.jobs.list_events(
             fine_tuning_job_id=args.id,
             after=args.after or NOT_GIVEN,
             limit=args.limit or NOT_GIVEN,
