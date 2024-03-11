@@ -7,6 +7,7 @@ import pytest
 import pydantic
 from pydantic import Field
 
+from openai._utils import PropertyInfo
 from openai._compat import PYDANTIC_V2, parse_obj, model_dump, model_json
 from openai._models import BaseModel, construct_type
 
@@ -583,3 +584,182 @@ def test_annotated_types() -> None:
     )
     assert isinstance(m, Model)
     assert m.value == "foo"
+
+
+def test_discriminated_unions_invalid_data() -> None:
+    class A(BaseModel):
+        type: Literal["a"]
+
+        data: str
+
+    class B(BaseModel):
+        type: Literal["b"]
+
+        data: int
+
+    m = construct_type(
+        value={"type": "b", "data": "foo"},
+        type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="type")]),
+    )
+    assert isinstance(m, B)
+    assert m.type == "b"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+    m = construct_type(
+        value={"type": "a", "data": 100},
+        type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="type")]),
+    )
+    assert isinstance(m, A)
+    assert m.type == "a"
+    if PYDANTIC_V2:
+        assert m.data == 100  # type: ignore[comparison-overlap]
+    else:
+        # pydantic v1 automatically converts inputs to strings
+        # if the expected type is a str
+        assert m.data == "100"
+
+
+def test_discriminated_unions_unknown_variant() -> None:
+    class A(BaseModel):
+        type: Literal["a"]
+
+        data: str
+
+    class B(BaseModel):
+        type: Literal["b"]
+
+        data: int
+
+    m = construct_type(
+        value={"type": "c", "data": None, "new_thing": "bar"},
+        type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="type")]),
+    )
+
+    # just chooses the first variant
+    assert isinstance(m, A)
+    assert m.type == "c"  # type: ignore[comparison-overlap]
+    assert m.data == None  # type: ignore[unreachable]
+    assert m.new_thing == "bar"
+
+
+def test_discriminated_unions_invalid_data_nested_unions() -> None:
+    class A(BaseModel):
+        type: Literal["a"]
+
+        data: str
+
+    class B(BaseModel):
+        type: Literal["b"]
+
+        data: int
+
+    class C(BaseModel):
+        type: Literal["c"]
+
+        data: bool
+
+    m = construct_type(
+        value={"type": "b", "data": "foo"},
+        type_=cast(Any, Annotated[Union[Union[A, B], C], PropertyInfo(discriminator="type")]),
+    )
+    assert isinstance(m, B)
+    assert m.type == "b"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+    m = construct_type(
+        value={"type": "c", "data": "foo"},
+        type_=cast(Any, Annotated[Union[Union[A, B], C], PropertyInfo(discriminator="type")]),
+    )
+    assert isinstance(m, C)
+    assert m.type == "c"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+
+def test_discriminated_unions_with_aliases_invalid_data() -> None:
+    class A(BaseModel):
+        foo_type: Literal["a"] = Field(alias="type")
+
+        data: str
+
+    class B(BaseModel):
+        foo_type: Literal["b"] = Field(alias="type")
+
+        data: int
+
+    m = construct_type(
+        value={"type": "b", "data": "foo"},
+        type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="foo_type")]),
+    )
+    assert isinstance(m, B)
+    assert m.foo_type == "b"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+    m = construct_type(
+        value={"type": "a", "data": 100},
+        type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="foo_type")]),
+    )
+    assert isinstance(m, A)
+    assert m.foo_type == "a"
+    if PYDANTIC_V2:
+        assert m.data == 100  # type: ignore[comparison-overlap]
+    else:
+        # pydantic v1 automatically converts inputs to strings
+        # if the expected type is a str
+        assert m.data == "100"
+
+
+def test_discriminated_unions_overlapping_discriminators_invalid_data() -> None:
+    class A(BaseModel):
+        type: Literal["a"]
+
+        data: bool
+
+    class B(BaseModel):
+        type: Literal["a"]
+
+        data: int
+
+    m = construct_type(
+        value={"type": "a", "data": "foo"},
+        type_=cast(Any, Annotated[Union[A, B], PropertyInfo(discriminator="type")]),
+    )
+    assert isinstance(m, B)
+    assert m.type == "a"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+
+def test_discriminated_unions_invalid_data_uses_cache() -> None:
+    class A(BaseModel):
+        type: Literal["a"]
+
+        data: str
+
+    class B(BaseModel):
+        type: Literal["b"]
+
+        data: int
+
+    UnionType = cast(Any, Union[A, B])
+
+    assert not hasattr(UnionType, "__discriminator__")
+
+    m = construct_type(
+        value={"type": "b", "data": "foo"}, type_=cast(Any, Annotated[UnionType, PropertyInfo(discriminator="type")])
+    )
+    assert isinstance(m, B)
+    assert m.type == "b"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+    discriminator = UnionType.__discriminator__
+    assert discriminator is not None
+
+    m = construct_type(
+        value={"type": "b", "data": "foo"}, type_=cast(Any, Annotated[UnionType, PropertyInfo(discriminator="type")])
+    )
+    assert isinstance(m, B)
+    assert m.type == "b"
+    assert m.data == "foo"  # type: ignore[comparison-overlap]
+
+    # if the discriminator details object stays the same between invocations then
+    # we hit the cache
+    assert UnionType.__discriminator__ is discriminator
