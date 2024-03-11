@@ -643,12 +643,15 @@ class Completions(SyncAPIResource):
         if type(model) is str:
             models = [model]
 
-        # TODO: to be removed when we simplify model naming
         models = list(map(lambda x: f"openai/{x}", models))
 
         prompt_template = NDChatPromptTemplate.from_messages(
-            list(map(lambda msg: (msg['role'], msg['content']), messages))
+            list(map(
+                lambda msg: (msg['role'], msg['content'].replace('{', '{{').replace('}', '}}')),
+                messages)
+            )
         )
+        
         nd_llm = NDLLM(
             llm_providers=models,
             api_key=self._client.notdiamond_api_key
