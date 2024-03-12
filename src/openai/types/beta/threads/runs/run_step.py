@@ -1,8 +1,9 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import Union, Optional
-from typing_extensions import Literal
+from typing_extensions import Literal, Annotated
 
+from ....._utils import PropertyInfo
 from ....._models import BaseModel
 from .tool_calls_step_details import ToolCallsStepDetails
 from .message_creation_step_details import MessageCreationStepDetails
@@ -18,7 +19,7 @@ class LastError(BaseModel):
     """A human-readable description of the error."""
 
 
-StepDetails = Union[MessageCreationStepDetails, ToolCallsStepDetails]
+StepDetails = Annotated[Union[MessageCreationStepDetails, ToolCallsStepDetails], PropertyInfo(discriminator="type")]
 
 
 class Usage(BaseModel):
