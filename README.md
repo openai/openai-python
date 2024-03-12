@@ -50,7 +50,7 @@ we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `OPENAI_API_KEY="My API Key"` to your `.env` file
 so that your API Key is not stored in source control.
 
-## Async usage
+## Async Usage
 
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
@@ -121,7 +121,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## Module-level client
+## Module-level Client
 
 > [!IMPORTANT]
 > We highly recommend instantiating client instances instead of relying on the global client.
@@ -161,7 +161,7 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
-## Using types
+## Using Types
 
 Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev), which provide helper methods for things like:
 
@@ -241,7 +241,7 @@ for job in first_page.data:
 # Remove `await` for non-async usage.
 ```
 
-## Nested params
+## Nested Parameters
 
 Nested parameters are dictionaries, typed using `TypedDict`, for example:
 
@@ -280,7 +280,7 @@ client.files.create(
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
-## Handling errors
+## Handling Errors
 
 When the library is unable to connect to the API (for example, due to network connection problems or a timeout), a subclass of `openai.APIConnectionError` is raised.
 
