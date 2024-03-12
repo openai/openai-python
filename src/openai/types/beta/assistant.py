@@ -1,9 +1,10 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal
+from typing_extensions import Literal, Annotated
 
 from ..shared import FunctionDefinition
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
 __all__ = ["Assistant", "Tool", "ToolCodeInterpreter", "ToolRetrieval", "ToolFunction"]
@@ -26,7 +27,7 @@ class ToolFunction(BaseModel):
     """The type of tool being defined: `function`"""
 
 
-Tool = Union[ToolCodeInterpreter, ToolRetrieval, ToolFunction]
+Tool = Annotated[Union[ToolCodeInterpreter, ToolRetrieval, ToolFunction], PropertyInfo(discriminator="type")]
 
 
 class Assistant(BaseModel):

@@ -1,8 +1,9 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import List, Union
-from typing_extensions import Literal
+from typing_extensions import Literal, Annotated
 
+from ....._utils import PropertyInfo
 from ....._models import BaseModel
 
 __all__ = [
@@ -38,7 +39,9 @@ class CodeInterpreterOutputImage(BaseModel):
     """Always `image`."""
 
 
-CodeInterpreterOutput = Union[CodeInterpreterOutputLogs, CodeInterpreterOutputImage]
+CodeInterpreterOutput = Annotated[
+    Union[CodeInterpreterOutputLogs, CodeInterpreterOutputImage], PropertyInfo(discriminator="type")
+]
 
 
 class CodeInterpreter(BaseModel):

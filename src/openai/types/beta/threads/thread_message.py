@@ -1,15 +1,16 @@
 # File generated from our OpenAPI spec by Stainless.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal
+from typing_extensions import Literal, Annotated
 
+from ...._utils import PropertyInfo
 from ...._models import BaseModel
 from .message_content_text import MessageContentText
 from .message_content_image_file import MessageContentImageFile
 
 __all__ = ["ThreadMessage", "Content"]
 
-Content = Union[MessageContentImageFile, MessageContentText]
+Content = Annotated[Union[MessageContentImageFile, MessageContentText], PropertyInfo(discriminator="type")]
 
 
 class ThreadMessage(BaseModel):
