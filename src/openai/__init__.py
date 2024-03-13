@@ -69,6 +69,10 @@ from .lib import azure as _azure
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *
+from .lib.streaming import (
+    AssistantEventHandler as AssistantEventHandler,
+    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+)
 
 _setup_logging()
 

@@ -190,7 +190,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of
-    functions the model may generate JSON inputs for.
+    functions the model may generate JSON inputs for. A max of 128 functions are
+    supported.
     """
 
     top_logprobs: Optional[int]

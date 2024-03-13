@@ -7,7 +7,7 @@ from ....._utils import PropertyInfo
 from ....._models import BaseModel
 
 __all__ = [
-    "CodeToolCall",
+    "CodeInterpreterToolCall",
     "CodeInterpreter",
     "CodeInterpreterOutput",
     "CodeInterpreterOutputLogs",
@@ -56,7 +56,7 @@ class CodeInterpreter(BaseModel):
     """
 
 
-class CodeToolCall(BaseModel):
+class CodeInterpreterToolCall(BaseModel):
     id: str
     """The ID of the tool call."""
 

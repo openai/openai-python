@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Iterable, Optional, overload
+from functools import partial
+from typing_extensions import Literal
 
 import httpx
 
@@ -25,6 +27,7 @@ from .messages import (
 )
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import (
+    required_args,
     maybe_transform,
     async_maybe_transform,
 )
@@ -32,15 +35,25 @@ from .runs.runs import Runs, AsyncRuns
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ...._streaming import Stream, AsyncStream
 from ....types.beta import (
     Thread,
     ThreadDeleted,
+    AssistantStreamEvent,
     thread_create_params,
     thread_update_params,
     thread_create_and_run_params,
 )
 from ...._base_client import (
     make_request_options,
+)
+from ....lib.streaming import (
+    AssistantEventHandler,
+    AssistantEventHandlerT,
+    AssistantStreamManager,
+    AsyncAssistantEventHandler,
+    AsyncAssistantEventHandlerT,
+    AsyncAssistantStreamManager,
 )
 from .messages.messages import Messages, AsyncMessages
 from ....types.beta.threads import Run
@@ -222,6 +235,7 @@ class Threads(SyncAPIResource):
             cast_to=ThreadDeleted,
         )
 
+    @overload
     def create_and_run(
         self,
         *,
@@ -229,6 +243,7 @@ class Threads(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -259,6 +274,10 @@ class Threads(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -272,6 +291,142 @@ class Threads(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def create_and_run(
+        self,
+        *,
+        assistant_id: str,
+        stream: Literal[True],
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Stream[AssistantStreamEvent]:
+        """
+        Create a thread and run it in one request.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          instructions: Override the default system message of the assistant. This is useful for
+              modifying the behavior on a per-run basis.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format. Keys
+              can be a maximum of 64 characters long and values can be a maxium of 512
+              characters long.
+
+          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
+
+          thread: If no thread is provided, an empty thread will be created.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    def create_and_run(
+        self,
+        *,
+        assistant_id: str,
+        stream: bool,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Run | Stream[AssistantStreamEvent]:
+        """
+        Create a thread and run it in one request.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          instructions: Override the default system message of the assistant. This is useful for
+              modifying the behavior on a per-run basis.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format. Keys
+              can be a maximum of 64 characters long and values can be a maxium of 512
+              characters long.
+
+          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
+
+          thread: If no thread is provided, an empty thread will be created.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["assistant_id"], ["assistant_id", "stream"])
+    def create_and_run(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Run | Stream[AssistantStreamEvent]:
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return self._post(
             "/threads/runs",
@@ -281,6 +436,7 @@ class Threads(SyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
+                    "stream": stream,
                     "thread": thread,
                     "tools": tools,
                 },
@@ -290,7 +446,98 @@ class Threads(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Run,
+            stream=stream or False,
+            stream_cls=Stream[AssistantStreamEvent],
         )
+
+    @overload
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AssistantStreamManager[AssistantEventHandler]:
+        """Create a thread and stream the run back"""
+        ...
+
+    @overload
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        event_handler: AssistantEventHandlerT,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a thread and stream the run back"""
+        ...
+
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        event_handler: AssistantEventHandlerT | None = None,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
+        """Create a thread and stream the run back"""
+        extra_headers = {
+            "OpenAI-Beta": "assistants=v1",
+            "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
+            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            **(extra_headers or {}),
+        }
+        make_request = partial(
+            self._post,
+            "/threads/runs",
+            body=maybe_transform(
+                {
+                    "assistant_id": assistant_id,
+                    "instructions": instructions,
+                    "metadata": metadata,
+                    "model": model,
+                    "stream": True,
+                    "thread": thread,
+                    "tools": tools,
+                },
+                thread_create_and_run_params.ThreadCreateAndRunParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Run,
+            stream=True,
+            stream_cls=Stream[AssistantStreamEvent],
+        )
+        return AssistantStreamManager(make_request, event_handler=event_handler or AssistantEventHandler())
 
 
 class AsyncThreads(AsyncAPIResource):
@@ -467,6 +714,7 @@ class AsyncThreads(AsyncAPIResource):
             cast_to=ThreadDeleted,
         )
 
+    @overload
     async def create_and_run(
         self,
         *,
@@ -474,6 +722,7 @@ class AsyncThreads(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -504,6 +753,10 @@ class AsyncThreads(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -517,6 +770,142 @@ class AsyncThreads(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def create_and_run(
+        self,
+        *,
+        assistant_id: str,
+        stream: Literal[True],
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncStream[AssistantStreamEvent]:
+        """
+        Create a thread and run it in one request.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          instructions: Override the default system message of the assistant. This is useful for
+              modifying the behavior on a per-run basis.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format. Keys
+              can be a maximum of 64 characters long and values can be a maxium of 512
+              characters long.
+
+          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
+
+          thread: If no thread is provided, an empty thread will be created.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def create_and_run(
+        self,
+        *,
+        assistant_id: str,
+        stream: bool,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Run | AsyncStream[AssistantStreamEvent]:
+        """
+        Create a thread and run it in one request.
+
+        Args:
+          assistant_id: The ID of the
+              [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
+              execute this run.
+
+          stream: If `true`, returns a stream of events that happen during the Run as server-sent
+              events, terminating when the Run enters a terminal state with a `data: [DONE]`
+              message.
+
+          instructions: Override the default system message of the assistant. This is useful for
+              modifying the behavior on a per-run basis.
+
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format. Keys
+              can be a maximum of 64 characters long and values can be a maxium of 512
+              characters long.
+
+          model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
+              be used to execute this run. If a value is provided here, it will override the
+              model associated with the assistant. If not, the model associated with the
+              assistant will be used.
+
+          thread: If no thread is provided, an empty thread will be created.
+
+          tools: Override the tools the assistant can use for this run. This is useful for
+              modifying the behavior on a per-run basis.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["assistant_id"], ["assistant_id", "stream"])
+    async def create_and_run(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Run | AsyncStream[AssistantStreamEvent]:
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             "/threads/runs",
@@ -526,6 +915,7 @@ class AsyncThreads(AsyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
+                    "stream": stream,
                     "thread": thread,
                     "tools": tools,
                 },
@@ -535,7 +925,100 @@ class AsyncThreads(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Run,
+            stream=stream or False,
+            stream_cls=AsyncStream[AssistantStreamEvent],
         )
+
+    @overload
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandler]:
+        """Create a thread and stream the run back"""
+        ...
+
+    @overload
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        event_handler: AsyncAssistantEventHandlerT,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]:
+        """Create a thread and stream the run back"""
+        ...
+
+    def create_and_run_stream(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        event_handler: AsyncAssistantEventHandlerT | None = None,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> (
+        AsyncAssistantStreamManager[AsyncAssistantEventHandler]
+        | AsyncAssistantStreamManager[AsyncAssistantEventHandlerT]
+    ):
+        """Create a thread and stream the run back"""
+        extra_headers = {
+            "OpenAI-Beta": "assistants=v1",
+            "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
+            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            **(extra_headers or {}),
+        }
+        request = self._post(
+            "/threads/runs",
+            body=maybe_transform(
+                {
+                    "assistant_id": assistant_id,
+                    "instructions": instructions,
+                    "metadata": metadata,
+                    "model": model,
+                    "stream": True,
+                    "thread": thread,
+                    "tools": tools,
+                },
+                thread_create_and_run_params.ThreadCreateAndRunParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Run,
+            stream=True,
+            stream_cls=AsyncStream[AssistantStreamEvent],
+        )
+        return AsyncAssistantStreamManager(request, event_handler=event_handler or AsyncAssistantEventHandler())
 
 
 class ThreadsWithRawResponse:

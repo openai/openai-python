@@ -206,7 +206,7 @@ class Completions(SyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -396,7 +396,7 @@ class Completions(SyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -586,7 +586,7 @@ class Completions(SyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -873,7 +873,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1063,7 +1063,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1253,7 +1253,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
