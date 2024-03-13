@@ -4,7 +4,11 @@ from __future__ import annotations
 
 from .image import Image as Image
 from .model import Model as Model
-from .shared import FunctionDefinition as FunctionDefinition, FunctionParameters as FunctionParameters
+from .shared import (
+    ErrorObject as ErrorObject,
+    FunctionDefinition as FunctionDefinition,
+    FunctionParameters as FunctionParameters,
+)
 from .embedding import Embedding as Embedding
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation

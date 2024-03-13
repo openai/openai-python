@@ -1,33 +1,12 @@
 # File generated from our OpenAPI spec by Stainless.
 
-from typing import List, Union, Optional
-from typing_extensions import Literal, Annotated
+from typing import List, Optional
+from typing_extensions import Literal
 
-from ..shared import FunctionDefinition
-from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .assistant_tool import AssistantTool
 
-__all__ = ["Assistant", "Tool", "ToolCodeInterpreter", "ToolRetrieval", "ToolFunction"]
-
-
-class ToolCodeInterpreter(BaseModel):
-    type: Literal["code_interpreter"]
-    """The type of tool being defined: `code_interpreter`"""
-
-
-class ToolRetrieval(BaseModel):
-    type: Literal["retrieval"]
-    """The type of tool being defined: `retrieval`"""
-
-
-class ToolFunction(BaseModel):
-    function: FunctionDefinition
-
-    type: Literal["function"]
-    """The type of tool being defined: `function`"""
-
-
-Tool = Annotated[Union[ToolCodeInterpreter, ToolRetrieval, ToolFunction], PropertyInfo(discriminator="type")]
+__all__ = ["Assistant"]
 
 
 class Assistant(BaseModel):
@@ -77,7 +56,7 @@ class Assistant(BaseModel):
     object: Literal["assistant"]
     """The object type, which is always `assistant`."""
 
-    tools: List[Tool]
+    tools: List[AssistantTool]
     """A list of tool enabled on the assistant.
 
     There can be a maximum of 128 tools per assistant. Tools can be of types
