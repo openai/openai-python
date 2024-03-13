@@ -5,18 +5,12 @@ from __future__ import annotations
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from ....types import shared_params
+from ..assistant_tool_param import AssistantToolParam
 
-__all__ = [
-    "RunCreateParams",
-    "Tool",
-    "ToolAssistantToolsCode",
-    "ToolAssistantToolsRetrieval",
-    "ToolAssistantToolsFunction",
-]
+__all__ = ["RunCreateParamsBase", "RunCreateParamsNonStreaming", "RunCreateParamsStreaming"]
 
 
-class RunCreateParams(TypedDict, total=False):
+class RunCreateParamsBase(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
@@ -54,28 +48,29 @@ class RunCreateParams(TypedDict, total=False):
     assistant will be used.
     """
 
-    tools: Optional[Iterable[Tool]]
+    tools: Optional[Iterable[AssistantToolParam]]
     """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
     """
 
 
-class ToolAssistantToolsCode(TypedDict, total=False):
-    type: Required[Literal["code_interpreter"]]
-    """The type of tool being defined: `code_interpreter`"""
+class RunCreateParamsNonStreaming(RunCreateParamsBase):
+    stream: Optional[Literal[False]]
+    """
+    If `true`, returns a stream of events that happen during the Run as server-sent
+    events, terminating when the Run enters a terminal state with a `data: [DONE]`
+    message.
+    """
 
 
-class ToolAssistantToolsRetrieval(TypedDict, total=False):
-    type: Required[Literal["retrieval"]]
-    """The type of tool being defined: `retrieval`"""
+class RunCreateParamsStreaming(RunCreateParamsBase):
+    stream: Required[Literal[True]]
+    """
+    If `true`, returns a stream of events that happen during the Run as server-sent
+    events, terminating when the Run enters a terminal state with a `data: [DONE]`
+    message.
+    """
 
 
-class ToolAssistantToolsFunction(TypedDict, total=False):
-    function: Required[shared_params.FunctionDefinition]
-
-    type: Required[Literal["function"]]
-    """The type of tool being defined: `function`"""
-
-
-Tool = Union[ToolAssistantToolsCode, ToolAssistantToolsRetrieval, ToolAssistantToolsFunction]
+RunCreateParams = Union[RunCreateParamsNonStreaming, RunCreateParamsStreaming]

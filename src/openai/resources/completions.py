@@ -157,6 +157,8 @@ class Completions(SyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -305,6 +307,8 @@ class Completions(SyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -452,6 +456,8 @@ class Completions(SyncAPIResource):
               returned text will not contain the stop sequence.
 
           suffix: The suffix that comes after a completion of inserted text.
+
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -671,6 +677,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -819,6 +827,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -966,6 +976,8 @@ class AsyncCompletions(AsyncAPIResource):
               returned text will not contain the stop sequence.
 
           suffix: The suffix that comes after a completion of inserted text.
+
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more

@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.13.4"
+version = "1.14.0"
 description = "The official Python library for the openai API"
 readme = "README.md"
 license = "Apache-2.0"
@@ -60,6 +60,7 @@ dev-dependencies = [
     "nox",
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
+    "inline-snapshot >=0.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
     "types-pyaudio > 0"

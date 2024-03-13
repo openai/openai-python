@@ -1,24 +1,14 @@
 # File generated from our OpenAPI spec by Stainless.
 
-from typing import List, Union, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
-from ...shared import FunctionDefinition
 from ...._models import BaseModel
 from .run_status import RunStatus
+from ..assistant_tool import AssistantTool
 from .required_action_function_tool_call import RequiredActionFunctionToolCall
 
-__all__ = [
-    "Run",
-    "LastError",
-    "RequiredAction",
-    "RequiredActionSubmitToolOutputs",
-    "Tool",
-    "ToolAssistantToolsCode",
-    "ToolAssistantToolsRetrieval",
-    "ToolAssistantToolsFunction",
-    "Usage",
-]
+__all__ = ["Run", "LastError", "RequiredAction", "RequiredActionSubmitToolOutputs", "Usage"]
 
 
 class LastError(BaseModel):
@@ -40,26 +30,6 @@ class RequiredAction(BaseModel):
 
     type: Literal["submit_tool_outputs"]
     """For now, this is always `submit_tool_outputs`."""
-
-
-class ToolAssistantToolsCode(BaseModel):
-    type: Literal["code_interpreter"]
-    """The type of tool being defined: `code_interpreter`"""
-
-
-class ToolAssistantToolsRetrieval(BaseModel):
-    type: Literal["retrieval"]
-    """The type of tool being defined: `retrieval`"""
-
-
-class ToolAssistantToolsFunction(BaseModel):
-    function: FunctionDefinition
-
-    type: Literal["function"]
-    """The type of tool being defined: `function`"""
-
-
-Tool = Union[ToolAssistantToolsCode, ToolAssistantToolsRetrieval, ToolAssistantToolsFunction]
 
 
 class Usage(BaseModel):
@@ -93,7 +63,7 @@ class Run(BaseModel):
     created_at: int
     """The Unix timestamp (in seconds) for when the run was created."""
 
-    expires_at: int
+    expires_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run will expire."""
 
     failed_at: Optional[int] = None
@@ -156,7 +126,7 @@ class Run(BaseModel):
     that was executed on as a part of this run.
     """
 
-    tools: List[Tool]
+    tools: List[AssistantTool]
     """
     The list of tools that the
     [assistant](https://platform.openai.com/docs/api-reference/assistants) used for

@@ -1,17 +1,12 @@
 # File generated from our OpenAPI spec by Stainless.
 
-from typing import List, Union
-from typing_extensions import Literal, Annotated
+from typing import List
+from typing_extensions import Literal
 
-from ....._utils import PropertyInfo
+from .tool_call import ToolCall
 from ....._models import BaseModel
-from .code_tool_call import CodeToolCall
-from .function_tool_call import FunctionToolCall
-from .retrieval_tool_call import RetrievalToolCall
 
-__all__ = ["ToolCallsStepDetails", "ToolCall"]
-
-ToolCall = Annotated[Union[CodeToolCall, RetrievalToolCall, FunctionToolCall], PropertyInfo(discriminator="type")]
+__all__ = ["ToolCallsStepDetails"]
 
 
 class ToolCallsStepDetails(BaseModel):

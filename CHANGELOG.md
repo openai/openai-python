@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.14.0 (2024-03-13)
+
+Full Changelog: [v1.13.4...v1.14.0](https://github.com/openai/openai-python/compare/v1.13.4...v1.14.0)
+
+### Features
+
+* **assistants:** add support for streaming ([#1233](https://github.com/openai/openai-python/issues/1233)) ([17635dc](https://github.com/openai/openai-python/commit/17635dccbeddf153f8201dbca18b44e16a1799b2))
+
 ## 1.13.4 (2024-03-13)
 
 Full Changelog: [v1.13.3...v1.13.4](https://github.com/openai/openai-python/compare/v1.13.3...v1.13.4)
