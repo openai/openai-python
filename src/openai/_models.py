@@ -56,7 +56,7 @@ from ._compat import (
     get_model_fields,
     field_get_default,
 )
-from ._constants import RAW_RESPONSE_HEADER
+from ._constants import DEFAULT_MAX_RETRIES, RAW_RESPONSE_HEADER
 
 if TYPE_CHECKING:
     from pydantic_core.core_schema import ModelField, ModelFieldsSchema
@@ -600,8 +600,8 @@ class FinalRequestOptions(pydantic.BaseModel):
 
     def get_max_retries(self, max_retries: int) -> int:
         if isinstance(self.max_retries, NotGiven):
-            return max_retries
-        return self.max_retries
+            return max_retries or DEFAULT_MAX_RETRIES
+        return self.max_retries or DEFAULT_MAX_RETRIES
 
     def _strip_raw_response_header(self) -> None:
         if not is_given(self.headers):
