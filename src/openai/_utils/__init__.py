@@ -44,5 +44,7 @@ from ._streams import consume_sync_iterator as consume_sync_iterator, consume_as
 from ._transform import (
     PropertyInfo as PropertyInfo,
     transform as transform,
+    async_transform as async_transform,
     maybe_transform as maybe_transform,
+    async_maybe_transform as async_maybe_transform,
 )

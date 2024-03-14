@@ -1,5 +1,6 @@
 import json
-from typing import List
+from typing import List, cast
+from typing_extensions import Annotated
 
 import httpx
 import pytest
@@ -155,5 +156,39 @@ async def test_async_response_parse_custom_model(async_client: AsyncOpenAI) -> N
     )
 
     obj = await response.parse(to=CustomModel)
+    assert obj.foo == "hello!"
+    assert obj.bar == 2
+
+
+def test_response_parse_annotated_type(client: OpenAI) -> None:
+    response = APIResponse(
+        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        client=client,
+        stream=False,
+        stream_cls=None,
+        cast_to=str,
+        options=FinalRequestOptions.construct(method="get", url="/foo"),
+    )
+
+    obj = response.parse(
+        to=cast("type[CustomModel]", Annotated[CustomModel, "random metadata"]),
+    )
+    assert obj.foo == "hello!"
+    assert obj.bar == 2
+
+
+async def test_async_response_parse_annotated_type(async_client: AsyncOpenAI) -> None:
+    response = AsyncAPIResponse(
+        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        client=async_client,
+        stream=False,
+        stream_cls=None,
+        cast_to=str,
+        options=FinalRequestOptions.construct(method="get", url="/foo"),
+    )
+
+    obj = await response.parse(
+        to=cast("type[CustomModel]", Annotated[CustomModel, "random metadata"]),
+    )
     assert obj.foo == "hello!"
     assert obj.bar == 2

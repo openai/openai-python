@@ -18,6 +18,7 @@ The REST API documentation can be found [on platform.openai.com](https://platfor
 > The SDK was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code.
 
 ```sh
+# install from PyPI
 pip install openai
 ```
 

@@ -114,7 +114,4 @@ class Moderation(BaseModel):
     """A list of the categories along with their scores as predicted by model."""
 
     flagged: bool
-    """
-    Whether the content violates
-    [OpenAI's usage policies](/policies/usage-policies).
-    """
+    """Whether any of the below categories are flagged."""

@@ -13,10 +13,15 @@ from ._types import (
     FileContent,
     RequestFiles,
     HttpxFileTypes,
+    Base64FileInput,
     HttpxFileContent,
     HttpxRequestFiles,
 )
 from ._utils import is_tuple_t, is_mapping_t, is_sequence_t
+
+
+def is_base64_file_input(obj: object) -> TypeGuard[Base64FileInput]:
+    return isinstance(obj, io.IOBase) or isinstance(obj, os.PathLike)
 
 
 def is_file_content(obj: object) -> TypeGuard[FileContent]:

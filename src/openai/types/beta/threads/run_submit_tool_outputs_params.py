@@ -2,13 +2,18 @@
 
 from __future__ import annotations
 
-from typing import Iterable
-from typing_extensions import Required, TypedDict
+from typing import Union, Iterable, Optional
+from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["RunSubmitToolOutputsParams", "ToolOutput"]
+__all__ = [
+    "RunSubmitToolOutputsParamsBase",
+    "ToolOutput",
+    "RunSubmitToolOutputsParamsNonStreaming",
+    "RunSubmitToolOutputsParamsStreaming",
+]
 
 
-class RunSubmitToolOutputsParams(TypedDict, total=False):
+class RunSubmitToolOutputsParamsBase(TypedDict, total=False):
     thread_id: Required[str]
 
     tool_outputs: Required[Iterable[ToolOutput]]
@@ -24,3 +29,24 @@ class ToolOutput(TypedDict, total=False):
     The ID of the tool call in the `required_action` object within the run object
     the output is being submitted for.
     """
+
+
+class RunSubmitToolOutputsParamsNonStreaming(RunSubmitToolOutputsParamsBase):
+    stream: Optional[Literal[False]]
+    """
+    If `true`, returns a stream of events that happen during the Run as server-sent
+    events, terminating when the Run enters a terminal state with a `data: [DONE]`
+    message.
+    """
+
+
+class RunSubmitToolOutputsParamsStreaming(RunSubmitToolOutputsParamsBase):
+    stream: Required[Literal[True]]
+    """
+    If `true`, returns a stream of events that happen during the Run as server-sent
+    events, terminating when the Run enters a terminal state with a `data: [DONE]`
+    message.
+    """
+
+
+RunSubmitToolOutputsParams = Union[RunSubmitToolOutputsParamsNonStreaming, RunSubmitToolOutputsParamsStreaming]

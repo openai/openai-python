@@ -18,7 +18,11 @@ class TranscriptionCreateParams(TypedDict, total=False):
     """
 
     model: Required[Union[str, Literal["whisper-1"]]]
-    """ID of the model to use. Only `whisper-1` is currently available."""
+    """ID of the model to use.
+
+    Only `whisper-1` (which is powered by our open source Whisper V2 model) is
+    currently available.
+    """
 
     language: str
     """The language of the input audio.
@@ -54,7 +58,8 @@ class TranscriptionCreateParams(TypedDict, total=False):
     timestamp_granularities: List[Literal["word", "segment"]]
     """The timestamp granularities to populate for this transcription.
 
-    Any of these options: `word`, or `segment`. Note: There is no additional latency
-    for segment timestamps, but generating word timestamps incurs additional
-    latency.
+    `response_format` must be set `verbose_json` to use timestamp granularities.
+    Either or both of these options are supported: `word`, or `segment`. Note: There
+    is no additional latency for segment timestamps, but generating word timestamps
+    incurs additional latency.
     """

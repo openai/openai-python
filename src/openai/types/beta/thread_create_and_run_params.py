@@ -5,20 +5,21 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from ...types import shared_params
+from .function_tool_param import FunctionToolParam
+from .retrieval_tool_param import RetrievalToolParam
+from .code_interpreter_tool_param import CodeInterpreterToolParam
 
 __all__ = [
-    "ThreadCreateAndRunParams",
+    "ThreadCreateAndRunParamsBase",
     "Thread",
     "ThreadMessage",
     "Tool",
-    "ToolAssistantToolsCode",
-    "ToolAssistantToolsRetrieval",
-    "ToolAssistantToolsFunction",
+    "ThreadCreateAndRunParamsNonStreaming",
+    "ThreadCreateAndRunParamsStreaming",
 ]
 
 
-class ThreadCreateAndRunParams(TypedDict, total=False):
+class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     assistant_id: Required[str]
     """
     The ID of the
@@ -101,21 +102,25 @@ class Thread(TypedDict, total=False):
     """
 
 
-class ToolAssistantToolsCode(TypedDict, total=False):
-    type: Required[Literal["code_interpreter"]]
-    """The type of tool being defined: `code_interpreter`"""
+Tool = Union[CodeInterpreterToolParam, RetrievalToolParam, FunctionToolParam]
 
 
-class ToolAssistantToolsRetrieval(TypedDict, total=False):
-    type: Required[Literal["retrieval"]]
-    """The type of tool being defined: `retrieval`"""
+class ThreadCreateAndRunParamsNonStreaming(ThreadCreateAndRunParamsBase):
+    stream: Optional[Literal[False]]
+    """
+    If `true`, returns a stream of events that happen during the Run as server-sent
+    events, terminating when the Run enters a terminal state with a `data: [DONE]`
+    message.
+    """
 
 
-class ToolAssistantToolsFunction(TypedDict, total=False):
-    function: Required[shared_params.FunctionDefinition]
+class ThreadCreateAndRunParamsStreaming(ThreadCreateAndRunParamsBase):
+    stream: Required[Literal[True]]
+    """
+    If `true`, returns a stream of events that happen during the Run as server-sent
+    events, terminating when the Run enters a terminal state with a `data: [DONE]`
+    message.
+    """
 
-    type: Required[Literal["function"]]
-    """The type of tool being defined: `function`"""
 
-
-Tool = Union[ToolAssistantToolsCode, ToolAssistantToolsRetrieval, ToolAssistantToolsFunction]
+ThreadCreateAndRunParams = Union[ThreadCreateAndRunParamsNonStreaming, ThreadCreateAndRunParamsStreaming]

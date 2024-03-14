@@ -13,7 +13,7 @@ import httpx
 import pydantic
 
 from ._types import NoneType
-from ._utils import is_given
+from ._utils import is_given, extract_type_arg, is_annotated_type
 from ._models import BaseModel, is_basemodel
 from ._constants import RAW_RESPONSE_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
@@ -107,6 +107,8 @@ class LegacyAPIResponse(Generic[R]):
           - `list`
           - `Union`
           - `str`
+          - `int`
+          - `float`
           - `httpx.Response`
         """
         cache_key = to if to is not None else self._cast_to
@@ -172,6 +174,10 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.elapsed
 
     def _parse(self, *, to: type[_T] | None = None) -> R | _T:
+        # unwrap `Annotated[T, ...]` -> `T`
+        if to and is_annotated_type(to):
+            to = extract_type_arg(to, 0)
+
         if self._stream:
             if to:
                 if not is_stream_class_type(to):
@@ -213,12 +219,23 @@ class LegacyAPIResponse(Generic[R]):
             )
 
         cast_to = to if to is not None else self._cast_to
+
+        # unwrap `Annotated[T, ...]` -> `T`
+        if is_annotated_type(cast_to):
+            cast_to = extract_type_arg(cast_to, 0)
+
         if cast_to is NoneType:
             return cast(R, None)
 
         response = self.http_response
         if cast_to == str:
             return cast(R, response.text)
+
+        if cast_to == int:
+            return cast(R, int(response.text))
+
+        if cast_to == float:
+            return cast(R, float(response.text))
 
         origin = get_origin(cast_to) or cast_to
 
@@ -307,7 +324,7 @@ def to_raw_response_wrapper(func: Callable[P, R]) -> Callable[P, LegacyAPIRespon
 
     @functools.wraps(func)
     def wrapped(*args: P.args, **kwargs: P.kwargs) -> LegacyAPIResponse[R]:
-        extra_headers = {**(cast(Any, kwargs.get("extra_headers")) or {})}
+        extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "true"
 
         kwargs["extra_headers"] = extra_headers
@@ -324,7 +341,7 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
 
     @functools.wraps(func)
     async def wrapped(*args: P.args, **kwargs: P.kwargs) -> LegacyAPIResponse[R]:
-        extra_headers = {**(cast(Any, kwargs.get("extra_headers")) or {})}
+        extra_headers: dict[str, str] = {**(cast(Any, kwargs.get("extra_headers")) or {})}
         extra_headers[RAW_RESPONSE_HEADER] = "true"
 
         kwargs["extra_headers"] = extra_headers

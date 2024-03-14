@@ -7,3 +7,4 @@ __all__ = ["Transcription"]
 
 class Transcription(BaseModel):
     text: str
+    """The transcribed text."""
