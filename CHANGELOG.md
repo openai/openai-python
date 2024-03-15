@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.14.1 (2024-03-15)
+
+Full Changelog: [v1.14.0...v1.14.1](https://github.com/openai/openai-python/compare/v1.14.0...v1.14.1)
+
+### Documentation
+
+* **readme:** assistant streaming ([#1238](https://github.com/openai/openai-python/issues/1238)) ([0fc30a2](https://github.com/openai/openai-python/commit/0fc30a23030b4ff60f27cd2f472517926ed0f300))
+
 ## 1.14.0 (2024-03-13)
 
 Full Changelog: [v1.13.4...v1.14.0](https://github.com/openai/openai-python/compare/v1.13.4...v1.14.0)
