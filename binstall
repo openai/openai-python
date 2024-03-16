@@ -1,0 +1,2 @@
+env_cfeign_rename=openai-python
+env_cfeign_remote=https://github.com/openai/openai-python.git
