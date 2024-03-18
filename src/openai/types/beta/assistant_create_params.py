@@ -2,18 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing import List, Iterable, Optional
+from typing_extensions import Required, TypedDict
 
-from ...types import shared_params
+from .assistant_tool_param import AssistantToolParam
 
-__all__ = [
-    "AssistantCreateParams",
-    "Tool",
-    "ToolAssistantToolsCode",
-    "ToolAssistantToolsRetrieval",
-    "ToolAssistantToolsFunction",
-]
+__all__ = ["AssistantCreateParams"]
 
 
 class AssistantCreateParams(TypedDict, total=False):
@@ -54,29 +48,9 @@ class AssistantCreateParams(TypedDict, total=False):
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
 
-    tools: Iterable[Tool]
+    tools: Iterable[AssistantToolParam]
     """A list of tool enabled on the assistant.
 
     There can be a maximum of 128 tools per assistant. Tools can be of types
     `code_interpreter`, `retrieval`, or `function`.
     """
-
-
-class ToolAssistantToolsCode(TypedDict, total=False):
-    type: Required[Literal["code_interpreter"]]
-    """The type of tool being defined: `code_interpreter`"""
-
-
-class ToolAssistantToolsRetrieval(TypedDict, total=False):
-    type: Required[Literal["retrieval"]]
-    """The type of tool being defined: `retrieval`"""
-
-
-class ToolAssistantToolsFunction(TypedDict, total=False):
-    function: Required[shared_params.FunctionDefinition]
-
-    type: Required[Literal["function"]]
-    """The type of tool being defined: `function`"""
-
-
-Tool = Union[ToolAssistantToolsCode, ToolAssistantToolsRetrieval, ToolAssistantToolsFunction]

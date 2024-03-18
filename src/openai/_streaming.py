@@ -5,7 +5,7 @@ import json
 import inspect
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, AsyncIterator, cast
-from typing_extensions import Self, TypeGuard, override, get_origin
+from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
 
 import httpx
 
@@ -24,6 +24,8 @@ class Stream(Generic[_T]):
 
     response: httpx.Response
 
+    _decoder: SSEDecoder | SSEBytesDecoder
+
     def __init__(
         self,
         *,
@@ -34,7 +36,7 @@ class Stream(Generic[_T]):
         self.response = response
         self._cast_to = cast_to
         self._client = client
-        self._decoder = SSEDecoder()
+        self._decoder = client._make_sse_decoder()
         self._iterator = self.__stream__()
 
     def __next__(self) -> _T:
@@ -45,7 +47,10 @@ class Stream(Generic[_T]):
             yield item
 
     def _iter_events(self) -> Iterator[ServerSentEvent]:
-        yield from self._decoder.iter(self.response.iter_lines())
+        if isinstance(self._decoder, SSEBytesDecoder):
+            yield from self._decoder.iter_bytes(self.response.iter_bytes())
+        else:
+            yield from self._decoder.iter(self.response.iter_lines())
 
     def __stream__(self) -> Iterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -60,13 +65,39 @@ class Stream(Generic[_T]):
             if sse.event is None:
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
                     raise APIError(
-                        message="An error occurred during streaming",
+                        message=message,
                         request=self.response.request,
                         body=data["error"],
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
+
+            else:
+                data = sse.json()
+
+                if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
+                    raise APIError(
+                        message=message,
+                        request=self.response.request,
+                        body=data["error"],
+                    )
+
+                yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
 
         # Ensure the entire stream is consumed
         for _sse in iterator:
@@ -97,6 +128,8 @@ class AsyncStream(Generic[_T]):
 
     response: httpx.Response
 
+    _decoder: SSEDecoder | SSEBytesDecoder
+
     def __init__(
         self,
         *,
@@ -107,7 +140,7 @@ class AsyncStream(Generic[_T]):
         self.response = response
         self._cast_to = cast_to
         self._client = client
-        self._decoder = SSEDecoder()
+        self._decoder = client._make_sse_decoder()
         self._iterator = self.__stream__()
 
     async def __anext__(self) -> _T:
@@ -118,8 +151,12 @@ class AsyncStream(Generic[_T]):
             yield item
 
     async def _iter_events(self) -> AsyncIterator[ServerSentEvent]:
-        async for sse in self._decoder.aiter(self.response.aiter_lines()):
-            yield sse
+        if isinstance(self._decoder, SSEBytesDecoder):
+            async for sse in self._decoder.aiter_bytes(self.response.aiter_bytes()):
+                yield sse
+        else:
+            async for sse in self._decoder.aiter(self.response.aiter_lines()):
+                yield sse
 
     async def __stream__(self) -> AsyncIterator[_T]:
         cast_to = cast(Any, self._cast_to)
@@ -134,13 +171,39 @@ class AsyncStream(Generic[_T]):
             if sse.event is None:
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
                     raise APIError(
-                        message="An error occurred during streaming",
+                        message=message,
                         request=self.response.request,
                         body=data["error"],
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
+
+            else:
+                data = sse.json()
+
+                if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
+                    raise APIError(
+                        message=message,
+                        request=self.response.request,
+                        body=data["error"],
+                    )
+
+                yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
 
         # Ensure the entire stream is consumed
         async for _sse in iterator:
@@ -282,6 +345,17 @@ class SSEDecoder:
             pass  # Field is ignored.
 
         return None
+
+
+@runtime_checkable
+class SSEBytesDecoder(Protocol):
+    def iter_bytes(self, iterator: Iterator[bytes]) -> Iterator[ServerSentEvent]:
+        """Given an iterator that yields raw binary data, iterate over it & yield every event encountered"""
+        ...
+
+    def aiter_bytes(self, iterator: AsyncIterator[bytes]) -> AsyncIterator[ServerSentEvent]:
+        """Given an async iterator that yields raw binary data, iterate over it & yield every event encountered"""
+        ...
 
 
 def is_stream_class_type(typ: type) -> TypeGuard[type[Stream[object]] | type[AsyncStream[object]]]:

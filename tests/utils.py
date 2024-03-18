@@ -14,6 +14,8 @@ from openai._utils import (
     is_list,
     is_list_type,
     is_union_type,
+    extract_type_arg,
+    is_annotated_type,
 )
 from openai._compat import PYDANTIC_V2, field_outer_type, get_model_fields
 from openai._models import BaseModel
@@ -49,6 +51,10 @@ def assert_matches_type(
     path: list[str],
     allow_none: bool = False,
 ) -> None:
+    # unwrap `Annotated[T, ...]` -> `T`
+    if is_annotated_type(type_):
+        type_ = extract_type_arg(type_, 0)
+
     if allow_none and value is None:
         return
 
