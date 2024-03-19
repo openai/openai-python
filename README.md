@@ -51,6 +51,24 @@ we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `OPENAI_API_KEY="My API Key"` to your `.env` file
 so that your API Key is not stored in source control.
 
+### Streaming Helpers
+
+The SDK also includes helpers to process streams and handle the incoming events.
+
+```python
+with client.beta.threads.runs.create_and_stream(
+    thread_id=thread.id,
+    assistant_id=assistant.id,
+    instructions="Please address the user as Jane Doe. The user has a premium account.",
+) as stream:
+    for event in stream:
+        # Print the text from text delta events
+        if event.type == "thread.message.delta" and event.data.delta.content:
+            print(event.data.delta.content[0].text)
+```
+
+More information on streaming helpers can be found in the dedicated documentation: [helpers.md](helpers.md)
+
 ## Async usage
 
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
