@@ -51,6 +51,8 @@ class Completions(SyncAPIResource):
             Literal[
                 "gpt-4",
                 "gpt-3.5-turbo",
+                "gpt-4-1106-preview",
+                "gpt-4-turbo-preview",
             ],
             List[
                 Union[
@@ -58,6 +60,8 @@ class Completions(SyncAPIResource):
                     Literal[
                         "gpt-4",
                         "gpt-3.5-turbo",
+                        "gpt-4-1106-preview",
+                        "gpt-4-turbo-preview",
                     ]
                 ]
             ]
@@ -235,6 +239,8 @@ class Completions(SyncAPIResource):
             Literal[
                 "gpt-4",
                 "gpt-3.5-turbo",
+                "gpt-4-1106-preview",
+                "gpt-4-turbo-preview",
             ],
             List[
                 Union[
@@ -242,6 +248,8 @@ class Completions(SyncAPIResource):
                     Literal[
                         "gpt-4",
                         "gpt-3.5-turbo",
+                        "gpt-4-1106-preview",
+                        "gpt-4-turbo-preview",
                     ]
                 ]
             ]
@@ -419,6 +427,8 @@ class Completions(SyncAPIResource):
             Literal[
                 "gpt-4",
                 "gpt-3.5-turbo",
+                "gpt-4-1106-preview",
+                "gpt-4-turbo-preview",
             ],
             List[
                 Union[
@@ -426,6 +436,8 @@ class Completions(SyncAPIResource):
                     Literal[
                         "gpt-4",
                         "gpt-3.5-turbo",
+                        "gpt-4-1106-preview",
+                        "gpt-4-turbo-preview",
                     ]
                 ]
             ]
@@ -603,6 +615,8 @@ class Completions(SyncAPIResource):
             Literal[
                 "gpt-4",
                 "gpt-3.5-turbo",
+                "gpt-4-1106-preview",
+                "gpt-4-turbo-preview",
             ],
             List[
                 Union[
@@ -610,6 +624,8 @@ class Completions(SyncAPIResource):
                     Literal[
                         "gpt-4",
                         "gpt-3.5-turbo",
+                        "gpt-4-1106-preview",
+                        "gpt-4-turbo-preview",
                     ]
                 ]
             ]
