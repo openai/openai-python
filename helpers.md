@@ -15,24 +15,28 @@ You can subscribe to events by creating an event handler class and overloading t
 
 ```python
 from typing_extensions import override
-from openai import AssistantEventHandler
+from openai import AssistantEventHandler, OpenAI
+from openai.types.beta.threads import Text, TextDelta
+from openai.types.beta.threads.runs import ToolCall, ToolCallDelta
+
+client = openai.OpenAI()
 
 # First, we create a EventHandler class to define
 # how we want to handle the events in the response stream.
 
 class EventHandler(AssistantEventHandler):
   @override
-  def on_text_created(self, text) -> None:
+  def on_text_created(self, text: Text) -> None:
     print(f"\nassistant > ", end="", flush=True)
 
   @override
-  def on_text_delta(self, delta, snapshot):
+  def on_text_delta(self, delta: TextDelta, snapshot: Text):
     print(delta.value, end="", flush=True)
 
-  def on_tool_call_created(self, tool_call):
+  def on_tool_call_created(self, tool_call: ToolCall):
     print(f"\nassistant > {tool_call.type}\n", flush=True)
 
-  def on_tool_call_delta(self, delta, snapshot):
+  def on_tool_call_delta(self, delta: ToolCallDelta, snapshot: ToolCall):
     if delta.type == 'code_interpreter':
       if delta.code_interpreter.input:
         print(delta.code_interpreter.input, end="", flush=True)
@@ -47,13 +51,63 @@ class EventHandler(AssistantEventHandler):
 # and stream the response.
 
 with client.beta.threads.runs.create_and_stream(
-  thread_id=thread.id,
-  assistant_id=assistant.id,
-  instructions="Please address the user as Jane Doe. The user has a premium account.",
+  thread_id="thread_id",
+  assistant_id="assistant_id",
   event_handler=EventHandler(),
 ) as stream:
   stream.until_done()
 ```
+
+#### An example of iterating over events
+
+You can also iterate over all the streamed events.
+
+```python
+with client.beta.threads.runs.create_and_stream(
+  thread_id=thread.id,
+  assistant_id=assistant.id
+) as stream:
+    for event in stream:
+        # Print the text from text delta events
+        if event.type == "thread.message.delta" and event.data.delta.content:
+            print(event.data.delta.content[0].text)
+```
+
+#### An example of iterating over text
+
+You can also iterate over just the text deltas received
+
+```python
+with client.beta.threads.runs.create_and_stream(
+  thread_id=thread.id,
+  assistant_id=assistant.id
+) as stream:
+    for text in stream.text_deltas:
+        print(text)
+```
+
+### Creating Streams
+
+There are three helper methods for creating streams:
+
+```python
+client.beta.threads.runs.create_and_stream()
+```
+
+This method can be used to start and stream the response to an existing run with an associated thread
+that is already populated with messages.
+
+```python
+client.beta.threads.create_and_run_stream()
+```
+
+This method can be used to add a message to a thread, start a run and then stream the response.
+
+```python
+client.beta.threads.runs.submit_tool_outputs_stream()
+```
+
+This method can be used to submit a tool output to a run waiting on the output and start a stream.
 
 ### Assistant Events
 
@@ -139,22 +193,22 @@ This event is triggered if an exception occurs during streaming.
 The assistant streaming object also provides a few methods for convenience:
 
 ```python
-def current_event()
-def current_run()
-def current_message_snapshot()
-def current_run_step_snapshot()
+def current_event() -> AssistantStreamEvent | None
+def current_run() -> Run | None
+def current_message_snapshot() -> Message | None
+def current_run_step_snapshot() -> RunStep | None
 ```
 
 These methods are provided to allow you to access additional context from within event handlers. In many cases
 the handlers should include all the information you need for processing, but if additional context is required it
 can be accessed.
 
-Note: There is not always a relevant context in certain situations (these will be undefined in those cases).
+Note: There is not always a relevant context in certain situations (these will be `None` in those cases).
 
 ```python
-def get_final_run(self)
-def get_final_run_steps(self)
-def get_final_messages(self)
+def get_final_run(self) -> Run
+def get_final_run_steps(self) -> List[RunStep]
+def get_final_messages(self) -> List[Message]
 ```
 
 These methods are provided for convenience to collect information at the end of a stream. Calling these events
