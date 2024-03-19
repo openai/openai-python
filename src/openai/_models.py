@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, cast
 from datetime import date, datetime
+from functools import lru_cache
 from typing_extensions import (
     Unpack,
     Literal,
@@ -533,7 +534,12 @@ else:
 
 
 if PYDANTIC_V2:
-    from pydantic import TypeAdapter
+    if TYPE_CHECKING:
+        from pydantic import TypeAdapter
+    else:
+        from pydantic import TypeAdapter as _TypeAdapter
+
+        TypeAdapter = lru_cache(_TypeAdapter)
 
     def _validate_non_model_type(*, type_: type[_T], value: object) -> _T:
         return TypeAdapter(type_).validate_python(value)

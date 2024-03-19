@@ -86,7 +86,7 @@ Most tests require you to [set up a mock server](https://github.com/stoplightio/
 
 ```bash
 # you will need npm installed
-npx prism path/to/your/openapi.yml
+npx prism mock path/to/your/openapi.yml
 ```
 
 ```bash
