@@ -290,11 +290,15 @@ def is_basemodel_type(type_: type) -> TypeGuard[type[BaseModel] | type[GenericMo
     return issubclass(origin, BaseModel) or issubclass(origin, GenericModel)
 
 
-def construct_type(*, value: object, type_: type) -> object:
+def construct_type(*, value: object, type_: object) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
     If the given value does not match the expected type then it is returned as-is.
     """
+    # we allow `object` as the input type because otherwise, passing things like
+    # `Literal['value']` will be reported as a type error by type checkers
+    type_ = cast("type[object]", type_)
+
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):
         meta = get_args(type_)[1:]
