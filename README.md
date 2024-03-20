@@ -101,7 +101,7 @@ asyncio.run(main())
 
 Functionality between the synchronous and asynchronous clients is otherwise identical.
 
-## Streaming Responses
+## Streaming responses
 
 We provide support for streaming responses using Server Side Events (SSE).
 
@@ -281,7 +281,7 @@ completion = client.chat.completions.create(
 )
 ```
 
-## File Uploads
+## File uploads
 
 Request parameters that correspond to file uploads can be passed as `bytes`, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
 
