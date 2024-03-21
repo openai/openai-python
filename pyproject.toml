@@ -135,6 +135,7 @@ reportImplicitOverride = true
 reportImportCycles = false
 reportPrivateUsage = false
 
+
 [tool.ruff]
 line-length = 120
 output-format = "grouped"
