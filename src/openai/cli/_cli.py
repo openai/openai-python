@@ -105,7 +105,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "-V",
         "--version",
         action="version",
-        version="%(prog)s " + __version__,
+        version=f"%(prog)s {__version__}",
     )
 
     def help() -> None:
