@@ -8,6 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from ._utils import is_dict
+from ._models import construct_type
 
 __all__ = [
     "BadRequestError",
@@ -51,9 +52,9 @@ class APIError(OpenAIError):
         self.body = body
 
         if is_dict(body):
-            self.code = cast(Any, body.get("code"))
-            self.param = cast(Any, body.get("param"))
-            self.type = cast(Any, body.get("type"))
+            self.code = cast(Any, construct_type(type_=Optional[str], value=body.get("code")))
+            self.param = cast(Any, construct_type(type_=Optional[str], value=body.get("param")))
+            self.type = cast(Any, construct_type(type_=str, value=body.get("type")))
         else:
             self.code = None
             self.param = None
