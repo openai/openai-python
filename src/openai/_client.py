@@ -333,6 +333,17 @@ class AsyncOpenAI(AsyncAPIClient):
         self.with_raw_response = AsyncOpenAIWithRawResponse(self)
         self.with_streaming_response = AsyncOpenAIWithStreamedResponse(self)
 
+    async def __aenter__(self) -> "AsyncOpenAI":
+        # Ensuring the http client is started if not already.
+        if not self._client.is_started:
+            await self._client.__aenter__()
+        return self
+
+    async def __aexit__(self, exc_type, exc_value, traceback):
+        # Properly closing the http client when exiting the context.
+        await self._client.aclose()
+
+
     @property
     @override
     def qs(self) -> Querystring:
