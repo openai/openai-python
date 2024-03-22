@@ -121,5 +121,5 @@ You can release to package managers by using [the `Publish PyPI` GitHub action](
 
 ### Publish manually
 
-If you need to manually release a package, you can run the `bin/publish-pypi` script with an `PYPI_TOKEN` set on
+If you need to manually release a package, you can run the `bin/publish-pypi` script with a `PYPI_TOKEN` set on
 the environment.
