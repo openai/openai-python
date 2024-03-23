@@ -959,9 +959,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             log.debug("Raising connection error")
             raise APIConnectionError(request=request) from err
 
-        log.debug(
-            'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
-        )
+        log.debug(f'HTTP Request: {request.method} {request.url} "{response.status_code} {response.reason_phrase}"')
 
         try:
             response.raise_for_status()
