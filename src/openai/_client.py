@@ -335,8 +335,8 @@ class AsyncOpenAI(AsyncAPIClient):
 
     async def __aenter__(self) -> "AsyncOpenAI":
         # Ensuring the http client is started if not already.
-        if not self._client.is_started:
-            await self._client.__aenter__()
+        # if not self._client.is_started:
+        #     await self._client.__aenter__()
         return self
 
     async def __aexit__(self, exc_type, exc_value, traceback):
