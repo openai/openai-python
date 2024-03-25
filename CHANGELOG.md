@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.14.3 (2024-03-25)
+
+Full Changelog: [v1.14.2...v1.14.3](https://github.com/openai/openai-python/compare/v1.14.2...v1.14.3)
+
+### Bug Fixes
+
+* revert regression with 3.7 support ([#1269](https://github.com/openai/openai-python/issues/1269)) ([37aed56](https://github.com/openai/openai-python/commit/37aed564143dc7281f1eaa6ab64ec5ca334cf25e))
+
+
+### Chores
+
+* **internal:** construct error properties instead of using the raw response ([#1257](https://github.com/openai/openai-python/issues/1257)) ([11dce5c](https://github.com/openai/openai-python/commit/11dce5c66395722b245f5d5461ce379ca7b939e4))
+* **internal:** formatting change ([#1258](https://github.com/openai/openai-python/issues/1258)) ([b907dd7](https://github.com/openai/openai-python/commit/b907dd7dcae895e4209559da061d0991a8d640a6))
+* **internal:** loosen input type for util function ([#1250](https://github.com/openai/openai-python/issues/1250)) ([fc8b4c3](https://github.com/openai/openai-python/commit/fc8b4c37dc91dfcc0535c19236092992171784a0))
+
+
+### Documentation
+
+* **contributing:** fix typo ([#1264](https://github.com/openai/openai-python/issues/1264)) ([835cb9b](https://github.com/openai/openai-python/commit/835cb9b2f92e2aa3329545b4677865dcd4fd00f0))
+* **readme:** consistent use of sentence case in headings ([#1255](https://github.com/openai/openai-python/issues/1255)) ([519f371](https://github.com/openai/openai-python/commit/519f371af779b5fa353292ff5a2d3332afe0987e))
+* **readme:** document how to make undocumented requests ([#1256](https://github.com/openai/openai-python/issues/1256)) ([5887858](https://github.com/openai/openai-python/commit/5887858a7b649dfde5b733ef01e5cffcf953b2a7))
+
 ## 1.14.2 (2024-03-19)
 
 Full Changelog: [v1.14.1...v1.14.2](https://github.com/openai/openai-python/compare/v1.14.1...v1.14.2)
