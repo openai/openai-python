@@ -3,6 +3,7 @@ from __future__ import annotations
 import inspect
 from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, cast
 from datetime import date, datetime
+from functools import lru_cache
 from typing_extensions import (
     Unpack,
     Literal,
@@ -289,11 +290,15 @@ def is_basemodel_type(type_: type) -> TypeGuard[type[BaseModel] | type[GenericMo
     return issubclass(origin, BaseModel) or issubclass(origin, GenericModel)
 
 
-def construct_type(*, value: object, type_: type) -> object:
+def construct_type(*, value: object, type_: object) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
     If the given value does not match the expected type then it is returned as-is.
     """
+    # we allow `object` as the input type because otherwise, passing things like
+    # `Literal['value']` will be reported as a type error by type checkers
+    type_ = cast("type[object]", type_)
+
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):
         meta = get_args(type_)[1:]
@@ -533,7 +538,14 @@ else:
 
 
 if PYDANTIC_V2:
-    from pydantic import TypeAdapter
+    from pydantic import TypeAdapter as _TypeAdapter
+
+    _CachedTypeAdapter = cast("TypeAdapter[object]", lru_cache(maxsize=None)(_TypeAdapter))
+
+    if TYPE_CHECKING:
+        from pydantic import TypeAdapter
+    else:
+        TypeAdapter = _CachedTypeAdapter
 
     def _validate_non_model_type(*, type_: type[_T], value: object) -> _T:
         return TypeAdapter(type_).validate_python(value)
