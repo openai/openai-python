@@ -12,6 +12,7 @@ from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, As
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
+from ._constants import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES, DEFAULT_CONNECTION_LIMITS
 from ._exceptions import (
     APIError,
     OpenAIError,
@@ -63,6 +64,9 @@ __all__ = [
     "AsyncOpenAI",
     "file_from_path",
     "BaseModel",
+    "DEFAULT_TIMEOUT",
+    "DEFAULT_MAX_RETRIES",
+    "DEFAULT_CONNECTION_LIMITS",
 ]
 
 from .lib import azure as _azure
