@@ -33,15 +33,15 @@ numpy==1.26.4
     # via openai
     # via pandas
     # via pandas-stubs
-pandas==2.2.0
+pandas==2.2.1
     # via openai
-pandas-stubs==2.2.0.240218
+pandas-stubs==2.2.1.240316
     # via openai
 pydantic==2.4.2
     # via openai
 pydantic-core==2.10.1
     # via pydantic
-python-dateutil==2.8.2
+python-dateutil==2.9.0.post0
     # via pandas
 pytz==2024.1
     # via pandas
