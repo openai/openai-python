@@ -5,9 +5,6 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional, overload
 from typing_extensions import Literal
 
-from notdiamond.prompts.prompt import NDChatPromptTemplate
-from notdiamond.llms.llm import NDLLM
-
 import httpx
 
 from ... import _legacy_response
@@ -32,6 +29,7 @@ from ...types.chat import (
 from ..._base_client import (
     make_request_options,
 )
+from ...lib.notdiamond.model_select import model_select
 
 __all__ = ["Completions", "AsyncCompletions"]
 
@@ -66,9 +64,9 @@ class Completions(SyncAPIResource):
                         "gpt-3.5-turbo",
                         "gpt-4-1106-preview",
                         "gpt-4-turbo-preview",
-                    ]
+                    ],
                 ]
-            ]
+            ],
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -254,9 +252,9 @@ class Completions(SyncAPIResource):
                         "gpt-3.5-turbo",
                         "gpt-4-1106-preview",
                         "gpt-4-turbo-preview",
-                    ]
+                    ],
                 ]
-            ]
+            ],
         ],
         stream: Literal[True],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -442,9 +440,9 @@ class Completions(SyncAPIResource):
                         "gpt-3.5-turbo",
                         "gpt-4-1106-preview",
                         "gpt-4-turbo-preview",
-                    ]
+                    ],
                 ]
-            ]
+            ],
         ],
         stream: bool,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -630,9 +628,9 @@ class Completions(SyncAPIResource):
                         "gpt-3.5-turbo",
                         "gpt-4-1106-preview",
                         "gpt-4-turbo-preview",
-                    ]
+                    ],
                 ]
-            ]
+            ],
         ],
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -659,24 +657,20 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
+        # NotDiamond Changes
         models = model
         if type(model) is str:
             models = [model]
 
-        models = list(map(lambda x: f"openai/{x}", models))
+        llm_providers = list(map(lambda x: f"openai/{x}", models))
 
-        prompt_template = NDChatPromptTemplate.from_messages(
-            list(map(
-                lambda msg: (msg['role'], msg['content'].replace('{', '{{').replace('}', '}}')),
-                messages)
-            )
+        best_llm_model = model_select(
+            messages=list(
+                map(lambda msg: (msg["role"], msg["content"].replace("{", "{{").replace("}", "}}")), messages)
+            ),
+            llm_providers=llm_providers,
+            api_key=self._client.notdiamond_api_key,
         )
-        
-        nd_llm = NDLLM(
-            llm_providers=models,
-            api_key=self._client.notdiamond_api_key
-        )
-        best_llm_model = nd_llm.openai_model_select(prompt_template=prompt_template)
 
         return self._post(
             "/chat/completions",

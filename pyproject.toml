@@ -1,11 +1,11 @@
 [project]
-name = "openai"
-version = "1.14.3"
-description = "The official Python library for the openai API"
+name = "notdiamond-openai"
+version = "0.1.0-alpha"
+description = "NotDiamond Python library for easy OpenAI integration."
 readme = "README.md"
 license = "Apache-2.0"
 authors = [
-{ name = "OpenAI", email = "support@openai.com" },
+{ name = "NotDiamond", email = "t7@notdiamond.ai" },
 ]
 dependencies = [
     "httpx>=0.23.0, <1",
@@ -15,7 +15,8 @@ dependencies = [
     "distro>=1.7.0, <2",
     "sniffio",
     "cached-property; python_version < '3.8'",
-    "tqdm > 4"
+    "tqdm > 4",
+    "ppdeep>=20200505",
 ]
 requires-python = ">= 3.7.1"
 classifiers = [
@@ -40,8 +41,8 @@ classifiers = [
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 
 [project.urls]
-Homepage = "https://github.com/openai/openai-python"
-Repository = "https://github.com/openai/openai-python"
+Homepage = "https://notdiamond.ai/"
+Repository = "https://github.com/Not-Diamond/openai-python"
 
 [project.scripts]
 openai = "openai.cli:main"

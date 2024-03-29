@@ -3,35 +3,20 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Union, Mapping
-from typing_extensions import Self, override
+from typing import Any, Mapping, Union
 
 import httpx
+from typing_extensions import Self, override
 
-from . import resources, _exceptions
+from . import _exceptions, resources
+from ._base_client import DEFAULT_MAX_RETRIES, AsyncAPIClient, SyncAPIClient
+from ._exceptions import APIStatusError, OpenAIError
 from ._qs import Querystring
-from ._types import (
-    NOT_GIVEN,
-    Omit,
-    Timeout,
-    NotGiven,
-    Transport,
-    ProxiesTypes,
-    RequestOptions,
-)
-from ._utils import (
-    is_given,
-    is_mapping,
-    get_async_library,
-)
+from ._streaming import AsyncStream as AsyncStream
+from ._streaming import Stream as Stream
+from ._types import NOT_GIVEN, NotGiven, Omit, ProxiesTypes, RequestOptions, Timeout, Transport
+from ._utils import get_async_library, is_given, is_mapping
 from ._version import __version__
-from ._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ._exceptions import OpenAIError, APIStatusError
-from ._base_client import (
-    DEFAULT_MAX_RETRIES,
-    SyncAPIClient,
-    AsyncAPIClient,
-)
 
 __all__ = [
     "Timeout",
