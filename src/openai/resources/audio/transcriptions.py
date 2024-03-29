@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -9,7 +9,12 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
-from ..._utils import extract_files, maybe_transform, deepcopy_minimal
+from ..._utils import (
+    extract_files,
+    maybe_transform,
+    deepcopy_minimal,
+    async_maybe_transform,
+)
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -55,7 +60,8 @@ class Transcriptions(SyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will
@@ -75,9 +81,11 @@ class Transcriptions(SyncAPIResource):
               [log probability](https://en.wikipedia.org/wiki/Log_probability) to
               automatically increase the temperature until certain thresholds are hit.
 
-          timestamp_granularities: The timestamp granularities to populate for this transcription. Any of these
-              options: `word`, or `segment`. Note: There is no additional latency for segment
-              timestamps, but generating word timestamps incurs additional latency.
+          timestamp_granularities: The timestamp granularities to populate for this transcription.
+              `response_format` must be set `verbose_json` to use timestamp granularities.
+              Either or both of these options are supported: `word`, or `segment`. Note: There
+              is no additional latency for segment timestamps, but generating word timestamps
+              incurs additional latency.
 
           extra_headers: Send extra headers
 
@@ -149,7 +157,8 @@ class AsyncTranscriptions(AsyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will
@@ -169,9 +178,11 @@ class AsyncTranscriptions(AsyncAPIResource):
               [log probability](https://en.wikipedia.org/wiki/Log_probability) to
               automatically increase the temperature until certain thresholds are hit.
 
-          timestamp_granularities: The timestamp granularities to populate for this transcription. Any of these
-              options: `word`, or `segment`. Note: There is no additional latency for segment
-              timestamps, but generating word timestamps incurs additional latency.
+          timestamp_granularities: The timestamp granularities to populate for this transcription.
+              `response_format` must be set `verbose_json` to use timestamp granularities.
+              Either or both of these options are supported: `word`, or `segment`. Note: There
+              is no additional latency for segment timestamps, but generating word timestamps
+              incurs additional latency.
 
           extra_headers: Send extra headers
 
@@ -200,7 +211,7 @@ class AsyncTranscriptions(AsyncAPIResource):
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/audio/transcriptions",
-            body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+            body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
             files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

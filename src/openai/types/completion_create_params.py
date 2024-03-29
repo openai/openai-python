@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -124,7 +124,10 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     suffix: Optional[str]
-    """The suffix that comes after a completion of inserted text."""
+    """The suffix that comes after a completion of inserted text.
+
+    This parameter is only supported for `gpt-3.5-turbo-instruct`.
+    """
 
     temperature: Optional[float]
     """What sampling temperature to use, between 0 and 2.

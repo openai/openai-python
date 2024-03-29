@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -15,7 +15,12 @@ from ..types import (
     image_create_variation_params,
 )
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
-from .._utils import extract_files, maybe_transform, deepcopy_minimal
+from .._utils import (
+    extract_files,
+    maybe_transform,
+    deepcopy_minimal,
+    async_maybe_transform,
+)
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -65,7 +70,8 @@ class Images(SyncAPIResource):
               `n=1` is supported.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -146,7 +152,8 @@ class Images(SyncAPIResource):
           n: The number of images to generate. Must be between 1 and 10.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -226,7 +233,8 @@ class Images(SyncAPIResource):
               for `dall-e-3`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or
@@ -310,7 +318,8 @@ class AsyncImages(AsyncAPIResource):
               `n=1` is supported.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -345,7 +354,7 @@ class AsyncImages(AsyncAPIResource):
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/images/variations",
-            body=maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
+            body=await async_maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
             files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -391,7 +400,8 @@ class AsyncImages(AsyncAPIResource):
           n: The number of images to generate. Must be between 1 and 10.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024`.
@@ -428,7 +438,7 @@ class AsyncImages(AsyncAPIResource):
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/images/edits",
-            body=maybe_transform(body, image_edit_params.ImageEditParams),
+            body=await async_maybe_transform(body, image_edit_params.ImageEditParams),
             files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -471,7 +481,8 @@ class AsyncImages(AsyncAPIResource):
               for `dall-e-3`.
 
           response_format: The format in which the generated images are returned. Must be one of `url` or
-              `b64_json`.
+              `b64_json`. URLs are only valid for 60 minutes after the image has been
+              generated.
 
           size: The size of the generated images. Must be one of `256x256`, `512x512`, or
               `1024x1024` for `dall-e-2`. Must be one of `1024x1024`, `1792x1024`, or
@@ -496,7 +507,7 @@ class AsyncImages(AsyncAPIResource):
         """
         return await self._post(
             "/images/generations",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "prompt": prompt,
                     "model": model,

@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -12,7 +12,11 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import required_args, maybe_transform
+from ..._utils import (
+    required_args,
+    maybe_transform,
+    async_maybe_transform,
+)
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -203,11 +207,11 @@ class Completions(SyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
-          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
-              at each token position, each with an associated log probability. `logprobs` must
-              be set to `true` if this parameter is used.
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position, each with an associated log probability.
+              `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -391,11 +395,11 @@ class Completions(SyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
-          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
-              at each token position, each with an associated log probability. `logprobs` must
-              be set to `true` if this parameter is used.
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position, each with an associated log probability.
+              `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -579,11 +583,11 @@ class Completions(SyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
-          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
-              at each token position, each with an associated log probability. `logprobs` must
-              be set to `true` if this parameter is used.
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position, each with an associated log probability.
+              `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -883,11 +887,11 @@ class AsyncCompletions(AsyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
-          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
-              at each token position, each with an associated log probability. `logprobs` must
-              be set to `true` if this parameter is used.
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position, each with an associated log probability.
+              `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1073,11 +1077,11 @@ class AsyncCompletions(AsyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
-          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
-              at each token position, each with an associated log probability. `logprobs` must
-              be set to `true` if this parameter is used.
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position, each with an associated log probability.
+              `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1263,11 +1267,11 @@ class AsyncCompletions(AsyncAPIResource):
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
-              for.
+              for. A max of 128 functions are supported.
 
-          top_logprobs: An integer between 0 and 5 specifying the number of most likely tokens to return
-              at each token position, each with an associated log probability. `logprobs` must
-              be set to `true` if this parameter is used.
+          top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
+              return at each token position, each with an associated log probability.
+              `logprobs` must be set to `true` if this parameter is used.
 
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
@@ -1343,7 +1347,7 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         return await self._post(
             "/chat/completions",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "messages": messages,
                     "model": model,

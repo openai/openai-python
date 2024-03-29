@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,7 +10,10 @@ import httpx
 from .. import _legacy_response
 from ..types import ModerationCreateResponse, moderation_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from .._utils import maybe_transform
+from .._utils import (
+    maybe_transform,
+    async_maybe_transform,
+)
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -43,7 +46,7 @@ class Moderations(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
         """
-        Classifies if text violates OpenAI's Content Policy
+        Classifies if text is potentially harmful.
 
         Args:
           input: The input text to classify
@@ -103,7 +106,7 @@ class AsyncModerations(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
         """
-        Classifies if text violates OpenAI's Content Policy
+        Classifies if text is potentially harmful.
 
         Args:
           input: The input text to classify
@@ -127,7 +130,7 @@ class AsyncModerations(AsyncAPIResource):
         """
         return await self._post(
             "/moderations",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "input": input,
                     "model": model,

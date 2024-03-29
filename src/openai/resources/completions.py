@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -10,7 +10,11 @@ import httpx
 from .. import _legacy_response
 from ..types import Completion, completion_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from .._utils import required_args, maybe_transform
+from .._utils import (
+    required_args,
+    maybe_transform,
+    async_maybe_transform,
+)
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -152,6 +156,8 @@ class Completions(SyncAPIResource):
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
           suffix: The suffix that comes after a completion of inserted text.
+
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -301,6 +307,8 @@ class Completions(SyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -448,6 +456,8 @@ class Completions(SyncAPIResource):
               returned text will not contain the stop sequence.
 
           suffix: The suffix that comes after a completion of inserted text.
+
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -667,6 +677,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -814,6 +826,8 @@ class AsyncCompletions(AsyncAPIResource):
               returned text will not contain the stop sequence.
 
           suffix: The suffix that comes after a completion of inserted text.
+
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -963,6 +977,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           suffix: The suffix that comes after a completion of inserted text.
 
+              This parameter is only supported for `gpt-3.5-turbo-instruct`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -1019,7 +1035,7 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> Completion | AsyncStream[Completion]:
         return await self._post(
             "/completions",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "model": model,
                     "prompt": prompt,

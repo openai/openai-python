@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,7 +6,7 @@ import os as _os
 from typing_extensions import override
 
 from . import types
-from ._types import NoneType, Transport, ProxiesTypes
+from ._types import NOT_GIVEN, NoneType, NotGiven, Transport, ProxiesTypes
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
 from ._models import BaseModel
@@ -37,6 +37,8 @@ __all__ = [
     "NoneType",
     "Transport",
     "ProxiesTypes",
+    "NotGiven",
+    "NOT_GIVEN",
     "OpenAIError",
     "APIError",
     "APIStatusError",
@@ -67,6 +69,10 @@ from .lib import azure as _azure
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *
+from .lib.streaming import (
+    AssistantEventHandler as AssistantEventHandler,
+    AsyncAssistantEventHandler as AsyncAssistantEventHandler,
+)
 
 _setup_logging()
 

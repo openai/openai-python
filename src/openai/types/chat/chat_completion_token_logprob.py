@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
 
@@ -20,7 +20,12 @@ class TopLogprob(BaseModel):
     """
 
     logprob: float
-    """The log probability of this token."""
+    """The log probability of this token, if it is within the top 20 most likely
+    tokens.
+
+    Otherwise, the value `-9999.0` is used to signify that the token is very
+    unlikely.
+    """
 
 
 class ChatCompletionTokenLogprob(BaseModel):
@@ -36,7 +41,12 @@ class ChatCompletionTokenLogprob(BaseModel):
     """
 
     logprob: float
-    """The log probability of this token."""
+    """The log probability of this token, if it is within the top 20 most likely
+    tokens.
+
+    Otherwise, the value `-9999.0` is used to signify that the token is very
+    unlikely.
+    """
 
     top_logprobs: List[TopLogprob]
     """List of the most likely tokens and their log probability, at this token

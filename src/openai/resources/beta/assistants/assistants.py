@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -17,7 +17,10 @@ from .files import (
     AsyncFilesWithStreamingResponse,
 )
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ...._utils import maybe_transform
+from ...._utils import (
+    maybe_transform,
+    async_maybe_transform,
+)
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -25,6 +28,7 @@ from ....pagination import SyncCursorPage, AsyncCursorPage
 from ....types.beta import (
     Assistant,
     AssistantDeleted,
+    AssistantToolParam,
     assistant_list_params,
     assistant_create_params,
     assistant_update_params,
@@ -59,7 +63,7 @@ class Assistants(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[assistant_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -169,7 +173,7 @@ class Assistants(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: str | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[assistant_update_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -362,7 +366,7 @@ class AsyncAssistants(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[assistant_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -410,7 +414,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             "/assistants",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "model": model,
                     "description": description,
@@ -472,7 +476,7 @@ class AsyncAssistants(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: str | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[assistant_update_params.Tool] | NotGiven = NOT_GIVEN,
+        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -525,7 +529,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
         return await self._post(
             f"/assistants/{assistant_id}",
-            body=maybe_transform(
+            body=await async_maybe_transform(
                 {
                     "description": description,
                     "file_ids": file_ids,

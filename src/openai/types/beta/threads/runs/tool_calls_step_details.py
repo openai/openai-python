@@ -1,16 +1,12 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List
 from typing_extensions import Literal
 
+from .tool_call import ToolCall
 from ....._models import BaseModel
-from .code_tool_call import CodeToolCall
-from .function_tool_call import FunctionToolCall
-from .retrieval_tool_call import RetrievalToolCall
 
-__all__ = ["ToolCallsStepDetails", "ToolCall"]
-
-ToolCall = Union[CodeToolCall, RetrievalToolCall, FunctionToolCall]
+__all__ = ["ToolCallsStepDetails"]
 
 
 class ToolCallsStepDetails(BaseModel):

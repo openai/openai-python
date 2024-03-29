@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -190,14 +190,15 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of
-    functions the model may generate JSON inputs for.
+    functions the model may generate JSON inputs for. A max of 128 functions are
+    supported.
     """
 
     top_logprobs: Optional[int]
     """
-    An integer between 0 and 5 specifying the number of most likely tokens to return
-    at each token position, each with an associated log probability. `logprobs` must
-    be set to `true` if this parameter is used.
+    An integer between 0 and 20 specifying the number of most likely tokens to
+    return at each token position, each with an associated log probability.
+    `logprobs` must be set to `true` if this parameter is used.
     """
 
     top_p: Optional[float]

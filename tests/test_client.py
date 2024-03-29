@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -291,6 +291,16 @@ class TestOpenAI:
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
             timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
+
+    async def test_invalid_http_client(self) -> None:
+        with pytest.raises(TypeError, match="Invalid `http_client` arg"):
+            async with httpx.AsyncClient() as http_client:
+                OpenAI(
+                    base_url=base_url,
+                    api_key=api_key,
+                    _strict_response_validation=True,
+                    http_client=cast(Any, http_client),
+                )
 
     def test_default_headers_option(self) -> None:
         client = OpenAI(
@@ -993,6 +1003,16 @@ class TestAsyncOpenAI:
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
             timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
+
+    def test_invalid_http_client(self) -> None:
+        with pytest.raises(TypeError, match="Invalid `http_client` arg"):
+            with httpx.Client() as http_client:
+                AsyncOpenAI(
+                    base_url=base_url,
+                    api_key=api_key,
+                    _strict_response_validation=True,
+                    http_client=cast(Any, http_client),
+                )
 
     def test_default_headers_option(self) -> None:
         client = AsyncOpenAI(

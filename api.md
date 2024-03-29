@@ -1,7 +1,7 @@
 # Shared Types
 
 ```python
-from openai.types import FunctionDefinition, FunctionParameters
+from openai.types import ErrorObject, FunctionDefinition, FunctionParameters
 ```
 
 # Completions
@@ -177,7 +177,19 @@ Methods:
 Types:
 
 ```python
-from openai.types.beta import Assistant, AssistantDeleted
+from openai.types.beta import (
+    Assistant,
+    AssistantDeleted,
+    AssistantStreamEvent,
+    AssistantTool,
+    CodeInterpreterTool,
+    FunctionTool,
+    MessageStreamEvent,
+    RetrievalTool,
+    RunStepStreamEvent,
+    RunStreamEvent,
+    ThreadStreamEvent,
+)
 ```
 
 Methods:
@@ -218,6 +230,7 @@ Methods:
 - <code title="post /threads/{thread_id}">client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">update</a>(thread_id, \*\*<a href="src/openai/types/beta/thread_update_params.py">params</a>) -> <a href="./src/openai/types/beta/thread.py">Thread</a></code>
 - <code title="delete /threads/{thread_id}">client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">delete</a>(thread_id) -> <a href="./src/openai/types/beta/thread_deleted.py">ThreadDeleted</a></code>
 - <code title="post /threads/runs">client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">create_and_run</a>(\*\*<a href="src/openai/types/beta/thread_create_and_run_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/run.py">Run</a></code>
+- <code>client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">create_and_run_stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
 
 ### Runs
 
@@ -235,6 +248,8 @@ Methods:
 - <code title="get /threads/{thread_id}/runs">client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">list</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/run_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/run.py">SyncCursorPage[Run]</a></code>
 - <code title="post /threads/{thread_id}/runs/{run_id}/cancel">client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">cancel</a>(run_id, \*, thread_id) -> <a href="./src/openai/types/beta/threads/run.py">Run</a></code>
 - <code title="post /threads/{thread_id}/runs/{run_id}/submit_tool_outputs">client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">submit_tool_outputs</a>(run_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/run_submit_tool_outputs_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/run.py">Run</a></code>
+- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">create_and_stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
+- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">submit_tool_outputs_stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
 
 #### Steps
 
@@ -242,11 +257,22 @@ Types:
 
 ```python
 from openai.types.beta.threads.runs import (
-    CodeToolCall,
+    CodeInterpreterLogs,
+    CodeInterpreterOutputImage,
+    CodeInterpreterToolCall,
+    CodeInterpreterToolCallDelta,
     FunctionToolCall,
+    FunctionToolCallDelta,
     MessageCreationStepDetails,
     RetrievalToolCall,
+    RetrievalToolCallDelta,
     RunStep,
+    RunStepDelta,
+    RunStepDeltaEvent,
+    RunStepDeltaMessageDelta,
+    ToolCall,
+    ToolCallDelta,
+    ToolCallDeltaObject,
     ToolCallsStepDetails,
 )
 ```
@@ -262,19 +288,35 @@ Types:
 
 ```python
 from openai.types.beta.threads import (
-    MessageContentImageFile,
-    MessageContentText,
-    ThreadMessage,
-    ThreadMessageDeleted,
+    Annotation,
+    AnnotationDelta,
+    FileCitationAnnotation,
+    FileCitationDeltaAnnotation,
+    FilePathAnnotation,
+    FilePathDeltaAnnotation,
+    ImageFile,
+    ImageFileContentBlock,
+    ImageFileDelta,
+    ImageFileDeltaBlock,
+    Message,
+    MessageContent,
+    MessageContentDelta,
+    MessageDeleted,
+    MessageDelta,
+    MessageDeltaEvent,
+    Text,
+    TextContentBlock,
+    TextDelta,
+    TextDeltaBlock,
 )
 ```
 
 Methods:
 
-- <code title="post /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">create</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_create_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/thread_message.py">ThreadMessage</a></code>
-- <code title="get /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">retrieve</a>(message_id, \*, thread_id) -> <a href="./src/openai/types/beta/threads/thread_message.py">ThreadMessage</a></code>
-- <code title="post /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">update</a>(message_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/message_update_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/thread_message.py">ThreadMessage</a></code>
-- <code title="get /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">list</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/thread_message.py">SyncCursorPage[ThreadMessage]</a></code>
+- <code title="post /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">create</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_create_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
+- <code title="get /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">retrieve</a>(message_id, \*, thread_id) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
+- <code title="post /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">update</a>(message_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/message_update_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
+- <code title="get /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">list</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">SyncCursorPage[Message]</a></code>
 
 #### Files
 

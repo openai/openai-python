@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -32,7 +32,8 @@ class ImageCreateVariationParams(TypedDict, total=False):
     response_format: Optional[Literal["url", "b64_json"]]
     """The format in which the generated images are returned.
 
-    Must be one of `url` or `b64_json`.
+    Must be one of `url` or `b64_json`. URLs are only valid for 60 minutes after the
+    image has been generated.
     """
 
     size: Optional[Literal["256x256", "512x512", "1024x1024"]]

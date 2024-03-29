@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -9,7 +9,12 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
-from ..._utils import extract_files, maybe_transform, deepcopy_minimal
+from ..._utils import (
+    extract_files,
+    maybe_transform,
+    deepcopy_minimal,
+    async_maybe_transform,
+)
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -52,7 +57,8 @@ class Translations(SyncAPIResource):
           file: The audio file object (not file name) translate, in one of these formats: flac,
               mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -133,7 +139,8 @@ class AsyncTranslations(AsyncAPIResource):
           file: The audio file object (not file name) translate, in one of these formats: flac,
               mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` is currently available.
+          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
+              Whisper V2 model) is currently available.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -174,7 +181,7 @@ class AsyncTranslations(AsyncAPIResource):
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/audio/translations",
-            body=maybe_transform(body, translation_create_params.TranslationCreateParams),
+            body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
             files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

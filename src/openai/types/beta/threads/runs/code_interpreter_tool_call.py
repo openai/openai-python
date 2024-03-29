@@ -1,12 +1,13 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Union
-from typing_extensions import Literal
+from typing_extensions import Literal, Annotated
 
+from ....._utils import PropertyInfo
 from ....._models import BaseModel
 
 __all__ = [
-    "CodeToolCall",
+    "CodeInterpreterToolCall",
     "CodeInterpreter",
     "CodeInterpreterOutput",
     "CodeInterpreterOutputLogs",
@@ -38,7 +39,9 @@ class CodeInterpreterOutputImage(BaseModel):
     """Always `image`."""
 
 
-CodeInterpreterOutput = Union[CodeInterpreterOutputLogs, CodeInterpreterOutputImage]
+CodeInterpreterOutput = Annotated[
+    Union[CodeInterpreterOutputLogs, CodeInterpreterOutputImage], PropertyInfo(discriminator="type")
+]
 
 
 class CodeInterpreter(BaseModel):
@@ -53,7 +56,7 @@ class CodeInterpreter(BaseModel):
     """
 
 
-class CodeToolCall(BaseModel):
+class CodeInterpreterToolCall(BaseModel):
     id: str
     """The ID of the tool call."""
 
