@@ -139,3 +139,6 @@ class Run(BaseModel):
     This value will be `null` if the run is not in a terminal state (i.e.
     `in_progress`, `queued`, etc.).
     """
+
+    temperature: Optional[float] = None
+    """The sampling temperature used for this run. If not set, defaults to 1."""

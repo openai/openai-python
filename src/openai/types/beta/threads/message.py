@@ -63,9 +63,9 @@ class Message(BaseModel):
 
     run_id: Optional[str] = None
     """
-    If applicable, the ID of the
-    [run](https://platform.openai.com/docs/api-reference/runs) associated with the
-    authoring of this message.
+    The ID of the [run](https://platform.openai.com/docs/api-reference/runs)
+    associated with the creation of this message. Value is `null` when messages are
+    created manually using the create message or create thread endpoints.
     """
 
     status: Literal["in_progress", "incomplete", "completed"]
