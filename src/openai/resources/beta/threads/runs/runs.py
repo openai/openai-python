@@ -76,6 +76,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -114,6 +115,10 @@ class Runs(SyncAPIResource):
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
@@ -138,6 +143,7 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -176,6 +182,10 @@ class Runs(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
@@ -200,6 +210,7 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -238,6 +249,10 @@ class Runs(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
@@ -262,6 +277,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -283,6 +299,7 @@ class Runs(SyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "stream": stream,
+                    "temperature": temperature,
                     "tools": tools,
                 },
                 run_create_params.RunCreateParams,
@@ -489,6 +506,7 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         thread_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -510,6 +528,7 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         thread_id: str,
         event_handler: AssistantEventHandlerT,
@@ -531,6 +550,7 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         thread_id: str,
         event_handler: AssistantEventHandlerT | None = None,
@@ -561,6 +581,7 @@ class Runs(SyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
+                    "temperature": temperature,
                     "stream": True,
                     "tools": tools,
                 },
@@ -841,6 +862,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -879,6 +901,10 @@ class AsyncRuns(AsyncAPIResource):
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
@@ -903,6 +929,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -941,6 +968,10 @@ class AsyncRuns(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
@@ -965,6 +996,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1003,6 +1035,10 @@ class AsyncRuns(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
 
@@ -1027,6 +1063,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1048,6 +1085,7 @@ class AsyncRuns(AsyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "stream": stream,
+                    "temperature": temperature,
                     "tools": tools,
                 },
                 run_create_params.RunCreateParams,
@@ -1254,6 +1292,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         thread_id: str,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1275,6 +1314,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT,
@@ -1296,6 +1336,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
         thread_id: str,
         event_handler: AsyncAssistantEventHandlerT | None = None,
@@ -1328,6 +1369,7 @@ class AsyncRuns(AsyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
+                    "temperature": temperature,
                     "stream": True,
                     "tools": tools,
                 },

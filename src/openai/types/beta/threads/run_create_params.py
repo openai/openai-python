@@ -48,6 +48,13 @@ class RunCreateParamsBase(TypedDict, total=False):
     assistant will be used.
     """
 
+    temperature: Optional[float]
+    """What sampling temperature to use, between 0 and 2.
+
+    Higher values like 0.8 will make the output more random, while lower values like
+    0.2 will make it more focused and deterministic.
+    """
+
     tools: Optional[Iterable[AssistantToolParam]]
     """Override the tools the assistant can use for this run.
 

@@ -244,6 +244,7 @@ class Threads(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -278,6 +279,10 @@ class Threads(SyncAPIResource):
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -302,6 +307,7 @@ class Threads(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -336,6 +342,10 @@ class Threads(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -360,6 +370,7 @@ class Threads(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -394,6 +405,10 @@ class Threads(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -418,6 +433,7 @@ class Threads(SyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -437,6 +453,7 @@ class Threads(SyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "stream": stream,
+                    "temperature": temperature,
                     "thread": thread,
                     "tools": tools,
                 },
@@ -458,6 +475,7 @@ class Threads(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -478,6 +496,7 @@ class Threads(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         event_handler: AssistantEventHandlerT,
@@ -498,6 +517,7 @@ class Threads(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         event_handler: AssistantEventHandlerT | None = None,
@@ -524,6 +544,7 @@ class Threads(SyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
+                    "temperature": temperature,
                     "stream": True,
                     "thread": thread,
                     "tools": tools,
@@ -723,6 +744,7 @@ class AsyncThreads(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -757,6 +779,10 @@ class AsyncThreads(AsyncAPIResource):
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -781,6 +807,7 @@ class AsyncThreads(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -815,6 +842,10 @@ class AsyncThreads(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -839,6 +870,7 @@ class AsyncThreads(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -873,6 +905,10 @@ class AsyncThreads(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
+              make the output more random, while lower values like 0.2 will make it more
+              focused and deterministic.
+
           thread: If no thread is provided, an empty thread will be created.
 
           tools: Override the tools the assistant can use for this run. This is useful for
@@ -897,6 +933,7 @@ class AsyncThreads(AsyncAPIResource):
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -916,6 +953,7 @@ class AsyncThreads(AsyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "stream": stream,
+                    "temperature": temperature,
                     "thread": thread,
                     "tools": tools,
                 },
@@ -937,6 +975,7 @@ class AsyncThreads(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -957,6 +996,7 @@ class AsyncThreads(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         event_handler: AsyncAssistantEventHandlerT,
@@ -977,6 +1017,7 @@ class AsyncThreads(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
         event_handler: AsyncAssistantEventHandlerT | None = None,
@@ -1005,6 +1046,7 @@ class AsyncThreads(AsyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
+                    "temperature": temperature,
                     "stream": True,
                     "thread": thread,
                     "tools": tools,

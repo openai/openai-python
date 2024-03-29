@@ -210,6 +210,7 @@ class TestThreads:
             metadata={},
             model="string",
             stream=False,
+            temperature=1,
             thread={
                 "messages": [
                     {
@@ -277,6 +278,7 @@ class TestThreads:
             instructions="string",
             metadata={},
             model="string",
+            temperature=1,
             thread={
                 "messages": [
                     {
@@ -522,6 +524,7 @@ class TestAsyncThreads:
             metadata={},
             model="string",
             stream=False,
+            temperature=1,
             thread={
                 "messages": [
                     {
@@ -589,6 +592,7 @@ class TestAsyncThreads:
             instructions="string",
             metadata={},
             model="string",
+            temperature=1,
             thread={
                 "messages": [
                     {
