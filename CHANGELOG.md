@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.15.0 (2024-03-31)
+
+Full Changelog: [v1.14.3...v1.15.0](https://github.com/openai/openai-python/compare/v1.14.3...v1.15.0)
+
+### Features
+
+* **api:** adding temperature parameter ([#1282](https://github.com/openai/openai-python/issues/1282)) ([0e68fd3](https://github.com/openai/openai-python/commit/0e68fd3690155785d1fb0ee9a8604f51e6701b1d))
+* **client:** increase default HTTP max_connections to 1000 and max_keepalive_connections to 100 ([#1281](https://github.com/openai/openai-python/issues/1281)) ([340d139](https://github.com/openai/openai-python/commit/340d1391e3071a265ed12c0a8d70d4d73a860bd8))
+* **package:** export default constants ([#1275](https://github.com/openai/openai-python/issues/1275)) ([fdc126e](https://github.com/openai/openai-python/commit/fdc126e428320f1bed5eabd3eed229f08ab9effa))
+
+
+### Bug Fixes
+
+* **project:** use absolute github links on PyPi ([#1280](https://github.com/openai/openai-python/issues/1280)) ([94cd528](https://github.com/openai/openai-python/commit/94cd52837650e5b7e115119d69e6b1c7ba1f6bf1))
+
+
+### Chores
+
+* **internal:** bump dependencies ([#1273](https://github.com/openai/openai-python/issues/1273)) ([18dcd65](https://github.com/openai/openai-python/commit/18dcd654d9f54628b5fe21a499d1fef500e15f7f))
+
+
+### Documentation
+
+* **readme:** change undocumented params wording ([#1284](https://github.com/openai/openai-python/issues/1284)) ([7498ef1](https://github.com/openai/openai-python/commit/7498ef1e9568200086ba3efb99ea100feb05e3f0))
+
 ## 1.14.3 (2024-03-25)
 
 Full Changelog: [v1.14.2...v1.14.3](https://github.com/openai/openai-python/compare/v1.14.2...v1.14.3)
