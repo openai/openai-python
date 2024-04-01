@@ -46,11 +46,11 @@ class EventHandler(AssistantEventHandler):
           if output.type == "logs":
             print(f"\n{output.logs}", flush=True)
 
-# Then, we use the `create_and_stream` SDK helper
+# Then, we use the `stream` SDK helper
 # with the `EventHandler` class to create the Run
 # and stream the response.
 
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
   thread_id="thread_id",
   assistant_id="assistant_id",
   event_handler=EventHandler(),
@@ -63,7 +63,7 @@ with client.beta.threads.runs.create_and_stream(
 You can also iterate over all the streamed events.
 
 ```python
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
   thread_id=thread.id,
   assistant_id=assistant.id
 ) as stream:
@@ -78,7 +78,7 @@ with client.beta.threads.runs.create_and_stream(
 You can also iterate over just the text deltas received
 
 ```python
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
   thread_id=thread.id,
   assistant_id=assistant.id
 ) as stream:
@@ -91,7 +91,7 @@ with client.beta.threads.runs.create_and_stream(
 There are three helper methods for creating streams:
 
 ```python
-client.beta.threads.runs.create_and_stream()
+client.beta.threads.runs.stream()
 ```
 
 This method can be used to start and stream the response to an existing run with an associated thread

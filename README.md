@@ -51,12 +51,30 @@ we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `OPENAI_API_KEY="My API Key"` to your `.env` file
 so that your API Key is not stored in source control.
 
+### Polling Helpers
+
+When interacting with the API some actions such as starting a Run may take time to complete. The SDK includes
+helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
+If an API method results in an action which could benefit from polling there will be a corresponding version of the
+method ending in '\_and_poll'.
+
+For instance to create a Run and poll until it reaches a terminal state you can run:
+
+```python
+run = client.beta.threads.runs.create_and_poll(
+    thread_id=thread.id,
+    assistant_id=assistant.id,
+)
+```
+
+More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
+
 ### Streaming Helpers
 
 The SDK also includes helpers to process streams and handle the incoming events.
 
 ```python
-with client.beta.threads.runs.create_and_stream(
+with client.beta.threads.runs.stream(
     thread_id=thread.id,
     assistant_id=assistant.id,
     instructions="Please address the user as Jane Doe. The user has a premium account.",
