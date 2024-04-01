@@ -63,7 +63,7 @@ def main() -> None:
         )
         print(f"Question: {question}\n")
 
-        with client.beta.threads.runs.create_and_stream(
+        with client.beta.threads.runs.stream(
             thread_id=thread.id,
             assistant_id=assistant.id,
             instructions="Please address the user as Jane Doe. The user has a premium account.",

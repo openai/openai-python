@@ -467,6 +467,45 @@ class Threads(SyncAPIResource):
             stream_cls=Stream[AssistantStreamEvent],
         )
 
+    def create_and_run_poll(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Run:
+        """
+        A helper to create a thread, start a run and then poll for a terminal state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
+        """
+        run = self.create_and_run(
+            assistant_id=assistant_id,
+            instructions=instructions,
+            metadata=metadata,
+            model=model,
+            temperature=temperature,
+            stream=False,
+            thread=thread,
+            tools=tools,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+        return self.runs.poll(run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms)
+
     @overload
     def create_and_run_stream(
         self,
@@ -965,6 +1004,47 @@ class AsyncThreads(AsyncAPIResource):
             cast_to=Run,
             stream=stream or False,
             stream_cls=AsyncStream[AssistantStreamEvent],
+        )
+
+    async def create_and_run_poll(
+        self,
+        *,
+        assistant_id: str,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        model: Optional[str] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Run:
+        """
+        A helper to create a thread, start a run and then poll for a terminal state.
+        More information on Run lifecycles can be found here:
+        https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
+        """
+        run = await self.create_and_run(
+            assistant_id=assistant_id,
+            instructions=instructions,
+            metadata=metadata,
+            model=model,
+            temperature=temperature,
+            stream=False,
+            thread=thread,
+            tools=tools,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
+        )
+        return await self.runs.poll(
+            run.id, run.thread_id, extra_headers, extra_query, extra_body, timeout, poll_interval_ms
         )
 
     @overload
