@@ -203,6 +203,7 @@ class Messages(SyncAPIResource):
         before: str | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
         order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        run_id: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -230,6 +231,8 @@ class Messages(SyncAPIResource):
           order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
               order and `desc` for descending order.
 
+          run_id: Filter messages by the run ID that generated them.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -255,6 +258,7 @@ class Messages(SyncAPIResource):
                         "before": before,
                         "limit": limit,
                         "order": order,
+                        "run_id": run_id,
                     },
                     message_list_params.MessageListParams,
                 ),
@@ -432,6 +436,7 @@ class AsyncMessages(AsyncAPIResource):
         before: str | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
         order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        run_id: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -459,6 +464,8 @@ class AsyncMessages(AsyncAPIResource):
           order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
               order and `desc` for descending order.
 
+          run_id: Filter messages by the run ID that generated them.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -484,6 +491,7 @@ class AsyncMessages(AsyncAPIResource):
                         "before": before,
                         "limit": limit,
                         "order": order,
+                        "run_id": run_id,
                     },
                     message_list_params.MessageListParams,
                 ),
