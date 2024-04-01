@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.16.0 (2024-04-01)
+
+Full Changelog: [v1.15.0...v1.16.0](https://github.com/openai/openai-python/compare/v1.15.0...v1.16.0)
+
+### Features
+
+* **api:** add support for filtering messages by run_id ([#1288](https://github.com/openai/openai-python/issues/1288)) ([58d6b77](https://github.com/openai/openai-python/commit/58d6b773218ef1dd8dc6208124a16078e4ac11c1))
+* **api:** run polling helpers ([#1289](https://github.com/openai/openai-python/issues/1289)) ([6b427f3](https://github.com/openai/openai-python/commit/6b427f38610847bce3ce5334177f07917bd7c187))
+
+
+### Chores
+
+* **client:** validate that max_retries is not None ([#1286](https://github.com/openai/openai-python/issues/1286)) ([aa5920a](https://github.com/openai/openai-python/commit/aa5920af6131c49a44352524154ee4a1684e76b2))
+
+
+### Refactors
+
+* rename createAndStream to stream ([6b427f3](https://github.com/openai/openai-python/commit/6b427f38610847bce3ce5334177f07917bd7c187))
+
 ## 1.15.0 (2024-03-31)
 
 Full Changelog: [v1.14.3...v1.15.0](https://github.com/openai/openai-python/compare/v1.14.3...v1.15.0)
