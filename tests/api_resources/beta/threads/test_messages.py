@@ -195,6 +195,7 @@ class TestMessages:
             before="string",
             limit=0,
             order="asc",
+            run_id="string",
         )
         assert_matches_type(SyncCursorPage[Message], message, path=["response"])
 
@@ -410,6 +411,7 @@ class TestAsyncMessages:
             before="string",
             limit=0,
             order="asc",
+            run_id="string",
         )
         assert_matches_type(AsyncCursorPage[Message], message, path=["response"])
 
