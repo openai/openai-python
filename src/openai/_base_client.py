@@ -399,7 +399,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         *,
         body: object,
         response: httpx.Response,
-    ) -> _exceptions.APIStatusError:
+    ) -> APIStatusError:
         raise NotImplementedError()
 
     def _remaining_retries(
