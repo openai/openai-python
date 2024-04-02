@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.16.1 (2024-04-02)
+
+Full Changelog: [v1.16.0...v1.16.1](https://github.com/openai/openai-python/compare/v1.16.0...v1.16.1)
+
+### Chores
+
+* **internal:** defer model build for import latency ([#1291](https://github.com/openai/openai-python/issues/1291)) ([bc6866e](https://github.com/openai/openai-python/commit/bc6866eb2335d01532190d0906cad7bf9af28621))
+
 ## 1.16.0 (2024-04-01)
 
 Full Changelog: [v1.15.0...v1.16.0](https://github.com/openai/openai-python/compare/v1.15.0...v1.16.0)
