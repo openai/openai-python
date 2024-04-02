@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import inspect
 from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, cast
 from datetime import date, datetime
@@ -38,6 +39,7 @@ from ._utils import (
     is_given,
     is_mapping,
     parse_date,
+    coerce_boolean,
     parse_datetime,
     strip_not_given,
     extract_type_arg,
@@ -74,7 +76,9 @@ class _ConfigProtocol(Protocol):
 
 class BaseModel(pydantic.BaseModel):
     if PYDANTIC_V2:
-        model_config: ClassVar[ConfigDict] = ConfigDict(extra="allow")
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            extra="allow", defer_build=coerce_boolean(os.environ.get("DEFER_PYDANTIC_BUILD", "true"))
+        )
     else:
 
         @property
