@@ -1,10 +1,10 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Optional
-from typing_extensions import Literal
 
 from ..._models import BaseModel
 from .chat_completion_message_tool_call import ChatCompletionMessageToolCall
+from .chat_completion_role import ChatCompletionRole
 
 __all__ = ["ChatCompletionMessage", "FunctionCall"]
 
@@ -26,7 +26,7 @@ class ChatCompletionMessage(BaseModel):
     content: Optional[str] = None
     """The contents of the message."""
 
-    role: Literal["assistant"]
+    role: ChatCompletionRole
     """The role of the author of this message."""
 
     function_call: Optional[FunctionCall] = None
