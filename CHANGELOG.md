@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.16.2 (2024-04-04)
+
+Full Changelog: [v1.16.1...v1.16.2](https://github.com/openai/openai-python/compare/v1.16.1...v1.16.2)
+
+### Bug Fixes
+
+* **client:** correct logic for line decoding in streaming ([#1293](https://github.com/openai/openai-python/issues/1293)) ([687caef](https://github.com/openai/openai-python/commit/687caefa4acf615bf404f16817bfd9a6f285ee5c))
+
 ## 1.16.1 (2024-04-02)
 
 Full Changelog: [v1.16.0...v1.16.1](https://github.com/openai/openai-python/compare/v1.16.0...v1.16.1)
