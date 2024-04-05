@@ -75,6 +75,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -99,6 +100,8 @@ class Runs(SyncAPIResource):
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
               instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
               [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
@@ -143,6 +146,7 @@ class Runs(SyncAPIResource):
         assistant_id: str,
         stream: Literal[True],
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -170,6 +174,8 @@ class Runs(SyncAPIResource):
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
               instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
               [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
@@ -210,6 +216,7 @@ class Runs(SyncAPIResource):
         assistant_id: str,
         stream: bool,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -237,6 +244,8 @@ class Runs(SyncAPIResource):
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
               instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
               [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
@@ -276,6 +285,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -298,6 +308,7 @@ class Runs(SyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
@@ -505,6 +516,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -528,6 +540,7 @@ class Runs(SyncAPIResource):
             thread_id=thread_id,
             assistant_id=assistant_id,
             additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
             instructions=instructions,
             metadata=metadata,
             model=model,
@@ -557,6 +570,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -580,6 +594,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -603,6 +618,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -634,6 +650,7 @@ class Runs(SyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
@@ -703,6 +720,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -725,6 +743,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -747,6 +766,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -778,6 +798,7 @@ class Runs(SyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
@@ -1100,6 +1121,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1124,6 +1146,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
               instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
               [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
@@ -1168,6 +1192,7 @@ class AsyncRuns(AsyncAPIResource):
         assistant_id: str,
         stream: Literal[True],
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1195,6 +1220,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
               instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
               [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
@@ -1235,6 +1262,7 @@ class AsyncRuns(AsyncAPIResource):
         assistant_id: str,
         stream: bool,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1262,6 +1290,8 @@ class AsyncRuns(AsyncAPIResource):
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
               instructions.
+
+          additional_messages: Adds additional messages to the thread before creating the run.
 
           instructions: Overrides the
               [instructions](https://platform.openai.com/docs/api-reference/assistants/createAssistant)
@@ -1301,6 +1331,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1323,6 +1354,7 @@ class AsyncRuns(AsyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
@@ -1530,6 +1562,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1553,6 +1586,7 @@ class AsyncRuns(AsyncAPIResource):
             thread_id=thread_id,
             assistant_id=assistant_id,
             additional_instructions=additional_instructions,
+            additional_messages=additional_messages,
             instructions=instructions,
             metadata=metadata,
             model=model,
@@ -1582,6 +1616,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1605,6 +1640,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1628,6 +1664,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1661,6 +1698,7 @@ class AsyncRuns(AsyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
@@ -1730,6 +1768,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1752,6 +1791,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1774,6 +1814,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1807,6 +1848,7 @@ class AsyncRuns(AsyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "additional_instructions": additional_instructions,
+                    "additional_messages": additional_messages,
                     "instructions": instructions,
                     "metadata": metadata,
                     "model": model,
