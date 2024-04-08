@@ -29,6 +29,7 @@ from ._exceptions import (
     UnprocessableEntityError,
     APIResponseValidationError,
 )
+from ._base_client import DefaultHttpxClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 
 __all__ = [
@@ -67,6 +68,8 @@ __all__ = [
     "DEFAULT_TIMEOUT",
     "DEFAULT_MAX_RETRIES",
     "DEFAULT_CONNECTION_LIMITS",
+    "DefaultHttpxClient",
+    "DefaultAsyncHttpxClient",
 ]
 
 from .lib import azure as _azure

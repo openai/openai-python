@@ -716,7 +716,27 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
-class SyncHttpxClientWrapper(httpx.Client):
+class _DefaultHttpxClient(httpx.Client):
+    def __init__(self, **kwargs: Any) -> None:
+        kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+        kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+        kwargs.setdefault("follow_redirects", True)
+        super().__init__(**kwargs)
+
+
+if TYPE_CHECKING:
+    DefaultHttpxClient = httpx.Client
+    """An alias to `httpx.Client` that provides the same defaults that this SDK
+    uses internally.
+
+    This is useful because overriding the `http_client` with your own instance of
+    `httpx.Client` will result in httpx's defaults being used, not ours.
+    """
+else:
+    DefaultHttpxClient = _DefaultHttpxClient
+
+
+class SyncHttpxClientWrapper(DefaultHttpxClient):
     def __del__(self) -> None:
         try:
             self.close()
@@ -1262,7 +1282,27 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         return self._request_api_list(model, page, opts)
 
 
-class AsyncHttpxClientWrapper(httpx.AsyncClient):
+class _DefaultAsyncHttpxClient(httpx.AsyncClient):
+    def __init__(self, **kwargs: Any) -> None:
+        kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+        kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+        kwargs.setdefault("follow_redirects", True)
+        super().__init__(**kwargs)
+
+
+if TYPE_CHECKING:
+    DefaultAsyncHttpxClient = httpx.AsyncClient
+    """An alias to `httpx.AsyncClient` that provides the same defaults that this SDK
+    uses internally.
+
+    This is useful because overriding the `http_client` with your own instance of
+    `httpx.AsyncClient` will result in httpx's defaults being used, not ours.
+    """
+else:
+    DefaultAsyncHttpxClient = _DefaultAsyncHttpxClient
+
+
+class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
     def __del__(self) -> None:
         try:
             # TODO(someday): support non asyncio runtimes here
