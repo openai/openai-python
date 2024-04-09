@@ -678,9 +678,11 @@ def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_ac
             df_train = df.sample(n=n_train, random_state=42)
             df_valid = df.drop(df_train.index)
             df_train[["prompt", "completion"]].to_json(  # type: ignore
-                fnames[0], lines=True, orient="records", force_ascii=False
+                fnames[0], lines=True, orient="records", force_ascii=False, indent=None
             )
-            df_valid[["prompt", "completion"]].to_json(fnames[1], lines=True, orient="records", force_ascii=False)
+            df_valid[["prompt", "completion"]].to_json(
+                fnames[1], lines=True, orient="records", force_ascii=False, indent=None
+            )
 
             n_classes, pos_class = get_classification_hyperparams(df)
             additional_params += " --compute_classification_metrics"
@@ -690,7 +692,9 @@ def write_out_file(df: pd.DataFrame, fname: str, any_remediations: bool, auto_ac
                 additional_params += f" --classification_n_classes {n_classes}"
         else:
             assert len(fnames) == 1
-            df[["prompt", "completion"]].to_json(fnames[0], lines=True, orient="records", force_ascii=False)
+            df[["prompt", "completion"]].to_json(
+                fnames[0], lines=True, orient="records", force_ascii=False, indent=None
+            )
 
         # Add -v VALID_FILE if we split the file into train / valid
         files_string = ("s" if split else "") + " to `" + ("` and `".join(fnames))

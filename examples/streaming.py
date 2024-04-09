@@ -22,12 +22,12 @@ def sync_main() -> None:
 
     # You can manually control iteration over the response
     first = next(response)
-    print(f"got response data: {first.model_dump_json(indent=2)}")
+    print(f"got response data: {first.to_json()}")
 
     # Or you could automatically iterate through all of data.
     # Note that the for loop will not exit until *all* of the data has been processed.
     for data in response:
-        print(data.model_dump_json())
+        print(data.to_json())
 
 
 async def async_main() -> None:
@@ -43,12 +43,12 @@ async def async_main() -> None:
     # You can manually control iteration over the response.
     # In Python 3.10+ you can also use the `await anext(response)` builtin instead
     first = await response.__anext__()
-    print(f"got response data: {first.model_dump_json(indent=2)}")
+    print(f"got response data: {first.to_json()}")
 
     # Or you could automatically iterate through all of data.
     # Note that the for loop will not exit until *all* of the data has been processed.
     async for data in response:
-        print(data.model_dump_json())
+        print(data.to_json())
 
 
 sync_main()
