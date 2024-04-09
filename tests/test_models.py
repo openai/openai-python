@@ -501,6 +501,42 @@ def test_omitted_fields() -> None:
     assert "resource_id" in m.model_fields_set
 
 
+def test_to_dict() -> None:
+    class Model(BaseModel):
+        foo: Optional[str] = Field(alias="FOO", default=None)
+
+    m = Model(FOO="hello")
+    assert m.to_dict() == {"FOO": "hello"}
+    assert m.to_dict(use_api_names=False) == {"foo": "hello"}
+
+    m2 = Model()
+    assert m2.to_dict() == {}
+    assert m2.to_dict(exclude_unset=False) == {"FOO": None}
+    assert m2.to_dict(exclude_unset=False, exclude_none=True) == {}
+    assert m2.to_dict(exclude_unset=False, exclude_defaults=True) == {}
+
+    m3 = Model(FOO=None)
+    assert m3.to_dict() == {"FOO": None}
+    assert m3.to_dict(exclude_none=True) == {}
+    assert m3.to_dict(exclude_defaults=True) == {}
+
+    if PYDANTIC_V2:
+
+        class Model2(BaseModel):
+            created_at: datetime
+
+        time_str = "2024-03-21T11:39:01.275859"
+        m4 = Model2.construct(created_at=time_str)
+        assert m4.to_dict(mode="python") == {"created_at": datetime.fromisoformat(time_str)}
+        assert m4.to_dict(mode="json") == {"created_at": time_str}
+    else:
+        with pytest.raises(ValueError, match="mode is only supported in Pydantic v2"):
+            m.to_dict(mode="json")
+
+        with pytest.raises(ValueError, match="warnings is only supported in Pydantic v2"):
+            m.to_dict(warnings=False)
+
+
 def test_forwards_compat_model_dump_method() -> None:
     class Model(BaseModel):
         foo: Optional[str] = Field(alias="FOO", default=None)
@@ -530,6 +566,34 @@ def test_forwards_compat_model_dump_method() -> None:
 
         with pytest.raises(ValueError, match="warnings is only supported in Pydantic v2"):
             m.model_dump(warnings=False)
+
+
+def test_to_json() -> None:
+    class Model(BaseModel):
+        foo: Optional[str] = Field(alias="FOO", default=None)
+
+    m = Model(FOO="hello")
+    assert json.loads(m.to_json()) == {"FOO": "hello"}
+    assert json.loads(m.to_json(use_api_names=False)) == {"foo": "hello"}
+
+    if PYDANTIC_V2:
+        assert m.to_json(indent=None) == '{"FOO":"hello"}'
+    else:
+        assert m.to_json(indent=None) == '{"FOO": "hello"}'
+
+    m2 = Model()
+    assert json.loads(m2.to_json()) == {}
+    assert json.loads(m2.to_json(exclude_unset=False)) == {"FOO": None}
+    assert json.loads(m2.to_json(exclude_unset=False, exclude_none=True)) == {}
+    assert json.loads(m2.to_json(exclude_unset=False, exclude_defaults=True)) == {}
+
+    m3 = Model(FOO=None)
+    assert json.loads(m3.to_json()) == {"FOO": None}
+    assert json.loads(m3.to_json(exclude_none=True)) == {}
+
+    if not PYDANTIC_V2:
+        with pytest.raises(ValueError, match="warnings is only supported in Pydantic v2"):
+            m.to_json(warnings=False)
 
 
 def test_forwards_compat_model_dump_json_method() -> None:
