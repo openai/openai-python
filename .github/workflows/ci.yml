@@ -22,7 +22,7 @@ jobs:
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
           RYE_VERSION: 0.24.0
-          RYE_INSTALL_OPTION: "--yes"
+          RYE_INSTALL_OPTION: '--yes'
 
       - name: Install dependencies
         run: |
@@ -39,3 +39,5 @@ jobs:
       - name: Ensure importable
         run: |
           rye run python -c 'import openai'
+
+  
