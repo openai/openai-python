@@ -76,11 +76,13 @@ class APIStatusError(APIError):
 
     response: httpx.Response
     status_code: int
+    request_id: str | None
 
     def __init__(self, message: str, *, response: httpx.Response, body: object | None) -> None:
         super().__init__(message, response.request, body=body)
         self.response = response
         self.status_code = response.status_code
+        self.request_id = response.headers.get("x-request-id")
 
 
 class APIConnectionError(APIError):
