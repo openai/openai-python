@@ -29,7 +29,7 @@ class Assistant(BaseModel):
     instructions: Optional[str] = None
     """The system instructions that the assistant uses.
 
-    The maximum length is 32768 characters.
+    The maximum length is 256,000 characters.
     """
 
     metadata: Optional[object] = None

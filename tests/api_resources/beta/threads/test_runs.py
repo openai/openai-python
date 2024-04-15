@@ -57,11 +57,19 @@ class TestRuns:
                 },
             ],
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             stream=False,
             temperature=1,
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         assert_matches_type(Run, run, path=["response"])
 
@@ -136,10 +144,18 @@ class TestRuns:
                 },
             ],
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             temperature=1,
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         run_stream.response.close()
 
@@ -553,11 +569,19 @@ class TestAsyncRuns:
                 },
             ],
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             stream=False,
             temperature=1,
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         assert_matches_type(Run, run, path=["response"])
 
@@ -632,10 +656,18 @@ class TestAsyncRuns:
                 },
             ],
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             temperature=1,
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         await run_stream.response.aclose()
 

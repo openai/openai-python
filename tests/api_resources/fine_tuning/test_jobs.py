@@ -39,6 +39,36 @@ class TestJobs:
                 "learning_rate_multiplier": "auto",
                 "n_epochs": "auto",
             },
+            integrations=[
+                {
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "my-wandb-project",
+                        "name": "string",
+                        "entity": "string",
+                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                    },
+                },
+                {
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "my-wandb-project",
+                        "name": "string",
+                        "entity": "string",
+                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                    },
+                },
+                {
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "my-wandb-project",
+                        "name": "string",
+                        "entity": "string",
+                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                    },
+                },
+            ],
+            seed=42,
             suffix="x",
             validation_file="file-abc123",
         )
@@ -248,6 +278,36 @@ class TestAsyncJobs:
                 "learning_rate_multiplier": "auto",
                 "n_epochs": "auto",
             },
+            integrations=[
+                {
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "my-wandb-project",
+                        "name": "string",
+                        "entity": "string",
+                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                    },
+                },
+                {
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "my-wandb-project",
+                        "name": "string",
+                        "entity": "string",
+                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                    },
+                },
+                {
+                    "type": "wandb",
+                    "wandb": {
+                        "project": "my-wandb-project",
+                        "name": "string",
+                        "entity": "string",
+                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                    },
+                },
+            ],
+            seed=42,
             suffix="x",
             validation_file="file-abc123",
         )
