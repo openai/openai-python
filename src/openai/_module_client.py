@@ -42,6 +42,12 @@ class ModelsProxy(LazyProxy[resources.Models]):
         return _load_client().models
 
 
+class BatchesProxy(LazyProxy[resources.Batches]):
+    @override
+    def __load__(self) -> resources.Batches:
+        return _load_client().batches
+
+
 class EmbeddingsProxy(LazyProxy[resources.Embeddings]):
     @override
     def __load__(self) -> resources.Embeddings:
@@ -72,6 +78,7 @@ files: resources.Files = FilesProxy().__as_proxied__()
 audio: resources.Audio = AudioProxy().__as_proxied__()
 images: resources.Images = ImagesProxy().__as_proxied__()
 models: resources.Models = ModelsProxy().__as_proxied__()
+batches: resources.Batches = BatchesProxy().__as_proxied__()
 embeddings: resources.Embeddings = EmbeddingsProxy().__as_proxied__()
 completions: resources.Completions = CompletionsProxy().__as_proxied__()
 moderations: resources.Moderations = ModerationsProxy().__as_proxied__()
