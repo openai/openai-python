@@ -26,7 +26,7 @@ class AssistantUpdateParams(TypedDict, total=False):
     instructions: Optional[str]
     """The system instructions that the assistant uses.
 
-    The maximum length is 32768 characters.
+    The maximum length is 256,000 characters.
     """
 
     metadata: Optional[object]

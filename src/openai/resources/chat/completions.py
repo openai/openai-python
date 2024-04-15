@@ -50,6 +50,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -137,8 +139,7 @@ class Completions(SyncAPIResource):
 
           logprobs: Whether to return log probabilities of the output tokens or not. If true,
               returns the log probabilities of each output token returned in the `content` of
-              `message`. This option is currently not available on the `gpt-4-vision-preview`
-              model.
+              `message`.
 
           max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
               completion.
@@ -240,6 +241,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -334,8 +337,7 @@ class Completions(SyncAPIResource):
 
           logprobs: Whether to return log probabilities of the output tokens or not. If true,
               returns the log probabilities of each output token returned in the `content` of
-              `message`. This option is currently not available on the `gpt-4-vision-preview`
-              model.
+              `message`.
 
           max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
               completion.
@@ -430,6 +432,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -524,8 +528,7 @@ class Completions(SyncAPIResource):
 
           logprobs: Whether to return log probabilities of the output tokens or not. If true,
               returns the log probabilities of each output token returned in the `content` of
-              `message`. This option is currently not available on the `gpt-4-vision-preview`
-              model.
+              `message`.
 
           max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
               completion.
@@ -620,6 +623,8 @@ class Completions(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -717,6 +722,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -804,8 +811,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           logprobs: Whether to return log probabilities of the output tokens or not. If true,
               returns the log probabilities of each output token returned in the `content` of
-              `message`. This option is currently not available on the `gpt-4-vision-preview`
-              model.
+              `message`.
 
           max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
               completion.
@@ -907,6 +913,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -1001,8 +1009,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           logprobs: Whether to return log probabilities of the output tokens or not. If true,
               returns the log probabilities of each output token returned in the `content` of
-              `message`. This option is currently not available on the `gpt-4-vision-preview`
-              model.
+              `message`.
 
           max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
               completion.
@@ -1097,6 +1104,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -1191,8 +1200,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           logprobs: Whether to return log probabilities of the output tokens or not. If true,
               returns the log probabilities of each output token returned in the `content` of
-              `message`. This option is currently not available on the `gpt-4-vision-preview`
-              model.
+              `message`.
 
           max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
               completion.
@@ -1287,6 +1295,8 @@ class AsyncCompletions(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",

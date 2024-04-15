@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional, overload
+from typing import Union, Iterable, Optional, overload
 from functools import partial
 from typing_extensions import Literal
 
@@ -40,6 +40,8 @@ from ....types.beta import (
     Thread,
     ThreadDeleted,
     AssistantStreamEvent,
+    AssistantToolChoiceOptionParam,
+    AssistantResponseFormatOptionParam,
     thread_create_params,
     thread_update_params,
     thread_create_and_run_params,
@@ -241,12 +243,41 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -265,6 +296,18 @@ class Threads(SyncAPIResource):
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
@@ -275,6 +318,21 @@ class Threads(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
@@ -284,6 +342,13 @@ class Threads(SyncAPIResource):
               focused and deterministic.
 
           thread: If no thread is provided, an empty thread will be created.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling a tool.
+              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
 
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
@@ -305,11 +370,40 @@ class Threads(SyncAPIResource):
         assistant_id: str,
         stream: Literal[True],
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -332,6 +426,18 @@ class Threads(SyncAPIResource):
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
@@ -342,11 +448,33 @@ class Threads(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
 
           thread: If no thread is provided, an empty thread will be created.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling a tool.
+              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
 
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
@@ -368,11 +496,40 @@ class Threads(SyncAPIResource):
         assistant_id: str,
         stream: bool,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -395,6 +552,18 @@ class Threads(SyncAPIResource):
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
@@ -405,11 +574,33 @@ class Threads(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
 
           thread: If no thread is provided, an empty thread will be created.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling a tool.
+              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
 
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
@@ -430,12 +621,41 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -450,12 +670,17 @@ class Threads(SyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "instructions": instructions,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
                     "thread": thread,
+                    "tool_choice": tool_choice,
                     "tools": tools,
+                    "truncation_strategy": truncation_strategy,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),
@@ -472,11 +697,40 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -493,11 +747,16 @@ class Threads(SyncAPIResource):
         run = self.create_and_run(
             assistant_id=assistant_id,
             instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
             metadata=metadata,
             model=model,
+            response_format=response_format,
             temperature=temperature,
             stream=False,
             thread=thread,
+            tool_choice=tool_choice,
+            truncation_strategy=truncation_strategy,
             tools=tools,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -512,11 +771,40 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -533,11 +821,40 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AssistantEventHandlerT,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -554,11 +871,40 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AssistantEventHandlerT | None = None,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -581,12 +927,17 @@ class Threads(SyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "instructions": instructions,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "response_format": response_format,
                     "temperature": temperature,
+                    "tool_choice": tool_choice,
                     "stream": True,
                     "thread": thread,
                     "tools": tools,
+                    "truncation_strategy": truncation_strategy,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),
@@ -780,12 +1131,41 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -804,6 +1184,18 @@ class AsyncThreads(AsyncAPIResource):
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
@@ -814,6 +1206,21 @@ class AsyncThreads(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
@@ -823,6 +1230,13 @@ class AsyncThreads(AsyncAPIResource):
               focused and deterministic.
 
           thread: If no thread is provided, an empty thread will be created.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling a tool.
+              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
 
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
@@ -844,11 +1258,40 @@ class AsyncThreads(AsyncAPIResource):
         assistant_id: str,
         stream: Literal[True],
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -871,6 +1314,18 @@ class AsyncThreads(AsyncAPIResource):
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
@@ -881,11 +1336,33 @@ class AsyncThreads(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
 
           thread: If no thread is provided, an empty thread will be created.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling a tool.
+              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
 
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
@@ -907,11 +1384,40 @@ class AsyncThreads(AsyncAPIResource):
         assistant_id: str,
         stream: bool,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -934,6 +1440,18 @@ class AsyncThreads(AsyncAPIResource):
           instructions: Override the default system message of the assistant. This is useful for
               modifying the behavior on a per-run basis.
 
+          max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
+              run. The run will make a best effort to use only the number of completion tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              completion tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
+          max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
+              The run will make a best effort to use only the number of prompt tokens
+              specified, across multiple turns of the run. If the run exceeds the number of
+              prompt tokens specified, the run will end with status `complete`. See
+              `incomplete_details` for more info.
+
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
@@ -944,11 +1462,33 @@ class AsyncThreads(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          response_format: Specifies the format that the model must output. Compatible with
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              message the model generates is valid JSON.
+
+              **Important:** when using JSON mode, you **must** also instruct the model to
+              produce JSON yourself via a system or user message. Without this, the model may
+              generate an unending stream of whitespace until the generation reaches the token
+              limit, resulting in a long-running and seemingly "stuck" request. Also note that
+              the message content may be partially cut off if `finish_reason="length"`, which
+              indicates the generation exceeded `max_tokens` or the conversation exceeded the
+              max context length.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
 
           thread: If no thread is provided, an empty thread will be created.
+
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tools and instead generates a message. `auto` is the default value
+              and means the model can pick between generating a message or calling a tool.
+              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              `{"type": "function", "function": {"name": "my_function"}}` forces the model to
+              call that tool.
 
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
@@ -969,12 +1509,41 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -989,12 +1558,17 @@ class AsyncThreads(AsyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "instructions": instructions,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
                     "thread": thread,
+                    "tool_choice": tool_choice,
                     "tools": tools,
+                    "truncation_strategy": truncation_strategy,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),
@@ -1011,11 +1585,40 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1032,11 +1635,16 @@ class AsyncThreads(AsyncAPIResource):
         run = await self.create_and_run(
             assistant_id=assistant_id,
             instructions=instructions,
+            max_completion_tokens=max_completion_tokens,
+            max_prompt_tokens=max_prompt_tokens,
             metadata=metadata,
             model=model,
+            response_format=response_format,
             temperature=temperature,
             stream=False,
             thread=thread,
+            tool_choice=tool_choice,
+            truncation_strategy=truncation_strategy,
             tools=tools,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -1053,11 +1661,40 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1074,11 +1711,40 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AsyncAssistantEventHandlerT,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1095,11 +1761,40 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: Optional[str] | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+            None,
+        ]
+        | NotGiven = NOT_GIVEN,
+        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AsyncAssistantEventHandlerT | None = None,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1124,12 +1819,17 @@ class AsyncThreads(AsyncAPIResource):
                 {
                     "assistant_id": assistant_id,
                     "instructions": instructions,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "response_format": response_format,
                     "temperature": temperature,
+                    "tool_choice": tool_choice,
                     "stream": True,
                     "thread": thread,
                     "tools": tools,
+                    "truncation_strategy": truncation_strategy,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),

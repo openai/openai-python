@@ -207,8 +207,11 @@ class TestThreads:
         thread = client.beta.threads.create_and_run(
             assistant_id="string",
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             stream=False,
             temperature=1,
             thread={
@@ -234,7 +237,12 @@ class TestThreads:
                 ],
                 "metadata": {},
             },
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         assert_matches_type(Run, thread, path=["response"])
 
@@ -276,8 +284,11 @@ class TestThreads:
             assistant_id="string",
             stream=True,
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             temperature=1,
             thread={
                 "messages": [
@@ -302,7 +313,12 @@ class TestThreads:
                 ],
                 "metadata": {},
             },
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         thread_stream.response.close()
 
@@ -521,8 +537,11 @@ class TestAsyncThreads:
         thread = await async_client.beta.threads.create_and_run(
             assistant_id="string",
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             stream=False,
             temperature=1,
             thread={
@@ -548,7 +567,12 @@ class TestAsyncThreads:
                 ],
                 "metadata": {},
             },
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         assert_matches_type(Run, thread, path=["response"])
 
@@ -590,8 +614,11 @@ class TestAsyncThreads:
             assistant_id="string",
             stream=True,
             instructions="string",
+            max_completion_tokens=256,
+            max_prompt_tokens=256,
             metadata={},
-            model="string",
+            model="gpt-4-turbo",
+            response_format="none",
             temperature=1,
             thread={
                 "messages": [
@@ -616,7 +643,12 @@ class TestAsyncThreads:
                 ],
                 "metadata": {},
             },
+            tool_choice="none",
             tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            truncation_strategy={
+                "type": "auto",
+                "last_messages": 1,
+            },
         )
         await thread_stream.response.aclose()
 

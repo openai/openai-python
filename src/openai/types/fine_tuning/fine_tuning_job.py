@@ -4,6 +4,7 @@ from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .fine_tuning_job_wandb_integration_object import FineTuningJobWandbIntegrationObject
 
 __all__ = ["FineTuningJob", "Error", "Hyperparameters"]
 
@@ -80,6 +81,9 @@ class FineTuningJob(BaseModel):
     [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
     """
 
+    seed: int
+    """The seed used for the fine-tuning job."""
+
     status: Literal["validating_files", "queued", "running", "succeeded", "failed", "cancelled"]
     """
     The current status of the fine-tuning job, which can be either
@@ -105,3 +109,6 @@ class FineTuningJob(BaseModel):
     You can retrieve the validation results with the
     [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
     """
+
+    integrations: Optional[List[FineTuningJobWandbIntegrationObject]] = None
+    """A list of integrations to enable for this fine-tuning job."""
