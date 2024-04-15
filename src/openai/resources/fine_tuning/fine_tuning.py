@@ -11,6 +11,7 @@ from .jobs import (
     AsyncJobsWithStreamingResponse,
 )
 from ..._compat import cached_property
+from .jobs.jobs import Jobs, AsyncJobs
 from ..._resource import SyncAPIResource, AsyncAPIResource
 
 __all__ = ["FineTuning", "AsyncFineTuning"]

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import List, Iterable, Optional
-from typing_extensions import Required, TypedDict
+from typing import List, Union, Iterable, Optional
+from typing_extensions import Literal, Required, TypedDict
 
 from .assistant_tool_param import AssistantToolParam
 
@@ -11,7 +11,31 @@ __all__ = ["AssistantCreateParams"]
 
 
 class AssistantCreateParams(TypedDict, total=False):
-    model: Required[str]
+    model: Required[
+        Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+        ]
+    ]
     """ID of the model to use.
 
     You can use the
@@ -34,7 +58,7 @@ class AssistantCreateParams(TypedDict, total=False):
     instructions: Optional[str]
     """The system instructions that the assistant uses.
 
-    The maximum length is 32768 characters.
+    The maximum length is 256,000 characters.
     """
 
     metadata: Optional[object]

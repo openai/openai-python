@@ -2,26 +2,34 @@
 
 from __future__ import annotations
 
-from typing import Union, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
 
-from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import (
+from .... import _legacy_response
+from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ...._utils import (
     maybe_transform,
     async_maybe_transform,
 )
-from ..._compat import cached_property
-from ..._resource import SyncAPIResource, AsyncAPIResource
-from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ...pagination import SyncCursorPage, AsyncCursorPage
-from ..._base_client import (
+from ...._compat import cached_property
+from .checkpoints import (
+    Checkpoints,
+    AsyncCheckpoints,
+    CheckpointsWithRawResponse,
+    AsyncCheckpointsWithRawResponse,
+    CheckpointsWithStreamingResponse,
+    AsyncCheckpointsWithStreamingResponse,
+)
+from ...._resource import SyncAPIResource, AsyncAPIResource
+from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ....pagination import SyncCursorPage, AsyncCursorPage
+from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ...types.fine_tuning import (
+from ....types.fine_tuning import (
     FineTuningJob,
     FineTuningJobEvent,
     job_list_params,
@@ -33,6 +41,10 @@ __all__ = ["Jobs", "AsyncJobs"]
 
 
 class Jobs(SyncAPIResource):
+    @cached_property
+    def checkpoints(self) -> Checkpoints:
+        return Checkpoints(self._client)
+
     @cached_property
     def with_raw_response(self) -> JobsWithRawResponse:
         return JobsWithRawResponse(self)
@@ -47,6 +59,8 @@ class Jobs(SyncAPIResource):
         model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo"]],
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
+        integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         validation_file: Optional[str] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -82,6 +96,12 @@ class Jobs(SyncAPIResource):
 
           hyperparameters: The hyperparameters used for the fine-tuning job.
 
+          integrations: A list of integrations to enable for your fine-tuning job.
+
+          seed: The seed controls the reproducibility of the job. Passing in the same seed and
+              job parameters should produce the same results, but may differ in rare cases. If
+              a seed is not specified, one will be generated for you.
+
           suffix: A string of up to 18 characters that will be added to your fine-tuned model
               name.
 
@@ -116,6 +136,8 @@ class Jobs(SyncAPIResource):
                     "model": model,
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
+                    "integrations": integrations,
+                    "seed": seed,
                     "suffix": suffix,
                     "validation_file": validation_file,
                 },
@@ -295,6 +317,10 @@ class Jobs(SyncAPIResource):
 
 class AsyncJobs(AsyncAPIResource):
     @cached_property
+    def checkpoints(self) -> AsyncCheckpoints:
+        return AsyncCheckpoints(self._client)
+
+    @cached_property
     def with_raw_response(self) -> AsyncJobsWithRawResponse:
         return AsyncJobsWithRawResponse(self)
 
@@ -308,6 +334,8 @@ class AsyncJobs(AsyncAPIResource):
         model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo"]],
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
+        integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
+        seed: Optional[int] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         validation_file: Optional[str] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -343,6 +371,12 @@ class AsyncJobs(AsyncAPIResource):
 
           hyperparameters: The hyperparameters used for the fine-tuning job.
 
+          integrations: A list of integrations to enable for your fine-tuning job.
+
+          seed: The seed controls the reproducibility of the job. Passing in the same seed and
+              job parameters should produce the same results, but may differ in rare cases. If
+              a seed is not specified, one will be generated for you.
+
           suffix: A string of up to 18 characters that will be added to your fine-tuned model
               name.
 
@@ -377,6 +411,8 @@ class AsyncJobs(AsyncAPIResource):
                     "model": model,
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
+                    "integrations": integrations,
+                    "seed": seed,
                     "suffix": suffix,
                     "validation_file": validation_file,
                 },
@@ -574,6 +610,10 @@ class JobsWithRawResponse:
             jobs.list_events,
         )
 
+    @cached_property
+    def checkpoints(self) -> CheckpointsWithRawResponse:
+        return CheckpointsWithRawResponse(self._jobs.checkpoints)
+
 
 class AsyncJobsWithRawResponse:
     def __init__(self, jobs: AsyncJobs) -> None:
@@ -594,6 +634,10 @@ class AsyncJobsWithRawResponse:
         self.list_events = _legacy_response.async_to_raw_response_wrapper(
             jobs.list_events,
         )
+
+    @cached_property
+    def checkpoints(self) -> AsyncCheckpointsWithRawResponse:
+        return AsyncCheckpointsWithRawResponse(self._jobs.checkpoints)
 
 
 class JobsWithStreamingResponse:
@@ -616,6 +660,10 @@ class JobsWithStreamingResponse:
             jobs.list_events,
         )
 
+    @cached_property
+    def checkpoints(self) -> CheckpointsWithStreamingResponse:
+        return CheckpointsWithStreamingResponse(self._jobs.checkpoints)
+
 
 class AsyncJobsWithStreamingResponse:
     def __init__(self, jobs: AsyncJobs) -> None:
@@ -636,3 +684,7 @@ class AsyncJobsWithStreamingResponse:
         self.list_events = async_to_streamed_response_wrapper(
             jobs.list_events,
         )
+
+    @cached_property
+    def checkpoints(self) -> AsyncCheckpointsWithStreamingResponse:
+        return AsyncCheckpointsWithStreamingResponse(self._jobs.checkpoints)

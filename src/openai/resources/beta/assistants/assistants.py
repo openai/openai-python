@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Iterable, Optional
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -57,7 +57,29 @@ class Assistants(SyncAPIResource):
     def create(
         self,
         *,
-        model: str,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+        ],
         description: Optional[str] | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -87,7 +109,7 @@ class Assistants(SyncAPIResource):
               attached to this assistant. There can be a maximum of 20 files attached to the
               assistant. Files are ordered by their creation date in ascending order.
 
-          instructions: The system instructions that the assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 256,000
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -194,7 +216,7 @@ class Assistants(SyncAPIResource):
               file was previously attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
-          instructions: The system instructions that the assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 256,000
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -360,7 +382,29 @@ class AsyncAssistants(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: str,
+        model: Union[
+            str,
+            Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+        ],
         description: Optional[str] | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -390,7 +434,7 @@ class AsyncAssistants(AsyncAPIResource):
               attached to this assistant. There can be a maximum of 20 files attached to the
               assistant. Files are ordered by their creation date in ascending order.
 
-          instructions: The system instructions that the assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 256,000
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -497,7 +541,7 @@ class AsyncAssistants(AsyncAPIResource):
               file was previously attached to the list but does not show up in the list, it
               will be deleted from the assistant.
 
-          instructions: The system instructions that the assistant uses. The maximum length is 32768
+          instructions: The system instructions that the assistant uses. The maximum length is 256,000
               characters.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful

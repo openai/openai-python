@@ -32,6 +32,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
         Union[
             str,
             Literal[
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
                 "gpt-4-turbo-preview",
                 "gpt-4-1106-preview",
@@ -102,8 +104,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """Whether to return log probabilities of the output tokens or not.
 
     If true, returns the log probabilities of each output token returned in the
-    `content` of `message`. This option is currently not available on the
-    `gpt-4-vision-preview` model.
+    `content` of `message`.
     """
 
     max_tokens: Optional[int]
