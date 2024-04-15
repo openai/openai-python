@@ -335,6 +335,7 @@ from ._module_client import (
     files as files,
     images as images,
     models as models,
+    batches as batches,
     embeddings as embeddings,
     completions as completions,
     fine_tuning as fine_tuning,

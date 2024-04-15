@@ -57,6 +57,7 @@ class OpenAI(SyncAPIClient):
     models: resources.Models
     fine_tuning: resources.FineTuning
     beta: resources.Beta
+    batches: resources.Batches
     with_raw_response: OpenAIWithRawResponse
     with_streaming_response: OpenAIWithStreamedResponse
 
@@ -134,6 +135,7 @@ class OpenAI(SyncAPIClient):
         self.models = resources.Models(self)
         self.fine_tuning = resources.FineTuning(self)
         self.beta = resources.Beta(self)
+        self.batches = resources.Batches(self)
         self.with_raw_response = OpenAIWithRawResponse(self)
         self.with_streaming_response = OpenAIWithStreamedResponse(self)
 
@@ -257,6 +259,7 @@ class AsyncOpenAI(AsyncAPIClient):
     models: resources.AsyncModels
     fine_tuning: resources.AsyncFineTuning
     beta: resources.AsyncBeta
+    batches: resources.AsyncBatches
     with_raw_response: AsyncOpenAIWithRawResponse
     with_streaming_response: AsyncOpenAIWithStreamedResponse
 
@@ -334,6 +337,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self.models = resources.AsyncModels(self)
         self.fine_tuning = resources.AsyncFineTuning(self)
         self.beta = resources.AsyncBeta(self)
+        self.batches = resources.AsyncBatches(self)
         self.with_raw_response = AsyncOpenAIWithRawResponse(self)
         self.with_streaming_response = AsyncOpenAIWithStreamedResponse(self)
 
@@ -458,6 +462,7 @@ class OpenAIWithRawResponse:
         self.models = resources.ModelsWithRawResponse(client.models)
         self.fine_tuning = resources.FineTuningWithRawResponse(client.fine_tuning)
         self.beta = resources.BetaWithRawResponse(client.beta)
+        self.batches = resources.BatchesWithRawResponse(client.batches)
 
 
 class AsyncOpenAIWithRawResponse:
@@ -472,6 +477,7 @@ class AsyncOpenAIWithRawResponse:
         self.models = resources.AsyncModelsWithRawResponse(client.models)
         self.fine_tuning = resources.AsyncFineTuningWithRawResponse(client.fine_tuning)
         self.beta = resources.AsyncBetaWithRawResponse(client.beta)
+        self.batches = resources.AsyncBatchesWithRawResponse(client.batches)
 
 
 class OpenAIWithStreamedResponse:
@@ -486,6 +492,7 @@ class OpenAIWithStreamedResponse:
         self.models = resources.ModelsWithStreamingResponse(client.models)
         self.fine_tuning = resources.FineTuningWithStreamingResponse(client.fine_tuning)
         self.beta = resources.BetaWithStreamingResponse(client.beta)
+        self.batches = resources.BatchesWithStreamingResponse(client.batches)
 
 
 class AsyncOpenAIWithStreamedResponse:
@@ -500,6 +507,7 @@ class AsyncOpenAIWithStreamedResponse:
         self.models = resources.AsyncModelsWithStreamingResponse(client.models)
         self.fine_tuning = resources.AsyncFineTuningWithStreamingResponse(client.fine_tuning)
         self.beta = resources.AsyncBetaWithStreamingResponse(client.beta)
+        self.batches = resources.AsyncBatchesWithStreamingResponse(client.batches)
 
 
 Client = OpenAI
