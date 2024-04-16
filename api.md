@@ -18,6 +18,12 @@ Methods:
 
 # Chat
 
+Types:
+
+```python
+from openai.types import ChatModel
+```
+
 ## Completions
 
 Types:
