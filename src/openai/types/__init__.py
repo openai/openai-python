@@ -11,6 +11,7 @@ from .shared import (
     FunctionParameters as FunctionParameters,
 )
 from .embedding import Embedding as Embedding
+from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
 from .batch_error import BatchError as BatchError
