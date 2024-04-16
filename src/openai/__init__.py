@@ -108,6 +108,8 @@ api_key: str | None = None
 
 organization: str | None = None
 
+project: str | None = None
+
 base_url: str | _httpx.URL | None = None
 
 timeout: float | Timeout | None = DEFAULT_TIMEOUT
@@ -158,6 +160,17 @@ class _ModuleClient(OpenAI):
         global organization
 
         organization = value
+
+    @property  # type: ignore
+    @override
+    def project(self) -> str | None:
+        return project
+
+    @project.setter  # type: ignore
+    def project(self, value: str | None) -> None:  # type: ignore
+        global project
+
+        project = value
 
     @property
     @override
@@ -310,6 +323,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
         _client = _ModuleClient(
             api_key=api_key,
             organization=organization,
+            project=project,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
