@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.20.0 (2024-04-16)
+
+Full Changelog: [v1.19.0...v1.20.0](https://github.com/openai/openai-python/compare/v1.19.0...v1.20.0)
+
+### Features
+
+* **client:** add header OpenAI-Project ([#1320](https://github.com/openai/openai-python/issues/1320)) ([0c489f1](https://github.com/openai/openai-python/commit/0c489f16a7d9e5ac753da87273b223893edefa69))
+* extract chat models to a named enum ([#1322](https://github.com/openai/openai-python/issues/1322)) ([1ccd9b6](https://github.com/openai/openai-python/commit/1ccd9b67322736a4714e58c953d59585322c527d))
+
 ## 1.19.0 (2024-04-15)
 
 Full Changelog: [v1.18.0...v1.19.0](https://github.com/openai/openai-python/compare/v1.18.0...v1.19.0)
