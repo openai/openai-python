@@ -5,7 +5,15 @@ from __future__ import annotations
 from typing import List, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["ThreadCreateParams", "Message"]
+__all__ = [
+    "ThreadCreateParams",
+    "Message",
+    "MessageAttachment",
+    "ToolResources",
+    "ToolResourcesCodeInterpreter",
+    "ToolResourcesFileSearch",
+    "ToolResourcesFileSearchVectorStore",
+]
 
 
 class ThreadCreateParams(TypedDict, total=False):
@@ -23,6 +31,21 @@ class ThreadCreateParams(TypedDict, total=False):
     a maxium of 512 characters long.
     """
 
+    tool_resources: Optional[ToolResources]
+    """
+    A set of resources that are made available to the assistant's tools in this
+    thread. The resources are specific to the type of tool. For example, the
+    `code_interpreter` tool requires a list of file IDs, while the `file_search`
+    tool requires a list of vector store IDs.
+    """
+
+
+class MessageAttachment(TypedDict, total=False):
+    add_to: List[Literal["file_search", "code_interpreter"]]
+
+    file_id: str
+    """The ID of the file to attach to the message."""
+
 
 class Message(TypedDict, total=False):
     content: Required[str]
@@ -37,13 +60,8 @@ class Message(TypedDict, total=False):
       value to insert messages from the assistant into the conversation.
     """
 
-    file_ids: List[str]
-    """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the message should use. There can be a maximum of 10 files attached to a
-    message. Useful for tools like `retrieval` and `code_interpreter` that can
-    access and use files.
-    """
+    attachments: Optional[Iterable[MessageAttachment]]
+    """A list of files attached to the message, and the tools they should be added to."""
 
     metadata: Optional[object]
     """Set of 16 key-value pairs that can be attached to an object.
@@ -52,3 +70,53 @@ class Message(TypedDict, total=False):
     structured format. Keys can be a maximum of 64 characters long and values can be
     a maxium of 512 characters long.
     """
+
+
+class ToolResourcesCodeInterpreter(TypedDict, total=False):
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
+    available to the `code_interpreter` tool. There can be a maximum of 20 files
+    associated with the tool.
+    """
+
+
+class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
+    add to the vector store. There can be a maximum of 10000 files in a vector
+    store.
+    """
+
+    metadata: object
+    """Set of 16 key-value pairs that can be attached to a vector store.
+
+    This can be useful for storing additional information about the vector store in
+    a structured format. Keys can be a maximum of 64 characters long and values can
+    be a maxium of 512 characters long.
+    """
+
+
+class ToolResourcesFileSearch(TypedDict, total=False):
+    vector_store_ids: List[str]
+    """
+    The
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    attached to this thread. There can be a maximum of 1 vector store attached to
+    the thread.
+    """
+
+    vector_stores: Iterable[ToolResourcesFileSearchVectorStore]
+    """
+    A helper to create a
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    with file_ids and attach it to this thread. There can be a maximum of 1 vector
+    store attached to the thread.
+    """
+
+
+class ToolResources(TypedDict, total=False):
+    code_interpreter: ToolResourcesCodeInterpreter
+
+    file_search: ToolResourcesFileSearch

@@ -213,3 +213,24 @@ def get_final_messages(self) -> List[Message]
 
 These methods are provided for convenience to collect information at the end of a stream. Calling these events
 will trigger consumption of the stream until completion and then return the relevant accumulated objects.
+
+# Polling Helpers
+
+When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete.
+The SDK includes helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
+If an API method results in an action which could benefit from polling there will be a corresponding version of the
+method ending in `_and_poll`.
+
+All methods also allow you to set the polling frequency, how often the API is checked for an update, via a function argument (`poll_interval_ms`).
+
+The polling methods are:
+
+```python
+client.beta.threads.create_and_run_poll(...)
+client.beta.threads.runs.create_and_poll(...)
+client.beta.threads.runs.submit_tool_ouptputs_and_poll(...)
+client.beta.vector_stores.files.upload_and_poll(...)
+client.beta.vector_stores.files.create_and_poll(...)
+client.beta.vector_stores.file_batches.create_and_poll(...)
+client.beta.vector_stores.file_batches.upload_and_poll(...)
+```

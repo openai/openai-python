@@ -53,7 +53,7 @@ so that your API Key is not stored in source control.
 
 ### Polling Helpers
 
-When interacting with the API some actions such as starting a Run may take time to complete. The SDK includes
+When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete. The SDK includes
 helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
 If an API method results in an action which could benefit from polling there will be a corresponding version of the
 method ending in '\_and_poll'.
@@ -68,6 +68,20 @@ run = client.beta.threads.runs.create_and_poll(
 ```
 
 More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
+
+### Bulk Upload Helpers
+
+When creating an interacting with vector stores, you can use the polling helpers to monitor the status of operations.
+For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
+
+```python
+sample_files = [Path("sample-paper.pdf"), ...]
+
+batch = await client.vector_stores.file_batches.upload_and_poll(
+    store.id,
+    files=sample_files,
+)
+```
 
 ### Streaming Helpers
 

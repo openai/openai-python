@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import TypedDict
 
-__all__ = ["ThreadUpdateParams"]
+__all__ = ["ThreadUpdateParams", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResourcesFileSearch"]
 
 
 class ThreadUpdateParams(TypedDict, total=False):
@@ -16,3 +16,36 @@ class ThreadUpdateParams(TypedDict, total=False):
     structured format. Keys can be a maximum of 64 characters long and values can be
     a maxium of 512 characters long.
     """
+
+    tool_resources: Optional[ToolResources]
+    """
+    A set of resources that are made available to the assistant's tools in this
+    thread. The resources are specific to the type of tool. For example, the
+    `code_interpreter` tool requires a list of file IDs, while the `file_search`
+    tool requires a list of vector store IDs.
+    """
+
+
+class ToolResourcesCodeInterpreter(TypedDict, total=False):
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
+    available to the `code_interpreter` tool. There can be a maximum of 20 files
+    associated with the tool.
+    """
+
+
+class ToolResourcesFileSearch(TypedDict, total=False):
+    vector_store_ids: List[str]
+    """
+    The
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    attached to this thread. There can be a maximum of 1 vector store attached to
+    the thread.
+    """
+
+
+class ToolResources(TypedDict, total=False):
+    code_interpreter: ToolResourcesCodeInterpreter
+
+    file_search: ToolResourcesFileSearch

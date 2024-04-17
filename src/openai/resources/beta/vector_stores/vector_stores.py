@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -24,103 +24,77 @@ from ...._utils import (
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from .file_batches import (
+    FileBatches,
+    AsyncFileBatches,
+    FileBatchesWithRawResponse,
+    AsyncFileBatchesWithRawResponse,
+    FileBatchesWithStreamingResponse,
+    AsyncFileBatchesWithStreamingResponse,
+)
 from ....pagination import SyncCursorPage, AsyncCursorPage
 from ....types.beta import (
-    Assistant,
-    AssistantDeleted,
-    AssistantToolParam,
-    assistant_list_params,
-    assistant_create_params,
-    assistant_update_params,
+    VectorStore,
+    VectorStoreDeleted,
+    vector_store_list_params,
+    vector_store_create_params,
+    vector_store_update_params,
 )
 from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
 
-__all__ = ["Assistants", "AsyncAssistants"]
+__all__ = ["VectorStores", "AsyncVectorStores"]
 
 
-class Assistants(SyncAPIResource):
+class VectorStores(SyncAPIResource):
     @cached_property
     def files(self) -> Files:
         return Files(self._client)
 
     @cached_property
-    def with_raw_response(self) -> AssistantsWithRawResponse:
-        return AssistantsWithRawResponse(self)
+    def file_batches(self) -> FileBatches:
+        return FileBatches(self._client)
 
     @cached_property
-    def with_streaming_response(self) -> AssistantsWithStreamingResponse:
-        return AssistantsWithStreamingResponse(self)
+    def with_raw_response(self) -> VectorStoresWithRawResponse:
+        return VectorStoresWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> VectorStoresWithStreamingResponse:
+        return VectorStoresWithStreamingResponse(self)
 
     def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "gpt-4-turbo",
-                "gpt-4-turbo-2024-04-09",
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
-                "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
-                "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
-            ],
-        ],
-        description: Optional[str] | NotGiven = NOT_GIVEN,
+        expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
+        name: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Assistant:
+    ) -> VectorStore:
         """
-        Create an assistant with a model and instructions.
+        Create a vector store.
 
         Args:
-          model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
+          expires_after: The expiration policy for a vector store.
 
-          description: The description of the assistant. The maximum length is 512 characters.
-
-          file_ids: A list of [file](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this assistant. There can be a maximum of 20 files attached to the
-              assistant. Files are ordered by their creation date in ascending order.
-
-          instructions: The system instructions that the assistant uses. The maximum length is 256,000
-              characters.
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
-          name: The name of the assistant. The maximum length is 256 characters.
-
-          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
-              assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
+          name: The name of the vector store.
 
           extra_headers: Send extra headers
 
@@ -130,30 +104,27 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            "/assistants",
+            "/vector_stores",
             body=maybe_transform(
                 {
-                    "model": model,
-                    "description": description,
+                    "expires_after": expires_after,
                     "file_ids": file_ids,
-                    "instructions": instructions,
                     "metadata": metadata,
                     "name": name,
-                    "tools": tools,
                 },
-                assistant_create_params.AssistantCreateParams,
+                vector_store_create_params.VectorStoreCreateParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=Assistant,
+            cast_to=VectorStore,
         )
 
     def retrieve(
         self,
-        assistant_id: str,
+        vector_store_id: str,
         *,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -161,9 +132,9 @@ class Assistants(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Assistant:
+    ) -> VectorStore:
         """
-        Retrieves an assistant.
+        Retrieves a vector store.
 
         Args:
           extra_headers: Send extra headers
@@ -174,66 +145,43 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not assistant_id:
-            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/assistants/{assistant_id}",
+            f"/vector_stores/{vector_store_id}",
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=Assistant,
+            cast_to=VectorStore,
         )
 
     def update(
         self,
-        assistant_id: str,
+        vector_store_id: str,
         *,
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        file_ids: List[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        expires_after: Optional[vector_store_update_params.ExpiresAfter] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: str | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Assistant:
-        """Modifies an assistant.
+    ) -> VectorStore:
+        """
+        Modifies a vector store.
 
         Args:
-          description: The description of the assistant.
-
-        The maximum length is 512 characters.
-
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this assistant. There can be a maximum of 20 files attached to the
-              assistant. Files are ordered by their creation date in ascending order. If a
-              file was previously attached to the list but does not show up in the list, it
-              will be deleted from the assistant.
-
-          instructions: The system instructions that the assistant uses. The maximum length is 256,000
-              characters.
+          expires_after: The expiration policy for a vector store.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
-          model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
-
-          name: The name of the assistant. The maximum length is 256 characters.
-
-          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
-              assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
+          name: The name of the vector store.
 
           extra_headers: Send extra headers
 
@@ -243,27 +191,23 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not assistant_id:
-            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/assistants/{assistant_id}",
+            f"/vector_stores/{vector_store_id}",
             body=maybe_transform(
                 {
-                    "description": description,
-                    "file_ids": file_ids,
-                    "instructions": instructions,
+                    "expires_after": expires_after,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
-                    "tools": tools,
                 },
-                assistant_update_params.AssistantUpdateParams,
+                vector_store_update_params.VectorStoreUpdateParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=Assistant,
+            cast_to=VectorStore,
         )
 
     def list(
@@ -279,8 +223,8 @@ class Assistants(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> SyncCursorPage[Assistant]:
-        """Returns a list of assistants.
+    ) -> SyncCursorPage[VectorStore]:
+        """Returns a list of vector stores.
 
         Args:
           after: A cursor for use in pagination.
@@ -309,10 +253,10 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            "/assistants",
-            page=SyncCursorPage[Assistant],
+            "/vector_stores",
+            page=SyncCursorPage[VectorStore],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -325,15 +269,15 @@ class Assistants(SyncAPIResource):
                         "limit": limit,
                         "order": order,
                     },
-                    assistant_list_params.AssistantListParams,
+                    vector_store_list_params.VectorStoreListParams,
                 ),
             ),
-            model=Assistant,
+            model=VectorStore,
         )
 
     def delete(
         self,
-        assistant_id: str,
+        vector_store_id: str,
         *,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -341,9 +285,9 @@ class Assistants(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AssistantDeleted:
+    ) -> VectorStoreDeleted:
         """
-        Delete an assistant.
+        Delete a vector store.
 
         Args:
           extra_headers: Send extra headers
@@ -354,98 +298,65 @@ class Assistants(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not assistant_id:
-            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/assistants/{assistant_id}",
+            f"/vector_stores/{vector_store_id}",
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=AssistantDeleted,
+            cast_to=VectorStoreDeleted,
         )
 
 
-class AsyncAssistants(AsyncAPIResource):
+class AsyncVectorStores(AsyncAPIResource):
     @cached_property
     def files(self) -> AsyncFiles:
         return AsyncFiles(self._client)
 
     @cached_property
-    def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
-        return AsyncAssistantsWithRawResponse(self)
+    def file_batches(self) -> AsyncFileBatches:
+        return AsyncFileBatches(self._client)
 
     @cached_property
-    def with_streaming_response(self) -> AsyncAssistantsWithStreamingResponse:
-        return AsyncAssistantsWithStreamingResponse(self)
+    def with_raw_response(self) -> AsyncVectorStoresWithRawResponse:
+        return AsyncVectorStoresWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncVectorStoresWithStreamingResponse:
+        return AsyncVectorStoresWithStreamingResponse(self)
 
     async def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "gpt-4-turbo",
-                "gpt-4-turbo-2024-04-09",
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
-                "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
-                "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
-            ],
-        ],
-        description: Optional[str] | NotGiven = NOT_GIVEN,
+        expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
+        name: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Assistant:
+    ) -> VectorStore:
         """
-        Create an assistant with a model and instructions.
+        Create a vector store.
 
         Args:
-          model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
+          expires_after: The expiration policy for a vector store.
 
-          description: The description of the assistant. The maximum length is 512 characters.
-
-          file_ids: A list of [file](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this assistant. There can be a maximum of 20 files attached to the
-              assistant. Files are ordered by their creation date in ascending order.
-
-          instructions: The system instructions that the assistant uses. The maximum length is 256,000
-              characters.
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
-          name: The name of the assistant. The maximum length is 256 characters.
-
-          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
-              assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
+          name: The name of the vector store.
 
           extra_headers: Send extra headers
 
@@ -455,30 +366,27 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            "/assistants",
+            "/vector_stores",
             body=await async_maybe_transform(
                 {
-                    "model": model,
-                    "description": description,
+                    "expires_after": expires_after,
                     "file_ids": file_ids,
-                    "instructions": instructions,
                     "metadata": metadata,
                     "name": name,
-                    "tools": tools,
                 },
-                assistant_create_params.AssistantCreateParams,
+                vector_store_create_params.VectorStoreCreateParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=Assistant,
+            cast_to=VectorStore,
         )
 
     async def retrieve(
         self,
-        assistant_id: str,
+        vector_store_id: str,
         *,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -486,9 +394,9 @@ class AsyncAssistants(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Assistant:
+    ) -> VectorStore:
         """
-        Retrieves an assistant.
+        Retrieves a vector store.
 
         Args:
           extra_headers: Send extra headers
@@ -499,66 +407,43 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not assistant_id:
-            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/assistants/{assistant_id}",
+            f"/vector_stores/{vector_store_id}",
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=Assistant,
+            cast_to=VectorStore,
         )
 
     async def update(
         self,
-        assistant_id: str,
+        vector_store_id: str,
         *,
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        file_ids: List[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        expires_after: Optional[vector_store_update_params.ExpiresAfter] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
-        model: str | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Assistant:
-        """Modifies an assistant.
+    ) -> VectorStore:
+        """
+        Modifies a vector store.
 
         Args:
-          description: The description of the assistant.
-
-        The maximum length is 512 characters.
-
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs
-              attached to this assistant. There can be a maximum of 20 files attached to the
-              assistant. Files are ordered by their creation date in ascending order. If a
-              file was previously attached to the list but does not show up in the list, it
-              will be deleted from the assistant.
-
-          instructions: The system instructions that the assistant uses. The maximum length is 256,000
-              characters.
+          expires_after: The expiration policy for a vector store.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
-          model: ID of the model to use. You can use the
-              [List models](https://platform.openai.com/docs/api-reference/models/list) API to
-              see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
-
-          name: The name of the assistant. The maximum length is 256 characters.
-
-          tools: A list of tool enabled on the assistant. There can be a maximum of 128 tools per
-              assistant. Tools can be of types `code_interpreter`, `retrieval`, or `function`.
+          name: The name of the vector store.
 
           extra_headers: Send extra headers
 
@@ -568,27 +453,23 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not assistant_id:
-            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/assistants/{assistant_id}",
+            f"/vector_stores/{vector_store_id}",
             body=await async_maybe_transform(
                 {
-                    "description": description,
-                    "file_ids": file_ids,
-                    "instructions": instructions,
+                    "expires_after": expires_after,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
-                    "tools": tools,
                 },
-                assistant_update_params.AssistantUpdateParams,
+                vector_store_update_params.VectorStoreUpdateParams,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=Assistant,
+            cast_to=VectorStore,
         )
 
     def list(
@@ -604,8 +485,8 @@ class AsyncAssistants(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncPaginator[Assistant, AsyncCursorPage[Assistant]]:
-        """Returns a list of assistants.
+    ) -> AsyncPaginator[VectorStore, AsyncCursorPage[VectorStore]]:
+        """Returns a list of vector stores.
 
         Args:
           after: A cursor for use in pagination.
@@ -634,10 +515,10 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            "/assistants",
-            page=AsyncCursorPage[Assistant],
+            "/vector_stores",
+            page=AsyncCursorPage[VectorStore],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -650,15 +531,15 @@ class AsyncAssistants(AsyncAPIResource):
                         "limit": limit,
                         "order": order,
                     },
-                    assistant_list_params.AssistantListParams,
+                    vector_store_list_params.VectorStoreListParams,
                 ),
             ),
-            model=Assistant,
+            model=VectorStore,
         )
 
     async def delete(
         self,
-        assistant_id: str,
+        vector_store_id: str,
         *,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -666,9 +547,9 @@ class AsyncAssistants(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AssistantDeleted:
+    ) -> VectorStoreDeleted:
         """
-        Delete an assistant.
+        Delete a vector store.
 
         Args:
           extra_headers: Send extra headers
@@ -679,113 +560,129 @@ class AsyncAssistants(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        if not assistant_id:
-            raise ValueError(f"Expected a non-empty value for `assistant_id` but received {assistant_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        if not vector_store_id:
+            raise ValueError(f"Expected a non-empty value for `vector_store_id` but received {vector_store_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/assistants/{assistant_id}",
+            f"/vector_stores/{vector_store_id}",
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=AssistantDeleted,
+            cast_to=VectorStoreDeleted,
         )
 
 
-class AssistantsWithRawResponse:
-    def __init__(self, assistants: Assistants) -> None:
-        self._assistants = assistants
+class VectorStoresWithRawResponse:
+    def __init__(self, vector_stores: VectorStores) -> None:
+        self._vector_stores = vector_stores
 
         self.create = _legacy_response.to_raw_response_wrapper(
-            assistants.create,
+            vector_stores.create,
         )
         self.retrieve = _legacy_response.to_raw_response_wrapper(
-            assistants.retrieve,
+            vector_stores.retrieve,
         )
         self.update = _legacy_response.to_raw_response_wrapper(
-            assistants.update,
+            vector_stores.update,
         )
         self.list = _legacy_response.to_raw_response_wrapper(
-            assistants.list,
+            vector_stores.list,
         )
         self.delete = _legacy_response.to_raw_response_wrapper(
-            assistants.delete,
+            vector_stores.delete,
         )
 
     @cached_property
     def files(self) -> FilesWithRawResponse:
-        return FilesWithRawResponse(self._assistants.files)
+        return FilesWithRawResponse(self._vector_stores.files)
+
+    @cached_property
+    def file_batches(self) -> FileBatchesWithRawResponse:
+        return FileBatchesWithRawResponse(self._vector_stores.file_batches)
 
 
-class AsyncAssistantsWithRawResponse:
-    def __init__(self, assistants: AsyncAssistants) -> None:
-        self._assistants = assistants
+class AsyncVectorStoresWithRawResponse:
+    def __init__(self, vector_stores: AsyncVectorStores) -> None:
+        self._vector_stores = vector_stores
 
         self.create = _legacy_response.async_to_raw_response_wrapper(
-            assistants.create,
+            vector_stores.create,
         )
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            assistants.retrieve,
+            vector_stores.retrieve,
         )
         self.update = _legacy_response.async_to_raw_response_wrapper(
-            assistants.update,
+            vector_stores.update,
         )
         self.list = _legacy_response.async_to_raw_response_wrapper(
-            assistants.list,
+            vector_stores.list,
         )
         self.delete = _legacy_response.async_to_raw_response_wrapper(
-            assistants.delete,
+            vector_stores.delete,
         )
 
     @cached_property
     def files(self) -> AsyncFilesWithRawResponse:
-        return AsyncFilesWithRawResponse(self._assistants.files)
+        return AsyncFilesWithRawResponse(self._vector_stores.files)
+
+    @cached_property
+    def file_batches(self) -> AsyncFileBatchesWithRawResponse:
+        return AsyncFileBatchesWithRawResponse(self._vector_stores.file_batches)
 
 
-class AssistantsWithStreamingResponse:
-    def __init__(self, assistants: Assistants) -> None:
-        self._assistants = assistants
+class VectorStoresWithStreamingResponse:
+    def __init__(self, vector_stores: VectorStores) -> None:
+        self._vector_stores = vector_stores
 
         self.create = to_streamed_response_wrapper(
-            assistants.create,
+            vector_stores.create,
         )
         self.retrieve = to_streamed_response_wrapper(
-            assistants.retrieve,
+            vector_stores.retrieve,
         )
         self.update = to_streamed_response_wrapper(
-            assistants.update,
+            vector_stores.update,
         )
         self.list = to_streamed_response_wrapper(
-            assistants.list,
+            vector_stores.list,
         )
         self.delete = to_streamed_response_wrapper(
-            assistants.delete,
+            vector_stores.delete,
         )
 
     @cached_property
     def files(self) -> FilesWithStreamingResponse:
-        return FilesWithStreamingResponse(self._assistants.files)
+        return FilesWithStreamingResponse(self._vector_stores.files)
+
+    @cached_property
+    def file_batches(self) -> FileBatchesWithStreamingResponse:
+        return FileBatchesWithStreamingResponse(self._vector_stores.file_batches)
 
 
-class AsyncAssistantsWithStreamingResponse:
-    def __init__(self, assistants: AsyncAssistants) -> None:
-        self._assistants = assistants
+class AsyncVectorStoresWithStreamingResponse:
+    def __init__(self, vector_stores: AsyncVectorStores) -> None:
+        self._vector_stores = vector_stores
 
         self.create = async_to_streamed_response_wrapper(
-            assistants.create,
+            vector_stores.create,
         )
         self.retrieve = async_to_streamed_response_wrapper(
-            assistants.retrieve,
+            vector_stores.retrieve,
         )
         self.update = async_to_streamed_response_wrapper(
-            assistants.update,
+            vector_stores.update,
         )
         self.list = async_to_streamed_response_wrapper(
-            assistants.list,
+            vector_stores.list,
         )
         self.delete = async_to_streamed_response_wrapper(
-            assistants.delete,
+            vector_stores.delete,
         )
 
     @cached_property
     def files(self) -> AsyncFilesWithStreamingResponse:
-        return AsyncFilesWithStreamingResponse(self._assistants.files)
+        return AsyncFilesWithStreamingResponse(self._vector_stores.files)
+
+    @cached_property
+    def file_batches(self) -> AsyncFileBatchesWithStreamingResponse:
+        return AsyncFileBatchesWithStreamingResponse(self._vector_stores.file_batches)

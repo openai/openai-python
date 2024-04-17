@@ -20,13 +20,25 @@ from .assistants import (
     AsyncAssistantsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from .vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
+)
 from .threads.threads import Threads, AsyncThreads
-from .assistants.assistants import Assistants, AsyncAssistants
+from .vector_stores.vector_stores import VectorStores, AsyncVectorStores
 
 __all__ = ["Beta", "AsyncBeta"]
 
 
 class Beta(SyncAPIResource):
+    @cached_property
+    def vector_stores(self) -> VectorStores:
+        return VectorStores(self._client)
+
     @cached_property
     def assistants(self) -> Assistants:
         return Assistants(self._client)
@@ -45,6 +57,10 @@ class Beta(SyncAPIResource):
 
 
 class AsyncBeta(AsyncAPIResource):
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStores:
+        return AsyncVectorStores(self._client)
+
     @cached_property
     def assistants(self) -> AsyncAssistants:
         return AsyncAssistants(self._client)
@@ -67,6 +83,10 @@ class BetaWithRawResponse:
         self._beta = beta
 
     @cached_property
+    def vector_stores(self) -> VectorStoresWithRawResponse:
+        return VectorStoresWithRawResponse(self._beta.vector_stores)
+
+    @cached_property
     def assistants(self) -> AssistantsWithRawResponse:
         return AssistantsWithRawResponse(self._beta.assistants)
 
@@ -78,6 +98,10 @@ class BetaWithRawResponse:
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
+
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStoresWithRawResponse:
+        return AsyncVectorStoresWithRawResponse(self._beta.vector_stores)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithRawResponse:
@@ -93,6 +117,10 @@ class BetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
+    def vector_stores(self) -> VectorStoresWithStreamingResponse:
+        return VectorStoresWithStreamingResponse(self._beta.vector_stores)
+
+    @cached_property
     def assistants(self) -> AssistantsWithStreamingResponse:
         return AssistantsWithStreamingResponse(self._beta.assistants)
 
@@ -104,6 +132,10 @@ class BetaWithStreamingResponse:
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
+
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStoresWithStreamingResponse:
+        return AsyncVectorStoresWithStreamingResponse(self._beta.vector_stores)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithStreamingResponse:
