@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.21.2 (2024-04-17)
+
+Full Changelog: [v1.21.1...v1.21.2](https://github.com/openai/openai-python/compare/v1.21.1...v1.21.2)
+
+### Chores
+
+* **internal:** add lru_cache helper function ([#1329](https://github.com/openai/openai-python/issues/1329)) ([cbeebfc](https://github.com/openai/openai-python/commit/cbeebfcca8bf1a3feb4462a79e10099bda5bed84))
+
 ## 1.21.1 (2024-04-17)
 
 Full Changelog: [v1.21.0...v1.21.1](https://github.com/openai/openai-python/compare/v1.21.0...v1.21.1)
