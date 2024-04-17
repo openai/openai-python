@@ -340,7 +340,7 @@ class Threads(SyncAPIResource):
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -366,7 +366,7 @@ class Threads(SyncAPIResource):
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
               and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -381,6 +381,11 @@ class Threads(SyncAPIResource):
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
               means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the intial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -481,7 +486,7 @@ class Threads(SyncAPIResource):
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -503,7 +508,7 @@ class Threads(SyncAPIResource):
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
               and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -518,6 +523,11 @@ class Threads(SyncAPIResource):
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
               means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the intial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -618,7 +628,7 @@ class Threads(SyncAPIResource):
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -640,7 +650,7 @@ class Threads(SyncAPIResource):
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
               and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -655,6 +665,11 @@ class Threads(SyncAPIResource):
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
               means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the intial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1296,7 +1311,7 @@ class AsyncThreads(AsyncAPIResource):
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1322,7 +1337,7 @@ class AsyncThreads(AsyncAPIResource):
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
               and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -1337,6 +1352,11 @@ class AsyncThreads(AsyncAPIResource):
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
               means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the intial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1437,7 +1457,7 @@ class AsyncThreads(AsyncAPIResource):
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1459,7 +1479,7 @@ class AsyncThreads(AsyncAPIResource):
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
               and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -1474,6 +1494,11 @@ class AsyncThreads(AsyncAPIResource):
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
               means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the intial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1574,7 +1599,7 @@ class AsyncThreads(AsyncAPIResource):
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1596,7 +1621,7 @@ class AsyncThreads(AsyncAPIResource):
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
               and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "TOOL_TYPE"}` or
+              Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -1611,6 +1636,11 @@ class AsyncThreads(AsyncAPIResource):
           top_p: An alternative to sampling with temperature, called nucleus sampling, where the
               model considers the results of the tokens with top_p probability mass. So 0.1
               means only the tokens comprising the top 10% probability mass are considered.
+
+              We generally recommend altering this or temperature but not both.
+
+          truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
+              control the intial context window of the run.
 
           extra_headers: Send extra headers
 
