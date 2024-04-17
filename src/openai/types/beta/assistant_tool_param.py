@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import Union
 
 from .function_tool_param import FunctionToolParam
-from .retrieval_tool_param import RetrievalToolParam
+from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 
 __all__ = ["AssistantToolParam"]
 
-AssistantToolParam = Union[CodeInterpreterToolParam, RetrievalToolParam, FunctionToolParam]
+AssistantToolParam = Union[CodeInterpreterToolParam, FileSearchToolParam, FunctionToolParam]

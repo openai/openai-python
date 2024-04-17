@@ -24,8 +24,22 @@ from .assistants import (
     AssistantsWithStreamingResponse,
     AsyncAssistantsWithStreamingResponse,
 )
+from .vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
+)
 
 __all__ = [
+    "VectorStores",
+    "AsyncVectorStores",
+    "VectorStoresWithRawResponse",
+    "AsyncVectorStoresWithRawResponse",
+    "VectorStoresWithStreamingResponse",
+    "AsyncVectorStoresWithStreamingResponse",
     "Assistants",
     "AsyncAssistants",
     "AssistantsWithRawResponse",

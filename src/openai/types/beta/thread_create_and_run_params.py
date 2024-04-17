@@ -6,7 +6,7 @@ from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .function_tool_param import FunctionToolParam
-from .retrieval_tool_param import RetrievalToolParam
+from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
@@ -15,6 +15,14 @@ __all__ = [
     "ThreadCreateAndRunParamsBase",
     "Thread",
     "ThreadMessage",
+    "ThreadMessageAttachment",
+    "ThreadToolResources",
+    "ThreadToolResourcesCodeInterpreter",
+    "ThreadToolResourcesFileSearch",
+    "ThreadToolResourcesFileSearchVectorStore",
+    "ToolResources",
+    "ToolResourcesCodeInterpreter",
+    "ToolResourcesFileSearch",
     "Tool",
     "TruncationStrategy",
     "ThreadCreateAndRunParamsNonStreaming",
@@ -41,7 +49,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     The maximum number of completion tokens that may be used over the course of the
     run. The run will make a best effort to use only the number of completion tokens
     specified, across multiple turns of the run. If the run exceeds the number of
-    completion tokens specified, the run will end with status `complete`. See
+    completion tokens specified, the run will end with status `incomplete`. See
     `incomplete_details` for more info.
     """
 
@@ -50,7 +58,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
 
     The run will make a best effort to use only the number of prompt tokens
     specified, across multiple turns of the run. If the run exceeds the number of
-    prompt tokens specified, the run will end with status `complete`. See
+    prompt tokens specified, the run will end with status `incomplete`. See
     `incomplete_details` for more info.
     """
 
@@ -132,13 +140,35 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     call that tool.
     """
 
+    tool_resources: Optional[ToolResources]
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the
+    `code_interpreter` tool requires a list of file IDs, while the `file_search`
+    tool requires a list of vector store IDs.
+    """
+
     tools: Optional[Iterable[Tool]]
     """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
     """
 
+    top_p: Optional[float]
+    """
+    An alternative to sampling with temperature, called nucleus sampling, where the
+    model considers the results of the tokens with top_p probability mass. So 0.1
+    means only the tokens comprising the top 10% probability mass are considered.
+    """
+
     truncation_strategy: Optional[TruncationStrategy]
+
+
+class ThreadMessageAttachment(TypedDict, total=False):
+    add_to: List[Literal["file_search", "code_interpreter"]]
+
+    file_id: str
+    """The ID of the file to attach to the message."""
 
 
 class ThreadMessage(TypedDict, total=False):
@@ -154,13 +184,8 @@ class ThreadMessage(TypedDict, total=False):
       value to insert messages from the assistant into the conversation.
     """
 
-    file_ids: List[str]
-    """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the message should use. There can be a maximum of 10 files attached to a
-    message. Useful for tools like `retrieval` and `code_interpreter` that can
-    access and use files.
-    """
+    attachments: Optional[Iterable[ThreadMessageAttachment]]
+    """A list of files attached to the message, and the tools they should be added to."""
 
     metadata: Optional[object]
     """Set of 16 key-value pairs that can be attached to an object.
@@ -169,6 +194,56 @@ class ThreadMessage(TypedDict, total=False):
     structured format. Keys can be a maximum of 64 characters long and values can be
     a maxium of 512 characters long.
     """
+
+
+class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
+    available to the `code_interpreter` tool. There can be a maximum of 20 files
+    associated with the tool.
+    """
+
+
+class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
+    add to the vector store. There can be a maximum of 10000 files in a vector
+    store.
+    """
+
+    metadata: object
+    """Set of 16 key-value pairs that can be attached to a vector store.
+
+    This can be useful for storing additional information about the vector store in
+    a structured format. Keys can be a maximum of 64 characters long and values can
+    be a maxium of 512 characters long.
+    """
+
+
+class ThreadToolResourcesFileSearch(TypedDict, total=False):
+    vector_store_ids: List[str]
+    """
+    The
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    attached to this thread. There can be a maximum of 1 vector store attached to
+    the thread.
+    """
+
+    vector_stores: Iterable[ThreadToolResourcesFileSearchVectorStore]
+    """
+    A helper to create a
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    with file_ids and attach it to this thread. There can be a maximum of 1 vector
+    store attached to the thread.
+    """
+
+
+class ThreadToolResources(TypedDict, total=False):
+    code_interpreter: ThreadToolResourcesCodeInterpreter
+
+    file_search: ThreadToolResourcesFileSearch
 
 
 class Thread(TypedDict, total=False):
@@ -186,8 +261,41 @@ class Thread(TypedDict, total=False):
     a maxium of 512 characters long.
     """
 
+    tool_resources: Optional[ThreadToolResources]
+    """
+    A set of resources that are made available to the assistant's tools in this
+    thread. The resources are specific to the type of tool. For example, the
+    `code_interpreter` tool requires a list of file IDs, while the `file_search`
+    tool requires a list of vector store IDs.
+    """
 
-Tool = Union[CodeInterpreterToolParam, RetrievalToolParam, FunctionToolParam]
+
+class ToolResourcesCodeInterpreter(TypedDict, total=False):
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
+    available to the `code_interpreter` tool. There can be a maximum of 20 files
+    associated with the tool.
+    """
+
+
+class ToolResourcesFileSearch(TypedDict, total=False):
+    vector_store_ids: List[str]
+    """
+    The ID of the
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    attached to this assistant. There can be a maximum of 1 vector store attached to
+    the assistant.
+    """
+
+
+class ToolResources(TypedDict, total=False):
+    code_interpreter: ToolResourcesCodeInterpreter
+
+    file_search: ToolResourcesFileSearch
+
+
+Tool = Union[CodeInterpreterToolParam, FileSearchToolParam, FunctionToolParam]
 
 
 class TruncationStrategy(TypedDict, total=False):

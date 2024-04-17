@@ -10,7 +10,7 @@ __all__ = ["FileCreateParams"]
 class FileCreateParams(TypedDict, total=False):
     file_id: Required[str]
     """
-    A [File](https://platform.openai.com/docs/api-reference/files) ID (with
-    `purpose="assistants"`) that the assistant should use. Useful for tools like
-    `retrieval` and `code_interpreter` that can access files.
+    A [File](https://platform.openai.com/docs/api-reference/files) ID that the
+    vector store should use. Useful for tools like `file_search` that can access
+    files.
     """

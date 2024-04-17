@@ -196,6 +196,59 @@ Methods:
 
 # Beta
 
+## VectorStores
+
+Types:
+
+```python
+from openai.types.beta import VectorStore, VectorStoreDeleted
+```
+
+Methods:
+
+- <code title="post /vector_stores">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">create</a>(\*\*<a href="src/openai/types/beta/vector_store_create_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_store.py">VectorStore</a></code>
+- <code title="get /vector_stores/{vector_store_id}">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">retrieve</a>(vector_store_id) -> <a href="./src/openai/types/beta/vector_store.py">VectorStore</a></code>
+- <code title="post /vector_stores/{vector_store_id}">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">update</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_store_update_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_store.py">VectorStore</a></code>
+- <code title="get /vector_stores">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">list</a>(\*\*<a href="src/openai/types/beta/vector_store_list_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_store.py">SyncCursorPage[VectorStore]</a></code>
+- <code title="delete /vector_stores/{vector_store_id}">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">delete</a>(vector_store_id) -> <a href="./src/openai/types/beta/vector_store_deleted.py">VectorStoreDeleted</a></code>
+
+### Files
+
+Types:
+
+```python
+from openai.types.beta.vector_stores import VectorStoreFile, VectorStoreFileDeleted
+```
+
+Methods:
+
+- <code title="post /vector_stores/{vector_store_id}/files">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">create</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_create_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code title="get /vector_stores/{vector_store_id}/files/{file_id}">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">retrieve</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code title="get /vector_stores/{vector_store_id}/files">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">list</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_list_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
+- <code title="delete /vector_stores/{vector_store_id}/files/{file_id}">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">delete</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_deleted.py">VectorStoreFileDeleted</a></code>
+- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">create_and_poll</a>(\*args) -> VectorStoreFile</code>
+- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">poll</a>(\*args) -> VectorStoreFile</code>
+- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">upload</a>(\*args) -> VectorStoreFile</code>
+- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">upload_and_poll</a>(\*args) -> VectorStoreFile</code>
+
+### FileBatches
+
+Types:
+
+```python
+from openai.types.beta.vector_stores import VectorStoreFileBatch
+```
+
+Methods:
+
+- <code title="post /vector_stores/{vector_store_id}/file_batches">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">create</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_batch_create_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">retrieve</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
+- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">create_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
+- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
+- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
+
 ## Assistants
 
 Types:
@@ -207,9 +260,9 @@ from openai.types.beta import (
     AssistantStreamEvent,
     AssistantTool,
     CodeInterpreterTool,
+    FileSearchTool,
     FunctionTool,
     MessageStreamEvent,
-    RetrievalTool,
     RunStepStreamEvent,
     RunStreamEvent,
     ThreadStreamEvent,
@@ -218,26 +271,11 @@ from openai.types.beta import (
 
 Methods:
 
-- <code title="post /assistants">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">create</a>(\*\*<a href="src/openai/types/beta/assistant_create_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
-- <code title="get /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">retrieve</a>(assistant_id) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
-- <code title="post /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">update</a>(assistant_id, \*\*<a href="src/openai/types/beta/assistant_update_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
-- <code title="get /assistants">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">list</a>(\*\*<a href="src/openai/types/beta/assistant_list_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">SyncCursorPage[Assistant]</a></code>
-- <code title="delete /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants/assistants.py">delete</a>(assistant_id) -> <a href="./src/openai/types/beta/assistant_deleted.py">AssistantDeleted</a></code>
-
-### Files
-
-Types:
-
-```python
-from openai.types.beta.assistants import AssistantFile, FileDeleteResponse
-```
-
-Methods:
-
-- <code title="post /assistants/{assistant_id}/files">client.beta.assistants.files.<a href="./src/openai/resources/beta/assistants/files.py">create</a>(assistant_id, \*\*<a href="src/openai/types/beta/assistants/file_create_params.py">params</a>) -> <a href="./src/openai/types/beta/assistants/assistant_file.py">AssistantFile</a></code>
-- <code title="get /assistants/{assistant_id}/files/{file_id}">client.beta.assistants.files.<a href="./src/openai/resources/beta/assistants/files.py">retrieve</a>(file_id, \*, assistant_id) -> <a href="./src/openai/types/beta/assistants/assistant_file.py">AssistantFile</a></code>
-- <code title="get /assistants/{assistant_id}/files">client.beta.assistants.files.<a href="./src/openai/resources/beta/assistants/files.py">list</a>(assistant_id, \*\*<a href="src/openai/types/beta/assistants/file_list_params.py">params</a>) -> <a href="./src/openai/types/beta/assistants/assistant_file.py">SyncCursorPage[AssistantFile]</a></code>
-- <code title="delete /assistants/{assistant_id}/files/{file_id}">client.beta.assistants.files.<a href="./src/openai/resources/beta/assistants/files.py">delete</a>(file_id, \*, assistant_id) -> <a href="./src/openai/types/beta/assistants/file_delete_response.py">FileDeleteResponse</a></code>
+- <code title="post /assistants">client.beta.assistants.<a href="./src/openai/resources/beta/assistants.py">create</a>(\*\*<a href="src/openai/types/beta/assistant_create_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
+- <code title="get /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants.py">retrieve</a>(assistant_id) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
+- <code title="post /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants.py">update</a>(assistant_id, \*\*<a href="src/openai/types/beta/assistant_update_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">Assistant</a></code>
+- <code title="get /assistants">client.beta.assistants.<a href="./src/openai/resources/beta/assistants.py">list</a>(\*\*<a href="src/openai/types/beta/assistant_list_params.py">params</a>) -> <a href="./src/openai/types/beta/assistant.py">SyncCursorPage[Assistant]</a></code>
+- <code title="delete /assistants/{assistant_id}">client.beta.assistants.<a href="./src/openai/resources/beta/assistants.py">delete</a>(assistant_id) -> <a href="./src/openai/types/beta/assistant_deleted.py">AssistantDeleted</a></code>
 
 ## Threads
 
@@ -298,11 +336,11 @@ from openai.types.beta.threads.runs import (
     CodeInterpreterOutputImage,
     CodeInterpreterToolCall,
     CodeInterpreterToolCallDelta,
+    FileSearchToolCall,
+    FileSearchToolCallDelta,
     FunctionToolCall,
     FunctionToolCallDelta,
     MessageCreationStepDetails,
-    RetrievalToolCall,
-    RetrievalToolCallDelta,
     RunStep,
     RunStepDelta,
     RunStepDeltaEvent,
@@ -350,23 +388,10 @@ from openai.types.beta.threads import (
 
 Methods:
 
-- <code title="post /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">create</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_create_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
-- <code title="get /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">retrieve</a>(message_id, \*, thread_id) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
-- <code title="post /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">update</a>(message_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/message_update_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
-- <code title="get /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages/messages.py">list</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">SyncCursorPage[Message]</a></code>
-
-#### Files
-
-Types:
-
-```python
-from openai.types.beta.threads.messages import MessageFile
-```
-
-Methods:
-
-- <code title="get /threads/{thread_id}/messages/{message_id}/files/{file_id}">client.beta.threads.messages.files.<a href="./src/openai/resources/beta/threads/messages/files.py">retrieve</a>(file_id, \*, thread_id, message_id) -> <a href="./src/openai/types/beta/threads/messages/message_file.py">MessageFile</a></code>
-- <code title="get /threads/{thread_id}/messages/{message_id}/files">client.beta.threads.messages.files.<a href="./src/openai/resources/beta/threads/messages/files.py">list</a>(message_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/messages/file_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/messages/message_file.py">SyncCursorPage[MessageFile]</a></code>
+- <code title="post /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages.py">create</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_create_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
+- <code title="get /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages.py">retrieve</a>(message_id, \*, thread_id) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
+- <code title="post /threads/{thread_id}/messages/{message_id}">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages.py">update</a>(message_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/message_update_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">Message</a></code>
+- <code title="get /threads/{thread_id}/messages">client.beta.threads.messages.<a href="./src/openai/resources/beta/threads/messages.py">list</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/message_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/message.py">SyncCursorPage[Message]</a></code>
 
 # Batches
 

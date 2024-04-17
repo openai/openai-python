@@ -26,6 +26,12 @@ class FileListParams(TypedDict, total=False):
     of the list.
     """
 
+    filter: Literal["in_progress", "completed", "failed", "cancelled"]
+    """Filter by file status.
+
+    One of `in_progress`, `completed`, `failed`, `cancelled`.
+    """
+
     limit: int
     """A limit on the number of objects to be returned.
 
