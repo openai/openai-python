@@ -77,7 +77,7 @@ class AssistantCreateParams(TypedDict, total=False):
 
     Compatible with
     [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
