@@ -85,7 +85,7 @@ class Jobs(SyncAPIResource):
 
           training_file: The ID of an uploaded file that contains training data.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/upload)
+              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
               for how to upload a file.
 
               Your dataset must be formatted as a JSONL file. Additionally, you must upload
@@ -360,7 +360,7 @@ class AsyncJobs(AsyncAPIResource):
 
           training_file: The ID of an uploaded file that contains training data.
 
-              See [upload file](https://platform.openai.com/docs/api-reference/files/upload)
+              See [upload file](https://platform.openai.com/docs/api-reference/files/create)
               for how to upload a file.
 
               Your dataset must be formatted as a JSONL file. Additionally, you must upload

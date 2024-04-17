@@ -105,13 +105,6 @@ class Run(BaseModel):
     failed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the run failed."""
 
-    file_ids: List[str]
-    """
-    The list of [File](https://platform.openai.com/docs/api-reference/files) IDs the
-    [assistant](https://platform.openai.com/docs/api-reference/assistants) used for
-    this run.
-    """
-
     incomplete_details: Optional[IncompleteDetails] = None
     """Details on why the run is incomplete.
 
@@ -227,3 +220,6 @@ class Run(BaseModel):
 
     temperature: Optional[float] = None
     """The sampling temperature used for this run. If not set, defaults to 1."""
+
+    top_p: Optional[float] = None
+    """The nucleus sampling value used for this run. If not set, defaults to 1."""

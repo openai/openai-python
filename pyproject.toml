@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.20.0"
+version = "1.21.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -63,7 +63,8 @@ dev-dependencies = [
     "inline-snapshot >=0.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
-    "types-pyaudio > 0"
+    "types-pyaudio > 0",
+    "trio >=0.22.2"
 ]
 
 [tool.rye.scripts]

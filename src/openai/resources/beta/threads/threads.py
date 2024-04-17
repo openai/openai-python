@@ -57,7 +57,6 @@ from ....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from .messages.messages import Messages, AsyncMessages
 from ....types.beta.threads import Run
 
 __all__ = ["Threads", "AsyncThreads"]
@@ -85,6 +84,7 @@ class Threads(SyncAPIResource):
         *,
         messages: Iterable[thread_create_params.Message] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_params.ToolResources] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -104,6 +104,11 @@ class Threads(SyncAPIResource):
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
+          tool_resources: A set of resources that are made available to the assistant's tools in this
+              thread. The resources are specific to the type of tool. For example, the
+              `code_interpreter` tool requires a list of file IDs, while the `file_search`
+              tool requires a list of vector store IDs.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -112,13 +117,14 @@ class Threads(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
             "/threads",
             body=maybe_transform(
                 {
                     "messages": messages,
                     "metadata": metadata,
+                    "tool_resources": tool_resources,
                 },
                 thread_create_params.ThreadCreateParams,
             ),
@@ -153,7 +159,7 @@ class Threads(SyncAPIResource):
         """
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
             f"/threads/{thread_id}",
             options=make_request_options(
@@ -167,6 +173,7 @@ class Threads(SyncAPIResource):
         thread_id: str,
         *,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_update_params.ToolResources] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -183,6 +190,11 @@ class Threads(SyncAPIResource):
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
+          tool_resources: A set of resources that are made available to the assistant's tools in this
+              thread. The resources are specific to the type of tool. For example, the
+              `code_interpreter` tool requires a list of file IDs, while the `file_search`
+              tool requires a list of vector store IDs.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -193,10 +205,16 @@ class Threads(SyncAPIResource):
         """
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
             f"/threads/{thread_id}",
-            body=maybe_transform({"metadata": metadata}, thread_update_params.ThreadUpdateParams),
+            body=maybe_transform(
+                {
+                    "metadata": metadata,
+                    "tool_resources": tool_resources,
+                },
+                thread_update_params.ThreadUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -228,7 +246,7 @@ class Threads(SyncAPIResource):
         """
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
             f"/threads/{thread_id}",
             options=make_request_options(
@@ -276,7 +294,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -299,13 +319,13 @@ class Threads(SyncAPIResource):
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              completion tokens specified, the run will end with status `complete`. See
+              completion tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
               The run will make a best effort to use only the number of prompt tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              prompt tokens specified, the run will end with status `complete`. See
+              prompt tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -350,8 +370,17 @@ class Threads(SyncAPIResource):
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
+          tool_resources: A set of resources that are used by the assistant's tools. The resources are
+              specific to the type of tool. For example, the `code_interpreter` tool requires
+              a list of file IDs, while the `file_search` tool requires a list of vector store
+              IDs.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
 
           extra_headers: Send extra headers
 
@@ -402,7 +431,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -429,13 +460,13 @@ class Threads(SyncAPIResource):
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              completion tokens specified, the run will end with status `complete`. See
+              completion tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
               The run will make a best effort to use only the number of prompt tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              prompt tokens specified, the run will end with status `complete`. See
+              prompt tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -476,8 +507,17 @@ class Threads(SyncAPIResource):
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
+          tool_resources: A set of resources that are used by the assistant's tools. The resources are
+              specific to the type of tool. For example, the `code_interpreter` tool requires
+              a list of file IDs, while the `file_search` tool requires a list of vector store
+              IDs.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
 
           extra_headers: Send extra headers
 
@@ -528,7 +568,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -555,13 +597,13 @@ class Threads(SyncAPIResource):
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              completion tokens specified, the run will end with status `complete`. See
+              completion tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
               The run will make a best effort to use only the number of prompt tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              prompt tokens specified, the run will end with status `complete`. See
+              prompt tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -602,8 +644,17 @@ class Threads(SyncAPIResource):
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
+          tool_resources: A set of resources that are used by the assistant's tools. The resources are
+              specific to the type of tool. For example, the `code_interpreter` tool requires
+              a list of file IDs, while the `file_search` tool requires a list of vector store
+              IDs.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
 
           extra_headers: Send extra headers
 
@@ -654,7 +705,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -663,7 +716,7 @@ class Threads(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run | Stream[AssistantStreamEvent]:
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
             "/threads/runs",
             body=maybe_transform(
@@ -679,7 +732,9 @@ class Threads(SyncAPIResource):
                     "temperature": temperature,
                     "thread": thread,
                     "tool_choice": tool_choice,
+                    "tool_resources": tool_resources,
                     "tools": tools,
+                    "top_p": top_p,
                     "truncation_strategy": truncation_strategy,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
@@ -729,7 +784,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -755,8 +812,10 @@ class Threads(SyncAPIResource):
             temperature=temperature,
             stream=False,
             thread=thread,
+            tool_resources=tool_resources,
             tool_choice=tool_choice,
             truncation_strategy=truncation_strategy,
+            top_p=top_p,
             tools=tools,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -803,7 +862,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -853,7 +914,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AssistantEventHandlerT,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -903,7 +966,9 @@ class Threads(SyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AssistantEventHandlerT | None = None,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -915,7 +980,7 @@ class Threads(SyncAPIResource):
     ) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]:
         """Create a thread and stream the run back"""
         extra_headers = {
-            "OpenAI-Beta": "assistants=v1",
+            "OpenAI-Beta": "assistants=v2",
             "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
             "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
@@ -937,7 +1002,9 @@ class Threads(SyncAPIResource):
                     "stream": True,
                     "thread": thread,
                     "tools": tools,
+                    "tool": tool_resources,
                     "truncation_strategy": truncation_strategy,
+                    "top_p": top_p,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),
@@ -973,6 +1040,7 @@ class AsyncThreads(AsyncAPIResource):
         *,
         messages: Iterable[thread_create_params.Message] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_params.ToolResources] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -992,6 +1060,11 @@ class AsyncThreads(AsyncAPIResource):
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
+          tool_resources: A set of resources that are made available to the assistant's tools in this
+              thread. The resources are specific to the type of tool. For example, the
+              `code_interpreter` tool requires a list of file IDs, while the `file_search`
+              tool requires a list of vector store IDs.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1000,13 +1073,14 @@ class AsyncThreads(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
             "/threads",
             body=await async_maybe_transform(
                 {
                     "messages": messages,
                     "metadata": metadata,
+                    "tool_resources": tool_resources,
                 },
                 thread_create_params.ThreadCreateParams,
             ),
@@ -1041,7 +1115,7 @@ class AsyncThreads(AsyncAPIResource):
         """
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
             f"/threads/{thread_id}",
             options=make_request_options(
@@ -1055,6 +1129,7 @@ class AsyncThreads(AsyncAPIResource):
         thread_id: str,
         *,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_update_params.ToolResources] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1071,6 +1146,11 @@ class AsyncThreads(AsyncAPIResource):
               can be a maximum of 64 characters long and values can be a maxium of 512
               characters long.
 
+          tool_resources: A set of resources that are made available to the assistant's tools in this
+              thread. The resources are specific to the type of tool. For example, the
+              `code_interpreter` tool requires a list of file IDs, while the `file_search`
+              tool requires a list of vector store IDs.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1081,10 +1161,16 @@ class AsyncThreads(AsyncAPIResource):
         """
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
             f"/threads/{thread_id}",
-            body=await async_maybe_transform({"metadata": metadata}, thread_update_params.ThreadUpdateParams),
+            body=await async_maybe_transform(
+                {
+                    "metadata": metadata,
+                    "tool_resources": tool_resources,
+                },
+                thread_update_params.ThreadUpdateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1116,7 +1202,7 @@ class AsyncThreads(AsyncAPIResource):
         """
         if not thread_id:
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
             f"/threads/{thread_id}",
             options=make_request_options(
@@ -1164,7 +1250,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1187,13 +1275,13 @@ class AsyncThreads(AsyncAPIResource):
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              completion tokens specified, the run will end with status `complete`. See
+              completion tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
               The run will make a best effort to use only the number of prompt tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              prompt tokens specified, the run will end with status `complete`. See
+              prompt tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -1238,8 +1326,17 @@ class AsyncThreads(AsyncAPIResource):
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
+          tool_resources: A set of resources that are used by the assistant's tools. The resources are
+              specific to the type of tool. For example, the `code_interpreter` tool requires
+              a list of file IDs, while the `file_search` tool requires a list of vector store
+              IDs.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
 
           extra_headers: Send extra headers
 
@@ -1290,7 +1387,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1317,13 +1416,13 @@ class AsyncThreads(AsyncAPIResource):
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              completion tokens specified, the run will end with status `complete`. See
+              completion tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
               The run will make a best effort to use only the number of prompt tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              prompt tokens specified, the run will end with status `complete`. See
+              prompt tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -1364,8 +1463,17 @@ class AsyncThreads(AsyncAPIResource):
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
+          tool_resources: A set of resources that are used by the assistant's tools. The resources are
+              specific to the type of tool. For example, the `code_interpreter` tool requires
+              a list of file IDs, while the `file_search` tool requires a list of vector store
+              IDs.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
 
           extra_headers: Send extra headers
 
@@ -1416,7 +1524,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1443,13 +1553,13 @@ class AsyncThreads(AsyncAPIResource):
           max_completion_tokens: The maximum number of completion tokens that may be used over the course of the
               run. The run will make a best effort to use only the number of completion tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              completion tokens specified, the run will end with status `complete`. See
+              completion tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           max_prompt_tokens: The maximum number of prompt tokens that may be used over the course of the run.
               The run will make a best effort to use only the number of prompt tokens
               specified, across multiple turns of the run. If the run exceeds the number of
-              prompt tokens specified, the run will end with status `complete`. See
+              prompt tokens specified, the run will end with status `incomplete`. See
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
@@ -1490,8 +1600,17 @@ class AsyncThreads(AsyncAPIResource):
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
+          tool_resources: A set of resources that are used by the assistant's tools. The resources are
+              specific to the type of tool. For example, the `code_interpreter` tool requires
+              a list of file IDs, while the `file_search` tool requires a list of vector store
+              IDs.
+
           tools: Override the tools the assistant can use for this run. This is useful for
               modifying the behavior on a per-run basis.
+
+          top_p: An alternative to sampling with temperature, called nucleus sampling, where the
+              model considers the results of the tokens with top_p probability mass. So 0.1
+              means only the tokens comprising the top 10% probability mass are considered.
 
           extra_headers: Send extra headers
 
@@ -1542,7 +1661,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1551,7 +1672,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
-        extra_headers = {"OpenAI-Beta": "assistants=v1", **(extra_headers or {})}
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
             "/threads/runs",
             body=await async_maybe_transform(
@@ -1567,7 +1688,9 @@ class AsyncThreads(AsyncAPIResource):
                     "temperature": temperature,
                     "thread": thread,
                     "tool_choice": tool_choice,
+                    "tool_resources": tool_resources,
                     "tools": tools,
+                    "top_p": top_p,
                     "truncation_strategy": truncation_strategy,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
@@ -1617,7 +1740,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1643,8 +1768,10 @@ class AsyncThreads(AsyncAPIResource):
             temperature=temperature,
             stream=False,
             thread=thread,
+            tool_resources=tool_resources,
             tool_choice=tool_choice,
             truncation_strategy=truncation_strategy,
+            top_p=top_p,
             tools=tools,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -1693,7 +1820,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1743,7 +1872,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AsyncAssistantEventHandlerT,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1793,7 +1924,9 @@ class AsyncThreads(AsyncAPIResource):
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
         tools: Optional[Iterable[thread_create_and_run_params.Tool]] | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
         event_handler: AsyncAssistantEventHandlerT | None = None,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1808,7 +1941,7 @@ class AsyncThreads(AsyncAPIResource):
     ):
         """Create a thread and stream the run back"""
         extra_headers = {
-            "OpenAI-Beta": "assistants=v1",
+            "OpenAI-Beta": "assistants=v2",
             "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
             "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
@@ -1829,7 +1962,9 @@ class AsyncThreads(AsyncAPIResource):
                     "stream": True,
                     "thread": thread,
                     "tools": tools,
+                    "tool": tool_resources,
                     "truncation_strategy": truncation_strategy,
+                    "top_p": top_p,
                 },
                 thread_create_and_run_params.ThreadCreateAndRunParams,
             ),

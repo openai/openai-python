@@ -6,7 +6,14 @@ from typing_extensions import Literal
 from ...._models import BaseModel
 from .message_content import MessageContent
 
-__all__ = ["Message", "IncompleteDetails"]
+__all__ = ["Message", "Attachment", "IncompleteDetails"]
+
+
+class Attachment(BaseModel):
+    add_to: Optional[List[Literal["file_search", "code_interpreter"]]] = None
+
+    file_id: Optional[str] = None
+    """The ID of the file to attach to the message."""
 
 
 class IncompleteDetails(BaseModel):
@@ -25,6 +32,9 @@ class Message(BaseModel):
     authored this message.
     """
 
+    attachments: Optional[List[Attachment]] = None
+    """A list of files attached to the message, and the tools they were added to."""
+
     completed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the message was completed."""
 
@@ -33,13 +43,6 @@ class Message(BaseModel):
 
     created_at: int
     """The Unix timestamp (in seconds) for when the message was created."""
-
-    file_ids: List[str]
-    """
-    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs that
-    the assistant should use. Useful for tools like retrieval and code_interpreter
-    that can access files. A maximum of 10 files can be attached to a message.
-    """
 
     incomplete_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the message was marked as incomplete."""

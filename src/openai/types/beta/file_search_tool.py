@@ -4,9 +4,9 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["RetrievalTool"]
+__all__ = ["FileSearchTool"]
 
 
-class RetrievalTool(BaseModel):
-    type: Literal["retrieval"]
-    """The type of tool being defined: `retrieval`"""
+class FileSearchTool(BaseModel):
+    type: Literal["file_search"]
+    """The type of tool being defined: `file_search`"""

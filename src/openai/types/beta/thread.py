@@ -1,11 +1,36 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["Thread"]
+__all__ = ["Thread", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResourcesFileSearch"]
+
+
+class ToolResourcesCodeInterpreter(BaseModel):
+    file_ids: Optional[List[str]] = None
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
+    available to the `code_interpreter` tool. There can be a maximum of 20 files
+    associated with the tool.
+    """
+
+
+class ToolResourcesFileSearch(BaseModel):
+    vector_store_ids: Optional[List[str]] = None
+    """
+    The
+    [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
+    attached to this thread. There can be a maximum of 1 vector store attached to
+    the thread.
+    """
+
+
+class ToolResources(BaseModel):
+    code_interpreter: Optional[ToolResourcesCodeInterpreter] = None
+
+    file_search: Optional[ToolResourcesFileSearch] = None
 
 
 class Thread(BaseModel):
@@ -25,3 +50,11 @@ class Thread(BaseModel):
 
     object: Literal["thread"]
     """The object type, which is always `thread`."""
+
+    tool_resources: Optional[ToolResources] = None
+    """
+    A set of resources that are made available to the assistant's tools in this
+    thread. The resources are specific to the type of tool. For example, the
+    `code_interpreter` tool requires a list of file IDs, while the `file_search`
+    tool requires a list of vector store IDs.
+    """
