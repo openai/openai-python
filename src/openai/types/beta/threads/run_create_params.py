@@ -12,6 +12,7 @@ from ..assistant_response_format_option_param import AssistantResponseFormatOpti
 __all__ = [
     "RunCreateParamsBase",
     "AdditionalMessage",
+    "AdditionalMessageAttachment",
     "TruncationStrategy",
     "RunCreateParamsNonStreaming",
     "RunCreateParamsStreaming",
@@ -142,7 +143,21 @@ class RunCreateParamsBase(TypedDict, total=False):
     This is useful for modifying the behavior on a per-run basis.
     """
 
+    top_p: Optional[float]
+    """
+    An alternative to sampling with temperature, called nucleus sampling, where the
+    model considers the results of the tokens with top_p probability mass. So 0.1
+    means only the tokens comprising the top 10% probability mass are considered.
+    """
+
     truncation_strategy: Optional[TruncationStrategy]
+
+
+class AdditionalMessageAttachment(TypedDict, total=False):
+    add_to: List[Literal["file_search", "code_interpreter"]]
+
+    file_id: str
+    """The ID of the file to attach to the message."""
 
 
 class AdditionalMessage(TypedDict, total=False):
@@ -158,13 +173,8 @@ class AdditionalMessage(TypedDict, total=False):
       value to insert messages from the assistant into the conversation.
     """
 
-    file_ids: List[str]
-    """
-    A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-    the message should use. There can be a maximum of 10 files attached to a
-    message. Useful for tools like `retrieval` and `code_interpreter` that can
-    access and use files.
-    """
+    attachments: Optional[Iterable[AdditionalMessageAttachment]]
+    """A list of files attached to the message, and the tools they should be added to."""
 
     metadata: Optional[object]
     """Set of 16 key-value pairs that can be attached to an object.

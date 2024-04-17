@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["FileListParams"]
+__all__ = ["FileBatchListFilesParams"]
 
 
-class FileListParams(TypedDict, total=False):
-    thread_id: Required[str]
+class FileBatchListFilesParams(TypedDict, total=False):
+    vector_store_id: Required[str]
 
     after: str
     """A cursor for use in pagination.
@@ -26,6 +26,12 @@ class FileListParams(TypedDict, total=False):
     you make a list request and receive 100 objects, ending with obj_foo, your
     subsequent call can include before=obj_foo in order to fetch the previous page
     of the list.
+    """
+
+    filter: Literal["in_progress", "completed", "failed", "cancelled"]
+    """Filter by file status.
+
+    One of `in_progress`, `completed`, `failed`, `cancelled`.
     """
 
     limit: int

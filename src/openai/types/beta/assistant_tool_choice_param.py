@@ -10,7 +10,7 @@ __all__ = ["AssistantToolChoiceParam"]
 
 
 class AssistantToolChoiceParam(TypedDict, total=False):
-    type: Required[Literal["function", "code_interpreter", "retrieval"]]
+    type: Required[Literal["function", "code_interpreter", "file_search"]]
     """The type of the tool. If type is `function`, the function name must be set"""
 
     function: AssistantToolChoiceFunctionParam

@@ -33,7 +33,20 @@ class TestMessages:
             "string",
             content="x",
             role="user",
-            file_ids=["string"],
+            attachments=[
+                {
+                    "file_id": "string",
+                    "add_to": ["file_search", "code_interpreter"],
+                },
+                {
+                    "file_id": "string",
+                    "add_to": ["file_search", "code_interpreter"],
+                },
+                {
+                    "file_id": "string",
+                    "add_to": ["file_search", "code_interpreter"],
+                },
+            ],
             metadata={},
         )
         assert_matches_type(Message, message, path=["response"])
@@ -249,7 +262,20 @@ class TestAsyncMessages:
             "string",
             content="x",
             role="user",
-            file_ids=["string"],
+            attachments=[
+                {
+                    "file_id": "string",
+                    "add_to": ["file_search", "code_interpreter"],
+                },
+                {
+                    "file_id": "string",
+                    "add_to": ["file_search", "code_interpreter"],
+                },
+                {
+                    "file_id": "string",
+                    "add_to": ["file_search", "code_interpreter"],
+                },
+            ],
             metadata={},
         )
         assert_matches_type(Message, message, path=["response"])

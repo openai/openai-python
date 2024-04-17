@@ -2,14 +2,14 @@
 
 from typing_extensions import Literal
 
-from ...._models import BaseModel
+from ..._models import BaseModel
 
-__all__ = ["FileDeleteResponse"]
+__all__ = ["VectorStoreDeleted"]
 
 
-class FileDeleteResponse(BaseModel):
+class VectorStoreDeleted(BaseModel):
     id: str
 
     deleted: bool
 
-    object: Literal["assistant.file.deleted"]
+    object: Literal["vector_store.deleted"]

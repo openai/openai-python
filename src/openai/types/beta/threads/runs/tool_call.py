@@ -5,11 +5,11 @@ from typing_extensions import Annotated
 
 from ....._utils import PropertyInfo
 from .function_tool_call import FunctionToolCall
-from .retrieval_tool_call import RetrievalToolCall
+from .file_search_tool_call import FileSearchToolCall
 from .code_interpreter_tool_call import CodeInterpreterToolCall
 
 __all__ = ["ToolCall"]
 
 ToolCall = Annotated[
-    Union[CodeInterpreterToolCall, RetrievalToolCall, FunctionToolCall], PropertyInfo(discriminator="type")
+    Union[CodeInterpreterToolCall, FileSearchToolCall, FunctionToolCall], PropertyInfo(discriminator="type")
 ]

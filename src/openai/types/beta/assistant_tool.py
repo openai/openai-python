@@ -5,9 +5,9 @@ from typing_extensions import Annotated
 
 from ..._utils import PropertyInfo
 from .function_tool import FunctionTool
-from .retrieval_tool import RetrievalTool
+from .file_search_tool import FileSearchTool
 from .code_interpreter_tool import CodeInterpreterTool
 
 __all__ = ["AssistantTool"]
 
-AssistantTool = Annotated[Union[CodeInterpreterTool, RetrievalTool, FunctionTool], PropertyInfo(discriminator="type")]
+AssistantTool = Annotated[Union[CodeInterpreterTool, FileSearchTool, FunctionTool], PropertyInfo(discriminator="type")]
