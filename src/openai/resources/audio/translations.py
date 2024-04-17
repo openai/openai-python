@@ -43,6 +43,7 @@ class Translations(SyncAPIResource):
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -89,6 +90,7 @@ class Translations(SyncAPIResource):
                 "prompt": prompt,
                 "response_format": response_format,
                 "temperature": temperature,
+                "timestamp_granularities": timestamp_granularities,
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
@@ -125,6 +127,7 @@ class AsyncTranslations(AsyncAPIResource):
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -171,6 +174,7 @@ class AsyncTranslations(AsyncAPIResource):
                 "prompt": prompt,
                 "response_format": response_format,
                 "temperature": temperature,
+                "timestamp_granularities": timestamp_granularities,
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
