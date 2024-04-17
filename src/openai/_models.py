@@ -4,7 +4,6 @@ import os
 import inspect
 from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, cast
 from datetime import date, datetime
-from functools import lru_cache
 from typing_extensions import (
     Unpack,
     Literal,
@@ -37,6 +36,7 @@ from ._utils import (
     PropertyInfo,
     is_list,
     is_given,
+    lru_cache,
     is_mapping,
     parse_date,
     coerce_boolean,
