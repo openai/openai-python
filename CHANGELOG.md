@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.21.0 (2024-04-17)
+
+Full Changelog: [v1.20.0...v1.21.0](https://github.com/openai/openai-python/compare/v1.20.0...v1.21.0)
+
+### Features
+
+* **api:** add vector stores ([#1325](https://github.com/openai/openai-python/issues/1325)) ([038a3c5](https://github.com/openai/openai-python/commit/038a3c50db7b6a88f54ff1cd1ff6cbaef2caf87f))
+
 ## 1.20.0 (2024-04-16)
 
 Full Changelog: [v1.19.0...v1.20.0](https://github.com/openai/openai-python/compare/v1.19.0...v1.20.0)
