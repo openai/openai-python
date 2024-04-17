@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.21.1 (2024-04-17)
+
+Full Changelog: [v1.21.0...v1.21.1](https://github.com/openai/openai-python/compare/v1.21.0...v1.21.1)
+
+### Chores
+
+* **api:** docs and response_format response property ([#1327](https://github.com/openai/openai-python/issues/1327)) ([7a6d142](https://github.com/openai/openai-python/commit/7a6d142f013994c4eb9a4f55888464c885f8baf0))
+
 ## 1.21.0 (2024-04-17)
 
 Full Changelog: [v1.20.0...v1.21.0](https://github.com/openai/openai-python/compare/v1.20.0...v1.21.0)
