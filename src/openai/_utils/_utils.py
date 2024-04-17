@@ -389,3 +389,11 @@ def get_async_library() -> str:
         return sniffio.current_async_library()
     except Exception:
         return "false"
+
+
+def lru_cache(*, maxsize: int | None = 128) -> Callable[[CallableT], CallableT]:
+    """A version of functools.lru_cache that retains the type signature
+    for the wrapped function arguments.
+    """
+    wrapper = functools.lru_cache(maxsize=maxsize)
+    return cast(Any, wrapper)  # type: ignore[no-any-return]
