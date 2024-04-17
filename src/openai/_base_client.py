@@ -29,7 +29,6 @@ from typing import (
     cast,
     overload,
 )
-from functools import lru_cache
 from typing_extensions import Literal, override, get_origin
 
 import anyio
@@ -61,7 +60,7 @@ from ._types import (
     RequestOptions,
     ModelBuilderProtocol,
 )
-from ._utils import is_dict, is_list, is_given, is_mapping
+from ._utils import is_dict, is_list, is_given, lru_cache, is_mapping
 from ._compat import model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
