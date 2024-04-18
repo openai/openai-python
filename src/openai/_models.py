@@ -378,7 +378,7 @@ def construct_type(*, value: object, type_: object) -> object:
 
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):
-        meta = get_args(type_)[1:]
+        meta: tuple[Any, ...] = get_args(type_)[1:]
         type_ = extract_type_arg(type_, 0)
     else:
         meta = tuple()
