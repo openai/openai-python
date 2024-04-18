@@ -10,10 +10,10 @@ __all__ = ["Message", "Attachment", "IncompleteDetails"]
 
 
 class Attachment(BaseModel):
-    add_to: Optional[List[Literal["file_search", "code_interpreter"]]] = None
-
     file_id: Optional[str] = None
     """The ID of the file to attach to the message."""
+
+    tools: Optional[List[Literal["file_search", "code_interpreter"]]] = None
 
 
 class IncompleteDetails(BaseModel):
