@@ -41,10 +41,10 @@ class ThreadCreateParams(TypedDict, total=False):
 
 
 class MessageAttachment(TypedDict, total=False):
-    add_to: List[Literal["file_search", "code_interpreter"]]
-
     file_id: str
     """The ID of the file to attach to the message."""
+
+    tools: List[Literal["file_search", "code_interpreter"]]
 
 
 class Message(TypedDict, total=False):
