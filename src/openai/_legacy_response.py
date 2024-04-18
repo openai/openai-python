@@ -71,6 +71,10 @@ class LegacyAPIResponse(Generic[R]):
         self._options = options
         self.http_response = raw
 
+    @property
+    def request_id(self) -> str | None:
+        return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
+
     @overload
     def parse(self, *, to: type[_T]) -> _T:
         ...
