@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.23.0 (2024-04-18)
+
+Full Changelog: [v1.22.0...v1.23.0](https://github.com/openai/openai-python/compare/v1.22.0...v1.23.0)
+
+### Features
+
+* **api:** add request id property to response classes ([#1341](https://github.com/openai/openai-python/issues/1341)) ([444d680](https://github.com/openai/openai-python/commit/444d680cbb3745adbc27788213ae3312567136a8))
+
+
+### Documentation
+
+* **helpers:** fix example snippets ([#1339](https://github.com/openai/openai-python/issues/1339)) ([8929088](https://github.com/openai/openai-python/commit/8929088b206a04b4c5b85fb69b0b983fb56f9b03))
+
 ## 1.22.0 (2024-04-18)
 
 Full Changelog: [v1.21.2...v1.22.0](https://github.com/openai/openai-python/compare/v1.21.2...v1.22.0)
