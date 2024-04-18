@@ -265,6 +265,8 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
                     )
                     msg = f"Missing required arguments; Expected either {variations} arguments to be given"
                 else:
+                    assert len(variants) > 0
+
                     # TODO: this error message is not deterministic
                     missing = list(set(variants[0]) - given_params)
                     if len(missing) > 1:
