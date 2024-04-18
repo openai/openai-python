@@ -10,6 +10,7 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import Batch
+from openai.pagination import SyncCursorPage, AsyncCursorPage
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -101,6 +102,39 @@ class TestBatches:
             client.batches.with_raw_response.retrieve(
                 "",
             )
+
+    @parametrize
+    def test_method_list(self, client: OpenAI) -> None:
+        batch = client.batches.list()
+        assert_matches_type(SyncCursorPage[Batch], batch, path=["response"])
+
+    @parametrize
+    def test_method_list_with_all_params(self, client: OpenAI) -> None:
+        batch = client.batches.list(
+            after="string",
+            limit=0,
+        )
+        assert_matches_type(SyncCursorPage[Batch], batch, path=["response"])
+
+    @parametrize
+    def test_raw_response_list(self, client: OpenAI) -> None:
+        response = client.batches.with_raw_response.list()
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        batch = response.parse()
+        assert_matches_type(SyncCursorPage[Batch], batch, path=["response"])
+
+    @parametrize
+    def test_streaming_response_list(self, client: OpenAI) -> None:
+        with client.batches.with_streaming_response.list() as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            batch = response.parse()
+            assert_matches_type(SyncCursorPage[Batch], batch, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
@@ -228,6 +262,39 @@ class TestAsyncBatches:
             await async_client.batches.with_raw_response.retrieve(
                 "",
             )
+
+    @parametrize
+    async def test_method_list(self, async_client: AsyncOpenAI) -> None:
+        batch = await async_client.batches.list()
+        assert_matches_type(AsyncCursorPage[Batch], batch, path=["response"])
+
+    @parametrize
+    async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        batch = await async_client.batches.list(
+            after="string",
+            limit=0,
+        )
+        assert_matches_type(AsyncCursorPage[Batch], batch, path=["response"])
+
+    @parametrize
+    async def test_raw_response_list(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.batches.with_raw_response.list()
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        batch = response.parse()
+        assert_matches_type(AsyncCursorPage[Batch], batch, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.batches.with_streaming_response.list() as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            batch = await response.parse()
+            assert_matches_type(AsyncCursorPage[Batch], batch, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
 
     @parametrize
     async def test_method_cancel(self, async_client: AsyncOpenAI) -> None:
