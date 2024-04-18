@@ -36,15 +36,15 @@ class TestMessages:
             attachments=[
                 {
                     "file_id": "string",
-                    "add_to": ["file_search", "code_interpreter"],
+                    "tools": ["file_search", "code_interpreter"],
                 },
                 {
                     "file_id": "string",
-                    "add_to": ["file_search", "code_interpreter"],
+                    "tools": ["file_search", "code_interpreter"],
                 },
                 {
                     "file_id": "string",
-                    "add_to": ["file_search", "code_interpreter"],
+                    "tools": ["file_search", "code_interpreter"],
                 },
             ],
             metadata={},
@@ -265,15 +265,15 @@ class TestAsyncMessages:
             attachments=[
                 {
                     "file_id": "string",
-                    "add_to": ["file_search", "code_interpreter"],
+                    "tools": ["file_search", "code_interpreter"],
                 },
                 {
                     "file_id": "string",
-                    "add_to": ["file_search", "code_interpreter"],
+                    "tools": ["file_search", "code_interpreter"],
                 },
                 {
                     "file_id": "string",
-                    "add_to": ["file_search", "code_interpreter"],
+                    "tools": ["file_search", "code_interpreter"],
                 },
             ],
             metadata={},

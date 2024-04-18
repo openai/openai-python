@@ -160,10 +160,10 @@ class RunCreateParamsBase(TypedDict, total=False):
 
 
 class AdditionalMessageAttachment(TypedDict, total=False):
-    add_to: List[Literal["file_search", "code_interpreter"]]
-
     file_id: str
     """The ID of the file to attach to the message."""
+
+    tools: List[Literal["file_search", "code_interpreter"]]
 
 
 class AdditionalMessage(TypedDict, total=False):
