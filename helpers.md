@@ -33,11 +33,13 @@ class EventHandler(AssistantEventHandler):
   def on_text_delta(self, delta: TextDelta, snapshot: Text):
     print(delta.value, end="", flush=True)
 
+  @override
   def on_tool_call_created(self, tool_call: ToolCall):
     print(f"\nassistant > {tool_call.type}\n", flush=True)
 
+  @override
   def on_tool_call_delta(self, delta: ToolCallDelta, snapshot: ToolCall):
-    if delta.type == 'code_interpreter':
+    if delta.type == "code_interpreter" and delta.code_interpreter:
       if delta.code_interpreter.input:
         print(delta.code_interpreter.input, end="", flush=True)
       if delta.code_interpreter.outputs:
@@ -69,7 +71,7 @@ with client.beta.threads.runs.stream(
 ) as stream:
     for event in stream:
         # Print the text from text delta events
-        if event.type == "thread.message.delta" and event.data.delta.content:
+        if event.event == "thread.message.delta" and event.data.delta.content:
             print(event.data.delta.content[0].text)
 ```
 
