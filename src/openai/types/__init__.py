@@ -22,6 +22,7 @@ from .model_deleted import ModelDeleted as ModelDeleted
 from .images_response import ImagesResponse as ImagesResponse
 from .completion_usage import CompletionUsage as CompletionUsage
 from .file_list_params import FileListParams as FileListParams
+from .batch_list_params import BatchListParams as BatchListParams
 from .completion_choice import CompletionChoice as CompletionChoice
 from .image_edit_params import ImageEditParams as ImageEditParams
 from .file_create_params import FileCreateParams as FileCreateParams

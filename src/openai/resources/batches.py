@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from .. import _legacy_response
-from ..types import Batch, batch_create_params
+from ..types import Batch, batch_list_params, batch_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import (
     maybe_transform,
@@ -17,7 +17,9 @@ from .._utils import (
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ..pagination import SyncCursorPage, AsyncCursorPage
 from .._base_client import (
+    AsyncPaginator,
     make_request_options,
 )
 
@@ -123,6 +125,58 @@ class Batches(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Batch,
+        )
+
+    def list(
+        self,
+        *,
+        after: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> SyncCursorPage[Batch]:
+        """List your organization's batches.
+
+        Args:
+          after: A cursor for use in pagination.
+
+        `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              100, and the default is 20.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get_api_list(
+            "/batches",
+            page=SyncCursorPage[Batch],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                    },
+                    batch_list_params.BatchListParams,
+                ),
+            ),
+            model=Batch,
         )
 
     def cancel(
@@ -260,6 +314,58 @@ class AsyncBatches(AsyncAPIResource):
             cast_to=Batch,
         )
 
+    def list(
+        self,
+        *,
+        after: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncPaginator[Batch, AsyncCursorPage[Batch]]:
+        """List your organization's batches.
+
+        Args:
+          after: A cursor for use in pagination.
+
+        `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              100, and the default is 20.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get_api_list(
+            "/batches",
+            page=AsyncCursorPage[Batch],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                    },
+                    batch_list_params.BatchListParams,
+                ),
+            ),
+            model=Batch,
+        )
+
     async def cancel(
         self,
         batch_id: str,
@@ -304,6 +410,9 @@ class BatchesWithRawResponse:
         self.retrieve = _legacy_response.to_raw_response_wrapper(
             batches.retrieve,
         )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            batches.list,
+        )
         self.cancel = _legacy_response.to_raw_response_wrapper(
             batches.cancel,
         )
@@ -318,6 +427,9 @@ class AsyncBatchesWithRawResponse:
         )
         self.retrieve = _legacy_response.async_to_raw_response_wrapper(
             batches.retrieve,
+        )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            batches.list,
         )
         self.cancel = _legacy_response.async_to_raw_response_wrapper(
             batches.cancel,
@@ -334,6 +446,9 @@ class BatchesWithStreamingResponse:
         self.retrieve = to_streamed_response_wrapper(
             batches.retrieve,
         )
+        self.list = to_streamed_response_wrapper(
+            batches.list,
+        )
         self.cancel = to_streamed_response_wrapper(
             batches.cancel,
         )
@@ -348,6 +463,9 @@ class AsyncBatchesWithStreamingResponse:
         )
         self.retrieve = async_to_streamed_response_wrapper(
             batches.retrieve,
+        )
+        self.list = async_to_streamed_response_wrapper(
+            batches.list,
         )
         self.cancel = async_to_streamed_response_wrapper(
             batches.cancel,
