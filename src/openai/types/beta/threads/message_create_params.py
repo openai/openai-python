@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from ....types.beta import FileSearchToolParam, CodeInterpreterToolParam
 
 __all__ = ["MessageCreateParams", "Attachment"]
 
@@ -32,9 +34,10 @@ class MessageCreateParams(TypedDict, total=False):
     a maxium of 512 characters long.
     """
 
+AttachmentToolParam = Union[CodeInterpreterToolParam, FileSearchToolParam]
 
 class Attachment(TypedDict, total=False):
     file_id: str
     """The ID of the file to attach to the message."""
 
-    tools: List[Literal["file_search", "code_interpreter"]]
+    tools: Iterable[AttachmentToolParam]
