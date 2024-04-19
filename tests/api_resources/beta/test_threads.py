@@ -36,34 +36,27 @@ class TestThreads:
                     "attachments": [
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
-                        },
-                    ],
-                    "metadata": {},
-                },
-                {
-                    "role": "user",
-                    "content": "x",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                     ],
                     "metadata": {},
@@ -74,15 +67,58 @@ class TestThreads:
                     "attachments": [
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
+                        },
+                    ],
+                    "metadata": {},
+                },
+                {
+                    "role": "user",
+                    "content": "x",
+                    "attachments": [
+                        {
+                            "file_id": "string",
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
+                        },
+                        {
+                            "file_id": "string",
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
+                        },
+                        {
+                            "file_id": "string",
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                     ],
                     "metadata": {},
@@ -277,34 +313,27 @@ class TestThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                        ],
-                        "metadata": {},
-                    },
-                    {
-                        "role": "user",
-                        "content": "x",
-                        "attachments": [
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -315,15 +344,58 @@ class TestThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                        ],
+                        "metadata": {},
+                    },
+                    {
+                        "role": "user",
+                        "content": "x",
+                        "attachments": [
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -409,34 +481,27 @@ class TestThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                        ],
-                        "metadata": {},
-                    },
-                    {
-                        "role": "user",
-                        "content": "x",
-                        "attachments": [
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -447,15 +512,58 @@ class TestThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                        ],
+                        "metadata": {},
+                    },
+                    {
+                        "role": "user",
+                        "content": "x",
+                        "attachments": [
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -533,34 +641,27 @@ class TestAsyncThreads:
                     "attachments": [
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
-                        },
-                    ],
-                    "metadata": {},
-                },
-                {
-                    "role": "user",
-                    "content": "x",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                     ],
                     "metadata": {},
@@ -571,15 +672,58 @@ class TestAsyncThreads:
                     "attachments": [
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                         {
                             "file_id": "string",
-                            "tools": ["file_search", "code_interpreter"],
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
+                        },
+                    ],
+                    "metadata": {},
+                },
+                {
+                    "role": "user",
+                    "content": "x",
+                    "attachments": [
+                        {
+                            "file_id": "string",
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
+                        },
+                        {
+                            "file_id": "string",
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
+                        },
+                        {
+                            "file_id": "string",
+                            "tools": [
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                                {"type": "code_interpreter"},
+                            ],
                         },
                     ],
                     "metadata": {},
@@ -774,34 +918,27 @@ class TestAsyncThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                        ],
-                        "metadata": {},
-                    },
-                    {
-                        "role": "user",
-                        "content": "x",
-                        "attachments": [
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -812,15 +949,58 @@ class TestAsyncThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                        ],
+                        "metadata": {},
+                    },
+                    {
+                        "role": "user",
+                        "content": "x",
+                        "attachments": [
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -906,34 +1086,27 @@ class TestAsyncThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                        ],
-                        "metadata": {},
-                    },
-                    {
-                        "role": "user",
-                        "content": "x",
-                        "attachments": [
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
-                            },
-                            {
-                                "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},
@@ -944,15 +1117,58 @@ class TestAsyncThreads:
                         "attachments": [
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                             {
                                 "file_id": "string",
-                                "tools": ["file_search", "code_interpreter"],
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                        ],
+                        "metadata": {},
+                    },
+                    {
+                        "role": "user",
+                        "content": "x",
+                        "attachments": [
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
+                            },
+                            {
+                                "file_id": "string",
+                                "tools": [
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                    {"type": "code_interpreter"},
+                                ],
                             },
                         ],
                         "metadata": {},

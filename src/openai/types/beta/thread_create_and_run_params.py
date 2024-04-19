@@ -16,6 +16,7 @@ __all__ = [
     "Thread",
     "ThreadMessage",
     "ThreadMessageAttachment",
+    "ThreadMessageAttachmentTool",
     "ThreadToolResources",
     "ThreadToolResourcesCodeInterpreter",
     "ThreadToolResourcesFileSearch",
@@ -170,11 +171,15 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     """
 
 
+ThreadMessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+
+
 class ThreadMessageAttachment(TypedDict, total=False):
     file_id: str
     """The ID of the file to attach to the message."""
 
-    tools: List[Literal["file_search", "code_interpreter"]]
+    tools: Iterable[ThreadMessageAttachmentTool]
+    """The tools to add this file to."""
 
 
 class ThreadMessage(TypedDict, total=False):
