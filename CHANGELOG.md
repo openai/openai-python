@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.23.2 (2024-04-19)
+
+Full Changelog: [v1.23.1...v1.23.2](https://github.com/openai/openai-python/compare/v1.23.1...v1.23.2)
+
+### Bug Fixes
+
+* **api:** correct types for message attachment tools ([#1348](https://github.com/openai/openai-python/issues/1348)) ([78a6261](https://github.com/openai/openai-python/commit/78a6261eaad7839284903287d4f647d9cb4ced0b))
+
 ## 1.23.1 (2024-04-18)
 
 Full Changelog: [v1.23.0...v1.23.1](https://github.com/openai/openai-python/compare/v1.23.0...v1.23.1)
