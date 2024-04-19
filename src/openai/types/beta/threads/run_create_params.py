@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ..assistant_tool_param import AssistantToolParam
+from ..file_search_tool_param import FileSearchToolParam
+from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from ..assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
@@ -13,6 +15,7 @@ __all__ = [
     "RunCreateParamsBase",
     "AdditionalMessage",
     "AdditionalMessageAttachment",
+    "AdditionalMessageAttachmentTool",
     "TruncationStrategy",
     "RunCreateParamsNonStreaming",
     "RunCreateParamsStreaming",
@@ -159,11 +162,15 @@ class RunCreateParamsBase(TypedDict, total=False):
     """
 
 
+AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+
+
 class AdditionalMessageAttachment(TypedDict, total=False):
     file_id: str
     """The ID of the file to attach to the message."""
 
-    tools: List[Literal["file_search", "code_interpreter"]]
+    tools: Iterable[AdditionalMessageAttachmentTool]
+    """The tools to add this file to."""
 
 
 class AdditionalMessage(TypedDict, total=False):

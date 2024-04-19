@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
-from typing import List, Iterable, Optional
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from .file_search_tool_param import FileSearchToolParam
+from .code_interpreter_tool_param import CodeInterpreterToolParam
 
 __all__ = [
     "ThreadCreateParams",
     "Message",
     "MessageAttachment",
+    "MessageAttachmentTool",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
@@ -40,11 +44,15 @@ class ThreadCreateParams(TypedDict, total=False):
     """
 
 
+MessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+
+
 class MessageAttachment(TypedDict, total=False):
     file_id: str
     """The ID of the file to attach to the message."""
 
-    tools: List[Literal["file_search", "code_interpreter"]]
+    tools: Iterable[MessageAttachmentTool]
+    """The tools to add this file to."""
 
 
 class Message(TypedDict, total=False):

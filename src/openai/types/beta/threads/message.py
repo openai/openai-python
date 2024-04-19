@@ -1,19 +1,24 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
 from .message_content import MessageContent
+from ..file_search_tool import FileSearchTool
+from ..code_interpreter_tool import CodeInterpreterTool
 
-__all__ = ["Message", "Attachment", "IncompleteDetails"]
+__all__ = ["Message", "Attachment", "AttachmentTool", "IncompleteDetails"]
+
+AttachmentTool = Union[CodeInterpreterTool, FileSearchTool]
 
 
 class Attachment(BaseModel):
     file_id: Optional[str] = None
     """The ID of the file to attach to the message."""
 
-    tools: Optional[List[Literal["file_search", "code_interpreter"]]] = None
+    tools: Optional[List[AttachmentTool]] = None
+    """The tools to add this file to."""
 
 
 class IncompleteDetails(BaseModel):
