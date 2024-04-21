@@ -40,7 +40,7 @@ class VectorStore(BaseModel):
     id: str
     """The identifier, which can be referenced in API endpoints."""
 
-    bytes: int
+    usage_bytes: int
     """The byte size of the vector store."""
 
     created_at: int
