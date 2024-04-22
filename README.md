@@ -71,7 +71,7 @@ More information on the lifecycle of a Run can be found in the [Run Lifecycle Do
 
 ### Bulk Upload Helpers
 
-When creating an interacting with vector stores, you can use the polling helpers to monitor the status of operations.
+When creating and interacting with vector stores, you can use the polling helpers to monitor the status of operations.
 For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
 
 ```python
@@ -521,7 +521,7 @@ The context manager is required so that the response will reliably be closed.
 
 ### Making custom/undocumented requests
 
-This library is typed for convenient access the documented API.
+This library is typed for convenient access to the documented API.
 
 If you need to access undocumented endpoints, params, or response properties, the library can still be used.
 
