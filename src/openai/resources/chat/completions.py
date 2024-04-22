@@ -577,9 +577,10 @@ class Completions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        custom_path: str = "/chat/completions"
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         return self._post(
-            "/chat/completions",
+            custom_path,
             body=maybe_transform(
                 {
                     "messages": messages,
@@ -1157,9 +1158,10 @@ class AsyncCompletions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        custom_path: str = "/chat/completions"
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
         return await self._post(
-            "/chat/completions",
+            custom_path,
             body=await async_maybe_transform(
                 {
                     "messages": messages,

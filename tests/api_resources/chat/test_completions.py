@@ -6,6 +6,7 @@ import os
 from typing import Any, cast
 
 import pytest
+import respx
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -29,6 +30,26 @@ class TestCompletions:
             model="gpt-4-turbo",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
+
+    @parametrize
+    @respx.mock
+    def test_method_create_with_custom_path(self, client: OpenAI, respx_mock) -> None:
+        custom_path = "custom_path"
+        respx_mock.post(f"{base_url}{custom_path}").mock(
+            return_value=httpx.Response(200, json={"response": {"id": "123"}})
+        )
+        completion = client.chat.completions.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "system",
+                }
+            ],
+            model="gpt-4-turbo",
+            custom_path=custom_path,
+        )
+        assert_matches_type(ChatCompletion, completion, path=["response"])
+        assert completion.id == "123"
 
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
