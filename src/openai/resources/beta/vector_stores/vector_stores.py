@@ -33,17 +33,13 @@ from .file_batches import (
     AsyncFileBatchesWithStreamingResponse,
 )
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ....types.beta import (
-    VectorStore,
-    VectorStoreDeleted,
-    vector_store_list_params,
-    vector_store_create_params,
-    vector_store_update_params,
-)
+from ....types.beta import vector_store_list_params, vector_store_create_params, vector_store_update_params
 from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
+from ....types.beta.vector_store import VectorStore
+from ....types.beta.vector_store_deleted import VectorStoreDeleted
 
 __all__ = ["VectorStores", "AsyncVectorStores"]
 

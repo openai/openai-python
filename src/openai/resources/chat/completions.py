@@ -8,7 +8,6 @@ from typing_extensions import Literal
 import httpx
 
 from ... import _legacy_response
-from ...types import ChatModel
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ..._utils import (
     required_args,
@@ -19,17 +18,16 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._streaming import Stream, AsyncStream
-from ...types.chat import (
-    ChatCompletion,
-    ChatCompletionChunk,
-    ChatCompletionToolParam,
-    ChatCompletionMessageParam,
-    ChatCompletionToolChoiceOptionParam,
-    completion_create_params,
-)
+from ...types.chat import completion_create_params
 from ..._base_client import (
     make_request_options,
 )
+from ...types.chat_model import ChatModel
+from ...types.chat.chat_completion import ChatCompletion
+from ...types.chat.chat_completion_chunk import ChatCompletionChunk
+from ...types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from ...types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
 

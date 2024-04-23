@@ -17,7 +17,8 @@ from ....._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from .....types.beta.threads.runs import RunStep, step_list_params
+from .....types.beta.threads.runs import step_list_params
+from .....types.beta.threads.runs.run_step import RunStep
 
 __all__ = ["Steps", "AsyncSteps"]
 

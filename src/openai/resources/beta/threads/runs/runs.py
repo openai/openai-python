@@ -31,12 +31,6 @@ from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....._streaming import Stream, AsyncStream
 from .....pagination import SyncCursorPage, AsyncCursorPage
-from .....types.beta import (
-    AssistantToolParam,
-    AssistantStreamEvent,
-    AssistantToolChoiceOptionParam,
-    AssistantResponseFormatOptionParam,
-)
 from ....._base_client import (
     AsyncPaginator,
     make_request_options,
@@ -50,12 +44,16 @@ from .....lib.streaming import (
     AsyncAssistantStreamManager,
 )
 from .....types.beta.threads import (
-    Run,
     run_list_params,
     run_create_params,
     run_update_params,
     run_submit_tool_outputs_params,
 )
+from .....types.beta.threads.run import Run
+from .....types.beta.assistant_tool_param import AssistantToolParam
+from .....types.beta.assistant_stream_event import AssistantStreamEvent
+from .....types.beta.assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
+from .....types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["Runs", "AsyncRuns"]
 

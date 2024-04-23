@@ -10,7 +10,7 @@ from typing_extensions import Literal
 import httpx
 
 from .. import _legacy_response
-from ..types import FileObject, FileDeleted, file_list_params, file_create_params
+from ..types import file_list_params, file_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from .._utils import (
     extract_files,
@@ -33,6 +33,8 @@ from .._base_client import (
     AsyncPaginator,
     make_request_options,
 )
+from ..types.file_object import FileObject
+from ..types.file_deleted import FileDeleted
 
 __all__ = ["Files", "AsyncFiles"]
 

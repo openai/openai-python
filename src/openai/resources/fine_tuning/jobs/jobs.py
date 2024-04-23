@@ -29,13 +29,9 @@ from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ....types.fine_tuning import (
-    FineTuningJob,
-    FineTuningJobEvent,
-    job_list_params,
-    job_create_params,
-    job_list_events_params,
-)
+from ....types.fine_tuning import job_list_params, job_create_params, job_list_events_params
+from ....types.fine_tuning.fine_tuning_job import FineTuningJob
+from ....types.fine_tuning.fine_tuning_job_event import FineTuningJobEvent
 
 __all__ = ["Jobs", "AsyncJobs"]
 

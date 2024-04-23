@@ -22,7 +22,9 @@ from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ....types.beta.vector_stores import VectorStoreFile, VectorStoreFileDeleted, file_list_params, file_create_params
+from ....types.beta.vector_stores import file_list_params, file_create_params
+from ....types.beta.vector_stores.vector_store_file import VectorStoreFile
+from ....types.beta.vector_stores.vector_store_file_deleted import VectorStoreFileDeleted
 
 __all__ = ["Files", "AsyncFiles"]
 

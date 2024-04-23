@@ -26,12 +26,9 @@ from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ....types.beta.vector_stores import (
-    VectorStoreFile,
-    VectorStoreFileBatch,
-    file_batch_create_params,
-    file_batch_list_files_params,
-)
+from ....types.beta.vector_stores import file_batch_create_params, file_batch_list_files_params
+from ....types.beta.vector_stores.vector_store_file import VectorStoreFile
+from ....types.beta.vector_stores.vector_store_file_batch import VectorStoreFileBatch
 
 __all__ = ["FileBatches", "AsyncFileBatches"]
 

@@ -10,10 +10,8 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.pagination import SyncCursorPage, AsyncCursorPage
-from openai.types.beta.vector_stores import (
-    VectorStoreFile,
-    VectorStoreFileDeleted,
-)
+from openai.types.beta.vector_stores.vector_store_file import VectorStoreFile
+from openai.types.beta.vector_stores.vector_store_file_deleted import VectorStoreFileDeleted
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
