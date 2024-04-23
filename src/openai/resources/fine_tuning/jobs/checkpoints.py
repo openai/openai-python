@@ -15,7 +15,8 @@ from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ....types.fine_tuning.jobs import FineTuningJobCheckpoint, checkpoint_list_params
+from ....types.fine_tuning.jobs import checkpoint_list_params
+from ....types.fine_tuning.jobs.fine_tuning_job_checkpoint import FineTuningJobCheckpoint
 
 __all__ = ["Checkpoints", "AsyncCheckpoints"]
 

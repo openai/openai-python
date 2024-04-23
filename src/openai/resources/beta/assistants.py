@@ -18,10 +18,6 @@ from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
 from ...types.beta import (
-    Assistant,
-    AssistantDeleted,
-    AssistantToolParam,
-    AssistantResponseFormatOptionParam,
     assistant_list_params,
     assistant_create_params,
     assistant_update_params,
@@ -30,6 +26,10 @@ from ..._base_client import (
     AsyncPaginator,
     make_request_options,
 )
+from ...types.beta.assistant import Assistant
+from ...types.beta.assistant_deleted import AssistantDeleted
+from ...types.beta.assistant_tool_param import AssistantToolParam
+from ...types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["Assistants", "AsyncAssistants"]
 
