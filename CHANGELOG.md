@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.23.3 (2024-04-23)
+
+Full Changelog: [v1.23.2...v1.23.3](https://github.com/openai/openai-python/compare/v1.23.2...v1.23.3)
+
+### Chores
+
+* **internal:** restructure imports ([#1359](https://github.com/openai/openai-python/issues/1359)) ([4e5eb37](https://github.com/openai/openai-python/commit/4e5eb374ea0545a6117db657bb05f6417bc62d18))
+
 ## 1.23.2 (2024-04-19)
 
 Full Changelog: [v1.23.1...v1.23.2](https://github.com/openai/openai-python/compare/v1.23.1...v1.23.2)
