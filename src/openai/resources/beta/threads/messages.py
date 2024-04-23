@@ -21,7 +21,8 @@ from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ....types.beta.threads import Message, message_list_params, message_create_params, message_update_params
+from ....types.beta.threads import message_list_params, message_create_params, message_update_params
+from ....types.beta.threads.message import Message
 
 __all__ = ["Messages", "AsyncMessages"]
 

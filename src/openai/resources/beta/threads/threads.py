@@ -37,11 +37,6 @@ from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...._streaming import Stream, AsyncStream
 from ....types.beta import (
-    Thread,
-    ThreadDeleted,
-    AssistantStreamEvent,
-    AssistantToolChoiceOptionParam,
-    AssistantResponseFormatOptionParam,
     thread_create_params,
     thread_update_params,
     thread_create_and_run_params,
@@ -57,7 +52,12 @@ from ....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from ....types.beta.threads import Run
+from ....types.beta.thread import Thread
+from ....types.beta.threads.run import Run
+from ....types.beta.thread_deleted import ThreadDeleted
+from ....types.beta.assistant_stream_event import AssistantStreamEvent
+from ....types.beta.assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
+from ....types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["Threads", "AsyncThreads"]
 

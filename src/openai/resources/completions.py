@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from .. import _legacy_response
-from ..types import Completion, completion_create_params
+from ..types import completion_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import (
     required_args,
@@ -22,6 +22,7 @@ from .._streaming import Stream, AsyncStream
 from .._base_client import (
     make_request_options,
 )
+from ..types.completion import Completion
 
 __all__ = ["Completions", "AsyncCompletions"]
 

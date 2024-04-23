@@ -4,11 +4,14 @@ from typing import Union
 from typing_extensions import Literal, Annotated
 
 from .thread import Thread
-from ..shared import ErrorObject
-from .threads import Run, Message, MessageDeltaEvent
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
-from .threads.runs import RunStep, RunStepDeltaEvent
+from .threads.run import Run
+from .threads.message import Message
+from ..shared.error_object import ErrorObject
+from .threads.runs.run_step import RunStep
+from .threads.message_delta_event import MessageDeltaEvent
+from .threads.runs.run_step_delta_event import RunStepDeltaEvent
 
 __all__ = [
     "AssistantStreamEvent",
