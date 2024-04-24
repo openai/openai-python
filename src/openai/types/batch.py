@@ -24,7 +24,7 @@ class Batch(BaseModel):
     completion_window: str
     """The time frame within which the batch should be processed."""
 
-    created_at: str
+    created_at: int
     """The Unix timestamp (in seconds) for when the batch was created."""
 
     endpoint: str
@@ -41,13 +41,13 @@ class Batch(BaseModel):
     ]
     """The current status of the batch."""
 
-    cancelled_at: Optional[str] = None
+    cancelled_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch was cancelled."""
 
-    cancelling_at: Optional[str] = None
+    cancelling_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch started cancelling."""
 
-    completed_at: Optional[str] = None
+    completed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch was completed."""
 
     error_file_id: Optional[str] = None
@@ -55,19 +55,19 @@ class Batch(BaseModel):
 
     errors: Optional[Errors] = None
 
-    expired_at: Optional[str] = None
+    expired_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch expired."""
 
-    expires_at: Optional[str] = None
+    expires_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch will expire."""
 
-    failed_at: Optional[str] = None
+    failed_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch failed."""
 
-    finalizing_at: Optional[str] = None
+    finalizing_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch started finalizing."""
 
-    in_progress_at: Optional[str] = None
+    in_progress_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the batch started processing."""
 
     metadata: Optional[builtins.object] = None
