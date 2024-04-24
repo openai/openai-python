@@ -39,6 +39,12 @@ class VectorStoreFile(BaseModel):
     vector store file is ready for use.
     """
 
+    usage_bytes: int
+    """The total vector store usage in bytes.
+
+    Note that this may be different from the original file size.
+    """
+
     vector_store_id: str
     """
     The ID of the

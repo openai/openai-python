@@ -65,8 +65,9 @@ class Batches(SyncAPIResource):
               See [upload file](https://platform.openai.com/docs/api-reference/files/create)
               for how to upload a file.
 
-              Your input file must be formatted as a JSONL file, and must be uploaded with the
-              purpose `batch`.
+              Your input file must be formatted as a
+              [JSONL file](https://platform.openai.com/docs/api-reference/batch/requestInput),
+              and must be uploaded with the purpose `batch`.
 
           metadata: Optional custom metadata for the batch.
 
@@ -252,8 +253,9 @@ class AsyncBatches(AsyncAPIResource):
               See [upload file](https://platform.openai.com/docs/api-reference/files/create)
               for how to upload a file.
 
-              Your input file must be formatted as a JSONL file, and must be uploaded with the
-              purpose `batch`.
+              Your input file must be formatted as a
+              [JSONL file](https://platform.openai.com/docs/api-reference/batch/requestInput),
+              and must be uploaded with the purpose `batch`.
 
           metadata: Optional custom metadata for the batch.
 
