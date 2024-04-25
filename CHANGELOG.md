@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.23.6 (2024-04-25)
+
+Full Changelog: [v1.23.5...v1.23.6](https://github.com/openai/openai-python/compare/v1.23.5...v1.23.6)
+
+### Chores
+
+* **internal:** update test helper function ([#1371](https://github.com/openai/openai-python/issues/1371)) ([6607c4a](https://github.com/openai/openai-python/commit/6607c4a491fd1912f9222d6fe464ccef6e865eac))
+
 ## 1.23.5 (2024-04-24)
 
 Full Changelog: [v1.23.4...v1.23.5](https://github.com/openai/openai-python/compare/v1.23.4...v1.23.5)
