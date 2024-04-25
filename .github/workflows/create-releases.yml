@@ -14,7 +14,7 @@ jobs:
     environment: publish
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - uses: stainless-api/trigger-release-please@v1
         id: release
