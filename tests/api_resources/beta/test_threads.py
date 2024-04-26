@@ -9,9 +9,11 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.beta.thread import Thread
-from openai.types.beta.threads.run import Run
-from openai.types.beta.thread_deleted import ThreadDeleted
+from openai.types.beta import (
+    Thread,
+    ThreadDeleted,
+)
+from openai.types.beta.threads import Run
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
