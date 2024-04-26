@@ -12,9 +12,8 @@ from respx import MockRouter
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai.types import FileObject, FileDeleted
 from openai.pagination import SyncPage, AsyncPage
-from openai.types.file_object import FileObject
-from openai.types.file_deleted import FileDeleted
 
 # pyright: reportDeprecated=false
 

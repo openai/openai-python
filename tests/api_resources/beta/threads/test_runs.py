@@ -10,7 +10,9 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.pagination import SyncCursorPage, AsyncCursorPage
-from openai.types.beta.threads.run import Run
+from openai.types.beta.threads import (
+    Run,
+)
 
 # pyright: reportDeprecated=false
 
