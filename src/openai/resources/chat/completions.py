@@ -171,15 +171,15 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `top_p` but not both.
 
-          tool_choice: Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tool and instead generates a message. `auto` means the model can
+              pick between generating a message or calling one or more tools. `required` means
+              the model must call one or more tools. Specifying a particular tool via
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-              call that function.
+              call that tool.
 
-              `none` is the default when no functions are present. `auto` is the default if
-              functions are present.
+              `none` is the default when no tools are present. `auto` is the default if tools
+              are present.
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
@@ -339,15 +339,15 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `top_p` but not both.
 
-          tool_choice: Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tool and instead generates a message. `auto` means the model can
+              pick between generating a message or calling one or more tools. `required` means
+              the model must call one or more tools. Specifying a particular tool via
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-              call that function.
+              call that tool.
 
-              `none` is the default when no functions are present. `auto` is the default if
-              functions are present.
+              `none` is the default when no tools are present. `auto` is the default if tools
+              are present.
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
@@ -507,15 +507,15 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `top_p` but not both.
 
-          tool_choice: Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tool and instead generates a message. `auto` means the model can
+              pick between generating a message or calling one or more tools. `required` means
+              the model must call one or more tools. Specifying a particular tool via
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-              call that function.
+              call that tool.
 
-              `none` is the default when no functions are present. `auto` is the default if
-              functions are present.
+              `none` is the default when no tools are present. `auto` is the default if tools
+              are present.
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
@@ -751,15 +751,15 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `top_p` but not both.
 
-          tool_choice: Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tool and instead generates a message. `auto` means the model can
+              pick between generating a message or calling one or more tools. `required` means
+              the model must call one or more tools. Specifying a particular tool via
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-              call that function.
+              call that tool.
 
-              `none` is the default when no functions are present. `auto` is the default if
-              functions are present.
+              `none` is the default when no tools are present. `auto` is the default if tools
+              are present.
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
@@ -919,15 +919,15 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `top_p` but not both.
 
-          tool_choice: Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tool and instead generates a message. `auto` means the model can
+              pick between generating a message or calling one or more tools. `required` means
+              the model must call one or more tools. Specifying a particular tool via
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-              call that function.
+              call that tool.
 
-              `none` is the default when no functions are present. `auto` is the default if
-              functions are present.
+              `none` is the default when no tools are present. `auto` is the default if tools
+              are present.
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
@@ -1087,15 +1087,15 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `top_p` but not both.
 
-          tool_choice: Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via
+          tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
+              not call any tool and instead generates a message. `auto` means the model can
+              pick between generating a message or calling one or more tools. `required` means
+              the model must call one or more tools. Specifying a particular tool via
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-              call that function.
+              call that tool.
 
-              `none` is the default when no functions are present. `auto` is the default if
-              functions are present.
+              `none` is the default when no tools are present. `auto` is the default if tools
+              are present.
 
           tools: A list of tools the model may call. Currently, only functions are supported as a
               tool. Use this to provide a list of functions the model may generate JSON inputs
