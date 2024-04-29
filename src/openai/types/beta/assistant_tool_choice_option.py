@@ -7,4 +7,4 @@ from .assistant_tool_choice import AssistantToolChoice
 
 __all__ = ["AssistantToolChoiceOption"]
 
-AssistantToolChoiceOption = Union[Literal["none", "auto"], AssistantToolChoice]
+AssistantToolChoiceOption = Union[Literal["none", "auto", "required"], AssistantToolChoice]
