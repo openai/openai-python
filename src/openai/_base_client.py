@@ -946,6 +946,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         if self.custom_auth is not None:
             kwargs["auth"] = self.custom_auth
 
+        log.debug("Sending HTTP Request: %s %s", request.method, request.url)
+
         try:
             response = self._client.send(
                 request,
@@ -984,8 +986,14 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             raise APIConnectionError(request=request) from err
 
         log.debug(
-            'HTTP Request: %s %s "%i %s"', request.method, request.url, response.status_code, response.reason_phrase
+            'HTTP Response: %s %s "%i %s" %s',
+            request.method,
+            request.url,
+            response.status_code,
+            response.reason_phrase,
+            response.headers,
         )
+        log.debug("request_id: %s", response.headers.get("x-request-id"))
 
         try:
             response.raise_for_status()
