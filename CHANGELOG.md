@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.24.1 (2024-04-30)
+
+Full Changelog: [v1.24.0...v1.24.1](https://github.com/openai/openai-python/compare/v1.24.0...v1.24.1)
+
+### Chores
+
+* **internal:** add link to openapi spec ([#1385](https://github.com/openai/openai-python/issues/1385)) ([b315d04](https://github.com/openai/openai-python/commit/b315d04e9624ec3a841d7c51813bb553640c23ce))
+
 ## 1.24.0 (2024-04-29)
 
 Full Changelog: [v1.23.6...v1.24.0](https://github.com/openai/openai-python/compare/v1.23.6...v1.24.0)
