@@ -1,3 +1,0 @@
-#!/usr/bin/env bash
-
-bin/check-test-server && rye run pytest "$@"

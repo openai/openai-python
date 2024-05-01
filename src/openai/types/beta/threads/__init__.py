@@ -11,6 +11,7 @@ from .run_status import RunStatus as RunStatus
 from .text_delta import TextDelta as TextDelta
 from .message_delta import MessageDelta as MessageDelta
 from .message_content import MessageContent as MessageContent
+from .message_deleted import MessageDeleted as MessageDeleted
 from .run_list_params import RunListParams as RunListParams
 from .annotation_delta import AnnotationDelta as AnnotationDelta
 from .image_file_delta import ImageFileDelta as ImageFileDelta
