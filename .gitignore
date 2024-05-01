@@ -12,3 +12,4 @@ dist
 .env
 .envrc
 codegen.log
+Brewfile.lock.json

@@ -40,7 +40,7 @@ class Batches(SyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/chat/completions"],
+        endpoint: Literal["/v1/chat/completions", "/v1/embeddings"],
         input_file_id: str,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -57,8 +57,8 @@ class Batches(SyncAPIResource):
           completion_window: The time frame within which the batch should be processed. Currently only `24h`
               is supported.
 
-          endpoint: The endpoint to be used for all requests in the batch. Currently only
-              `/v1/chat/completions` is supported.
+          endpoint: The endpoint to be used for all requests in the batch. Currently
+              `/v1/chat/completions` and `/v1/embeddings` are supported.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -228,7 +228,7 @@ class AsyncBatches(AsyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/chat/completions"],
+        endpoint: Literal["/v1/chat/completions", "/v1/embeddings"],
         input_file_id: str,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -245,8 +245,8 @@ class AsyncBatches(AsyncAPIResource):
           completion_window: The time frame within which the batch should be processed. Currently only `24h`
               is supported.
 
-          endpoint: The endpoint to be used for all requests in the batch. Currently only
-              `/v1/chat/completions` is supported.
+          endpoint: The endpoint to be used for all requests in the batch. Currently
+              `/v1/chat/completions` and `/v1/embeddings` are supported.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
