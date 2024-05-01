@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.0 (2024-05-01)
+
+Full Changelog: [v1.24.1...v1.25.0](https://github.com/openai/openai-python/compare/v1.24.1...v1.25.0)
+
+### Features
+
+* **api:** delete messages ([#1388](https://github.com/openai/openai-python/issues/1388)) ([d0597cd](https://github.com/openai/openai-python/commit/d0597cdc1813cddffacbaa50565e86d2420d1873))
+
 ## 1.24.1 (2024-04-30)
 
 Full Changelog: [v1.24.0...v1.24.1](https://github.com/openai/openai-python/compare/v1.24.0...v1.24.1)
