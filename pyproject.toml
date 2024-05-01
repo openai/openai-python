@@ -74,7 +74,7 @@ format = { chain = [
   "fix:ruff",
 ]}
 "format:black" = "black ."
-"format:docs" = "python bin/ruffen-docs.py README.md api.md"
+"format:docs" = "python scripts/utils/ruffen-docs.py README.md api.md"
 "format:ruff" = "ruff format"
 "format:isort" = "isort ."
 
@@ -197,5 +197,6 @@ known-first-party = ["openai", "tests"]
 
 [tool.ruff.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]
+"scripts/**.py" = ["T201", "T203"]
 "tests/**.py" = ["T201", "T203"]
 "examples/**.py" = ["T201", "T203"]

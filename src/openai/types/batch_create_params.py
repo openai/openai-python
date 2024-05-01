@@ -15,10 +15,10 @@ class BatchCreateParams(TypedDict, total=False):
     Currently only `24h` is supported.
     """
 
-    endpoint: Required[Literal["/v1/chat/completions"]]
+    endpoint: Required[Literal["/v1/chat/completions", "/v1/embeddings"]]
     """The endpoint to be used for all requests in the batch.
 
-    Currently only `/v1/chat/completions` is supported.
+    Currently `/v1/chat/completions` and `/v1/embeddings` are supported.
     """
 
     input_file_id: Required[str]
