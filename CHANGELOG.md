@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.1 (2024-05-02)
+
+Full Changelog: [v1.25.0...v1.25.1](https://github.com/openai/openai-python/compare/v1.25.0...v1.25.1)
+
+### Chores
+
+* **internal:** bump prism version ([#1390](https://github.com/openai/openai-python/issues/1390)) ([a5830fc](https://github.com/openai/openai-python/commit/a5830fc1c5ffd21e2010490905084ad5614212a3))
+
 ## 1.25.0 (2024-05-01)
 
 Full Changelog: [v1.24.1...v1.25.0](https://github.com/openai/openai-python/compare/v1.24.1...v1.25.0)
