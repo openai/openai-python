@@ -424,7 +424,7 @@ client = OpenAI(
 )
 
 # Override per-request:
-client.with_options(timeout=5 * 1000).chat.completions.create(
+client.with_options(timeout=5.0).chat.completions.create(
     messages=[
         {
             "role": "user",
