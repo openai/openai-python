@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.25.2 (2024-05-05)
+
+Full Changelog: [v1.25.1...v1.25.2](https://github.com/openai/openai-python/compare/v1.25.1...v1.25.2)
+
+### Documentation
+
+* **readme:** fix misleading timeout example value ([#1393](https://github.com/openai/openai-python/issues/1393)) ([3eba8e7](https://github.com/openai/openai-python/commit/3eba8e7573ec1bf4231a304c8eabc8a8d077f46d))
+
 ## 1.25.1 (2024-05-02)
 
 Full Changelog: [v1.25.0...v1.25.1](https://github.com/openai/openai-python/compare/v1.25.0...v1.25.1)
