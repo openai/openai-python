@@ -9,7 +9,9 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.chat import ChatCompletion
+from openai.types.chat import (
+    ChatCompletion,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -59,6 +61,7 @@ class TestCompletions:
             seed=-9223372036854776000,
             stop="string",
             stream=False,
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
@@ -172,6 +175,7 @@ class TestCompletions:
             response_format={"type": "json_object"},
             seed=-9223372036854776000,
             stop="string",
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
@@ -289,6 +293,7 @@ class TestAsyncCompletions:
             seed=-9223372036854776000,
             stop="string",
             stream=False,
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
@@ -402,6 +407,7 @@ class TestAsyncCompletions:
             response_format={"type": "json_object"},
             seed=-9223372036854776000,
             stop="string",
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
