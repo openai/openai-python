@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
+
 __all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "CompletionCreateParamsStreaming"]
 
 
@@ -122,6 +124,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     The returned text will not contain the stop sequence.
     """
+
+    stream_options: Optional[ChatCompletionStreamOptionsParam]
+    """Options for streaming response. Only set this when you set `stream: true`."""
 
     suffix: Optional[str]
     """The suffix that comes after a completion of inserted text.

@@ -9,6 +9,7 @@ from ...types import shared_params
 from ..chat_model import ChatModel
 from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_message_param import ChatCompletionMessageParam
+from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from .chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 from .chat_completion_function_call_option_param import ChatCompletionFunctionCallOptionParam
 
@@ -140,6 +141,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     stop: Union[Optional[str], List[str]]
     """Up to 4 sequences where the API will stop generating further tokens."""
+
+    stream_options: Optional[ChatCompletionStreamOptionsParam]
+    """Options for streaming response. Only set this when you set `stream: true`."""
 
     temperature: Optional[float]
     """What sampling temperature to use, between 0 and 2.
