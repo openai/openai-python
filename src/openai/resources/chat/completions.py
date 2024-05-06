@@ -27,6 +27,7 @@ from ...types.chat.chat_completion import ChatCompletion
 from ...types.chat.chat_completion_chunk import ChatCompletionChunk
 from ...types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ...types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from ...types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
@@ -59,6 +60,7 @@ class Completions(SyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -165,6 +167,8 @@ class Completions(SyncAPIResource):
               message.
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
+          stream_options: Options for streaming response. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -227,6 +231,7 @@ class Completions(SyncAPIResource):
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -333,6 +338,8 @@ class Completions(SyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
+          stream_options: Options for streaming response. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -395,6 +402,7 @@ class Completions(SyncAPIResource):
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -501,6 +509,8 @@ class Completions(SyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
+          stream_options: Options for streaming response. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -563,6 +573,7 @@ class Completions(SyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -594,6 +605,7 @@ class Completions(SyncAPIResource):
                     "seed": seed,
                     "stop": stop,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
@@ -639,6 +651,7 @@ class AsyncCompletions(AsyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -745,6 +758,8 @@ class AsyncCompletions(AsyncAPIResource):
               message.
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
 
+          stream_options: Options for streaming response. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -807,6 +822,7 @@ class AsyncCompletions(AsyncAPIResource):
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -913,6 +929,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
+          stream_options: Options for streaming response. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -975,6 +993,7 @@ class AsyncCompletions(AsyncAPIResource):
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -1081,6 +1100,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
+          stream_options: Options for streaming response. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic.
@@ -1143,6 +1164,7 @@ class AsyncCompletions(AsyncAPIResource):
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
@@ -1174,6 +1196,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "seed": seed,
                     "stop": stop,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
