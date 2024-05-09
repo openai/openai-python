@@ -25,7 +25,7 @@ class TestMessages:
     def test_method_create(self, client: OpenAI) -> None:
         message = client.beta.threads.messages.create(
             "string",
-            content="x",
+            content="string",
             role="user",
         )
         assert_matches_type(Message, message, path=["response"])
@@ -34,7 +34,7 @@ class TestMessages:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         message = client.beta.threads.messages.create(
             "string",
-            content="x",
+            content="string",
             role="user",
             attachments=[
                 {
@@ -58,7 +58,7 @@ class TestMessages:
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.beta.threads.messages.with_raw_response.create(
             "string",
-            content="x",
+            content="string",
             role="user",
         )
 
@@ -71,7 +71,7 @@ class TestMessages:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.beta.threads.messages.with_streaming_response.create(
             "string",
-            content="x",
+            content="string",
             role="user",
         ) as response:
             assert not response.is_closed
@@ -87,7 +87,7 @@ class TestMessages:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
             client.beta.threads.messages.with_raw_response.create(
                 "",
-                content="x",
+                content="string",
                 role="user",
             )
 
@@ -302,7 +302,7 @@ class TestAsyncMessages:
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         message = await async_client.beta.threads.messages.create(
             "string",
-            content="x",
+            content="string",
             role="user",
         )
         assert_matches_type(Message, message, path=["response"])
@@ -311,7 +311,7 @@ class TestAsyncMessages:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         message = await async_client.beta.threads.messages.create(
             "string",
-            content="x",
+            content="string",
             role="user",
             attachments=[
                 {
@@ -335,7 +335,7 @@ class TestAsyncMessages:
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.threads.messages.with_raw_response.create(
             "string",
-            content="x",
+            content="string",
             role="user",
         )
 
@@ -348,7 +348,7 @@ class TestAsyncMessages:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.threads.messages.with_streaming_response.create(
             "string",
-            content="x",
+            content="string",
             role="user",
         ) as response:
             assert not response.is_closed
@@ -364,7 +364,7 @@ class TestAsyncMessages:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `thread_id` but received ''"):
             await async_client.beta.threads.messages.with_raw_response.create(
                 "",
-                content="x",
+                content="string",
                 role="user",
             )
 

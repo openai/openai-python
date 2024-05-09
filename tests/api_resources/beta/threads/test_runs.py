@@ -39,7 +39,7 @@ class TestRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -70,7 +70,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -101,7 +101,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -202,7 +202,7 @@ class TestRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -233,7 +233,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -264,7 +264,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -703,7 +703,7 @@ class TestAsyncRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -734,7 +734,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -765,7 +765,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -866,7 +866,7 @@ class TestAsyncRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -897,7 +897,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -928,7 +928,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",

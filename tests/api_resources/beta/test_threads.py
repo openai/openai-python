@@ -32,7 +32,7 @@ class TestThreads:
             messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -63,7 +63,7 @@ class TestThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -94,7 +94,7 @@ class TestThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -309,7 +309,7 @@ class TestThreads:
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -340,7 +340,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -371,7 +371,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -477,7 +477,7 @@ class TestThreads:
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -508,7 +508,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -539,7 +539,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -637,7 +637,7 @@ class TestAsyncThreads:
             messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -668,7 +668,7 @@ class TestAsyncThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -699,7 +699,7 @@ class TestAsyncThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -914,7 +914,7 @@ class TestAsyncThreads:
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -945,7 +945,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -976,7 +976,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1082,7 +1082,7 @@ class TestAsyncThreads:
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1113,7 +1113,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1144,7 +1144,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
