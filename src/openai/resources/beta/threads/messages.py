@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -24,6 +24,7 @@ from ...._base_client import (
 from ....types.beta.threads import message_list_params, message_create_params, message_update_params
 from ....types.beta.threads.message import Message
 from ....types.beta.threads.message_deleted import MessageDeleted
+from ....types.beta.threads.message_content_part_param import MessageContentPartParam
 
 __all__ = ["Messages", "AsyncMessages"]
 
@@ -41,7 +42,7 @@ class Messages(SyncAPIResource):
         self,
         thread_id: str,
         *,
-        content: str,
+        content: Union[str, Iterable[MessageContentPartParam]],
         role: Literal["user", "assistant"],
         attachments: Optional[Iterable[message_create_params.Attachment]] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -56,7 +57,7 @@ class Messages(SyncAPIResource):
         Create a message.
 
         Args:
-          content: The content of the message.
+          content: The text contents of the message.
 
           role:
               The role of the entity that is creating the message. Allowed values include:
@@ -304,7 +305,7 @@ class AsyncMessages(AsyncAPIResource):
         self,
         thread_id: str,
         *,
-        content: str,
+        content: Union[str, Iterable[MessageContentPartParam]],
         role: Literal["user", "assistant"],
         attachments: Optional[Iterable[message_create_params.Attachment]] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -319,7 +320,7 @@ class AsyncMessages(AsyncAPIResource):
         Create a message.
 
         Args:
-          content: The content of the message.
+          content: The text contents of the message.
 
           role:
               The role of the entity that is creating the message. Allowed values include:

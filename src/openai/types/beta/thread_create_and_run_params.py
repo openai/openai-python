@@ -9,6 +9,7 @@ from .function_tool_param import FunctionToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
+from .threads.message_content_part_param import MessageContentPartParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = [
@@ -184,8 +185,8 @@ class ThreadMessageAttachment(TypedDict, total=False):
 
 
 class ThreadMessage(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
+    content: Required[Union[str, Iterable[MessageContentPartParam]]]
+    """The text contents of the message."""
 
     role: Required[Literal["user", "assistant"]]
     """The role of the entity that is creating the message. Allowed values include:
