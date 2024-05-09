@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.28.0 (2024-05-09)
+
+Full Changelog: [v1.27.0...v1.28.0](https://github.com/openai/openai-python/compare/v1.27.0...v1.28.0)
+
+### Features
+
+* **api:** add message image content ([#1405](https://github.com/openai/openai-python/issues/1405)) ([a115de6](https://github.com/openai/openai-python/commit/a115de60ce1ca503a7659bb9a19c18699d4d9bcb))
+
 ## 1.27.0 (2024-05-08)
 
 Full Changelog: [v1.26.0...v1.27.0](https://github.com/openai/openai-python/compare/v1.26.0...v1.27.0)
