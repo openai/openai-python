@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.28.1 (2024-05-11)
+
+Full Changelog: [v1.28.0...v1.28.1](https://github.com/openai/openai-python/compare/v1.28.0...v1.28.1)
+
+### Chores
+
+* **docs:** add SECURITY.md ([#1408](https://github.com/openai/openai-python/issues/1408)) ([119970a](https://github.com/openai/openai-python/commit/119970a31b67e88c623d50855290ccf3847c10eb))
+
 ## 1.28.0 (2024-05-09)
 
 Full Changelog: [v1.27.0...v1.28.0](https://github.com/openai/openai-python/compare/v1.27.0...v1.28.0)
