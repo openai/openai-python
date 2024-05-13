@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.28.2 (2024-05-13)
+
+Full Changelog: [v1.28.1...v1.28.2](https://github.com/openai/openai-python/compare/v1.28.1...v1.28.2)
+
+### Bug Fixes
+
+* **client:** accidental blocking sleep in async code ([#1415](https://github.com/openai/openai-python/issues/1415)) ([0ac6ecb](https://github.com/openai/openai-python/commit/0ac6ecb8d4e52f895bc3ae1f589f22ddaaef6204))
+
+
+### Chores
+
+* **internal:** bump pydantic dependency ([#1413](https://github.com/openai/openai-python/issues/1413)) ([ed73d1d](https://github.com/openai/openai-python/commit/ed73d1db540714e29a1ba30e3aa6429aae8b1dd8))
+
 ## 1.28.1 (2024-05-11)
 
 Full Changelog: [v1.28.0...v1.28.1](https://github.com/openai/openai-python/compare/v1.28.0...v1.28.1)
