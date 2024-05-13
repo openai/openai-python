@@ -1,4 +1,4 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 __title__ = "openai"
-__version__ = "1.28.2"  # x-release-please-version
+__version__ = "1.29.0"  # x-release-please-version
