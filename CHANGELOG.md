@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.29.0 (2024-05-13)
+
+Full Changelog: [v1.28.2...v1.29.0](https://github.com/openai/openai-python/compare/v1.28.2...v1.29.0)
+
+### Features
+
+* **api:** add gpt-4o model ([#1417](https://github.com/openai/openai-python/issues/1417)) ([4f09f8c](https://github.com/openai/openai-python/commit/4f09f8c6cc4450f5e61f158f1bd54c513063a1a8))
+
 ## 1.28.2 (2024-05-13)
 
 Full Changelog: [v1.28.1...v1.28.2](https://github.com/openai/openai-python/compare/v1.28.1...v1.28.2)
