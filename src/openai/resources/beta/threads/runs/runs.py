@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 import typing_extensions
 from typing import Union, Iterable, Optional, overload
 from functools import partial
@@ -1105,7 +1104,7 @@ class Runs(SyncAPIResource):
                 else:
                     poll_interval_ms = 1000
 
-            time.sleep(poll_interval_ms / 1000)
+            self._sleep(poll_interval_ms / 1000)
 
     @overload
     def stream(
@@ -2639,7 +2638,7 @@ class AsyncRuns(AsyncAPIResource):
                 else:
                     poll_interval_ms = 1000
 
-            time.sleep(poll_interval_ms / 1000)
+            await self._sleep(poll_interval_ms / 1000)
 
     @overload
     def stream(
