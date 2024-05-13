@@ -24,7 +24,7 @@ attrs==23.1.0
 azure-core==1.30.1
     # via azure-identity
 azure-identity==1.15.0
-black==24.4.0
+black==24.4.2
     # via inline-snapshot
 certifi==2023.7.22
     # via httpcore
@@ -39,7 +39,7 @@ click==8.1.7
     # via inline-snapshot
 colorlog==6.7.0
     # via nox
-cryptography==42.0.5
+cryptography==42.0.7
     # via azure-identity
     # via msal
     # via pyjwt
@@ -111,9 +111,9 @@ py==1.11.0
     # via pytest
 pycparser==2.22
     # via cffi
-pydantic==2.4.2
+pydantic==2.7.1
     # via openai
-pydantic-core==2.10.1
+pydantic-core==2.18.2
     # via pydantic
 pyjwt==2.8.0
     # via msal
