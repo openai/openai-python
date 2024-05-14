@@ -25,20 +25,10 @@ jobs:
           RYE_INSTALL_OPTION: '--yes'
 
       - name: Install dependencies
-        run: |
-          rye sync --all-features
+        run: rye sync --all-features
 
-      - name: Run ruff
-        run: |
-          rye run check:ruff
-
-      - name: Run type checking
-        run: |
-          rye run typecheck
-
-      - name: Ensure importable
-        run: |
-          rye run python -c 'import openai'
+      - name: Run lints
+        run: ./scripts/lint
   test:
     name: test
     runs-on: ubuntu-latest
