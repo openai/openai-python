@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.30.1 (2024-05-14)
+
+Full Changelog: [v1.30.0...v1.30.1](https://github.com/openai/openai-python/compare/v1.30.0...v1.30.1)
+
+### Chores
+
+* **internal:** add slightly better logging to scripts ([#1422](https://github.com/openai/openai-python/issues/1422)) ([43dffab](https://github.com/openai/openai-python/commit/43dffabb3bed4edf8a6e523cbb289f733a5f9b24))
+
 ## 1.30.0 (2024-05-14)
 
 Full Changelog: [v1.29.0...v1.30.0](https://github.com/openai/openai-python/compare/v1.29.0...v1.30.0)
