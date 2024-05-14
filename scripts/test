@@ -52,6 +52,5 @@ else
   echo
 fi
 
-# Run tests
 echo "==> Running tests"
 rye run pytest "$@"
