@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.30.0 (2024-05-14)
+
+Full Changelog: [v1.29.0...v1.30.0](https://github.com/openai/openai-python/compare/v1.29.0...v1.30.0)
+
+### Features
+
+* **api:** add incomplete state ([#1420](https://github.com/openai/openai-python/issues/1420)) ([6484984](https://github.com/openai/openai-python/commit/648498412d1c7740e6b67ed4d0a55b89ff29d3b1))
+
 ## 1.29.0 (2024-05-13)
 
 Full Changelog: [v1.28.2...v1.29.0](https://github.com/openai/openai-python/compare/v1.28.2...v1.29.0)
