@@ -14,8 +14,6 @@ from openai.types.beta.threads import (
     Run,
 )
 
-# pyright: reportDeprecated=false
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 

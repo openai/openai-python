@@ -85,7 +85,6 @@ Methods:
 - <code title="delete /files/{file_id}">client.files.<a href="./src/openai/resources/files.py">delete</a>(file_id) -> <a href="./src/openai/types/file_deleted.py">FileDeleted</a></code>
 - <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">content</a>(file_id) -> HttpxBinaryResponseContent</code>
 - <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">retrieve_content</a>(file_id) -> str</code>
-- <code>client.files.<a href="./src/openai/resources/files.py">wait_for_processing</a>(\*args) -> FileObject</code>
 
 # Images
 
@@ -227,10 +226,6 @@ Methods:
 - <code title="get /vector_stores/{vector_store_id}/files/{file_id}">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">retrieve</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
 - <code title="get /vector_stores/{vector_store_id}/files">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">list</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_list_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
 - <code title="delete /vector_stores/{vector_store_id}/files/{file_id}">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">delete</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_deleted.py">VectorStoreFileDeleted</a></code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">create_and_poll</a>(\*args) -> VectorStoreFile</code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">poll</a>(\*args) -> VectorStoreFile</code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">upload</a>(\*args) -> VectorStoreFile</code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">upload_and_poll</a>(\*args) -> VectorStoreFile</code>
 
 ### FileBatches
 
@@ -246,9 +241,6 @@ Methods:
 - <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">retrieve</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 - <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 - <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
-- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">create_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
-- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
-- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
 
 ## Assistants
 
@@ -301,8 +293,6 @@ Methods:
 - <code title="post /threads/{thread_id}">client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">update</a>(thread_id, \*\*<a href="src/openai/types/beta/thread_update_params.py">params</a>) -> <a href="./src/openai/types/beta/thread.py">Thread</a></code>
 - <code title="delete /threads/{thread_id}">client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">delete</a>(thread_id) -> <a href="./src/openai/types/beta/thread_deleted.py">ThreadDeleted</a></code>
 - <code title="post /threads/runs">client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">create_and_run</a>(\*\*<a href="src/openai/types/beta/thread_create_and_run_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/run.py">Run</a></code>
-- <code>client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">create_and_run_poll</a>(\*args) -> Run</code>
-- <code>client.beta.threads.<a href="./src/openai/resources/beta/threads/threads.py">create_and_run_stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
 
 ### Runs
 
@@ -320,12 +310,6 @@ Methods:
 - <code title="get /threads/{thread_id}/runs">client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">list</a>(thread_id, \*\*<a href="src/openai/types/beta/threads/run_list_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/run.py">SyncCursorPage[Run]</a></code>
 - <code title="post /threads/{thread_id}/runs/{run_id}/cancel">client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">cancel</a>(run_id, \*, thread_id) -> <a href="./src/openai/types/beta/threads/run.py">Run</a></code>
 - <code title="post /threads/{thread_id}/runs/{run_id}/submit_tool_outputs">client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">submit_tool_outputs</a>(run_id, \*, thread_id, \*\*<a href="src/openai/types/beta/threads/run_submit_tool_outputs_params.py">params</a>) -> <a href="./src/openai/types/beta/threads/run.py">Run</a></code>
-- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">create_and_poll</a>(\*args) -> Run</code>
-- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">create_and_stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
-- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">poll</a>(\*args) -> Run</code>
-- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
-- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">submit_tool_outputs_and_poll</a>(\*args) -> Run</code>
-- <code>client.beta.threads.runs.<a href="./src/openai/resources/beta/threads/runs/runs.py">submit_tool_outputs_stream</a>(\*args) -> AssistantStreamManager[AssistantEventHandler] | AssistantStreamManager[AssistantEventHandlerT]</code>
 
 #### Steps
 

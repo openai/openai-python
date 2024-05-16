@@ -15,7 +15,7 @@ dependencies = [
     "distro>=1.7.0, <2",
     "sniffio",
     "cached-property; python_version < '3.8'",
-    "tqdm > 4"
+
 ]
 requires-python = ">= 3.7.1"
 classifiers = [
@@ -36,15 +36,13 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License"
 ]
 
-[project.optional-dependencies]
-datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+
 
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
 
-[project.scripts]
-openai = "openai.cli:main"
+
 
 [tool.rye]
 managed = true
@@ -60,11 +58,7 @@ dev-dependencies = [
     "nox",
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
-    "inline-snapshot >=0.7.0",
-    "azure-identity >=1.14.1",
-    "types-tqdm > 4",
-    "types-pyaudio > 0",
-    "trio >=0.22.2"
+
 ]
 
 [tool.rye.scripts]
