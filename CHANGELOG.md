@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.30.2 (2024-05-16)
+
+Full Changelog: [v1.30.1...v1.30.2](https://github.com/openai/openai-python/compare/v1.30.1...v1.30.2)
+
+### Chores
+
+* **internal:** temporarily remove some code for migration ([#1429](https://github.com/openai/openai-python/issues/1429)) ([c3e5902](https://github.com/openai/openai-python/commit/c3e590227cd3596b03a3adcbd80cfbcfe6246105))
+
 ## 1.30.1 (2024-05-14)
 
 Full Changelog: [v1.30.0...v1.30.1](https://github.com/openai/openai-python/compare/v1.30.0...v1.30.1)
