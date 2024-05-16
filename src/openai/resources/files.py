@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 import typing_extensions
 from typing import Mapping, cast
 from typing_extensions import Literal
@@ -292,29 +291,6 @@ class Files(SyncAPIResource):
             cast_to=str,
         )
 
-    def wait_for_processing(
-        self,
-        id: str,
-        *,
-        poll_interval: float = 5.0,
-        max_wait_seconds: float = 30 * 60,
-    ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
-        TERMINAL_STATES = {"processed", "error", "deleted"}
-
-        start = time.time()
-        file = self.retrieve(id)
-        while file.status not in TERMINAL_STATES:
-            self._sleep(poll_interval)
-
-            file = self.retrieve(id)
-            if time.time() - start > max_wait_seconds:
-                raise RuntimeError(
-                    f"Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds."
-                )
-
-        return file
-
 
 class AsyncFiles(AsyncAPIResource):
     @cached_property
@@ -568,29 +544,6 @@ class AsyncFiles(AsyncAPIResource):
             ),
             cast_to=str,
         )
-
-    async def wait_for_processing(
-        self,
-        id: str,
-        *,
-        poll_interval: float = 5.0,
-        max_wait_seconds: float = 30 * 60,
-    ) -> FileObject:
-        """Waits for the given file to be processed, default timeout is 30 mins."""
-        TERMINAL_STATES = {"processed", "error", "deleted"}
-
-        start = time.time()
-        file = await self.retrieve(id)
-        while file.status not in TERMINAL_STATES:
-            await self._sleep(poll_interval)
-
-            file = await self.retrieve(id)
-            if time.time() - start > max_wait_seconds:
-                raise RuntimeError(
-                    f"Giving up on waiting for file {id} to finish processing after {max_wait_seconds} seconds."
-                )
-
-        return file
 
 
 class FilesWithRawResponse:
