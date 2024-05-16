@@ -2,15 +2,13 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-from typing_extensions import Literal, assert_never
+from typing_extensions import Literal
 
 import httpx
 
 from .... import _legacy_response
-from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ...._utils import (
-    is_given,
     maybe_transform,
     async_maybe_transform,
 )
@@ -229,92 +227,6 @@ class Files(SyncAPIResource):
             cast_to=VectorStoreFileDeleted,
         )
 
-    def create_and_poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-    ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
-        self.create(vector_store_id=vector_store_id, file_id=file_id)
-
-        return self.poll(
-            file_id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    def poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-    ) -> VectorStoreFile:
-        """Wait for the vector store file to finish processing.
-
-        Note: this will return even if the file failed to process, you need to check
-        file.last_error and file.status to handle these cases
-        """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                self._sleep(poll_interval_ms / 1000)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
-
-    def upload(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-    ) -> VectorStoreFile:
-        """Upload a file to the `files` API and then attach it to the given vector store.
-
-        Note the file will be asynchronously processed (you can use the alternative
-        polling helper method to wait for processing to complete).
-        """
-        file_obj = self._client.files.create(file=file, purpose="assistants")
-        return self.create(vector_store_id=vector_store_id, file_id=file_obj.id)
-
-    def upload_and_poll(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-    ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
-        file_obj = self._client.files.create(file=file, purpose="assistants")
-        return self.create_and_poll(
-            vector_store_id=vector_store_id,
-            file_id=file_obj.id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
 
 class AsyncFiles(AsyncAPIResource):
     @cached_property
@@ -514,92 +426,6 @@ class AsyncFiles(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=VectorStoreFileDeleted,
-        )
-
-    async def create_and_poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-    ) -> VectorStoreFile:
-        """Attach a file to the given vector store and wait for it to be processed."""
-        await self.create(vector_store_id=vector_store_id, file_id=file_id)
-
-        return await self.poll(
-            file_id,
-            vector_store_id=vector_store_id,
-            poll_interval_ms=poll_interval_ms,
-        )
-
-    async def poll(
-        self,
-        file_id: str,
-        *,
-        vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-    ) -> VectorStoreFile:
-        """Wait for the vector store file to finish processing.
-
-        Note: this will return even if the file failed to process, you need to check
-        file.last_error and file.status to handle these cases
-        """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
-        if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
-
-        while True:
-            response = await self.with_raw_response.retrieve(
-                file_id,
-                vector_store_id=vector_store_id,
-                extra_headers=headers,
-            )
-
-            file = response.parse()
-            if file.status == "in_progress":
-                if not is_given(poll_interval_ms):
-                    from_header = response.headers.get("openai-poll-after-ms")
-                    if from_header is not None:
-                        poll_interval_ms = int(from_header)
-                    else:
-                        poll_interval_ms = 1000
-
-                await self._sleep(poll_interval_ms / 1000)
-            elif file.status == "cancelled" or file.status == "completed" or file.status == "failed":
-                return file
-            else:
-                if TYPE_CHECKING:  # type: ignore[unreachable]
-                    assert_never(file.status)
-                else:
-                    return file
-
-    async def upload(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-    ) -> VectorStoreFile:
-        """Upload a file to the `files` API and then attach it to the given vector store.
-
-        Note the file will be asynchronously processed (you can use the alternative
-        polling helper method to wait for processing to complete).
-        """
-        file_obj = await self._client.files.create(file=file, purpose="assistants")
-        return await self.create(vector_store_id=vector_store_id, file_id=file_obj.id)
-
-    async def upload_and_poll(
-        self,
-        *,
-        vector_store_id: str,
-        file: FileTypes,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-    ) -> VectorStoreFile:
-        """Add a file to a vector store and poll until processing is complete."""
-        file_obj = await self._client.files.create(file=file, purpose="assistants")
-        return await self.create_and_poll(
-            vector_store_id=vector_store_id,
-            file_id=file_obj.id,
-            poll_interval_ms=poll_interval_ms,
         )
 
 
