@@ -25,7 +25,7 @@ jobs:
       - name: Install Rye
         if: ${{ steps.release.outputs.releases_created }}
         run: |
-          curl -sSf https://rye-up.com/get | bash
+          curl -sSf https://raw.githubusercontent.com/astral-sh/rye/main/scripts/install.sh | bash
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
           RYE_VERSION: 0.24.0
