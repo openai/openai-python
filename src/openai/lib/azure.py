@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
+from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, overload
 from typing_extensions import Self, override
 
 import httpx
@@ -515,7 +515,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             token = provider()
             if inspect.isawaitable(token):
                 token = await token
-            if not token or not isinstance(cast(Any, token), str):
+            if not token or not isinstance(token, str):
                 raise ValueError(
                     f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
                 )
