@@ -117,7 +117,7 @@ pydantic-core==2.18.2
     # via pydantic
 pyjwt==2.8.0
     # via msal
-pyright==1.1.359
+pyright==1.1.364
 pytest==7.1.1
     # via pytest-asyncio
 pytest-asyncio==0.21.1
