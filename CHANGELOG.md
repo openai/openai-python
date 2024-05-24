@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.30.3 (2024-05-24)
+
+Full Changelog: [v1.30.2...v1.30.3](https://github.com/openai/openai-python/compare/v1.30.2...v1.30.3)
+
+### Chores
+
+* **ci:** update rye install location ([#1440](https://github.com/openai/openai-python/issues/1440)) ([8a0e5bf](https://github.com/openai/openai-python/commit/8a0e5bf4c03d9c714799fad43be68ac9c2b1f37a))
+* **internal:** bump pyright ([#1442](https://github.com/openai/openai-python/issues/1442)) ([64a151e](https://github.com/openai/openai-python/commit/64a151eae705d55484f870df461434c0a6961e2b))
+* **internal:** fix lint issue ([#1444](https://github.com/openai/openai-python/issues/1444)) ([b0eb458](https://github.com/openai/openai-python/commit/b0eb4582e050b0a25af3d80d2cb584bfc7cd11ab))
+
+
+### Documentation
+
+* **contributing:** update references to rye-up.com ([dcc34a2](https://github.com/openai/openai-python/commit/dcc34a26d1a6a0debf440724fad658c77547048c))
+
 ## 1.30.2 (2024-05-23)
 
 Full Changelog: [v1.30.1...v1.30.2](https://github.com/openai/openai-python/compare/v1.30.1...v1.30.2)
