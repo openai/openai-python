@@ -519,7 +519,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 raise ValueError(
                     f"Expected `azure_ad_token_provider` argument to return a string but it returned {token}",
                 )
-            return token
+            return str(token)
 
         return None
 
