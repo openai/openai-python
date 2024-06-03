@@ -52,7 +52,7 @@ class Files(SyncAPIResource):
         self,
         *,
         file: FileTypes,
-        purpose: Literal["assistants", "batch", "fine-tune"],
+        purpose: Literal["assistants", "batch", "fine-tune", "vision"],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -71,9 +71,15 @@ class Files(SyncAPIResource):
         [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
         details.
 
-        The Fine-tuning API only supports `.jsonl` files.
+        The Fine-tuning API only supports `.jsonl` files. The input also has certain
+        required formats for fine-tuning
+        [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
+        [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+        models.
 
-        The Batch API only supports `.jsonl` files up to 100 MB in size.
+        The Batch API only supports `.jsonl` files up to 100 MB in size. The input also
+        has a specific required
+        [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
         Please [contact us](https://help.openai.com/) if you need to increase these
         storage limits.
@@ -329,7 +335,7 @@ class AsyncFiles(AsyncAPIResource):
         self,
         *,
         file: FileTypes,
-        purpose: Literal["assistants", "batch", "fine-tune"],
+        purpose: Literal["assistants", "batch", "fine-tune", "vision"],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -348,9 +354,15 @@ class AsyncFiles(AsyncAPIResource):
         [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
         details.
 
-        The Fine-tuning API only supports `.jsonl` files.
+        The Fine-tuning API only supports `.jsonl` files. The input also has certain
+        required formats for fine-tuning
+        [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
+        [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+        models.
 
-        The Batch API only supports `.jsonl` files up to 100 MB in size.
+        The Batch API only supports `.jsonl` files up to 100 MB in size. The input also
+        has a specific required
+        [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
         Please [contact us](https://help.openai.com/) if you need to increase these
         storage limits.
