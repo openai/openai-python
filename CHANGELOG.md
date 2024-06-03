@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.31.0 (2024-06-03)
+
+Full Changelog: [v1.30.5...v1.31.0](https://github.com/openai/openai-python/compare/v1.30.5...v1.31.0)
+
+### Features
+
+* **api:** updates ([#1461](https://github.com/openai/openai-python/issues/1461)) ([0d7cc5e](https://github.com/openai/openai-python/commit/0d7cc5e48c565fe10ee6e8ca4d050175eb543bcb))
+
+
+### Chores
+
+* fix lint ([1886dd4](https://github.com/openai/openai-python/commit/1886dd4c98d7a7b3a679bff739cb38badf5ae96c))
+
 ## 1.30.5 (2024-05-29)
 
 Full Changelog: [v1.30.4...v1.30.5](https://github.com/openai/openai-python/compare/v1.30.4...v1.30.5)
