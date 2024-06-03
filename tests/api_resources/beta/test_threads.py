@@ -132,6 +132,7 @@ class TestThreads:
                     "vector_stores": [
                         {
                             "file_ids": ["string", "string", "string"],
+                            "chunking_strategy": {"type": "auto"},
                             "metadata": {},
                         }
                     ],
@@ -408,6 +409,7 @@ class TestThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
@@ -576,6 +578,7 @@ class TestThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
@@ -737,6 +740,7 @@ class TestAsyncThreads:
                     "vector_stores": [
                         {
                             "file_ids": ["string", "string", "string"],
+                            "chunking_strategy": {"type": "auto"},
                             "metadata": {},
                         }
                     ],
@@ -1013,6 +1017,7 @@ class TestAsyncThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
@@ -1181,6 +1186,7 @@ class TestAsyncThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
