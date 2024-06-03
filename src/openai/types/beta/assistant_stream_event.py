@@ -21,6 +21,7 @@ __all__ = [
     "ThreadRunInProgress",
     "ThreadRunRequiresAction",
     "ThreadRunCompleted",
+    "ThreadRunIncomplete",
     "ThreadRunFailed",
     "ThreadRunCancelling",
     "ThreadRunCancelled",
@@ -99,6 +100,16 @@ class ThreadRunCompleted(BaseModel):
     """
 
     event: Literal["thread.run.completed"]
+
+
+class ThreadRunIncomplete(BaseModel):
+    data: Run
+    """
+    Represents an execution run on a
+    [thread](https://platform.openai.com/docs/api-reference/threads).
+    """
+
+    event: Literal["thread.run.incomplete"]
 
 
 class ThreadRunFailed(BaseModel):
@@ -257,6 +268,7 @@ AssistantStreamEvent = Annotated[
         ThreadRunInProgress,
         ThreadRunRequiresAction,
         ThreadRunCompleted,
+        ThreadRunIncomplete,
         ThreadRunFailed,
         ThreadRunCancelling,
         ThreadRunCancelled,

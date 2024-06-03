@@ -41,6 +41,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -58,6 +59,9 @@ class Files(SyncAPIResource):
               vector store should use. Useful for tools like `file_search` that can access
               files.
 
+          chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
+              strategy.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -71,7 +75,13 @@ class Files(SyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
             f"/vector_stores/{vector_store_id}/files",
-            body=maybe_transform({"file_id": file_id}, file_create_params.FileCreateParams),
+            body=maybe_transform(
+                {
+                    "file_id": file_id,
+                    "chunking_strategy": chunking_strategy,
+                },
+                file_create_params.FileCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -242,6 +252,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -259,6 +270,9 @@ class AsyncFiles(AsyncAPIResource):
               vector store should use. Useful for tools like `file_search` that can access
               files.
 
+          chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
+              strategy.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -272,7 +286,13 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
             f"/vector_stores/{vector_store_id}/files",
-            body=await async_maybe_transform({"file_id": file_id}, file_create_params.FileCreateParams),
+            body=await async_maybe_transform(
+                {
+                    "file_id": file_id,
+                    "chunking_strategy": chunking_strategy,
+                },
+                file_create_params.FileCreateParams,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

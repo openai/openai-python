@@ -13,7 +13,7 @@ class FileCreateParams(TypedDict, total=False):
     file: Required[FileTypes]
     """The File object (not file name) to be uploaded."""
 
-    purpose: Required[Literal["assistants", "batch", "fine-tune"]]
+    purpose: Required[Literal["assistants", "batch", "fine-tune", "vision"]]
     """The intended purpose of the uploaded file.
 
     Use "assistants" for

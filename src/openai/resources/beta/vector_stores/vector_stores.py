@@ -64,6 +64,7 @@ class VectorStores(SyncAPIResource):
     def create(
         self,
         *,
+        chunking_strategy: vector_store_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -79,6 +80,9 @@ class VectorStores(SyncAPIResource):
         Create a vector store.
 
         Args:
+          chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
+              strategy. Only applicable if `file_ids` is non-empty.
+
           expires_after: The expiration policy for a vector store.
 
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
@@ -105,6 +109,7 @@ class VectorStores(SyncAPIResource):
             "/vector_stores",
             body=maybe_transform(
                 {
+                    "chunking_strategy": chunking_strategy,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "metadata": metadata,
@@ -326,6 +331,7 @@ class AsyncVectorStores(AsyncAPIResource):
     async def create(
         self,
         *,
+        chunking_strategy: vector_store_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -341,6 +347,9 @@ class AsyncVectorStores(AsyncAPIResource):
         Create a vector store.
 
         Args:
+          chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
+              strategy. Only applicable if `file_ids` is non-empty.
+
           expires_after: The expiration policy for a vector store.
 
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
@@ -367,6 +376,7 @@ class AsyncVectorStores(AsyncAPIResource):
             "/vector_stores",
             body=await async_maybe_transform(
                 {
+                    "chunking_strategy": chunking_strategy,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "metadata": metadata,
