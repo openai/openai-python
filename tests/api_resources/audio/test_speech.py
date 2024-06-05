@@ -27,7 +27,7 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
@@ -39,7 +39,7 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = client.audio.speech.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
             response_format="mp3",
             speed=0.25,
@@ -54,7 +54,7 @@ class TestSpeech:
 
         response = client.audio.speech.with_raw_response.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
         )
 
@@ -69,7 +69,7 @@ class TestSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         with client.audio.speech.with_streaming_response.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
         ) as response:
             assert not response.is_closed
@@ -90,7 +90,7 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
@@ -102,7 +102,7 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         speech = await async_client.audio.speech.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
             response_format="mp3",
             speed=0.25,
@@ -117,7 +117,7 @@ class TestAsyncSpeech:
 
         response = await async_client.audio.speech.with_raw_response.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
         )
 
@@ -132,7 +132,7 @@ class TestAsyncSpeech:
         respx_mock.post("/audio/speech").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
         async with async_client.audio.speech.with_streaming_response.create(
             input="string",
-            model="string",
+            model="tts-1",
             voice="alloy",
         ) as response:
             assert not response.is_closed
