@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.31.1 (2024-06-05)
+
+Full Changelog: [v1.31.0...v1.31.1](https://github.com/openai/openai-python/compare/v1.31.0...v1.31.1)
+
+### Chores
+
+* **internal:** minor change to tests ([#1466](https://github.com/openai/openai-python/issues/1466)) ([cb33e71](https://github.com/openai/openai-python/commit/cb33e7152f25fb16cf4c39a6e4714169c62d6af8))
+
 ## 1.31.0 (2024-06-03)
 
 Full Changelog: [v1.30.5...v1.31.0](https://github.com/openai/openai-python/compare/v1.30.5...v1.31.0)
