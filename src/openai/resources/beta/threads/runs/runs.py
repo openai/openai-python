@@ -98,6 +98,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -151,6 +152,10 @@ class Runs(SyncAPIResource):
               be used to execute this run. If a value is provided here, it will override the
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
@@ -246,6 +251,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -302,6 +308,10 @@ class Runs(SyncAPIResource):
               be used to execute this run. If a value is provided here, it will override the
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
@@ -393,6 +403,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -449,6 +460,10 @@ class Runs(SyncAPIResource):
               be used to execute this run. If a value is provided here, it will override the
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
@@ -539,6 +554,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -568,6 +584,7 @@ class Runs(SyncAPIResource):
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
@@ -975,6 +992,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1028,6 +1046,10 @@ class AsyncRuns(AsyncAPIResource):
               be used to execute this run. If a value is provided here, it will override the
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
@@ -1123,6 +1145,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1179,6 +1202,10 @@ class AsyncRuns(AsyncAPIResource):
               be used to execute this run. If a value is provided here, it will override the
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
@@ -1270,6 +1297,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1326,6 +1354,10 @@ class AsyncRuns(AsyncAPIResource):
               be used to execute this run. If a value is provided here, it will override the
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
+
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
@@ -1416,6 +1448,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1445,6 +1478,7 @@ class AsyncRuns(AsyncAPIResource):
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
