@@ -102,6 +102,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     of the choices. Keep `n` as `1` to minimize costs.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+    during tool use.
+    """
+
     presence_penalty: Optional[float]
     """Number between -2.0 and 2.0.
 

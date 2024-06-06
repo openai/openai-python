@@ -109,6 +109,13 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     assistant will be used.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+    during tool use.
+    """
+
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
