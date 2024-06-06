@@ -303,6 +303,7 @@ class TestThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             stream=False,
             temperature=1,
@@ -473,6 +474,7 @@ class TestThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             temperature=1,
             thread={
@@ -911,6 +913,7 @@ class TestAsyncThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             stream=False,
             temperature=1,
@@ -1081,6 +1084,7 @@ class TestAsyncThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             temperature=1,
             thread={
