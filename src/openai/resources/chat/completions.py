@@ -133,7 +133,7 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
@@ -316,7 +316,7 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
@@ -492,7 +492,7 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
@@ -741,7 +741,7 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
@@ -924,7 +924,7 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
@@ -1100,7 +1100,7 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
