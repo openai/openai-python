@@ -6,7 +6,6 @@ from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ..assistant_tool_param import AssistantToolParam
-from ..file_search_tool_param import FileSearchToolParam
 from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
@@ -17,6 +16,7 @@ __all__ = [
     "AdditionalMessage",
     "AdditionalMessageAttachment",
     "AdditionalMessageAttachmentTool",
+    "AdditionalMessageAttachmentToolFileSearch",
     "TruncationStrategy",
     "RunCreateParamsNonStreaming",
     "RunCreateParamsStreaming",
@@ -110,7 +110,7 @@ class RunCreateParamsBase(TypedDict, total=False):
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
     during tool use.
     """
 
@@ -173,7 +173,12 @@ class RunCreateParamsBase(TypedDict, total=False):
     """
 
 
-AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class AdditionalMessageAttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, AdditionalMessageAttachmentToolFileSearch]
 
 
 class AdditionalMessageAttachment(TypedDict, total=False):

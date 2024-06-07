@@ -154,7 +154,7 @@ class Runs(SyncAPIResource):
               assistant will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
@@ -310,7 +310,7 @@ class Runs(SyncAPIResource):
               assistant will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
@@ -462,7 +462,7 @@ class Runs(SyncAPIResource):
               assistant will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
@@ -1048,7 +1048,7 @@ class AsyncRuns(AsyncAPIResource):
               assistant will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
@@ -1204,7 +1204,7 @@ class AsyncRuns(AsyncAPIResource):
               assistant will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
@@ -1356,7 +1356,7 @@ class AsyncRuns(AsyncAPIResource):
               assistant will be used.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
               during tool use.
 
           response_format: Specifies the format that the model must output. Compatible with
