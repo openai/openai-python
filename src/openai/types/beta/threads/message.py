@@ -5,12 +5,23 @@ from typing_extensions import Literal
 
 from ...._models import BaseModel
 from .message_content import MessageContent
-from ..file_search_tool import FileSearchTool
 from ..code_interpreter_tool import CodeInterpreterTool
 
-__all__ = ["Message", "Attachment", "AttachmentTool", "IncompleteDetails"]
+__all__ = [
+    "Message",
+    "Attachment",
+    "AttachmentTool",
+    "AttachmentToolAssistantToolsFileSearchTypeOnly",
+    "IncompleteDetails",
+]
 
-AttachmentTool = Union[CodeInterpreterTool, FileSearchTool]
+
+class AttachmentToolAssistantToolsFileSearchTypeOnly(BaseModel):
+    type: Literal["file_search"]
+    """The type of tool being defined: `file_search`"""
+
+
+AttachmentTool = Union[CodeInterpreterTool, AttachmentToolAssistantToolsFileSearchTypeOnly]
 
 
 class Attachment(BaseModel):
