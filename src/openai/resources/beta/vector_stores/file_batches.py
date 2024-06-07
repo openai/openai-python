@@ -174,11 +174,13 @@ class FileBatches(SyncAPIResource):
         *,
         file_ids: List[str],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = self.create(
             vector_store_id=vector_store_id,
             file_ids=file_ids,
+            chunking_strategy=chunking_strategy,
         )
         # TODO: don't poll unless necessary??
         return self.poll(
@@ -306,6 +308,7 @@ class FileBatches(SyncAPIResource):
         max_concurrency: int = 5,
         file_ids: List[str] = [],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
 
@@ -343,6 +346,7 @@ class FileBatches(SyncAPIResource):
             vector_store_id=vector_store_id,
             file_ids=[*file_ids, *(f.id for f in results)],
             poll_interval_ms=poll_interval_ms,
+            chunking_strategy=chunking_strategy,
         )
         return batch
 
@@ -488,11 +492,13 @@ class AsyncFileBatches(AsyncAPIResource):
         *,
         file_ids: List[str],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = await self.create(
             vector_store_id=vector_store_id,
             file_ids=file_ids,
+            chunking_strategy=chunking_strategy,
         )
         # TODO: don't poll unless necessary??
         return await self.poll(
@@ -620,6 +626,7 @@ class AsyncFileBatches(AsyncAPIResource):
         max_concurrency: int = 5,
         file_ids: List[str] = [],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
 
@@ -680,6 +687,7 @@ class AsyncFileBatches(AsyncAPIResource):
             vector_store_id=vector_store_id,
             file_ids=[*file_ids, *(f.id for f in uploaded_files)],
             poll_interval_ms=poll_interval_ms,
+            chunking_strategy=chunking_strategy,
         )
         return batch
 
