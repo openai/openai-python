@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.32.1 (2024-06-07)
+
+Full Changelog: [v1.32.0...v1.32.1](https://github.com/openai/openai-python/compare/v1.32.0...v1.32.1)
+
+### Bug Fixes
+
+* remove erroneous thread create argument ([#1476](https://github.com/openai/openai-python/issues/1476)) ([43175c4](https://github.com/openai/openai-python/commit/43175c40e607d626a77a151691778c35a0e60eec))
+
 ## 1.32.0 (2024-06-06)
 
 Full Changelog: [v1.31.2...v1.32.0](https://github.com/openai/openai-python/compare/v1.31.2...v1.32.0)
