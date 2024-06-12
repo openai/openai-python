@@ -442,8 +442,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self,
         options: FinalRequestOptions,
     ) -> httpx.Request:
-        if log.isEnabledFor(logging.DEBUG):
-            log.debug("Request options: %s", model_dump(options, exclude_unset=True))
+        log.debug("Request options: %s", model_dump(options, exclude_unset=True))
 
         kwargs: dict[str, Any] = {}
 
