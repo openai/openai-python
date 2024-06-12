@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.34.0 (2024-06-12)
+
+Full Changelog: [v1.33.0...v1.34.0](https://github.com/openai/openai-python/compare/v1.33.0...v1.34.0)
+
+### Features
+
+* **api:** updates ([#1481](https://github.com/openai/openai-python/issues/1481)) ([b83db36](https://github.com/openai/openai-python/commit/b83db362f0c9a5a4d55588b954fb1df1a68c98e3))
+
 ## 1.33.0 (2024-06-07)
 
 Full Changelog: [v1.32.1...v1.33.0](https://github.com/openai/openai-python/compare/v1.32.1...v1.33.0)
