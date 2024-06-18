@@ -457,7 +457,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 raise RuntimeError(f"Unexpected JSON data type, {type(json_data)}, cannot merge with `extra_body`")
 
         headers = self._build_headers(options)
-        params = _merge_mappings(self._custom_query, options.params)
+        params = _merge_mappings(self.default_query, options.params)
         content_type = headers.get("Content-Type")
 
         # If the given Content-Type header is multipart/form-data then it
@@ -591,6 +591,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             **self.platform_headers(),
             **self.auth_headers,
             **self._custom_headers,
+        }
+
+    @property
+    def default_query(self) -> dict[str, object]:
+        return {
+            **self._custom_query,
         }
 
     def _validate_headers(
