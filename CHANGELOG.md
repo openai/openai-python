@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.0 (2024-06-18)
+
+Full Changelog: [v1.34.0...v1.35.0](https://github.com/openai/openai-python/compare/v1.34.0...v1.35.0)
+
+### Features
+
+* **api:** add service tier argument for chat completions ([#1486](https://github.com/openai/openai-python/issues/1486)) ([b4b4e66](https://github.com/openai/openai-python/commit/b4b4e660b8bb7ae937787fcab9b40feaeba7f711))
+
 ## 1.34.0 (2024-06-12)
 
 Full Changelog: [v1.33.0...v1.34.0](https://github.com/openai/openai-python/compare/v1.33.0...v1.34.0)
