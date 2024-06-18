@@ -146,6 +146,19 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     in the backend.
     """
 
+    service_tier: Optional[Literal["auto", "default"]]
+    """Specifies the latency tier to use for processing the request.
+
+    This parameter is relevant for customers subscribed to the scale tier service:
+
+    - If set to 'auto', the system will utilize scale tier credits until they are
+      exhausted.
+    - If set to 'default', the request will be processed in the shared cluster.
+
+    When this parameter is set, the response body will include the `service_tier`
+    utilized.
+    """
+
     stop: Union[Optional[str], List[str]]
     """Up to 4 sequences where the API will stop generating further tokens."""
 
