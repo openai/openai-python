@@ -7,6 +7,8 @@ from typing_extensions import ParamSpec
 import anyio
 import anyio.to_thread
 
+from ._reflection import function_has_argument
+
 T_Retval = TypeVar("T_Retval")
 T_ParamSpec = ParamSpec("T_ParamSpec")
 
@@ -59,6 +61,21 @@ def asyncify(
 
     async def wrapper(*args: T_ParamSpec.args, **kwargs: T_ParamSpec.kwargs) -> T_Retval:
         partial_f = functools.partial(function, *args, **kwargs)
-        return await anyio.to_thread.run_sync(partial_f, cancellable=cancellable, limiter=limiter)
+
+        # In `v4.1.0` anyio added the `abandon_on_cancel` argument and deprecated the old
+        # `cancellable` argument, so we need to use the new `abandon_on_cancel` to avoid
+        # surfacing deprecation warnings.
+        if function_has_argument(anyio.to_thread.run_sync, "abandon_on_cancel"):
+            return await anyio.to_thread.run_sync(
+                partial_f,
+                abandon_on_cancel=cancellable,
+                limiter=limiter,
+            )
+
+        return await anyio.to_thread.run_sync(
+            partial_f,
+            cancellable=cancellable,
+            limiter=limiter,
+        )
 
     return wrapper
