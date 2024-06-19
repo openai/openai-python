@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.1 (2024-06-19)
+
+Full Changelog: [v1.35.0...v1.35.1](https://github.com/openai/openai-python/compare/v1.35.0...v1.35.1)
+
+### Bug Fixes
+
+* **client/async:** avoid blocking io call for platform headers ([#1488](https://github.com/openai/openai-python/issues/1488)) ([ae64c05](https://github.com/openai/openai-python/commit/ae64c05cbae76a58b592d913bee6ac1ef9611d4c))
+
 ## 1.35.0 (2024-06-18)
 
 Full Changelog: [v1.34.0...v1.35.0](https://github.com/openai/openai-python/compare/v1.34.0...v1.35.0)
