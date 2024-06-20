@@ -828,6 +828,7 @@ class Threads(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -856,6 +857,7 @@ class Threads(SyncAPIResource):
             max_prompt_tokens=max_prompt_tokens,
             metadata=metadata,
             model=model,
+            parallel_tool_calls=parallel_tool_calls,
             response_format=response_format,
             temperature=temperature,
             stream=False,
@@ -908,6 +910,7 @@ class Threads(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -962,6 +965,7 @@ class Threads(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -1016,6 +1020,7 @@ class Threads(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -1050,6 +1055,7 @@ class Threads(SyncAPIResource):
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -1838,6 +1844,7 @@ class AsyncThreads(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -1866,6 +1873,7 @@ class AsyncThreads(AsyncAPIResource):
             max_prompt_tokens=max_prompt_tokens,
             metadata=metadata,
             model=model,
+            parallel_tool_calls=parallel_tool_calls,
             response_format=response_format,
             temperature=temperature,
             stream=False,
@@ -1920,6 +1928,7 @@ class AsyncThreads(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -1974,6 +1983,7 @@ class AsyncThreads(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -2028,6 +2038,7 @@ class AsyncThreads(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
@@ -2064,6 +2075,7 @@ class AsyncThreads(AsyncAPIResource):
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
