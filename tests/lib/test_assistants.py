@@ -40,7 +40,7 @@ def assert_signatures_in_sync(
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_create_and_run_poll_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    checking_client = client if sync else async_client
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
         checking_client.beta.threads.create_and_run,
@@ -50,7 +50,7 @@ def test_create_and_run_poll_method_definition_in_sync(sync: bool, client: OpenA
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_create_and_run_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
-    checking_client = client if sync else async_client
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 
     assert_signatures_in_sync(
         checking_client.beta.threads.create_and_run,
