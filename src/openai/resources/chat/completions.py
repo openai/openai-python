@@ -169,7 +169,8 @@ class Completions(SyncAPIResource):
 
               - If set to 'auto', the system will utilize scale tier credits until they are
                 exhausted.
-              - If set to 'default', the request will be processed in the shared cluster.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
@@ -363,7 +364,8 @@ class Completions(SyncAPIResource):
 
               - If set to 'auto', the system will utilize scale tier credits until they are
                 exhausted.
-              - If set to 'default', the request will be processed in the shared cluster.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
@@ -550,7 +552,8 @@ class Completions(SyncAPIResource):
 
               - If set to 'auto', the system will utilize scale tier credits until they are
                 exhausted.
-              - If set to 'default', the request will be processed in the shared cluster.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
@@ -812,7 +815,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               - If set to 'auto', the system will utilize scale tier credits until they are
                 exhausted.
-              - If set to 'default', the request will be processed in the shared cluster.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
@@ -1006,7 +1010,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               - If set to 'auto', the system will utilize scale tier credits until they are
                 exhausted.
-              - If set to 'default', the request will be processed in the shared cluster.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
@@ -1193,7 +1198,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               - If set to 'auto', the system will utilize scale tier credits until they are
                 exhausted.
-              - If set to 'default', the request will be processed in the shared cluster.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
