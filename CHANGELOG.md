@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.5 (2024-06-26)
+
+Full Changelog: [v1.35.4...v1.35.5](https://github.com/openai/openai-python/compare/v1.35.4...v1.35.5)
+
+### Bug Fixes
+
+* **cli/migrate:** avoid reliance on Python 3.12 argument ([be7a06b](https://github.com/openai/openai-python/commit/be7a06b3875e3ecb9229d67a41e290ca218f092d))
+
 ## 1.35.4 (2024-06-26)
 
 Full Changelog: [v1.35.3...v1.35.4](https://github.com/openai/openai-python/compare/v1.35.3...v1.35.4)
