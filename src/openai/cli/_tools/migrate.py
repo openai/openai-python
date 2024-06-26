@@ -138,7 +138,10 @@ def install() -> Path:
     unpacked_dir.mkdir(parents=True, exist_ok=True)
 
     with tarfile.open(temp_file, "r:gz") as archive:
-        archive.extractall(unpacked_dir, filter="data")
+        if sys.version_info >= (3, 12):
+            archive.extractall(unpacked_dir, filter="data")
+        else:
+            archive.extractall(unpacked_dir)
 
     for item in unpacked_dir.iterdir():
         item.rename(target_dir / item.name)
