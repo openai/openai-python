@@ -10,7 +10,7 @@
 -e file:.
 annotated-types==0.6.0
     # via pydantic
-anyio==4.1.0
+anyio==4.4.0
     # via httpx
     # via openai
 argcomplete==3.1.2
@@ -86,6 +86,7 @@ tomli==2.0.1
     # via mypy
     # via pytest
 typing-extensions==4.8.0
+    # via anyio
     # via mypy
     # via openai
     # via pydantic
