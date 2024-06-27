@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.7 (2024-06-27)
+
+Full Changelog: [v1.35.6...v1.35.7](https://github.com/openai/openai-python/compare/v1.35.6...v1.35.7)
+
+### Bug Fixes
+
+* **build:** include more files in sdist builds ([#1504](https://github.com/openai/openai-python/issues/1504)) ([730c1b5](https://github.com/openai/openai-python/commit/730c1b53b1a61e218a85aa2d1cf3ba4775618755))
+
 ## 1.35.6 (2024-06-27)
 
 Full Changelog: [v1.35.5...v1.35.6](https://github.com/openai/openai-python/compare/v1.35.5...v1.35.6)
