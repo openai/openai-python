@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.6 (2024-06-27)
+
+Full Changelog: [v1.35.5...v1.35.6](https://github.com/openai/openai-python/compare/v1.35.5...v1.35.6)
+
+### Documentation
+
+* **readme:** improve some wording ([#1392](https://github.com/openai/openai-python/issues/1392)) ([a58a052](https://github.com/openai/openai-python/commit/a58a05215b560ebcf3ff3eb1dd997259720a48f3))
+
 ## 1.35.5 (2024-06-26)
 
 Full Changelog: [v1.35.4...v1.35.5](https://github.com/openai/openai-python/compare/v1.35.4...v1.35.5)
