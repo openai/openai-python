@@ -58,6 +58,7 @@ dev-dependencies = [
     "nox",
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
+    "rich>=13.7.1",
 
 ]
 
