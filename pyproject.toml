@@ -60,6 +60,7 @@ dev-dependencies = [
     "nox",
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
+    "rich>=13.7.1",
     "inline-snapshot >=0.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
