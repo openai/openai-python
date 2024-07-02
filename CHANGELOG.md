@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.35.8 (2024-07-02)
+
+Full Changelog: [v1.35.7...v1.35.8](https://github.com/openai/openai-python/compare/v1.35.7...v1.35.8)
+
+### Chores
+
+* gitignore test server logs ([#1509](https://github.com/openai/openai-python/issues/1509)) ([936d840](https://github.com/openai/openai-python/commit/936d84094a28ad0a2b4a20e2b3bbf1674048223e))
+* **internal:** add helper method for constructing `BaseModel`s ([#1517](https://github.com/openai/openai-python/issues/1517)) ([e5ddbf5](https://github.com/openai/openai-python/commit/e5ddbf554ce4b6be4b59114a36e69f02ca724acf))
+* **internal:** add reflection helper function ([#1508](https://github.com/openai/openai-python/issues/1508)) ([6044e1b](https://github.com/openai/openai-python/commit/6044e1bbfa9e46a01faf5a9edf198f86fa4c6dd0))
+* **internal:** add rich as a dev dependency ([#1514](https://github.com/openai/openai-python/issues/1514)) ([8a2b4e4](https://github.com/openai/openai-python/commit/8a2b4e4c1233dca916531ebc65d65a8d35fa7b7b))
+
 ## 1.35.7 (2024-06-27)
 
 Full Changelog: [v1.35.6...v1.35.7](https://github.com/openai/openai-python/compare/v1.35.6...v1.35.7)
