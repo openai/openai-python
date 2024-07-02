@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.35.9 (2024-07-02)
+
+Full Changelog: [v1.35.8...v1.35.9](https://github.com/openai/openai-python/compare/v1.35.8...v1.35.9)
+
+### Bug Fixes
+
+* **client:** always respect content-type multipart/form-data if provided ([#1519](https://github.com/openai/openai-python/issues/1519)) ([6da55e1](https://github.com/openai/openai-python/commit/6da55e10c4ba8c78687baedc68d5599ea120d05c))
+
+
+### Chores
+
+* minor change to tests ([#1521](https://github.com/openai/openai-python/issues/1521)) ([a679c0b](https://github.com/openai/openai-python/commit/a679c0bd1e041434440174daa7a64289746856d1))
+
 ## 1.35.8 (2024-07-02)
 
 Full Changelog: [v1.35.7...v1.35.8](https://github.com/openai/openai-python/compare/v1.35.7...v1.35.8)
