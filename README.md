@@ -212,6 +212,57 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
+## Integration Example  
+
+### FastAPI
+
+```py
+from openai import AsyncOpenAI
+from contextlib import asynccontextmanager
+from fastapi import Depends, FastAPI
+
+class AioClient:
+    """
+    async client with singleton approach
+    https://github.com/tiangolo/fastapi/discussions/8301
+    https://fastapi.tiangolo.com/advanced/events/
+    """
+    client: AsyncOpenAI | None = None
+
+    def __set_new_session(self) -> None:
+        if self.client is None:
+            self.client = AsyncOpenAI()
+
+    def init(self) -> None:
+        self.__set_new_session()
+
+    async def close(self) -> None:
+        if self.client is not None:
+            await self.client.close()
+            self.client = None
+
+    def __call__(self) -> AsyncOpenAI:
+        self.__set_new_session()
+        assert self.client is not None
+        return self.client
+
+aio_client = AioClient()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    aio_client.init()
+    yield
+    await aio_client.close()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/foo")
+async def foo(aio_client: AsyncOpenAI = Depends(aio_client)) -> str:
+    res = await aio_client.chat.completions.create(...)
+    ...
+    return "ok"
+```
+
 ## Using types
 
 Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:
