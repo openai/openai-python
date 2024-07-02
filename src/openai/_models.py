@@ -10,6 +10,7 @@ from typing_extensions import (
     ClassVar,
     Protocol,
     Required,
+    ParamSpec,
     TypedDict,
     TypeGuard,
     final,
@@ -67,6 +68,9 @@ if TYPE_CHECKING:
 __all__ = ["BaseModel", "GenericModel"]
 
 _T = TypeVar("_T")
+_BaseModelT = TypeVar("_BaseModelT", bound="BaseModel")
+
+P = ParamSpec("P")
 
 
 @runtime_checkable
@@ -377,6 +381,29 @@ def is_basemodel(type_: type) -> bool:
 def is_basemodel_type(type_: type) -> TypeGuard[type[BaseModel] | type[GenericModel]]:
     origin = get_origin(type_) or type_
     return issubclass(origin, BaseModel) or issubclass(origin, GenericModel)
+
+
+def build(
+    base_model_cls: Callable[P, _BaseModelT],
+    *args: P.args,
+    **kwargs: P.kwargs,
+) -> _BaseModelT:
+    """Construct a BaseModel class without validation.
+
+    This is useful for cases where you need to instantiate a `BaseModel`
+    from an API response as this provides type-safe params which isn't supported
+    by helpers like `construct_type()`.
+
+    ```py
+    build(MyModel, my_field_a="foo", my_field_b=123)
+    ```
+    """
+    if args:
+        raise TypeError(
+            "Received positional arguments which are not supported; Keyword arguments must be used instead",
+        )
+
+    return cast(_BaseModelT, construct_type(type_=base_model_cls, value=kwargs))
 
 
 def construct_type(*, value: object, type_: object) -> object:
