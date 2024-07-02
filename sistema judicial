@@ -1,0 +1,68 @@
+import matplotlib.pyplot as plt
+import networkx as nx
+
+# Crear un grafo
+G = nx.DiGraph()
+
+# Agregar nodos y aristas
+G.add_edges_from([
+    ("Consejo de Administración del Sistema Judicial Digital", "Presidente del Consejo"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Miembros del Consejo"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Oficina de Jurisdicción y Competencia Judicial Digital (OJCJD)"),
+    ("Oficina de Jurisdicción y Competencia Judicial Digital (OJCJD)", "Director de la OJCJD"),
+    ("Oficina de Jurisdicción y Competencia Judicial Digital (OJCJD)", "Equipo de Evaluación de Jurisdicción"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Tribunal Digital"),
+    ("Tribunal Digital", "Jueces Digitales"),
+    ("Tribunal Digital", "Secretaría del Tribunal"),
+    ("Jueces Digitales", "Paneles de Jueces Especializados (por área)"),
+    ("Paneles de Jueces Especializados (por área)", "Delitos Cibernéticos"),
+    ("Paneles de Jueces Especializados (por área)", "Derecho Comercial Digital"),
+    ("Paneles de Jueces Especializados (por área)", "Derecho Familiar Digital"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Barra de Abogados Digitales"),
+    ("Barra de Abogados Digitales", "Presidente de la Barra"),
+    ("Barra de Abogados Digitales", "Comité de Certificación y Ética"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Oficina de Seguridad Informática"),
+    ("Oficina de Seguridad Informática", "Jefe de Seguridad Informática"),
+    ("Oficina de Seguridad Informática", "Equipo de Ciberseguridad"),
+    ("Equipo de Ciberseguridad", "Especialistas en Cifrado de Datos"),
+    ("Equipo de Ciberseguridad", "Especialistas en Autenticación y Control de Acceso"),
+    ("Equipo de Ciberseguridad", "Analistas de Seguridad"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Oficina de Tecnología y Soporte"),
+    ("Oficina de Tecnología y Soporte", "Jefe de Tecnología y Soporte"),
+    ("Oficina de Tecnología y Soporte", "Equipo de Desarrollo y Mantenimiento"),
+    ("Equipo de Desarrollo y Mantenimiento", "Desarrolladores de Software"),
+    ("Equipo de Desarrollo y Mantenimiento", "Ingenieros de Sistemas"),
+    ("Oficina de Tecnología y Soporte", "Equipo de Soporte Técnico"),
+    ("Equipo de Soporte Técnico", "Soporte a Usuarios"),
+    ("Equipo de Soporte Técnico", "Administradores de Sistemas"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Unidad de Capacitación y Formación"),
+    ("Unidad de Capacitación y Formación", "Director de Capacitación"),
+    ("Unidad de Capacitación y Formación", "Instructores y Capacitadores"),
+    ("Instructores y Capacitadores", "Programas de Capacitación Continua"),
+    ("Instructores y Capacitadores", "Desarrollo de Manuales y Guías"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Plataformas Digitales y Gestión de Casos"),
+    ("Plataformas Digitales y Gestión de Casos", "Administrador del Sistema de Gestión de Casos (CMS)"),
+    ("Plataformas Digitales y Gestión de Casos", "Administrador de la Plataforma de Presentación Electrónica"),
+    ("Plataformas Digitales y Gestión de Casos", "Administrador del Calendario y Gestión de Audiencias"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Unidad de Respaldo y Recuperación de Desastres"),
+    ("Unidad de Respaldo y Recuperación de Desastres", "Jefe de Respaldo y Recuperación"),
+    ("Unidad de Respaldo y Recuperación de Desastres", "Especialistas en Recuperación de Desastres"),
+    ("Especialistas en Recuperación de Desastres", "Planes de Recuperación de Desastres"),
+    ("Especialistas en Recuperación de Desastres", "Sistemas de Respaldo"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Oficina de Integración y Estándares"),
+    ("Oficina de Integración y Estándares", "Director de Integración"),
+    ("Oficina de Integración y Estándares", "Especialistas en Estándares Abiertos"),
+    ("Oficina de Integración y Estándares", "Desarrolladores de APIs y Conectores"),
+    ("Consejo de Administración del Sistema Judicial Digital", "Auditoría y Cumplimiento"),
+    ("Auditoría y Cumplimiento", "Auditor Principal"),
+    ("Auditoría y Cumplimiento", "Equipo de Auditoría y Cumplimiento"),
+    ("Equipo de Auditoría y Cumplimiento", "Auditoría de Seguridad"),
+    ("Equipo de Auditoría y Cumplimiento", "Revisión de Cumplimiento Normativo"),
+])
+
+# Crear el gráfico
+plt.figure(figsize=(14, 10))
+pos = nx.spring_layout(G)
+nx.draw(G, pos, with_labels=True, node_size=3000, node_color="lightblue", font_size=9, font_weight="bold", edge_color="gray")
+plt.title("Organigrama del Sistema de Justicia Digital", size=15)
+plt.show()
