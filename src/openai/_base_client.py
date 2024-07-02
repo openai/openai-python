@@ -58,6 +58,7 @@ from ._types import (
     HttpxSendArgs,
     AsyncTransport,
     RequestOptions,
+    HttpxRequestFiles,
     ModelBuilderProtocol,
 )
 from ._utils import is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
@@ -460,6 +461,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         headers = self._build_headers(options)
         params = _merge_mappings(self.default_query, options.params)
         content_type = headers.get("Content-Type")
+        files = options.files
 
         # If the given Content-Type header is multipart/form-data then it
         # has to be removed so that httpx can generate the header with
@@ -473,13 +475,22 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 headers.pop("Content-Type")
 
             # As we are now sending multipart/form-data instead of application/json
-            # we need to tell httpx to use it, https://www.python-httpx.org/advanced/#multipart-file-encoding
+            # we need to tell httpx to use it, https://www.python-httpx.org/advanced/clients/#multipart-file-encoding
             if json_data:
                 if not is_dict(json_data):
                     raise TypeError(
                         f"Expected query input to be a dictionary for multipart requests but got {type(json_data)} instead."
                     )
                 kwargs["data"] = self._serialize_multipartform(json_data)
+
+            # httpx determines whether or not to send a "multipart/form-data"
+            # request based on the truthiness of the "files" argument.
+            # This gets around that issue by generating a dict value that
+            # evaluates to true.
+            #
+            # https://github.com/encode/httpx/discussions/2399#discussioncomment-3814186
+            if not files:
+                files = cast(HttpxRequestFiles, ForceMultipartDict())
 
         # TODO: report this error to httpx
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
@@ -493,7 +504,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # https://github.com/microsoft/pyright/issues/3526#event-6715453066
             params=self.qs.stringify(cast(Mapping[str, Any], params)) if params else None,
             json=json_data,
-            files=options.files,
+            files=files,
             **kwargs,
         )
 
@@ -1889,6 +1900,11 @@ def make_request_options(
         options["post_parser"] = post_parser  # type: ignore
 
     return options
+
+
+class ForceMultipartDict(Dict[str, None]):
+    def __bool__(self) -> bool:
+        return True
 
 
 class OtherPlatform:
