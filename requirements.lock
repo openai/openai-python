@@ -6,6 +6,7 @@
 #   features: []
 #   all-features: true
 #   with-sources: false
+#   generate-hashes: false
 
 -e file:.
 annotated-types==0.6.0
