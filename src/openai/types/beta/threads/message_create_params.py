@@ -5,15 +5,15 @@ from __future__ import annotations
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from ..file_search_tool_param import FileSearchToolParam
+from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 
-__all__ = ["MessageCreateParams", "Attachment", "AttachmentTool"]
+__all__ = ["MessageCreateParams", "Attachment", "AttachmentTool", "AttachmentToolFileSearch"]
 
 
 class MessageCreateParams(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
+    content: Required[Union[str, Iterable[MessageContentPartParam]]]
+    """The text contents of the message."""
 
     role: Required[Literal["user", "assistant"]]
     """The role of the entity that is creating the message. Allowed values include:
@@ -36,7 +36,12 @@ class MessageCreateParams(TypedDict, total=False):
     """
 
 
-AttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class AttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+AttachmentTool = Union[CodeInterpreterToolParam, AttachmentToolFileSearch]
 
 
 class Attachment(TypedDict, total=False):

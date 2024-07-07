@@ -9,7 +9,7 @@ from typing_extensions import Literal
 import httpx
 
 from .. import _legacy_response
-from ..types import CreateEmbeddingResponse, embedding_create_params
+from ..types import embedding_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import is_given, maybe_transform
 from .._compat import cached_property
@@ -19,6 +19,7 @@ from .._response import to_streamed_response_wrapper, async_to_streamed_response
 from .._base_client import (
     make_request_options,
 )
+from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
 

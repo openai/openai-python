@@ -9,7 +9,9 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.chat import ChatCompletion
+from openai.types.chat import (
+    ChatCompletion,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -54,11 +56,14 @@ class TestCompletions:
             logprobs=True,
             max_tokens=0,
             n=1,
+            parallel_tool_calls=True,
             presence_penalty=-2,
             response_format={"type": "json_object"},
-            seed=-9223372036854776000,
+            seed=-9007199254740991,
+            service_tier="auto",
             stop="string",
             stream=False,
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
@@ -168,10 +173,13 @@ class TestCompletions:
             logprobs=True,
             max_tokens=0,
             n=1,
+            parallel_tool_calls=True,
             presence_penalty=-2,
             response_format={"type": "json_object"},
-            seed=-9223372036854776000,
+            seed=-9007199254740991,
+            service_tier="auto",
             stop="string",
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
@@ -284,11 +292,14 @@ class TestAsyncCompletions:
             logprobs=True,
             max_tokens=0,
             n=1,
+            parallel_tool_calls=True,
             presence_penalty=-2,
             response_format={"type": "json_object"},
-            seed=-9223372036854776000,
+            seed=-9007199254740991,
+            service_tier="auto",
             stop="string",
             stream=False,
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[
@@ -398,10 +409,13 @@ class TestAsyncCompletions:
             logprobs=True,
             max_tokens=0,
             n=1,
+            parallel_tool_calls=True,
             presence_penalty=-2,
             response_format={"type": "json_object"},
-            seed=-9223372036854776000,
+            seed=-9007199254740991,
+            service_tier="auto",
             stop="string",
+            stream_options={"include_usage": True},
             temperature=1,
             tool_choice="none",
             tools=[

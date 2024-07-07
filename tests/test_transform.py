@@ -260,20 +260,22 @@ class MyModel(BaseModel):
 @parametrize
 @pytest.mark.asyncio
 async def test_pydantic_model_to_dictionary(use_async: bool) -> None:
-    assert await transform(MyModel(foo="hi!"), Any, use_async) == {"foo": "hi!"}
-    assert await transform(MyModel.construct(foo="hi!"), Any, use_async) == {"foo": "hi!"}
+    assert cast(Any, await transform(MyModel(foo="hi!"), Any, use_async)) == {"foo": "hi!"}
+    assert cast(Any, await transform(MyModel.construct(foo="hi!"), Any, use_async)) == {"foo": "hi!"}
 
 
 @parametrize
 @pytest.mark.asyncio
 async def test_pydantic_empty_model(use_async: bool) -> None:
-    assert await transform(MyModel.construct(), Any, use_async) == {}
+    assert cast(Any, await transform(MyModel.construct(), Any, use_async)) == {}
 
 
 @parametrize
 @pytest.mark.asyncio
 async def test_pydantic_unknown_field(use_async: bool) -> None:
-    assert await transform(MyModel.construct(my_untyped_field=True), Any, use_async) == {"my_untyped_field": True}
+    assert cast(Any, await transform(MyModel.construct(my_untyped_field=True), Any, use_async)) == {
+        "my_untyped_field": True
+    }
 
 
 @parametrize
@@ -285,7 +287,7 @@ async def test_pydantic_mismatched_types(use_async: bool) -> None:
             params = await transform(model, Any, use_async)
     else:
         params = await transform(model, Any, use_async)
-    assert params == {"foo": True}
+    assert cast(Any, params) == {"foo": True}
 
 
 @parametrize
@@ -297,7 +299,7 @@ async def test_pydantic_mismatched_object_type(use_async: bool) -> None:
             params = await transform(model, Any, use_async)
     else:
         params = await transform(model, Any, use_async)
-    assert params == {"foo": {"hello": "world"}}
+    assert cast(Any, params) == {"foo": {"hello": "world"}}
 
 
 class ModelNestedObjects(BaseModel):
@@ -309,7 +311,7 @@ class ModelNestedObjects(BaseModel):
 async def test_pydantic_nested_objects(use_async: bool) -> None:
     model = ModelNestedObjects.construct(nested={"foo": "stainless"})
     assert isinstance(model.nested, MyModel)
-    assert await transform(model, Any, use_async) == {"nested": {"foo": "stainless"}}
+    assert cast(Any, await transform(model, Any, use_async)) == {"nested": {"foo": "stainless"}}
 
 
 class ModelWithDefaultField(BaseModel):
@@ -325,19 +327,19 @@ async def test_pydantic_default_field(use_async: bool) -> None:
     model = ModelWithDefaultField.construct()
     assert model.with_none_default is None
     assert model.with_str_default == "foo"
-    assert await transform(model, Any, use_async) == {}
+    assert cast(Any, await transform(model, Any, use_async)) == {}
 
     # should be included when the default value is explicitly given
     model = ModelWithDefaultField.construct(with_none_default=None, with_str_default="foo")
     assert model.with_none_default is None
     assert model.with_str_default == "foo"
-    assert await transform(model, Any, use_async) == {"with_none_default": None, "with_str_default": "foo"}
+    assert cast(Any, await transform(model, Any, use_async)) == {"with_none_default": None, "with_str_default": "foo"}
 
     # should be included when a non-default value is explicitly given
     model = ModelWithDefaultField.construct(with_none_default="bar", with_str_default="baz")
     assert model.with_none_default == "bar"
     assert model.with_str_default == "baz"
-    assert await transform(model, Any, use_async) == {"with_none_default": "bar", "with_str_default": "baz"}
+    assert cast(Any, await transform(model, Any, use_async)) == {"with_none_default": "bar", "with_str_default": "baz"}
 
 
 class TypedDictIterableUnion(TypedDict):

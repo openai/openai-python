@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import time
 import typing_extensions
 from typing import Union, Iterable, Optional, overload
 from functools import partial
@@ -31,12 +30,6 @@ from ....._resource import SyncAPIResource, AsyncAPIResource
 from ....._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....._streaming import Stream, AsyncStream
 from .....pagination import SyncCursorPage, AsyncCursorPage
-from .....types.beta import (
-    AssistantToolParam,
-    AssistantStreamEvent,
-    AssistantToolChoiceOptionParam,
-    AssistantResponseFormatOptionParam,
-)
 from ....._base_client import (
     AsyncPaginator,
     make_request_options,
@@ -50,12 +43,16 @@ from .....lib.streaming import (
     AsyncAssistantStreamManager,
 )
 from .....types.beta.threads import (
-    Run,
     run_list_params,
     run_create_params,
     run_update_params,
     run_submit_tool_outputs_params,
 )
+from .....types.beta.threads.run import Run
+from .....types.beta.assistant_tool_param import AssistantToolParam
+from .....types.beta.assistant_stream_event import AssistantStreamEvent
+from .....types.beta.assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
+from .....types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["Runs", "AsyncRuns"]
 
@@ -88,6 +85,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -110,6 +109,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -164,9 +164,14 @@ class Runs(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              during tool use.
+
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -189,8 +194,9 @@ class Runs(SyncAPIResource):
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
-              and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "file_search"}` or
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -232,6 +238,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -254,6 +262,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -311,9 +320,14 @@ class Runs(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              during tool use.
+
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -332,8 +346,9 @@ class Runs(SyncAPIResource):
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
-              and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "file_search"}` or
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -375,6 +390,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -397,6 +414,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -454,9 +472,14 @@ class Runs(SyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              during tool use.
+
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -475,8 +498,9 @@ class Runs(SyncAPIResource):
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
-              and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "file_search"}` or
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -517,6 +541,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -539,6 +565,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -568,6 +595,7 @@ class Runs(SyncAPIResource):
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
@@ -784,6 +812,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -874,6 +904,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -928,6 +960,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -982,6 +1016,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1081,7 +1117,7 @@ class Runs(SyncAPIResource):
         if is_given(poll_interval_ms):
             extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
-        terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired"}
+        terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
         while True:
             response = self.with_raw_response.retrieve(
                 thread_id=thread_id,
@@ -1104,7 +1140,7 @@ class Runs(SyncAPIResource):
                 else:
                     poll_interval_ms = 1000
 
-            time.sleep(poll_interval_ms / 1000)
+            self._sleep(poll_interval_ms / 1000)
 
     @overload
     def stream(
@@ -1120,6 +1156,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1173,6 +1211,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1226,6 +1266,8 @@ class Runs(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1617,6 +1659,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1639,6 +1683,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1693,9 +1738,14 @@ class AsyncRuns(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              during tool use.
+
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1718,8 +1768,9 @@ class AsyncRuns(AsyncAPIResource):
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
-              and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "file_search"}` or
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -1761,6 +1812,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1783,6 +1836,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1840,9 +1894,14 @@ class AsyncRuns(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              during tool use.
+
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1861,8 +1920,9 @@ class AsyncRuns(AsyncAPIResource):
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
-              and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "file_search"}` or
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -1904,6 +1964,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1926,6 +1988,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1983,9 +2046,14 @@ class AsyncRuns(AsyncAPIResource):
               model associated with the assistant. If not, the model associated with the
               assistant will be used.
 
+          parallel_tool_calls: Whether to enable
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              during tool use.
+
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -2004,8 +2072,9 @@ class AsyncRuns(AsyncAPIResource):
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tools and instead generates a message. `auto` is the default value
-              and means the model can pick between generating a message or calling a tool.
-              Specifying a particular tool like `{"type": "file_search"}` or
+              and means the model can pick between generating a message or calling one or more
+              tools. `required` means the model must call one or more tools before responding
+              to the user. Specifying a particular tool like `{"type": "file_search"}` or
               `{"type": "function", "function": {"name": "my_function"}}` forces the model to
               call that tool.
 
@@ -2046,6 +2115,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2068,6 +2139,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -2097,6 +2169,7 @@ class AsyncRuns(AsyncAPIResource):
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
                     "model": model,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
@@ -2313,6 +2386,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2403,6 +2478,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2457,6 +2534,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2511,6 +2590,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2612,7 +2693,7 @@ class AsyncRuns(AsyncAPIResource):
         if is_given(poll_interval_ms):
             extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
 
-        terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired"}
+        terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
         while True:
             response = await self.with_raw_response.retrieve(
                 thread_id=thread_id,
@@ -2635,7 +2716,7 @@ class AsyncRuns(AsyncAPIResource):
                 else:
                     poll_interval_ms = 1000
 
-            time.sleep(poll_interval_ms / 1000)
+            await self._sleep(poll_interval_ms / 1000)
 
     @overload
     def stream(
@@ -2651,6 +2732,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2704,6 +2787,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2757,6 +2842,8 @@ class AsyncRuns(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",

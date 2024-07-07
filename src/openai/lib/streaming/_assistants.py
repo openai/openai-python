@@ -280,6 +280,7 @@ class AssistantEventHandler:
             or event.event == "thread.run.expired"
             or event.event == "thread.run.failed"
             or event.event == "thread.run.requires_action"
+            or event.event == "thread.run.incomplete"
         ):
             self.__current_run = event.data
             if self._current_tool_call:
@@ -711,6 +712,7 @@ class AsyncAssistantEventHandler:
             or event.event == "thread.run.expired"
             or event.event == "thread.run.failed"
             or event.event == "thread.run.requires_action"
+            or event.event == "thread.run.incomplete"
         ):
             self.__current_run = event.data
             if self._current_tool_call:

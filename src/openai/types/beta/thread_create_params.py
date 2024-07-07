@@ -5,18 +5,23 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
+from .threads.message_content_part_param import MessageContentPartParam
 
 __all__ = [
     "ThreadCreateParams",
     "Message",
     "MessageAttachment",
     "MessageAttachmentTool",
+    "MessageAttachmentToolFileSearch",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
     "ToolResourcesFileSearchVectorStore",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
 ]
 
 
@@ -44,7 +49,12 @@ class ThreadCreateParams(TypedDict, total=False):
     """
 
 
-MessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class MessageAttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+MessageAttachmentTool = Union[CodeInterpreterToolParam, MessageAttachmentToolFileSearch]
 
 
 class MessageAttachment(TypedDict, total=False):
@@ -56,8 +66,8 @@ class MessageAttachment(TypedDict, total=False):
 
 
 class Message(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
+    content: Required[Union[str, Iterable[MessageContentPartParam]]]
+    """The text contents of the message."""
 
     role: Required[Literal["user", "assistant"]]
     """The role of the entity that is creating the message. Allowed values include:
@@ -89,7 +99,45 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
+class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
+
+
+class ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
+    """
+
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ToolResourcesFileSearchVectorStoreChunkingStrategy = Union[
+    ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
+]
+
+
 class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    chunking_strategy: ToolResourcesFileSearchVectorStoreChunkingStrategy
+    """The chunking strategy used to chunk the file(s).
+
+    If not set, will use the `auto` strategy.
+    """
+
     file_ids: List[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to

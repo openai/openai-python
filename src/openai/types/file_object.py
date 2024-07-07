@@ -24,11 +24,13 @@ class FileObject(BaseModel):
     object: Literal["file"]
     """The object type, which is always `file`."""
 
-    purpose: Literal["fine-tune", "fine-tune-results", "assistants", "assistants_output"]
+    purpose: Literal[
+        "assistants", "assistants_output", "batch", "batch_output", "fine-tune", "fine-tune-results", "vision"
+    ]
     """The intended purpose of the file.
 
-    Supported values are `fine-tune`, `fine-tune-results`, `assistants`, and
-    `assistants_output`.
+    Supported values are `assistants`, `assistants_output`, `batch`, `batch_output`,
+    `fine-tune`, `fine-tune-results` and `vision`.
     """
 
     status: Literal["uploaded", "processed", "error"]

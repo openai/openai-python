@@ -6,7 +6,7 @@ from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from ..assistant_tool_param import AssistantToolParam
-from ..file_search_tool_param import FileSearchToolParam
+from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from ..assistant_response_format_option_param import AssistantResponseFormatOptionParam
@@ -16,6 +16,7 @@ __all__ = [
     "AdditionalMessage",
     "AdditionalMessageAttachment",
     "AdditionalMessageAttachmentTool",
+    "AdditionalMessageAttachmentToolFileSearch",
     "TruncationStrategy",
     "RunCreateParamsNonStreaming",
     "RunCreateParamsStreaming",
@@ -76,6 +77,8 @@ class RunCreateParamsBase(TypedDict, total=False):
     model: Union[
         str,
         Literal[
+            "gpt-4o",
+            "gpt-4o-2024-05-13",
             "gpt-4-turbo",
             "gpt-4-turbo-2024-04-09",
             "gpt-4-0125-preview",
@@ -104,12 +107,19 @@ class RunCreateParamsBase(TypedDict, total=False):
     assistant will be used.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with
-    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -134,8 +144,9 @@ class RunCreateParamsBase(TypedDict, total=False):
     """
     Controls which (if any) tool is called by the model. `none` means the model will
     not call any tools and instead generates a message. `auto` is the default value
-    and means the model can pick between generating a message or calling a tool.
-    Specifying a particular tool like `{"type": "file_search"}` or
+    and means the model can pick between generating a message or calling one or more
+    tools. `required` means the model must call one or more tools before responding
+    to the user. Specifying a particular tool like `{"type": "file_search"}` or
     `{"type": "function", "function": {"name": "my_function"}}` forces the model to
     call that tool.
     """
@@ -162,7 +173,12 @@ class RunCreateParamsBase(TypedDict, total=False):
     """
 
 
-AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class AdditionalMessageAttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, AdditionalMessageAttachmentToolFileSearch]
 
 
 class AdditionalMessageAttachment(TypedDict, total=False):
@@ -174,8 +190,8 @@ class AdditionalMessageAttachment(TypedDict, total=False):
 
 
 class AdditionalMessage(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
+    content: Required[Union[str, Iterable[MessageContentPartParam]]]
+    """The text contents of the message."""
 
     role: Required[Literal["user", "assistant"]]
     """The role of the entity that is creating the message. Allowed values include:

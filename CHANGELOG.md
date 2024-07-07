@@ -1,5 +1,362 @@
 # Changelog
 
+## 1.35.10 (2024-07-03)
+
+Full Changelog: [v1.35.9...v1.35.10](https://github.com/openai/openai-python/compare/v1.35.9...v1.35.10)
+
+### Chores
+
+* **ci:** update rye to v0.35.0 ([#1523](https://github.com/openai/openai-python/issues/1523)) ([dd118c4](https://github.com/openai/openai-python/commit/dd118c422019df00b153104b7bddf892c2ec7417))
+
+## 1.35.9 (2024-07-02)
+
+Full Changelog: [v1.35.8...v1.35.9](https://github.com/openai/openai-python/compare/v1.35.8...v1.35.9)
+
+### Bug Fixes
+
+* **client:** always respect content-type multipart/form-data if provided ([#1519](https://github.com/openai/openai-python/issues/1519)) ([6da55e1](https://github.com/openai/openai-python/commit/6da55e10c4ba8c78687baedc68d5599ea120d05c))
+
+
+### Chores
+
+* minor change to tests ([#1521](https://github.com/openai/openai-python/issues/1521)) ([a679c0b](https://github.com/openai/openai-python/commit/a679c0bd1e041434440174daa7a64289746856d1))
+
+## 1.35.8 (2024-07-02)
+
+Full Changelog: [v1.35.7...v1.35.8](https://github.com/openai/openai-python/compare/v1.35.7...v1.35.8)
+
+### Chores
+
+* gitignore test server logs ([#1509](https://github.com/openai/openai-python/issues/1509)) ([936d840](https://github.com/openai/openai-python/commit/936d84094a28ad0a2b4a20e2b3bbf1674048223e))
+* **internal:** add helper method for constructing `BaseModel`s ([#1517](https://github.com/openai/openai-python/issues/1517)) ([e5ddbf5](https://github.com/openai/openai-python/commit/e5ddbf554ce4b6be4b59114a36e69f02ca724acf))
+* **internal:** add reflection helper function ([#1508](https://github.com/openai/openai-python/issues/1508)) ([6044e1b](https://github.com/openai/openai-python/commit/6044e1bbfa9e46a01faf5a9edf198f86fa4c6dd0))
+* **internal:** add rich as a dev dependency ([#1514](https://github.com/openai/openai-python/issues/1514)) ([8a2b4e4](https://github.com/openai/openai-python/commit/8a2b4e4c1233dca916531ebc65d65a8d35fa7b7b))
+
+## 1.35.7 (2024-06-27)
+
+Full Changelog: [v1.35.6...v1.35.7](https://github.com/openai/openai-python/compare/v1.35.6...v1.35.7)
+
+### Bug Fixes
+
+* **build:** include more files in sdist builds ([#1504](https://github.com/openai/openai-python/issues/1504)) ([730c1b5](https://github.com/openai/openai-python/commit/730c1b53b1a61e218a85aa2d1cf3ba4775618755))
+
+## 1.35.6 (2024-06-27)
+
+Full Changelog: [v1.35.5...v1.35.6](https://github.com/openai/openai-python/compare/v1.35.5...v1.35.6)
+
+### Documentation
+
+* **readme:** improve some wording ([#1392](https://github.com/openai/openai-python/issues/1392)) ([a58a052](https://github.com/openai/openai-python/commit/a58a05215b560ebcf3ff3eb1dd997259720a48f3))
+
+## 1.35.5 (2024-06-26)
+
+Full Changelog: [v1.35.4...v1.35.5](https://github.com/openai/openai-python/compare/v1.35.4...v1.35.5)
+
+### Bug Fixes
+
+* **cli/migrate:** avoid reliance on Python 3.12 argument ([be7a06b](https://github.com/openai/openai-python/commit/be7a06b3875e3ecb9229d67a41e290ca218f092d))
+
+## 1.35.4 (2024-06-26)
+
+Full Changelog: [v1.35.3...v1.35.4](https://github.com/openai/openai-python/compare/v1.35.3...v1.35.4)
+
+### Bug Fixes
+
+* **docs:** fix link to advanced python httpx docs ([#1499](https://github.com/openai/openai-python/issues/1499)) ([cf45cd5](https://github.com/openai/openai-python/commit/cf45cd5942cecec569072146673ddfc0e0ec108e))
+* temporarily patch upstream version to fix broken release flow ([#1500](https://github.com/openai/openai-python/issues/1500)) ([4f10470](https://github.com/openai/openai-python/commit/4f10470f5f74fc258a78fa6d897d8ab5b70dcf52))
+
+
+### Chores
+
+* **doc:** clarify service tier default value ([#1496](https://github.com/openai/openai-python/issues/1496)) ([ba39667](https://github.com/openai/openai-python/commit/ba39667c4faa8e10457347be41334ca9639186d4))
+
+## 1.35.3 (2024-06-20)
+
+Full Changelog: [v1.35.2...v1.35.3](https://github.com/openai/openai-python/compare/v1.35.2...v1.35.3)
+
+### Bug Fixes
+
+* **tests:** add explicit type annotation ([9345f10](https://github.com/openai/openai-python/commit/9345f104889056b2ef6646d65375925a0a3bae03))
+
+## 1.35.2 (2024-06-20)
+
+Full Changelog: [v1.35.1...v1.35.2](https://github.com/openai/openai-python/compare/v1.35.1...v1.35.2)
+
+### Bug Fixes
+
+* **api:** add missing parallel_tool_calls arguments ([4041e4f](https://github.com/openai/openai-python/commit/4041e4f6ea1e2316179a82031001308be23a2524))
+
+## 1.35.1 (2024-06-19)
+
+Full Changelog: [v1.35.0...v1.35.1](https://github.com/openai/openai-python/compare/v1.35.0...v1.35.1)
+
+### Bug Fixes
+
+* **client/async:** avoid blocking io call for platform headers ([#1488](https://github.com/openai/openai-python/issues/1488)) ([ae64c05](https://github.com/openai/openai-python/commit/ae64c05cbae76a58b592d913bee6ac1ef9611d4c))
+
+## 1.35.0 (2024-06-18)
+
+Full Changelog: [v1.34.0...v1.35.0](https://github.com/openai/openai-python/compare/v1.34.0...v1.35.0)
+
+### Features
+
+* **api:** add service tier argument for chat completions ([#1486](https://github.com/openai/openai-python/issues/1486)) ([b4b4e66](https://github.com/openai/openai-python/commit/b4b4e660b8bb7ae937787fcab9b40feaeba7f711))
+
+## 1.34.0 (2024-06-12)
+
+Full Changelog: [v1.33.0...v1.34.0](https://github.com/openai/openai-python/compare/v1.33.0...v1.34.0)
+
+### Features
+
+* **api:** updates ([#1481](https://github.com/openai/openai-python/issues/1481)) ([b83db36](https://github.com/openai/openai-python/commit/b83db362f0c9a5a4d55588b954fb1df1a68c98e3))
+
+## 1.33.0 (2024-06-07)
+
+Full Changelog: [v1.32.1...v1.33.0](https://github.com/openai/openai-python/compare/v1.32.1...v1.33.0)
+
+### Features
+
+* **api:** adding chunking_strategy to polling helpers ([#1478](https://github.com/openai/openai-python/issues/1478)) ([83be2a1](https://github.com/openai/openai-python/commit/83be2a13e0384d3de52190d86ccb1b5d7a197d84))
+
+## 1.32.1 (2024-06-07)
+
+Full Changelog: [v1.32.0...v1.32.1](https://github.com/openai/openai-python/compare/v1.32.0...v1.32.1)
+
+### Bug Fixes
+
+* remove erroneous thread create argument ([#1476](https://github.com/openai/openai-python/issues/1476)) ([43175c4](https://github.com/openai/openai-python/commit/43175c40e607d626a77a151691778c35a0e60eec))
+
+## 1.32.0 (2024-06-06)
+
+Full Changelog: [v1.31.2...v1.32.0](https://github.com/openai/openai-python/compare/v1.31.2...v1.32.0)
+
+### Features
+
+* **api:** updates ([#1474](https://github.com/openai/openai-python/issues/1474)) ([87ddff0](https://github.com/openai/openai-python/commit/87ddff0e6e64650691a8e32f7477b7a00e06ed23))
+
+## 1.31.2 (2024-06-06)
+
+Full Changelog: [v1.31.1...v1.31.2](https://github.com/openai/openai-python/compare/v1.31.1...v1.31.2)
+
+### Chores
+
+* **internal:** minor refactor of tests ([#1471](https://github.com/openai/openai-python/issues/1471)) ([b7f2298](https://github.com/openai/openai-python/commit/b7f229866f249d16e995db361b923bb4c0b7f1d4))
+
+## 1.31.1 (2024-06-05)
+
+Full Changelog: [v1.31.0...v1.31.1](https://github.com/openai/openai-python/compare/v1.31.0...v1.31.1)
+
+### Chores
+
+* **internal:** minor change to tests ([#1466](https://github.com/openai/openai-python/issues/1466)) ([cb33e71](https://github.com/openai/openai-python/commit/cb33e7152f25fb16cf4c39a6e4714169c62d6af8))
+
+## 1.31.0 (2024-06-03)
+
+Full Changelog: [v1.30.5...v1.31.0](https://github.com/openai/openai-python/compare/v1.30.5...v1.31.0)
+
+### Features
+
+* **api:** updates ([#1461](https://github.com/openai/openai-python/issues/1461)) ([0d7cc5e](https://github.com/openai/openai-python/commit/0d7cc5e48c565fe10ee6e8ca4d050175eb543bcb))
+
+
+### Chores
+
+* fix lint ([1886dd4](https://github.com/openai/openai-python/commit/1886dd4c98d7a7b3a679bff739cb38badf5ae96c))
+
+## 1.30.5 (2024-05-29)
+
+Full Changelog: [v1.30.4...v1.30.5](https://github.com/openai/openai-python/compare/v1.30.4...v1.30.5)
+
+### Chores
+
+* **internal:** fix lint issue ([35a1e80](https://github.com/openai/openai-python/commit/35a1e806891c34d5cc13ac8341751e5b15b52319))
+
+## 1.30.4 (2024-05-28)
+
+Full Changelog: [v1.30.3...v1.30.4](https://github.com/openai/openai-python/compare/v1.30.3...v1.30.4)
+
+### Chores
+
+* add missing __all__ definitions ([7fba60f](https://github.com/openai/openai-python/commit/7fba60f2e8adc26e83080aaf3e436eb9891e1253))
+* **internal:** fix lint issue ([f423cd0](https://github.com/openai/openai-python/commit/f423cd05d33b3e734eda7c0c008faac14ae96bb7))
+
+## 1.30.3 (2024-05-24)
+
+Full Changelog: [v1.30.2...v1.30.3](https://github.com/openai/openai-python/compare/v1.30.2...v1.30.3)
+
+### Chores
+
+* **ci:** update rye install location ([#1440](https://github.com/openai/openai-python/issues/1440)) ([8a0e5bf](https://github.com/openai/openai-python/commit/8a0e5bf4c03d9c714799fad43be68ac9c2b1f37a))
+* **internal:** bump pyright ([#1442](https://github.com/openai/openai-python/issues/1442)) ([64a151e](https://github.com/openai/openai-python/commit/64a151eae705d55484f870df461434c0a6961e2b))
+* **internal:** fix lint issue ([#1444](https://github.com/openai/openai-python/issues/1444)) ([b0eb458](https://github.com/openai/openai-python/commit/b0eb4582e050b0a25af3d80d2cb584bfc7cd11ab))
+
+
+### Documentation
+
+* **contributing:** update references to rye-up.com ([dcc34a2](https://github.com/openai/openai-python/commit/dcc34a26d1a6a0debf440724fad658c77547048c))
+
+## 1.30.2 (2024-05-23)
+
+Full Changelog: [v1.30.1...v1.30.2](https://github.com/openai/openai-python/compare/v1.30.1...v1.30.2)
+
+### Chores
+
+* **ci:** update rye install location ([#1436](https://github.com/openai/openai-python/issues/1436)) ([f7cc4e7](https://github.com/openai/openai-python/commit/f7cc4e7d5d0964a4a5d53e602379770c2576e1aa))
+
+## 1.30.1 (2024-05-14)
+
+Full Changelog: [v1.30.0...v1.30.1](https://github.com/openai/openai-python/compare/v1.30.0...v1.30.1)
+
+### Chores
+
+* **internal:** add slightly better logging to scripts ([#1422](https://github.com/openai/openai-python/issues/1422)) ([43dffab](https://github.com/openai/openai-python/commit/43dffabb3bed4edf8a6e523cbb289f733a5f9b24))
+
+## 1.30.0 (2024-05-14)
+
+Full Changelog: [v1.29.0...v1.30.0](https://github.com/openai/openai-python/compare/v1.29.0...v1.30.0)
+
+### Features
+
+* **api:** add incomplete state ([#1420](https://github.com/openai/openai-python/issues/1420)) ([6484984](https://github.com/openai/openai-python/commit/648498412d1c7740e6b67ed4d0a55b89ff29d3b1))
+
+## 1.29.0 (2024-05-13)
+
+Full Changelog: [v1.28.2...v1.29.0](https://github.com/openai/openai-python/compare/v1.28.2...v1.29.0)
+
+### Features
+
+* **api:** add gpt-4o model ([#1417](https://github.com/openai/openai-python/issues/1417)) ([4f09f8c](https://github.com/openai/openai-python/commit/4f09f8c6cc4450f5e61f158f1bd54c513063a1a8))
+
+## 1.28.2 (2024-05-13)
+
+Full Changelog: [v1.28.1...v1.28.2](https://github.com/openai/openai-python/compare/v1.28.1...v1.28.2)
+
+### Bug Fixes
+
+* **client:** accidental blocking sleep in async code ([#1415](https://github.com/openai/openai-python/issues/1415)) ([0ac6ecb](https://github.com/openai/openai-python/commit/0ac6ecb8d4e52f895bc3ae1f589f22ddaaef6204))
+
+
+### Chores
+
+* **internal:** bump pydantic dependency ([#1413](https://github.com/openai/openai-python/issues/1413)) ([ed73d1d](https://github.com/openai/openai-python/commit/ed73d1db540714e29a1ba30e3aa6429aae8b1dd8))
+
+## 1.28.1 (2024-05-11)
+
+Full Changelog: [v1.28.0...v1.28.1](https://github.com/openai/openai-python/compare/v1.28.0...v1.28.1)
+
+### Chores
+
+* **docs:** add SECURITY.md ([#1408](https://github.com/openai/openai-python/issues/1408)) ([119970a](https://github.com/openai/openai-python/commit/119970a31b67e88c623d50855290ccf3847c10eb))
+
+## 1.28.0 (2024-05-09)
+
+Full Changelog: [v1.27.0...v1.28.0](https://github.com/openai/openai-python/compare/v1.27.0...v1.28.0)
+
+### Features
+
+* **api:** add message image content ([#1405](https://github.com/openai/openai-python/issues/1405)) ([a115de6](https://github.com/openai/openai-python/commit/a115de60ce1ca503a7659bb9a19c18699d4d9bcb))
+
+## 1.27.0 (2024-05-08)
+
+Full Changelog: [v1.26.0...v1.27.0](https://github.com/openai/openai-python/compare/v1.26.0...v1.27.0)
+
+### Features
+
+* **api:** adding file purposes ([#1401](https://github.com/openai/openai-python/issues/1401)) ([2e9d0bd](https://github.com/openai/openai-python/commit/2e9d0bd0e4bf677ed9b21c6448e804313e026441))
+
+## 1.26.0 (2024-05-06)
+
+Full Changelog: [v1.25.2...v1.26.0](https://github.com/openai/openai-python/compare/v1.25.2...v1.26.0)
+
+### Features
+
+* **api:** add usage metadata when streaming ([#1395](https://github.com/openai/openai-python/issues/1395)) ([3cb064b](https://github.com/openai/openai-python/commit/3cb064b10d661dbcc74b6bc1ed7d8e635ab2876a))
+
+## 1.25.2 (2024-05-05)
+
+Full Changelog: [v1.25.1...v1.25.2](https://github.com/openai/openai-python/compare/v1.25.1...v1.25.2)
+
+### Documentation
+
+* **readme:** fix misleading timeout example value ([#1393](https://github.com/openai/openai-python/issues/1393)) ([3eba8e7](https://github.com/openai/openai-python/commit/3eba8e7573ec1bf4231a304c8eabc8a8d077f46d))
+
+## 1.25.1 (2024-05-02)
+
+Full Changelog: [v1.25.0...v1.25.1](https://github.com/openai/openai-python/compare/v1.25.0...v1.25.1)
+
+### Chores
+
+* **internal:** bump prism version ([#1390](https://github.com/openai/openai-python/issues/1390)) ([a5830fc](https://github.com/openai/openai-python/commit/a5830fc1c5ffd21e2010490905084ad5614212a3))
+
+## 1.25.0 (2024-05-01)
+
+Full Changelog: [v1.24.1...v1.25.0](https://github.com/openai/openai-python/compare/v1.24.1...v1.25.0)
+
+### Features
+
+* **api:** delete messages ([#1388](https://github.com/openai/openai-python/issues/1388)) ([d0597cd](https://github.com/openai/openai-python/commit/d0597cdc1813cddffacbaa50565e86d2420d1873))
+
+## 1.24.1 (2024-04-30)
+
+Full Changelog: [v1.24.0...v1.24.1](https://github.com/openai/openai-python/compare/v1.24.0...v1.24.1)
+
+### Chores
+
+* **internal:** add link to openapi spec ([#1385](https://github.com/openai/openai-python/issues/1385)) ([b315d04](https://github.com/openai/openai-python/commit/b315d04e9624ec3a841d7c51813bb553640c23ce))
+
+## 1.24.0 (2024-04-29)
+
+Full Changelog: [v1.23.6...v1.24.0](https://github.com/openai/openai-python/compare/v1.23.6...v1.24.0)
+
+### Features
+
+* **api:** add required tool_choice ([#1382](https://github.com/openai/openai-python/issues/1382)) ([c558f65](https://github.com/openai/openai-python/commit/c558f651df39f61425cd4109318f78ed94cbf163))
+
+
+### Chores
+
+* **client:** log response headers in debug mode ([#1383](https://github.com/openai/openai-python/issues/1383)) ([f31a426](https://github.com/openai/openai-python/commit/f31a4261adc4ebd92582cee264e41eb6a6dafc57))
+* **internal:** minor reformatting ([#1377](https://github.com/openai/openai-python/issues/1377)) ([7003dbb](https://github.com/openai/openai-python/commit/7003dbb863b6e16381070b8b86ac24aa070a3799))
+* **internal:** reformat imports ([#1375](https://github.com/openai/openai-python/issues/1375)) ([2ad0c3b](https://github.com/openai/openai-python/commit/2ad0c3b8e0b746ed20db3c84a9c6a369aa10bf5d))
+
+## 1.23.6 (2024-04-25)
+
+Full Changelog: [v1.23.5...v1.23.6](https://github.com/openai/openai-python/compare/v1.23.5...v1.23.6)
+
+### Chores
+
+* **internal:** update test helper function ([#1371](https://github.com/openai/openai-python/issues/1371)) ([6607c4a](https://github.com/openai/openai-python/commit/6607c4a491fd1912f9222d6fe464ccef6e865eac))
+
+## 1.23.5 (2024-04-24)
+
+Full Changelog: [v1.23.4...v1.23.5](https://github.com/openai/openai-python/compare/v1.23.4...v1.23.5)
+
+### Chores
+
+* **internal:** use actions/checkout@v4 for codeflow ([#1368](https://github.com/openai/openai-python/issues/1368)) ([d1edf8b](https://github.com/openai/openai-python/commit/d1edf8beb806ebaefdcc2cb6e39f99e1811a2668))
+
+## 1.23.4 (2024-04-24)
+
+Full Changelog: [v1.23.3...v1.23.4](https://github.com/openai/openai-python/compare/v1.23.3...v1.23.4)
+
+### Bug Fixes
+
+* **api:** change timestamps to unix integers ([#1367](https://github.com/openai/openai-python/issues/1367)) ([fbc0e15](https://github.com/openai/openai-python/commit/fbc0e15f422971bd15499d4ea5f42a1c885c7004))
+* **docs:** doc improvements ([#1364](https://github.com/openai/openai-python/issues/1364)) ([8c3a005](https://github.com/openai/openai-python/commit/8c3a005247ea045b9a95e7459eba2a90067daf71))
+
+
+### Chores
+
+* **tests:** rename test file ([#1366](https://github.com/openai/openai-python/issues/1366)) ([4204e63](https://github.com/openai/openai-python/commit/4204e63e27584c68ad27825261225603d7a87008))
+
+## 1.23.3 (2024-04-23)
+
+Full Changelog: [v1.23.2...v1.23.3](https://github.com/openai/openai-python/compare/v1.23.2...v1.23.3)
+
+### Chores
+
+* **internal:** restructure imports ([#1359](https://github.com/openai/openai-python/issues/1359)) ([4e5eb37](https://github.com/openai/openai-python/commit/4e5eb374ea0545a6117db657bb05f6417bc62d18))
+
 ## 1.23.2 (2024-04-19)
 
 Full Changelog: [v1.23.1...v1.23.2](https://github.com/openai/openai-python/compare/v1.23.1...v1.23.2)

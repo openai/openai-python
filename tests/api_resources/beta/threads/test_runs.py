@@ -39,7 +39,7 @@ class TestRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -70,7 +70,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -101,7 +101,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -136,6 +136,7 @@ class TestRuns:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             stream=False,
             temperature=1,
@@ -202,7 +203,7 @@ class TestRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -233,7 +234,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -264,7 +265,7 @@ class TestRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -299,6 +300,7 @@ class TestRuns:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             temperature=1,
             tool_choice="none",
@@ -703,7 +705,7 @@ class TestAsyncRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -734,7 +736,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -765,7 +767,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -800,6 +802,7 @@ class TestAsyncRuns:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             stream=False,
             temperature=1,
@@ -866,7 +869,7 @@ class TestAsyncRuns:
             additional_messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -897,7 +900,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -928,7 +931,7 @@ class TestAsyncRuns:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -963,6 +966,7 @@ class TestAsyncRuns:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             temperature=1,
             tool_choice="none",

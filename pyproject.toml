@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.23.2"
+version = "1.35.10"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -60,6 +60,7 @@ dev-dependencies = [
     "nox",
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
+    "rich>=13.7.1",
     "inline-snapshot >=0.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
@@ -74,7 +75,7 @@ format = { chain = [
   "fix:ruff",
 ]}
 "format:black" = "black ."
-"format:docs" = "python bin/ruffen-docs.py README.md api.md"
+"format:docs" = "python scripts/utils/ruffen-docs.py README.md api.md"
 "format:ruff" = "ruff format"
 "format:isort" = "isort ."
 
@@ -104,6 +105,21 @@ include = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/openai"]
+
+[tool.hatch.build.targets.sdist]
+# Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
+include = [
+  "/*.toml",
+  "/*.json",
+  "/*.lock",
+  "/*.md",
+  "/mypy.ini",
+  "/noxfile.py",
+  "bin/*",
+  "examples/*",
+  "src/*",
+  "tests/*",
+]
 
 [tool.hatch.metadata.hooks.fancy-pypi-readme]
 content-type = "text/markdown"
@@ -197,5 +213,6 @@ known-first-party = ["openai", "tests"]
 
 [tool.ruff.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]
+"scripts/**.py" = ["T201", "T203"]
 "tests/**.py" = ["T201", "T203"]
 "examples/**.py" = ["T201", "T203"]

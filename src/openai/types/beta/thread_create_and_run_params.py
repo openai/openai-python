@@ -9,6 +9,7 @@ from .function_tool_param import FunctionToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
+from .threads.message_content_part_param import MessageContentPartParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = [
@@ -17,10 +18,15 @@ __all__ = [
     "ThreadMessage",
     "ThreadMessageAttachment",
     "ThreadMessageAttachmentTool",
+    "ThreadMessageAttachmentToolFileSearch",
     "ThreadToolResources",
     "ThreadToolResourcesCodeInterpreter",
     "ThreadToolResourcesFileSearch",
     "ThreadToolResourcesFileSearchVectorStore",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
@@ -74,6 +80,8 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     model: Union[
         str,
         Literal[
+            "gpt-4o",
+            "gpt-4o-2024-05-13",
             "gpt-4-turbo",
             "gpt-4-turbo-2024-04-09",
             "gpt-4-0125-preview",
@@ -102,12 +110,19 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     assistant will be used.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with
-    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -135,8 +150,9 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     """
     Controls which (if any) tool is called by the model. `none` means the model will
     not call any tools and instead generates a message. `auto` is the default value
-    and means the model can pick between generating a message or calling a tool.
-    Specifying a particular tool like `{"type": "file_search"}` or
+    and means the model can pick between generating a message or calling one or more
+    tools. `required` means the model must call one or more tools before responding
+    to the user. Specifying a particular tool like `{"type": "file_search"}` or
     `{"type": "function", "function": {"name": "my_function"}}` forces the model to
     call that tool.
     """
@@ -171,7 +187,12 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     """
 
 
-ThreadMessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class ThreadMessageAttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+ThreadMessageAttachmentTool = Union[CodeInterpreterToolParam, ThreadMessageAttachmentToolFileSearch]
 
 
 class ThreadMessageAttachment(TypedDict, total=False):
@@ -183,8 +204,8 @@ class ThreadMessageAttachment(TypedDict, total=False):
 
 
 class ThreadMessage(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
+    content: Required[Union[str, Iterable[MessageContentPartParam]]]
+    """The text contents of the message."""
 
     role: Required[Literal["user", "assistant"]]
     """The role of the entity that is creating the message. Allowed values include:
@@ -216,7 +237,46 @@ class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
+    """
+
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ThreadToolResourcesFileSearchVectorStoreChunkingStrategy = Union[
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto,
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic,
+]
+
+
 class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    chunking_strategy: ThreadToolResourcesFileSearchVectorStoreChunkingStrategy
+    """The chunking strategy used to chunk the file(s).
+
+    If not set, will use the `auto` strategy.
+    """
+
     file_ids: List[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to

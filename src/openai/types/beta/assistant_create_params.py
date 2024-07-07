@@ -14,6 +14,10 @@ __all__ = [
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
     "ToolResourcesFileSearchVectorStore",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
 ]
 
 
@@ -22,6 +26,8 @@ class AssistantCreateParams(TypedDict, total=False):
         Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -75,9 +81,9 @@ class AssistantCreateParams(TypedDict, total=False):
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
-    Compatible with
-    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -132,7 +138,45 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
+class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
+
+
+class ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
+    """
+
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ToolResourcesFileSearchVectorStoreChunkingStrategy = Union[
+    ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
+]
+
+
 class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    chunking_strategy: ToolResourcesFileSearchVectorStoreChunkingStrategy
+    """The chunking strategy used to chunk the file(s).
+
+    If not set, will use the `auto` strategy.
+    """
+
     file_ids: List[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to

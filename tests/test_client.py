@@ -17,7 +17,6 @@ from respx import MockRouter
 from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
-from openai._client import OpenAI, AsyncOpenAI
 from openai._models import BaseModel, FinalRequestOptions
 from openai._constants import RAW_RESPONSE_HEADER
 from openai._streaming import Stream, AsyncStream

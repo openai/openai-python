@@ -31,7 +31,7 @@ def test_directly_nested_model() -> None:
 
     # mismatched types
     m = NestedModel.construct(nested="hello!")
-    assert m.nested == "hello!"
+    assert cast(Any, m.nested) == "hello!"
 
 
 def test_optional_nested_model() -> None:
@@ -48,7 +48,7 @@ def test_optional_nested_model() -> None:
     # mismatched types
     m3 = NestedModel.construct(nested={"foo"})
     assert isinstance(cast(Any, m3.nested), set)
-    assert m3.nested == {"foo"}
+    assert cast(Any, m3.nested) == {"foo"}
 
 
 def test_list_nested_model() -> None:
@@ -323,7 +323,7 @@ def test_list_of_unions() -> None:
     assert len(m.items) == 2
     assert isinstance(m.items[0], Submodel1)
     assert m.items[0].level == -1
-    assert m.items[1] == 156
+    assert cast(Any, m.items[1]) == 156
 
 
 def test_union_of_lists() -> None:
@@ -355,7 +355,7 @@ def test_union_of_lists() -> None:
     assert len(m.items) == 2
     assert isinstance(m.items[0], SubModel1)
     assert m.items[0].level == -1
-    assert m.items[1] == 156
+    assert cast(Any, m.items[1]) == 156
 
 
 def test_dict_of_union() -> None:

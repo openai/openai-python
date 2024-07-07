@@ -151,6 +151,13 @@ class Run(BaseModel):
     object: Literal["thread.run"]
     """The object type, which is always `thread.run`."""
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     required_action: Optional[RequiredAction] = None
     """Details on the action required to continue the run.
 
@@ -160,9 +167,9 @@ class Run(BaseModel):
     response_format: Optional[AssistantResponseFormatOption] = None
     """Specifies the format that the model must output.
 
-    Compatible with
-    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-    all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+    and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -182,8 +189,8 @@ class Run(BaseModel):
     status: RunStatus
     """
     The status of the run, which can be either `queued`, `in_progress`,
-    `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`, or
-    `expired`.
+    `requires_action`, `cancelling`, `cancelled`, `failed`, `completed`,
+    `incomplete`, or `expired`.
     """
 
     thread_id: str
@@ -196,8 +203,9 @@ class Run(BaseModel):
     """
     Controls which (if any) tool is called by the model. `none` means the model will
     not call any tools and instead generates a message. `auto` is the default value
-    and means the model can pick between generating a message or calling a tool.
-    Specifying a particular tool like `{"type": "file_search"}` or
+    and means the model can pick between generating a message or calling one or more
+    tools. `required` means the model must call one or more tools before responding
+    to the user. Specifying a particular tool like `{"type": "file_search"}` or
     `{"type": "function", "function": {"name": "my_function"}}` forces the model to
     call that tool.
     """

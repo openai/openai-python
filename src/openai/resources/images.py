@@ -8,12 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from .. import _legacy_response
-from ..types import (
-    ImagesResponse,
-    image_edit_params,
-    image_generate_params,
-    image_create_variation_params,
-)
+from ..types import image_edit_params, image_generate_params, image_create_variation_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from .._utils import (
     extract_files,
@@ -27,6 +22,7 @@ from .._response import to_streamed_response_wrapper, async_to_streamed_response
 from .._base_client import (
     make_request_options,
 )
+from ..types.images_response import ImagesResponse
 
 __all__ = ["Images", "AsyncImages"]
 
@@ -99,11 +95,10 @@ class Images(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/images/variations",
             body=maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
@@ -183,11 +178,10 @@ class Images(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["mask"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/images/edits",
             body=maybe_transform(body, image_edit_params.ImageEditParams),
@@ -347,11 +341,10 @@ class AsyncImages(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/images/variations",
             body=await async_maybe_transform(body, image_create_variation_params.ImageCreateVariationParams),
@@ -431,11 +424,10 @@ class AsyncImages(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["image"], ["mask"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/images/edits",
             body=await async_maybe_transform(body, image_edit_params.ImageEditParams),

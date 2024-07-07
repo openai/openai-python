@@ -40,9 +40,6 @@ class VectorStore(BaseModel):
     id: str
     """The identifier, which can be referenced in API endpoints."""
 
-    bytes: int
-    """The byte size of the vector store."""
-
     created_at: int
     """The Unix timestamp (in seconds) for when the vector store was created."""
 
@@ -71,6 +68,9 @@ class VectorStore(BaseModel):
     `completed`. A status of `completed` indicates that the vector store is ready
     for use.
     """
+
+    usage_bytes: int
+    """The total number of bytes used by the files in the vector store."""
 
     expires_after: Optional[ExpiresAfter] = None
     """The expiration policy for a vector store."""

@@ -9,4 +9,4 @@ from .assistant_tool_choice_param import AssistantToolChoiceParam
 
 __all__ = ["AssistantToolChoiceOptionParam"]
 
-AssistantToolChoiceOptionParam = Union[Literal["none", "auto"], AssistantToolChoiceParam]
+AssistantToolChoiceOptionParam = Union[Literal["none", "auto", "required"], AssistantToolChoiceParam]

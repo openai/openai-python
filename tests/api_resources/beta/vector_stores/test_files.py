@@ -30,6 +30,15 @@ class TestFiles:
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
     @parametrize
+    def test_method_create_with_all_params(self, client: OpenAI) -> None:
+        file = client.beta.vector_stores.files.create(
+            "vs_abc123",
+            file_id="string",
+            chunking_strategy={"type": "auto"},
+        )
+        assert_matches_type(VectorStoreFile, file, path=["response"])
+
+    @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.files.with_raw_response.create(
             "vs_abc123",
@@ -218,6 +227,15 @@ class TestAsyncFiles:
         file = await async_client.beta.vector_stores.files.create(
             "vs_abc123",
             file_id="string",
+        )
+        assert_matches_type(VectorStoreFile, file, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        file = await async_client.beta.vector_stores.files.create(
+            "vs_abc123",
+            file_id="string",
+            chunking_strategy={"type": "auto"},
         )
         assert_matches_type(VectorStoreFile, file, path=["response"])
 

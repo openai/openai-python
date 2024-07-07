@@ -9,6 +9,7 @@ from ...types import shared_params
 from ..chat_model import ChatModel
 from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_message_param import ChatCompletionMessageParam
+from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from .chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 from .chat_completion_function_call_option_param import ChatCompletionFunctionCallOptionParam
 
@@ -101,6 +102,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     of the choices. Keep `n` as `1` to minimize costs.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     presence_penalty: Optional[float]
     """Number between -2.0 and 2.0.
 
@@ -138,8 +146,25 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     in the backend.
     """
 
+    service_tier: Optional[Literal["auto", "default"]]
+    """Specifies the latency tier to use for processing the request.
+
+    This parameter is relevant for customers subscribed to the scale tier service:
+
+    - If set to 'auto', the system will utilize scale tier credits until they are
+      exhausted.
+    - If set to 'default', the request will be processed using the default service
+      tier with a lower uptime SLA and no latency guarentee.
+
+    When this parameter is set, the response body will include the `service_tier`
+    utilized.
+    """
+
     stop: Union[Optional[str], List[str]]
     """Up to 4 sequences where the API will stop generating further tokens."""
+
+    stream_options: Optional[ChatCompletionStreamOptionsParam]
+    """Options for streaming response. Only set this when you set `stream: true`."""
 
     temperature: Optional[float]
     """What sampling temperature to use, between 0 and 2.
@@ -152,15 +177,15 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     tool_choice: ChatCompletionToolChoiceOptionParam
     """
-    Controls which (if any) function is called by the model. `none` means the model
-    will not call a function and instead generates a message. `auto` means the model
-    can pick between generating a message or calling a function. Specifying a
-    particular function via
+    Controls which (if any) tool is called by the model. `none` means the model will
+    not call any tool and instead generates a message. `auto` means the model can
+    pick between generating a message or calling one or more tools. `required` means
+    the model must call one or more tools. Specifying a particular tool via
     `{"type": "function", "function": {"name": "my_function"}}` forces the model to
-    call that function.
+    call that tool.
 
-    `none` is the default when no functions are present. `auto` is the default if
-    functions are present.
+    `none` is the default when no tools are present. `auto` is the default if tools
+    are present.
     """
 
     tools: Iterable[ChatCompletionToolParam]
@@ -215,9 +240,8 @@ class Function(TypedDict, total=False):
     parameters: shared_params.FunctionParameters
     """The parameters the functions accepts, described as a JSON Schema object.
 
-    See the
-    [guide](https://platform.openai.com/docs/guides/text-generation/function-calling)
-    for examples, and the
+    See the [guide](https://platform.openai.com/docs/guides/function-calling) for
+    examples, and the
     [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for
     documentation about the format.
 

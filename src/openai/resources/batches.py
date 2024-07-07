@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from .. import _legacy_response
-from ..types import Batch, batch_list_params, batch_create_params
+from ..types import batch_list_params, batch_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._utils import (
     maybe_transform,
@@ -18,6 +18,7 @@ from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..pagination import SyncCursorPage, AsyncCursorPage
+from ..types.batch import Batch
 from .._base_client import (
     AsyncPaginator,
     make_request_options,
@@ -39,7 +40,7 @@ class Batches(SyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/chat/completions"],
+        endpoint: Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -56,16 +57,20 @@ class Batches(SyncAPIResource):
           completion_window: The time frame within which the batch should be processed. Currently only `24h`
               is supported.
 
-          endpoint: The endpoint to be used for all requests in the batch. Currently only
-              `/v1/chat/completions` is supported.
+          endpoint: The endpoint to be used for all requests in the batch. Currently
+              `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions` are supported.
+              Note that `/v1/embeddings` batches are also restricted to a maximum of 50,000
+              embedding inputs across all requests in the batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
               See [upload file](https://platform.openai.com/docs/api-reference/files/create)
               for how to upload a file.
 
-              Your input file must be formatted as a JSONL file, and must be uploaded with the
-              purpose `batch`.
+              Your input file must be formatted as a
+              [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
+              and must be uploaded with the purpose `batch`. The file can contain up to 50,000
+              requests, and can be up to 100 MB in size.
 
           metadata: Optional custom metadata for the batch.
 
@@ -190,8 +195,11 @@ class Batches(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Batch:
-        """
-        Cancels an in-progress batch.
+        """Cancels an in-progress batch.
+
+        The batch will be in status `cancelling` for up to
+        10 minutes, before changing to `cancelled`, where it will have partial results
+        (if any) available in the output file.
 
         Args:
           extra_headers: Send extra headers
@@ -226,7 +234,7 @@ class AsyncBatches(AsyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/chat/completions"],
+        endpoint: Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -243,16 +251,20 @@ class AsyncBatches(AsyncAPIResource):
           completion_window: The time frame within which the batch should be processed. Currently only `24h`
               is supported.
 
-          endpoint: The endpoint to be used for all requests in the batch. Currently only
-              `/v1/chat/completions` is supported.
+          endpoint: The endpoint to be used for all requests in the batch. Currently
+              `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions` are supported.
+              Note that `/v1/embeddings` batches are also restricted to a maximum of 50,000
+              embedding inputs across all requests in the batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
               See [upload file](https://platform.openai.com/docs/api-reference/files/create)
               for how to upload a file.
 
-              Your input file must be formatted as a JSONL file, and must be uploaded with the
-              purpose `batch`.
+              Your input file must be formatted as a
+              [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
+              and must be uploaded with the purpose `batch`. The file can contain up to 50,000
+              requests, and can be up to 100 MB in size.
 
           metadata: Optional custom metadata for the batch.
 
@@ -377,8 +389,11 @@ class AsyncBatches(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Batch:
-        """
-        Cancels an in-progress batch.
+        """Cancels an in-progress batch.
+
+        The batch will be in status `cancelling` for up to
+        10 minutes, before changing to `cancelled`, where it will have partial results
+        (if any) available in the output file.
 
         Args:
           extra_headers: Send extra headers

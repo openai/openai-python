@@ -4,6 +4,7 @@ from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from ..completion_usage import CompletionUsage
 from .chat_completion_token_logprob import ChatCompletionTokenLogprob
 
 __all__ = [
@@ -105,7 +106,8 @@ class ChatCompletionChunk(BaseModel):
     choices: List[Choice]
     """A list of chat completion choices.
 
-    Can be more than one if `n` is greater than 1.
+    Can contain more than one elements if `n` is greater than 1. Can also be empty
+    for the last chunk if you set `stream_options: {"include_usage": true}`.
     """
 
     created: int
@@ -120,9 +122,24 @@ class ChatCompletionChunk(BaseModel):
     object: Literal["chat.completion.chunk"]
     """The object type, which is always `chat.completion.chunk`."""
 
+    service_tier: Optional[Literal["scale", "default"]] = None
+    """The service tier used for processing the request.
+
+    This field is only included if the `service_tier` parameter is specified in the
+    request.
+    """
+
     system_fingerprint: Optional[str] = None
     """
     This fingerprint represents the backend configuration that the model runs with.
     Can be used in conjunction with the `seed` request parameter to understand when
     backend changes have been made that might impact determinism.
+    """
+
+    usage: Optional[CompletionUsage] = None
+    """
+    An optional field that will only be present when you set
+    `stream_options: {"include_usage": true}` in your request. When present, it
+    contains a null value except for the last chunk which contains the token usage
+    statistics for the entire request.
     """

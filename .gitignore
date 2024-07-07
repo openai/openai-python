@@ -1,3 +1,4 @@
+.prism.log
 .vscode
 _dev
 
@@ -12,3 +13,4 @@ dist
 .env
 .envrc
 codegen.log
+Brewfile.lock.json

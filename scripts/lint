@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+
+cd "$(dirname "$0")/.."
+
+echo "==> Running lints"
+rye run lint
+
+echo "==> Making sure it imports"
+rye run python -c 'import openai'
+

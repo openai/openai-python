@@ -18,10 +18,6 @@ from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...pagination import SyncCursorPage, AsyncCursorPage
 from ...types.beta import (
-    Assistant,
-    AssistantDeleted,
-    AssistantToolParam,
-    AssistantResponseFormatOptionParam,
     assistant_list_params,
     assistant_create_params,
     assistant_update_params,
@@ -30,6 +26,10 @@ from ..._base_client import (
     AsyncPaginator,
     make_request_options,
 )
+from ...types.beta.assistant import Assistant
+from ...types.beta.assistant_deleted import AssistantDeleted
+from ...types.beta.assistant_tool_param import AssistantToolParam
+from ...types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["Assistants", "AsyncAssistants"]
 
@@ -49,6 +49,8 @@ class Assistants(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -108,8 +110,9 @@ class Assistants(SyncAPIResource):
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -252,8 +255,9 @@ class Assistants(SyncAPIResource):
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -434,6 +438,8 @@ class AsyncAssistants(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4o",
+                "gpt-4o-2024-05-13",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -493,8 +499,9 @@ class AsyncAssistants(AsyncAPIResource):
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -637,8 +644,9 @@ class AsyncAssistants(AsyncAPIResource):
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
-              all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.

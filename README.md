@@ -55,7 +55,7 @@ so that your API Key is not stored in source control.
 
 When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete. The SDK includes
 helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
-If an API method results in an action which could benefit from polling there will be a corresponding version of the
+If an API method results in an action that could benefit from polling there will be a corresponding version of the
 method ending in '\_and_poll'.
 
 For instance to create a Run and poll until it reaches a terminal state you can run:
@@ -71,7 +71,7 @@ More information on the lifecycle of a Run can be found in the [Run Lifecycle Do
 
 ### Bulk Upload Helpers
 
-When creating and interacting with vector stores, you can use the polling helpers to monitor the status of operations.
+When creating and interacting with vector stores, you can use polling helpers to monitor the status of operations.
 For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
 
 ```python
@@ -85,7 +85,7 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
 
 ### Streaming Helpers
 
-The SDK also includes helpers to process streams and handle the incoming events.
+The SDK also includes helpers to process streams and handle incoming events.
 
 ```python
 with client.beta.threads.runs.stream(
@@ -201,7 +201,7 @@ completion = openai.chat.completions.create(
 print(completion.choices[0].message.content)
 ```
 
-The API is the exact same as the standard client instance based API.
+The API is the exact same as the standard client instance-based API.
 
 This is intended to be used within REPLs or notebooks for faster iteration, **not** in application code.
 
@@ -424,7 +424,7 @@ client = OpenAI(
 )
 
 # Override per-request:
-client.with_options(timeout=5 * 1000).chat.completions.create(
+client.with_options(timeout=5.0).chat.completions.create(
     messages=[
         {
             "role": "user",
@@ -560,7 +560,7 @@ You can directly override the [httpx client](https://www.python-httpx.org/api/#c
 
 - Support for proxies
 - Custom transports
-- Additional [advanced](https://www.python-httpx.org/advanced/#client-instances) functionality
+- Additional [advanced](https://www.python-httpx.org/advanced/clients/) functionality
 
 ```python
 from openai import OpenAI, DefaultHttpxClient
@@ -581,7 +581,7 @@ By default the library closes underlying HTTP connections whenever the client is
 
 ## Microsoft Azure OpenAI
 
-To use this library with [Azure OpenAI](https://learn.microsoft.com/en-us/azure/ai-services/openai/overview), use the `AzureOpenAI`
+To use this library with [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview), use the `AzureOpenAI`
 class instead of the `OpenAI` class.
 
 > [!IMPORTANT]
@@ -593,9 +593,9 @@ from openai import AzureOpenAI
 
 # gets the API Key from environment variable AZURE_OPENAI_API_KEY
 client = AzureOpenAI(
-    # https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning
+    # https://learn.microsoft.com/azure/ai-services/openai/reference#rest-api-versioning
     api_version="2023-07-01-preview",
-    # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
+    # https://learn.microsoft.com/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
     azure_endpoint="https://example-endpoint.openai.azure.com",
 )
 
@@ -619,7 +619,7 @@ In addition to the options provided in the base `OpenAI` client, the following o
 - `azure_ad_token` (or the `AZURE_OPENAI_AD_TOKEN` environment variable)
 - `azure_ad_token_provider`
 
-An example of using the client with Azure Active Directory can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
+An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
 ## Versioning
 

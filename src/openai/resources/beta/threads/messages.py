@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -21,7 +21,10 @@ from ...._base_client import (
     AsyncPaginator,
     make_request_options,
 )
-from ....types.beta.threads import Message, message_list_params, message_create_params, message_update_params
+from ....types.beta.threads import message_list_params, message_create_params, message_update_params
+from ....types.beta.threads.message import Message
+from ....types.beta.threads.message_deleted import MessageDeleted
+from ....types.beta.threads.message_content_part_param import MessageContentPartParam
 
 __all__ = ["Messages", "AsyncMessages"]
 
@@ -39,7 +42,7 @@ class Messages(SyncAPIResource):
         self,
         thread_id: str,
         *,
-        content: str,
+        content: Union[str, Iterable[MessageContentPartParam]],
         role: Literal["user", "assistant"],
         attachments: Optional[Iterable[message_create_params.Attachment]] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -54,7 +57,7 @@ class Messages(SyncAPIResource):
         Create a message.
 
         Args:
-          content: The content of the message.
+          content: The text contents of the message.
 
           role:
               The role of the entity that is creating the message. Allowed values include:
@@ -251,6 +254,43 @@ class Messages(SyncAPIResource):
             model=Message,
         )
 
+    def delete(
+        self,
+        message_id: str,
+        *,
+        thread_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> MessageDeleted:
+        """
+        Deletes a message.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not message_id:
+            raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return self._delete(
+            f"/threads/{thread_id}/messages/{message_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=MessageDeleted,
+        )
+
 
 class AsyncMessages(AsyncAPIResource):
     @cached_property
@@ -265,7 +305,7 @@ class AsyncMessages(AsyncAPIResource):
         self,
         thread_id: str,
         *,
-        content: str,
+        content: Union[str, Iterable[MessageContentPartParam]],
         role: Literal["user", "assistant"],
         attachments: Optional[Iterable[message_create_params.Attachment]] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -280,7 +320,7 @@ class AsyncMessages(AsyncAPIResource):
         Create a message.
 
         Args:
-          content: The content of the message.
+          content: The text contents of the message.
 
           role:
               The role of the entity that is creating the message. Allowed values include:
@@ -477,6 +517,43 @@ class AsyncMessages(AsyncAPIResource):
             model=Message,
         )
 
+    async def delete(
+        self,
+        message_id: str,
+        *,
+        thread_id: str,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> MessageDeleted:
+        """
+        Deletes a message.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not thread_id:
+            raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
+        if not message_id:
+            raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
+        extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
+        return await self._delete(
+            f"/threads/{thread_id}/messages/{message_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=MessageDeleted,
+        )
+
 
 class MessagesWithRawResponse:
     def __init__(self, messages: Messages) -> None:
@@ -493,6 +570,9 @@ class MessagesWithRawResponse:
         )
         self.list = _legacy_response.to_raw_response_wrapper(
             messages.list,
+        )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            messages.delete,
         )
 
 
@@ -512,6 +592,9 @@ class AsyncMessagesWithRawResponse:
         self.list = _legacy_response.async_to_raw_response_wrapper(
             messages.list,
         )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            messages.delete,
+        )
 
 
 class MessagesWithStreamingResponse:
@@ -530,6 +613,9 @@ class MessagesWithStreamingResponse:
         self.list = to_streamed_response_wrapper(
             messages.list,
         )
+        self.delete = to_streamed_response_wrapper(
+            messages.delete,
+        )
 
 
 class AsyncMessagesWithStreamingResponse:
@@ -547,4 +633,7 @@ class AsyncMessagesWithStreamingResponse:
         )
         self.list = async_to_streamed_response_wrapper(
             messages.list,
+        )
+        self.delete = async_to_streamed_response_wrapper(
+            messages.delete,
         )

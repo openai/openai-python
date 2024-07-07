@@ -18,10 +18,11 @@ from ..._utils import (
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ...types.audio import Transcription, transcription_create_params
+from ...types.audio import transcription_create_params
 from ..._base_client import (
     make_request_options,
 )
+from ...types.audio.transcription import Transcription
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
@@ -107,11 +108,10 @@ class Transcriptions(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/audio/transcriptions",
             body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
@@ -204,11 +204,10 @@ class AsyncTranscriptions(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/audio/transcriptions",
             body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),

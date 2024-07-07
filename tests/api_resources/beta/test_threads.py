@@ -32,7 +32,7 @@ class TestThreads:
             messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -63,7 +63,7 @@ class TestThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -94,7 +94,7 @@ class TestThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -132,6 +132,7 @@ class TestThreads:
                     "vector_stores": [
                         {
                             "file_ids": ["string", "string", "string"],
+                            "chunking_strategy": {"type": "auto"},
                             "metadata": {},
                         }
                     ],
@@ -302,6 +303,7 @@ class TestThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             stream=False,
             temperature=1,
@@ -309,7 +311,7 @@ class TestThreads:
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -340,7 +342,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -371,7 +373,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -408,6 +410,7 @@ class TestThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
@@ -471,13 +474,14 @@ class TestThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             temperature=1,
             thread={
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -508,7 +512,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -539,7 +543,7 @@ class TestThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -576,6 +580,7 @@ class TestThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
@@ -637,7 +642,7 @@ class TestAsyncThreads:
             messages=[
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -668,7 +673,7 @@ class TestAsyncThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -699,7 +704,7 @@ class TestAsyncThreads:
                 },
                 {
                     "role": "user",
-                    "content": "x",
+                    "content": "string",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -737,6 +742,7 @@ class TestAsyncThreads:
                     "vector_stores": [
                         {
                             "file_ids": ["string", "string", "string"],
+                            "chunking_strategy": {"type": "auto"},
                             "metadata": {},
                         }
                     ],
@@ -907,6 +913,7 @@ class TestAsyncThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             stream=False,
             temperature=1,
@@ -914,7 +921,7 @@ class TestAsyncThreads:
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -945,7 +952,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -976,7 +983,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1013,6 +1020,7 @@ class TestAsyncThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
@@ -1076,13 +1084,14 @@ class TestAsyncThreads:
             max_prompt_tokens=256,
             metadata={},
             model="gpt-4-turbo",
+            parallel_tool_calls=True,
             response_format="none",
             temperature=1,
             thread={
                 "messages": [
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1113,7 +1122,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1144,7 +1153,7 @@ class TestAsyncThreads:
                     },
                     {
                         "role": "user",
-                        "content": "x",
+                        "content": "string",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1181,6 +1190,7 @@ class TestAsyncThreads:
                         "vector_stores": [
                             {
                                 "file_ids": ["string", "string", "string"],
+                                "chunking_strategy": {"type": "auto"},
                                 "metadata": {},
                             }
                         ],
