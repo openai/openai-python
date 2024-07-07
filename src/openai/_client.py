@@ -90,6 +90,7 @@ class OpenAI(SyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        proxies: ProxiesTypes | None = None,
     ) -> None:
         """Construct a new synchronous openai client instance.
 
@@ -128,6 +129,7 @@ class OpenAI(SyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            proxies=proxies,
         )
 
         self._default_stream_cls = Stream
@@ -302,6 +304,7 @@ class AsyncOpenAI(AsyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        proxies: ProxiesTypes | None = None,
     ) -> None:
         """Construct a new async openai client instance.
 
@@ -340,6 +343,7 @@ class AsyncOpenAI(AsyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            proxies=proxies,
         )
 
         self._default_stream_cls = AsyncStream
