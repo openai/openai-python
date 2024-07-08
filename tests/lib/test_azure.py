@@ -64,3 +64,42 @@ def test_client_copying_override_options(client: Client) -> None:
         api_version="2022-05-01",
     )
     assert copied._custom_query == {"api-version": "2022-05-01"}
+
+
+def test_client_token_provider_refresh_sync() -> None:
+    options = FinalRequestOptions.construct(
+        method="post",
+        url="/chat/completions",
+        json_data={"model": "my-deployment-model"},
+        headers={"Authorization": "Bearer expired"}
+    )
+
+    sync_client = AzureOpenAI(
+        api_version="2024-02-01",
+        azure_ad_token_provider=lambda: "valid",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    sync_client._prepare_options(options)
+    token = options.headers["Authorization"]
+    assert token == "Bearer valid"
+
+
+@pytest.mark.asyncio
+async def test_client_token_provider_refresh_async() -> None:
+    options = FinalRequestOptions.construct(
+        method="post",
+        url="/chat/completions",
+        json_data={"model": "my-deployment-model"},
+        headers={"Authorization": "Bearer expired"}
+    )
+
+    async_client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        azure_ad_token_provider=lambda: "valid",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    await async_client._prepare_options(options)
+    token = options.headers["Authorization"]
+    assert token == "Bearer valid"

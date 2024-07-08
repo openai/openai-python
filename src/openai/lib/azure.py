@@ -287,8 +287,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         azure_ad_token = self._get_azure_ad_token()
         if azure_ad_token is not None:
-            if headers.get("Authorization") is None:
-                headers["Authorization"] = f"Bearer {azure_ad_token}"
+            headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key is not API_KEY_SENTINEL:
             if headers.get("api-key") is None:
                 headers["api-key"] = self.api_key
@@ -530,8 +529,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         azure_ad_token = await self._get_azure_ad_token()
         if azure_ad_token is not None:
-            if headers.get("Authorization") is None:
-                headers["Authorization"] = f"Bearer {azure_ad_token}"
+            headers["Authorization"] = f"Bearer {azure_ad_token}"
         elif self.api_key is not API_KEY_SENTINEL:
             if headers.get("api-key") is None:
                 headers["api-key"] = self.api_key
