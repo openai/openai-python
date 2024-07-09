@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.35.12 (2024-07-09)
+
+Full Changelog: [v1.35.11...v1.35.12](https://github.com/openai/openai-python/compare/v1.35.11...v1.35.12)
+
+### Bug Fixes
+
+* **azure:** refresh auth token during retries ([#1533](https://github.com/openai/openai-python/issues/1533)) ([287926e](https://github.com/openai/openai-python/commit/287926e4c0920b930af2b9d3d8b46a24e78e2979))
+* **tests:** fresh_env() now resets new environment values ([64da888](https://github.com/openai/openai-python/commit/64da888ca4d13f0b4b6d9e22ec93a897b2d6bb24))
+
 ## 1.35.11 (2024-07-09)
 
 Full Changelog: [v1.35.10...v1.35.11](https://github.com/openai/openai-python/compare/v1.35.10...v1.35.11)
