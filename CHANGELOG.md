@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.35.11 (2024-07-09)
+
+Full Changelog: [v1.35.10...v1.35.11](https://github.com/openai/openai-python/compare/v1.35.10...v1.35.11)
+
+### Chores
+
+* **internal:** minor request options handling changes ([#1534](https://github.com/openai/openai-python/issues/1534)) ([8b0e493](https://github.com/openai/openai-python/commit/8b0e49302b3fcc32cf02393bf28354c577188904))
+
 ## 1.35.10 (2024-07-03)
 
 Full Changelog: [v1.35.9...v1.35.10](https://github.com/openai/openai-python/compare/v1.35.9...v1.35.10)
