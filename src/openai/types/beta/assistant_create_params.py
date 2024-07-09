@@ -211,11 +211,12 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     """
 
 
-class ToolResourceFunction(TypedDict, total=False):
+class ToolResourcesFunction(TypedDict, total=False):
     name: str
     """
     Function name.
     """
+    
     file_ids: List[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
@@ -229,4 +230,4 @@ class ToolResources(TypedDict, total=False):
 
     file_search: ToolResourcesFileSearch
     
-    function: ToolResourceFunction
+    function: ToolResourcesFunction
