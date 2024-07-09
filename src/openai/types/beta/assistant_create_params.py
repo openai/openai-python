@@ -230,4 +230,4 @@ class ToolResources(TypedDict, total=False):
 
     file_search: ToolResourcesFileSearch
     
-    function: ToolResourcesFunction
+    function: List[ToolResourcesFunction]
