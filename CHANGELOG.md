@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.35.13 (2024-07-10)
+
+Full Changelog: [v1.35.12...v1.35.13](https://github.com/openai/openai-python/compare/v1.35.12...v1.35.13)
+
+### Bug Fixes
+
+* **threads/runs/create_and_run_stream:** correct tool_resources param ([8effd08](https://github.com/openai/openai-python/commit/8effd08be3ab1cf509bdbfd9f174f9186fdbf71f))
+
+
+### Chores
+
+* **internal:** add helper function ([#1538](https://github.com/openai/openai-python/issues/1538)) ([81655a0](https://github.com/openai/openai-python/commit/81655a012e28c0240e71cf74b77ad1f9ac630906))
+
 ## 1.35.12 (2024-07-09)
 
 Full Changelog: [v1.35.11...v1.35.12](https://github.com/openai/openai-python/compare/v1.35.11...v1.35.12)
