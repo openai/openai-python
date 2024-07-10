@@ -643,6 +643,14 @@ def validate_type(*, type_: type[_T], value: object) -> _T:
     return cast(_T, _validate_non_model_type(type_=type_, value=value))
 
 
+def set_pydantic_config(typ: Any, config: pydantic.ConfigDict) -> None:
+    """Add a pydantic config for the given type.
+
+    Note: this is a no-op on Pydantic v1.
+    """
+    setattr(typ, "__pydantic_config__", config)  # noqa: B010
+
+
 # our use of subclasssing here causes weirdness for type checkers,
 # so we just pretend that we don't subclass
 if TYPE_CHECKING:
