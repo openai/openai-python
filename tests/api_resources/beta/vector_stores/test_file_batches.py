@@ -24,7 +24,7 @@ class TestFileBatches:
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
         file_batch = client.beta.vector_stores.file_batches.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -32,7 +32,7 @@ class TestFileBatches:
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         file_batch = client.beta.vector_stores.file_batches.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
             chunking_strategy={"type": "auto"},
         )
@@ -41,7 +41,7 @@ class TestFileBatches:
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.file_batches.with_raw_response.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
         )
 
@@ -53,7 +53,7 @@ class TestFileBatches:
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.beta.vector_stores.file_batches.with_streaming_response.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
         ) as response:
             assert not response.is_closed
@@ -68,14 +68,14 @@ class TestFileBatches:
     def test_path_params_create(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.create(
-                "",
+                vector_store_id="",
                 file_ids=["string"],
             )
 
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         file_batch = client.beta.vector_stores.file_batches.retrieve(
-            "vsfb_abc123",
+            batch_id="vsfb_abc123",
             vector_store_id="vs_abc123",
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -83,7 +83,7 @@ class TestFileBatches:
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.file_batches.with_raw_response.retrieve(
-            "vsfb_abc123",
+            batch_id="vsfb_abc123",
             vector_store_id="vs_abc123",
         )
 
@@ -95,7 +95,7 @@ class TestFileBatches:
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
         with client.beta.vector_stores.file_batches.with_streaming_response.retrieve(
-            "vsfb_abc123",
+            batch_id="vsfb_abc123",
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
@@ -110,29 +110,29 @@ class TestFileBatches:
     def test_path_params_retrieve(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.retrieve(
-                "vsfb_abc123",
+                batch_id="vsfb_abc123",
                 vector_store_id="",
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `batch_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.retrieve(
-                "",
+                batch_id="",
                 vector_store_id="vs_abc123",
             )
 
     @parametrize
     def test_method_cancel(self, client: OpenAI) -> None:
         file_batch = client.beta.vector_stores.file_batches.cancel(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
     @parametrize
     def test_raw_response_cancel(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.file_batches.with_raw_response.cancel(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
 
         assert response.is_closed is True
@@ -143,8 +143,8 @@ class TestFileBatches:
     @parametrize
     def test_streaming_response_cancel(self, client: OpenAI) -> None:
         with client.beta.vector_stores.file_batches.with_streaming_response.cancel(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -158,31 +158,31 @@ class TestFileBatches:
     def test_path_params_cancel(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.cancel(
-                "string",
+                batch_id="batch_id",
                 vector_store_id="",
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `batch_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.cancel(
-                "",
-                vector_store_id="string",
+                batch_id="",
+                vector_store_id="vector_store_id",
             )
 
     @parametrize
     def test_method_list_files(self, client: OpenAI) -> None:
         file_batch = client.beta.vector_stores.file_batches.list_files(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
         assert_matches_type(SyncCursorPage[VectorStoreFile], file_batch, path=["response"])
 
     @parametrize
     def test_method_list_files_with_all_params(self, client: OpenAI) -> None:
         file_batch = client.beta.vector_stores.file_batches.list_files(
-            "string",
-            vector_store_id="string",
-            after="string",
-            before="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
+            after="after",
+            before="before",
             filter="in_progress",
             limit=0,
             order="asc",
@@ -192,8 +192,8 @@ class TestFileBatches:
     @parametrize
     def test_raw_response_list_files(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.file_batches.with_raw_response.list_files(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
 
         assert response.is_closed is True
@@ -204,8 +204,8 @@ class TestFileBatches:
     @parametrize
     def test_streaming_response_list_files(self, client: OpenAI) -> None:
         with client.beta.vector_stores.file_batches.with_streaming_response.list_files(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -219,14 +219,14 @@ class TestFileBatches:
     def test_path_params_list_files(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.list_files(
-                "string",
+                batch_id="batch_id",
                 vector_store_id="",
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `batch_id` but received ''"):
             client.beta.vector_stores.file_batches.with_raw_response.list_files(
-                "",
-                vector_store_id="string",
+                batch_id="",
+                vector_store_id="vector_store_id",
             )
 
 
@@ -236,7 +236,7 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.beta.vector_stores.file_batches.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -244,7 +244,7 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.beta.vector_stores.file_batches.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
             chunking_strategy={"type": "auto"},
         )
@@ -253,7 +253,7 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.file_batches.with_raw_response.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
         )
 
@@ -265,7 +265,7 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.file_batches.with_streaming_response.create(
-            "vs_abc123",
+            vector_store_id="vs_abc123",
             file_ids=["string"],
         ) as response:
             assert not response.is_closed
@@ -280,14 +280,14 @@ class TestAsyncFileBatches:
     async def test_path_params_create(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.create(
-                "",
+                vector_store_id="",
                 file_ids=["string"],
             )
 
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.beta.vector_stores.file_batches.retrieve(
-            "vsfb_abc123",
+            batch_id="vsfb_abc123",
             vector_store_id="vs_abc123",
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -295,7 +295,7 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.file_batches.with_raw_response.retrieve(
-            "vsfb_abc123",
+            batch_id="vsfb_abc123",
             vector_store_id="vs_abc123",
         )
 
@@ -307,7 +307,7 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.file_batches.with_streaming_response.retrieve(
-            "vsfb_abc123",
+            batch_id="vsfb_abc123",
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
@@ -322,29 +322,29 @@ class TestAsyncFileBatches:
     async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.retrieve(
-                "vsfb_abc123",
+                batch_id="vsfb_abc123",
                 vector_store_id="",
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `batch_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.retrieve(
-                "",
+                batch_id="",
                 vector_store_id="vs_abc123",
             )
 
     @parametrize
     async def test_method_cancel(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.beta.vector_stores.file_batches.cancel(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
     @parametrize
     async def test_raw_response_cancel(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.file_batches.with_raw_response.cancel(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
 
         assert response.is_closed is True
@@ -355,8 +355,8 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_streaming_response_cancel(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.file_batches.with_streaming_response.cancel(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -370,31 +370,31 @@ class TestAsyncFileBatches:
     async def test_path_params_cancel(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.cancel(
-                "string",
+                batch_id="batch_id",
                 vector_store_id="",
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `batch_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.cancel(
-                "",
-                vector_store_id="string",
+                batch_id="",
+                vector_store_id="vector_store_id",
             )
 
     @parametrize
     async def test_method_list_files(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.beta.vector_stores.file_batches.list_files(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
         assert_matches_type(AsyncCursorPage[VectorStoreFile], file_batch, path=["response"])
 
     @parametrize
     async def test_method_list_files_with_all_params(self, async_client: AsyncOpenAI) -> None:
         file_batch = await async_client.beta.vector_stores.file_batches.list_files(
-            "string",
-            vector_store_id="string",
-            after="string",
-            before="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
+            after="after",
+            before="before",
             filter="in_progress",
             limit=0,
             order="asc",
@@ -404,8 +404,8 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_raw_response_list_files(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.file_batches.with_raw_response.list_files(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         )
 
         assert response.is_closed is True
@@ -416,8 +416,8 @@ class TestAsyncFileBatches:
     @parametrize
     async def test_streaming_response_list_files(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.file_batches.with_streaming_response.list_files(
-            "string",
-            vector_store_id="string",
+            batch_id="batch_id",
+            vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -431,12 +431,12 @@ class TestAsyncFileBatches:
     async def test_path_params_list_files(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.list_files(
-                "string",
+                batch_id="batch_id",
                 vector_store_id="",
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `batch_id` but received ''"):
             await async_client.beta.vector_stores.file_batches.with_raw_response.list_files(
-                "",
-                vector_store_id="string",
+                batch_id="",
+                vector_store_id="vector_store_id",
             )

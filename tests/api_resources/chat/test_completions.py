@@ -24,7 +24,7 @@ class TestCompletions:
         completion = client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -37,9 +37,9 @@ class TestCompletions:
         completion = client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
-                    "name": "string",
+                    "name": "name",
                 }
             ],
             model="gpt-4-turbo",
@@ -47,8 +47,8 @@ class TestCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "string",
-                    "name": "string",
+                    "description": "description",
+                    "name": "name",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -70,24 +70,24 @@ class TestCompletions:
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
@@ -103,7 +103,7 @@ class TestCompletions:
         response = client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -120,7 +120,7 @@ class TestCompletions:
         with client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -139,7 +139,7 @@ class TestCompletions:
         completion_stream = client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -153,9 +153,9 @@ class TestCompletions:
         completion_stream = client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
-                    "name": "string",
+                    "name": "name",
                 }
             ],
             model="gpt-4-turbo",
@@ -164,8 +164,8 @@ class TestCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "string",
-                    "name": "string",
+                    "description": "description",
+                    "name": "name",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -186,24 +186,24 @@ class TestCompletions:
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
@@ -219,7 +219,7 @@ class TestCompletions:
         response = client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -236,7 +236,7 @@ class TestCompletions:
         with client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -260,7 +260,7 @@ class TestAsyncCompletions:
         completion = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -273,9 +273,9 @@ class TestAsyncCompletions:
         completion = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
-                    "name": "string",
+                    "name": "name",
                 }
             ],
             model="gpt-4-turbo",
@@ -283,8 +283,8 @@ class TestAsyncCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "string",
-                    "name": "string",
+                    "description": "description",
+                    "name": "name",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -306,24 +306,24 @@ class TestAsyncCompletions:
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
@@ -339,7 +339,7 @@ class TestAsyncCompletions:
         response = await async_client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -356,7 +356,7 @@ class TestAsyncCompletions:
         async with async_client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -375,7 +375,7 @@ class TestAsyncCompletions:
         completion_stream = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -389,9 +389,9 @@ class TestAsyncCompletions:
         completion_stream = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
-                    "name": "string",
+                    "name": "name",
                 }
             ],
             model="gpt-4-turbo",
@@ -400,8 +400,8 @@ class TestAsyncCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "string",
-                    "name": "string",
+                    "description": "description",
+                    "name": "name",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -422,24 +422,24 @@ class TestAsyncCompletions:
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
                 {
                     "type": "function",
                     "function": {
-                        "description": "string",
-                        "name": "string",
+                        "description": "description",
+                        "name": "name",
                         "parameters": {"foo": "bar"},
                     },
                 },
@@ -455,7 +455,7 @@ class TestAsyncCompletions:
         response = await async_client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
@@ -472,7 +472,7 @@ class TestAsyncCompletions:
         async with async_client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "string",
+                    "content": "content",
                     "role": "system",
                 }
             ],
