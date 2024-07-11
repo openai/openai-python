@@ -22,9 +22,7 @@ from ..._response import (
     async_to_custom_streamed_response_wrapper,
 )
 from ...types.audio import speech_create_params
-from ..._base_client import (
-    make_request_options,
-)
+from ..._base_client import make_request_options
 
 __all__ = ["Speech", "AsyncSpeech"]
 

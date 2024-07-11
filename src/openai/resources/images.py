@@ -19,9 +19,7 @@ from .._utils import (
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .._base_client import (
-    make_request_options,
-)
+from .._base_client import make_request_options
 from ..types.images_response import ImagesResponse
 
 __all__ = ["Images", "AsyncImages"]
