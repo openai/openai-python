@@ -36,7 +36,7 @@ class TestVectorStores:
             },
             file_ids=["string", "string", "string"],
             metadata={},
-            name="string",
+            name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -63,14 +63,14 @@ class TestVectorStores:
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         vector_store = client.beta.vector_stores.retrieve(
-            "string",
+            "vector_store_id",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.with_raw_response.retrieve(
-            "string",
+            "vector_store_id",
         )
 
         assert response.is_closed is True
@@ -81,7 +81,7 @@ class TestVectorStores:
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
         with client.beta.vector_stores.with_streaming_response.retrieve(
-            "string",
+            "vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -101,27 +101,27 @@ class TestVectorStores:
     @parametrize
     def test_method_update(self, client: OpenAI) -> None:
         vector_store = client.beta.vector_stores.update(
-            "string",
+            vector_store_id="vector_store_id",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
     @parametrize
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         vector_store = client.beta.vector_stores.update(
-            "string",
+            vector_store_id="vector_store_id",
             expires_after={
                 "anchor": "last_active_at",
                 "days": 1,
             },
             metadata={},
-            name="string",
+            name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
     @parametrize
     def test_raw_response_update(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.with_raw_response.update(
-            "string",
+            vector_store_id="vector_store_id",
         )
 
         assert response.is_closed is True
@@ -132,7 +132,7 @@ class TestVectorStores:
     @parametrize
     def test_streaming_response_update(self, client: OpenAI) -> None:
         with client.beta.vector_stores.with_streaming_response.update(
-            "string",
+            vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -146,7 +146,7 @@ class TestVectorStores:
     def test_path_params_update(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             client.beta.vector_stores.with_raw_response.update(
-                "",
+                vector_store_id="",
             )
 
     @parametrize
@@ -157,8 +157,8 @@ class TestVectorStores:
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
         vector_store = client.beta.vector_stores.list(
-            after="string",
-            before="string",
+            after="after",
+            before="before",
             limit=0,
             order="asc",
         )
@@ -187,14 +187,14 @@ class TestVectorStores:
     @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
         vector_store = client.beta.vector_stores.delete(
-            "string",
+            "vector_store_id",
         )
         assert_matches_type(VectorStoreDeleted, vector_store, path=["response"])
 
     @parametrize
     def test_raw_response_delete(self, client: OpenAI) -> None:
         response = client.beta.vector_stores.with_raw_response.delete(
-            "string",
+            "vector_store_id",
         )
 
         assert response.is_closed is True
@@ -205,7 +205,7 @@ class TestVectorStores:
     @parametrize
     def test_streaming_response_delete(self, client: OpenAI) -> None:
         with client.beta.vector_stores.with_streaming_response.delete(
-            "string",
+            "vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -241,7 +241,7 @@ class TestAsyncVectorStores:
             },
             file_ids=["string", "string", "string"],
             metadata={},
-            name="string",
+            name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -268,14 +268,14 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.beta.vector_stores.retrieve(
-            "string",
+            "vector_store_id",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.with_raw_response.retrieve(
-            "string",
+            "vector_store_id",
         )
 
         assert response.is_closed is True
@@ -286,7 +286,7 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.with_streaming_response.retrieve(
-            "string",
+            "vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -306,27 +306,27 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_method_update(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.beta.vector_stores.update(
-            "string",
+            vector_store_id="vector_store_id",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
     @parametrize
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.beta.vector_stores.update(
-            "string",
+            vector_store_id="vector_store_id",
             expires_after={
                 "anchor": "last_active_at",
                 "days": 1,
             },
             metadata={},
-            name="string",
+            name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
     @parametrize
     async def test_raw_response_update(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.with_raw_response.update(
-            "string",
+            vector_store_id="vector_store_id",
         )
 
         assert response.is_closed is True
@@ -337,7 +337,7 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_streaming_response_update(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.with_streaming_response.update(
-            "string",
+            vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -351,7 +351,7 @@ class TestAsyncVectorStores:
     async def test_path_params_update(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `vector_store_id` but received ''"):
             await async_client.beta.vector_stores.with_raw_response.update(
-                "",
+                vector_store_id="",
             )
 
     @parametrize
@@ -362,8 +362,8 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.beta.vector_stores.list(
-            after="string",
-            before="string",
+            after="after",
+            before="before",
             limit=0,
             order="asc",
         )
@@ -392,14 +392,14 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_method_delete(self, async_client: AsyncOpenAI) -> None:
         vector_store = await async_client.beta.vector_stores.delete(
-            "string",
+            "vector_store_id",
         )
         assert_matches_type(VectorStoreDeleted, vector_store, path=["response"])
 
     @parametrize
     async def test_raw_response_delete(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.vector_stores.with_raw_response.delete(
-            "string",
+            "vector_store_id",
         )
 
         assert response.is_closed is True
@@ -410,7 +410,7 @@ class TestAsyncVectorStores:
     @parametrize
     async def test_streaming_response_delete(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.vector_stores.with_streaming_response.delete(
-            "string",
+            "vector_store_id",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
