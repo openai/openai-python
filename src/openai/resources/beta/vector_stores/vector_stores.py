@@ -34,10 +34,7 @@ from .file_batches import (
 )
 from ....pagination import SyncCursorPage, AsyncCursorPage
 from ....types.beta import vector_store_list_params, vector_store_create_params, vector_store_update_params
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_store import VectorStore
 from ....types.beta.vector_store_deleted import VectorStoreDeleted
 

@@ -19,9 +19,7 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...types.audio import translation_create_params
-from ..._base_client import (
-    make_request_options,
-)
+from ..._base_client import make_request_options
 from ...types.audio.translation import Translation
 
 __all__ = ["Translations", "AsyncTranslations"]

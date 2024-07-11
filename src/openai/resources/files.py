@@ -28,10 +28,7 @@ from .._response import (
     async_to_custom_streamed_response_wrapper,
 )
 from ..pagination import SyncPage, AsyncPage
-from .._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from .._base_client import AsyncPaginator, make_request_options
 from ..types.file_object import FileObject
 from ..types.file_deleted import FileDeleted
 

@@ -40,9 +40,7 @@ from ....types.beta import (
     thread_update_params,
     thread_create_and_run_params,
 )
-from ...._base_client import (
-    make_request_options,
-)
+from ...._base_client import make_request_options
 from ....types.beta.thread import Thread
 from ....types.beta.threads.run import Run
 from ....types.beta.thread_deleted import ThreadDeleted

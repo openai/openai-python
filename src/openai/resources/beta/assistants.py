@@ -22,10 +22,7 @@ from ...types.beta import (
     assistant_create_params,
     assistant_update_params,
 )
-from ..._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ..._base_client import AsyncPaginator, make_request_options
 from ...types.beta.assistant import Assistant
 from ...types.beta.assistant_deleted import AssistantDeleted
 from ...types.beta.assistant_tool_param import AssistantToolParam

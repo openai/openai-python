@@ -19,9 +19,7 @@ from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._streaming import Stream, AsyncStream
 from ...types.chat import completion_create_params
-from ..._base_client import (
-    make_request_options,
-)
+from ..._base_client import make_request_options
 from ...types.chat_model import ChatModel
 from ...types.chat.chat_completion import ChatCompletion
 from ...types.chat.chat_completion_chunk import ChatCompletionChunk

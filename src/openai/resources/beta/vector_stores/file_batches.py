@@ -17,10 +17,7 @@ from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_stores import file_batch_create_params, file_batch_list_files_params
 from ....types.beta.vector_stores.vector_store_file import VectorStoreFile
 from ....types.beta.vector_stores.vector_store_file_batch import VectorStoreFileBatch
