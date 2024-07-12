@@ -1,5 +1,35 @@
 # Changelog
 
+## 1.35.13 (2024-07-10)
+
+Full Changelog: [v1.35.12...v1.35.13](https://github.com/openai/openai-python/compare/v1.35.12...v1.35.13)
+
+### Bug Fixes
+
+* **threads/runs/create_and_run_stream:** correct tool_resources param ([8effd08](https://github.com/openai/openai-python/commit/8effd08be3ab1cf509bdbfd9f174f9186fdbf71f))
+
+
+### Chores
+
+* **internal:** add helper function ([#1538](https://github.com/openai/openai-python/issues/1538)) ([81655a0](https://github.com/openai/openai-python/commit/81655a012e28c0240e71cf74b77ad1f9ac630906))
+
+## 1.35.12 (2024-07-09)
+
+Full Changelog: [v1.35.11...v1.35.12](https://github.com/openai/openai-python/compare/v1.35.11...v1.35.12)
+
+### Bug Fixes
+
+* **azure:** refresh auth token during retries ([#1533](https://github.com/openai/openai-python/issues/1533)) ([287926e](https://github.com/openai/openai-python/commit/287926e4c0920b930af2b9d3d8b46a24e78e2979))
+* **tests:** fresh_env() now resets new environment values ([64da888](https://github.com/openai/openai-python/commit/64da888ca4d13f0b4b6d9e22ec93a897b2d6bb24))
+
+## 1.35.11 (2024-07-09)
+
+Full Changelog: [v1.35.10...v1.35.11](https://github.com/openai/openai-python/compare/v1.35.10...v1.35.11)
+
+### Chores
+
+* **internal:** minor request options handling changes ([#1534](https://github.com/openai/openai-python/issues/1534)) ([8b0e493](https://github.com/openai/openai-python/commit/8b0e49302b3fcc32cf02393bf28354c577188904))
+
 ## 1.35.10 (2024-07-03)
 
 Full Changelog: [v1.35.9...v1.35.10](https://github.com/openai/openai-python/compare/v1.35.9...v1.35.10)

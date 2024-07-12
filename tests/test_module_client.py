@@ -110,6 +110,7 @@ def fresh_env() -> Iterator[None]:
         _os.environ.clear()
         yield
     finally:
+        _os.environ.clear()
         _os.environ.update(old)
 
 
