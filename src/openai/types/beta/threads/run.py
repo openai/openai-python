@@ -151,6 +151,13 @@ class Run(BaseModel):
     object: Literal["thread.run"]
     """The object type, which is always `thread.run`."""
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     required_action: Optional[RequiredAction] = None
     """Details on the action required to continue the run.
 

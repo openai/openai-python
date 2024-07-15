@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .threads.message_content_part_param import MessageContentPartParam
 
@@ -14,6 +13,7 @@ __all__ = [
     "Message",
     "MessageAttachment",
     "MessageAttachmentTool",
+    "MessageAttachmentToolFileSearch",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
@@ -49,7 +49,12 @@ class ThreadCreateParams(TypedDict, total=False):
     """
 
 
-MessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class MessageAttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+MessageAttachmentTool = Union[CodeInterpreterToolParam, MessageAttachmentToolFileSearch]
 
 
 class MessageAttachment(TypedDict, total=False):

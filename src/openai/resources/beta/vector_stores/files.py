@@ -245,9 +245,10 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
-        self.create(vector_store_id=vector_store_id, file_id=file_id)
+        self.create(vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy)
 
         return self.poll(
             file_id,
@@ -301,6 +302,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Upload a file to the `files` API and then attach it to the given vector store.
 
@@ -308,7 +310,7 @@ class Files(SyncAPIResource):
         polling helper method to wait for processing to complete).
         """
         file_obj = self._client.files.create(file=file, purpose="assistants")
-        return self.create(vector_store_id=vector_store_id, file_id=file_obj.id)
+        return self.create(vector_store_id=vector_store_id, file_id=file_obj.id, chunking_strategy=chunking_strategy)
 
     def upload_and_poll(
         self,
@@ -316,12 +318,14 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         file: FileTypes,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
         file_obj = self._client.files.create(file=file, purpose="assistants")
         return self.create_and_poll(
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
+            chunking_strategy=chunking_strategy,
             poll_interval_ms=poll_interval_ms,
         )
 
@@ -542,9 +546,10 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
-        await self.create(vector_store_id=vector_store_id, file_id=file_id)
+        await self.create(vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy)
 
         return await self.poll(
             file_id,
@@ -598,6 +603,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Upload a file to the `files` API and then attach it to the given vector store.
 
@@ -605,7 +611,7 @@ class AsyncFiles(AsyncAPIResource):
         polling helper method to wait for processing to complete).
         """
         file_obj = await self._client.files.create(file=file, purpose="assistants")
-        return await self.create(vector_store_id=vector_store_id, file_id=file_obj.id)
+        return await self.create(vector_store_id=vector_store_id, file_id=file_obj.id, chunking_strategy=chunking_strategy)
 
     async def upload_and_poll(
         self,
@@ -613,6 +619,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         file: FileTypes,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
         file_obj = await self._client.files.create(file=file, purpose="assistants")
@@ -620,6 +627,7 @@ class AsyncFiles(AsyncAPIResource):
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
             poll_interval_ms=poll_interval_ms,
+            chunking_strategy=chunking_strategy
         )
 
 

@@ -18,6 +18,7 @@ __all__ = [
     "ThreadMessage",
     "ThreadMessageAttachment",
     "ThreadMessageAttachmentTool",
+    "ThreadMessageAttachmentToolFileSearch",
     "ThreadToolResources",
     "ThreadToolResourcesCodeInterpreter",
     "ThreadToolResourcesFileSearch",
@@ -109,6 +110,13 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     assistant will be used.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
 
@@ -179,7 +187,12 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     """
 
 
-ThreadMessageAttachmentTool = Union[CodeInterpreterToolParam, FileSearchToolParam]
+class ThreadMessageAttachmentToolFileSearch(TypedDict, total=False):
+    type: Required[Literal["file_search"]]
+    """The type of tool being defined: `file_search`"""
+
+
+ThreadMessageAttachmentTool = Union[CodeInterpreterToolParam, ThreadMessageAttachmentToolFileSearch]
 
 
 class ThreadMessageAttachment(TypedDict, total=False):

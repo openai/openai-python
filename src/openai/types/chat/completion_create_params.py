@@ -102,6 +102,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     of the choices. Keep `n` as `1` to minimize costs.
     """
 
+    parallel_tool_calls: bool
+    """
+    Whether to enable
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    during tool use.
+    """
+
     presence_penalty: Optional[float]
     """Number between -2.0 and 2.0.
 
@@ -137,6 +144,20 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     parameters should return the same result. Determinism is not guaranteed, and you
     should refer to the `system_fingerprint` response parameter to monitor changes
     in the backend.
+    """
+
+    service_tier: Optional[Literal["auto", "default"]]
+    """Specifies the latency tier to use for processing the request.
+
+    This parameter is relevant for customers subscribed to the scale tier service:
+
+    - If set to 'auto', the system will utilize scale tier credits until they are
+      exhausted.
+    - If set to 'default', the request will be processed using the default service
+      tier with a lower uptime SLA and no latency guarentee.
+
+    When this parameter is set, the response body will include the `service_tier`
+    utilized.
     """
 
     stop: Union[Optional[str], List[str]]
