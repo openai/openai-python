@@ -611,7 +611,9 @@ class AsyncFiles(AsyncAPIResource):
         polling helper method to wait for processing to complete).
         """
         file_obj = await self._client.files.create(file=file, purpose="assistants")
-        return await self.create(vector_store_id=vector_store_id, file_id=file_obj.id, chunking_strategy=chunking_strategy)
+        return await self.create(
+            vector_store_id=vector_store_id, file_id=file_obj.id, chunking_strategy=chunking_strategy
+        )
 
     async def upload_and_poll(
         self,
@@ -627,7 +629,7 @@ class AsyncFiles(AsyncAPIResource):
             vector_store_id=vector_store_id,
             file_id=file_obj.id,
             poll_interval_ms=poll_interval_ms,
-            chunking_strategy=chunking_strategy
+            chunking_strategy=chunking_strategy,
         )
 
 
