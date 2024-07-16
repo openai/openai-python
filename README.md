@@ -2,25 +2,31 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg)](https://pypi.org/project/openai/)
 
-The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.7+
-application. The library includes type definitions for all request params and response fields,
-and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
+The OpenAI Python library provides convenient access to the [OpenAI REST API](#rest-api) from any [Python](#python) 3.7+ application. The [library](#library) includes type definitions for all request [params](#parameters) and response fields, and offers both synchronous and `0`[asynchronous](#asynchronous) clients powered by [httpx](#http).
 
 It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
+The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant.
+
+The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's AI models in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
+
 ## Documentation
 
-The REST API documentation can be found on [platform.openai.com](https://platform.openai.com/docs). The full API of this library can be found in [api.md](api.md).
+The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs). The full API of this** **[library](#library) can be found in** [api.md](api.md).
+
+The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant.
 
 ## Installation
 
 > [!IMPORTANT]
-> The SDK was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code.
+> The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code.
 
 ```sh
 # install from PyPI
 pip install openai
 ```
+
+To use this library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you.
 
 ## Usage
 
@@ -44,19 +50,24 @@ chat_completion = client.chat.completions.create(
     ],
     model="gpt-3.5-turbo",
 )
+
+print(chat_completion.choices[0].message.content)
 ```
 
-While you can provide an `api_key` keyword argument,
-we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
-to add `OPENAI_API_KEY="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/) to add `OPENAI_API_KEY="My API Key"` to your `.env` file so that your API Key is not stored in source control.
+
+Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
+
+1. First, you import the necessary tools (`os` and `OpenAI`).
+2. Then, you create a "client" - think of this as establishing a phone line to the AI.
+3. You send a message to the AI, just like texting a friend.
+4. The AI processes your message and sends back a response.
+
+This code sets up the AI client and asks it to say "This is a test." It's like teaching a parrot to repeat a phrase!
 
 ### Polling Helpers
 
-When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete. The SDK includes
-helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
-If an API method results in an action that could benefit from polling there will be a corresponding version of the
-method ending in '\_and_poll'.
+When interacting with the API some actions such as starting a [Run](#run) and adding files to vector stores are [asynchronous](#asynchronous) and take time to complete. The SDK includes helper functions which will poll the status until it reaches a terminal state and then return the resulting object. If an API method results in an action that could benefit from polling there will be a corresponding version of the method ending in '_and_poll'.
 
 For instance to create a Run and poll until it reaches a terminal state you can run:
 
@@ -68,6 +79,8 @@ run = client.beta.threads.runs.create_and_poll(
 ```
 
 More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
+
+Some actions take time to complete, like starting a process or uploading files. Polling helpers keep checking until these actions are done. Imagine you are baking a cake and you keep checking the oven until the cake is ready. In this case, you're starting a task (like asking the AI to do some work) and then waiting until it's finished before moving on. The `create_and_poll` function does this waiting for you automatically, so you don't have to keep checking manually.
 
 ### Bulk Upload Helpers
 
@@ -82,6 +95,8 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
     files=sample_files,
 )
 ```
+
+You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
 
 ### Streaming Helpers
 
@@ -100,6 +115,15 @@ with client.beta.threads.runs.stream(
 ```
 
 More information on streaming helpers can be found in the dedicated documentation: [helpers.md](helpers.md)
+
+You can stream responses from the AI, which means you get parts of the response as they come in, instead of waiting for the whole thing. It's like watching a YouTube video as it loads rather than waiting for the entire video to download first. In this code:
+
+1. You start a "stream" of information from the AI.
+2. You give some instructions to the AI (like how to address the user).
+3. As the AI generates its response, you get pieces of it one at a time.
+4. You can process or display these pieces as they arrive, making the interaction feel more real-time and responsive.
+
+This is particularly useful for long responses or when you want to show progress to the user while the AI is thinking.
 
 ## Async usage
 
@@ -133,9 +157,18 @@ asyncio.run(main())
 
 Functionality between the synchronous and asynchronous clients is otherwise identical.
 
+You can use the library with [asynchronous](#asynchronous) code, which lets your program do other things while waiting for the AI to respond. It's like cooking several dishes at once instead of one after the other. Here's what's happening:
+
+1. You import a special version of the OpenAI client that works asynchronously.
+2. You define a function (`main()`) that uses `await` to talk to the AI.
+3. This allows your program to do other tasks while it's waiting for the AI's response.
+4. Finally, you run this async function using `asyncio.run(main())`.
+
+This is particularly useful in applications that need to handle multiple tasks simultaneously, like web servers or interactive applications.
+
 ## Streaming responses
 
-We provide support for streaming responses using Server Side Events (SSE).
+We provide support for streaming responses using [Server Side Events (SSE)](#sse).
 
 ```python
 from openai import OpenAI
@@ -150,6 +183,15 @@ stream = client.chat.completions.create(
 for chunk in stream:
     print(chunk.choices[0].delta.content or "", end="")
 ```
+
+Streaming responses allow you to get and process the AI's reply piece by piece, as it's being generated. It's like reading a book as it's being written, page by page, instead of waiting for the entire book to be finished. This code:
+
+1. Sets up a streaming connection to the AI.
+2. Asks the AI to say "this is a test".
+3. As the AI generates its response, it sends back small "chunks" of text.
+4. The code prints out each chunk as it arrives, creating a smooth, flowing output.
+
+This is great for creating more responsive and interactive applications, especially when dealing with longer AI responses.
 
 The async client uses the exact same interface.
 
@@ -212,14 +254,47 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
-## Using types
+This section talks about a global client, which is like having a universal remote that works for all your devices. However, just like a universal remote might not have all the special features for each specific device, using a global client isn't always the best choice for complex programs. Here's what's happening:
 
-Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:
+1. You set up a global OpenAI client that can be used anywhere in your code.
+2. You can configure various options for this client, like the API key and default settings.
+3. You can then use this client to interact with the AI, like asking it how to list files in a directory.
 
-- Serializing back into JSON, `model.to_json()`
-- Converting to a dictionary, `model.to_dict()`
+While this method is simple and can be useful for quick experiments or small scripts, for larger projects, it's better to create specific client instances for different parts of your program. This gives you more control and makes your code easier to manage and test.
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
+
+## Using Types
+
+Nested request parameters are [TypedDicts](#typeddict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:
+
+- Serializing back into [JSON](#json), `model.to_json()`
+- Converting to a dictionary, `model.to_dict()`
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Can you generate an example json object describing a fruit?",
+        }
+    ],
+    model="gpt-3.5-turbo-1106",
+    response_format={"type": "json_object"},
+)
+```
+
+The library uses typed requests and responses, which means it can help you catch mistakes while you write your code. Think of it as having a spell-checker for your programming instructions. Here's what this means:
+
+1. When you send requests to the AI, you use special Python dictionaries ([TypedDicts](#typeddict)) that help ensure you're providing the right kind of information.
+2. When you get responses back, they come as Pydantic models, which are like smart containers for data.
+3. These models have helpful methods, like turning the data back into JSON or into a regular Python dictionary.
+
+In the example, we're asking the AI to create a [JSON object](#json-object) describing a fruit. The library ensures we're formatting our request correctly and helps us work with the response easily. This type system acts like a safety net, catching potential errors before they cause problems in your program.
 
 ## Pagination
 
@@ -292,6 +367,15 @@ for job in first_page.data:
 # Remove `await` for non-async usage.
 ```
 
+Some API responses are too large to send all at once, so they are split into pages. The library can automatically handle fetching these pages for you. It's like getting a long book in several smaller, manageable volumes instead of one big, heavy book. Here's how it works:
+
+1. You start a request to list something, like jobs for fine-tuning AI models.
+2. You set a limit (in this case, 20) for how many items you want per page.
+3. The library automatically fetches new pages as you go through the list.
+4. You can process each item (job) as it comes in, without worrying about the pagination.
+
+This makes it much easier to work with large amounts of data, as you don't have to manually keep track of which page you're on or when to request the next page. The library handles all of that for you behind the scenes.
+
 ## Nested params
 
 Nested parameters are dictionaries, typed using `TypedDict`, for example:
@@ -313,6 +397,16 @@ completion = client.chat.completions.create(
 )
 ```
 
+Nested parameters allow you to organize complex information in a structured way, like having folders inside folders on your computer. Here's what's happening in this code:
+
+1. We create an OpenAI [client](#client) to communicate with the AI.
+2. We use the [chat.completions.create](#chat-completions-create) method to generate a response.
+3. The `messages` parameter is a list containing a dictionary. This dictionary has two nested key-value pairs: "role" and "content".
+4. We specify the AI model to use with the `model` parameter.
+5. The [response_format](#response-format) parameter is another nested dictionary, telling the AI to respond with a [JSON object](#json-object).
+
+This nested structure allows us to provide detailed and organized instructions to the AI. In this case, we're asking it to generate a [JSON](#json) object describing a fruit. The use of [TypedDict](#typeddict) helps ensure that we're formatting these nested parameters correctly, reducing the chance of errors in our code.
+
 ## File uploads
 
 Request parameters that correspond to file uploads can be passed as `bytes`, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
@@ -330,6 +424,15 @@ client.files.create(
 ```
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
+
+You can upload files directly to the API, which can be used for things like fine-tuning models. It's like uploading a document to a website so that the site can use the information in the document. In this example:
+
+1. We import the `Path` class to work with file paths easily.
+2. We create an OpenAI client.
+3. We use the `files.create` method to upload a file.
+4. We specify the file path and its purpose (in this case, for fine-tuning a model).
+
+This is useful when you need to provide large amounts of data to the AI, such as training data for customizing models.
 
 ## Handling errors
 
@@ -364,8 +467,8 @@ except openai.APIStatusError as e:
 
 Error codes are as followed:
 
-| Status Code | Error Type                 |
-| ----------- | -------------------------- |
+| Status Code | Error Type                   |
+| ----------- | ---------------------------- |
 | 400         | `BadRequestError`          |
 | 401         | `AuthenticationError`      |
 | 403         | `PermissionDeniedError`    |
@@ -374,6 +477,16 @@ Error codes are as followed:
 | 429         | `RateLimitError`           |
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
+
+⚠️ **Explanation:** The library provides error handling for different types of errors that can occur while interacting with the API. It's like having a plan for what to do if something goes wrong while you're working on a project. Here's what's happening:
+
+1. We set up a try-except block to catch different types of errors.
+2. We attempt to create a fine-tuning job.
+3. If there's a connection error, we catch it and print a message.
+4. If we hit a rate limit (too many requests), we catch that specific error.
+5. For any other API errors, we catch them and print details about the error.
+
+This error handling helps you write more robust code that can gracefully handle problems when they occur, rather than crashing unexpectedly.
 
 ### Retries
 
@@ -403,6 +516,14 @@ client.with_options(max_retries=5).chat.completions.create(
     model="gpt-3.5-turbo",
 )
 ```
+
+🔁 **Explanation:** Some errors are automatically retried by the library. You can configure how many times to retry or disable retries. It's like trying to reconnect your WiFi if it drops the first time. Here's what this code does:
+
+1. We can set a default number of retries for all requests when creating the client.
+2. We can also set the number of retries for a specific request using `with_options()`.
+3. If an error occurs that's eligible for retry, the library will automatically try again up to the specified number of times.
+
+This feature helps make your application more resilient to temporary network issues or server problems.
 
 ### Timeouts
 
@@ -439,6 +560,14 @@ On timeout, an `APITimeoutError` is thrown.
 
 Note that requests that time out are [retried twice by default](#retries).
 
+⏲️ **Explanation:** You can set how long to wait for a response before timing out. It's like setting a timer for how long you'll wait for a friend before leaving. Here's what's happening:
+
+1. We can set a default timeout for all requests when creating the client.
+2. We can also set a timeout for a specific request using `with_options()`.
+3. If the API doesn't respond within the specified time, the request will be cancelled and an error will be raised.
+
+This helps prevent your application from hanging indefinitely if there's a problem with the API or network.
+
 ## Advanced
 
 ### Logging
@@ -450,6 +579,8 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `debu
 ```shell
 $ export OPENAI_LOG=debug
 ```
+
+📜 **Explanation:** Logging helps you see what's happening behind the scenes in your application. It's like having a detective's notebook that records everything that happens. By setting the `OPENAI_LOG` environment variable to `debug`, you're telling the library to write detailed information about its operations, which can be very helpful for troubleshooting problems.
 
 ### How to tell whether `None` means `null` or missing
 
@@ -621,6 +752,14 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
+🔧 **Explanation:** If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
+
+1. We import the `AzureOpenAI` class instead of the regular `OpenAI` class.
+2. We create a client with Azure-specific parameters like `api_version` and `azure_endpoint`.
+3. We can then use this client to interact with the AI in the same way as before.
+
+This allows you to use OpenAI's capabilities through Microsoft's Azure cloud platform, which might be preferred for certain business or integration reasons.
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
@@ -633,6 +772,50 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-## Requirements
+🔄 **Explanation:** The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
+
+1. Your existing code will still work (backwards-compatibility).
+2. You know what to expect from each update (following SemVer conventions).
+3. You have a way to give feedback or report problems (through GitHub issues).
+
+This helps you keep your projects up-to-date while minimizing the risk of unexpected breaks in your code.
+
+### Requirements
+
+1. **Python 3.7 or higher** : The OpenAI Python library requires Python version 3.7 or higher. This ensures compatibility with the latest features and security updates of the Python language.
+2. **Internet Access** : Since the OpenAI API communicates with OpenAI's servers over the internet, you'll need an internet connection to make API requests and receive responses.
+3. **OpenAI API Key** : To use the OpenAI API, you'll need an API key, which you can obtain by signing up for an account on the OpenAI platform. This key is used to authenticate your requests.
+4. **pip (Python package installer)** : You need pip to install the OpenAI Python library and its dependencies. Pip usually comes pre-installed with Python, but you can download it if needed.
+5. **HTTP Client Library (httpx)** : The OpenAI Python library uses the httpx library to make HTTP requests. This library will be installed automatically when you install the OpenAI Python library using pip.
+6. **Dependencies** : The library may require additional dependencies which will be installed automatically with the library. These dependencies include libraries necessary for making HTTP requests, handling JSON data, and other functionalities.
 
 Python 3.7 or higher.
+
+You need Python 3.7 or higher to use this library. It's like needing a specific version of an app to use certain features. Make sure your Python version is up to date before trying to use this library.
+
+To check your Python version, you can open a terminal or command prompt and type:
+
+```sh
+python --version
+```
+
+If your version is lower than 3.7, you'll need to update Python to use this library. You can download the latest version of Python from the official Python website (https://www.python.org/downloads/).
+
+## Quick Definitions
+
+* **[Library](#library)** : A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
+* **[API](#api)** : A set of rules that lets different software programs communicate with each other.
+* **[HTTP](#http)** : A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
+* **[HTTPS](#https)** : The secure version of HTTP. It means the data transferred is encrypted and secure.
+* **[Request](#request)** : When you ask a computer to do something or get some data.
+* **[Proxy](#proxy)** : A server that acts as an intermediary between your computer and the internet.
+* **[Streaming Responses](#streaming-responses)** : Getting parts of a response as they come in, rather than waiting for the whole response.
+* **[Asynchronous](#asynchronous)** : Doing multiple things at the same time without waiting for each task to complete one by one.
+* **[Parameters](#parameters)** : Pieces of information you provide to a function or request to control how it works.
+* **[Nested Parameters](#nested-parameters)** : Parameters that are inside other parameters, like a list inside a list.
+* **[Fine-Tuning Models](#fine-tuning-models)** : Customizing an AI model with additional training to improve its performance for specific tasks.
+* **[Error Handling](#error-handling)** : Ways to manage and respond to errors that occur in your program.
+* **[Endpoints](#endpoints)** : Specific addresses where APIs can access resources or perform actions.
+* **[AzureOpenAI](#azureopenai)** : A version of OpenAI that works with Microsoft Azure, a cloud computing service.
+* **[Python](#python)** : A popular programming language known for its simplicity and readability.
+* **[Stainlesst](#python)**: A tool used to generate this library from the OpenAPI specification.
