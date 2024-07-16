@@ -10,6 +10,33 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 
 The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's AI models in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
+<details>
+<summary><b>Table of Contents</b></summary>
+
+- [Documentation](#documentation)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Polling Helpers](#polling-helpers)
+- [Bulk Upload Helpers](#bulk-upload-helpers)
+- [Streaming Helpers](#streaming-helpers)
+- [Async Usage](#async-usage)
+- [Streaming Responses](#streaming-responses)
+- [Module-Level Client](#module-level-client)
+- [Using Types](#using-types)
+- [Pagination](#pagination)
+- [Nested Params](#nested-params)
+- [File Uploads](#file-uploads)
+- [Handling Errors](#handling-errors)
+- [Retries](#retries)
+- [Timeouts](#timeouts)
+- [Advanced](#advanced)
+- [Microsoft Azure OpenAI](#microsoft-azure-openai)
+- [Requirements](#requirements)
+- [Versioning](#versioning)
+- [Quick Definitions](#quick-definitions)
+
+</details>
+
 ## Documentation
 
 The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs). The full API of this** **[library](#library) can be found in** [api.md](api.md).
@@ -25,6 +52,20 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 # install from PyPI
 pip install openai
 ```
+
+#### Requirements is Python 3.7 or higher
+
+You need Python 3.7 or higher to use this library. It's like needing a specific version of an app to use certain features. Make sure your Python version is up to date before trying to use this library.
+
+To check your Python version, you can open a terminal or command prompt and type:
+
+```sh
+python --version
+```
+
+If your version is lower than 3.7, you'll need to update Python to use this library. You can download the latest version of Python from the official Python website (https://www.python.org/downloads/).
+
+🚀 **Explanation:**
 
 To use this library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you.
 
@@ -54,6 +95,8 @@ chat_completion = client.chat.completions.create(
 print(chat_completion.choices[0].message.content)
 ```
 
+💡 **Explanation:**
+
 While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/) to add `OPENAI_API_KEY="My API Key"` to your `.env` file so that your API Key is not stored in source control.
 
 Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
@@ -80,6 +123,8 @@ run = client.beta.threads.runs.create_and_poll(
 
 More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
 
+⏳ **Explanation:**
+
 Some actions take time to complete, like starting a process or uploading files. Polling helpers keep checking until these actions are done. Imagine you are baking a cake and you keep checking the oven until the cake is ready. In this case, you're starting a task (like asking the AI to do some work) and then waiting until it's finished before moving on. The `create_and_poll` function does this waiting for you automatically, so you don't have to keep checking manually.
 
 ### Bulk Upload Helpers
@@ -95,6 +140,8 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
     files=sample_files,
 )
 ```
+
+📤 **Explanation:**
 
 You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
 
@@ -115,6 +162,8 @@ with client.beta.threads.runs.stream(
 ```
 
 More information on streaming helpers can be found in the dedicated documentation: [helpers.md](helpers.md)
+
+🔄 **Explanation:**
 
 You can stream responses from the AI, which means you get parts of the response as they come in, instead of waiting for the whole thing. It's like watching a YouTube video as it loads rather than waiting for the entire video to download first. In this code:
 
@@ -157,6 +206,8 @@ asyncio.run(main())
 
 Functionality between the synchronous and asynchronous clients is otherwise identical.
 
+🔄 **Explanation:**
+
 You can use the library with [asynchronous](#asynchronous) code, which lets your program do other things while waiting for the AI to respond. It's like cooking several dishes at once instead of one after the other. Here's what's happening:
 
 1. You import a special version of the OpenAI client that works asynchronously.
@@ -184,6 +235,8 @@ for chunk in stream:
     print(chunk.choices[0].delta.content or "", end="")
 ```
 
+🔄 **Explanation:**
+
 Streaming responses allow you to get and process the AI's reply piece by piece, as it's being generated. It's like reading a book as it's being written, page by page, instead of waiting for the entire book to be finished. This code:
 
 1. Sets up a streaming connection to the AI.
@@ -193,7 +246,7 @@ Streaming responses allow you to get and process the AI's reply piece by piece, 
 
 This is great for creating more responsive and interactive applications, especially when dealing with longer AI responses.
 
-The async client uses the exact same interface.
+## The async client uses the exact same interface.
 
 ```python
 from openai import AsyncOpenAI
@@ -254,6 +307,8 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
+🔧 **Explanation:**
+
 This section talks about a global client, which is like having a universal remote that works for all your devices. However, just like a universal remote might not have all the special features for each specific device, using a global client isn't always the best choice for complex programs. Here's what's happening:
 
 1. You set up a global OpenAI client that can be used anywhere in your code.
@@ -288,6 +343,8 @@ completion = client.chat.completions.create(
 )
 ```
 
+🛠️ **Explanation:**
+
 The library uses typed requests and responses, which means it can help you catch mistakes while you write your code. Think of it as having a spell-checker for your programming instructions. Here's what this means:
 
 1. When you send requests to the AI, you use special Python dictionaries ([TypedDicts](#typeddict)) that help ensure you're providing the right kind of information.
@@ -317,6 +374,10 @@ for job in client.fine_tuning.jobs.list(
 print(all_jobs)
 ```
 
+🚀 **Explanation**: 
+
+Imagine you're reading a really long book, but instead of giving you the whole book at once, the library gives you 20 pages at a time. This code is like a magical bookmark that automatically gets the next 20 pages for you when you finish reading the current ones. You don't have to worry about asking for the next part - it just happens! In this case, instead of pages, we're getting information about AI training jobs, 20 at a time.
+
 Or, asynchronously:
 
 ```python
@@ -338,6 +399,10 @@ async def main() -> None:
 
 asyncio.run(main())
 ```
+
+🏃‍♂️ **Explanation**: 
+
+This is like the previous example, but it's even cooler! Imagine you're in a relay race where you can start the next runner before the current one finishes. This code does something similar - it starts getting the next batch of information while it's still processing the current one. It's a way to make things happen faster, especially when you're dealing with lots of data.
 
 Alternatively, you can use the `.has_next_page()`, `.next_page_info()`, or `.get_next_page()` methods for more granular control working with pages:
 
@@ -366,6 +431,10 @@ for job in first_page.data:
 
 # Remove `await` for non-async usage.
 ```
+
+**📂 Explanation:** 
+
+This is like getting a page of a book and a bookmark that shows where the next page starts. You can look at all the information on the current page (printing each job's ID), and you also know where to start reading next (the "next page cursor"). It's a way to keep track of where you are in all the information, just like how you might use a bookmark to remember your place in a big book.
 
 Some API responses are too large to send all at once, so they are split into pages. The library can automatically handle fetching these pages for you. It's like getting a long book in several smaller, manageable volumes instead of one big, heavy book. Here's how it works:
 
@@ -397,6 +466,8 @@ completion = client.chat.completions.create(
 )
 ```
 
+🔄 **Explanation:**
+
 Nested parameters allow you to organize complex information in a structured way, like having folders inside folders on your computer. Here's what's happening in this code:
 
 1. We create an OpenAI [client](#client) to communicate with the AI.
@@ -422,6 +493,8 @@ client.files.create(
     purpose="fine-tune",
 )
 ```
+
+🔧 **Explanation:**
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
@@ -478,7 +551,9 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
-⚠️ **Explanation:** The library provides error handling for different types of errors that can occur while interacting with the API. It's like having a plan for what to do if something goes wrong while you're working on a project. Here's what's happening:
+⚠️ **Explanation:** 
+
+The library provides error handling for different types of errors that can occur while interacting with the API. It's like having a plan for what to do if something goes wrong while you're working on a project. Here's what's happening:
 
 1. We set up a try-except block to catch different types of errors.
 2. We attempt to create a fine-tuning job.
@@ -517,7 +592,9 @@ client.with_options(max_retries=5).chat.completions.create(
 )
 ```
 
-🔁 **Explanation:** Some errors are automatically retried by the library. You can configure how many times to retry or disable retries. It's like trying to reconnect your WiFi if it drops the first time. Here's what this code does:
+🔁 **Explanation:** 
+
+Some errors are automatically retried by the library. You can configure how many times to retry or disable retries. It's like trying to reconnect your WiFi if it drops the first time. Here's what this code does:
 
 1. We can set a default number of retries for all requests when creating the client.
 2. We can also set the number of retries for a specific request using `with_options()`.
@@ -560,7 +637,9 @@ On timeout, an `APITimeoutError` is thrown.
 
 Note that requests that time out are [retried twice by default](#retries).
 
-⏲️ **Explanation:** You can set how long to wait for a response before timing out. It's like setting a timer for how long you'll wait for a friend before leaving. Here's what's happening:
+⏲️ **Explanation:** 
+
+You can set how long to wait for a response before timing out. It's like setting a timer for how long you'll wait for a friend before leaving. Here's what's happening:
 
 1. We can set a default timeout for all requests when creating the client.
 2. We can also set a timeout for a specific request using `with_options()`.
@@ -580,7 +659,9 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `debu
 $ export OPENAI_LOG=debug
 ```
 
-📜 **Explanation:** Logging helps you see what's happening behind the scenes in your application. It's like having a detective's notebook that records everything that happens. By setting the `OPENAI_LOG` environment variable to `debug`, you're telling the library to write detailed information about its operations, which can be very helpful for troubleshooting problems.
+📜 **Explanation:** 
+
+Logging helps you see what's happening behind the scenes in your application. It's like having a detective's notebook that records everything that happens. By setting the `OPENAI_LOG` environment variable to `debug`, you're telling the library to write detailed information about its operations, which can be very helpful for troubleshooting problems.
 
 ### How to tell whether `None` means `null` or missing
 
@@ -614,6 +695,8 @@ print(response.headers.get('X-My-Header'))
 completion = response.parse()  # get the object that `chat.completions.create()` would have returned
 print(completion)
 ```
+
+🔧 **Explanation:**
 
 These methods return an [`LegacyAPIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_legacy_response.py) object. This is a legacy class as we're changing it slightly in the next major version.
 
@@ -752,7 +835,9 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
-🔧 **Explanation:** If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
+🔧 **Explanation:** 
+
+If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
 
 1. We import the `AzureOpenAI` class instead of the regular `OpenAI` class.
 2. We create a client with Azure-specific parameters like `api_version` and `azure_endpoint`.
@@ -772,7 +857,9 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-🔄 **Explanation:** The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
+🔄 **Explanation:** 
+
+The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
 
 1. Your existing code will still work (backwards-compatibility).
 2. You know what to expect from each update (following SemVer conventions).
