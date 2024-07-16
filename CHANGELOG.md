@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.35.14 (2024-07-15)
+
+Full Changelog: [v1.35.13...v1.35.14](https://github.com/openai/openai-python/compare/v1.35.13...v1.35.14)
+
+### Chores
+
+* **docs:** minor update to formatting of API link in README ([#1550](https://github.com/openai/openai-python/issues/1550)) ([a6e59c6](https://github.com/openai/openai-python/commit/a6e59c6bbff9e1132aa323c0ecb3be7f0692ae42))
+* **internal:** minor formatting changes ([ee1c62e](https://github.com/openai/openai-python/commit/ee1c62ede01872e76156d886af4aab5f8eb1cc64))
+* **internal:** minor options / compat functions updates ([#1549](https://github.com/openai/openai-python/issues/1549)) ([a0701b5](https://github.com/openai/openai-python/commit/a0701b5dbeda4ac2d8a4b093aee4bdad9d674ee2))
+
 ## 1.35.13 (2024-07-10)
 
 Full Changelog: [v1.35.12...v1.35.13](https://github.com/openai/openai-python/compare/v1.35.12...v1.35.13)

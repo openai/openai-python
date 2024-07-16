@@ -48,6 +48,7 @@ def test_create_and_run_poll_method_definition_in_sync(sync: bool, client: OpenA
         exclude_params={"stream"},
     )
 
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_create_and_run_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
