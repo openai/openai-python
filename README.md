@@ -46,12 +46,8 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 ## Installation
 
 > [!IMPORTANT]
-> The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code.
-
-```sh
-# install from PyPI
-pip install openai
-```
+>
+> The ****SDK**** was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.# install from PyPI
 
 #### Requirements is Python 3.7 or higher
 
@@ -374,7 +370,7 @@ for job in client.fine_tuning.jobs.list(
 print(all_jobs)
 ```
 
-🚀 **Explanation**: 
+🚀 **Explanation**:
 
 Imagine you're reading a really long book, but instead of giving you the whole book at once, the library gives you 20 pages at a time. This code is like a magical bookmark that automatically gets the next 20 pages for you when you finish reading the current ones. You don't have to worry about asking for the next part - it just happens! In this case, instead of pages, we're getting information about AI training jobs, 20 at a time.
 
@@ -400,7 +396,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-🏃‍♂️ **Explanation**: 
+🏃‍♂️ **Explanation**:
 
 This is like the previous example, but it's even cooler! Imagine you're in a relay race where you can start the next runner before the current one finishes. This code does something similar - it starts getting the next batch of information while it's still processing the current one. It's a way to make things happen faster, especially when you're dealing with lots of data.
 
@@ -432,7 +428,7 @@ for job in first_page.data:
 # Remove `await` for non-async usage.
 ```
 
-**📂 Explanation:** 
+**📂 Explanation:**
 
 This is like getting a page of a book and a bookmark that shows where the next page starts. You can look at all the information on the current page (printing each job's ID), and you also know where to start reading next (the "next page cursor"). It's a way to keep track of where you are in all the information, just like how you might use a bookmark to remember your place in a big book.
 
@@ -551,7 +547,7 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
-⚠️ **Explanation:** 
+⚠️ **Explanation:**
 
 The library provides error handling for different types of errors that can occur while interacting with the API. It's like having a plan for what to do if something goes wrong while you're working on a project. Here's what's happening:
 
@@ -592,7 +588,7 @@ client.with_options(max_retries=5).chat.completions.create(
 )
 ```
 
-🔁 **Explanation:** 
+🔁 **Explanation:**
 
 Some errors are automatically retried by the library. You can configure how many times to retry or disable retries. It's like trying to reconnect your WiFi if it drops the first time. Here's what this code does:
 
@@ -637,7 +633,7 @@ On timeout, an `APITimeoutError` is thrown.
 
 Note that requests that time out are [retried twice by default](#retries).
 
-⏲️ **Explanation:** 
+⏲️ **Explanation:**
 
 You can set how long to wait for a response before timing out. It's like setting a timer for how long you'll wait for a friend before leaving. Here's what's happening:
 
@@ -659,7 +655,7 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `debu
 $ export OPENAI_LOG=debug
 ```
 
-📜 **Explanation:** 
+📜 **Explanation:**
 
 Logging helps you see what's happening behind the scenes in your application. It's like having a detective's notebook that records everything that happens. By setting the `OPENAI_LOG` environment variable to `debug`, you're telling the library to write detailed information about its operations, which can be very helpful for troubleshooting problems.
 
@@ -835,7 +831,7 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
-🔧 **Explanation:** 
+🔧 **Explanation:**
 
 If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
 
@@ -857,7 +853,7 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-🔄 **Explanation:** 
+🔄 **Explanation:**
 
 The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
 
