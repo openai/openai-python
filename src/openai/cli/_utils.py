@@ -33,7 +33,10 @@ def organization_info() -> str:
 
 
 def print_model(model: BaseModel) -> None:
-    sys.stdout.write(model_json(model, indent=2) + "\n")
+    if isinstance(model, BaseModel):
+        sys.stdout.write(model_json(model, indent=2) + "\n")
+    elif isinstance(model, str):
+        sys.stdout.write(model)
 
 
 def can_use_http2() -> bool:
