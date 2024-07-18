@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.35.15 (2024-07-18)
+
+Full Changelog: [v1.35.14...v1.35.15](https://github.com/openai/openai-python/compare/v1.35.14...v1.35.15)
+
+### Chores
+
+* **docs:** document how to do per-request http client customization ([#1560](https://github.com/openai/openai-python/issues/1560)) ([24c0768](https://github.com/openai/openai-python/commit/24c076873c5cb2abe0d3e285b99aa110451b0f19))
+* **internal:** update formatting ([#1553](https://github.com/openai/openai-python/issues/1553)) ([e1389bc](https://github.com/openai/openai-python/commit/e1389bcc26f3aac63fc6bc9bb151c9a330d95b4e))
+
 ## 1.35.14 (2024-07-15)
 
 Full Changelog: [v1.35.13...v1.35.14](https://github.com/openai/openai-python/compare/v1.35.13...v1.35.14)
