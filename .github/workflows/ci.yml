@@ -48,6 +48,10 @@ jobs:
       - name: Bootstrap
         run: ./scripts/bootstrap
 
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
       - name: Run tests
         run: ./scripts/test
-
