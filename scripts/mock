@@ -37,5 +37,5 @@ if [ "$1" == "--daemon" ]; then
 
   echo
 else
-  npm exec  --package=@stoplight/prism-cli@5.8.2 -- prism mock "$URL"
+  npm exec  --package=@stoplight/prism-cli@5.8.3 -- prism mock "$URL"
 fi
