@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.36.1 (2024-07-20)
+
+Full Changelog: [v1.36.0...v1.36.1](https://github.com/openai/openai-python/compare/v1.36.0...v1.36.1)
+
+### Bug Fixes
+
+* **types:** add gpt-4o-mini to more assistants methods ([39a8a37](https://github.com/openai/openai-python/commit/39a8a372eb3f2d75fd4310d42294d05175a59fd8))
+
 ## 1.36.0 (2024-07-19)
 
 Full Changelog: [v1.35.15...v1.36.0](https://github.com/openai/openai-python/compare/v1.35.15...v1.36.0)
