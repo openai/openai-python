@@ -2023,7 +2023,6 @@ def get_python_version() -> str:
 
 def get_architecture() -> Arch:
     try:
-        python_bitness, _ = platform.architecture()
         machine = platform.machine().lower()
     except Exception:
         return "unknown"
@@ -2037,10 +2036,6 @@ def get_architecture() -> Arch:
 
     if machine == "x86_64":
         return "x64"
-
-    # TODO: untested
-    if python_bitness == "32bit":
-        return "x32"
 
     if machine:
         return OtherArch(machine)
