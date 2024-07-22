@@ -158,7 +158,7 @@ class Runs(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -316,7 +316,7 @@ class Runs(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -470,7 +470,7 @@ class Runs(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -678,7 +678,7 @@ class Runs(SyncAPIResource):
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           extra_headers: Send extra headers
@@ -1740,7 +1740,7 @@ class AsyncRuns(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -1898,7 +1898,7 @@ class AsyncRuns(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -2052,7 +2052,7 @@ class AsyncRuns(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -2260,7 +2260,7 @@ class AsyncRuns(AsyncAPIResource):
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           extra_headers: Send extra headers
