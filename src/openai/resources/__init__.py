@@ -56,6 +56,14 @@ from .batches import (
     BatchesWithStreamingResponse,
     AsyncBatchesWithStreamingResponse,
 )
+from .uploads import (
+    Uploads,
+    AsyncUploads,
+    UploadsWithRawResponse,
+    AsyncUploadsWithRawResponse,
+    UploadsWithStreamingResponse,
+    AsyncUploadsWithStreamingResponse,
+)
 from .embeddings import (
     Embeddings,
     AsyncEmbeddings,
@@ -156,4 +164,10 @@ __all__ = [
     "AsyncBatchesWithRawResponse",
     "BatchesWithStreamingResponse",
     "AsyncBatchesWithStreamingResponse",
+    "Uploads",
+    "AsyncUploads",
+    "UploadsWithRawResponse",
+    "AsyncUploadsWithRawResponse",
+    "UploadsWithStreamingResponse",
+    "AsyncUploadsWithStreamingResponse",
 ]
