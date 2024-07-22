@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.37.0 (2024-07-22)
+
+Full Changelog: [v1.36.1...v1.37.0](https://github.com/openai/openai-python/compare/v1.36.1...v1.37.0)
+
+### Features
+
+* **api:** add uploads endpoints ([#1568](https://github.com/openai/openai-python/issues/1568)) ([d877b6d](https://github.com/openai/openai-python/commit/d877b6dabb9b3e8da6ff2f46de1120af54de398d))
+
+
+### Bug Fixes
+
+* **cli/audio:** handle non-json response format ([#1557](https://github.com/openai/openai-python/issues/1557)) ([bb7431f](https://github.com/openai/openai-python/commit/bb7431f602602d4c74d75809c6934a7fd192972d))
+
+
+### Documentation
+
+* **readme:** fix example snippet imports ([#1569](https://github.com/openai/openai-python/issues/1569)) ([0c90af6](https://github.com/openai/openai-python/commit/0c90af6412b3314c2257b9b8eb7fabd767f32ef6))
+
 ## 1.36.1 (2024-07-20)
 
 Full Changelog: [v1.36.0...v1.36.1](https://github.com/openai/openai-python/compare/v1.36.0...v1.36.1)
