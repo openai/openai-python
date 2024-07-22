@@ -10,6 +10,7 @@ from .shared import (
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
 )
+from .upload import Upload as Upload
 from .embedding import Embedding as Embedding
 from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
@@ -28,7 +29,9 @@ from .image_edit_params import ImageEditParams as ImageEditParams
 from .file_create_params import FileCreateParams as FileCreateParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
+from .upload_create_params import UploadCreateParams as UploadCreateParams
 from .image_generate_params import ImageGenerateParams as ImageGenerateParams
+from .upload_complete_params import UploadCompleteParams as UploadCompleteParams
 from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreateParams
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
 from .moderation_create_params import ModerationCreateParams as ModerationCreateParams
