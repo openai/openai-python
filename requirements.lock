@@ -9,7 +9,7 @@
 #   generate-hashes: false
 
 -e file:.
-annotated-types==0.6.0
+annotated-types==0.7.0
     # via pydantic
 anyio==4.1.0
     # via httpx
