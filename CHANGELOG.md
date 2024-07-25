@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.37.1 (2024-07-25)
+
+Full Changelog: [v1.37.0...v1.37.1](https://github.com/openai/openai-python/compare/v1.37.0...v1.37.1)
+
+### Chores
+
+* **tests:** update prism version ([#1572](https://github.com/openai/openai-python/issues/1572)) ([af82593](https://github.com/openai/openai-python/commit/af8259393673af1ef6ec711da6297eb4ad55b66e))
+
 ## 1.37.0 (2024-07-22)
 
 Full Changelog: [v1.36.1...v1.37.0](https://github.com/openai/openai-python/compare/v1.36.1...v1.37.0)
