@@ -814,6 +814,8 @@ class Threads(SyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -896,6 +898,8 @@ class Threads(SyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -951,6 +955,8 @@ class Threads(SyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1006,6 +1012,8 @@ class Threads(SyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1838,6 +1846,8 @@ class AsyncThreads(AsyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1922,6 +1932,8 @@ class AsyncThreads(AsyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -1977,6 +1989,8 @@ class AsyncThreads(AsyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2032,6 +2046,8 @@ class AsyncThreads(AsyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
