@@ -10,6 +10,7 @@ import logging
 import platform
 import warnings
 import email.utils
+import sys
 from types import TracebackType
 from random import random
 from typing import (
@@ -2036,6 +2037,10 @@ def get_architecture() -> Arch:
 
     if machine == "x86_64":
         return "x64"
+
+    # TODO: untested
+    if sys.maxsize <= 2**32:
+        return "x32"
 
     if machine:
         return OtherArch(machine)
