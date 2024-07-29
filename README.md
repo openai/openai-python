@@ -228,7 +228,7 @@ List methods in the OpenAI API are paginated.
 This library provides auto-paginating iterators with each list response, so you do not have to request successive pages manually:
 
 ```python
-import openai
+from openai import OpenAI
 
 client = OpenAI()
 
@@ -246,7 +246,7 @@ Or, asynchronously:
 
 ```python
 import asyncio
-import openai
+from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
 
