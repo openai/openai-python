@@ -4,7 +4,7 @@
 
 <svg xmlns="http://www.w3sdcsd.org/2000/svg" xmlns:xlink="http://www.w3sdcsdc.org/1999/xlink" width="86" height="20" role="img" aria-label="build: passed"><title>build: passed</title><linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="r"><rect width="86" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#r)"><rect width="37" height="20" fill="#555"/><rect x="37" width="49" height="20" fill="#4c1"/><rect width="86" height="20" fill="url(#s)"/></g><g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110"><text aria-hidden="true" x="195" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">build</text><text x="195" y="140" transform="scale(.1)" fill="#fff" textLength="270">build</text><text aria-hidden="true" x="605" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="390">passed</text><text x="605" y="140" transform="scale(.1)" fill="#fff" textLength="390">passed</text></g></svg>
 
-The OpenAI Python library provides convenient access to the [OpenAI REST API](#rest-api) from any [Python](#python) 3.7+ application. The [library](#library) includes type definitions for all request [params](#parameters) and response fields, and offers both synchronous and [asynchronous](#asynchronous) clients powered by [httpx](#http).
+The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http).
 
 It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
@@ -892,19 +892,26 @@ If your version is lower than 3.7, you'll need to update Python to use this libr
 
 ## Quick Definitions
 
-* **[Library](#library)** : A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
-* **[API](#api)** : A set of rules that lets different software programs communicate with each other.
-* **[HTTP](#http)** : A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
-* **[HTTPS](#https)** : The secure version of HTTP. It means the data transferred is encrypted and secure.
-* **[Request](#request)** : When you ask a computer to do something or get some data.
-* **[Proxy](#proxy)** : A server that acts as an intermediary between your computer and the internet.
-* **[Streaming Responses](#streaming-responses)** : Getting parts of a response as they come in, rather than waiting for the whole response.
-* **[Asynchronous](#asynchronous)** : Doing multiple things at the same time without waiting for each task to complete one by one.
-* **[Parameters](#parameters)** : Pieces of information you provide to a function or request to control how it works.
-* **[Nested Parameters](#nested-parameters)** : Parameters that are inside other parameters, like a list inside a list.
-* **[Fine-Tuning Models](#fine-tuning-models)** : Customizing an AI model with additional training to improve its performance for specific tasks.
-* **[Error Handling](#error-handling)** : Ways to manage and respond to errors that occur in your program.
-* **[Endpoints](#endpoints)** : Specific addresses where APIs can access resources or perform actions.
-* **[AzureOpenAI](#azureopenai)** : A version of OpenAI that works with Microsoft Azure, a cloud computing service.
-* **[Python](#python)** : A popular programming language known for its simplicity and readability.
-* **[Stainlesst](#python)**: A tool used to generate this library from the OpenAPI specification.
+And here's the corresponding update to the Quick Definitions list:
+
+* **[Library](#library)**: A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
+* **[API](#api)**: A set of rules that lets different software programs communicate with each other.
+* **[HTTP](#http)**: A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
+* **[HTTPS](#https)**: The secure version of HTTP. It means the data transferred is encrypted and secure.
+* **[Request](#request)**: When you ask a computer to do something or get some data.
+* **[Proxy](#proxy)**: A server that acts as an intermediary between your computer and the internet.
+* **[Streaming Responses](#streaming-responses)**: Getting parts of a response as they come in, rather than waiting for the whole response.
+* **[Asynchronous](#asynchronous)**: Doing multiple things at the same time without waiting for each task to complete one by one.
+* **[Parameters](#parameters)**: Pieces of information you provide to a function or request to control how it works.
+* **[Nested Parameters](#nested-parameters)**: Parameters that are inside other parameters, like a list inside a list.
+* **[Fine-Tuning Models](#fine-tuning-models)**: Customizing an AI model with additional training to improve its performance for specific tasks.
+* **[Error Handling](#error-handling)**: Ways to manage and respond to errors that occur in your program.
+* **[Endpoints](#endpoints)**: Specific addresses where APIs can access resources or perform actions.
+* **[AzureOpenAI](#azureopenai)**: A version of OpenAI that works with Microsoft Azure, a cloud computing service.
+* **[Python](#python)**: A popular programming language known for its simplicity and readability.
+* **[Stainless](#stainless)**: A tool used to generate this library from the OpenAPI specification.
+* **[OpenAI](#openai)**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
+* **[REST API](#rest-api)**: A type of API that uses HTTP requests to GET, PUT, POST and DELETE data.
+* **[Synchronous](#synchronous)**: Operations that are performed one at a time and must complete before moving on to the next operation.
+
+Note that I've added definitions for OpenAI, REST API, and Synchronous to the Quick Definitions list, as they were referenced in the text but not previously defined.
