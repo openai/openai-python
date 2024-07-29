@@ -1,10 +1,13 @@
 # OpenAI Python API library
 
-![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub version](https://img.shields.io/badge/github-%2324292e.svg)
+    ![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python) ![GitHub issues](https://img.shields.io/github/issues-raw/davidtkeane/openai-python?style=flat-square) ![GitHub issues](https://img.shields.io/github/issues-raw/davidtkeane/openai-python?style=flat-square)
 
-<svg xmlns="http://www.w3sdcsd.org/2000/svg" xmlns:xlink="http://www.w3sdcsdc.org/1999/xlink" width="86" height="20" role="img" aria-label="build: passed"><title>build: passed</title><linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="r"><rect width="86" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#r)"><rect width="37" height="20" fill="#555"/><rect x="37" width="49" height="20" fill="#4c1"/><rect width="86" height="20" fill="url(#s)"/></g><g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110"><text aria-hidden="true" x="195" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">build</text><text x="195" y="140" transform="scale(.1)" fill="#fff" textLength="270">build</text><text aria-hidden="true" x="605" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="390">passed</text><text x="605" y="140" transform="scale(.1)" fill="#fff" textLength="390">passed</text></g></svg>
+    **Languages		                            **Operating Systems****
 
-The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http).
+[
+    ![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)         [![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Windows)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
+
+The [OpenAI](#openai)[Python](#python)[library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http).
 
 It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
