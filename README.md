@@ -913,5 +913,3 @@ And here's the corresponding update to the Quick Definitions list:
 * **[OpenAI](#openai)**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
 * **[REST API](#rest-api)**: A type of API that uses HTTP requests to GET, PUT, POST and DELETE data.
 * **[Synchronous](#synchronous)**: Operations that are performed one at a time and must complete before moving on to the next operation.
-
-Note that I've added definitions for OpenAI, REST API, and Synchronous to the Quick Definitions list, as they were referenced in the text but not previously defined.
