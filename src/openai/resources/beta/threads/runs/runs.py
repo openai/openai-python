@@ -822,6 +822,8 @@ class Runs(SyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -844,6 +846,7 @@ class Runs(SyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -877,6 +880,7 @@ class Runs(SyncAPIResource):
             response_format=response_format,
             temperature=temperature,
             tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
             # We assume we are not streaming when polling
             stream=False,
             tools=tools,
@@ -2404,6 +2408,8 @@ class AsyncRuns(AsyncAPIResource):
             Literal[
                 "gpt-4o",
                 "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -2426,6 +2432,7 @@ class AsyncRuns(AsyncAPIResource):
             None,
         ]
         | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2459,6 +2466,7 @@ class AsyncRuns(AsyncAPIResource):
             response_format=response_format,
             temperature=temperature,
             tool_choice=tool_choice,
+            parallel_tool_calls=parallel_tool_calls,
             # We assume we are not streaming when polling
             stream=False,
             tools=tools,
