@@ -1,6 +1,8 @@
 # OpenAI Python API library
 
-[![PyPI version](https://img.shields.io/pypi/v/openai.svg)](https://pypi.org/project/openai/)
+![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub version](https://img.shields.io/badge/github-%2324292e.svg)
+
+<svg xmlns="http://www.w3sdcsd.org/2000/svg" xmlns:xlink="http://www.w3sdcsdc.org/1999/xlink" width="86" height="20" role="img" aria-label="build: passed"><title>build: passed</title><linearGradient id="s" x2="0" y2="100%"><stop offset="0" stop-color="#bbb" stop-opacity=".1"/><stop offset="1" stop-opacity=".1"/></linearGradient><clipPath id="r"><rect width="86" height="20" rx="3" fill="#fff"/></clipPath><g clip-path="url(#r)"><rect width="37" height="20" fill="#555"/><rect x="37" width="49" height="20" fill="#4c1"/><rect width="86" height="20" fill="url(#s)"/></g><g fill="#fff" text-anchor="middle" font-family="Verdana,Geneva,DejaVu Sans,sans-serif" text-rendering="geometricPrecision" font-size="110"><text aria-hidden="true" x="195" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="270">build</text><text x="195" y="140" transform="scale(.1)" fill="#fff" textLength="270">build</text><text aria-hidden="true" x="605" y="150" fill="#010101" fill-opacity=".3" transform="scale(.1)" textLength="390">passed</text><text x="605" y="140" transform="scale(.1)" fill="#fff" textLength="390">passed</text></g></svg>
 
 The OpenAI Python library provides convenient access to the [OpenAI REST API](#rest-api) from any [Python](#python) 3.7+ application. The [library](#library) includes type definitions for all request [params](#parameters) and response fields, and offers both synchronous and `0`[asynchronous](#asynchronous) clients powered by [httpx](#http).
 
@@ -47,7 +49,7 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 
 > [!IMPORTANT]
 >
-> The ****SDK**** was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.# install from PyPI
+> The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.
 
 #### Requirements is Python 3.7 or higher
 
@@ -55,7 +57,7 @@ You need Python 3.7 or higher to use this library. It's like needing a specific 
 
 To check your Python version, you can open a terminal or command prompt and type:
 
-```sh
+```python
 python --version
 ```
 
@@ -64,6 +66,10 @@ If your version is lower than 3.7, you'll need to update Python to use this libr
 🚀 **Explanation:**
 
 To use this library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you.
+
+```python
+pip install openai
+```
 
 ## Usage
 
