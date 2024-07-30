@@ -32,7 +32,7 @@ The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's A
 - [Microsoft Azure OpenAI](#microsoft-azure-openai)
 - [Requirements](#requirements)
 - [Versioning](#versioning)
-- [Quick Definitions](#quick-definitions) 
+- [Quick Definitions](#quick-definitions)
 
 </details>
 
@@ -50,13 +50,11 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 
 #### Requirements is Python 3.7 or higher
 
-##### **Language and **Operating Systems****
+##### **How to install python on your system, follow these steps:**
 
-[![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)         [![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
+[![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)[![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
 
 You need Python 3.7 or higher to use this library. It's like needing a specific version of an app to use certain features. Make sure your Python version is up to date before trying to use this library.
-
-##### How to install python on your system, follow these steps:
 
 ###### For Windows:
 
@@ -88,7 +86,7 @@ You need Python 3.7 or higher to use this library. It's like needing a specific 
    sudo apt install python3
    ```
 
-#### Verification
+###### Verification
 
 To verify the installation, type `python --version` in the terminal or command prompt. This should display the installed Python version.
 
@@ -102,11 +100,23 @@ If your version is lower than 3.7, you'll need to update Python to use this libr
 
 🚀 **Explanation:**
 
-To use this library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you.
+To use this library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. To use the .env file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a  `.env` file into your environment, which is useful for keeping sensitive information like API keys out of your codebase.
 
 ```python
 pip install openai
+pip install python-dotenv
 ```
+
+### How to obtain your OpenAi API Key.
+
+To obtain an OpenAI API key, follow these steps:
+
+1. **Sign Up**: Go to the [OpenAI website](https://www.openai.com/) and sign up for an account if you don't already have one.
+2. **Login**: Once logged in, navigate to the API section.
+3. **Generate Key**: Click on "API keys" and then "Create API Key." A new key will be generated and displayed.
+4. **Save the Key**: Copy and securely store the API key. You will use this key to authenticate your requests to the OpenAI API.
+
+For more details, visit the [OpenAI API documentation](https://beta.openai.com/docs/).
 
 ## Usage
 
@@ -136,7 +146,48 @@ print(chat_completion.choices[0].message.content)
 
 💡 **Explanation:**
 
-While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/) to add `OPENAI_API_KEY="My API Key"` to your `.env` file so that your API Key is not stored in source control.
+While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/) to be able to use OpenAi API Key.
+
+1. Open the .env and place you key after the = sign.
+2. `OPENAI_API_KEY=sk-putyourkeyhere > replace `sk-putyourkeyhere
+3. Save the file.
+4. You can now use the API key in your script by adding from `dotenv import load_dotenv`
+5. To load environment variables (your API Key ) from .env file into your script you will need to add `load_dotenv()`into the script. See below for an example.
+6. Copy the code below and save it as test_openai.py
+7. Then inside the terminal type `python test_openai.py`
+
+```python
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables (loads your API Key) from .env file
+load_dotenv()
+
+# Initialize OpenAI client
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+)
+
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
+    model="gpt-4o",
+)
+
+print(chat_completion.choices[0].message.content)
+```
+
+```
+> python test_openai.py
+This is a test.
+
+This is what you should see afterwards, this means that you are on the right path and connected your script to the ChatGPT Model 4o using openai and dotenv modules. Congratulations!
+```
 
 Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
 
@@ -151,22 +202,85 @@ This code sets up the AI client and asks it to say "This is a test." It's like t
 
 When interacting with the API some actions such as starting a [Run](#run) and adding files to vector stores are [asynchronous](#asynchronous) and take time to complete. The SDK includes helper functions which will poll the status until it reaches a terminal state and then return the resulting object. If an API method results in an action that could benefit from polling there will be a corresponding version of the method ending in '_and_poll'.
 
-For instance to create a Run and poll until it reaches a terminal state you can run:
+#### ⏳ **Explanation:**
+
+Some actions take time to complete, like starting a process or uploading files. Polling helpers keep checking until these actions are done. Imagine you are baking a cake and you keep checking the oven until the cake is ready. In this case, you're starting a task (like asking the AI to do some work) and then waiting until it's finished before moving on. The `create_and_poll` function does this waiting for you automatically, so you don't have to keep checking manually.
+
+#### Running a Thread
+
+To create and poll a run within a thread using the OpenAI API, follow these steps:
+
+#### Overview
+
+The following example demonstrates how to initiate a run within a specific thread and automatically poll for its status. This can be useful for tracking the progress of a long-running task, such as a conversation or a job.
+
+#### Example Code
 
 ```python
+# Assuming you have already set up the OpenAI client and have a thread and assistant
 run = client.beta.threads.runs.create_and_poll(
     thread_id=thread.id,
     assistant_id=assistant.id,
 )
 ```
 
-More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
+* `thread_id`: The unique identifier for the thread in which you want to run the task. This is essential to specify the context of the run.
+* `assistant_id`: The unique identifier for the assistant you want to use. This could be an AI model or a specific assistant configuration.
+* More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
 
-⏳ **Explanation:**
+#### Usage
 
-Some actions take time to complete, like starting a process or uploading files. Polling helpers keep checking until these actions are done. Imagine you are baking a cake and you keep checking the oven until the cake is ready. In this case, you're starting a task (like asking the AI to do some work) and then waiting until it's finished before moving on. The `create_and_poll` function does this waiting for you automatically, so you don't have to keep checking manually.
+1. **Setup** : Make sure you have the necessary API credentials and have initialized the OpenAI client properly.
+2. **Run Creation** : Use the  `create_and_poll` method to start a new run within the specified thread.
+3. **Polling** : The function automatically polls the run's status, providing updates until the task is complete.
 
-### Bulk Upload Helpers
+#### Example Code Polling Helpers
+
+```python
+# Import the required libraries
+import os
+from openai import OpenAI
+from dotenv import load_dotenv
+
+# Load environment variables (loads your API Key) from .env file
+load_dotenv()
+
+# Initialize OpenAI client
+client = OpenAI(
+    api_key=os.getenv("OPENAI_API_KEY"),
+)
+
+# Define thread and assistant IDs
+thread_id = "your_thread_id"  # Replace with actual thread ID
+assistant_id = "your_assistant_id"  # Replace with actual assistant ID
+
+# Create and poll a new run within the specified thread
+try:
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+    )
+    print(f"Run successfully started with ID: {run.id}")
+    print(f"Current Status: {run.status}")
+except Exception as e:
+    print(f"An error occurred while creating and polling the run: {e}")
+
+# Example usage of chat completion
+chat_completion = client.chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
+    model="gpt-4o",
+)
+
+print(chat_completion.choices[0].message.content)
+
+```
+
+#### Bulk Upload Helpers
 
 When creating and interacting with vector stores, you can use polling helpers to monitor the status of operations.
 For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
@@ -184,7 +298,7 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
 
 You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
 
-### Streaming Helpers
+#### Streaming Helpers
 
 The SDK also includes helpers to process streams and handle incoming events.
 
@@ -213,7 +327,7 @@ You can stream responses from the AI, which means you get parts of the response 
 
 This is particularly useful for long responses or when you want to show progress to the user while the AI is thinking.
 
-## Async usage
+### Async usage
 
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
@@ -256,7 +370,7 @@ You can use the library with [asynchronous](#asynchronous) code, which lets your
 
 This is particularly useful in applications that need to handle multiple tasks simultaneously, like web servers or interactive applications.
 
-## Streaming responses
+#### Streaming responses
 
 We provide support for streaming responses using [Server Side Events (SSE)](#sse).
 
@@ -285,7 +399,7 @@ Streaming responses allow you to get and process the AI's reply piece by piece, 
 
 This is great for creating more responsive and interactive applications, especially when dealing with longer AI responses.
 
-## The async client uses the exact same interface.
+#### The async client uses the exact same interface.
 
 ```python
 from openai import AsyncOpenAI
@@ -306,7 +420,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## Module-level client
+### Module-level client
 
 > [!IMPORTANT]
 > We highly recommend instantiating client instances instead of relying on the global client.
@@ -358,7 +472,7 @@ While this method is simple and can be useful for quick experiments or small scr
 
 Typed requests and responses provide autocomplete and documentation within your editor. If you would like to see type errors in VS Code to help catch bugs earlier, set `python.analysis.typeCheckingMode` to `basic`.
 
-## Using Types
+### Using Types
 
 Nested request parameters are [TypedDicts](#typeddict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:
 
@@ -392,7 +506,7 @@ The library uses typed requests and responses, which means it can help you catch
 
 In the example, we're asking the AI to create a [JSON object](#json-object) describing a fruit. The library ensures we're formatting our request correctly and helps us work with the response easily. This type system acts like a safety net, catching potential errors before they cause problems in your program.
 
-## Pagination
+### Pagination
 
 List methods in the OpenAI API are paginated.
 
@@ -484,7 +598,7 @@ Some API responses are too large to send all at once, so they are split into pag
 
 This makes it much easier to work with large amounts of data, as you don't have to manually keep track of which page you're on or when to request the next page. The library handles all of that for you behind the scenes.
 
-## Nested params
+### Nested params
 
 Nested parameters are dictionaries, typed using `TypedDict`, for example:
 
@@ -517,7 +631,7 @@ Nested parameters allow you to organize complex information in a structured way,
 
 This nested structure allows us to provide detailed and organized instructions to the AI. In this case, we're asking it to generate a [JSON](#json) object describing a fruit. The use of [TypedDict](#typeddict) helps ensure that we're formatting these nested parameters correctly, reducing the chance of errors in our code.
 
-## File uploads
+### File uploads
 
 Request parameters that correspond to file uploads can be passed as `bytes`, a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance or a tuple of `(filename, contents, media type)`.
 
