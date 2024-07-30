@@ -10,7 +10,7 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 
 The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's AI models in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
-<details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
+<details><summary style="font-size: 2.5em; font-weight: bold;">Table of Contents</summary
 
 - [Documentation](#documentation)
 - [Installation](#installation)
