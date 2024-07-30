@@ -2,7 +2,7 @@
 
 ![PyPI version](https://img.shields.io/pypi/v/openai.svg)
 
-![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io) ![GitHub issues](https://img.shields.io/github/commit-activity/m/davidtkeane/openai-python "Commits")
+![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io) ![GitHub issues](https://img.shields.io/github/commit-activity/m/davidtkeane/openai-python "Commits") ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python?authorFilter=davidtkeane)
 
 **Language and **Operating Systems****
 
