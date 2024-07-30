@@ -48,7 +48,9 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 >
 > The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.
 
-#### Requirements is Python 3.7 or higher
+#### Requirements
+
+The requirements to use Openai is that you are using Python 3.7 version or higher, and some sort of computer.
 
 ##### **How to install python on your system, follow these steps:**
 
@@ -120,31 +122,9 @@ For more details, visit the [OpenAI API documentation](https://beta.openai.com/d
 
 ## Usage
 
+### How to use the OpenAI code in a python script.
+
 The full API of this library can be found in [api.md](api.md).
-
-```python
-import os
-from openai import OpenAI
-
-client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
-
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-3.5-turbo",
-)
-
-print(chat_completion.choices[0].message.content)
-```
-
-💡 **Explanation:**
 
 While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/) to be able to use OpenAi API Key.
 
@@ -191,6 +171,8 @@ This means that you are on the right path and connected your script to the ChatG
 and using the GPT-4o Model using openai and dotenv modules. Congratulations!
 ```
 
+#### 💡 **Explanation:**
+
 Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
 
 1. First, you import the necessary tools (`os` and `OpenAI`).
@@ -228,6 +210,7 @@ run = client.beta.threads.runs.create_and_poll(
 
 * `thread_id`: The unique identifier for the thread in which you want to run the task. This is essential to specify the context of the run.
 * `assistant_id`: The unique identifier for the assistant you want to use. This could be an AI model or a specific assistant configuration.
+* The script below will use the code and create the identifiers once the script has ran. Copy these to the .env file afterwards. More info below.
 * More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
 
 #### Usage
@@ -236,11 +219,20 @@ run = client.beta.threads.runs.create_and_poll(
 2. **Run Creation** : Use the  `create_and_poll` method to start a new run within the specified thread.
 3. **Polling** : The function automatically polls the run's status, providing updates until the task is complete.
 
-#### Example Code Polling Helpers
+#### Example of Code using Polling Helpers
+
+1. Create a file called chat.py
+2. Copy and Paste the code below into the file, make sure the file is in the same folder as the .env file.
+3. Best make a new folder for this page and make seperate files for each script. This is handy to see the differences and learn.
+4. Make sure you have your .env file with OPENAI_API_KEY=yourkey
+5. ```
+   python chat.py
+   ```
 
 ```python
 # Import the required libraries
 import os
+import sys
 from openai import OpenAI
 from dotenv import load_dotenv
 
@@ -248,44 +240,101 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Initialize OpenAI client
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Define the model engine
+model_engine = "gpt-4o"  # Ensure this is the correct model ID
+
+# Define the assistant's role
+assistant_role = "You are a useful helper, professor, the best programmer in the world, and computer technician in the style and tone of Christopher Walken."
+
+# Define user and bot names
+user_name = "Ranger"
+bot_name = "Jervis"
+
+# Create a thread and assistant
+thread = client.beta.threads.create()
+thread_id = thread.id
+print(f"Thread ID: {thread_id}")
+
+assistant = client.beta.assistants.create(
+    name="Jervis",
+    instructions=assistant_role,
+    model=model_engine
 )
+assistant_id = assistant.id
+print(f"Assistant ID: {assistant_id}")
 
-# Define thread and assistant IDs
-thread_id = "your_thread_id"  # Replace with actual thread ID
-assistant_id = "your_assistant_id"  # Replace with actual assistant ID
+def chat_gpt4(query):
+    # Add the user's message to the thread
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=query
+    )
 
-# Create and poll a new run within the specified thread
-try:
+    # Create and poll a new run within the specified thread
     run = client.beta.threads.runs.create_and_poll(
         thread_id=thread_id,
         assistant_id=assistant_id,
     )
-    print(f"Run successfully started with ID: {run.id}")
-    print(f"Current Status: {run.status}")
-except Exception as e:
-    print(f"An error occurred while creating and polling the run: {e}")
 
-# Example usage of chat completion
-chat_completion = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
-    model="gpt-4o",
-)
+    # Optionally, handle the result
+    print(f"Run ID: {run.id}")
+    print(f"Status: {run.status}")
 
-print(chat_completion.choices[0].message.content)
+    # Retrieve the messages added by the assistant to the thread
+    messages = client.beta.threads.messages.list(
+        thread_id=thread_id
+    )
+
+    # Print the response from the model
+    if messages.data:
+        print(f"{bot_name}: {messages.data[0].content[0].text.value}")
+    else:
+        print("No messages found.")
+
+def main():
+    if len(sys.argv) > 1:
+        # If a question is provided as a command-line argument
+        query = ' '.join(sys.argv[1:])
+        chat_gpt4(query)
+    else:
+        # Start the conversation
+        print(f"{bot_name}: How can I help?")
+
+    while True:
+        query = input(f"{user_name}: ")
+        if query.lower() in ["exit", "quit"]:
+            break
+        chat_gpt4(query)
+        follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ")
+        if follow_up.lower() not in ["yes", "y"]:
+            break
+
+if __name__ == "__main__":
+    main()
 
 ```
 
+1. This is the return response from using the command `python chat.py`
+2. I am using p (This is an aliases I created to save time typing python everytime. aliases p="python ")
+3. This code will create the Thread ID, Run ID and Assistant ID.
+
+![1722366404314](image/README/1722366404314.png)
+
 #### Bulk Upload Helpers
+
+You can upload your documents and the script will be able to answer questions on the documents you uploaded.
 
 When creating and interacting with vector stores, you can use polling helpers to monitor the status of operations.
 For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
+
+For more information about what kind of files can be uploaded and more code, please go to [https://platform.openai.com/docs/assistants/tools/file-search](https://platform.openai.com/docs/assistants/tools/file-search)
+
+##### 📤 **Explanation:**
+
+You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
 
 ```python
 sample_files = [Path("sample-paper.pdf"), ...]
@@ -296,13 +345,299 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
 )
 ```
 
-📤 **Explanation:**
+For convenience,
 
-You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
+1. I have expanded the first script and added each new option into the same script so you can see where the code is being used.
+   a. I have added the ability to save the conversations to a .txt file and .json files, in case at a later stage you wish to train your own model using your own chat files.
+   b. I added temperature, max_tokens and other settings to help get the best assistant as possible.
+   c. The script has file upload and multiple file upload, and make a vector store to break up the files into chunks to be able to understand them better.
+   d. Added the option to create and poll a run within a thread using the OpenAI API (Thread_ID and Assistant_ID)
+
+   ```
+   # This is the code which can be altered that shows the settings that can chage the output of your request.
+
+          response = client.chat.completions.create(
+               model=model_engine,
+               messages=[
+                   {"role": "system", "content": assistant_role},
+                   {"role": "user", "content": query}
+               ],
+               temperature=0.9,
+               max_tokens=2048,
+               top_p=1,
+               frequency_penalty=0,
+               presence_penalty=0.1,
+               stop=[" Human:", " AI:"]
+           )
+   ```
+2. Create a file called chat.py, or use a different name if you have saved each script as we go along (This might be better).
+3. If you can copy both thread_id and assistant_id from the last run of chat.py and enter them into the .env file below OPENAI_API_KEY
+
+   ```
+   OPENAI_API_KEY=sk-maybeishoulduseperplexity
+   THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
+   ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
+   ```
+4. Copy and Paste the python code below into the file like chat.py, and make sure the file is in the same folder as the .env file.
+5. Now next step is to run the script.
+6. ```
+   python chat.py
+   ```
+
+```python
+# Import the required libraries
+import os
+import sys
+import json
+from openai import OpenAI
+from datetime import datetime
+from dotenv import load_dotenv
+from termcolor import colored
+
+# Load environment variables (loads your API Key) from .env file
+load_dotenv()
+
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Define the model engine
+model_engine = "gpt-4o"  # Ensure this is the correct model ID
+
+# Define the assistant's role
+assistant_role = "You are a useful helper, professor, the best programmer in the world, and computer technician in the style and tone of Christopher Walken. you are a genius programmer and expert at all technology and languages, you are best when you love to help people, provide suggestions for improvements and also to double-check your code to check for errors, as we all make them, and give detailed step-by-step instructions as if I am 14 years old and only learning, but I have some basics and understanding of python code, but I love to learn so explain everything to me."
+
+# Define user and bot names
+user_name = "Ranger"
+bot_name = "Jervis"
+
+# Define the thread and assistant IDs (these would typically be obtained from previous API calls or setup)
+thread_id = os.getenv("THREAD_ID", None)
+assistant_id = os.getenv("ASSISTANT_ID", None)
+vector_store_id = os.getenv("VECTOR_STORE_ID", None)
+
+def create_thread_and_assistant():
+    global thread_id, assistant_id, vector_store_id
+    thread = client.beta.threads.create()
+    thread_id = thread.id
+    assistant = client.beta.assistants.create(
+        name="Programming genius Assistant. Use your knowledge base to answer questions about python json and all other programming languages.",
+        instructions=assistant_role,
+        model=model_engine,
+        tools=[{"type": "file_search"}],
+    )
+    assistant_id = assistant.id
+    print(f"Created new thread ID: {thread_id}")
+    print(f"Created new assistant ID: {assistant_id}")
+
+# Create thread and assistant if they don't exist
+if not thread_id or not assistant_id:
+    create_thread_and_assistant()
+
+def upload_files_to_vector_store(file_paths):
+    global vector_store_id
+    if not vector_store_id:
+        vector_store = client.beta.vector_stores.create(name="Financial Statements")
+        vector_store_id = vector_store.id
+  
+    file_streams = [open(path, "rb") for path in file_paths]
+    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+        vector_store_id=vector_store_id, files=file_streams
+    )
+    print(file_batch.status)
+    print(file_batch.file_counts)
+
+def update_assistant_with_vector_store():
+    client.beta.assistants.update(
+        assistant_id=assistant_id,
+        tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
+    )
+
+def chat_gpt4(query, files=None):
+    if files:
+        upload_files_to_vector_store(files)
+        update_assistant_with_vector_store()
+
+    # Add the user's message to the thread
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=query
+    )
+
+    # Create and poll a new run within the specified thread
+    run = client.beta.threads.runs.create_and_poll(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+    )
+
+    # Optionally, handle the result
+    print(f"Run ID: {run.id}")
+    print(f"Status: {run.status}")
+
+    # Retrieve the messages added by the assistant to the thread
+    messages = client.beta.threads.messages.list(
+        thread_id=thread_id
+    )
+
+    # Print the response from the model
+    if messages.data:
+        print(f"{bot_name}: {messages.data[0].content[0].text.value}")
+    else:
+        print("No messages found.")
+
+    # Create a conversation log
+    conversation_log = []
+
+    try:
+        # Generate a chat completion
+        response = client.chat.completions.create(
+            model=model_engine,
+            messages=[
+                {"role": "system", "content": assistant_role},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.9,
+            max_tokens=2048,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.1,
+            stop=[" Human:", " AI:"]
+        )
+        response_content = response.choices[0].message.content.strip()
+
+        # Print the response from the model
+        print(f"{bot_name}: {response_content}")
+
+        # Add the user's query and the assistant's response to the conversation log
+        conversation_log.append({"role": "user", "content": query})
+        conversation_log.append({"role": "assistant", "content": response_content})
+
+    except Exception as e:
+        print(colored(f"Error: {e}", "red"))
+        return
+
+    # Save the conversation to a text file
+    with open('rgpt4.txt', 'a', encoding='utf-8') as file:
+        file.write("=== GPT-4 Chat started at {} ===\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        for entry in conversation_log:
+            file.write(f"[{entry['role'].capitalize()}]: {entry['content']}\n")
+        file.write("=== GPT-4 Chat ended at {} ===\n\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+
+    # Save the conversation to a JSON file
+    with open('rgpt4.json', 'a', encoding='utf-8') as json_file:
+        json.dump(conversation_log, json_file, ensure_ascii=False, indent=4)
+        json_file.write('\n')
+
+def main():
+    if len(sys.argv) > 1:
+        # If a question is provided as a command-line argument
+        query = ' '.join(sys.argv[1:])
+        chat_gpt4(query)
+    else:
+        # Start the conversation
+        print(f"{bot_name}: How can I help?")
+
+    while True:
+        query = input(f"{user_name}: ")
+        if query.lower() in ["exit", "quit"]:
+            break
+
+        # Check if the user wants to upload files
+        if query.lower() == "upload":
+            file_paths = input("Enter the file paths (comma-separated): ").split(',')
+            files = [path.strip() for path in file_paths]
+            chat_gpt4(query, files=files)
+        else:
+            chat_gpt4(query)
+
+        follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ")
+        if follow_up.lower() not in ["yes", "y"]:
+            break
+
+if __name__ == "__main__":
+    main()sation_log.append({"role": "assistant", "content": response_content})
+
+    except Exception as e:
+        print(colored(f"Error: {e}", "red"))
+        return
+
+    # Save the conversation to a text file
+    with open('rgpt4.txt', 'a', encoding='utf-8') as file:
+        file.write("=== GPT-4 Chat started at {} ===\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        for entry in conversation_log:
+            file.write(f"[{entry['role'].capitalize()}]: {entry['content']}\n")
+        file.write("=== GPT-4 Chat ended at {} ===\n\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+
+    # Save the conversation to a JSON file
+    with open('rgpt4.json', 'a', encoding='utf-8') as json_file:
+        json.dump(conversation_log, json_file, ensure_ascii=False, indent=4)
+        json_file.write('\n')
+
+def main():
+    if len(sys.argv) > 1:
+        # If a question is provided as a command-line argument
+        query = ' '.join(sys.argv[1:])
+        chat_gpt4(query)
+    else:
+        # Start the conversation
+        print(f"{bot_name}: How can I help?")
+
+    while True:
+        query = input(f"{user_name}: ")
+        if query.lower() in ["exit", "quit"]:
+            break
+
+        # Check if the user wants to upload files
+        if query.lower() == "upload":
+            file_paths = input("Enter the file paths (comma-separated): ").split(',')
+            files = [path.strip() for path in file_paths]
+            chat_gpt4(query, files=files)
+        else:
+            chat_gpt4(query)
+
+        follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ")
+        if follow_up.lower() not in ["yes", "y"]:
+            break
+
+if __name__ == "__main__":
+    main()
+```
+
+1. After running the file you should get something like this below. Again (p is my aliases for the word python).
+2. When Jervis asks 'How can I help?" You can either ask a question or type upload and it will ask you for the files location. I usually right click on a file and click the copy path and use that (I am using a Macbook Pro M3).
+
+![1722374227549](image/README/1722374227549.png)
+
+To ask questions about a file you've uploaded, you need to ensure that the file is part of a vector store that the assistant can query. The vector store is a conceptual database where the content of your files is indexed and can be searched. Here's how you can modify the script to handle file uploads, create a vector store, and allow you to ask questions about the uploaded files:
+
+**Upload Files to Vector Store** :
+
+* When you type "upload", the script will prompt you for file paths and upload these files to a vector store.
+
+**Ask Questions About Uploaded Files** :
+
+* After uploading the files, you can ask questions about the content of these files, and the assistant will search the vector store for relevant information to answer your questions.
+
+**Vector Store Location** :
+
+* The vector store is managed by the OpenAI API. You don't need to worry about its physical location; you just need to ensure that the files are uploaded and indexed correctly.
 
 #### Streaming Helpers
 
 The SDK also includes helpers to process streams and handle incoming events.
+
+OpenAI supports streaming responses when interacting with the [Assistant](#assistant-streaming-api) APIs.
+
+##### 🔄 **Explanation:**
+
+You can stream responses from the AI, which means you get parts of the response as they come in, instead of waiting for the whole thing. It's like watching a YouTube video as it loads rather than waiting for the entire video to download first. In this code:
+
+1. You start a "stream" of information from the AI.
+2. You give some instructions to the AI (like how to address the user).
+3. As the AI generates its response, you get pieces of it one at a time.
+4. You can process or display these pieces as they arrive, making the interaction feel more real-time and responsive.
+
+This is particularly useful for long responses or when you want to show progress to the user while the AI is thinking.
 
 ```python
 with client.beta.threads.runs.stream(
@@ -318,18 +653,260 @@ with client.beta.threads.runs.stream(
 
 More information on streaming helpers can be found in the dedicated documentation: [helpers.md](helpers.md)
 
-🔄 **Explanation:**
+##### Assistant Streaming API
 
-You can stream responses from the AI, which means you get parts of the response as they come in, instead of waiting for the whole thing. It's like watching a YouTube video as it loads rather than waiting for the entire video to download first. In this code:
+OpenAI supports streaming responses from Assistants. The SDK provides convenience wrappers around the API
+so you can subscribe to the types of events you are interested in as well as receive accumulated responses.
 
-1. You start a "stream" of information from the AI.
-2. You give some instructions to the AI (like how to address the user).
-3. As the AI generates its response, you get pieces of it one at a time.
-4. You can process or display these pieces as they arrive, making the interaction feel more real-time and responsive.
+More information can be found in the documentation: [Assistant Streaming](https://platform.openai.com/docs/assistants/overview?lang=python)
 
-This is particularly useful for long responses or when you want to show progress to the user while the AI is thinking.
+##### An example of creating a run and subscribing to some events
 
-### Async usage
+You can subscribe to events by creating an event handler class and overloading the relevant event handlers.
+
+```python
+from typing_extensions import override
+from openai import AssistantEventHandler, OpenAI
+from openai.types.beta.threads import Text, TextDelta
+from openai.types.beta.threads.runs import ToolCall, ToolCallDelta
+
+client = openai.OpenAI()
+
+# First, we create a EventHandler class to define
+# how we want to handle the events in the response stream.
+
+class EventHandler(AssistantEventHandler):
+  @override
+  def on_text_created(self, text: Text) -> None:
+    print(f"\nassistant > ", end="", flush=True)
+
+  @override
+  def on_text_delta(self, delta: TextDelta, snapshot: Text):
+    print(delta.value, end="", flush=True)
+
+  @override
+  def on_tool_call_created(self, tool_call: ToolCall):
+    print(f"\nassistant > {tool_call.type}\n", flush=True)
+
+  @override
+  def on_tool_call_delta(self, delta: ToolCallDelta, snapshot: ToolCall):
+    if delta.type == "code_interpreter" and delta.code_interpreter:
+      if delta.code_interpreter.input:
+        print(delta.code_interpreter.input, end="", flush=True)
+      if delta.code_interpreter.outputs:
+        print(f"\n\noutput >", flush=True)
+        for output in delta.code_interpreter.outputs:
+          if output.type == "logs":
+            print(f"\n{output.logs}", flush=True)
+
+# Then, we use the `stream` SDK helper
+# with the `EventHandler` class to create the Run
+# and stream the response.
+
+with client.beta.threads.runs.stream(
+  thread_id="thread_id",
+  assistant_id="assistant_id",
+  event_handler=EventHandler(),
+) as stream:
+  stream.until_done()
+```
+
+##### Full working example of Streaming Helpers
+
+1. Create a file called chat.py
+2. Copy and Paste the code below into the file, make sure the file is in the same folder as the .env file.
+3. This script will import the keys from the .env file so you can continue your conversation due to having a vector database made to converse with.
+4. Functionality between the synchronous and asynchronous clients is otherwise identical.
+5. Run the script.
+6. ```
+   python chat.py
+   ```
+
+```python
+# Import the required libraries
+import os
+import sys
+import json
+from openai import OpenAI
+from datetime import datetime
+from dotenv import load_dotenv
+from termcolor import colored
+from typing_extensions import override
+
+# Load environment variables (loads your API Key) from .env file
+load_dotenv()
+
+# Initialize OpenAI client
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+
+# Define the model engine
+model_engine = "gpt-4o"  # Ensure this is the correct model ID
+
+# Define the assistant's role
+assistant_role = "You are a useful helper, professor, the best programmer in the world, and computer technician in the style and tone of Christopher Walken. you are a genius programmer and expert at all technology and languages, you are best when you love to help people, provide suggestions for improvements and also to double-check your code to check for errors, as we all make them, and give detailed step-by-step instructions as if I am 14 years old and only learning, but I have some basics and understanding of python code, but I love to learn so explain everything to me."
+
+# Define user and bot names
+user_name = "Ranger"
+bot_name = "Jervis"
+
+# Define the thread and assistant IDs (these would typically be obtained from previous API calls or setup)
+thread_id = os.getenv("THREAD_ID", None)
+assistant_id = os.getenv("ASSISTANT_ID", None)
+vector_store_id = os.getenv("VECTOR_STORE_ID", None)
+
+def create_thread_and_assistant():
+    global thread_id, assistant_id, vector_store_id
+    thread = client.beta.threads.create()
+    thread_id = thread.id
+    assistant = client.beta.assistants.create(
+        name="Programming genius Assistant. Use your knowledge base to answer questions about python json and all other programming languages.",
+        instructions=assistant_role,
+        model=model_engine,
+        tools=[{"type": "file_search"}],
+    )
+    assistant_id = assistant.id
+    print(f"Created new thread ID: {thread_id}")
+    print(f"Created new assistant ID: {assistant_id}")
+
+# Create thread and assistant if they don't exist
+if not thread_id or not assistant_id:
+    create_thread_and_assistant()
+
+def upload_files_to_vector_store(file_paths):
+    global vector_store_id
+    if not vector_store_id:
+        vector_store = client.beta.vector_stores.create(name="Financial Statements")
+        vector_store_id = vector_store.id
+  
+    file_streams = [open(path, "rb") for path in file_paths]
+    file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
+        vector_store_id=vector_store_id, files=file_streams
+    )
+    print(file_batch.status)
+    print(file_batch.file_counts)
+
+def update_assistant_with_vector_store():
+    client.beta.assistants.update(
+        assistant_id=assistant_id,
+        tool_resources={"file_search": {"vector_store_ids": [vector_store_id]}},
+    )
+
+class EventHandler(AssistantEventHandler):
+    @override
+    def on_text_created(self, text) -> None:
+        print(f"\n{bot_name} > ", end="", flush=True)
+
+    @override
+    def on_text_delta(self, delta, snapshot):
+        print(delta.value, end="", flush=True)
+
+    @override
+    def on_tool_call_created(self, tool_call):
+        print(f"\n{bot_name} > {tool_call.type}\n", flush=True)
+
+    @override
+    def on_tool_call_delta(self, delta, snapshot):
+        if delta.type == "code_interpreter" and delta.code_interpreter:
+            if delta.code_interpreter.input:
+                print(delta.code_interpreter.input, end="", flush=True)
+            if delta.code_interpreter.outputs:
+                print(f"\n\noutput >", flush=True)
+                for output in delta.code_interpreter.outputs:
+                    if output.type == "logs":
+                        print(f"\n{output.logs}", flush=True)
+
+def chat_gpt4(query, files=None):
+    if files:
+        upload_files_to_vector_store(files)
+        update_assistant_with_vector_store()
+
+    # Add the user's message to the thread
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        role="user",
+        content=query
+    )
+
+    # Create and poll a new run within the specified thread
+    with client.beta.threads.runs.stream(
+        thread_id=thread_id,
+        assistant_id=assistant_id,
+        event_handler=EventHandler(),
+    ) as stream:
+        stream.until_done()
+
+    # Create a conversation log
+    conversation_log = []
+
+    try:
+        # Generate a chat completion
+        response = client.chat.completions.create(
+            model=model_engine,
+            messages=[
+                {"role": "system", "content": assistant_role},
+                {"role": "user", "content": query}
+            ],
+            temperature=0.9,
+            max_tokens=2048,
+            top_p=1,
+            frequency_penalty=0,
+            presence_penalty=0.1,
+            stop=[" Human:", " AI:"]
+        )
+        response_content = response.choices[0].message.content.strip()
+
+        # Add the user's query and the assistant's response to the conversation log
+        conversation_log.append({"role": "user", "content": query})
+        conversation_log.append({"role": "assistant", "content": response_content})
+
+    except Exception as e:
+        print(colored(f"Error: {e}", "red"))
+        return
+
+    # Save the conversation to a text file
+    with open('rgpt4.txt', 'a', encoding='utf-8') as file:
+        file.write("=== GPT-4 Chat started at {} ===\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+        for entry in conversation_log:
+            file.write(f"[{entry['role'].capitalize()}]: {entry['content']}\n")
+        file.write("=== GPT-4 Chat ended at {} ===\n\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
+
+    # Save the conversation to a JSON file
+    with open('rgpt4.json', 'a', encoding='utf-8') as json_file:
+        json.dump(conversation_log, json_file, ensure_ascii=False, indent=4)
+        json_file.write('\n')
+
+def main():
+    if len(sys.argv) > 1:
+        # If a question is provided as a command-line argument
+        query = ' '.join(sys.argv[1:])
+        chat_gpt4(query)
+    else:
+        # Start the conversation
+        print(f"{bot_name}: How can I help?")
+
+    while True:
+        query = input(f"{user_name}: ")
+        if query.lower() in ["exit", "quit"]:
+            break
+
+        # Check if the user wants to upload files
+        if query.lower() == "upload":
+            file_paths = input("Enter the file paths (comma-separated): ").split(',')
+            files = [path.strip() for path in file_paths]
+            chat_gpt4(query, files=files)
+        else:
+            chat_gpt4(query)
+
+        follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ")
+        if follow_up.lower() not in ["yes", "y"]:
+            break
+
+if __name__ == "__main__":
+    main()
+```
+
+
+## Async usage
 
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
 
@@ -462,7 +1039,7 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
-🔧 **Explanation:**
+#### 🔧 **Explanation:**
 
 This section talks about a global client, which is like having a universal remote that works for all your devices. However, just like a universal remote might not have all the special features for each specific device, using a global client isn't always the best choice for complex programs. Here's what's happening:
 
@@ -498,7 +1075,7 @@ completion = client.chat.completions.create(
 )
 ```
 
-🛠️ **Explanation:**
+#### 🛠️ **Explanation:**
 
 The library uses typed requests and responses, which means it can help you catch mistakes while you write your code. Think of it as having a spell-checker for your programming instructions. Here's what this means:
 
@@ -529,7 +1106,7 @@ for job in client.fine_tuning.jobs.list(
 print(all_jobs)
 ```
 
-🚀 **Explanation**:
+#### 🚀 **Explanation**:
 
 Imagine you're reading a really long book, but instead of giving you the whole book at once, the library gives you 20 pages at a time. This code is like a magical bookmark that automatically gets the next 20 pages for you when you finish reading the current ones. You don't have to worry about asking for the next part - it just happens! In this case, instead of pages, we're getting information about AI training jobs, 20 at a time.
 
@@ -555,7 +1132,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-🏃‍♂️ **Explanation**:
+#### 🏃‍♂️ **Explanation**:
 
 This is like the previous example, but it's even cooler! Imagine you're in a relay race where you can start the next runner before the current one finishes. This code does something similar - it starts getting the next batch of information while it's still processing the current one. It's a way to make things happen faster, especially when you're dealing with lots of data.
 
@@ -587,7 +1164,7 @@ for job in first_page.data:
 # Remove `await` for non-async usage.
 ```
 
-**📂 Explanation:**
+#### **📂 Explanation:**
 
 This is like getting a page of a book and a bookmark that shows where the next page starts. You can look at all the information on the current page (printing each job's ID), and you also know where to start reading next (the "next page cursor"). It's a way to keep track of where you are in all the information, just like how you might use a bookmark to remember your place in a big book.
 
@@ -621,7 +1198,7 @@ completion = client.chat.completions.create(
 )
 ```
 
-🔄 **Explanation:**
+#### 🔄 **Explanation:**
 
 Nested parameters allow you to organize complex information in a structured way, like having folders inside folders on your computer. Here's what's happening in this code:
 
@@ -649,7 +1226,7 @@ client.files.create(
 )
 ```
 
-🔧 **Explanation:**
+#### 🔧 **Explanation:**
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
@@ -706,7 +1283,7 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
-⚠️ **Explanation:**
+#### ⚠️ **Explanation:**
 
 The library provides error handling for different types of errors that can occur while interacting with the API. It's like having a plan for what to do if something goes wrong while you're working on a project. Here's what's happening:
 
@@ -747,7 +1324,7 @@ client.with_options(max_retries=5).chat.completions.create(
 )
 ```
 
-🔁 **Explanation:**
+#### 🔁 **Explanation:**
 
 Some errors are automatically retried by the library. You can configure how many times to retry or disable retries. It's like trying to reconnect your WiFi if it drops the first time. Here's what this code does:
 
@@ -792,7 +1369,7 @@ On timeout, an `APITimeoutError` is thrown.
 
 Note that requests that time out are [retried twice by default](#retries).
 
-⏲️ **Explanation:**
+#### ⏲️ **Explanation:**
 
 You can set how long to wait for a response before timing out. It's like setting a timer for how long you'll wait for a friend before leaving. Here's what's happening:
 
@@ -814,7 +1391,7 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `debu
 $ export OPENAI_LOG=debug
 ```
 
-📜 **Explanation:**
+#### 📜 **Explanation:**
 
 Logging helps you see what's happening behind the scenes in your application. It's like having a detective's notebook that records everything that happens. By setting the `OPENAI_LOG` environment variable to `debug`, you're telling the library to write detailed information about its operations, which can be very helpful for troubleshooting problems.
 
@@ -851,7 +1428,7 @@ completion = response.parse()  # get the object that `chat.completions.create()`
 print(completion)
 ```
 
-🔧 **Explanation:**
+#### 🔧 **Explanation:**
 
 These methods return an [`LegacyAPIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_legacy_response.py) object. This is a legacy class as we're changing it slightly in the next major version.
 
@@ -990,7 +1567,7 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
-🔧 **Explanation:**
+#### 🔧 **Explanation:**
 
 If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
 
@@ -1012,7 +1589,7 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-🔄 **Explanation:**
+#### 🔄 **Explanation:**
 
 The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
 
