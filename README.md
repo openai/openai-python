@@ -1,12 +1,8 @@
 # OpenAI Python API library
 
-![PyPI version](https://img.shields.io/pypi/v/openai.svg)
+![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub](https://img.shields.io/badge/GitHub-blue?logo=github&labelColor=gray) ![OpenAI](https://img.shields.io/badge/OpenAI-blue?logo=openai&logoColor=white&labelColor=gray)
 
-![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io) ![GitHub issues](https://img.shields.io/github/commit-activity/m/davidtkeane/openai-python "Commits") ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python?authorFilter=davidtkeane)![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python)
-
-**Language and **Operating Systems****
-
-[![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)         [![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
+![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io) ![GitHub issues](https://img.shields.io/github/commit-activity/m/davidtkeane/openai-python "Commits") ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python?authorFilter=davidtkeane) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python)
 
 The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http).
 
@@ -57,7 +53,47 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 
 #### Requirements is Python 3.7 or higher
 
+##### **Language and **Operating Systems****
+
+[![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)         [![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
+
 You need Python 3.7 or higher to use this library. It's like needing a specific version of an app to use certain features. Make sure your Python version is up to date before trying to use this library.
+
+##### How to install python on your system, follow these steps:
+
+###### For Windows:
+
+1. **Download Installer**: Go to the [official Python website](https://www.python.org/downloads/) and download the latest installer.
+2. **Run Installer**: Run the downloaded file. Check the box for "Add Python to PATH" and click "Install Now."
+3. **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
+   ```
+   python --version
+   ```
+
+###### For macOS:
+
+1. **Use Homebrew**: Open Terminal and install Homebrew if you haven't:
+   ```
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+2. **Install Python**: Run:
+   ```
+   brew update
+   brew upgrade
+   brew install python
+   ```
+
+###### For Linux:
+
+1. **Use Package Manager**: For Ubuntu, open Terminal and run.
+   ```
+   sudo apt update
+   sudo apt install python3
+   ```
+
+#### Verification
+
+To verify the installation, type `python --version` in the terminal or command prompt. This should display the installed Python version.
 
 To check your Python version, you can open a terminal or command prompt and type:
 
