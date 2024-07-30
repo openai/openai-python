@@ -1,8 +1,6 @@
 # OpenAI Python API library
 
-![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub](https://img.shields.io/badge/GitHub-blue?logo=github&labelColor=gray) ![OpenAI](https://img.shields.io/badge/OpenAI-blue?logo=openai&logoColor=white&labelColor=gray)
-
-![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io) ![GitHub issues](https://img.shields.io/github/commit-activity/m/davidtkeane/openai-python "Commits") ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python?authorFilter=davidtkeane) ![GitHub commit activity](https://img.shields.io/github/commit-activity/w/davidtkeane/openai-python)
+![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub](https://img.shields.io/badge/GitHub-blue?logo=github&labelColor=gray) ![OpenAI](https://img.shields.io/badge/OpenAI-blue?logo=openai&logoColor=white&labelColor=gray) ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io)
 
 The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http).
 
@@ -12,8 +10,7 @@ The OpenAI documentation is like a user manual for this system. It has all the i
 
 The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's AI models in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
-<details>
-<summary><b><h2>Table of Contents</h2></b></summary>
+<details><summary><b>Table of Contents</b></summary>
 
 - [Documentation](#documentation)
 - [Installation](#installation)
@@ -35,7 +32,7 @@ The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's A
 - [Microsoft Azure OpenAI](#microsoft-azure-openai)
 - [Requirements](#requirements)
 - [Versioning](#versioning)
-- [Quick Definitions](#quick-definitions)
+- [Quick Definitions](#quick-definitions) 
 
 </details>
 
