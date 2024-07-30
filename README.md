@@ -1,6 +1,6 @@
 # OpenAI Python API library
 
-![PyPI version](https://img.shields.io/pypi/v/openai.svg) 
+![PyPI version](https://img.shields.io/pypi/v/openai.svg)
 
 ![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io) ![GitHub issues](https://img.shields.io/github/commit-activity/m/davidtkeane/openai-python "Commits")
 
