@@ -898,22 +898,61 @@ If your version is lower than 3.7, you'll need to update Python to use this libr
 
 And here's the corresponding update to the Quick Definitions list:
 
-* **[Library](#library)**: A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
-* **[API](#api)**: A set of rules that lets different software programs communicate with each other.
-* **[HTTP](#http)**: A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
-* **[HTTPS](#https)**: The secure version of HTTP. It means the data transferred is encrypted and secure.
-* **[Request](#request)**: When you ask a computer to do something or get some data.
-* **[Proxy](#proxy)**: A server that acts as an intermediary between your computer and the internet.
-* **[Streaming Responses](#streaming-responses)**: Getting parts of a response as they come in, rather than waiting for the whole response.
-* **[Asynchronous](#asynchronous)**: Doing multiple things at the same time without waiting for each task to complete one by one.
-* **[Parameters](#parameters)**: Pieces of information you provide to a function or request to control how it works.
-* **[Nested Parameters](#nested-parameters)**: Parameters that are inside other parameters, like a list inside a list.
-* **[Fine-Tuning Models](#fine-tuning-models)**: Customizing an AI model with additional training to improve its performance for specific tasks.
-* **[Error Handling](#error-handling)**: Ways to manage and respond to errors that occur in your program.
-* **[Endpoints](#endpoints)**: Specific addresses where APIs can access resources or perform actions.
-* **[AzureOpenAI](#azureopenai)**: A version of OpenAI that works with Microsoft Azure, a cloud computing service.
-* **[Python](#python)**: A popular programming language known for its simplicity and readability.
-* **[Stainless](#stainless)**: A tool used to generate this library from the OpenAPI specification.
-* **[OpenAI](#openai)**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
-* **[REST API](#rest-api)**: A type of API that uses HTTP requests to GET, PUT, POST and DELETE data.
-* **[Synchronous](#synchronous)**: Operations that are performed one at a time and must complete before moving on to the next operation.
+## Quick Definitions
+
+`<a name="library"></a>`
+**Library**: A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
+
+`<a name="api"></a>`
+**API**: A set of rules that lets different software programs communicate with each other.
+
+`<a name="http"></a>`
+**HTTP**: A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
+
+`<a name="https"></a>`
+**HTTPS**: The secure version of HTTP. It means the data transferred is encrypted and secure.
+
+`<a name="request"></a>`
+**Request**: When you ask a computer to do something or get some data.
+
+`<a name="proxy"></a>`
+**Proxy**: A server that acts as an intermediary between your computer and the internet.
+
+`<a name="streaming-responses"></a>`
+**Streaming Responses**: Getting parts of a response as they come in, rather than waiting for the whole response.
+
+`<a name="asynchronous"></a>`
+**Asynchronous**: Doing multiple things at the same time without waiting for each task to complete one by one.
+
+`<a name="parameters"></a>`
+**Parameters**: Pieces of information you provide to a function or request to control how it works.
+
+`<a name="nested-parameters"></a>`
+**Nested Parameters**: Parameters that are inside other parameters, like a list inside a list.
+
+`<a name="fine-tuning-models"></a>`
+**Fine-Tuning Models**: Customizing an AI model with additional training to improve its performance for specific tasks.
+
+`<a name="error-handling"></a>`
+**Error Handling**: Ways to manage and respond to errors that occur in your program.
+
+`<a name="endpoints"></a>`
+**Endpoints**: Specific addresses where APIs can access resources or perform actions.
+
+`<a name="azureopenai"></a>`
+**AzureOpenAI**: A version of OpenAI that works with Microsoft Azure, a cloud computing service.
+
+`<a name="python"></a>`
+**Python**: A popular programming language known for its simplicity and readability.
+
+`<a name="stainless"></a>`
+**Stainless**: A tool used to generate this library from the OpenAPI specification.
+
+`<a name="openai"></a>`
+**OpenAI**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
+
+`<a name="rest-api"></a>`
+**REST API**: A type of API that uses HTTP requests to GET, PUT, POST and DELETE data.
+
+`<a name="synchronous"></a>`
+**Synchronous**: Operations that are performed one at a time and must complete before moving on to the next operation.
