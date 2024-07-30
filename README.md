@@ -186,7 +186,9 @@ print(chat_completion.choices[0].message.content)
 > python test_openai.py
 This is a test.
 
-This is what you should see afterwards, this means that you are on the right path and connected your script to the ChatGPT Model 4o using openai and dotenv modules. Congratulations!
+This is what you should see afterwards.
+This means that you are on the right path and connected your script to the ChatGPT
+and using the GPT-4o Model using openai and dotenv modules. Congratulations!
 ```
 
 Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
