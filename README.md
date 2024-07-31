@@ -905,7 +905,6 @@ if __name__ == "__main__":
     main()
 ```
 
-
 ## Async usage
 
 Simply import `AsyncOpenAI` instead of `OpenAI` and use `await` with each API call:
@@ -1567,7 +1566,7 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
-#### 🔧 **Explanation:**
+### 🔧 **Explanation:**
 
 If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
 
@@ -1589,7 +1588,7 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-#### 🔄 **Explanation:**
+### 🔄 **Explanation:**
 
 The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
 
