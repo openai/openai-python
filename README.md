@@ -100,7 +100,7 @@ python --version
 
 If your version is lower than 3.7, you'll need to update Python to use this library. You can download the latest version of Python from the official Python website (https://www.python.org/downloads/).
 
-🚀 **Explanation:**
+##### 🚀 **Explanation:**
 
 To use this library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. To use the .env file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a  `.env` file into your environment, which is useful for keeping sensitive information like API keys out of your codebase.
 
@@ -171,7 +171,7 @@ This means that you are on the right path and connected your script to the ChatG
 and using the GPT-4o Model using openai and dotenv modules. Congratulations!
 ```
 
-#### 💡 **Explanation:**
+##### 💡 **Explanation:**
 
 Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
 
@@ -186,7 +186,7 @@ This code sets up the AI client and asks it to say "This is a test." It's like t
 
 When interacting with the API some actions such as starting a [Run](#run) and adding files to vector stores are [asynchronous](#asynchronous) and take time to complete. The SDK includes helper functions which will poll the status until it reaches a terminal state and then return the resulting object. If an API method results in an action that could benefit from polling there will be a corresponding version of the method ending in '_and_poll'.
 
-#### ⏳ **Explanation:**
+##### ⏳ **Explanation:**
 
 Some actions take time to complete, like starting a process or uploading files. Polling helpers keep checking until these actions are done. Imagine you are baking a cake and you keep checking the oven until the cake is ready. In this case, you're starting a task (like asking the AI to do some work) and then waiting until it's finished before moving on. The `create_and_poll` function does this waiting for you automatically, so you don't have to keep checking manually.
 
@@ -937,7 +937,7 @@ asyncio.run(main())
 
 Functionality between the synchronous and asynchronous clients is otherwise identical.
 
-🔄 **Explanation:**
+##### 🔄 **Explanation:**
 
 You can use the library with [asynchronous](#asynchronous) code, which lets your program do other things while waiting for the AI to respond. It's like cooking several dishes at once instead of one after the other. Here's what's happening:
 
@@ -966,7 +966,7 @@ for chunk in stream:
     print(chunk.choices[0].delta.content or "", end="")
 ```
 
-🔄 **Explanation:**
+##### 🔄 **Explanation:**
 
 Streaming responses allow you to get and process the AI's reply piece by piece, as it's being generated. It's like reading a book as it's being written, page by page, instead of waiting for the entire book to be finished. This code:
 
@@ -1566,7 +1566,7 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
-### 🔧 **Explanation:**
+#### 🔧 **Explanation:**
 
 If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
 
@@ -1588,7 +1588,7 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-### 🔄 **Explanation:**
+#### 🔄 **Explanation:**
 
 The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
 
