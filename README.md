@@ -1,14 +1,16 @@
 # OpenAI Python API library
 
-![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![OpenAI](https://img.shields.io/badge/OpenAI-blue?logo=openai&logoColor=white&labelColor=gray) ![GitHub](https://img.shields.io/badge/GitHub-blue?logo=github&labelColor=gray) ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io)
+![OpenAI](https://img.shields.io/badge/OpenAI-blue?logo=openai&logoColor=white&labelColor=gray) ![GitHub](https://img.shields.io/badge/GitHub-blue?logo=github&labelColor=gray) ![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io)
 
-The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http).
+### **Welcome to the OpenAI Python API library.** 
 
-It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
-
-The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant.
+The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
 The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's AI models in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
+
+*After reading this page you will have built your very own OpenAI ChatGPT ChatBot, while at the same time learning all the tools to help you on the road to becomming an AI Python Programmer. So, welcome again to the page and do not worry about not knowing the technical jaron used, it will also be explained a bit easier also with English that you will understand. My hope is that by having both languages here your gap in knowledge will get smaller, as technical language can be imtidating sometimes and stops us from learning. Read the technical language as it is perfect! And then read the student language to link them together.*
+
+Good luck and enjoy the journey!
 
 <details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
 
@@ -38,9 +40,26 @@ The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's A
 
 ## Documentation
 
-The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs). The full API of this** **[library](#library) can be found in** [api.md](api.md).
-
 The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant.
+
+The documentation in this README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project. 
+
+There are full instructions wrritten for the professional using techical language, and for the new student we will use the English language to explain things.
+
+The words in Blue are there to help the new students learn the technical words, and there is a "Quick Definitions" section at the end of this document to explain the technical term as this helps to understand and learn faster. 
+
+To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use. This will help you to learn and use the code right away without having to spend time looking for answers on where to add the block of code in your script. I had this problem myself when I was learning how to use OpenAI and how to use ChatGPT on my own computer using Python. At the time I didn't know what python was! Now I do. 
+
+Each topic has code blocks that can be used in projects, and I had no idea what they were and how to even use them. This is when I started to read the manual and I didn't understand anything as I am new to programming, then I thought of other people expecially those who want to learn but can't understand how to use the code, or even how to ask the question. I was like this myself. So the instruction on each topic will have the block of code on it's own, and then there will be a second script that has the code inside it and you can copy and paste the code into a python file and run the file and see the outcome right away. 
+
+As OpenAi is a chatbot that can answer so many different questions, this script by the end will be a working chatbot using OpenAI API and you an use different OpenAI models like GPT-4-TURBO, GPT-4 and GPT-4o and so many more. The script will get bigger due to having code in the script for the other code to work. 
+
+1. The chatbot will save your conversation in json and text format with timestamps in case you want to use them to train your own AI Agent.
+2. You will be able to upload your own files and chat to them by creating a vector database on OpenAI's server.
+3. The script will have an error.log to show any internal errors when the script is running.
+4. You will be able to chat with your chatbot on the terminal for as long as you want until you run out of credit!
+
+The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs). The full API of this** **[library](#library) can be found in** [api.md](api.md).
 
 ## Installation
 
@@ -1038,7 +1057,7 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
-#### 🔧 **Explanation:**
+##### 🔧 **Explanation:**
 
 This section talks about a global client, which is like having a universal remote that works for all your devices. However, just like a universal remote might not have all the special features for each specific device, using a global client isn't always the best choice for complex programs. Here's what's happening:
 
@@ -1074,7 +1093,7 @@ completion = client.chat.completions.create(
 )
 ```
 
-#### 🛠️ **Explanation:**
+##### 🛠️ **Explanation:**
 
 The library uses typed requests and responses, which means it can help you catch mistakes while you write your code. Think of it as having a spell-checker for your programming instructions. Here's what this means:
 
@@ -1105,7 +1124,7 @@ for job in client.fine_tuning.jobs.list(
 print(all_jobs)
 ```
 
-#### 🚀 **Explanation**:
+##### 🚀 **Explanation**:
 
 Imagine you're reading a really long book, but instead of giving you the whole book at once, the library gives you 20 pages at a time. This code is like a magical bookmark that automatically gets the next 20 pages for you when you finish reading the current ones. You don't have to worry about asking for the next part - it just happens! In this case, instead of pages, we're getting information about AI training jobs, 20 at a time.
 
@@ -1131,7 +1150,7 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-#### 🏃‍♂️ **Explanation**:
+##### 🏃‍♂️ **Explanation**:
 
 This is like the previous example, but it's even cooler! Imagine you're in a relay race where you can start the next runner before the current one finishes. This code does something similar - it starts getting the next batch of information while it's still processing the current one. It's a way to make things happen faster, especially when you're dealing with lots of data.
 
@@ -1163,7 +1182,7 @@ for job in first_page.data:
 # Remove `await` for non-async usage.
 ```
 
-#### **📂 Explanation:**
+##### **📂 Explanation:**
 
 This is like getting a page of a book and a bookmark that shows where the next page starts. You can look at all the information on the current page (printing each job's ID), and you also know where to start reading next (the "next page cursor"). It's a way to keep track of where you are in all the information, just like how you might use a bookmark to remember your place in a big book.
 
@@ -1197,7 +1216,7 @@ completion = client.chat.completions.create(
 )
 ```
 
-#### 🔄 **Explanation:**
+##### 🔄 **Explanation:**
 
 Nested parameters allow you to organize complex information in a structured way, like having folders inside folders on your computer. Here's what's happening in this code:
 
@@ -1225,7 +1244,7 @@ client.files.create(
 )
 ```
 
-#### 🔧 **Explanation:**
+##### 🔧 **Explanation:**
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
@@ -1282,7 +1301,7 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
-#### ⚠️ **Explanation:**
+##### ⚠️ **Explanation:**
 
 The library provides error handling for different types of errors that can occur while interacting with the API. It's like having a plan for what to do if something goes wrong while you're working on a project. Here's what's happening:
 
@@ -1368,7 +1387,7 @@ On timeout, an `APITimeoutError` is thrown.
 
 Note that requests that time out are [retried twice by default](#retries).
 
-#### ⏲️ **Explanation:**
+##### ⏲️ **Explanation:**
 
 You can set how long to wait for a response before timing out. It's like setting a timer for how long you'll wait for a friend before leaving. Here's what's happening:
 
@@ -1390,7 +1409,7 @@ You can enable logging by setting the environment variable `OPENAI_LOG` to `debu
 $ export OPENAI_LOG=debug
 ```
 
-#### 📜 **Explanation:**
+##### 📜 **Explanation:**
 
 Logging helps you see what's happening behind the scenes in your application. It's like having a detective's notebook that records everything that happens. By setting the `OPENAI_LOG` environment variable to `debug`, you're telling the library to write detailed information about its operations, which can be very helpful for troubleshooting problems.
 
@@ -1427,7 +1446,7 @@ completion = response.parse()  # get the object that `chat.completions.create()`
 print(completion)
 ```
 
-#### 🔧 **Explanation:**
+##### 🔧 **Explanation:**
 
 These methods return an [`LegacyAPIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_legacy_response.py) object. This is a legacy class as we're changing it slightly in the next major version.
 
@@ -1566,7 +1585,7 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
-#### 🔧 **Explanation:**
+##### 🔧 **Explanation:**
 
 If you are using OpenAI through Microsoft Azure, you need to use the AzureOpenAI class. It's like using a different key to unlock the same door. Here's what's happening:
 
@@ -1588,7 +1607,7 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-#### 🔄 **Explanation:**
+##### 🔄 **Explanation:**
 
 The library follows versioning rules to ensure backward compatibility. It's like updating an app on your phone to get new features without breaking the old ones. The developers try to make sure that when they release new versions:
 
