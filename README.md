@@ -642,3 +642,31 @@ We are keen for your feedback; please open an [issue](https://www.github.com/ope
 ## Requirements
 
 Python 3.7 or higher.
+
+## Activating CLI Autocomplete
+
+### Using CLI Autocomplete (Temporary)
+Using the following sequence of commands for each shell will temporarily activate autocompletion for the CLI. However, when the terminal is restarted or closed, the autocompletion commands will need to be run again to reactivate it.
+
+#### Bash
+1. Install openai if not installed yet.
+```shell
+pip install openai
+```
+
+2. Configure your shell to support global auto completion for python scripts by running:
+```shell
+activate-global-python-argcomplete
+```
+
+3. Restart your terminal
+
+4. Register ‘openai’ command for argument completion by running:
+```shell
+eval "$(register-python-argcomplete openai)"
+```
+
+5. Try on CLI
+```shell
+openai <TAB>
+```
