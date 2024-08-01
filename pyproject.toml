@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.37.1"
+version = "1.37.2"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
