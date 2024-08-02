@@ -1,8 +1,28 @@
 # Welcome to the OpenAI Python API library.
 
 &nbsp;
-
-[![OpenAI Python API Library](https://img.shields.io/badge/OpenAI-Python-blue?logo=openai&logoColor=white&labelColor=gray)](https://github.com/openai/openai-python) ![PyPI version](https://img.shields.io/pypi/v/openai.svg) [![GitHub issues](https://img.shields.io/github/issues/openai/openai-python?color=blue)](https://github.com/openai/openai-python/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/openai/openai-python?color=blue)](https://github.com/openai/openai-python/pulls) [![GitHub Discussions](https://img.shields.io/github/discussions/openai/openai-python?color=blue)](https://github.com/openai/openai-python/discussions) [![GitHub stars](https://img.shields.io/github/stars/openai/openai-python?color=blue)](https://github.com/openai/openai-python/stargazers) [![GitHub forks](https://img.shields.io/github/forks/openai/openai-python?color=blue)](https://github.com/openai/openai-python/network/members)
+<div align="center">
+  <a href="https://github.com/openai/openai-python">
+    <img src="https://img.shields.io/badge/OpenAI-Python-blue?logo=openai&logoColor=white&labelColor=gray" alt="OpenAI Python API Library">
+  </a>
+  <img src="https://img.shields.io/pypi/v/openai.svg" alt="PyPI version">
+  <a href="https://github.com/openai/openai-python/issues">
+    <img src="https://img.shields.io/github/issues/openai/openai-python?color=blue" alt="GitHub issues">
+  </a>
+  <a href="https://github.com/openai/openai-python/pulls">
+    <img src="https://img.shields.io/github/issues-pr/openai/openai-python?color=blue" alt="GitHub pull requests">
+  </a>
+  <a href="https://github.com/openai/openai-python/discussions">
+    <img src="https://img.shields.io/github/discussions/openai/openai-python?color=blue" alt="GitHub Discussions">
+  </a>
+  <a href="https://github.com/openai/openai-python/stargazers">
+    <img src="https://img.shields.io/github/stars/openai/openai-python?color=blue" alt="GitHub stars">
+  </a>
+  <a href="https://github.com/openai/openai-python/network/members">
+    <img src="https://img.shields.io/github/forks/openai/openai-python?color=blue" alt="GitHub forks">
+  </a>
+</div>
+<br>
 
 The [OpenAI](#openai) Python [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any [Python](#python) 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
