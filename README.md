@@ -4,7 +4,7 @@
 
 [![OpenAI Python API Library](https://img.shields.io/badge/OpenAI-Python-blue?logo=openai&logoColor=white&labelColor=gray)](https://github.com/openai/openai-python) ![PyPI version](https://img.shields.io/pypi/v/openai.svg) [![GitHub issues](https://img.shields.io/github/issues/openai/openai-python?color=blue)](https://github.com/openai/openai-python/issues) [![GitHub pull requests](https://img.shields.io/github/issues-pr/openai/openai-python?color=blue)](https://github.com/openai/openai-python/pulls) [![GitHub Discussions](https://img.shields.io/github/discussions/openai/openai-python?color=blue)](https://github.com/openai/openai-python/discussions) [![GitHub stars](https://img.shields.io/github/stars/openai/openai-python?color=blue)](https://github.com/openai/openai-python/stargazers) [![GitHub forks](https://img.shields.io/github/forks/openai/openai-python?color=blue)](https://github.com/openai/openai-python/network/members)
 
-The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+The [OpenAI](#openai) Python [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any [Python](#python) 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
 The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
@@ -12,7 +12,7 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
   <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="800" height="500">
 </p>
 
-*After reading this page you will have built your very own OpenAI ChatGPT ChatBot, while at the same time learning all the tools to help you on the road to becomming an AI Python Programmer. So, welcome again to the page and do not worry about not knowing the technical jaron used, it will also be explained a bit easier also with English that you will understand. My hope is that by having both languages here your gap in knowledge will get smaller, as technical language can be imtidating sometimes and stops us from learning. Read the technical language as it is perfect! And then read the student language to link them together.*
+*After reading this page you will have built your very own OpenAI ChatGPT ChatBot, while at the same time learning all the tools to help you on the road to becoming an AI Python Programmer. So, welcome again to the page and do not worry about not knowing the technical jargon used, it will also be explained a bit easier also with English that you will understand. My hope is that by having both languages here your gap in knowledge will get smaller, as technical language can be imitating sometimes and stops us from learning. Read the technical language as it is perfect! And then read the student language to link them together.*
 
 Good luck and enjoy the journey!
 
@@ -46,9 +46,9 @@ Good luck and enjoy the journey!
 
 The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant. The README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project.
 
-The words in Blue are there to help the new students learn the technical words, and there is a "Quick Definitions" section at the end of this document to explain the technical term as this helps to understand and learn faster. To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use.
+The words in Blue are there to help the new students learn the technical words, and there is a [Quick Definitions](#quick-definitions) section at the end of this document to explain the technical term as this helps to understand and learn faster. To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use.
 
-Each topic has code blocks that can be used in projects
+Each topic has [code blocks](#code_blocks) that can be used in projects
 
 As OpenAi is a chatbot that can answer so many different questions, this script by the end will be a working chatbot using OpenAI API and you an use different [OpenAI Models](#OpenAI_Models) like GPT-4-TURBO, GPT-4 and GPT-4o and so many more. The script will get bigger due to having code in the script for the other code to work.
 
