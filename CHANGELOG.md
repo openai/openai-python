@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.38.0 (2024-08-02)
+
+Full Changelog: [v1.37.2...v1.38.0](https://github.com/openai/openai-python/compare/v1.37.2...v1.38.0)
+
+### Features
+
+* extract out `ImageModel`, `AudioModel`, `SpeechModel` ([#1586](https://github.com/openai/openai-python/issues/1586)) ([b800316](https://github.com/openai/openai-python/commit/b800316aee6c8b2aeb609ca4c41972adccd2fa7a))
+* make enums not nominal ([#1588](https://github.com/openai/openai-python/issues/1588)) ([ab4519b](https://github.com/openai/openai-python/commit/ab4519bc45f5512c8c5165641c217385d999809c))
+
 ## 1.37.2 (2024-08-01)
 
 Full Changelog: [v1.37.1...v1.37.2](https://github.com/openai/openai-python/compare/v1.37.1...v1.37.2)
