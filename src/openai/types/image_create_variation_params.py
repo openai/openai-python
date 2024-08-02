@@ -6,6 +6,7 @@ from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes
+from .image_model import ImageModel
 
 __all__ = ["ImageCreateVariationParams"]
 
@@ -17,7 +18,7 @@ class ImageCreateVariationParams(TypedDict, total=False):
     Must be a valid PNG file, less than 4MB, and square.
     """
 
-    model: Union[str, Literal["dall-e-2"], None]
+    model: Union[str, ImageModel, None]
     """The model to use for image generation.
 
     Only `dall-e-2` is supported at this time.
