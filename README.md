@@ -661,11 +661,6 @@ activate-global-python-argcomplete
 
 4. Register ‘openai’ command for argument completion by running:
 ```shell
-eval "$(register-python-argcomplete openai)"
-```
-
-Alternatively, run this command to enable argcomplete persistently, eliminating the need to run the eval command every time the terminal is restarted or reloaded. Restart your terminal after using this command.
-```shell
 register-python-argcomplete openai >> ~/.bashrc
 ```
 
