@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .image_model import ImageModel
+
 __all__ = ["ImageGenerateParams"]
 
 
@@ -16,7 +18,7 @@ class ImageGenerateParams(TypedDict, total=False):
     `dall-e-3`.
     """
 
-    model: Union[str, Literal["dall-e-2", "dall-e-3"], None]
+    model: Union[str, ImageModel, None]
     """The model to use for image generation."""
 
     n: Optional[int]
