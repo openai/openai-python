@@ -1,12 +1,17 @@
-# OpenAI Python API library
 
-![OpenAI](https://img.shields.io/badge/OpenAI-blue?logo=openai&logoColor=white&labelColor=gray) ![GitHub](https://img.shields.io/badge/GitHub-blue?logo=github&labelColor=gray) ![PyPI version](https://img.shields.io/pypi/v/openai.svg) ![GitHub contributors](https://img.shields.io/github/contributors/openai/openai-python?color=blue) ![GitHub last commit](https://img.shields.io/github/last-commit/davidtkeane/openai-python?style=flat&color=blue&link=https%3A%2F%2Fshields.io)
 
-### **Welcome to the OpenAI Python API library.** 
+# Welcome to the OpenAI Python API library.
+&nbsp;
 
 The [OpenAI](#openai) [Python](#python) [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any Python 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#http). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
 The OpenAI Python library is like a toolbox that makes it easy to use OpenAI's AI models in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
+
+
+<p align="center">
+  <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="800" height="500">
+</p>
+
 
 *After reading this page you will have built your very own OpenAI ChatGPT ChatBot, while at the same time learning all the tools to help you on the road to becomming an AI Python Programmer. So, welcome again to the page and do not worry about not knowing the technical jaron used, it will also be explained a bit easier also with English that you will understand. My hope is that by having both languages here your gap in knowledge will get smaller, as technical language can be imtidating sometimes and stops us from learning. Read the technical language as it is perfect! And then read the student language to link them together.*
 
@@ -42,17 +47,17 @@ Good luck and enjoy the journey!
 
 The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant.
 
-The documentation in this README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project. 
+The documentation in this README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project.
 
 There are full instructions wrritten for the professional using techical language, and for the new student we will use the English language to explain things.
 
-The words in Blue are there to help the new students learn the technical words, and there is a "Quick Definitions" section at the end of this document to explain the technical term as this helps to understand and learn faster. 
+The words in Blue are there to help the new students learn the technical words, and there is a "Quick Definitions" section at the end of this document to explain the technical term as this helps to understand and learn faster.
 
-To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use. This will help you to learn and use the code right away without having to spend time looking for answers on where to add the block of code in your script. I had this problem myself when I was learning how to use OpenAI and how to use ChatGPT on my own computer using Python. At the time I didn't know what python was! Now I do. 
+To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use. This will help you to learn and use the code right away without having to spend time looking for answers on where to add the block of code in your script. I had this problem myself when I was learning how to use OpenAI and how to use ChatGPT on my own computer using Python. At the time I didn't know what python was! Now I do.
 
-Each topic has code blocks that can be used in projects, and I had no idea what they were and how to even use them. This is when I started to read the manual and I didn't understand anything as I am new to programming, then I thought of other people expecially those who want to learn but can't understand how to use the code, or even how to ask the question. I was like this myself. So the instruction on each topic will have the block of code on it's own, and then there will be a second script that has the code inside it and you can copy and paste the code into a python file and run the file and see the outcome right away. 
+Each topic has code blocks that can be used in projects, and I had no idea what they were and how to even use them. This is when I started to read the manual and I didn't understand anything as I am new to programming, then I thought of other people expecially those who want to learn but can't understand how to use the code, or even how to ask the question. I was like this myself. So the instruction on each topic will have the block of code on it's own, and then there will be a second script that has the code inside it and you can copy and paste the code into a python file and run the file and see the outcome right away.
 
-As OpenAi is a chatbot that can answer so many different questions, this script by the end will be a working chatbot using OpenAI API and you an use different OpenAI models like GPT-4-TURBO, GPT-4 and GPT-4o and so many more. The script will get bigger due to having code in the script for the other code to work. 
+As OpenAi is a chatbot that can answer so many different questions, this script by the end will be a working chatbot using OpenAI API and you an use different OpenAI models like GPT-4-TURBO, GPT-4 and GPT-4o and so many more. The script will get bigger due to having code in the script for the other code to work.
 
 1. The chatbot will save your conversation in json and text format with timestamps in case you want to use them to train your own AI Agent.
 2. You will be able to upload your own files and chat to them by creating a vector database on OpenAI's server.
@@ -62,6 +67,10 @@ As OpenAi is a chatbot that can answer so many different questions, this script 
 The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs). The full API of this** **[library](#library) can be found in** [api.md](api.md).
 
 ## Installation
+
+<p align="center">
+  <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="500" height="300">
+</p>
 
 > [!IMPORTANT]
 >
@@ -247,6 +256,7 @@ run = client.beta.threads.runs.create_and_poll(
 5. ```
    python chat.py
    ```
+<details><summary style="font-size: 1.5em; font-weight: bold;">Chat.Py</summary
 
 ```python
 # Import the required libraries
@@ -320,9 +330,9 @@ def main():
         chat_gpt4(query)
     else:
         # Start the conversation
-        print(f"{bot_name}: How can I help?")
+        print(f"{bot_name}: How can I help?") 
 
-    while True:
+    while True: # Keep the conversation going until the user decides to exit
         query = input(f"{user_name}: ")
         if query.lower() in ["exit", "quit"]:
             break
@@ -335,12 +345,13 @@ if __name__ == "__main__":
     main()
 
 ```
+</details>
+
+![1722366404314](images/README/1722366404314.png)
 
 1. This is the return response from using the command `python chat.py`
-2. I am using p (This is an aliases I created to save time typing python everytime. aliases p="python ")
+2. I am using p (This is an aliases I created to save time typing python every time. aliases p="python ")
 3. This code will create the Thread ID, Run ID and Assistant ID.
-
-![1722366404314](image/README/1722366404314.png)
 
 #### Bulk Upload Helpers
 
@@ -625,7 +636,7 @@ if __name__ == "__main__":
 1. After running the file you should get something like this below. Again (p is my aliases for the word python).
 2. When Jervis asks 'How can I help?" You can either ask a question or type upload and it will ask you for the files location. I usually right click on a file and click the copy path and use that (I am using a Macbook Pro M3).
 
-![1722374227549](image/README/1722374227549.png)
+![1722374227549](images/README/1722374227549.png)
 
 To ask questions about a file you've uploaded, you need to ensure that the file is part of a vector store that the assistant can query. The vector store is a conceptual database where the content of your files is indexed and can be searched. Here's how you can modify the script to handle file uploads, create a vector store, and allow you to ask questions about the uploaded files:
 
