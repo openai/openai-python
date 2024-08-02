@@ -645,9 +645,8 @@ Python 3.7 or higher.
 
 ## Activating CLI Autocomplete
 
-### Using CLI Autocomplete (Temporary)
-Using the following sequence of commands for each shell will temporarily activate autocompletion for the CLI. However, when the terminal is restarted or closed, the autocompletion commands will need to be run again to reactivate it.
-
+### Using CLI Autocomplete
+Using the following sequence of commands for each shell will activate the autocompletion feature for the CLI. 
 #### Bash
 1. Install openai if not installed yet.
 ```shell
@@ -658,7 +657,6 @@ pip install openai
 ```shell
 activate-global-python-argcomplete
 ```
-
 3. Restart your terminal
 
 4. Register ‘openai’ command for argument completion by running:
@@ -666,7 +664,32 @@ activate-global-python-argcomplete
 eval "$(register-python-argcomplete openai)"
 ```
 
+Alternatively, run this command to enable argcomplete persistently, eliminating the need to run the eval command every time the terminal is restarted or reloaded. Restart your terminal after using this command.
+```shell
+register-python-argcomplete openai >> ~/.bashrc
+```
+
 5. Try on CLI
+```shell
+openai <TAB>
+```
+
+#### Powershell
+1. Install openai if not installed already.
+```shell
+pip install openai
+```
+2. Create new completion file: 
+```shell
+register-python-argcomplete --shell powershell openai > ~/openai.psm1
+```
+
+3. Open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
+```shell
+Import-Module  "~/openai.psm1"
+```
+
+4. Restart the terminal and try:
 ```shell
 openai <TAB>
 ```
