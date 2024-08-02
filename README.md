@@ -24,7 +24,7 @@
 </div>
 <br>
 
-The [OpenAI](#openai) Python [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any [Python](#python) 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](#https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+The [OpenAI](#openai) Python [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any [Python](#python) 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
 The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
@@ -32,9 +32,10 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
   <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="800" height="500">
 </p>
 
-*After reading this page you will have built your very own OpenAI ChatGPT ChatBot, while at the same time learning all the tools to help you on the road to becoming an AI Python Programmer. So, welcome again to the page and do not worry about not knowing the technical jargon used, it will also be explained a bit easier also with English that you will understand. My hope is that by having both languages here your gap in knowledge will get smaller, as technical language can be imitating sometimes and stops us from learning. Read the technical language as it is perfect! And then read the student language to link them together.*
+**Good luck and enjoy the journey!**
 
-Good luck and enjoy the journey!
+## Documentation
+
 
 <details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
 
@@ -62,22 +63,50 @@ Good luck and enjoy the journey!
 
 </details>
 
-## Documentation
+## Github Documentation
 
-The OpenAI documentation is like a user manual for this system. It has all the instructions and information you need to use OpenAI's AI models in your Python programs. Think of it as a detailed guide that shows you how to communicate with your smart robot assistant. The README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project.
+The [Github OpenAI](https://github.com/openai) documentation is a user manual. It has all the instructions and information you need to use OpenAI's AI models in a Python script. Think of this as a detailed guide that shows you how to communicate with your smart robot assistant. This README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project.
 
-The words in Blue are there to help the new students learn the technical words, and there is a [Quick Definitions](#quick-definitions) section at the end of this document to explain the technical term as this helps to understand and learn faster. To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use.
+The words in [Blue](#Blue) are there to help the new students learn the technical words, and there is a [Quick Definitions](#quick-definitions) section at the end of this document to explain the technical term as this helps to understand and learn faster. To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use.
 
-Each topic has [code blocks](#code_blocks) that can be used in projects
+### OpenAi Documentation
 
-As OpenAi is a chatbot that can answer so many different questions, this script by the end will be a working chatbot using OpenAI API and you an use different [OpenAI Models](#OpenAI_Models) like GPT-4-TURBO, GPT-4 and GPT-4o and so many more. The script will get bigger due to having code in the script for the other code to work.
+- [API Reference Introduction](https://platform.openai.com/docs/api-reference)
 
-1. The chatbot will save your conversation in [json](#json) and text format with timestamps in case you want to use them to train your own AI Agent.
-2. You will be able to upload your own files and chat to them by creating a [vector database](#vector_database) on OpenAI's server.
-3. The script will have an error.log to show any internal errors when the script is running.
-4. You will be able to chat with your chatbot on the terminal for as long as you want until you run out of credit!
+**Alternatively** The [QuickStart](https://platform.openai.com/docs/quickstart) guide is a quick and easy way to get started with OpenAI's AI models in your Python programs. It provides step-by-step instructions on how to set up your development environment, send your first API request, and use the OpenAI API to generate text, images, and more. This guide is perfect for developers and programmers who want to quickly get started with OpenAI's AI models in their Python programs.
 
-The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs). The full API of this** **[library](#library) can be found in** [api.md](api.md).
+The QuickStart [Guide for Developers and Programmers](https://platform.openai.com/docs/quickstart).
+
+There is more information available in the [OpenAI Documentation](https://platform.openai.com/docs/overview) that provides a comprehensive overview of OpenAI's AI models and how to use them in your Python programs. This documentation includes detailed information on the different AI models available, how to set up your development environment, and how to use the OpenAI API to generate text, images, and more.
+
+The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](#https://platform.openai.com/docs/api-reference/introduction). The full set of API's used from the** **[library](#library) can be found in** [api.md](#https://github.com/openai/openai-python/blob/main/api.md). The OpenAI Python client is a tool that allows you to use artificial intelligence (AI) in your Python programs. It's like a bridge between your code and the powerful AI models created by OpenAI.
+
+<details>
+<summary style="font-size: 1.5em; font-weight: bold;">More OpenAI API Tools</summary> 
+
+[Full documentation for all the API's available are at api.md](#https://github.com/openai/openai-python/blob/main/api.md)
+
+### What Can You Do with It?
+
+With the OpenAI Python client, you can create all sorts of cool things! Here are some examples:
+
+#### Text Generation
+You can use the client to generate human-like text, such as stories, articles, or even code! Imagine writing a short story and having the AI help you finish it.
+
+#### Chatbots
+Create chatbots that can have conversations with people. These chatbots can be used for customer service, entertainment, or even as virtual friends!
+
+#### Image Generation
+The client can generate images based on text descriptions. For example, ask it to create an image of a cute puppy playing with a ball, and it will generate one for you!
+
+#### Audio Processing
+Transcribe audio recordings into text. This is useful for creating subtitles for videos or transcripts of interviews.
+
+#### Moderation
+The client can help moderate content, such as comments on a website or messages in a chat app. It can detect things like profanity, hate speech, or explicit content.
+
+</details>
+&nbsp;
 
 ## Installation
 
@@ -89,7 +118,42 @@ The **[REST API](#rest-api) documentation can be found on** **[platform.openai.c
 >
 > The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.
 
-#### **How to install python on your computer, follow these steps:**
+<details>
+<summary style="font-size: 1.5em; font-weight: bold;">What is an SDK?</summary>
+Sure! Imagine you have a favorite app on your phone that just got a big update. This message is kind of like a heads-up about a major update to a piece of software that developers use to talk to OpenAI's AI models. Let's break it down step by step:
+
+### What is an SDK?
+
+An SDK (Software Development Kit) is like a toolkit for developers. It has all the tools and pieces they need to build software that can talk to other software, like OpenAI's AI models. Think of it like a set of LEGO pieces and instructions to build something cool.
+
+### What Happened?
+
+1. **Rewritten SDK in v1**: The toolkit (SDK) got a major overhaul or rewrite. This means they changed a lot of things in how it works. This big change was released on November 6th, 2023, and they call this new version "v1" (version 1).
+   
+2. **Why is this Important?** If developers were using the old version of the toolkit, they need to know that things have changed. The way they wrote their code to talk to the AI might not work the same way anymore. They need to update their code to match the new toolkit.
+
+### What Should You Do?
+
+- **Check the v1 Migration Guide**: There is a special guide called the "v1 migration guide." It’s like a how-to manual that helps you move your old stuff (code) to work with the new version of the toolkit.
+- **Location of the Guide**: You can find this guide at this link: [v1 migration guide](https://github.com/openai/openai-python/discussions/742). This link takes you to a place where they explain all the changes and even give you scripts (small programs) to help you automatically update your code.
+
+### Why Scripts?
+
+Scripts are like little helpers that can automatically do tasks for you. Instead of you manually changing every piece of your code to work with the new toolkit, these scripts do it for you quickly and correctly.
+
+### Summary
+
+So, to sum it up:
+- The toolkit (SDK) got a big update on November 6th, 2023.
+- If you're using the old version, you need to update your code.
+- There's a guide with instructions and helpful scripts to make this update easier.
+- You can find all this information in the migration guide at the given link.
+
+</details>
+
+### **How to install python on your computer, follow these steps:**
+
+Python can be install on 🖥️
 
 [![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)[![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
 
@@ -101,15 +165,16 @@ The basic requirements to use Openai is that you are using Python 3.7 version or
 
 1. **Download Installer**: Go to the [official Python website](https://www.python.org/downloads/) and download the latest installer like Python 3.11.
 2. **Run Installer**: Run the downloaded file. **NOTICE** !!! Check the box for "Add Python to PATH" and click "Install Now."
+    <i>"Add Python to PATH" is a setting that tells your computer to remember where Python is located, so you can use it from anywhere.</i>
 3. **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
-4. Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.
+    <i>Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.</i>
 5. ```
    python --version
    ```
 
 ##### For macOS:
 
-1. **Use Homebrew**: Open Terminal and install Homebrew if you haven't:
+1. **Use Homebrew**: Open Terminal and install [Homebrew](#Homebrew) if you haven't:
    ```
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
