@@ -639,57 +639,50 @@ We take backwards-compatibility seriously and work hard to ensure you can rely o
 
 We are keen for your feedback; please open an [issue](https://www.github.com/openai/openai-python/issues) with questions, bugs, or suggestions.
 
-## Requirements
-
-Python 3.7 or higher.
-
 ## Activating CLI Autocomplete
 
 ### Using CLI Autocomplete
 Using the following sequence of commands for each shell will activate the autocompletion feature for the CLI. 
 #### Bash
-1. Install openai if not installed yet.
-```shell
-pip install openai
-```
-
-2. Configure your shell to support global auto completion for python scripts by running:
-```shell
-activate-global-python-argcomplete
-```
-3. Restart your terminal
-
-4. Register ‘openai’ command for argument completion by running:
+1. Register ‘openai’ command for argument completion by running:
 ```shell
 register-python-argcomplete openai >> ~/.bashrc
 ```
 
-5. Try on CLI
+#### Zsh
+1. Register ‘openai’ command for argument completion by running:
 ```shell
-openai <TAB>
+register-python-argcomplete openai >> ~/.zshrc
+```
+
+#### Fish
+1. Register ‘openai’ command for argument completion by running:
+```shell
+register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
 ```
 
 #### Powershell
-1. Install openai if not installed already.
-```shell
-pip install openai
-```
-2. Create new completion file: 
+1. Create new completion file: 
 ```shell
 register-python-argcomplete --shell powershell openai > ~/openai.psm1
 ```
 
-3. If you don't already have a ``$PROFILE`` you can add this by running: 
+2. If you don't already have a ``$PROFILE`` you can add this by running: 
 ```shell
 New-Item -ItemType File -Path $PROFILE -Force
 ```
 
-4. Open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
+3. Open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
 ```shell
 Import-Module  "~/openai.psm1"
 ```
 
-5. Restart the terminal and try:
+#### Usage
+After completing the appropriate steps for your shell, restart the terminal and try:
 ```shell
 openai <TAB>
 ```
+
+## Requirements
+
+Python 3.7 or higher.
