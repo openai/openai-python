@@ -23,6 +23,7 @@ from ..._response import (
 )
 from ...types.audio import speech_create_params
 from ..._base_client import make_request_options
+from ...types.audio.speech_model import SpeechModel
 
 __all__ = ["Speech", "AsyncSpeech"]
 
@@ -40,7 +41,7 @@ class Speech(SyncAPIResource):
         self,
         *,
         input: str,
-        model: Union[str, Literal["tts-1", "tts-1-hd"]],
+        model: Union[str, SpeechModel],
         voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
@@ -113,7 +114,7 @@ class AsyncSpeech(AsyncAPIResource):
         self,
         *,
         input: str,
-        model: Union[str, Literal["tts-1", "tts-1-hd"]],
+        model: Union[str, SpeechModel],
         voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
