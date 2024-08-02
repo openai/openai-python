@@ -92,7 +92,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import Image, ImagesResponse
+from openai.types import Image, ImageModel, ImagesResponse
 ```
 
 Methods:
@@ -102,6 +102,12 @@ Methods:
 - <code title="post /images/generations">client.images.<a href="./src/openai/resources/images.py">generate</a>(\*\*<a href="src/openai/types/image_generate_params.py">params</a>) -> <a href="./src/openai/types/images_response.py">ImagesResponse</a></code>
 
 # Audio
+
+Types:
+
+```python
+from openai.types import AudioModel
+```
 
 ## Transcriptions
 
@@ -129,6 +135,12 @@ Methods:
 
 ## Speech
 
+Types:
+
+```python
+from openai.types.audio import SpeechModel
+```
+
 Methods:
 
 - <code title="post /audio/speech">client.audio.speech.<a href="./src/openai/resources/audio/speech.py">create</a>(\*\*<a href="src/openai/types/audio/speech_create_params.py">params</a>) -> HttpxBinaryResponseContent</code>
@@ -138,7 +150,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import Moderation, ModerationCreateResponse
+from openai.types import Moderation, ModerationModel, ModerationCreateResponse
 ```
 
 Methods:
