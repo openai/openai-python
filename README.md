@@ -684,12 +684,17 @@ pip install openai
 register-python-argcomplete --shell powershell openai > ~/openai.psm1
 ```
 
-3. Open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
+3. If you don't already have a ``$PROFILE`` you can add this by running: 
+```shell
+New-Item -ItemType File -Path $PROFILE -Force
+```
+
+4. Open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
 ```shell
 Import-Module  "~/openai.psm1"
 ```
 
-4. Restart the terminal and try:
+5. Restart the terminal and try:
 ```shell
 openai <TAB>
 ```
