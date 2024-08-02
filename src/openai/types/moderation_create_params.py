@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from typing import List, Union
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Required, TypedDict
+
+from .moderation_model import ModerationModel
 
 __all__ = ["ModerationCreateParams"]
 
@@ -12,7 +14,7 @@ class ModerationCreateParams(TypedDict, total=False):
     input: Required[Union[str, List[str]]]
     """The input text to classify"""
 
-    model: Union[str, Literal["text-moderation-latest", "text-moderation-stable"]]
+    model: Union[str, ModerationModel]
     """
     Two content moderations models are available: `text-moderation-stable` and
     `text-moderation-latest`.

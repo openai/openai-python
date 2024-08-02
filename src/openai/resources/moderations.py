@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import List, Union
-from typing_extensions import Literal
 
 import httpx
 
@@ -17,9 +16,8 @@ from .._utils import (
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .._base_client import (
-    make_request_options,
-)
+from .._base_client import make_request_options
+from ..types.moderation_model import ModerationModel
 from ..types.moderation_create_response import ModerationCreateResponse
 
 __all__ = ["Moderations", "AsyncModerations"]
@@ -38,7 +36,7 @@ class Moderations(SyncAPIResource):
         self,
         *,
         input: Union[str, List[str]],
-        model: Union[str, Literal["text-moderation-latest", "text-moderation-stable"]] | NotGiven = NOT_GIVEN,
+        model: Union[str, ModerationModel] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -98,7 +96,7 @@ class AsyncModerations(AsyncAPIResource):
         self,
         *,
         input: Union[str, List[str]],
-        model: Union[str, Literal["text-moderation-latest", "text-moderation-stable"]] | NotGiven = NOT_GIVEN,
+        model: Union[str, ModerationModel] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
