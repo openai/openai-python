@@ -386,7 +386,7 @@ run = client.beta.threads.runs.create_and_poll(
           assistant_id=assistant_id,
       )
 
-      print(f"Run ID: {run.id}")            #  Print the run ID
+      print(f"Run ID: {run.id}")            # Print the run ID
       print(f"Status: {run.status}")        # Print the run status
 
       messages = client.beta.threads.messages.list( # Retrieve the messages added by the assistant to the thread
@@ -425,7 +425,7 @@ run = client.beta.threads.runs.create_and_poll(
 ![1722366404314](images/README/1722366404314.png)
 
 1. This is the return response from using the command `python chat.py`
-2. I am using 'p'. This is an aliases I created to save time typing python every time, add this to the .bashrc or .zshrc alises file wihtout the brackers (aliases p="python ")
+2. I am using 'p'. This is an aliases I created to save time typing python every time, add this to the .bashrc or .zshrc aliases file without the brackets (aliases p="python ")
 3. This code will create the Thread ID, Run ID and Assistant ID.
 
 ### Bulk Upload Helpers
@@ -433,13 +433,18 @@ run = client.beta.threads.runs.create_and_poll(
 You can upload your documents and the script will be able to answer questions on the documents you uploaded.
 
 When creating and interacting with vector stores, you can use polling helpers to monitor the status of operations.
+
 For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
 
 For more information about what kind of files can be uploaded and more code, please go to [https://platform.openai.com/docs/assistants/tools/file-search](https://platform.openai.com/docs/assistants/tools/file-search)
 
 #### 📤 **Explanation:**
 
-You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
+You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. 
+
+In programming terms, you're sending multiple files to the AI system at the same time, which can save a lot of time compared to uploading them one by one. 
+
+The `upload_and_poll` function takes care of sending all the files and waiting until they're all properly received and processed.
 
 ```python
 sample_files = [Path("sample-paper.pdf"), ...]
@@ -452,14 +457,27 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
 
 #### For convenience,
 
-1. I have expanded the first script and added each new option into the same script so you can see where the code is being used.
-   a. I have added the ability to save the conversations to a .txt file and .json files, in case at a later stage you wish to train your own model using your own chat files.
-   b. I added temperature, max_tokens and other settings to help get the best assistant as possible.
-   c. The script has file upload and multiple file upload, and make a vector store to break up the files into chunks to be able to understand them better.
-   d. I Added the option to create and poll a run within a thread using the OpenAI API (Thread_ID and Assistant_ID)
-2. Create a file called chat.py, or use a different name if you have saved each script as we go along (This might be better).
-3. If you can copy both thread_id and assistant_id from the last run of chat.py and enter them into the .env file below OPENAI_API_KEY
+1. **Script Expansion and Options**:  
+   I have expanded the first script and added each new option into the same script so you can see where the code is being used.
+   - **Saving Conversations**:  
+     I have added the ability to save the conversations to `.txt` and `.json` files, in case at a later stage you wish to train your own model using your own chat files.
+   - **Enhanced Settings**:  
+     I added options for temperature, max_tokens, and other settings to help get the best assistant possible.
+   - **File Upload and Vector Store**:  
+     The script has file upload and multiple file uploads, and it can create a vector store to break up the files into chunks for better understanding.
+   - **Run Creation and Polling**:  
+     I added the option to create and poll a run within a thread using the OpenAI API (Thread_ID and Assistant_ID).
 
+2. **Create a New File**:  
+   Create a file called `chat.py`, or use a different name if you have saved each script separately as we go along (This might be better).
+
+3. **Updating .env File**:  
+   Copy both `thread_id` and `assistant_id` from the last run of `chat.py` and enter them into the `.env` file below `OPENAI_API_KEY`.
+   
+   - **OpenAI API Key**:
+   - **Thread ID**:
+   - **Assistant ID**:
+   
    ```
    OPENAI_API_KEY=sk-maybeishoulduseperplexity
    THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
