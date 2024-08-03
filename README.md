@@ -1730,24 +1730,23 @@ If your version is lower than 3.7, you'll need to update Python to use this libr
 
 And here's the corresponding update to the Quick Definitions list:
 
-* **[Library](#library)**: A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
-* **[API](#api)**: A set of rules that lets different software programs communicate with each other.
-* **[HTTP](#http)**: A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
-* **[HTTPS](#https)**: The secure version of HTTP. It means the data transferred is encrypted and secure.
-* **[Request](#request)**: When you ask a computer to do something or get some data.
-* **[Proxy](#proxy)**: A server that acts as an intermediary between your computer and the internet.
-* **[Streaming Responses](#streaming-responses)**: Getting parts of a response as they come in, rather than waiting for the whole response.
-* **[Asynchronous](#asynchronous)**: Doing multiple things at the same time without waiting for each task to complete one by one.
-* **[Parameters](#parameters)**: Pieces of information you provide to a function or request to control how it works.
-* **[Nested Parameters](#nested-parameters)**: Parameters that are inside other parameters, like a list inside a list.
-* **[Fine-Tuning Models](#fine-tuning-models)**: Customizing an AI model with additional training to improve its performance for specific tasks.
-* **[Error Handling](#error-handling)**: Ways to manage and respond to errors that occur in your program.
-* **[Endpoints](#endpoints)**: Specific addresses where APIs can access resources or perform actions.
-* **[AzureOpenAI](#azureopenai)**: A version of OpenAI that works with Microsoft Azure, a cloud computing service.
-* **[Python](#python)**: A popular programming language known for its simplicity and readability.
-* **[Stainless](#stainless)**: A tool used to generate this library from the OpenAPI specification.
-* **[OpenAI](#openai)**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
-* **[REST API](#rest-api)**: A type of API that uses HTTP requests to GET, PUT, POST and DELETE data.
-* **[Synchronous](#synchronous)**: Operations that are performed one at a time and must complete before moving on to the next operation.
+* **[API](https://www.redhat.com/en/topics/api/what-is-an-api)**: A set of rules that lets different software programs communicate with each other.
+* **[Asynchronous](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Concepts)**: Doing multiple things at the same time without waiting for each task to complete one by one.
+* **[AzureOpenAI](https://azure.microsoft.com/en-us/services/openai/)**: A version of OpenAI that works with Microsoft Azure, a cloud computing service.
+* **[Endpoints](https://restfulapi.net/resource-naming/)**: Specific addresses where APIs can access resources or perform actions.
+* **[Error Handling](https://docs.oracle.com/javase/tutorial/essential/exceptions/handling.html)**: Ways to manage and respond to errors that occur in your program.
+* **[Fine-Tuning Models](https://www.dominodatalab.com/blog/fine-tuning-a-machine-learning-model)**: Customizing an AI model with additional training to improve its performance for specific tasks.
+* **[HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP)**: A protocol used for transferring data over the web. It's like the language that computers use to talk to each other on the internet.
+* **[HTTPS](https://developer.mozilla.org/en-US/docs/Web/HTTP/Overview#https)**: The secure version of HTTP. It means the data transferred is encrypted and secure.
+* **[Library](https://opensource.com/resources/what-is-a-library)**: A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
+* **[Nested Parameters](https://learning.postman.com/docs/getting-started/variables/#creating-nested-parameters)**: Parameters that are inside other parameters, like a list inside a list.
+* **[OpenAI](https://openai.com/about/)**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
+* **[Parameters](https://www.geeksforgeeks.org/parameters-and-its-types/)**: Pieces of information you provide to a function or request to control how it works.
+* **[Proxy](https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/)**: A server that acts as an intermediary between your computer and the internet.
+* **[Python](https://www.python.org/about/)**: A popular programming language known for its simplicity and readability.
+* **[REST API](https://restfulapi.net/)**: A type of API that uses HTTP requests to GET, PUT, POST, and DELETE data.
+* **[Stainless](https://www.stainlessapi.com/)**: A tool used to generate this library from the OpenAPI specification.
+* **[Streaming Responses](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)**: Getting parts of a response as they come in, rather than waiting for the whole response.
+* **[Synchronous](https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Concepts#synchronous_vs_asynchronous)**: Operations that are performed one at a time and must complete before moving on to the next operation.
 
 * **[Back to Table of Contents](#table-of-contents)**
