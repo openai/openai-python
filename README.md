@@ -25,7 +25,7 @@
 </div>
 <br>
 
-The [OpenAI](#openai) Python [library](#library) provides convenient access to the OpenAI [REST API](#rest-api) from any [Python](#python) 3.7+ application. The library includes type definitions for all request [params](#parameters) and response fields, and offers both [synchronous](#synchronous) and [asynchronous](#asynchronous) clients powered by [httpx](https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
+The [OpenAI](#quick-definitions) Python [library](#quick-definitions) provides convenient access to the OpenAI [REST API](#rest-api) from any [Python](#quick-definitions) 3.7+ application. The library includes type definitions for all request [params](#quick-definitions) and response fields, and offers both [synchronous](#quick-definitions) and [asynchronous](#quick-definitions) clients powered by [httpx](https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
 The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
@@ -477,7 +477,7 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
    - **OpenAI API Key**:
    - **Thread ID**:
    - **Assistant ID**:
-   
+
    ```
    OPENAI_API_KEY=sk-maybeishoulduseperplexity
    THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
