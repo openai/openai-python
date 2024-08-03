@@ -109,10 +109,11 @@ Transcribe audio recordings into text. This is useful for creating subtitles for
 The client can help moderate content, such as comments on a website or messages in a chat app. It can detect things like profanity, hate speech, or explicit content.
 
 </details>
- 
+
+&nbsp;
 ## Installation
 
-<br>
+&nbsp;
 <p align="center">
   <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
