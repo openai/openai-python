@@ -29,7 +29,6 @@ The [OpenAI](#quick-definitions) Python [library](#quick-definitions) provides c
 
 The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
-
 ## Documentation
 
 <br>
@@ -37,10 +36,8 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
   <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
 
-**Good luck and enjoy the journey!**
-
-<details id="table-of-contents">
-<summary style="font-size: 2.5em; font-weight: bold;">Table of Contents</summary>
+<details id="table-of-contents" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Table of Contents</summary>
 
 - [Documentation](#documentation)
 - [Github Documentation](#github-documentation)
@@ -99,7 +96,7 @@ You can use the client to generate human-like text, such as stories, articles, o
 
 #### Chatbots
 
-Create chatbots that can have conversations with people. These chatbots can be used for customer service, entertainment, or even as virtual friends!
+Create [chatbots](#chatbots) that can have conversations with people. These chatbots can be used for customer service, entertainment, or even as virtual friends!
 
 #### Image Generation
 
@@ -126,8 +123,8 @@ The client can help moderate content, such as comments on a website or messages 
 >
 > The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.
 
-<details>
-<summary style="font-size: 1.5em; font-weight: bold;">What is an SDK?</summary>
+<details id="sdk" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">What is an SDK?</summary>
 Sure! Imagine you have a favorite app on your phone that just got a big update. This message is kind of like a heads-up about a major update to a piece of software that developers use to talk to OpenAI's AI models. Let's break it down step by step:
 
 ### What is an SDK?
@@ -317,6 +314,7 @@ run = client.beta.threads.runs.create_and_poll(
     assistant_id=assistant.id,
 )
 ```
+### Overview
 
 * `thread_id`: The unique identifier for the thread in which you want to run the task. This is essential to specify the context of the run.
 * `assistant_id`: The unique identifier for the assistant you want to use. This could be an AI model or a specific assistant configuration.
@@ -339,8 +337,8 @@ run = client.beta.threads.runs.create_and_poll(
    python chat.py
    ```
 
-<details>
-  <summary style="font-size: 1.5em; font-weight: bold;">Chat.Py</summary>
+<details id="chat.py" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Chat.Py</summary>
 
   ```python
   #!/usr/bin/env python3            # Shebang line to specify the interpreter
@@ -1770,3 +1768,4 @@ And here's the corresponding update to the Quick Definitions list:
 
 - **[Back to Table of Contents](#table-of-contents)**
 
+[chatbots](#chatbots) 
