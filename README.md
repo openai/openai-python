@@ -39,7 +39,8 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 
 **Good luck and enjoy the journey!**
 
-<details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
+<details>
+<summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary>
 
 - [Table of Contents](#table-of-contents)
 - [Documentation](#documentation)
@@ -1758,6 +1759,15 @@ And here's the corresponding update to the Quick Definitions list:
 - **[Homebrew](https://brew.sh/)**: A package manager for macOS and Linux, used to install and manage software packages.
 - **[.env](https://en.wikipedia.org/wiki/Environment_variable#File_format)**: A file used to store environment variables that configure the environment in which your application runs.
 - **[Pip](https://pip.pypa.io/en/stable/)**: The package installer for Python, used to install and manage Python packages.
+- **[OpenAI Models](https://platform.openai.com/docs/models)**: The various AI models offered by OpenAI, including GPT-3, Codex, and DALL-E, which can be accessed via API.
+- **[GitHub OpenAI](https://github.com/openai)**: The official GitHub organization for OpenAI, containing repositories related to OpenAI's research and projects.
+- **[QuickStart](https://platform.openai.com/docs/quickstart)**: A guide provided by OpenAI to quickly get started with their API, including setup and example usage.
+- **[Library](https://opensource.com/resources/what-is-a-library)**: A collection of pre-written code that you can use to make programming easier. Think of it like a toolbox with ready-to-use tools.
+- **[SDK](https://en.wikipedia.org/wiki/Software_development_kit)**: A Software Development Kit, a collection of software tools and libraries designed to help developers create applications for specific platforms.
+- **[v1 Migration Guide](https://github.com/openai/openai-python/discussions/742)**: A guide provided by OpenAI to assist developers in migrating their code to the updated version 1 of the OpenAI Python library.
+- **[Homebrew](https://brew.sh/)**: A package manager for macOS and Linux, used to install and manage software packages.
+- **[.env](https://en.wikipedia.org/wiki/Environment_variable#File_format)**: A file used to store environment variables that configure the environment in which your application runs.
+- **[Pip](https://pip.pypa.io/en/stable/)**: The package installer for Python, used to install and manage Python packages.
 
-* **[Back to Table of Contents](#table-of-contents)**
+- **[Back to Table of Contents](#table-of-contents)**
 
