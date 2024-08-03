@@ -1,6 +1,7 @@
 # Welcome to the OpenAI Python API library.
 
 &nbsp;
+
 <div align="center">
   <a href="https://github.com/openai/openai-python">
     <img src="https://img.shields.io/badge/OpenAI-Python-blue?logo=openai&logoColor=white&labelColor=gray" alt="OpenAI Python API Library">
@@ -36,7 +37,6 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 
 ## Documentation
 
-
 <details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
 
 - [Documentation](#documentation)
@@ -67,46 +67,47 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 
 The [Github OpenAI](https://github.com/openai) documentation is a user manual. It has all the instructions and information you need to use OpenAI's AI models in a Python script. Think of this as a detailed guide that shows you how to communicate with your smart robot assistant. This README.md file will teach you how to use the tools provided by OpenAI to be able to then use them with your own project.
 
-The words in [Blue](#Blue) are there to help the new students learn the technical words, and there is a [Quick Definitions](#quick-definitions) section at the end of this document to explain the technical term as this helps to understand and learn faster. To make things easier for the student. The instructions for each option OpenAI has for coding will also have a script to use.
+The words in [Blue](#Blue) are here to help new students learn the technical words, and there is a [Quick Definitions](#quick-definitions) section at the end of this document to explain the technical term as this helps to understand and learn faster. To make things easier for new students, there are instructions for each tool from the table of contents and a script to run made for your convince. 
 
-### OpenAi Documentation
-
-- [API Reference Introduction](https://platform.openai.com/docs/api-reference)
+## OpenAi Documentation
 
 **Alternatively** The [QuickStart](https://platform.openai.com/docs/quickstart) guide is a quick and easy way to get started with OpenAI's AI models in your Python programs. It provides step-by-step instructions on how to set up your development environment, send your first API request, and use the OpenAI API to generate text, images, and more. This guide is perfect for developers and programmers who want to quickly get started with OpenAI's AI models in their Python programs.
 
-The QuickStart [Guide for Developers and Programmers](https://platform.openai.com/docs/quickstart).
-
 There is more information available in the [OpenAI Documentation](https://platform.openai.com/docs/overview) that provides a comprehensive overview of OpenAI's AI models and how to use them in your Python programs. This documentation includes detailed information on the different AI models available, how to set up your development environment, and how to use the OpenAI API to generate text, images, and more.
 
-The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](#https://platform.openai.com/docs/api-reference/introduction). The full set of API's used from the** **[library](#library) can be found in** [api.md](#https://github.com/openai/openai-python/blob/main/api.md). The OpenAI Python client is a tool that allows you to use artificial intelligence (AI) in your Python programs. It's like a bridge between your code and the powerful AI models created by OpenAI.
+The **[REST API](#rest-api) documentation can be found on** **[platform.openai.com](https://platform.openai.com/docs/api-reference/introduction). The full set of API's used from the** **[library](#library) can be found in** [api.md](https://github.com/openai/openai-python/blob/main/api.md). The OpenAI Python client is a tool that allows you to use artificial intelligence (AI) in your Python programs. It's like a bridge between your code and the powerful AI models created by OpenAI.
 
 <details>
-<summary style="font-size: 1.5em; font-weight: bold;">More OpenAI API Tools</summary> 
+<summary style="font-size: 1.5em; font-weight: bold;">More OpenAI API Tools</summary>
 
-[Full documentation for all the API's available are at api.md](#https://github.com/openai/openai-python/blob/main/api.md)
+[Full documentation for all the API&#39;s available are at api.md](https://github.com/openai/openai-python/blob/main/api.md)
 
 ### What Can You Do with It?
 
 With the OpenAI Python client, you can create all sorts of cool things! Here are some examples:
 
 #### Text Generation
+
 You can use the client to generate human-like text, such as stories, articles, or even code! Imagine writing a short story and having the AI help you finish it.
 
 #### Chatbots
+
 Create chatbots that can have conversations with people. These chatbots can be used for customer service, entertainment, or even as virtual friends!
 
 #### Image Generation
+
 The client can generate images based on text descriptions. For example, ask it to create an image of a cute puppy playing with a ball, and it will generate one for you!
 
 #### Audio Processing
+
 Transcribe audio recordings into text. This is useful for creating subtitles for videos or transcripts of interviews.
 
 #### Moderation
+
 The client can help moderate content, such as comments on a website or messages in a chat app. It can detect things like profanity, hate speech, or explicit content.
 
 </details>
-&nbsp;
+ 
 
 ## Installation
 
@@ -129,7 +130,6 @@ An SDK (Software Development Kit) is like a toolkit for developers. It has all t
 ### What Happened?
 
 1. **Rewritten SDK in v1**: The toolkit (SDK) got a major overhaul or rewrite. This means they changed a lot of things in how it works. This big change was released on November 6th, 2023, and they call this new version "v1" (version 1).
-   
 2. **Why is this Important?** If developers were using the old version of the toolkit, they need to know that things have changed. The way they wrote their code to talk to the AI might not work the same way anymore. They need to update their code to match the new toolkit.
 
 ### What Should You Do?
@@ -144,6 +144,7 @@ Scripts are like little helpers that can automatically do tasks for you. Instead
 ### Summary
 
 So, to sum it up:
+
 - The toolkit (SDK) got a big update on November 6th, 2023.
 - If you're using the old version, you need to update your code.
 - There's a guide with instructions and helpful scripts to make this update easier.
@@ -157,22 +158,22 @@ Python can be install on 🖥️
 
 [![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)[![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
 
-#### Requirements
+### Requirements
 
 The basic requirements to use Openai is that you are using Python 3.7 version or higher like Python 3.11 and some sort of computer. It's like needing a specific version of an app to use certain features.
 
-##### For Windows:
+#### For Windows:
 
 1. **Download Installer**: Go to the [official Python website](https://www.python.org/downloads/) and download the latest installer like Python 3.11.
 2. **Run Installer**: Run the downloaded file. **NOTICE** !!! Check the box for "Add Python to PATH" and click "Install Now."
-    <i>"Add Python to PATH" is a setting that tells your computer to remember where Python is located, so you can use it from anywhere.</i>
+   `<i>`"Add Python to PATH" is a setting that tells your computer to remember where Python is located, so you can use it from anywhere.`</i>`
 3. **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
-    <i>Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.</i>
-5. ```
+   `<i>`Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.`</i>`
+4. ```
    python --version
    ```
 
-##### For macOS:
+#### For macOS:
 
 1. **Use Homebrew**: Open Terminal and install [Homebrew](#Homebrew) if you haven't:
    ```
@@ -188,7 +189,7 @@ The basic requirements to use Openai is that you are using Python 3.7 version or
 * **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
 * Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.
 
-##### For Linux:
+#### For Linux:
 
 1. **Use Package Manager**: For Ubuntu, open Terminal and run.
    ```
@@ -201,7 +202,7 @@ The basic requirements to use Openai is that you are using Python 3.7 version or
 
 If your version is lower than 3.7, you'll need to update Python to use this library. You can download the latest version of Python from the [official Python website](https://www.python.org/downloads/).
 
-##### 🚀 **Explanation:**
+#### 🚀 **Explanation:**
 
 To use the OpenAI library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. To use the .env file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a  `.env` file into your environment, which is useful for keeping sensitive information like API keys out of your codebase.
 
@@ -210,22 +211,20 @@ pip install openai
 pip install python-dotenv
 ```
 
-### How to obtain your OpenAi API Key.
+## How to obtain your OpenAi API Key.
 
-To obtain an OpenAI API key, follow these steps:
+*To obtain an OpenAI API key, follow these steps:
+Remember that your API key is a secret! Do not share it with others or expose it in any client-side code (browsers, apps). Production requests must be routed through your own backend server where your API key can be securely loaded from an environment variable (.env file) or key management service.*
 
 1. **Sign Up**: Go to the [OpenAI website](https://www.openai.com/) and sign up for an account if you don't already have one.
 2. **Login**: Once logged in, navigate to the API section.
 3. **Generate Key**: Click on "API keys" and then "Create API Key." A new key will be generated and displayed.
 4. **Save the Key**: Copy and securely store the API key. You will use this key to authenticate your requests to the OpenAI API.
 
-For more details, visit the [OpenAI API documentation](https://beta.openai.com/docs/).
 
-## How to Use the OpenAI Python Library
+## How to use the OpenAI Python Library code in a script.
 
-### How to use the OpenAI code in a python script.
-
-The full API of this library can be found in [api.md](api.md).
+The full API of this library can be found in [api.md](https://github.com/openai/openai-python/blob/main/api.md).
 
 While you can provide an `api_key` keyword argument, we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/) to be able to use OpenAi API Keys in your script.
 
@@ -238,29 +237,30 @@ While you can provide an `api_key` keyword argument, we recommend using [python-
 7. Then inside the terminal type `python test_openai.py`
 
 ```python
-import os
-from openai import OpenAI
-from dotenv import load_dotenv
+#!/usr/bin/env python3                      # Shebang line to specify the interpreter
 
-# Load environment variables (loads your API Key) from .env file
-load_dotenv()
+# Import the required libraries
+import os                                   # import os module to access environment variables
+from openai import OpenAI                   # import OpenAI module
+from dotenv import load_dotenv              # import dotenv module
 
-# Initialize OpenAI client
-client = OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
+load_dotenv()                               # Load environment variables (loads your API Key) from .env file
+
+client = OpenAI(                            # initialize OpenAI client
+    api_key=os.getenv("OPENAI_API_KEY"),    # loads your API Key from .env file
 )
 
-chat_completion = client.chat.completions.create(
-    messages=[
+chat_completion = client.chat.completions.create( # create a chat completion
+    messages=[                                    # messages is a list of messages
         {
-            "role": "user",
-            "content": "Say this is a test",
+            "role": "user",                       # role is the person speaking
+            "content": "Say this is a test",      # content is the message
         }
     ],
-    model="gpt-4o",
+    model="gpt-4o",                               # model is the AI model you want to use
 )
 
-print(chat_completion.choices[0].message.content)
+print(chat_completion.choices[0].message.content) # print the response from the AI model into the terminal
 ```
 
 ```
@@ -272,7 +272,7 @@ This means that you are on the right path and connected your script to the ChatG
 and using the GPT-4o Model using openai and dotenv modules. Congratulations!
 ```
 
-##### 💡 **Explanation:**
+### 💡 **Explanation:**
 
 Here's how you use the library to talk to the AI models. Think of this like having a conversation with your smart robot assistant. You set up the connection, ask it to say something, and then it responds. Let's break it down:
 
@@ -283,23 +283,23 @@ Here's how you use the library to talk to the AI models. Think of this like havi
 
 This code sets up the AI client and asks it to say "This is a test." It's like teaching a parrot to repeat a phrase!
 
-### Polling Helpers
+## Polling Helpers
 
 When interacting with the API some actions such as starting a [Run](#run) and adding files to vector stores are [asynchronous](#asynchronous) and take time to complete. The [SDK](#SDK) includes helper functions which will poll the status until it reaches a terminal state and then return the resulting object. If an API method results in an action that could benefit from polling there will be a corresponding version of the method ending in '_and_poll'.
 
-##### ⏳ **Explanation:**
+### ⏳ **Explanation:**
 
 Some actions take time to complete, like starting a process or uploading files. [Polling helpers](#Polling_helpers) keep checking until these actions are done. Imagine you are baking a cake and you keep checking the oven until the cake is ready. In this case, you're starting a task (like asking the AI to do some work) and then waiting until it's finished before moving on. The [create_and_poll](#create_and_poll) function does this waiting for you automatically, so you don't have to keep checking manually.
 
-### Running a Thread
+## Running a Thread
 
 To create and poll a run within a [thread](#thread) using the OpenAI API, follow these steps:
 
-#### Overview
+### Overview
 
 The following example demonstrates how to initiate a run within a specific thread and automatically poll for its status. This can be useful for tracking the progress of a long-running task, such as a conversation or a job.
 
-#### Example Code
+### Example Code
 
 ```python
 # Assuming you have already set up the OpenAI client and have a thread and assistant
@@ -314,115 +314,106 @@ run = client.beta.threads.runs.create_and_poll(
 * The script below will use the code and create the identifiers once the script has ran. Copy these to the .env file afterwards. More info below.
 * More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
 
-#### Usage
+### Usage
 
 1. **Setup** : Make sure you have the necessary API credentials and have initialized the OpenAI client properly.
 2. **Run Creation** : Use the  `create_and_poll` method to start a new run within the specified thread.
 3. **Polling** : The function automatically polls the run's status, providing updates until the task is complete.
 
-#### Example of Code using Polling Helpers and Running a Thread
+### Example of Code using Polling Helpers and Running a Thread
 
 1. Create a file called chat.py
 2. Copy and Paste the code below into the file, make sure the file is in the same folder as the .env file.
 3. Best make a new folder for this page and make seperate files for each script. This is handy to see the differences and learn.
 4. Make sure you have your .env file with OPENAI_API_KEY=yourkey
-
 5. ```
    python chat.py
    ```
 
-<details><summary style="font-size: 1.5em; font-weight: bold;">Chat.Py</summary
+<details>
+  <summary style="font-size: 1.5em; font-weight: bold;">Chat.Py</summary>
 
-```python
-# Import the required libraries
-import os
-import sys
-from openai import OpenAI
-from dotenv import load_dotenv
+  ```python
+  #!/usr/bin/env python3            # Shebang line to specify the interpreter
 
-# Load environment variables (loads your API Key) from .env file
-load_dotenv()
+  # Import the required libraries
+  import os                         # For environment variables
+  import sys                        # For system-specific parameters and functions (e.g., command-line arguments)
+  from openai import OpenAI         # For interacting with the OpenAI API
+  from dotenv import load_dotenv    # For loading environment variables from a .env file
 
-# Initialize OpenAI client
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+  load_dotenv()                     # Load environment variables (loads your API Key) from .env file
 
-# Define the model engine
-model_engine = "gpt-4o"  # Ensure this is the correct model ID
+  client = OpenAI(api_key=os.getenv("OPENAI_API_KEY")) # Initialize OpenAI client
 
-# Define the assistant's role
-assistant_role = "You are a useful helper, professor, the best programmer in the world, and computer technician in the style and tone of Christopher Walken."
+  model_engine = "gpt-4o"    # Define the model engine # Ensure this is the correct model ID
 
-# Define user and bot names
-user_name = "Ranger"
-bot_name = "Jervis"
+  # Define the assistant's role
+  assistant_role = "You are a useful helper, professor, the best programmer in the world, and computer technician in the style and tone of Christopher Walken."
 
-# Create a thread and assistant
-thread = client.beta.threads.create()
-thread_id = thread.id
-print(f"Thread ID: {thread_id}")
+  # Define user and bot names
+  user_name = "Ranger" # Replace with your desired user name
+  bot_name = "Jervis"  # Replace with your desired bot name
+ 
+  thread = client.beta.threads.create()         # Create a thread and assistant
+  thread_id = thread.id                         # Get the thread ID
+  print(f"Thread ID: {thread_id}")              # Print the thread ID
 
-assistant = client.beta.assistants.create(
-    name="Jervis",
-    instructions=assistant_role,
-    model=model_engine
-)
-assistant_id = assistant.id
-print(f"Assistant ID: {assistant_id}")
+  assistant = client.beta.assistants.create(    # Create an assistant
+      name="Jervis",                            # Replace with your desired assistant name
+      instructions=assistant_role,              # Replace with your desired assistant instructions
+      model=model_engine                        # Replace with your desired model engine
+  )
+  assistant_id = assistant.id                   # Get the assistant ID
+  print(f"Assistant ID: {assistant_id}")        # Print the assistant ID
 
-def chat_gpt4(query):
-    # Add the user's message to the thread
-    client.beta.threads.messages.create(
-        thread_id=thread_id,
-        role="user",
-        content=query
-    )
+  def chat_gpt4(query):                         # Define a function to handle the chat interaction
+      
+      client.beta.threads.messages.create(      # Add a user message to the thread
+          thread_id=thread_id,  
+          role="user",                          # Replace with your desired role
+          content=query                         # Replace with your desired content
+      )
 
-    # Create and poll a new run within the specified thread
-    run = client.beta.threads.runs.create_and_poll(
-        thread_id=thread_id,
-        assistant_id=assistant_id,
-    )
+      run = client.beta.threads.runs.create_and_poll( # Create and poll a run within the thread
+          thread_id=thread_id, 
+          assistant_id=assistant_id,
+      )
 
-    # Optionally, handle the result
-    print(f"Run ID: {run.id}")
-    print(f"Status: {run.status}")
+      print(f"Run ID: {run.id}")            #  Print the run ID
+      print(f"Status: {run.status}")        # Print the run status
 
-    # Retrieve the messages added by the assistant to the thread
-    messages = client.beta.threads.messages.list(
-        thread_id=thread_id
-    )
+      messages = client.beta.threads.messages.list( # Retrieve the messages added by the assistant to the thread
+          thread_id=thread_id                       # Thread ID
+      )
 
-    # Print the response from the model
-    if messages.data:
-        print(f"{bot_name}: {messages.data[0].content[0].text.value}")
-    else:
-        print("No messages found.")
+      if messages.data:                                                     # Print the response from the model
+          print(f"{bot_name}: {messages.data[0].content[0].text.value}")    # Print the response from the model
+      else:
+          print("No messages found.")                                       # Print a message if no messages are found
 
-# Main function to handle user input and start the conversation
-def main():
-    if len(sys.argv) > 1:
-        # If a question is provided as a command-line argument
-        query = ' '.join(sys.argv[1:])
-        chat_gpt4(query)
-    else:
-        # Start the conversation
-        print(f"{bot_name}: How can I help?") 
+  def main():                                   # Main function to handle user input and start the conversation
+      if len(sys.argv) > 1:                     # Check if a question is provided as a command-line argument
+          query = ' '.join(sys.argv[1:])        # If a question is provided as a command-line argument
+          chat_gpt4(query)                      # Call the chat_gpt4 function with the question
+      else:
+          print(f"{bot_name}: How can I help?") # Start the conversation
 
-    while True: # Keep the conversation going until the user decides to exit
-        query = input(f"{user_name}: ")
-        if query.lower() in ["exit", "quit"]:
-            break
-        chat_gpt4(query)
-        follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ")
-        if follow_up.lower() not in ["yes", "y"]:
-            break
+      while True:                               # Keep the conversation going until the user decides to exit
+          query = input(f"{user_name}: ")       # Prompt the user for input
+          if query.lower() in ["exit", "quit"]: # Check if the user wants to exit
+              break                             # Exit the loop
+          chat_gpt4(query)                      # Call the chat_gpt4 function with the user's input
+          follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ") # Prompt the user to continue or exit
+          if follow_up.lower() not in ["yes", "y"]:                                  # Check if the user wants to continue
+              break                             # Exit the loop
 
-# Run the main function
-if __name__ == "__main__":
-    main()
+  if __name__ == "__main__": # Run the main function if the script is executed directly (not imported as a module)
+      main()                 #  Call the main function
 
-```
 </details>
+```
+
 
 #### Output
 
@@ -471,7 +462,6 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
    ```
 4. Copy and Paste the python code below into the file like chat.py, and make sure the file is in the same folder as the .env file.
 5. Now next step is to run the script.
-
 6. ```
    python chat.py
    ```
