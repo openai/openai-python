@@ -39,6 +39,7 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 - [OpenAI Documentation](#openai-documentation)
 - [Installation](#installation)
 - [Installation_Requirements](#Requirements)
+- [How to obtain your OpenAi API Key](#how-to-obtain-your-openai-api-key)
 - [Python for Windows](#Windows)
 - [Python for macOS](#macOS)
 - [Python for Linux](#Linux)
@@ -175,7 +176,7 @@ So, to sum it up:
 
 &nbsp;
 
-### **Openai and Python can be install on 🖥️
+### Openai and Python can be install on 🖥️
 
 [![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane) 
 [![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane) 
@@ -194,8 +195,12 @@ The basic requirements to use Openai is that you are using Python 3.7 version or
 6. A terminal or command prompt
 7. A basic understanding of Python programming language and its syntax and concepts like variables, functions, loops, and conditional statements. You can learn more about Python programming language by visiting the [Python Documentation](#quick-definitions).
 
+&nbsp;
+
 <details id="openai-api-tools" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
 <summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Installation Guide</summary>
+
+&nbsp;
 
 ### **How to obtain your OpenAi API Key:**
 
@@ -222,22 +227,22 @@ Remember that your API key is a secret! Do not share it with others or expose it
 
 4. ```
    python --version
-
    ```
 
 #### **macOS**:
 
 1. **Use Homebrew**: Open Terminal and install [Homebrew](#Homebrew) if you haven't:
+
    ```
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
+
 2. **Install Python**: Run:
 
    ```
    brew update
    brew upgrade
    brew install python
-
    ```
 
 * **Verify Installation**: 
@@ -252,7 +257,6 @@ Remember that your API key is a secret! Do not share it with others or expose it
    ```
    sudo apt update
    sudo apt install python3
-
    ```
 
 #### **Verify Installation**: 
@@ -275,7 +279,6 @@ To use the [.env](#quick-definitions) file we will need a module called python-d
 
 pip install openai
 pip install python-dotenv
-
 ```
 
 </details>
@@ -294,7 +297,7 @@ While you can provide an `api_key` keyword argument, we recommend using [python-
 4. You can now use the API key in your script by adding from `dotenv import load_dotenv`
 5. To load environment variables (your API Key ) from .env file into your script you will need to add `load_dotenv()`into the script. See below for an example.
 6. Copy the code below and save it as test_openai.py
-7. Then inside the terminal type `python test_openai.py`
+7. Then inside the terminal type `python chat.py`
 
 ```python
 #!/usr/bin/env python3                      # Shebang line to specify the interpreter
@@ -324,7 +327,7 @@ print(chat_completion.choices[0].message.content) # print the response from the 
 ```
 
 ```
-> python test_openai.py
+> python chat.py
 This is a test.
 
 This is what you should see afterwards.
@@ -342,6 +345,14 @@ Here's how you use the library to talk to the AI models. Think of this like havi
 4. The AI processes your message and sends back a response.
 
 This code sets up the AI client and asks it to say "This is a test." It's like teaching a parrot to repeat a phrase!
+
+
+#### Chat.py
+
+**chat.py** is a full working script using OpenAI modules and code to talk to an AI model. I will be including the code for Polling Helpers and Running a Thread, and all the other functions into the script as we go along to make it easier to use. 
+
+**chat.py** will continue to add the new functions to the script as we go along. This is a great way to learn how to use the OpenAI API. 
+
 
 ## Polling Helpers
 
@@ -383,16 +394,27 @@ run = client.beta.threads.runs.create_and_poll(
 
 ### Example of Code using Polling Helpers and Running a Thread
 
-1. Create a file called chat.py
+1. Lets use our created file and script called chat.py
 2. Copy and Paste the code below into the file, make sure the file is in the same folder as the .env file.
-3. Best make a new folder for this page and make seperate files for each script. This is handy to see the differences and learn.
+3. Best make a new folder for this page and make separate files for each script. This is handy to see the differences and learn.
 4. Make sure you have your .env file with OPENAI_API_KEY=yourkey
-5. ```
+5. You will be able to run the script and it will create a new thread and assistant ID. To keep the converstation going over time and we will keep the same thread and assistant ID. Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY.
+    
+    ```
+   OPENAI_API_KEY=sk-maybeishouldusedperplexity
+   THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
+   ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
+   ```
+
+6. ```
    python chat.py
    ```
 
+&nbsp;
+
 <details id="chat.py" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
 <summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Chat.Py</summary>
+
 
   ```python
   #!/usr/bin/env python3            # Shebang line to specify the interpreter
@@ -481,9 +503,15 @@ run = client.beta.threads.runs.create_and_poll(
 
 1. This is the return response from using the command `python chat.py`
 2. I am using 'p'. This is an aliases I created to save time typing python every time, add this to the .bashrc or .zshrc aliases file without the brackets (aliases p="python ")
-3. This code will create the Thread ID, Run ID and Assistant ID.
+3. This code will create the Thread ID, Run ID and Assistant ID to be used in future projects, so you will be able to talk to the same Assistant ID and Thread ID, and it will remember the conversation.
 
-### Bulk Upload Helpers
+
+
+
+
+
+
+## Bulk Upload Helpers
 
 You can upload your documents and the script will be able to answer questions on the documents you uploaded.
 
@@ -534,7 +562,7 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
    - **Assistant ID**:
 
    ```
-   OPENAI_API_KEY=sk-maybeishoulduseperplexity
+   OPENAI_API_KEY=sk-maybeishouldusedperplexity
    THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
    ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
    ```
