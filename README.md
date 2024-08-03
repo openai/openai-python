@@ -38,6 +38,11 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 - [Github Documentation](#github-documentation)
 - [OpenAI Documentation](#openai-documentation)
 - [Installation](#installation)
+- [Installation_Requirements](#Requirements)
+- [Python for Windows](#Windows)
+- [Python for macOS](#macOS)
+- [Python for Linux](#Linux)
+- [Python Modules](#Modules)
 - [Usage](#usage)
 - [Polling Helpers](#polling-helpers)
 - [Bulk Upload Helpers](#bulk-upload-helpers)
@@ -189,6 +194,9 @@ The basic requirements to use Openai is that you are using Python 3.7 version or
 6. A terminal or command prompt
 7. A basic understanding of Python programming language and its syntax and concepts like variables, functions, loops, and conditional statements. You can learn more about Python programming language by visiting the [Python Documentation](#quick-definitions).
 
+<details id="openai-api-tools" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Installation Guide</summary>
+
 ### **How to obtain your OpenAi API Key:**
 
 *To obtain an OpenAI API key, follow these steps:
@@ -201,20 +209,23 @@ Remember that your API key is a secret! Do not share it with others or expose it
 
 ### **To install Python on your computer, follow these steps:**
 
-#### **For Windows**:
+#### **Windows**:
 
 1. **Download Installer**: Go to the [official Python website](https://www.python.org/downloads/) and download the latest installer like Python 3.11.
+
 2. **Run Installer**: Run the downloaded file. **NOTICE** !!! Check the box for "Add Python to PATH" and click "Install Now."
    `<i>`"Add Python to PATH" is a setting that tells your computer to remember where Python is located, so you can use it from anywhere.`</i>`
+
 3. **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
    `<i>`Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.`</i>`
+   <i>`If you have any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.`</i>`
+
 4. ```
    python --version
+
    ```
 
-
-
-#### **For macOS**:
+#### **macOS**:
 
 1. **Use Homebrew**: Open Terminal and install [Homebrew](#Homebrew) if you haven't:
    ```
@@ -234,7 +245,7 @@ Remember that your API key is a secret! Do not share it with others or expose it
 * Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.
 
 
-#### **For Linux**:
+#### **Linux**:
 
 1. **Use Package Manager**: For Ubuntu, open Terminal and run.
 
