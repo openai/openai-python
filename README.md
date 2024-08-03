@@ -31,6 +31,7 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 
 
 ## Documentation
+
 <br>
 <p align="center">
   <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
@@ -41,6 +42,8 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 <details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
 
 - [Documentation](#documentation)
+- [Github Documentation](#github-documentation)
+- [OppenAI Documentation](#openai-documentation)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Polling Helpers](#polling-helpers)
