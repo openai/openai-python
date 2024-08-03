@@ -112,6 +112,7 @@ The client can help moderate content, such as comments on a website or messages 
  
 ## Installation
 
+<br>
 <p align="center">
   <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
