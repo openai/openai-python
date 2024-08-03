@@ -85,6 +85,8 @@ The **[REST API](https://platform.openai.com/docs/api-reference/introduction) do
 
 The OpenAI Python client is a tool that allows you to use artificial intelligence (AI) in your Python programs. It's like a bridge between your code and the powerful AI models created by OpenAI.
 
+&nbsp;
+
 <details id="openai-api-tools" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
 <summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">More OpenAI API Tools</summary>
 
@@ -116,41 +118,37 @@ The client can help moderate content, such as comments on a website or messages 
 
 </details>
 
-## Installation
-
 &nbsp;
-<p align="center">
-  <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
-</p>
 
 > [!IMPORTANT]
 >
 > The [SDK](#sdk) was rewritten in v1, which was released November 6th 2023. See the **[**v1 migration guide**]** ( **https://github.com/openai/openai-python/discussions/742**), which includes scripts to automatically update your code.
 
+&nbsp;
 <details id="sdk" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
 <summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">What is an SDK?</summary>
 
-### What is an SDK?
+### **What is an SDK?:**
 
 An SDK (Software Development Kit) is like a toolkit for developers. It has all the tools and pieces they need to build software that can talk to other software, like OpenAI's AI models. Think of it like a set of LEGO pieces and instructions to build something cool. 
 
 Imagine you have a favorite app on your phone that just got a big update. This message is kind of like a heads-up about a major update to a piece of software that developers use to talk to OpenAI's AI models. Let's break it down step by step:
 
-### What Happened?
+### **What Happened?:**
 
 1. **Rewritten SDK in v1**: The toolkit (SDK) got a major overhaul or rewrite. This means they changed a lot of things in how it works. This big change was released on November 6th, 2023, and they call this new version "v1" (version 1).
 2. **Why is this Important?** If developers were using the old version of the toolkit, they need to know that things have changed. The way they wrote their code to talk to the AI might not work the same way anymore. They need to update their code to match the new toolkit.
 
-### What Should You Do?
+### **What Should You Do?:**
 
 - **Check the v1 Migration Guide**: There is a special guide called the "v1 migration guide." It’s like a how-to manual that helps you move your old stuff (code) to work with the new version of the toolkit.
 - **Location of the Guide**: You can find this guide at this link: [v1 migration guide](https://github.com/openai/openai-python/discussions/742). This link takes you to a place where they explain all the changes and even give you scripts (small programs) to help you automatically update your code.
 
-### Why Scripts?
+### **Why Scripts?:**
 
 Scripts are like little helpers that can automatically do tasks for you. Instead of you manually changing every piece of your code to work with the new toolkit, these scripts do it for you quickly and correctly.
 
-### Summary
+### **Summary:**
 
 So, to sum it up:
 
@@ -161,17 +159,49 @@ So, to sum it up:
 
 </details>
 
-### **How to install python on your computer, follow these steps:**
+&nbsp;
 
-Python can be install on 🖥️
+## **Installation:**
 
-[![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane)[![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane)[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane)[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane)
+&nbsp;
+<p align="center">
+  <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
+</p>
 
-### Requirements
+&nbsp;
+
+### **Openai and Python can be install on 🖥️
+
+[![Python](https://img.shields.io/badge/python-black?style=for-the-badge&logo=python)](https://github.com/davidtkeane) 
+[![Linux](https://img.shields.io/badge/linux-black?style=for-the-badge&logo=Linux)](https://github.com/davidtkeane) 
+[![Windows](https://img.shields.io/badge/Windows-black?style=for-the-badge&logo=Tower)](https://github.com/davidtkeane) 
+[![Apple](https://img.shields.io/badge/AppleMac-black?style=for-the-badge&logo=Apple)](https://github.com/davidtkeane) 
+
+### **Requirements:**
 
 The basic requirements to use Openai is that you are using Python 3.7 version or higher like Python 3.11 and some sort of computer. It's like needing a specific version of an app to use certain features.
 
-#### For Windows:
+1. Python 3.7 or higher
+2. A computer with an internet connection
+3. An OpenAI account
+4. An OpenAI API key
+5. A text editor or IDE (Integrated Development Environment)
+6. A terminal or command prompt
+7. A basic understanding of Python programming language and its syntax and concepts like variables, functions, loops, and conditional statements. You can learn more about Python programming language by visiting the [Python Documentation](#quick-definitions).
+
+### **How to obtain your OpenAi API Key:**
+
+*To obtain an OpenAI API key, follow these steps:
+Remember that your API key is a secret! Do not share it with others or expose it in any client-side code (browsers, apps). Production requests must be routed through your own backend server where your API key can be securely loaded from an environment variable (.env file) or key management service.*
+
+1. **Sign Up**: Go to the [OpenAI website](https://www.openai.com/) and sign up for an account if you don't already have one.
+2. **Login**: Once logged in, navigate to the API section.
+3. **Generate Key**: Click on "API keys" and then "Create API Key." A new key will be generated and displayed.
+4. **Save the Key**: Copy and securely store the API key. You will use this key to authenticate your requests to the OpenAI API.
+
+### **To install Python on your computer, follow these steps:**
+
+#### **For Windows**:
 
 1. **Download Installer**: Go to the [official Python website](https://www.python.org/downloads/) and download the latest installer like Python 3.11.
 2. **Run Installer**: Run the downloaded file. **NOTICE** !!! Check the box for "Add Python to PATH" and click "Install Now."
@@ -182,56 +212,64 @@ The basic requirements to use Openai is that you are using Python 3.7 version or
    python --version
    ```
 
-#### For macOS:
+
+
+#### **For macOS**:
 
 1. **Use Homebrew**: Open Terminal and install [Homebrew](#Homebrew) if you haven't:
    ```
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
    ```
 2. **Install Python**: Run:
+
    ```
    brew update
    brew upgrade
    brew install python
+
    ```
 
-* **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
+* **Verify Installation**: 
+* Open Command Prompt and type `python --version` to check the installed version.
 * Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.
 
-#### For Linux:
+
+#### **For Linux**:
 
 1. **Use Package Manager**: For Ubuntu, open Terminal and run.
+
    ```
    sudo apt update
    sudo apt install python3
+
    ```
 
-* **Verify Installation**: Open Command Prompt and type `python --version` to check the installed version.
+#### **Verify Installation**: 
+
+* Open Command Prompt and type `python --version` to check the installed version.
 * Any issues just type exit in the terminal and reopen it. This should help, then run `python --version` again.
 
 If your version is lower than 3.7, you'll need to update Python to use this library. You can download the latest version of Python from the [official Python website](https://www.python.org/downloads/).
 
-#### 🚀 **Explanation:**
 
-To use the OpenAI library, you need to use the [pip](#pip) command. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. 
+#### **Pip Install Modules**: 
 
-To use the [.env](#.env) file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a  `.env` file into your environment, which is useful for keeping sensitive information like API keys out of your codebase.
+##### 🚀 **Explanation:**
+
+To use the OpenAI library, you need to use the [pip](#quick-definitions) command. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. 
+
+To use the [.env](#quick-definitions) file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a `.env` file into your environment, this file is where you add you API key into which is useful for keeping sensitive information like API keys out of your codebase.
 
 ```python
+
 pip install openai
 pip install python-dotenv
+
 ```
 
-## How to obtain your OpenAi API Key.
+</details>
 
-*To obtain an OpenAI API key, follow these steps:
-Remember that your API key is a secret! Do not share it with others or expose it in any client-side code (browsers, apps). Production requests must be routed through your own backend server where your API key can be securely loaded from an environment variable (.env file) or key management service.*
-
-1. **Sign Up**: Go to the [OpenAI website](https://www.openai.com/) and sign up for an account if you don't already have one.
-2. **Login**: Once logged in, navigate to the API section.
-3. **Generate Key**: Click on "API keys" and then "Create API Key." A new key will be generated and displayed.
-4. **Save the Key**: Copy and securely store the API key. You will use this key to authenticate your requests to the OpenAI API.
-
+&nbsp;
 
 ## How to use the OpenAI Python Library code in a script.
 
@@ -1748,6 +1786,7 @@ And here's the corresponding update to the Quick Definitions list:
 * **[Parameters](https://www.geeksforgeeks.org/parameters-and-its-types/)**: Pieces of information you provide to a function or request to control how it works.
 * **[Proxy](https://www.cloudflare.com/learning/cdn/glossary/reverse-proxy/)**: A server that acts as an intermediary between your computer and the internet.
 * **[Python](https://www.python.org/about/)**: A popular programming language known for its simplicity and readability.
+* **[Python Documentation](https://docs.python.org/3/)**: Official documentation for the Python programming language.
 * **[REST API](https://restfulapi.net/)**: A type of API that uses HTTP requests to GET, PUT, POST, and DELETE data.
 * **[Stainless](https://www.stainlessapi.com/)**: A tool used to generate this library from the OpenAPI specification.
 * **[Streaming Responses](https://developer.mozilla.org/en-US/docs/Web/API/ReadableStream)**: Getting parts of a response as they come in, rather than waiting for the whole response.
