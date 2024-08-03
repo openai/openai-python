@@ -29,13 +29,14 @@ The [OpenAI](#openai) Python [library](#library) provides convenient access to t
 
 The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
 
+
+## Documentation
+<br>
 <p align="center">
   <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
 
 **Good luck and enjoy the journey!**
-
-## Documentation
 
 <details><summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary
 
