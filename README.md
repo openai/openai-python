@@ -210,7 +210,9 @@ If your version is lower than 3.7, you'll need to update Python to use this libr
 
 #### 🚀 **Explanation:**
 
-To use the OpenAI library, you need to install it first. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install openai` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. To use the .env file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a  `.env` file into your environment, which is useful for keeping sensitive information like API keys out of your codebase.
+To use the OpenAI library, you need to use the [pip](#pip) command. This is like installing a new app on your phone, but for Python. Imagine you are adding a new tool to your toolbox so you can use it in your programming projects. The command `pip install` is like telling your computer to go to the Python app store (PyPI) and download the OpenAI tool for you. 
+
+To use the [.env](#.env) file we will need a module called python-dotenv and it will need to be installed as this package allows you to load environment variables from a  `.env` file into your environment, which is useful for keeping sensitive information like API keys out of your codebase.
 
 ```python
 pip install openai
@@ -1747,3 +1749,5 @@ And here's the corresponding update to the Quick Definitions list:
 * **[OpenAI](#openai)**: An artificial intelligence research laboratory consisting of the for-profit corporation OpenAI LP and its parent company, the non-profit OpenAI Inc.
 * **[REST API](#rest-api)**: A type of API that uses HTTP requests to GET, PUT, POST and DELETE data.
 * **[Synchronous](#synchronous)**: Operations that are performed one at a time and must complete before moving on to the next operation.
+
+* **[Back to Table of Contents](#table-of-contents)**
