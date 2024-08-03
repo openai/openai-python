@@ -27,7 +27,7 @@
 
 The [OpenAI](#quick-definitions) Python [library](#quick-definitions) provides convenient access to the OpenAI [REST API](#quick-definitions) from any [Python](#quick-definitions) 3.7+ application. The library includes type definitions for all request [params](#quick-definitions) and response fields, and offers both [synchronous](#quick-definitions) and [asynchronous](#quick-definitions) clients powered by [httpx](https://github.com/encode/httpx). It is generated from our [OpenAPI specification](https://github.com/openai/openai-openapi) with [Stainless](https://stainlessapi.com/).
 
-The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules (API) over the internet.
+The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Models](#OpenAI_Models) in your Python programs. Imagine you have a smart robot assistant that can help you with various tasks like answering questions or generating text. This library helps you communicate with that robot using a set of rules [API's](#quick-definitions) over the internet.
 
 ## Documentation
 
@@ -36,8 +36,8 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
   <img src="images/essence/openai-python-intro.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
 
-<details id="table-of-contents" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
-<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Table of Contents</summary>
+<details id="table-of-contents" style="border: 1px solid #d1d5da; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary>
 
 - [Documentation](#documentation)
 - [Github Documentation](#github-documentation)
