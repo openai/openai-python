@@ -42,7 +42,6 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 <details>
 <summary style="font-size: 1.5em; font-weight: bold;">Table of Contents</summary>
 
-- [Table of Contents](#table-of-contents)
 - [Documentation](#documentation)
 - [Github Documentation](#github-documentation)
 - [OpenAI Documentation](#openai-documentation)
