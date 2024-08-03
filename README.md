@@ -43,7 +43,7 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 
 - [Documentation](#documentation)
 - [Github Documentation](#github-documentation)
-- [OppenAI Documentation](#openai-documentation)
+- [OpenAI Documentation](#openai-documentation)
 - [Installation](#installation)
 - [Usage](#usage)
 - [Polling Helpers](#polling-helpers)
@@ -84,7 +84,7 @@ The **[REST API](#rest-api) documentation can be found on** **[platform.openai.c
 The OpenAI Python client is a tool that allows you to use artificial intelligence (AI) in your Python programs. It's like a bridge between your code and the powerful AI models created by OpenAI.
 
 <details>
-<summary style="font-size: 1.5em; font-weight: bold;">More OpenAI API Tools</summary>
+<summary style="font-size: 2.5em; font-weight: bold;">More OpenAI API Tools</summary>
 
 [Full documentation for all the API&#39;s available are at api.md](https://github.com/openai/openai-python/blob/main/api.md)
 
@@ -114,7 +114,6 @@ The client can help moderate content, such as comments on a website or messages 
 
 </details>
 
-&nbsp;
 ## Installation
 
 &nbsp;
