@@ -81,32 +81,32 @@ The **[REST API](https://platform.openai.com/docs/api-reference/introduction) do
 
 The OpenAI Python client is a tool that allows you to use artificial intelligence (AI) in your Python programs. It's like a bridge between your code and the powerful AI models created by OpenAI.
 
-<details>
-<summary style="font-size: 2.5em; font-weight: bold;">More OpenAI API Tools</summary>
+<details id="openai-api-tools" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">More OpenAI API Tools</summary>
 
 [Full documentation for all the API&#39;s available are at api.md](https://github.com/openai/openai-python/blob/main/api.md)
 
-### What Can You Do with It?
+## **What Can You Do with It?**
 
 With the OpenAI Python client, you can create all sorts of cool things! Here are some examples:
 
-#### Text Generation
+## **Text Generation**
 
 You can use the client to generate human-like text, such as stories, articles, or even code! Imagine writing a short story and having the AI help you finish it.
 
-#### Chatbots
+## **Chatbots**
 
 Create [chatbots](#chatbots) that can have conversations with people. These chatbots can be used for customer service, entertainment, or even as virtual friends!
 
-#### Image Generation
+## **Image Generation**
 
 The client can generate images based on text descriptions. For example, ask it to create an image of a cute puppy playing with a ball, and it will generate one for you!
 
-#### Audio Processing
+## **Audio Processing**
 
 Transcribe audio recordings into text. This is useful for creating subtitles for videos or transcripts of interviews.
 
-#### Moderation
+## **Moderation**
 
 The client can help moderate content, such as comments on a website or messages in a chat app. It can detect things like profanity, hate speech, or explicit content.
 
@@ -125,11 +125,12 @@ The client can help moderate content, such as comments on a website or messages 
 
 <details id="sdk" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
 <summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">What is an SDK?</summary>
-Sure! Imagine you have a favorite app on your phone that just got a big update. This message is kind of like a heads-up about a major update to a piece of software that developers use to talk to OpenAI's AI models. Let's break it down step by step:
 
 ### What is an SDK?
 
-An SDK (Software Development Kit) is like a toolkit for developers. It has all the tools and pieces they need to build software that can talk to other software, like OpenAI's AI models. Think of it like a set of LEGO pieces and instructions to build something cool.
+An SDK (Software Development Kit) is like a toolkit for developers. It has all the tools and pieces they need to build software that can talk to other software, like OpenAI's AI models. Think of it like a set of LEGO pieces and instructions to build something cool. 
+
+Imagine you have a favorite app on your phone that just got a big update. This message is kind of like a heads-up about a major update to a piece of software that developers use to talk to OpenAI's AI models. Let's break it down step by step:
 
 ### What Happened?
 
