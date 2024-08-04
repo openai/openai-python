@@ -33,7 +33,6 @@ The OpenAI Python library is like a toolbox that makes it easy to use [OpenAI Mo
 
 <details id="table-of-contents" style="border: 4px solid #d1d5da; padding: 16px;">
 <summary style="font-size: 24px; font-weight: bold;">Click for The Table of Contents</summary>
-€<summary style="font-size: 1.5em; font-weight: bold;">Click for The Table of Contents</summary>
 
 - [Documentation](#documentation)
 - [Github Documentation](#github-documentation)
@@ -95,7 +94,7 @@ The OpenAI Python client is a tool that allows you to use artificial intelligenc
 &nbsp;
 
 <details id="openai-api-tools" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
-<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">More OpenAI API Tools</summary>
+<summary style="font-size: 24px; font-weight: bold;">More OpenAI API Tools</summary>
 
 [Full documentation for all the API&#39;s available are at api.md](https://github.com/openai/openai-python/blob/main/api.md)
 
@@ -133,7 +132,7 @@ The client can help moderate content, such as comments on a website or messages 
 
 &nbsp;
 <details id="sdk" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
-<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">What is an SDK?</summary>
+<summary style="font-size: 24px; font-weight: bold;">What is an SDK?</summary>
 
 ### **What is an SDK?:**
 
@@ -200,7 +199,7 @@ Check List:
 &nbsp;
 
 <details id="Installation Guide" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
-<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Installation Guide</summary>
+<summary style="font-size: 24px; font-weight: bold;">Installation Guide for Windows, macOs and Linux</summary>
 
 ### **How to obtain your OpenAi API Key:**
 
