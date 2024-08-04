@@ -169,9 +169,10 @@ So, to sum it up:
 &nbsp;
 
 ## **Installation:**
+<br>
 
 <p align="center">
-  <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
+  <img src="images/essence/Installation-and-Requirements.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
 
 ## **Requirements:**
@@ -293,6 +294,12 @@ Here's how you use the library to talk to the AI models. Think of this like havi
 &nbsp;
 
 # Section 2: Understanding the OpenAI Python Library
+&nbsp;
+<p align="center">
+  <img src="images/essence/Usage-and-Connecting-with-the-API.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
+</p>
+
+&nbsp;
 
 ## How to use the OpenAI Python Library code in a script.
 
@@ -389,26 +396,21 @@ run = client.beta.threads.runs.create_and_poll(
 
 ### Example of Code using Polling Helpers and Running a Thread
 
-1. Lets use our created file and script called chat.py
+1. Lets use our created file and script called test_openai.py
 2. Copy and Paste the code below into the file, make sure the file is in the same folder as the .env file.
 3. Best make a new folder for this page and make separate files for each script. This is handy to see the differences and learn.
 4. Make sure you have your .env file with OPENAI_API_KEY=yourkey
 5. You will be able to run the script and it will create a new thread and assistant ID. To keep the converstation going over time and we will keep the same thread and assistant ID. Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY.
+6. Run the python script.
     
-    ```
-   OPENAI_API_KEY=sk-maybeishouldusedperplexity
-   THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
-   ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
-   ```
-
-6. ```
-   python chat.py
+7. ```
+   python test_openai.py
    ```
 
 &nbsp;
 
-<details id="chat.py" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
-<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">Chat.Py</summary>
+<details id="test_openai.py" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 1.5em; font-weight: bold; cursor: pointer; outline: none; padding: 10px; background-color: #f4f4f4; border-radius: 5px; transition: background-color 0.3s ease;">test_openai.py</summary>
 
 
   ```python
@@ -490,13 +492,20 @@ else:
 
 #### Output
 
-![1722366404314](images/README/1722366404314.png)
+You should see the following output in the terminal:
 
-1. I am using 'p'. This is an aliases I created to save time typing python every time, add this to the .bashrc or .zshrc aliases file without the brackets (aliases p="python ").
+```bash
+THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
+ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
+```
+Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY. This should add the ID's into the .env file automatically. Best take a look at the .env file and make sure it is correct.
 
-2. This code will create the Thread ID, Run ID and Assistant ID to be used in future projects, so you will be able to talk to the same Assistant ID and Thread ID, and it will remember the conversation.
+**NB** Once ran this script will use the same thread and assistant ID. To keep the conversation going over time. We will keep the same thread and assistant ID for this example.
 
-3. This script will create a new thread and assistant ID. To keep the conversation going over time and we will keep the same thread and assistant ID. Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY.
+<p align="center">
+  <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
+</p>
+
 
 &nbsp;&nbsp;&nbsp;
 ## Bulk Upload Helpers
