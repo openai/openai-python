@@ -631,10 +631,6 @@ An example of using the client with Microsoft Entra ID (formerly known as Azure 
 Use the following commands to activate CLI autocompletion for each shell.
 
 ### Bash & Zsh
-Configure your shell to support global auto completion for python scripts by running:
-```shell
-activate-global-python-argcomplete
-```
 Use this command to register `openai` for argument completion using argcomplete for the current terminal session:
 ```shell
 eval "$(register-python-argcomplete openai)"
