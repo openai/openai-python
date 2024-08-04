@@ -636,7 +636,7 @@ Use this command to register `openai` for argument completion using argcomplete 
 eval "$(register-python-argcomplete openai)"
 ```
 #### Permanent Argument Completion Setup for Bash/Zsh
-Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.
+Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.  
 For Bash:
 ```shell 
 register-python-argcomplete openai >> ~/.bashrc
