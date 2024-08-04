@@ -198,7 +198,7 @@ Check List:
 
 &nbsp;
 
-<details id="Installation Guide" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<details id="Installation Guide" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px; font-size: 24px; font-weight: bold;">
 <summary style="font-size: 24px; font-weight: bold;">Installation Guide for Windows, macOs and Linux</summary>
 
 ### **How to obtain your OpenAi API Key:**
