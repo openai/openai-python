@@ -639,6 +639,7 @@ Use this command to register `openai` for argument completion using argcomplete 
 ```shell
 eval "$(register-python-argcomplete openai)"
 ```
+#### Permanent Argument Completion Setup for Bash/Zsh
 Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.
 For Bash:
 ```shell 
@@ -654,6 +655,7 @@ To activate completions for Powershell use:
 ```shell
 register-python-argcomplete --shell powershell openai | Out-String | Invoke-Expression
 ```
+#### Permanent Argument Completion Setup for Powershell
 Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
 ```shell
 register-python-argcomplete --shell powershell openai > ~/openai.psm1
@@ -667,6 +669,7 @@ To activate completions for fish use:
 ```shell
 register-python-argcomplete --shell fish openai | source
 ```
+#### Permanent Argument Completion Setup for Fish
 Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
 ```shell 
 register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
