@@ -628,44 +628,51 @@ In addition to the options provided in the base `OpenAI` client, the following o
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
 ## Activating CLI Autocomplete
+Use the following commands to activate CLI autocompletion for each shell.
 
-### Using CLI Autocomplete
-Using the following sequence of commands for each shell will activate the autocompletion feature for the CLI. 
-#### Bash
-1. Register ‘openai’ command for argument completion by running:
+### Bash & Zsh
+Configure your shell to support global auto completion for python scripts by running:
 ```shell
+activate-global-python-argcomplete
+```
+Use this command to register `openai` for argument completion using argcomplete for the current terminal session:
+```shell
+eval "$(register-python-argcomplete openai)"
+```
+Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.
+For Bash:
+```shell 
 register-python-argcomplete openai >> ~/.bashrc
 ```
-
-#### Zsh
-1. Register ‘openai’ command for argument completion by running:
-```shell
+For Zsh:
+```shell  
 register-python-argcomplete openai >> ~/.zshrc
 ```
 
-#### Fish
-1. Register ‘openai’ command for argument completion by running:
+### Powershell
+To activate completions for Powershell use:
 ```shell
-register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
+register-python-argcomplete --shell powershell openai | Out-String | Invoke-Expression
 ```
-
-#### Powershell
-1. Create new completion file: 
+Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
 ```shell
 register-python-argcomplete --shell powershell openai > ~/openai.psm1
 ```
-
-2. If you don't already have a ``$PROFILE`` you can add this by running: 
-```shell
-New-Item -ItemType File -Path $PROFILE -Force
-```
-
-3. Open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
+To activate the completions file, open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
 ```shell
 Import-Module  "~/openai.psm1"
 ```
+### Fish
+To activate completions for fish use:
+```shell
+register-python-argcomplete --shell fish openai | source
+```
+Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
+```shell 
+register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
+```
 
-#### Usage
+### Usage
 After completing the appropriate steps for your shell, restart the terminal and try:
 ```shell
 openai <TAB>
