@@ -198,7 +198,7 @@ Check List:
 
 &nbsp;
 
-<details id="Installation Guide" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px; font-size: 24px; font-weight: bold;">
+<details id="Installation Guide" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
 <summary style="font-size: 24px; font-weight: bold;">Installation Guide for Windows, macOs and Linux</summary>
 
 ### **How to obtain your OpenAi API Key:**
@@ -293,6 +293,7 @@ Here's how you use the library to talk to the AI models. Think of this like havi
 &nbsp;
 
 # Section 2: Understanding the OpenAI Python Library
+
 &nbsp;
 <p align="center">
   <img src="images/essence/Usage-and-Connecting-with-the-API.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
@@ -380,6 +381,7 @@ run = client.beta.threads.runs.create_and_poll(
     assistant_id=assistant.id,
 )
 ```
+
 ### Overview
 
 * `thread_id`: The unique identifier for the thread in which you want to run the task. This is essential to specify the context of the run.
@@ -489,25 +491,31 @@ else:
 
 &nbsp;
 
-#### Output
+## Output
 
-You should see the following output in the terminal:
+You should see the following output in the terminal: If this is your first time running the script you will see the following output: And congrats you have just created your first thread and assistant ID.
 
 ```bash
 THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
 ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
 ```
-Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY. This should add the ID's into the .env file automatically. Best take a look at the .env file and make sure it is correct.
+**NB** 
 
-**NB** Once ran this script will use the same thread and assistant ID. To keep the conversation going over time. We will keep the same thread and assistant ID for this example.
+<i>Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY. This should add the ID's into the .env file automatically. Best take a look at the .env file and make sure it is correct.  
+
+Once ran this script will use the same thread and assistant ID. To keep the conversation going over time. We will keep the same thread and assistant ID for this example.</I>
+
+&nbsp;
+
+## Bulk Upload Helpers
+
+&nbsp;
 
 <p align="center">
   <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
 
-
-&nbsp;&nbsp;&nbsp;
-## Bulk Upload Helpers
+&nbsp;
 
 You can upload your documents and the script will be able to answer questions on the documents you uploaded.
 
@@ -517,7 +525,7 @@ For convenience, we also provide a bulk upload helper to allow you to simultaneo
 
 For more information about what kind of files can be uploaded and more code, please go to [https://platform.openai.com/docs/assistants/tools/file-search](https://platform.openai.com/docs/assistants/tools/file-search)
 
-#### 📤 **Explanation:**
+### 📤 **Explanation:**
 
 You can upload multiple files at once and check their status. This is like sending a bunch of letters at the post office and waiting to see when they are all delivered. 
 
@@ -533,40 +541,11 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
     files=sample_files,
 )
 ```
+Now next step is to run the script.
 
-#### For convenience,
-
-1. **Script Expansion and Options**:  
-   I have expanded the first script and added each new option into the same script so you can see where the code is being used.
-   - **Saving Conversations**:  
-     I have added the ability to save the conversations to `.txt` and `.json` files, in case at a later stage you wish to train your own model using your own chat files.
-   - **Enhanced Settings**:  
-     I added options for temperature, max_tokens, and other settings to help get the best assistant possible.
-   - **File Upload and Vector Store**:  
-     The script has file upload and multiple file uploads, and it can create a vector store to break up the files into chunks for better understanding.
-   - **Run Creation and Polling**:  
-     I added the option to create and poll a run within a thread using the OpenAI API (Thread_ID and Assistant_ID).
-
-2. **Create a New File**:  
-   Create a file called `chat.py`, or use a different name if you have saved each script separately as we go along (This might be better).
-
-3. **Updating .env File**:  
-   Copy both `thread_id` and `assistant_id` from the last run of `chat.py` and enter them into the `.env` file below `OPENAI_API_KEY`.
-   
-   - **OpenAI API Key**:
-   - **Thread ID**:
-   - **Assistant ID**:
-
-   ```
-   OPENAI_API_KEY=sk-maybeishouldusedperplexity
-   THREAD_ID=thread_jQZNE3hs968JWWZAPiB2Tk2C
-   ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
-   ```
-4. Copy and Paste the python code below into the file like chat.py, and make sure the file is in the same folder as the .env file.
-5. Now next step is to run the script.
-6. ```
-   python chat.py
-   ```
+```
+   python test_openai.py
+```
 
 ```python
 # Import the required libraries
@@ -806,13 +785,13 @@ To ask questions about a file you've uploaded, you need to ensure that the file 
 
 * The vector store is managed by the OpenAI API. You don't need to worry about its physical location; you just need to ensure that the files are uploaded and indexed correctly.
 
-#### Streaming Helpers
+## Streaming Helpers
 
 The SDK also includes helpers to process streams and handle incoming events.
 
 OpenAI supports streaming responses when interacting with the [Assistant](#assistant-streaming-api) APIs.
 
-##### 🔄 **Explanation:**
+### 🔄 **Explanation:**
 
 You can stream responses from the AI, which means you get parts of the response as they come in, instead of waiting for the whole thing. It's like watching a YouTube video as it loads rather than waiting for the entire video to download first. In this code:
 
@@ -837,14 +816,14 @@ with client.beta.threads.runs.stream(
 
 More information on streaming helpers can be found in the dedicated documentation: [helpers.md](helpers.md)
 
-##### Assistant Streaming API
+## Assistant Streaming API
 
 OpenAI supports streaming responses from Assistants. The SDK provides convenience wrappers around the API
 so you can subscribe to the types of events you are interested in as well as receive accumulated responses.
 
 More information can be found in the documentation: [Assistant Streaming](https://platform.openai.com/docs/assistants/overview?lang=python)
 
-##### An example of creating a run and subscribing to some events
+### An example of creating a run and subscribing to some events
 
 You can subscribe to events by creating an event handler class and overloading the relevant event handlers.
 
@@ -895,7 +874,7 @@ with client.beta.threads.runs.stream(
   stream.until_done()
 ```
 
-##### Full working example of Streaming Helpers
+## Full working example of Streaming Helpers
 
 1. Create a file called chat.py
 2. Copy and Paste the code below into the file, make sure the file is in the same folder as the .env file.
@@ -903,7 +882,7 @@ with client.beta.threads.runs.stream(
 4. Functionality between the synchronous and asynchronous clients is otherwise identical.
 5. Run the script.
 6. ```
-   python chat.py
+   python test_openai.py
    ```
 
 ```python
