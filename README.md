@@ -355,6 +355,7 @@ This is what you should see afterwards.
 This means that you are on the right path and connected your script to the ChatGPT
 and using the GPT-4o Model using openai and dotenv modules. Congratulations!
 ```
+&nbsp;
 
 ## Polling Helpers
 
@@ -504,7 +505,6 @@ ASSISTANT_ID=asst_vnInhkMyxNkcON1UZpJylQN8
 <i>Once we run this script it will generate the ID's, then copy the thread and assistant ID and place them into the .env file below the OPENAI_API_KEY. This should add the ID's into the .env file automatically. Best take a look at the .env file and make sure it is correct.  
 
 Once ran this script will use the same thread and assistant ID. To keep the conversation going over time. We will keep the same thread and assistant ID for this example.</I>
-
 &nbsp;
 
 ## Bulk Upload Helpers
@@ -515,15 +515,15 @@ Once ran this script will use the same thread and assistant ID. To keep the conv
   <img src="images/essence/learning-and-support.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
 </p>
 
-&nbsp;
-
 You can upload your documents and the script will be able to answer questions on the documents you uploaded.
 
 When creating and interacting with vector stores, you can use polling helpers to monitor the status of operations.
 
 For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
 
-For more information about what kind of files can be uploaded and more code, please go to [https://platform.openai.com/docs/assistants/tools/file-search](https://platform.openai.com/docs/assistants/tools/file-search)
+For more information about what kind of files can be uploaded and more code, please go to [OpenAI File Search](https://platform.openai.com/docs/assistants/tools/file-search)
+
+&nbsp;
 
 ### 📤 **Explanation:**
 
@@ -541,13 +541,21 @@ batch = await client.vector_stores.file_batches.upload_and_poll(
     files=sample_files,
 )
 ```
-Now next step is to run the script.
+1. Copy the code below and paste it into your script.
+2. Now next step is to run the script, and have a file ready to upload to the AI Database.
 
 ```
    python test_openai.py
 ```
 
+&nbsp;
+
+<details id="Installation Guide" style="border: 1px solid #d1d5da; border-radius: 6px; padding: 16px;">
+<summary style="font-size: 24px; font-weight: bold;">Upload File with chat.py</summary>
+
+
 ```python
+
 # Import the required libraries
 import os
 import sys
@@ -556,6 +564,7 @@ from openai import OpenAI
 from datetime import datetime
 from dotenv import load_dotenv
 from termcolor import colored
+from pathlib import Path
 
 # Load environment variables (loads your API Key) from .env file
 load_dotenv()
@@ -596,11 +605,18 @@ def create_thread_and_assistant():
 if not thread_id or not assistant_id:
     create_thread_and_assistant()
 
+# Function to update .env file
+def update_env_file(key, value):
+    env_path = '.env'
+    with open(env_path, 'a') as f:
+        f.write(f"\n{key}={value}")
+
 def upload_files_to_vector_store(file_paths):
     global vector_store_id
     if not vector_store_id:
         vector_store = client.beta.vector_stores.create(name="Financial Statements")
         vector_store_id = vector_store.id
+        update_env_file("VECTOR_STORE_ID", vector_store_id)  # Save vector_store_id to .env file
   
     file_streams = [open(path, "rb") for path in file_paths]
     file_batch = client.beta.vector_stores.file_batches.upload_and_poll(
@@ -718,53 +734,11 @@ def main():
             break
 
 if __name__ == "__main__":
-    main()sation_log.append({"role": "assistant", "content": response_content})
-
-    except Exception as e:
-        print(colored(f"Error: {e}", "red"))
-        return
-
-    # Save the conversation to a text file
-    with open('rgpt4.txt', 'a', encoding='utf-8') as file:
-        file.write("=== GPT-4 Chat started at {} ===\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
-        for entry in conversation_log:
-            file.write(f"[{entry['role'].capitalize()}]: {entry['content']}\n")
-        file.write("=== GPT-4 Chat ended at {} ===\n\n".format(datetime.now().strftime("%d/%m/%Y %H:%M:%S")))
-
-    # Save the conversation to a JSON file
-    with open('rgpt4.json', 'a', encoding='utf-8') as json_file:
-        json.dump(conversation_log, json_file, ensure_ascii=False, indent=4)
-        json_file.write('\n')
-
-def main():
-    if len(sys.argv) > 1:
-        # If a question is provided as a command-line argument
-        query = ' '.join(sys.argv[1:])
-        chat_gpt4(query)
-    else:
-        # Start the conversation
-        print(f"{bot_name}: How can I help?")
-
-    while True:
-        query = input(f"{user_name}: ")
-        if query.lower() in ["exit", "quit"]:
-            break
-
-        # Check if the user wants to upload files
-        if query.lower() == "upload":
-            file_paths = input("Enter the file paths (comma-separated): ").split(',')
-            files = [path.strip() for path in file_paths]
-            chat_gpt4(query, files=files)
-        else:
-            chat_gpt4(query)
-
-        follow_up = input(f"{bot_name}: Do you have another question? (yes/no): ")
-        if follow_up.lower() not in ["yes", "y"]:
-            break
-
-if __name__ == "__main__":
     main()
 ```
+
+</details>
+
 
 1. After running the file you should get something like this below. Again (p is my aliases for the word python).
 2. When Jervis asks 'How can I help?" You can either ask a question or type upload and it will ask you for the files location. I usually right click on a file and click the copy path and use that (I am using a Macbook Pro M3).
@@ -785,9 +759,19 @@ To ask questions about a file you've uploaded, you need to ensure that the file 
 
 * The vector store is managed by the OpenAI API. You don't need to worry about its physical location; you just need to ensure that the files are uploaded and indexed correctly.
 
+&nbsp;
+
 ## Streaming Helpers
 
-The SDK also includes helpers to process streams and handle incoming events.
+&nbsp;
+
+<p align="center">
+  <img src="images/essence/Usage-and-Connecting-with-the-API.webp" alt="OpenAI Python API Introduction" title="Welcome to the OpenAI Python API Library" width="1200" height="500">
+</p>
+
+&nbsp;
+
+The [SDK](#quick-definitions) also includes helpers to process streams and handle incoming events.
 
 OpenAI supports streaming responses when interacting with the [Assistant](#assistant-streaming-api) APIs.
 
