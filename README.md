@@ -672,8 +672,8 @@ register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
 ```
 
 ### Usage
-After completing the appropriate steps for your shell, try doing the following action:
-_(If you have activated permanent argument completion, restart your terminal before proceeding)_
+After completing the appropriate steps for your shell, try the following action:
+>_If you have activated permanent argument completion, restart your terminal before proceeding._
 ```shell
 openai <TAB>
 ```
