@@ -15,14 +15,17 @@ from .embedding import Embedding as Embedding
 from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
+from .audio_model import AudioModel as AudioModel
 from .batch_error import BatchError as BatchError
 from .file_object import FileObject as FileObject
+from .image_model import ImageModel as ImageModel
 from .file_content import FileContent as FileContent
 from .file_deleted import FileDeleted as FileDeleted
 from .model_deleted import ModelDeleted as ModelDeleted
 from .images_response import ImagesResponse as ImagesResponse
 from .completion_usage import CompletionUsage as CompletionUsage
 from .file_list_params import FileListParams as FileListParams
+from .moderation_model import ModerationModel as ModerationModel
 from .batch_list_params import BatchListParams as BatchListParams
 from .completion_choice import CompletionChoice as CompletionChoice
 from .image_edit_params import ImageEditParams as ImageEditParams

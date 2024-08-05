@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.38.0 (2024-08-02)
+
+Full Changelog: [v1.37.2...v1.38.0](https://github.com/openai/openai-python/compare/v1.37.2...v1.38.0)
+
+### Features
+
+* extract out `ImageModel`, `AudioModel`, `SpeechModel` ([#1586](https://github.com/openai/openai-python/issues/1586)) ([b800316](https://github.com/openai/openai-python/commit/b800316aee6c8b2aeb609ca4c41972adccd2fa7a))
+* make enums not nominal ([#1588](https://github.com/openai/openai-python/issues/1588)) ([ab4519b](https://github.com/openai/openai-python/commit/ab4519bc45f5512c8c5165641c217385d999809c))
+
+## 1.37.2 (2024-08-01)
+
+Full Changelog: [v1.37.1...v1.37.2](https://github.com/openai/openai-python/compare/v1.37.1...v1.37.2)
+
+### Chores
+
+* **internal:** add type construction helper ([#1584](https://github.com/openai/openai-python/issues/1584)) ([cbb186a](https://github.com/openai/openai-python/commit/cbb186a534b520fa5b11a9b371b175e3f6a6482b))
+* **runs/create_and_poll:** add parallel_tool_calls request param ([04b3e6c](https://github.com/openai/openai-python/commit/04b3e6c39ee5a7088e0e4dfa4c06f3dcce901a57))
+
 ## 1.37.1 (2024-07-25)
 
 Full Changelog: [v1.37.0...v1.37.1](https://github.com/openai/openai-python/compare/v1.37.0...v1.37.1)
