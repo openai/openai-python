@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import List, Union, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 __all__ = [
     "VectorStoreCreateParams",
@@ -72,7 +72,7 @@ class ChunkingStrategyStatic(TypedDict, total=False):
     """Always `static`."""
 
 
-ChunkingStrategy = Union[ChunkingStrategyAuto, ChunkingStrategyStatic]
+ChunkingStrategy: TypeAlias = Union[ChunkingStrategyAuto, ChunkingStrategyStatic]
 
 
 class ExpiresAfter(TypedDict, total=False):

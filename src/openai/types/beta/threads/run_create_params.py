@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ...chat_model import ChatModel
 from ..assistant_tool_param import AssistantToolParam
@@ -154,7 +154,7 @@ class AdditionalMessageAttachmentToolFileSearch(TypedDict, total=False):
     """The type of tool being defined: `file_search`"""
 
 
-AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, AdditionalMessageAttachmentToolFileSearch]
+AdditionalMessageAttachmentTool: TypeAlias = Union[CodeInterpreterToolParam, AdditionalMessageAttachmentToolFileSearch]
 
 
 class AdditionalMessageAttachment(TypedDict, total=False):

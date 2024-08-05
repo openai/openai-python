@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal, Annotated
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from ....._utils import PropertyInfo
 from ....._models import BaseModel
@@ -10,7 +10,7 @@ from .code_interpreter_output_image import CodeInterpreterOutputImage
 
 __all__ = ["CodeInterpreterToolCallDelta", "CodeInterpreter", "CodeInterpreterOutput"]
 
-CodeInterpreterOutput = Annotated[
+CodeInterpreterOutput: TypeAlias = Annotated[
     Union[CodeInterpreterLogs, CodeInterpreterOutputImage], PropertyInfo(discriminator="type")
 ]
 
