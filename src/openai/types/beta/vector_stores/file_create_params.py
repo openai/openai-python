@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 __all__ = [
     "FileCreateParams",
@@ -56,6 +56,6 @@ class ChunkingStrategyStaticChunkingStrategyRequestParam(TypedDict, total=False)
     """Always `static`."""
 
 
-ChunkingStrategy = Union[
+ChunkingStrategy: TypeAlias = Union[
     ChunkingStrategyAutoChunkingStrategyRequestParam, ChunkingStrategyStaticChunkingStrategyRequestParam
 ]

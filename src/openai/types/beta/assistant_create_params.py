@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..chat_model import ChatModel
 from .assistant_tool_param import AssistantToolParam
@@ -140,7 +140,7 @@ class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=
     """Always `static`."""
 
 
-ToolResourcesFileSearchVectorStoreChunkingStrategy = Union[
+ToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
     ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
 ]
 

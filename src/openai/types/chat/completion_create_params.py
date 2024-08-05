@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Dict, List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ...types import shared_params
 from ..chat_model import ChatModel
@@ -221,7 +221,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
 
-FunctionCall = Union[Literal["none", "auto"], ChatCompletionFunctionCallOptionParam]
+FunctionCall: TypeAlias = Union[Literal["none", "auto"], ChatCompletionFunctionCallOptionParam]
 
 
 class Function(TypedDict, total=False):
