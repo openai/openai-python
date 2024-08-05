@@ -34,7 +34,7 @@ def assert_signatures_in_sync(
 
         if custom_param.annotation != source_param.annotation:
             errors.append(
-                f"types for the `{name}` param are do not match; source={repr(source_param.annotation)} checking={repr(source_param.annotation)}"
+                f"types for the `{name}` param are do not match; source={repr(source_param.annotation)} checking={repr(custom_param.annotation)}"
             )
             continue
 

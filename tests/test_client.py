@@ -17,6 +17,7 @@ from respx import MockRouter
 from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
+from openai._types import Omit
 from openai._models import BaseModel, FinalRequestOptions
 from openai._constants import RAW_RESPONSE_HEADER
 from openai._streaming import Stream, AsyncStream
@@ -328,7 +329,8 @@ class TestOpenAI:
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
         with pytest.raises(OpenAIError):
-            client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
+            with update_env(**{"OPENAI_API_KEY": Omit()}):
+                client2 = OpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
     def test_default_query_option(self) -> None:
@@ -1103,7 +1105,8 @@ class TestAsyncOpenAI:
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
         with pytest.raises(OpenAIError):
-            client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
+            with update_env(**{"OPENAI_API_KEY": Omit()}):
+                client2 = AsyncOpenAI(base_url=base_url, api_key=None, _strict_response_validation=True)
             _ = client2
 
     def test_default_query_option(self) -> None:
