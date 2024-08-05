@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
-from typing_extensions import Annotated
+from typing_extensions import Annotated, TypeAlias
 
 from ....._utils import PropertyInfo
 from ....._models import BaseModel
@@ -10,7 +10,9 @@ from .run_step_delta_message_delta import RunStepDeltaMessageDelta
 
 __all__ = ["RunStepDelta", "StepDetails"]
 
-StepDetails = Annotated[Union[RunStepDeltaMessageDelta, ToolCallDeltaObject], PropertyInfo(discriminator="type")]
+StepDetails: TypeAlias = Annotated[
+    Union[RunStepDeltaMessageDelta, ToolCallDeltaObject], PropertyInfo(discriminator="type")
+]
 
 
 class RunStepDelta(BaseModel):

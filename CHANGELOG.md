@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.39.0 (2024-08-05)
+
+Full Changelog: [v1.38.0...v1.39.0](https://github.com/openai/openai-python/compare/v1.38.0...v1.39.0)
+
+### Features
+
+* **client:** add `retries_taken` to raw response class ([#1601](https://github.com/openai/openai-python/issues/1601)) ([777822b](https://github.com/openai/openai-python/commit/777822b39b7f9ebd6272d0af8fc04f9d657bd886))
+
+
+### Bug Fixes
+
+* **assistants:** add parallel_tool_calls param to runs.stream ([113e82a](https://github.com/openai/openai-python/commit/113e82a82c7390660ad3324fa8f9842f83b27571))
+
+
+### Chores
+
+* **internal:** bump pyright ([#1599](https://github.com/openai/openai-python/issues/1599)) ([27f0f10](https://github.com/openai/openai-python/commit/27f0f107e39d16adc0d5a50ffe4c687e0e3c42e5))
+* **internal:** test updates ([#1602](https://github.com/openai/openai-python/issues/1602)) ([af22d80](https://github.com/openai/openai-python/commit/af22d8079cf44cde5f03a206e78b900f8413dc43))
+* **internal:** use `TypeAlias` marker for type assignments ([#1597](https://github.com/openai/openai-python/issues/1597)) ([5907ea0](https://github.com/openai/openai-python/commit/5907ea04d6f5e0ffd17c38ad6a644a720ece8abe))
+
 ## 1.38.0 (2024-08-02)
 
 Full Changelog: [v1.37.2...v1.38.0](https://github.com/openai/openai-python/compare/v1.37.2...v1.38.0)
