@@ -1,7 +1,7 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Union
-from typing_extensions import Annotated
+from typing_extensions import Annotated, TypeAlias
 
 from ...._utils import PropertyInfo
 from .text_delta_block import TextDeltaBlock
@@ -10,6 +10,6 @@ from .image_file_delta_block import ImageFileDeltaBlock
 
 __all__ = ["MessageContentDelta"]
 
-MessageContentDelta = Annotated[
+MessageContentDelta: TypeAlias = Annotated[
     Union[ImageFileDeltaBlock, TextDeltaBlock, ImageURLDeltaBlock], PropertyInfo(discriminator="type")
 ]

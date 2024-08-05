@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .threads.message_content_part_param import MessageContentPartParam
@@ -54,7 +54,7 @@ class MessageAttachmentToolFileSearch(TypedDict, total=False):
     """The type of tool being defined: `file_search`"""
 
 
-MessageAttachmentTool = Union[CodeInterpreterToolParam, MessageAttachmentToolFileSearch]
+MessageAttachmentTool: TypeAlias = Union[CodeInterpreterToolParam, MessageAttachmentToolFileSearch]
 
 
 class MessageAttachment(TypedDict, total=False):
@@ -126,7 +126,7 @@ class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=
     """Always `static`."""
 
 
-ToolResourcesFileSearchVectorStoreChunkingStrategy = Union[
+ToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
     ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
 ]
 
