@@ -39,13 +39,11 @@ def assert_is_file_content(obj: object, *, key: str | None = None) -> None:
 
 
 @overload
-def to_httpx_files(files: None) -> None:
-    ...
+def to_httpx_files(files: None) -> None: ...
 
 
 @overload
-def to_httpx_files(files: RequestFiles) -> HttpxRequestFiles:
-    ...
+def to_httpx_files(files: RequestFiles) -> HttpxRequestFiles: ...
 
 
 def to_httpx_files(files: RequestFiles | None) -> HttpxRequestFiles | None:
@@ -83,13 +81,11 @@ def _read_file_content(file: FileContent) -> HttpxFileContent:
 
 
 @overload
-async def async_to_httpx_files(files: None) -> None:
-    ...
+async def async_to_httpx_files(files: None) -> None: ...
 
 
 @overload
-async def async_to_httpx_files(files: RequestFiles) -> HttpxRequestFiles:
-    ...
+async def async_to_httpx_files(files: RequestFiles) -> HttpxRequestFiles: ...
 
 
 async def async_to_httpx_files(files: RequestFiles | None) -> HttpxRequestFiles | None:

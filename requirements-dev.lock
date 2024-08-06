@@ -139,7 +139,7 @@ requests==2.31.0
 respx==0.20.2
 rich==13.7.1
     # via inline-snapshot
-ruff==0.1.9
+ruff==0.5.6
 setuptools==68.2.2
     # via nodeenv
 six==1.16.0

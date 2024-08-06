@@ -211,20 +211,17 @@ def required_args(*variants: Sequence[str]) -> Callable[[CallableT], CallableT]:
     Example usage:
     ```py
     @overload
-    def foo(*, a: str) -> str:
-        ...
+    def foo(*, a: str) -> str: ...
 
 
     @overload
-    def foo(*, b: bool) -> str:
-        ...
+    def foo(*, b: bool) -> str: ...
 
 
     # This enforces the same constraints that a static type checker would
     # i.e. that either a or b must be passed to the function
     @required_args(["a"], ["b"])
-    def foo(*, a: str | None = None, b: bool | None = None) -> str:
-        ...
+    def foo(*, a: str | None = None, b: bool | None = None) -> str: ...
     ```
     """
 
@@ -286,18 +283,15 @@ _V = TypeVar("_V")
 
 
 @overload
-def strip_not_given(obj: None) -> None:
-    ...
+def strip_not_given(obj: None) -> None: ...
 
 
 @overload
-def strip_not_given(obj: Mapping[_K, _V | NotGiven]) -> dict[_K, _V]:
-    ...
+def strip_not_given(obj: Mapping[_K, _V | NotGiven]) -> dict[_K, _V]: ...
 
 
 @overload
-def strip_not_given(obj: object) -> object:
-    ...
+def strip_not_given(obj: object) -> object: ...
 
 
 def strip_not_given(obj: object | None) -> object:
