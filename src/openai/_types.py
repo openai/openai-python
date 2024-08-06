@@ -112,8 +112,7 @@ class NotGiven:
     For example:
 
     ```py
-    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response:
-        ...
+    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
 
 
     get(timeout=1)  # 1s timeout
@@ -163,16 +162,14 @@ class ModelBuilderProtocol(Protocol):
         *,
         response: Response,
         data: object,
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
 
 Headers = Mapping[str, Union[str, Omit]]
 
 
 class HeadersLikeProtocol(Protocol):
-    def get(self, __key: str) -> str | None:
-        ...
+    def get(self, __key: str) -> str | None: ...
 
 
 HeadersLike = Union[Headers, HeadersLikeProtocol]
