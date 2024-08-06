@@ -17,7 +17,7 @@ __all__ = [
 
 
 class LastError(BaseModel):
-    code: Literal["internal_error", "file_not_found", "parsing_error", "unhandled_mime_type"]
+    code: Literal["server_error", "unsupported_file", "invalid_file"]
     """One of `server_error` or `rate_limit_exceeded`."""
 
     message: str

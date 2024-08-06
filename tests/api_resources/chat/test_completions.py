@@ -24,11 +24,11 @@ class TestCompletions:
         completion = client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -37,12 +37,12 @@ class TestCompletions:
         completion = client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                     "name": "name",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             frequency_penalty=-2,
             function_call="none",
             functions=[
@@ -58,7 +58,7 @@ class TestCompletions:
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
-            response_format={"type": "json_object"},
+            response_format={"type": "text"},
             seed=-9007199254740991,
             service_tier="auto",
             stop="string",
@@ -73,6 +73,7 @@ class TestCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -81,6 +82,7 @@ class TestCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -89,6 +91,7 @@ class TestCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
             ],
@@ -103,11 +106,11 @@ class TestCompletions:
         response = client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
 
         assert response.is_closed is True
@@ -120,11 +123,11 @@ class TestCompletions:
         with client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -139,11 +142,11 @@ class TestCompletions:
         completion_stream = client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
         )
         completion_stream.response.close()
@@ -153,12 +156,12 @@ class TestCompletions:
         completion_stream = client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                     "name": "name",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
             frequency_penalty=-2,
             function_call="none",
@@ -175,7 +178,7 @@ class TestCompletions:
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
-            response_format={"type": "json_object"},
+            response_format={"type": "text"},
             seed=-9007199254740991,
             service_tier="auto",
             stop="string",
@@ -189,6 +192,7 @@ class TestCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -197,6 +201,7 @@ class TestCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -205,6 +210,7 @@ class TestCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
             ],
@@ -219,11 +225,11 @@ class TestCompletions:
         response = client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
         )
 
@@ -236,11 +242,11 @@ class TestCompletions:
         with client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -260,11 +266,11 @@ class TestAsyncCompletions:
         completion = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -273,12 +279,12 @@ class TestAsyncCompletions:
         completion = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                     "name": "name",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             frequency_penalty=-2,
             function_call="none",
             functions=[
@@ -294,7 +300,7 @@ class TestAsyncCompletions:
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
-            response_format={"type": "json_object"},
+            response_format={"type": "text"},
             seed=-9007199254740991,
             service_tier="auto",
             stop="string",
@@ -309,6 +315,7 @@ class TestAsyncCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -317,6 +324,7 @@ class TestAsyncCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -325,6 +333,7 @@ class TestAsyncCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
             ],
@@ -339,11 +348,11 @@ class TestAsyncCompletions:
         response = await async_client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
 
         assert response.is_closed is True
@@ -356,11 +365,11 @@ class TestAsyncCompletions:
         async with async_client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -375,11 +384,11 @@ class TestAsyncCompletions:
         completion_stream = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -389,12 +398,12 @@ class TestAsyncCompletions:
         completion_stream = await async_client.chat.completions.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                     "name": "name",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
             frequency_penalty=-2,
             function_call="none",
@@ -411,7 +420,7 @@ class TestAsyncCompletions:
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
-            response_format={"type": "json_object"},
+            response_format={"type": "text"},
             seed=-9007199254740991,
             service_tier="auto",
             stop="string",
@@ -425,6 +434,7 @@ class TestAsyncCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -433,6 +443,7 @@ class TestAsyncCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
                 {
@@ -441,6 +452,7 @@ class TestAsyncCompletions:
                         "description": "description",
                         "name": "name",
                         "parameters": {"foo": "bar"},
+                        "strict": True,
                     },
                 },
             ],
@@ -455,11 +467,11 @@ class TestAsyncCompletions:
         response = await async_client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
         )
 
@@ -472,11 +484,11 @@ class TestAsyncCompletions:
         async with async_client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
             stream=True,
         ) as response:
             assert not response.is_closed

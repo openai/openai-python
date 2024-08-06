@@ -9,6 +9,9 @@ from .shared import (
     ErrorObject as ErrorObject,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
+    ResponseFormatText as ResponseFormatText,
+    ResponseFormatJSONObject as ResponseFormatJSONObject,
+    ResponseFormatJSONSchema as ResponseFormatJSONSchema,
 )
 from .upload import Upload as Upload
 from .embedding import Embedding as Embedding

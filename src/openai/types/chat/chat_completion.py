@@ -15,6 +15,9 @@ class ChoiceLogprobs(BaseModel):
     content: Optional[List[ChatCompletionTokenLogprob]] = None
     """A list of message content tokens with log probability information."""
 
+    refusal: Optional[List[ChatCompletionTokenLogprob]] = None
+    """A list of message refusal tokens with log probability information."""
+
 
 class Choice(BaseModel):
     finish_reason: Literal["stop", "length", "tool_calls", "content_filter", "function_call"]
