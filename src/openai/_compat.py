@@ -7,7 +7,7 @@ from typing_extensions import Self
 import pydantic
 from pydantic.fields import FieldInfo
 
-from ._types import StrBytesIntFloat
+from ._types import IncEx, StrBytesIntFloat
 
 _T = TypeVar("_T")
 _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
@@ -133,17 +133,20 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
 def model_dump(
     model: pydantic.BaseModel,
     *,
+    exclude: IncEx = None,
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
 ) -> dict[str, Any]:
     if PYDANTIC_V2:
         return model.model_dump(
+            exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
         )
     return cast(
         "dict[str, Any]",
         model.dict(  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+            exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
         ),
