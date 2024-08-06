@@ -159,6 +159,18 @@ def model_parse(model: type[_ModelT], data: Any) -> _ModelT:
     return model.parse_obj(data)  # pyright: ignore[reportDeprecated]
 
 
+def model_parse_json(model: type[_ModelT], data: str | bytes) -> _ModelT:
+    if PYDANTIC_V2:
+        return model.model_validate_json(data)
+    return model.parse_raw(data)  # pyright: ignore[reportDeprecated]
+
+
+def model_json_schema(model: type[_ModelT]) -> dict[str, Any]:
+    if PYDANTIC_V2:
+        return model.model_json_schema()
+    return model.schema()  # pyright: ignore[reportDeprecated]
+
+
 # generic models
 if TYPE_CHECKING:
 

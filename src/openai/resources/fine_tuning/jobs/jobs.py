@@ -52,7 +52,7 @@ class Jobs(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo"]],
+        model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo", "gpt-4o-mini"]],
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
@@ -77,7 +77,7 @@ class Jobs(SyncAPIResource):
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning/what-models-can-be-fine-tuned).
+              [supported models](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned).
 
           training_file: The ID of an uploaded file that contains training data.
 
@@ -107,7 +107,7 @@ class Jobs(SyncAPIResource):
               name.
 
               For example, a `suffix` of "custom-model-name" would produce a model name like
-              `ft:gpt-3.5-turbo:openai:custom-model-name:7p4lURel`.
+              `ft:gpt-4o-mini:openai:custom-model-name:7p4lURel`.
 
           validation_file: The ID of an uploaded file that contains validation data.
 
@@ -332,7 +332,7 @@ class AsyncJobs(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo"]],
+        model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo", "gpt-4o-mini"]],
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
@@ -357,7 +357,7 @@ class AsyncJobs(AsyncAPIResource):
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning/what-models-can-be-fine-tuned).
+              [supported models](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned).
 
           training_file: The ID of an uploaded file that contains training data.
 
@@ -387,7 +387,7 @@ class AsyncJobs(AsyncAPIResource):
               name.
 
               For example, a `suffix` of "custom-model-name" would produce a model name like
-              `ft:gpt-3.5-turbo:openai:custom-model-name:7p4lURel`.
+              `ft:gpt-4o-mini:openai:custom-model-name:7p4lURel`.
 
           validation_file: The ID of an uploaded file that contains validation data.
 

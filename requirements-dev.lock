@@ -72,6 +72,8 @@ importlib-metadata==7.0.0
 iniconfig==2.0.0
     # via pytest
 inline-snapshot==0.10.2
+jiter==0.5.0
+    # via openai
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
@@ -169,7 +171,7 @@ types-pytz==2024.1.0.20240417
 types-toml==0.10.8.20240310
     # via inline-snapshot
 types-tqdm==4.66.0.2
-typing-extensions==4.8.0
+typing-extensions==4.12.2
     # via azure-core
     # via black
     # via mypy

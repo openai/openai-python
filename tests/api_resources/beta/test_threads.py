@@ -302,9 +302,9 @@ class TestThreads:
             max_completion_tokens=256,
             max_prompt_tokens=256,
             metadata={},
-            model="gpt-4-turbo",
+            model="gpt-4o",
             parallel_tool_calls=True,
-            response_format="none",
+            response_format="auto",
             stream=False,
             temperature=1,
             thread={
@@ -473,9 +473,9 @@ class TestThreads:
             max_completion_tokens=256,
             max_prompt_tokens=256,
             metadata={},
-            model="gpt-4-turbo",
+            model="gpt-4o",
             parallel_tool_calls=True,
-            response_format="none",
+            response_format="auto",
             temperature=1,
             thread={
                 "messages": [
@@ -912,9 +912,9 @@ class TestAsyncThreads:
             max_completion_tokens=256,
             max_prompt_tokens=256,
             metadata={},
-            model="gpt-4-turbo",
+            model="gpt-4o",
             parallel_tool_calls=True,
-            response_format="none",
+            response_format="auto",
             stream=False,
             temperature=1,
             thread={
@@ -1083,9 +1083,9 @@ class TestAsyncThreads:
             max_completion_tokens=256,
             max_prompt_tokens=256,
             metadata={},
-            model="gpt-4-turbo",
+            model="gpt-4o",
             parallel_tool_calls=True,
-            response_format="none",
+            response_format="auto",
             temperature=1,
             thread={
                 "messages": [

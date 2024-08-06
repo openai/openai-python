@@ -26,8 +26,10 @@ from ._exceptions import (
     AuthenticationError,
     InternalServerError,
     PermissionDeniedError,
+    LengthFinishReasonError,
     UnprocessableEntityError,
     APIResponseValidationError,
+    ContentFilterFinishReasonError,
 )
 from ._base_client import DefaultHttpxClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
@@ -55,6 +57,8 @@ __all__ = [
     "UnprocessableEntityError",
     "RateLimitError",
     "InternalServerError",
+    "LengthFinishReasonError",
+    "ContentFilterFinishReasonError",
     "Timeout",
     "RequestOptions",
     "Client",
@@ -72,7 +76,7 @@ __all__ = [
     "DefaultAsyncHttpxClient",
 ]
 
-from .lib import azure as _azure
+from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
 from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
 from .lib._old_api import *

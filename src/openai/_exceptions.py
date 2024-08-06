@@ -19,6 +19,8 @@ __all__ = [
     "UnprocessableEntityError",
     "RateLimitError",
     "InternalServerError",
+    "LengthFinishReasonError",
+    "ContentFilterFinishReasonError",
 ]
 
 
@@ -125,3 +127,17 @@ class RateLimitError(APIStatusError):
 
 class InternalServerError(APIStatusError):
     pass
+
+
+class LengthFinishReasonError(OpenAIError):
+    def __init__(self) -> None:
+        super().__init__(
+            f"Could not parse response content as the length limit was reached",
+        )
+
+
+class ContentFilterFinishReasonError(OpenAIError):
+    def __init__(self) -> None:
+        super().__init__(
+            f"Could not parse response content as the request was rejected by the content filter",
+        )
