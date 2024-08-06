@@ -37,6 +37,9 @@ from .chat_completion_content_part_image_param import (
 from .chat_completion_tool_choice_option_param import (
     ChatCompletionToolChoiceOptionParam as ChatCompletionToolChoiceOptionParam,
 )
+from .chat_completion_content_part_refusal_param import (
+    ChatCompletionContentPartRefusalParam as ChatCompletionContentPartRefusalParam,
+)
 from .chat_completion_function_call_option_param import (
     ChatCompletionFunctionCallOptionParam as ChatCompletionFunctionCallOptionParam,
 )

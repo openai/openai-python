@@ -24,19 +24,19 @@ class TestAssistants:
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
         assistant = client.beta.assistants.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
         assert_matches_type(Assistant, assistant, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         assistant = client.beta.assistants.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
             description="description",
             instructions="instructions",
             metadata={},
             name="name",
-            response_format="none",
+            response_format="auto",
             temperature=1,
             tool_resources={
                 "code_interpreter": {"file_ids": ["string", "string", "string"]},
@@ -59,7 +59,7 @@ class TestAssistants:
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.beta.assistants.with_raw_response.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
 
         assert response.is_closed is True
@@ -70,7 +70,7 @@ class TestAssistants:
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.beta.assistants.with_streaming_response.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -134,7 +134,7 @@ class TestAssistants:
             metadata={},
             model="model",
             name="name",
-            response_format="none",
+            response_format="auto",
             temperature=1,
             tool_resources={
                 "code_interpreter": {"file_ids": ["string", "string", "string"]},
@@ -256,19 +256,19 @@ class TestAsyncAssistants:
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         assistant = await async_client.beta.assistants.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
         assert_matches_type(Assistant, assistant, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         assistant = await async_client.beta.assistants.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
             description="description",
             instructions="instructions",
             metadata={},
             name="name",
-            response_format="none",
+            response_format="auto",
             temperature=1,
             tool_resources={
                 "code_interpreter": {"file_ids": ["string", "string", "string"]},
@@ -291,7 +291,7 @@ class TestAsyncAssistants:
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.assistants.with_raw_response.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
 
         assert response.is_closed is True
@@ -302,7 +302,7 @@ class TestAsyncAssistants:
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.assistants.with_streaming_response.create(
-            model="gpt-4-turbo",
+            model="gpt-4o",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -366,7 +366,7 @@ class TestAsyncAssistants:
             metadata={},
             model="model",
             name="name",
-            response_format="none",
+            response_format="auto",
             temperature=1,
             tool_resources={
                 "code_interpreter": {"file_ids": ["string", "string", "string"]},

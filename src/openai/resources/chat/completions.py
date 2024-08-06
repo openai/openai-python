@@ -142,6 +142,8 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
@@ -338,6 +340,8 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
@@ -527,6 +531,8 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
@@ -791,6 +797,8 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
@@ -987,6 +995,8 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
@@ -1176,6 +1186,8 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
