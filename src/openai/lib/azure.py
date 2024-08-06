@@ -80,8 +80,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __init__(
@@ -99,8 +98,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __init__(
@@ -118,8 +116,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,
@@ -321,8 +318,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __init__(
@@ -341,8 +337,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     @overload
     def __init__(
@@ -361,8 +356,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     def __init__(
         self,
