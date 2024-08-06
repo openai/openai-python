@@ -780,11 +780,11 @@ class TestOpenAI:
         response = client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
 
         assert response.retries_taken == failures_before_success
@@ -811,11 +811,11 @@ class TestOpenAI:
         with client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         ) as response:
             assert response.retries_taken == failures_before_success
 
@@ -1574,11 +1574,11 @@ class TestAsyncOpenAI:
         response = await client.chat.completions.with_raw_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         )
 
         assert response.retries_taken == failures_before_success
@@ -1606,10 +1606,10 @@ class TestAsyncOpenAI:
         async with client.chat.completions.with_streaming_response.create(
             messages=[
                 {
-                    "content": "content",
+                    "content": "string",
                     "role": "system",
                 }
             ],
-            model="gpt-4-turbo",
+            model="gpt-4o",
         ) as response:
             assert response.retries_taken == failures_before_success

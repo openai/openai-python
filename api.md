@@ -1,7 +1,14 @@
 # Shared Types
 
 ```python
-from openai.types import ErrorObject, FunctionDefinition, FunctionParameters
+from openai.types import (
+    ErrorObject,
+    FunctionDefinition,
+    FunctionParameters,
+    ResponseFormatJSONObject,
+    ResponseFormatJSONSchema,
+    ResponseFormatText,
+)
 ```
 
 # Completions
@@ -35,6 +42,7 @@ from openai.types.chat import (
     ChatCompletionChunk,
     ChatCompletionContentPart,
     ChatCompletionContentPartImage,
+    ChatCompletionContentPartRefusal,
     ChatCompletionContentPartText,
     ChatCompletionFunctionCallOption,
     ChatCompletionFunctionMessageParam,
@@ -296,7 +304,6 @@ Types:
 
 ```python
 from openai.types.beta import (
-    AssistantResponseFormat,
     AssistantResponseFormatOption,
     AssistantToolChoice,
     AssistantToolChoiceFunction,
@@ -397,6 +404,8 @@ from openai.types.beta.threads import (
     MessageDeleted,
     MessageDelta,
     MessageDeltaEvent,
+    RefusalContentBlock,
+    RefusalDeltaBlock,
     Text,
     TextContentBlock,
     TextContentBlockParam,

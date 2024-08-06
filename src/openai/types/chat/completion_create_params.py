@@ -121,7 +121,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
 
-    Compatible with
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+    [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
     [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
     all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
@@ -250,9 +251,9 @@ class Function(TypedDict, total=False):
     """
 
 
-class ResponseFormat(TypedDict, total=False):
-    type: Literal["text", "json_object"]
-    """Must be one of `text` or `json_object`."""
+ResponseFormat: TypeAlias = Union[
+    shared_params.ResponseFormatText, shared_params.ResponseFormatJSONObject, shared_params.ResponseFormatJSONSchema
+]
 
 
 class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):

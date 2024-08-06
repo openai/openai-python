@@ -10,12 +10,13 @@ authors = [
 dependencies = [
     "httpx>=0.23.0, <1",
     "pydantic>=1.9.0, <3",
-    "typing-extensions>=4.7, <5",
+    "typing-extensions>=4.11, <5",
     "anyio>=3.5.0, <5",
     "distro>=1.7.0, <2",
     "sniffio",
     "cached-property; python_version < '3.8'",
-    "tqdm > 4"
+    "tqdm > 4",
+    "jiter>=0.4.0, <1",
 ]
 requires-python = ">= 3.7.1"
 classifiers = [
