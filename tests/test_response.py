@@ -19,16 +19,13 @@ from openai._streaming import Stream
 from openai._base_client import FinalRequestOptions
 
 
-class ConcreteBaseAPIResponse(APIResponse[bytes]):
-    ...
+class ConcreteBaseAPIResponse(APIResponse[bytes]): ...
 
 
-class ConcreteAPIResponse(APIResponse[List[str]]):
-    ...
+class ConcreteAPIResponse(APIResponse[List[str]]): ...
 
 
-class ConcreteAsyncAPIResponse(APIResponse[httpx.Response]):
-    ...
+class ConcreteAsyncAPIResponse(APIResponse[httpx.Response]): ...
 
 
 def test_extract_response_type_direct_classes() -> None:
@@ -56,8 +53,7 @@ def test_extract_response_type_binary_response() -> None:
     assert extract_response_type(AsyncBinaryAPIResponse) == bytes
 
 
-class PydanticModel(pydantic.BaseModel):
-    ...
+class PydanticModel(pydantic.BaseModel): ...
 
 
 def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:

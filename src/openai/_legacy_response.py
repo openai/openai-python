@@ -92,12 +92,10 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
 
     @overload
-    def parse(self, *, to: type[_T]) -> _T:
-        ...
+    def parse(self, *, to: type[_T]) -> _T: ...
 
     @overload
-    def parse(self) -> R:
-        ...
+    def parse(self) -> R: ...
 
     def parse(self, *, to: type[_T] | None = None) -> R | _T:
         """Returns the rich python representation of this response's data.

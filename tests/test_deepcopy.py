@@ -41,8 +41,7 @@ def test_nested_list() -> None:
     assert_different_identities(obj1[1], obj2[1])
 
 
-class MyObject:
-    ...
+class MyObject: ...
 
 
 def test_ignores_other_types() -> None:
