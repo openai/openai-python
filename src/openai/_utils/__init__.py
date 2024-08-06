@@ -40,6 +40,7 @@ from ._typing import (
     is_annotated_type as is_annotated_type,
     strip_annotated_type as strip_annotated_type,
     extract_type_var_from_base as extract_type_var_from_base,
+    wrap_in_annotated_type as wrap_in_annotated_type,
 )
 from ._streams import consume_sync_iterator as consume_sync_iterator, consume_async_iterator as consume_async_iterator
 from ._transform import (
