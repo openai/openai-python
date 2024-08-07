@@ -55,6 +55,9 @@ class BaseAPIResponse(Generic[R]):
 
     http_response: httpx.Response
 
+    retries_taken: int
+    """The number of retries made. If no retries happened this will be `0`"""
+
     def __init__(
         self,
         *,
@@ -64,6 +67,7 @@ class BaseAPIResponse(Generic[R]):
         stream: bool,
         stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
         options: FinalRequestOptions,
+        retries_taken: int = 0,
     ) -> None:
         self._cast_to = cast_to
         self._client = client
@@ -72,6 +76,7 @@ class BaseAPIResponse(Generic[R]):
         self._stream_cls = stream_cls
         self._options = options
         self.http_response = raw
+        self.retries_taken = retries_taken
 
     @property
     def headers(self) -> httpx.Headers:
@@ -263,12 +268,10 @@ class APIResponse(BaseAPIResponse[R]):
         return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
 
     @overload
-    def parse(self, *, to: type[_T]) -> _T:
-        ...
+    def parse(self, *, to: type[_T]) -> _T: ...
 
     @overload
-    def parse(self) -> R:
-        ...
+    def parse(self) -> R: ...
 
     def parse(self, *, to: type[_T] | None = None) -> R | _T:
         """Returns the rich python representation of this response's data.
@@ -371,12 +374,10 @@ class AsyncAPIResponse(BaseAPIResponse[R]):
         return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
 
     @overload
-    async def parse(self, *, to: type[_T]) -> _T:
-        ...
+    async def parse(self, *, to: type[_T]) -> _T: ...
 
     @overload
-    async def parse(self) -> R:
-        ...
+    async def parse(self) -> R: ...
 
     async def parse(self, *, to: type[_T] | None = None) -> R | _T:
         """Returns the rich python representation of this response's data.

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Union
+from typing_extensions import TypeAlias
 
 from .chat_completion_tool_message_param import ChatCompletionToolMessageParam
 from .chat_completion_user_message_param import ChatCompletionUserMessageParam
@@ -12,7 +13,7 @@ from .chat_completion_assistant_message_param import ChatCompletionAssistantMess
 
 __all__ = ["ChatCompletionMessageParam"]
 
-ChatCompletionMessageParam = Union[
+ChatCompletionMessageParam: TypeAlias = Union[
     ChatCompletionSystemMessageParam,
     ChatCompletionUserMessageParam,
     ChatCompletionAssistantMessageParam,

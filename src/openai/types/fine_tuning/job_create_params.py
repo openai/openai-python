@@ -9,11 +9,11 @@ __all__ = ["JobCreateParams", "Hyperparameters", "Integration", "IntegrationWand
 
 
 class JobCreateParams(TypedDict, total=False):
-    model: Required[Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo"]]]
+    model: Required[Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo", "gpt-4o-mini"]]]
     """The name of the model to fine-tune.
 
     You can select one of the
-    [supported models](https://platform.openai.com/docs/guides/fine-tuning/what-models-can-be-fine-tuned).
+    [supported models](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned).
     """
 
     training_file: Required[str]
@@ -54,7 +54,7 @@ class JobCreateParams(TypedDict, total=False):
     name.
 
     For example, a `suffix` of "custom-model-name" would produce a model name like
-    `ft:gpt-3.5-turbo:openai:custom-model-name:7p4lURel`.
+    `ft:gpt-4o-mini:openai:custom-model-name:7p4lURel`.
     """
 
     validation_file: Optional[str]
