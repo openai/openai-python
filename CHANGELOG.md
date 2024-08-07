@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.40.1 (2024-08-07)
+
+Full Changelog: [v1.40.0...v1.40.1](https://github.com/openai/openai-python/compare/v1.40.0...v1.40.1)
+
+### Chores
+
+* **internal:** update OpenAPI spec url ([#1608](https://github.com/openai/openai-python/issues/1608)) ([5392753](https://github.com/openai/openai-python/commit/53927531fc101e96b9e3f5d44f34b298055f496a))
+* **internal:** update test snapshots ([a11d1cb](https://github.com/openai/openai-python/commit/a11d1cb5d04aac0bf69dc10a3a21fa95575c0aa0))
+
 ## 1.40.0 (2024-08-06)
 
 Full Changelog: [v1.39.0...v1.40.0](https://github.com/openai/openai-python/compare/v1.39.0...v1.40.0)
