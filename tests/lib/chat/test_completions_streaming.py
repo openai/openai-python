@@ -48,7 +48,7 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
                 },
             ],
         ),
-        content_snapshot=snapshot(external("b9d6bee9f9b8*.bin")),
+        content_snapshot=snapshot(external("038a5c69c34c*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -61,8 +61,9 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
-            content="I'm unable to provide real-time weather updates. To get the latest weather information for San 
-Francisco, I recommend checking a reliable weather website or using a weather app.",
+            content="I'm unable to provide real-time updates, including current weather information. For the latest 
+weather in San Francisco, I recommend checking a reliable weather website or app such as the Weather Channel, BBC 
+Weather, or a local San Francisco news station.",
             function_call=None,
             parsed=None,
             refusal=None,
@@ -76,8 +77,9 @@ Francisco, I recommend checking a reliable weather website or using a weather ap
     assert print_obj(listener.get_event_by_type("content.done"), monkeypatch) == snapshot(
         """\
 ContentDoneEvent[NoneType](
-    content="I'm unable to provide real-time weather updates. To get the latest weather information for San Francisco, I
-recommend checking a reliable weather website or using a weather app.",
+    content="I'm unable to provide real-time updates, including current weather information. For the latest weather in 
+San Francisco, I recommend checking a reliable weather website or app such as the Weather Channel, BBC Weather, or a 
+local San Francisco news station.",
     parsed=None,
     type='content.done'
 )
@@ -109,7 +111,7 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
             ],
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("ea9a417d533b*.bin")),
+        content_snapshot=snapshot(external("15ae68f793c7*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
         on_event=on_event,
@@ -138,21 +140,21 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
-                content='{"city":"San Francisco","temperature":63,"units":"f"}',
+                content='{"city":"San Francisco","temperature":68,"units":"f"}',
                 function_call=None,
-                parsed=Location(city='San Francisco', temperature=63.0, units='f'),
+                parsed=Location(city='San Francisco', temperature=68.0, units='f'),
                 refusal=None,
                 role='assistant',
                 tool_calls=[]
             )
         )
     ],
-    created=1722934250,
-    id='chatcmpl-9tAC2Fr44W8e4GakwKuKSSsFPhISv',
-    model='gpt-4o-so',
+    created=1723024750,
+    id='chatcmpl-9tXji2y8kKxlOO3muVvfdJ7ECJVlD',
+    model='gpt-4o-2024-08-06',
     object='chat.completion',
     service_tier=None,
-    system_fingerprint='fp_e1a05a1dce',
+    system_fingerprint='fp_845eaabc1f',
     usage=CompletionUsage(completion_tokens=14, prompt_tokens=17, total_tokens=31)
 )
 """
@@ -160,8 +162,8 @@ ParsedChatCompletion[Location](
     assert print_obj(listener.get_event_by_type("content.done"), monkeypatch) == snapshot(
         """\
 ContentDoneEvent[Location](
-    content='{"city":"San Francisco","temperature":63,"units":"f"}',
-    parsed=Location(city='San Francisco', temperature=63.0, units='f'),
+    content='{"city":"San Francisco","temperature":68,"units":"f"}',
+    parsed=Location(city='San Francisco', temperature=68.0, units='f'),
     type='content.done'
 )
 """
@@ -189,7 +191,7 @@ def test_parse_pydantic_model_multiple_choices(
             n=3,
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("1437bd06a9d5*.bin")),
+        content_snapshot=snapshot(external("a0c4f0be184e*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -209,7 +211,35 @@ def test_parse_pydantic_model_multiple_choices(
             "chunk",
             "content.delta",
             "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
             "content.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "content.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
@@ -219,7 +249,9 @@ def test_parse_pydantic_model_multiple_choices(
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
@@ -229,69 +261,95 @@ def test_parse_pydantic_model_multiple_choices(
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
             "content.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
             "chunk",
-            "content.delta",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
+            "chunk",
+            "refusal.delta",
             "chunk",
             "content.done",
             "chunk",
             "content.done",
             "chunk",
-            "content.done",
+            "refusal.done",
             "chunk",
         ]
     )
@@ -303,9 +361,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":64,"units":"f"}',
+            content='{"city":"San Francisco","temperature":63,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=64.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=63.0, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -316,9 +374,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=1,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":68,"units":"f"}',
+            content='{"city":"San Francisco","temperature":58.6,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=68.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=58.6, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -329,10 +387,11 @@ def test_parse_pydantic_model_multiple_choices(
         index=2,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":64,"units":"f"}',
+            content=None,
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=64.0, units='f'),
-            refusal=None,
+            parsed=None,
+            refusal="I'm sorry, but I can't accurately provide the current weather for San Francisco as my data is up to
+October 2023. You can try checking a reliable weather website or app for real-time updates.",
             role='assistant',
             tool_calls=[]
         )
@@ -362,7 +421,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
                 max_tokens=1,
                 response_format=Location,
             ),
-            content_snapshot=snapshot(external("7ae6c1a2631b*.bin")),
+            content_snapshot=snapshot(external("69363a555f8e*.bin")),
             mock_client=client,
             respx_mock=respx_mock,
         )
@@ -386,13 +445,13 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
             ],
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("d79326933c15*.bin")),
+        content_snapshot=snapshot(external("ca015b8b1eba*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
 
     assert print_obj(listener.get_event_by_type("refusal.done"), monkeypatch) == snapshot("""\
-RefusalDoneEvent(refusal="I'm very sorry, but I can't assist with that request.", type='refusal.done')
+RefusalDoneEvent(refusal="I'm sorry, but I can't assist with that request.", type='refusal.done')
 """)
 
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
@@ -406,7 +465,7 @@ RefusalDoneEvent(refusal="I'm very sorry, but I can't assist with that request."
             content=None,
             function_call=None,
             parsed=None,
-            refusal="I'm very sorry, but I can't assist with that request.",
+            refusal="I'm sorry, but I can't assist with that request.",
             role='assistant',
             tool_calls=[]
         )
@@ -429,7 +488,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             ],
             logprobs=True,
         ),
-        content_snapshot=snapshot(external("70c7df71ce72*.bin")),
+        content_snapshot=snapshot(external("be1089999ca5*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -437,24 +496,26 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
     assert print_obj([e for e in listener.events if e.type.startswith("logprobs")], monkeypatch) == snapshot("""\
 [
     LogprobsContentDeltaEvent(
-        content=[ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.006764991, token='Foo', top_logprobs=[])],
+        content=[
+            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0067602484, token='Foo', top_logprobs=[])
+        ],
         snapshot=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.006764991, token='Foo', top_logprobs=[])
+            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0067602484, token='Foo', top_logprobs=[])
         ],
         type='logprobs.content.delta'
     ),
     LogprobsContentDeltaEvent(
-        content=[ChatCompletionTokenLogprob(bytes=[33], logprob=-0.31380808, token='!', top_logprobs=[])],
+        content=[ChatCompletionTokenLogprob(bytes=[46], logprob=-2.4962392, token='.', top_logprobs=[])],
         snapshot=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.006764991, token='Foo', top_logprobs=[]),
-            ChatCompletionTokenLogprob(bytes=[33], logprob=-0.31380808, token='!', top_logprobs=[])
+            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0067602484, token='Foo', top_logprobs=[]),
+            ChatCompletionTokenLogprob(bytes=[46], logprob=-2.4962392, token='.', top_logprobs=[])
         ],
         type='logprobs.content.delta'
     ),
     LogprobsContentDoneEvent(
         content=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.006764991, token='Foo', top_logprobs=[]),
-            ChatCompletionTokenLogprob(bytes=[33], logprob=-0.31380808, token='!', top_logprobs=[])
+            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0067602484, token='Foo', top_logprobs=[]),
+            ChatCompletionTokenLogprob(bytes=[46], logprob=-2.4962392, token='.', top_logprobs=[])
         ],
         type='logprobs.content.done'
     )
@@ -468,13 +529,13 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
         index=0,
         logprobs=ChoiceLogprobs(
             content=[
-                ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.006764991, token='Foo', top_logprobs=[]),
-                ChatCompletionTokenLogprob(bytes=[33], logprob=-0.31380808, token='!', top_logprobs=[])
+                ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0067602484, token='Foo', top_logprobs=[]),
+                ChatCompletionTokenLogprob(bytes=[46], logprob=-2.4962392, token='.', top_logprobs=[])
             ],
             refusal=None
         ),
         message=ParsedChatCompletionMessage[NoneType](
-            content='Foo!',
+            content='Foo.',
             function_call=None,
             parsed=None,
             refusal=None,
@@ -505,14 +566,13 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             logprobs=True,
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("cb77dc69b6c8*.bin")),
+        content_snapshot=snapshot(external("0a00cd46c610*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
 
     assert print_obj([e.type for e in listener.events if e.type.startswith("logprobs")], monkeypatch) == snapshot("""\
 [
-    'logprobs.refusal.delta',
     'logprobs.refusal.delta',
     'logprobs.refusal.delta',
     'logprobs.refusal.delta',
@@ -535,59 +595,53 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
         logprobs=ChoiceLogprobs(
             content=None,
             refusal=[
-                ChatCompletionTokenLogprob(bytes=[73, 39, 109], logprob=-0.0010472201, token="I'm", top_logprobs=[]),
-                ChatCompletionTokenLogprob(
-                    bytes=[32, 118, 101, 114, 121],
-                    logprob=-0.7292482,
-                    token=' very',
-                    top_logprobs=[]
-                ),
+                ChatCompletionTokenLogprob(bytes=[73, 39, 109], logprob=-0.0016157961, token="I'm", top_logprobs=[]),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 115, 111, 114, 114, 121],
-                    logprob=-5.080963e-06,
+                    logprob=-0.78663874,
                     token=' sorry',
                     top_logprobs=[]
                 ),
-                ChatCompletionTokenLogprob(bytes=[44], logprob=-4.048445e-05, token=',', top_logprobs=[]),
+                ChatCompletionTokenLogprob(bytes=[44], logprob=-7.79144e-05, token=',', top_logprobs=[]),
+                ChatCompletionTokenLogprob(bytes=[32, 73], logprob=-0.5234622, token=' I', top_logprobs=[]),
                 ChatCompletionTokenLogprob(
-                    bytes=[32, 98, 117, 116],
-                    logprob=-0.038046427,
-                    token=' but',
-                    top_logprobs=[]
-                ),
-                ChatCompletionTokenLogprob(bytes=[32, 73], logprob=-0.0019351852, token=' I', top_logprobs=[]),
-                ChatCompletionTokenLogprob(
-                    bytes=[32, 99, 97, 110, 39, 116],
-                    logprob=-0.008995773,
-                    token=" can't",
+                    bytes=[32, 99, 97, 110, 110, 111, 116],
+                    logprob=-0.52499557,
+                    token=' cannot',
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 97, 115, 115, 105, 115, 116],
-                    logprob=-0.0033510819,
+                    logprob=-0.015198289,
                     token=' assist',
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 119, 105, 116, 104],
-                    logprob=-0.0036033941,
+                    logprob=-0.00071648485,
                     token=' with',
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 116, 104, 97, 116],
-                    logprob=-0.0015974608,
+                    logprob=-0.008114983,
                     token=' that',
                     top_logprobs=[]
                 ),
-                ChatCompletionTokenLogprob(bytes=[46], logprob=-0.6339823, token='.', top_logprobs=[])
+                ChatCompletionTokenLogprob(
+                    bytes=[32, 114, 101, 113, 117, 101, 115, 116],
+                    logprob=-0.0013802331,
+                    token=' request',
+                    top_logprobs=[]
+                ),
+                ChatCompletionTokenLogprob(bytes=[46], logprob=-3.4121115e-06, token='.', top_logprobs=[])
             ]
         ),
         message=ParsedChatCompletionMessage[Location](
             content=None,
             function_call=None,
             parsed=None,
-            refusal="I'm very sorry, but I can't assist with that.",
+            refusal="I'm sorry, I cannot assist with that request.",
             role='assistant',
             tool_calls=[]
         )
@@ -616,7 +670,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
                 openai.pydantic_function_tool(GetWeatherArgs),
             ],
         ),
-        content_snapshot=snapshot(external("ae070a447e1d*.bin")),
+        content_snapshot=snapshot(external("24aaf30663f9*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -637,11 +691,11 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
             tool_calls=[
                 ParsedFunctionToolCall(
                     function=ParsedFunction(
-                        arguments='{"city":"Edinburgh","country":"UK","units":"c"}',
+                        arguments='{"city":"Edinburgh","country":"GB","units":"c"}',
                         name='GetWeatherArgs',
-                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
+                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='GB', units='c')
                     ),
-                    id='call_Vz6ZXciy6Y0PYfT4d9W7fYB4',
+                    id='call_7PhhveOvvpPK53s1fV8TWhoV',
                     index=0,
                     type='function'
                 )
@@ -668,11 +722,11 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
             tool_calls=[
                 ParsedFunctionToolCall(
                     function=ParsedFunction(
-                        arguments='{"city":"Edinburgh","country":"UK","units":"c"}',
+                        arguments='{"city":"Edinburgh","country":"GB","units":"c"}',
                         name='GetWeatherArgs',
-                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
+                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='GB', units='c')
                     ),
-                    id='call_Vz6ZXciy6Y0PYfT4d9W7fYB4',
+                    id='call_7PhhveOvvpPK53s1fV8TWhoV',
                     index=0,
                     type='function'
                 )
@@ -717,7 +771,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
                 ),
             ],
         ),
-        content_snapshot=snapshot(external("a346213bec7a*.bin")),
+        content_snapshot=snapshot(external("453df473e962*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -742,7 +796,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
                         name='GetWeatherArgs',
                         parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
                     ),
-                    id='call_g4Q1vRbE0CaHGOs5if8mHsBq',
+                    id='call_lQnnsesjFMWMQ5IeWPHzR4th',
                     index=0,
                     type='function'
                 ),
@@ -752,7 +806,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
                         name='get_stock_price',
                         parsed_arguments=GetStockPrice(exchange='NASDAQ', ticker='AAPL')
                     ),
-                    id='call_gWj3HQxZEHnFvyJLEHIiJKBV',
+                    id='call_2xjOUgaCdiwAcl9ZBL9LyMUU',
                     index=1,
                     type='function'
                 )
@@ -772,7 +826,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
             name='GetWeatherArgs',
             parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
         ),
-        id='call_g4Q1vRbE0CaHGOs5if8mHsBq',
+        id='call_lQnnsesjFMWMQ5IeWPHzR4th',
         index=0,
         type='function'
     ),
@@ -782,7 +836,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
             name='get_stock_price',
             parsed_arguments=GetStockPrice(exchange='NASDAQ', ticker='AAPL')
         ),
-        id='call_gWj3HQxZEHnFvyJLEHIiJKBV',
+        id='call_2xjOUgaCdiwAcl9ZBL9LyMUU',
         index=1,
         type='function'
     )
@@ -824,7 +878,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
                 }
             ],
         ),
-        content_snapshot=snapshot(external("a7097cae6a1f*.bin")),
+        content_snapshot=snapshot(external("83d3d003e6fd*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -849,7 +903,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
                         name='get_weather',
                         parsed_arguments={'city': 'San Francisco', 'state': 'CA'}
                     ),
-                    id='call_rQe3kzGnTr2epjx8HREg3F2a',
+                    id='call_pVHYsU0gmSfX5TqxOyVbB2ma',
                     index=0,
                     type='function'
                 )
@@ -874,7 +928,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
             ],
             response_format={"type": "json_object"},
         ),
-        content_snapshot=snapshot(external("3e0df46f250d*.bin")),
+        content_snapshot=snapshot(external("0898f3d1651e*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -887,9 +941,10 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
-            content='{\\n  "location": "San Francisco, CA",\\n  "temperature": "N/A",\\n  "conditions": "N/A",\\n  
-"humidity": "N/A",\\n  "wind_speed": "N/A",\\n  "timestamp": "N/A",\\n  "note": "Real-time weather data is not available. 
-Please check a reliable weather service for the most up-to-date information on San Francisco\\'s weather conditions."}',
+            content='\\n  {\\n    "location": "San Francisco, CA",\\n    "forecast_date": "2023-11-02",\\n    "weather": {\\n
+"temperature": {\\n        "current": "N/A",\\n        "high": "N/A",\\n        "low": "N/A"\\n      },\\n      "condition": 
+"N/A",\\n      "humidity": "N/A",\\n      "wind_speed": "N/A"\\n    },\\n    "note": "Please check a reliable weather 
+service for the most current information."\\n  }',
             function_call=None,
             parsed=None,
             refusal=None,
@@ -920,7 +975,7 @@ def test_allows_non_strict_tools_but_no_parsing(
                 }
             ],
         ),
-        content_snapshot=snapshot(external("fb75060ede89*.bin")),
+        content_snapshot=snapshot(external("dae1b261f197*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -939,7 +994,7 @@ FunctionToolCallArgumentsDoneEvent(
         """\
 [
     ParsedChoice[NoneType](
-        finish_reason='stop',
+        finish_reason='tool_calls',
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
@@ -955,7 +1010,7 @@ FunctionToolCallArgumentsDoneEvent(
                         name='get_weather',
                         parsed_arguments=None
                     ),
-                    id='call_9rqjEc1DQRADTYGVV45LbZwL',
+                    id='call_5uxEBMFySqqQGu02I5QHA8k6',
                     index=0,
                     type='function'
                 )
