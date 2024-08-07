@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import Dict, List, Union, Iterable, Optional, overload
 from typing_extensions import Literal
 
 import httpx
+import pydantic
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
@@ -647,6 +649,7 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
+        validate_response_format(response_format)
         return self._post(
             "/chat/completions",
             body=maybe_transform(
@@ -1302,6 +1305,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
+        validate_response_format(response_format)
         return await self._post(
             "/chat/completions",
             body=await async_maybe_transform(
@@ -1374,4 +1378,11 @@ class AsyncCompletionsWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             completions.create,
+        )
+
+
+def validate_response_format(response_format: object) -> None:
+    if inspect.isclass(response_format) and issubclass(response_format, pydantic.BaseModel):
+        raise TypeError(
+            "You tried to pass a `BaseModel` class to `chat.completions.create()`; You must use `beta.chat.completions.parse()` instead"
         )
