@@ -28,7 +28,7 @@ from .message_list_params import MessageListParams as MessageListParams
 from .refusal_delta_block import RefusalDeltaBlock as RefusalDeltaBlock
 from .file_path_annotation import FilePathAnnotation as FilePathAnnotation
 from .image_url_delta_block import ImageURLDeltaBlock as ImageURLDeltaBlock
-from .message_content_delta import MessageContentDelta as MessageContentDelta, BaseDeltaBlock as BaseDeltaBlock
+from .message_content_delta import BaseDeltaBlock as BaseDeltaBlock, MessageContentDelta as MessageContentDelta
 from .message_create_params import MessageCreateParams as MessageCreateParams
 from .message_update_params import MessageUpdateParams as MessageUpdateParams
 from .refusal_content_block import RefusalContentBlock as RefusalContentBlock

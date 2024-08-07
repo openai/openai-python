@@ -1,11 +1,11 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Union
-from typing_extensions import Annotated, TypeAlias, Literal
+from typing_extensions import Literal, Annotated, TypeAlias
 
+from ....._utils import PropertyInfo
 from ....._compat import PYDANTIC_V2
 from ....._models import BaseModel
-from ....._utils import PropertyInfo
 from .function_tool_call import FunctionToolCall
 from .file_search_tool_call import FileSearchToolCall
 from .code_interpreter_tool_call import CodeInterpreterToolCall
@@ -26,11 +26,13 @@ class BaseToolCall(BaseModel):
     """
 
     if PYDANTIC_V2:
-        @field_serializer('type', when_used='always')
+
+        @field_serializer("type", when_used="always")  # type: ignore
         def serialize_unknown_type(self, type_: str) -> str:
             return type_
 
 
 ToolCall: TypeAlias = Annotated[
-    Union[BaseToolCall, CodeInterpreterToolCall, FileSearchToolCall, FunctionToolCall], PropertyInfo(discriminator="type")
+    Union[BaseToolCall, CodeInterpreterToolCall, FileSearchToolCall, FunctionToolCall],
+    PropertyInfo(discriminator="type"),
 ]

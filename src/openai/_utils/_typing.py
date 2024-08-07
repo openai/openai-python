@@ -3,6 +3,7 @@ from __future__ import annotations
 from typing import Any, TypeVar, Iterable, cast
 from collections import abc as _c_abc
 from typing_extensions import Required, Annotated, get_args, get_origin
+
 from pydantic.fields import FieldInfo
 
 from .._types import InheritsGeneric

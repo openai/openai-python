@@ -1,23 +1,25 @@
 from __future__ import annotations
 
+from typing import Any
+
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
+from openai._utils import assert_signatures_in_sync
+from openai._models import construct_type
 from openai.types.beta import BaseTool
-from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads import (
     Text,
-    TextDelta,
-    BaseAnnotation,
-    BaseDeltaAnnotation,
     Message,
-    BaseContentBlock,
+    TextDelta,
     MessageDelta,
+    BaseAnnotation,
     BaseDeltaBlock,
+    BaseContentBlock,
+    BaseDeltaAnnotation,
 )
+from openai.types.beta.assistant import Assistant
 from openai.types.beta.threads.runs import RunStep, BaseToolCall, RunStepDelta, BaseToolCallDelta
-from openai._models import construct_type
-from openai._utils import assert_signatures_in_sync
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
@@ -83,8 +85,8 @@ def test_assistants_unknown_create_tool_response() -> None:
     assistant = construct_type(type_=Assistant, value=response)
     assert isinstance(assistant, Assistant)
     assert isinstance(assistant.tools[0], BaseTool)
-    assert assistant.tools[0].type == "tool_unknown"
-    a = assistant.model_dump()
+    assert assistant.tools[0].type == "tool_unknown"  # type: ignore[comparison-overlap]
+    a = assistant.model_dump()  # type: ignore[unreachable]
     assert a["tools"][0]["type"] == "tool_unknown"
     assert a["tools"][0]["unknown"] == {}
 
@@ -112,8 +114,8 @@ def test_assistants_unknown_annotation_response() -> None:
     text = construct_type(type_=Text, value=response)
     assert isinstance(text, Text)
     assert isinstance(text.annotations[0], BaseAnnotation)
-    assert text.annotations[0].type == "unknown_citation"
-    t = text.model_dump()
+    assert text.annotations[0].type == "unknown_citation"  # type: ignore[comparison-overlap]
+    t = text.model_dump()  # type: ignore[unreachable]
     assert t["annotations"][0]["type"] == "unknown_citation"
 
 
@@ -139,9 +141,10 @@ def test_assistants_unknown_annotation_delta_response() -> None:
     }
     text_delta = construct_type(type_=TextDelta, value=response)
     assert isinstance(text_delta, TextDelta)
+    assert text_delta.annotations
     assert isinstance(text_delta.annotations[0], BaseDeltaAnnotation)
-    assert text_delta.annotations[0].type == "unknown_citation"
-    td = text_delta.model_dump()
+    assert text_delta.annotations[0].type == "unknown_citation"  # type: ignore[comparison-overlap]
+    td = text_delta.model_dump()  # type: ignore[unreachable]
     assert td["annotations"][0]["type"] == "unknown_citation"
 
 
@@ -161,8 +164,8 @@ def test_assistants_unknown_message_content_response() -> None:
     message = construct_type(type_=Message, value=response)
     assert isinstance(message, Message)
     assert isinstance(message.content[0], BaseContentBlock)
-    assert message.content[0].type == "unknown_content"
-    msg = message.model_dump()
+    assert message.content[0].type == "unknown_content"  # type: ignore[comparison-overlap]
+    msg = message.model_dump()  # type: ignore[unreachable]
     assert msg["content"][0]["type"] == "unknown_content"
 
 
@@ -173,9 +176,10 @@ def test_assistants_unknown_message_content_delta_response() -> None:
     }
     message_delta = construct_type(type_=MessageDelta, value=response)
     assert isinstance(message_delta, MessageDelta)
+    assert message_delta.content
     assert isinstance(message_delta.content[0], BaseDeltaBlock)
-    assert message_delta.content[0].type == "unknown_content"
-    md = message_delta.model_dump()
+    assert message_delta.content[0].type == "unknown_content"  # type: ignore[comparison-overlap]
+    md = message_delta.model_dump()  # type: ignore[unreachable]
     assert md["content"][0]["type"] == "unknown_content"
 
 
@@ -202,9 +206,12 @@ def test_assistants_unknown_tool_call_response() -> None:
     }
     run_step = construct_type(type_=RunStep, value=response)
     assert isinstance(run_step, RunStep)
+    assert run_step.step_details
+    assert run_step.step_details.type == "tool_calls"
+    assert run_step.step_details.tool_calls
     assert isinstance(run_step.step_details.tool_calls[0], BaseToolCall)
-    assert run_step.step_details.tool_calls[0].type == "tool_unknown"
-    rs = run_step.model_dump()
+    assert run_step.step_details.tool_calls[0].type == "tool_unknown"  # type: ignore[comparison-overlap]
+    rs = run_step.model_dump()  # type: ignore[unreachable]
     assert rs["step_details"]["tool_calls"][0]["type"] == "tool_unknown"
 
 
@@ -217,7 +224,10 @@ def test_assistants_unknown_tool_call_delta_response() -> None:
     }
     run_step_delta = construct_type(type_=RunStepDelta, value=response)
     assert isinstance(run_step_delta, RunStepDelta)
+    assert run_step_delta.step_details
+    assert run_step_delta.step_details.type == "tool_calls"
+    assert run_step_delta.step_details.tool_calls
     assert isinstance(run_step_delta.step_details.tool_calls[0], BaseToolCallDelta)
-    assert run_step_delta.step_details.tool_calls[0].type == "tool_unknown"
-    rsd = run_step_delta.model_dump()
+    assert run_step_delta.step_details.tool_calls[0].type == "tool_unknown"  # type: ignore[comparison-overlap]
+    rsd = run_step_delta.model_dump()  # type: ignore[unreachable]
     assert rsd["step_details"]["tool_calls"][0]["type"] == "tool_unknown"

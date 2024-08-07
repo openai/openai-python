@@ -860,9 +860,9 @@ def test_discriminated_unions_nested_unknown_variant() -> None:
     # should construct a Tool object regardless of unknown data in tools
     m = construct_type(
         value={"data": "foo", "result": {"type": "tool", "tools": [{"type": "unknown", "name": "bar"}]}},
-        type_=cast(Any, Model),
+        type_=Model,
     )
-
+    m = cast(Model, m)
     assert isinstance(m.result, Tool)
-    assert m.result.type == "tool"  # type: ignore[comparison-overlap]
-    assert m.result.tools[0].type == "unknown"
+    assert m.result.type == "tool"
+    assert m.result.tools[0].type == "unknown"  # type: ignore[comparison-overlap]
