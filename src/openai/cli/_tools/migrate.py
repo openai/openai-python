@@ -148,7 +148,7 @@ def install() -> Path:
 
     shutil.rmtree(unpacked_dir)
     os.remove(temp_file)
-    os.chmod(target_path, 0o755)
+    os.chmod(target_path, 0o700)
 
     sys.stdout.flush()
 
