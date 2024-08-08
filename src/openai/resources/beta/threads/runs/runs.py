@@ -145,6 +145,11 @@ class Runs(SyncAPIResource):
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
 
@@ -275,6 +280,11 @@ class Runs(SyncAPIResource):
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
 
@@ -400,6 +410,11 @@ class Runs(SyncAPIResource):
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -950,6 +965,7 @@ class Runs(SyncAPIResource):
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -979,6 +995,7 @@ class Runs(SyncAPIResource):
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1008,6 +1025,7 @@ class Runs(SyncAPIResource):
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1051,6 +1069,7 @@ class Runs(SyncAPIResource):
                     "tool_choice": tool_choice,
                     "stream": True,
                     "tools": tools,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "truncation_strategy": truncation_strategy,
                     "top_p": top_p,
                 },
@@ -1439,6 +1458,11 @@ class AsyncRuns(AsyncAPIResource):
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
 
@@ -1569,6 +1593,11 @@ class AsyncRuns(AsyncAPIResource):
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
 
@@ -1694,6 +1723,11 @@ class AsyncRuns(AsyncAPIResource):
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -2246,6 +2280,7 @@ class AsyncRuns(AsyncAPIResource):
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2275,6 +2310,7 @@ class AsyncRuns(AsyncAPIResource):
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2304,6 +2340,7 @@ class AsyncRuns(AsyncAPIResource):
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2349,6 +2386,7 @@ class AsyncRuns(AsyncAPIResource):
                     "tool_choice": tool_choice,
                     "stream": True,
                     "tools": tools,
+                    "parallel_tool_calls": parallel_tool_calls,
                     "truncation_strategy": truncation_strategy,
                     "top_p": top_p,
                 },

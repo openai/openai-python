@@ -29,6 +29,17 @@ def test_create_and_run_stream_method_definition_in_sync(sync: bool, client: Ope
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_run_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.beta.threads.runs.create,
+        checking_client.beta.threads.runs.stream,
+        exclude_params={"stream"},
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_create_and_poll_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
 

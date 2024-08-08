@@ -3,10 +3,15 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeAlias
 
-from .assistant_response_format_param import AssistantResponseFormatParam
+from ...types import shared_params
 
 __all__ = ["AssistantResponseFormatOptionParam"]
 
-AssistantResponseFormatOptionParam = Union[Literal["none", "auto"], AssistantResponseFormatParam]
+AssistantResponseFormatOptionParam: TypeAlias = Union[
+    Literal["auto"],
+    shared_params.ResponseFormatText,
+    shared_params.ResponseFormatJSONObject,
+    shared_params.ResponseFormatJSONSchema,
+]

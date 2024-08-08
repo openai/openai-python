@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ...chat_model import ChatModel
 from ..assistant_tool_param import AssistantToolParam
@@ -97,6 +97,11 @@ class RunCreateParamsBase(TypedDict, total=False):
     [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
     and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
+    Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+    Outputs which guarantees the model will match your supplied JSON schema. Learn
+    more in the
+    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
 
@@ -154,7 +159,7 @@ class AdditionalMessageAttachmentToolFileSearch(TypedDict, total=False):
     """The type of tool being defined: `file_search`"""
 
 
-AdditionalMessageAttachmentTool = Union[CodeInterpreterToolParam, AdditionalMessageAttachmentToolFileSearch]
+AdditionalMessageAttachmentTool: TypeAlias = Union[CodeInterpreterToolParam, AdditionalMessageAttachmentToolFileSearch]
 
 
 class AdditionalMessageAttachment(TypedDict, total=False):

@@ -12,8 +12,7 @@ from openai._base_client import FinalRequestOptions
 from openai._legacy_response import LegacyAPIResponse
 
 
-class PydanticModel(pydantic.BaseModel):
-    ...
+class PydanticModel(pydantic.BaseModel): ...
 
 
 def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
