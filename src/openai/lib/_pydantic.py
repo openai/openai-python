@@ -62,6 +62,11 @@ def _ensure_strict_json_schema(
         for def_name, def_schema in defs.items():
             _ensure_strict_json_schema(def_schema, path=(*path, "$defs", def_name))
 
+    definitions = json_schema.get("definitions")
+    if is_dict(definitions):
+        for definition_name, definition_schema in definitions.items():
+            _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name))
+
     return json_schema
 
 
