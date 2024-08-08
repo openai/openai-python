@@ -10,6 +10,7 @@ import logging
 import platform
 import warnings
 import email.utils
+import sys
 from types import TracebackType
 from random import random
 from typing import (
@@ -2012,7 +2013,6 @@ def get_python_version() -> str:
 
 def get_architecture() -> Arch:
     try:
-        python_bitness, _ = platform.architecture()
         machine = platform.machine().lower()
     except Exception:
         return "unknown"
@@ -2028,7 +2028,7 @@ def get_architecture() -> Arch:
         return "x64"
 
     # TODO: untested
-    if python_bitness == "32bit":
+    if sys.maxsize <= 2**32:
         return "x32"
 
     if machine:
