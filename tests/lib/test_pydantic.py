@@ -130,6 +130,7 @@ def test_most_types() -> None:
                             "type": "object",
                             "properties": {"column_name": {"title": "Column Name", "type": "string"}},
                             "required": ["column_name"],
+                            "additionalProperties": False,
                         },
                         "Condition": {
                             "title": "Condition",
@@ -147,6 +148,7 @@ def test_most_types() -> None:
                                 },
                             },
                             "required": ["column", "operator", "value"],
+                            "additionalProperties": False,
                         },
                         "OrderBy": {
                             "title": "OrderBy",
