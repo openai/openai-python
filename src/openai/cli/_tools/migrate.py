@@ -137,11 +137,15 @@ def install() -> Path:
     unpacked_dir = target_dir / "cli-bin"
     unpacked_dir.mkdir(parents=True, exist_ok=True)
 
+    def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        for member in tar.getmembers():
+            member_path = Path(path) / member.name
+            if not Path(path).resolve() in member_path.resolve().parents:
+                raise ValueError("Attempted Path Traversal in Tar File")
+        tar.extractall(path, members, numeric_owner=numeric_owner)
+
     with tarfile.open(temp_file, "r:gz") as archive:
-        if sys.version_info >= (3, 12):
-            archive.extractall(unpacked_dir, filter="data")
-        else:
-            archive.extractall(unpacked_dir)
+        safe_extract(archive, path=unpacked_dir)
 
     for item in unpacked_dir.iterdir():
         item.rename(target_dir / item.name)
