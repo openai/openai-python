@@ -137,11 +137,18 @@ def install() -> Path:
     unpacked_dir = target_dir / "cli-bin"
     unpacked_dir.mkdir(parents=True, exist_ok=True)
 
+    def is_safe_path(base_path, target_path):
+        # Resolve the absolute paths
+        base_path = os.path.abspath(base_path)
+        target_path = os.path.abspath(target_path)
+        # Check if the target path is within the base path
+        return os.path.commonpath([base_path]) == os.path.commonpath([base_path, target_path])
+
     with tarfile.open(temp_file, "r:gz") as archive:
-        if sys.version_info >= (3, 12):
-            archive.extractall(unpacked_dir, filter="data")
-        else:
-            archive.extractall(unpacked_dir)
+        for member in archive.getmembers():
+            member_path = os.path.join(unpacked_dir, member.name)
+            if not is_safe_path(unpacked_dir, member_path):
+                raise ValueError(f"Illegal tar archive entry: {member.name}")
 
     for item in unpacked_dir.iterdir():
         item.rename(target_dir / item.name)
