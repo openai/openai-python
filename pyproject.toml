@@ -202,7 +202,6 @@ unfixable = [
   "T201",
   "T203",
 ]
-ignore-init-module-imports = true
 
 [tool.ruff.lint.flake8-tidy-imports.banned-api]
 "functools.lru_cache".msg = "This function does not retain type information for the wrapped function's arguments; The `lru_cache` function from `_utils` should be used instead"
@@ -214,7 +213,7 @@ combine-as-imports = true
 extra-standard-library = ["typing_extensions"]
 known-first-party = ["openai", "tests"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]
 "scripts/**.py" = ["T201", "T203"]
 "tests/**.py" = ["T201", "T203"]
