@@ -78,13 +78,16 @@ class Completions(SyncAPIResource):
         from pydantic import BaseModel
         from openai import OpenAI
 
+
         class Step(BaseModel):
             explanation: str
             output: str
 
+
         class MathResponse(BaseModel):
             steps: List[Step]
             final_answer: str
+
 
         client = OpenAI()
         completion = client.beta.chat.completions.parse(
@@ -184,12 +187,12 @@ class Completions(SyncAPIResource):
 
         ```py
         with client.beta.chat.completions.stream(
-            model='gpt-4o-2024-08-06',
+            model="gpt-4o-2024-08-06",
             messages=[...],
         ) as stream:
             for event in stream:
-                if event.type == 'content.delta':
-                    print(event.content, flush=True, end='')
+                if event.type == "content.delta":
+                    print(event.content, flush=True, end="")
         ```
 
         When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
@@ -287,13 +290,16 @@ class AsyncCompletions(AsyncAPIResource):
         from pydantic import BaseModel
         from openai import AsyncOpenAI
 
+
         class Step(BaseModel):
             explanation: str
             output: str
 
+
         class MathResponse(BaseModel):
             steps: List[Step]
             final_answer: str
+
 
         client = AsyncOpenAI()
         completion = await client.beta.chat.completions.parse(
@@ -393,12 +399,12 @@ class AsyncCompletions(AsyncAPIResource):
 
         ```py
         async with client.beta.chat.completions.stream(
-            model='gpt-4o-2024-08-06',
+            model="gpt-4o-2024-08-06",
             messages=[...],
         ) as stream:
             async for event in stream:
-                if event.type == 'content.delta':
-                    print(event.content, flush=True, end='')
+                if event.type == "content.delta":
+                    print(event.content, flush=True, end="")
         ```
 
         When the context manager is entered, an `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an async iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
