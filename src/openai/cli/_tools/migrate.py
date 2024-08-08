@@ -137,18 +137,15 @@ def install() -> Path:
     unpacked_dir = target_dir / "cli-bin"
     unpacked_dir.mkdir(parents=True, exist_ok=True)
 
-    def is_safe_path(base_path, target_path):
-        # Resolve the absolute paths
-        base_path = os.path.abspath(base_path)
-        target_path = os.path.abspath(target_path)
-        # Check if the target path is within the base path
-        return os.path.commonpath([base_path]) == os.path.commonpath([base_path, target_path])
+    def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+        for member in tar.getmembers():
+            member_path = Path(path) / member.name
+            if not Path(path).resolve() in member_path.resolve().parents:
+                raise ValueError("Attempted Path Traversal in Tar File")
+        tar.extractall(path, members, numeric_owner=numeric_owner)
 
     with tarfile.open(temp_file, "r:gz") as archive:
-        for member in archive.getmembers():
-            member_path = os.path.join(unpacked_dir, member.name)
-            if not is_safe_path(unpacked_dir, member_path):
-                raise ValueError(f"Illegal tar archive entry: {member.name}")
+        safe_extract(archive, path=unpacked_dir)
 
     for item in unpacked_dir.iterdir():
         item.rename(target_dir / item.name)
