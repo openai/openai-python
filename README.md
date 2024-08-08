@@ -627,6 +627,57 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
+## Activating CLI Autocomplete
+Use the following commands to activate CLI autocompletion for each shell.
+
+### Bash & Zsh
+Use this command to register `openai` for argument completion using argcomplete for the current terminal session:
+```shell
+eval "$(register-python-argcomplete openai)"
+```
+#### Permanent Argument Completion Setup for Bash/Zsh
+Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.  
+For Bash:
+```shell 
+register-python-argcomplete openai >> ~/.bashrc
+```
+For Zsh:
+```shell  
+register-python-argcomplete openai >> ~/.zshrc
+```
+
+### Powershell
+To activate completions for Powershell use:
+```shell
+register-python-argcomplete --shell powershell openai | Out-String | Invoke-Expression
+```
+#### Permanent Argument Completion Setup for Powershell
+Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
+```shell
+register-python-argcomplete --shell powershell openai > ~/openai.psm1
+```
+To activate the completions file, open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
+```shell
+Import-Module  "~/openai.psm1"
+```
+### Fish
+To activate completions for fish use:
+```shell
+register-python-argcomplete --shell fish openai | source
+```
+#### Permanent Argument Completion Setup for Fish
+Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
+```shell 
+register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
+```
+
+### Usage
+After completing the appropriate steps for your shell, try the following action:
+>_If you have activated permanent argument completion, restart your terminal before proceeding._
+```shell
+openai <TAB>
+```
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
