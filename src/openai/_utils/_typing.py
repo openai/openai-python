@@ -4,6 +4,8 @@ from typing import Any, TypeVar, Iterable, cast
 from collections import abc as _c_abc
 from typing_extensions import Required, Annotated, get_args, get_origin
 
+from pydantic.fields import FieldInfo
+
 from .._types import InheritsGeneric
 from .._compat import is_union as _is_union
 
@@ -42,6 +44,10 @@ def strip_annotated_type(typ: type) -> type:
         return strip_annotated_type(cast(type, get_args(typ)[0]))
 
     return typ
+
+
+def wrap_in_annotated_type(typ: FieldInfo) -> object:
+    return Annotated[cast(type, typ.annotation), typ.metadata[0]]
 
 
 def extract_type_arg(typ: type, index: int) -> type:

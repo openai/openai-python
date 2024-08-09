@@ -6,7 +6,7 @@ from .thread import Thread as Thread
 from .assistant import Assistant as Assistant
 from .vector_store import VectorStore as VectorStore
 from .function_tool import FunctionTool as FunctionTool
-from .assistant_tool import AssistantTool as AssistantTool
+from .assistant_tool import BaseTool as BaseTool, AssistantTool as AssistantTool
 from .thread_deleted import ThreadDeleted as ThreadDeleted
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .assistant_deleted import AssistantDeleted as AssistantDeleted

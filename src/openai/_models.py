@@ -46,6 +46,7 @@ from ._utils import (
     extract_type_arg,
     is_annotated_type,
     strip_annotated_type,
+    wrap_in_annotated_type,
 )
 from ._compat import (
     PYDANTIC_V2,
@@ -356,7 +357,10 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
         return field_get_default(field)
 
     if PYDANTIC_V2:
-        type_ = field.annotation
+        if field.metadata:
+            type_ = wrap_in_annotated_type(field)
+        else:
+            type_ = field.annotation
     else:
         type_ = cast(type, field.outer_type_)  # type: ignore
 
@@ -609,8 +613,13 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
                 # Note: if one variant defines an alias then they all should
                 discriminator_alias = field_info.alias
 
-                if field_info.annotation and is_literal_type(field_info.annotation):
-                    for entry in get_args(field_info.annotation):
+                if hasattr(field_info, "annotation"):
+                    field_annotation = cast(type, field_info.annotation)
+                else:
+                    # pydantic==1.9
+                    field_annotation = cast(type, field_info.outer_type_)  # type: ignore
+                if field_annotation and is_literal_type(field_annotation):
+                    for entry in get_args(field_annotation):
                         if isinstance(entry, str):
                             mapping[entry] = variant
 
