@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.40.3 (2024-08-09)
+
+Full Changelog: [v1.40.2...v1.40.3](https://github.com/openai/openai-python/compare/v1.40.2...v1.40.3)
+
+### Chores
+
+* **ci:** codeowners file ([#1627](https://github.com/openai/openai-python/issues/1627)) ([c059a20](https://github.com/openai/openai-python/commit/c059a20c8cd2124178641c9d8688e276b1cf1d59))
+
 ## 1.40.2 (2024-08-08)
 
 Full Changelog: [v1.40.1...v1.40.2](https://github.com/openai/openai-python/compare/v1.40.1...v1.40.2)
