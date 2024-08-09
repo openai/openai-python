@@ -83,9 +83,12 @@ format = { chain = [
 "lint" = { chain = [
   "check:ruff",
   "typecheck",
+  "check:importable",
 ]}
 "check:ruff" = "ruff check ."
 "fix:ruff" = "ruff check --fix ."
+
+"check:importable" = "python -c 'import openai'"
 
 typecheck = { chain = [
   "typecheck:pyright",
