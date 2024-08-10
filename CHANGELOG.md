@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.40.3 (2024-08-10)
+
+Full Changelog: [v1.40.2...v1.40.3](https://github.com/openai/openai-python/compare/v1.40.2...v1.40.3)
+
+### Chores
+
+* **ci:** bump prism mock server version ([#1630](https://github.com/openai/openai-python/issues/1630)) ([214d8fd](https://github.com/openai/openai-python/commit/214d8fd8d7d43c06c7dfe02680847a6a60988120))
+* **ci:** codeowners file ([#1627](https://github.com/openai/openai-python/issues/1627)) ([c059a20](https://github.com/openai/openai-python/commit/c059a20c8cd2124178641c9d8688e276b1cf1d59))
+* **internal:** ensure package is importable in lint cmd ([#1631](https://github.com/openai/openai-python/issues/1631)) ([779e6d0](https://github.com/openai/openai-python/commit/779e6d081eb55c158f2aa1962190079eb7f1335e))
+
 ## 1.40.2 (2024-08-08)
 
 Full Changelog: [v1.40.1...v1.40.2](https://github.com/openai/openai-python/compare/v1.40.1...v1.40.2)
