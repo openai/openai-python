@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.40.2"
+version = "1.40.3"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -84,9 +84,12 @@ format = { chain = [
 "lint" = { chain = [
   "check:ruff",
   "typecheck",
+  "check:importable",
 ]}
 "check:ruff" = "ruff check ."
 "fix:ruff" = "ruff check --fix ."
+
+"check:importable" = "python -c 'import openai'"
 
 typecheck = { chain = [
   "typecheck:pyright",
