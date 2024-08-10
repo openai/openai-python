@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Mapping, cast
+from typing import List, Union, Mapping, cast, overload
 from typing_extensions import Literal
 
 import httpx
@@ -35,6 +35,45 @@ class Transcriptions(SyncAPIResource):
     def with_streaming_response(self) -> TranscriptionsWithStreamingResponse:
         return TranscriptionsWithStreamingResponse(self)
 
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: Literal["json", "verbose_json"] | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Transcription: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["text", "srt", "vtt"],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> str: ...
+
+    @overload
     def create(
         self,
         *,
@@ -51,7 +90,25 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Transcription:
+    ) -> Transcription | str: ...
+
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Transcription | str:
         """
         Transcribes audio into the input language.
 
