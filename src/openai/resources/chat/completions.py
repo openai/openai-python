@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import inspect
 from typing import Dict, List, Union, Iterable, Optional, overload
 from typing_extensions import Literal
 
 import httpx
+import pydantic
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
@@ -19,9 +21,7 @@ from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._streaming import Stream, AsyncStream
 from ...types.chat import completion_create_params
-from ..._base_client import (
-    make_request_options,
-)
+from ..._base_client import make_request_options
 from ...types.chat_model import ChatModel
 from ...types.chat.chat_completion import ChatCompletion
 from ...types.chat.chat_completion_chunk import ChatCompletionChunk
@@ -144,8 +144,15 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -340,8 +347,15 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -529,8 +543,15 @@ class Completions(SyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -643,6 +664,7 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
+        validate_response_format(response_format)
         return self._post(
             "/chat/completions",
             body=maybe_transform(
@@ -793,8 +815,15 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -989,8 +1018,15 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1178,8 +1214,15 @@ class AsyncCompletions(AsyncAPIResource):
               [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
 
           response_format: An object specifying the format that the model must output. Compatible with
+              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -1292,6 +1335,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
+        validate_response_format(response_format)
         return await self._post(
             "/chat/completions",
             body=await async_maybe_transform(
@@ -1364,4 +1408,11 @@ class AsyncCompletionsWithStreamingResponse:
 
         self.create = async_to_streamed_response_wrapper(
             completions.create,
+        )
+
+
+def validate_response_format(response_format: object) -> None:
+    if inspect.isclass(response_format) and issubclass(response_format, pydantic.BaseModel):
+        raise TypeError(
+            "You tried to pass a `BaseModel` class to `chat.completions.create()`; You must use `beta.chat.completions.parse()` instead"
         )

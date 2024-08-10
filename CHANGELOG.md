@@ -1,5 +1,91 @@
 # Changelog
 
+## 1.40.3 (2024-08-10)
+
+Full Changelog: [v1.40.2...v1.40.3](https://github.com/openai/openai-python/compare/v1.40.2...v1.40.3)
+
+### Chores
+
+* **ci:** bump prism mock server version ([#1630](https://github.com/openai/openai-python/issues/1630)) ([214d8fd](https://github.com/openai/openai-python/commit/214d8fd8d7d43c06c7dfe02680847a6a60988120))
+* **ci:** codeowners file ([#1627](https://github.com/openai/openai-python/issues/1627)) ([c059a20](https://github.com/openai/openai-python/commit/c059a20c8cd2124178641c9d8688e276b1cf1d59))
+* **internal:** ensure package is importable in lint cmd ([#1631](https://github.com/openai/openai-python/issues/1631)) ([779e6d0](https://github.com/openai/openai-python/commit/779e6d081eb55c158f2aa1962190079eb7f1335e))
+
+## 1.40.2 (2024-08-08)
+
+Full Changelog: [v1.40.1...v1.40.2](https://github.com/openai/openai-python/compare/v1.40.1...v1.40.2)
+
+### Bug Fixes
+
+* **client:** raise helpful error message for response_format misuse ([18191da](https://github.com/openai/openai-python/commit/18191dac8e1437a0f708525d474b7ecfe459d966))
+* **json schema:** support recursive BaseModels in Pydantic v1 ([#1623](https://github.com/openai/openai-python/issues/1623)) ([43e10c0](https://github.com/openai/openai-python/commit/43e10c0f251a42f1e6497f360c6c23d3058b3da3))
+
+
+### Chores
+
+* **internal:** format some docstrings ([d34a081](https://github.com/openai/openai-python/commit/d34a081c30f869646145919b2256ded115241eb5))
+* **internal:** updates ([#1624](https://github.com/openai/openai-python/issues/1624)) ([598e7a2](https://github.com/openai/openai-python/commit/598e7a23768e7addbe1319ada2e87caee3cf0d14))
+
+## 1.40.1 (2024-08-07)
+
+Full Changelog: [v1.40.0...v1.40.1](https://github.com/openai/openai-python/compare/v1.40.0...v1.40.1)
+
+### Chores
+
+* **internal:** update OpenAPI spec url ([#1608](https://github.com/openai/openai-python/issues/1608)) ([5392753](https://github.com/openai/openai-python/commit/53927531fc101e96b9e3f5d44f34b298055f496a))
+* **internal:** update test snapshots ([a11d1cb](https://github.com/openai/openai-python/commit/a11d1cb5d04aac0bf69dc10a3a21fa95575c0aa0))
+
+## 1.40.0 (2024-08-06)
+
+Full Changelog: [v1.39.0...v1.40.0](https://github.com/openai/openai-python/compare/v1.39.0...v1.40.0)
+
+### Features
+
+* **api:** add structured outputs support ([e8dba7d](https://github.com/openai/openai-python/commit/e8dba7d0e08a7d0de5952be716e0efe9ae373759))
+
+
+### Chores
+
+* **internal:** bump ruff version ([#1604](https://github.com/openai/openai-python/issues/1604)) ([3e19a87](https://github.com/openai/openai-python/commit/3e19a87255d8e92716689656afaa3f16297773b6))
+* **internal:** update pydantic compat helper function ([#1607](https://github.com/openai/openai-python/issues/1607)) ([973c18b](https://github.com/openai/openai-python/commit/973c18b259a0e4a8134223f50a5f660b86650949))
+
+## 1.39.0 (2024-08-05)
+
+Full Changelog: [v1.38.0...v1.39.0](https://github.com/openai/openai-python/compare/v1.38.0...v1.39.0)
+
+### Features
+
+* **client:** add `retries_taken` to raw response class ([#1601](https://github.com/openai/openai-python/issues/1601)) ([777822b](https://github.com/openai/openai-python/commit/777822b39b7f9ebd6272d0af8fc04f9d657bd886))
+
+
+### Bug Fixes
+
+* **assistants:** add parallel_tool_calls param to runs.stream ([113e82a](https://github.com/openai/openai-python/commit/113e82a82c7390660ad3324fa8f9842f83b27571))
+
+
+### Chores
+
+* **internal:** bump pyright ([#1599](https://github.com/openai/openai-python/issues/1599)) ([27f0f10](https://github.com/openai/openai-python/commit/27f0f107e39d16adc0d5a50ffe4c687e0e3c42e5))
+* **internal:** test updates ([#1602](https://github.com/openai/openai-python/issues/1602)) ([af22d80](https://github.com/openai/openai-python/commit/af22d8079cf44cde5f03a206e78b900f8413dc43))
+* **internal:** use `TypeAlias` marker for type assignments ([#1597](https://github.com/openai/openai-python/issues/1597)) ([5907ea0](https://github.com/openai/openai-python/commit/5907ea04d6f5e0ffd17c38ad6a644a720ece8abe))
+
+## 1.38.0 (2024-08-02)
+
+Full Changelog: [v1.37.2...v1.38.0](https://github.com/openai/openai-python/compare/v1.37.2...v1.38.0)
+
+### Features
+
+* extract out `ImageModel`, `AudioModel`, `SpeechModel` ([#1586](https://github.com/openai/openai-python/issues/1586)) ([b800316](https://github.com/openai/openai-python/commit/b800316aee6c8b2aeb609ca4c41972adccd2fa7a))
+* make enums not nominal ([#1588](https://github.com/openai/openai-python/issues/1588)) ([ab4519b](https://github.com/openai/openai-python/commit/ab4519bc45f5512c8c5165641c217385d999809c))
+
+## 1.37.2 (2024-08-01)
+
+Full Changelog: [v1.37.1...v1.37.2](https://github.com/openai/openai-python/compare/v1.37.1...v1.37.2)
+
+### Chores
+
+* **internal:** add type construction helper ([#1584](https://github.com/openai/openai-python/issues/1584)) ([cbb186a](https://github.com/openai/openai-python/commit/cbb186a534b520fa5b11a9b371b175e3f6a6482b))
+* **runs/create_and_poll:** add parallel_tool_calls request param ([04b3e6c](https://github.com/openai/openai-python/commit/04b3e6c39ee5a7088e0e4dfa4c06f3dcce901a57))
+
 ## 1.37.1 (2024-07-25)
 
 Full Changelog: [v1.37.0...v1.37.1](https://github.com/openai/openai-python/compare/v1.37.0...v1.37.1)

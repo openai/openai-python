@@ -19,9 +19,8 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...types.audio import transcription_create_params
-from ..._base_client import (
-    make_request_options,
-)
+from ..._base_client import make_request_options
+from ...types.audio_model import AudioModel
 from ...types.audio.transcription import Transcription
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
@@ -40,7 +39,7 @@ class Transcriptions(SyncAPIResource):
         self,
         *,
         file: FileTypes,
-        model: Union[str, Literal["whisper-1"]],
+        model: Union[str, AudioModel],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
@@ -136,7 +135,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         self,
         *,
         file: FileTypes,
-        model: Union[str, Literal["whisper-1"]],
+        model: Union[str, AudioModel],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,

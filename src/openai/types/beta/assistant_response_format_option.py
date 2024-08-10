@@ -1,10 +1,14 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Union
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeAlias
 
-from .assistant_response_format import AssistantResponseFormat
+from ..shared.response_format_text import ResponseFormatText
+from ..shared.response_format_json_object import ResponseFormatJSONObject
+from ..shared.response_format_json_schema import ResponseFormatJSONSchema
 
 __all__ = ["AssistantResponseFormatOption"]
 
-AssistantResponseFormatOption = Union[Literal["none", "auto"], AssistantResponseFormat]
+AssistantResponseFormatOption: TypeAlias = Union[
+    Literal["auto"], ResponseFormatText, ResponseFormatJSONObject, ResponseFormatJSONSchema
+]

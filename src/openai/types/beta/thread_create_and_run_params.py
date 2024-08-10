@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..chat_model import ChatModel
 from .function_tool_param import FunctionToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
@@ -77,34 +78,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     a maxium of 512 characters long.
     """
 
-    model: Union[
-        str,
-        Literal[
-            "gpt-4o",
-            "gpt-4o-2024-05-13",
-            "gpt-4o-mini",
-            "gpt-4o-mini-2024-07-18",
-            "gpt-4-turbo",
-            "gpt-4-turbo-2024-04-09",
-            "gpt-4-0125-preview",
-            "gpt-4-turbo-preview",
-            "gpt-4-1106-preview",
-            "gpt-4-vision-preview",
-            "gpt-4",
-            "gpt-4-0314",
-            "gpt-4-0613",
-            "gpt-4-32k",
-            "gpt-4-32k-0314",
-            "gpt-4-32k-0613",
-            "gpt-3.5-turbo",
-            "gpt-3.5-turbo-16k",
-            "gpt-3.5-turbo-0613",
-            "gpt-3.5-turbo-1106",
-            "gpt-3.5-turbo-0125",
-            "gpt-3.5-turbo-16k-0613",
-        ],
-        None,
-    ]
+    model: Union[str, ChatModel, None]
     """
     The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
     be used to execute this run. If a value is provided here, it will override the
@@ -125,6 +99,11 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
     [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
     and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+    Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+    Outputs which guarantees the model will match your supplied JSON schema. Learn
+    more in the
+    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
     Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
     message the model generates is valid JSON.
@@ -194,7 +173,7 @@ class ThreadMessageAttachmentToolFileSearch(TypedDict, total=False):
     """The type of tool being defined: `file_search`"""
 
 
-ThreadMessageAttachmentTool = Union[CodeInterpreterToolParam, ThreadMessageAttachmentToolFileSearch]
+ThreadMessageAttachmentTool: TypeAlias = Union[CodeInterpreterToolParam, ThreadMessageAttachmentToolFileSearch]
 
 
 class ThreadMessageAttachment(TypedDict, total=False):
@@ -266,7 +245,7 @@ class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, 
     """Always `static`."""
 
 
-ThreadToolResourcesFileSearchVectorStoreChunkingStrategy = Union[
+ThreadToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
     ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto,
     ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic,
 ]
@@ -368,7 +347,7 @@ class ToolResources(TypedDict, total=False):
     file_search: ToolResourcesFileSearch
 
 
-Tool = Union[CodeInterpreterToolParam, FileSearchToolParam, FunctionToolParam]
+Tool: TypeAlias = Union[CodeInterpreterToolParam, FileSearchToolParam, FunctionToolParam]
 
 
 class TruncationStrategy(TypedDict, total=False):

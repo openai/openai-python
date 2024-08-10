@@ -6,6 +6,7 @@ from typing import List, Union
 from typing_extensions import Literal, Required, TypedDict
 
 from ..._types import FileTypes
+from ..audio_model import AudioModel
 
 __all__ = ["TranscriptionCreateParams"]
 
@@ -17,7 +18,7 @@ class TranscriptionCreateParams(TypedDict, total=False):
     flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
     """
 
-    model: Required[Union[str, Literal["whisper-1"]]]
+    model: Required[Union[str, AudioModel]]
     """ID of the model to use.
 
     Only `whisper-1` (which is powered by our open source Whisper V2 model) is

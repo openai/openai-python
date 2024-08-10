@@ -5,7 +5,18 @@ import inspect
 import logging
 import datetime
 import functools
-from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, Iterator, AsyncIterator, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Union,
+    Generic,
+    TypeVar,
+    Callable,
+    Iterator,
+    AsyncIterator,
+    cast,
+    overload,
+)
 from typing_extensions import Awaitable, ParamSpec, override, deprecated, get_origin
 
 import anyio
@@ -53,6 +64,9 @@ class LegacyAPIResponse(Generic[R]):
 
     http_response: httpx.Response
 
+    retries_taken: int
+    """The number of retries made. If no retries happened this will be `0`"""
+
     def __init__(
         self,
         *,
@@ -62,6 +76,7 @@ class LegacyAPIResponse(Generic[R]):
         stream: bool,
         stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
         options: FinalRequestOptions,
+        retries_taken: int = 0,
     ) -> None:
         self._cast_to = cast_to
         self._client = client
@@ -70,18 +85,17 @@ class LegacyAPIResponse(Generic[R]):
         self._stream_cls = stream_cls
         self._options = options
         self.http_response = raw
+        self.retries_taken = retries_taken
 
     @property
     def request_id(self) -> str | None:
         return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
 
     @overload
-    def parse(self, *, to: type[_T]) -> _T:
-        ...
+    def parse(self, *, to: type[_T]) -> _T: ...
 
     @overload
-    def parse(self) -> R:
-        ...
+    def parse(self) -> R: ...
 
     def parse(self, *, to: type[_T] | None = None) -> R | _T:
         """Returns the rich python representation of this response's data.

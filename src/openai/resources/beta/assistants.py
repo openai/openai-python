@@ -22,10 +22,8 @@ from ...types.beta import (
     assistant_create_params,
     assistant_update_params,
 )
-from ..._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ..._base_client import AsyncPaginator, make_request_options
+from ...types.chat_model import ChatModel
 from ...types.beta.assistant import Assistant
 from ...types.beta.assistant_deleted import AssistantDeleted
 from ...types.beta.assistant_tool_param import AssistantToolParam
@@ -46,33 +44,7 @@ class Assistants(SyncAPIResource):
     def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "gpt-4o",
-                "gpt-4o-2024-05-13",
-                "gpt-4o-mini",
-                "gpt-4o-mini-2024-07-18",
-                "gpt-4-turbo",
-                "gpt-4-turbo-2024-04-09",
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
-                "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
-                "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
-            ],
-        ],
+        model: Union[str, ChatModel],
         description: Optional[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -115,6 +87,11 @@ class Assistants(SyncAPIResource):
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -260,6 +237,11 @@ class Assistants(SyncAPIResource):
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -437,33 +419,7 @@ class AsyncAssistants(AsyncAPIResource):
     async def create(
         self,
         *,
-        model: Union[
-            str,
-            Literal[
-                "gpt-4o",
-                "gpt-4o-2024-05-13",
-                "gpt-4o-mini",
-                "gpt-4o-mini-2024-07-18",
-                "gpt-4-turbo",
-                "gpt-4-turbo-2024-04-09",
-                "gpt-4-0125-preview",
-                "gpt-4-turbo-preview",
-                "gpt-4-1106-preview",
-                "gpt-4-vision-preview",
-                "gpt-4",
-                "gpt-4-0314",
-                "gpt-4-0613",
-                "gpt-4-32k",
-                "gpt-4-32k-0314",
-                "gpt-4-32k-0613",
-                "gpt-3.5-turbo",
-                "gpt-3.5-turbo-16k",
-                "gpt-3.5-turbo-0613",
-                "gpt-3.5-turbo-1106",
-                "gpt-3.5-turbo-0125",
-                "gpt-3.5-turbo-16k-0613",
-            ],
-        ],
+        model: Union[str, ChatModel],
         description: Optional[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -506,6 +462,11 @@ class AsyncAssistants(AsyncAPIResource):
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.
@@ -651,6 +612,11 @@ class AsyncAssistants(AsyncAPIResource):
               [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
+
+              Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+              Outputs which guarantees the model will match your supplied JSON schema. Learn
+              more in the
+              [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
               Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
               message the model generates is valid JSON.

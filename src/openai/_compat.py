@@ -7,7 +7,7 @@ from typing_extensions import Self
 import pydantic
 from pydantic.fields import FieldInfo
 
-from ._types import StrBytesIntFloat
+from ._types import IncEx, StrBytesIntFloat
 
 _T = TypeVar("_T")
 _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
@@ -133,17 +133,20 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
 def model_dump(
     model: pydantic.BaseModel,
     *,
+    exclude: IncEx = None,
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
 ) -> dict[str, Any]:
     if PYDANTIC_V2:
         return model.model_dump(
+            exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
         )
     return cast(
         "dict[str, Any]",
         model.dict(  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+            exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
         ),
@@ -156,25 +159,34 @@ def model_parse(model: type[_ModelT], data: Any) -> _ModelT:
     return model.parse_obj(data)  # pyright: ignore[reportDeprecated]
 
 
+def model_parse_json(model: type[_ModelT], data: str | bytes) -> _ModelT:
+    if PYDANTIC_V2:
+        return model.model_validate_json(data)
+    return model.parse_raw(data)  # pyright: ignore[reportDeprecated]
+
+
+def model_json_schema(model: type[_ModelT]) -> dict[str, Any]:
+    if PYDANTIC_V2:
+        return model.model_json_schema()
+    return model.schema()  # pyright: ignore[reportDeprecated]
+
+
 # generic models
 if TYPE_CHECKING:
 
-    class GenericModel(pydantic.BaseModel):
-        ...
+    class GenericModel(pydantic.BaseModel): ...
 
 else:
     if PYDANTIC_V2:
         # there no longer needs to be a distinction in v2 but
         # we still have to create our own subclass to avoid
         # inconsistent MRO ordering errors
-        class GenericModel(pydantic.BaseModel):
-            ...
+        class GenericModel(pydantic.BaseModel): ...
 
     else:
         import pydantic.generics
 
-        class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel):
-            ...
+        class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel): ...
 
 
 # cached properties
@@ -193,26 +205,21 @@ if TYPE_CHECKING:
         func: Callable[[Any], _T]
         attrname: str | None
 
-        def __init__(self, func: Callable[[Any], _T]) -> None:
-            ...
+        def __init__(self, func: Callable[[Any], _T]) -> None: ...
 
         @overload
-        def __get__(self, instance: None, owner: type[Any] | None = None) -> Self:
-            ...
+        def __get__(self, instance: None, owner: type[Any] | None = None) -> Self: ...
 
         @overload
-        def __get__(self, instance: object, owner: type[Any] | None = None) -> _T:
-            ...
+        def __get__(self, instance: object, owner: type[Any] | None = None) -> _T: ...
 
         def __get__(self, instance: object, owner: type[Any] | None = None) -> _T | Self:
             raise NotImplementedError()
 
-        def __set_name__(self, owner: type[Any], name: str) -> None:
-            ...
+        def __set_name__(self, owner: type[Any], name: str) -> None: ...
 
         # __set__ is not defined at runtime, but @cached_property is designed to be settable
-        def __set__(self, instance: object, value: _T) -> None:
-            ...
+        def __set__(self, instance: object, value: _T) -> None: ...
 else:
     try:
         from functools import cached_property as cached_property
