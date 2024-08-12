@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.40.6 (2024-08-12)
+
+Full Changelog: [v1.40.5...v1.40.6](https://github.com/openai/openai-python/compare/v1.40.5...v1.40.6)
+
+### Chores
+
+* **examples:** minor formatting changes ([#1644](https://github.com/openai/openai-python/issues/1644)) ([e08acf1](https://github.com/openai/openai-python/commit/e08acf1c6edd1501ed70c4634cd884ab1658af0d))
+* **internal:** update some imports ([#1642](https://github.com/openai/openai-python/issues/1642)) ([fce1ea7](https://github.com/openai/openai-python/commit/fce1ea72a89ba2737bc77775fe04f3a21ecb28e7))
+* sync openapi url ([#1646](https://github.com/openai/openai-python/issues/1646)) ([8ae3801](https://github.com/openai/openai-python/commit/8ae380123ada0bfaca9961e222a0e9c8b585e2d4))
+* **tests:** fix pydantic v1 tests ([2623630](https://github.com/openai/openai-python/commit/26236303f0f6de5df887e8ee3e41d5bc39a3abb1))
+
 ## 1.40.5 (2024-08-12)
 
 Full Changelog: [v1.40.4...v1.40.5](https://github.com/openai/openai-python/compare/v1.40.4...v1.40.5)
