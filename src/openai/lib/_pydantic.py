@@ -53,9 +53,13 @@ def _ensure_strict_json_schema(
     # intersections
     all_of = json_schema.get("allOf")
     if is_list(all_of):
-        json_schema["allOf"] = [
-            _ensure_strict_json_schema(entry, path=(*path, "anyOf", str(i))) for i, entry in enumerate(all_of)
-        ]
+        if len(all_of) == 1:
+            json_schema.update(_ensure_strict_json_schema(all_of[0], path=(*path, "allOf", "0")))
+            json_schema.pop("allOf")
+        else:
+            json_schema["allOf"] = [
+                _ensure_strict_json_schema(entry, path=(*path, "allOf", str(i))) for i, entry in enumerate(all_of)
+            ]
 
     defs = json_schema.get("$defs")
     if is_dict(defs):
