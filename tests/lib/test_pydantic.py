@@ -186,7 +186,12 @@ def test_enums() -> None:
                 "parameters": {
                     "$defs": {"Color": {"enum": ["red", "blue", "green"], "title": "Color", "type": "string"}},
                     "properties": {
-                        "color": {"description": "The detected color", "$ref": "#/$defs/Color"},
+                        "color": {
+                            "description": "The detected color",
+                            "enum": ["red", "blue", "green"],
+                            "title": "Color",
+                            "type": "string",
+                        },
                         "hex_color_code": {
                             "description": "The hex color code of the detected color",
                             "title": "Hex Color Code",
@@ -207,7 +212,11 @@ def test_enums() -> None:
                 "strict": True,
                 "parameters": {
                     "properties": {
-                        "color": {"description": "The detected color", "$ref": "#/definitions/Color"},
+                        "color": {
+                            "description": "The detected color",
+                            "title": "Color",
+                            "enum": ["red", "blue", "green"],
+                        },
                         "hex_color_code": {
                             "description": "The hex color code of the detected color",
                             "title": "Hex Color Code",
