@@ -5,12 +5,15 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ...types import shared_params
 from ..chat_model import ChatModel
 from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_message_param import ChatCompletionMessageParam
+from ..shared_params.function_parameters import FunctionParameters
+from ..shared_params.response_format_text import ResponseFormatText
 from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from .chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
+from ..shared_params.response_format_json_object import ResponseFormatJSONObject
+from ..shared_params.response_format_json_schema import ResponseFormatJSONSchema
 from .chat_completion_function_call_option_param import ChatCompletionFunctionCallOptionParam
 
 __all__ = [
@@ -244,7 +247,7 @@ class Function(TypedDict, total=False):
     how to call the function.
     """
 
-    parameters: shared_params.FunctionParameters
+    parameters: FunctionParameters
     """The parameters the functions accepts, described as a JSON Schema object.
 
     See the [guide](https://platform.openai.com/docs/guides/function-calling) for
@@ -256,9 +259,7 @@ class Function(TypedDict, total=False):
     """
 
 
-ResponseFormat: TypeAlias = Union[
-    shared_params.ResponseFormatText, shared_params.ResponseFormatJSONObject, shared_params.ResponseFormatJSONSchema
-]
+ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONObject, ResponseFormatJSONSchema]
 
 
 class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):
