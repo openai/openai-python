@@ -31,8 +31,8 @@ class TestThreads:
         thread = client.beta.threads.create(
             messages=[
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -62,8 +62,8 @@ class TestThreads:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -93,8 +93,8 @@ class TestThreads:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -131,8 +131,8 @@ class TestThreads:
                     "vector_store_ids": ["string"],
                     "vector_stores": [
                         {
-                            "file_ids": ["string", "string", "string"],
                             "chunking_strategy": {"type": "auto"},
+                            "file_ids": ["string", "string", "string"],
                             "metadata": {},
                         }
                     ],
@@ -310,8 +310,8 @@ class TestThreads:
             thread={
                 "messages": [
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -341,8 +341,8 @@ class TestThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -372,8 +372,8 @@ class TestThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -403,20 +403,20 @@ class TestThreads:
                         "metadata": {},
                     },
                 ],
+                "metadata": {},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string", "string", "string"]},
                     "file_search": {
                         "vector_store_ids": ["string"],
                         "vector_stores": [
                             {
-                                "file_ids": ["string", "string", "string"],
                                 "chunking_strategy": {"type": "auto"},
+                                "file_ids": ["string", "string", "string"],
                                 "metadata": {},
                             }
                         ],
                     },
                 },
-                "metadata": {},
             },
             tool_choice="none",
             tool_resources={
@@ -480,8 +480,8 @@ class TestThreads:
             thread={
                 "messages": [
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -511,8 +511,8 @@ class TestThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -542,8 +542,8 @@ class TestThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -573,20 +573,20 @@ class TestThreads:
                         "metadata": {},
                     },
                 ],
+                "metadata": {},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string", "string", "string"]},
                     "file_search": {
                         "vector_store_ids": ["string"],
                         "vector_stores": [
                             {
-                                "file_ids": ["string", "string", "string"],
                                 "chunking_strategy": {"type": "auto"},
+                                "file_ids": ["string", "string", "string"],
                                 "metadata": {},
                             }
                         ],
                     },
                 },
-                "metadata": {},
             },
             tool_choice="none",
             tool_resources={
@@ -641,8 +641,8 @@ class TestAsyncThreads:
         thread = await async_client.beta.threads.create(
             messages=[
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -672,8 +672,8 @@ class TestAsyncThreads:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -703,8 +703,8 @@ class TestAsyncThreads:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -741,8 +741,8 @@ class TestAsyncThreads:
                     "vector_store_ids": ["string"],
                     "vector_stores": [
                         {
-                            "file_ids": ["string", "string", "string"],
                             "chunking_strategy": {"type": "auto"},
+                            "file_ids": ["string", "string", "string"],
                             "metadata": {},
                         }
                     ],
@@ -920,8 +920,8 @@ class TestAsyncThreads:
             thread={
                 "messages": [
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -951,8 +951,8 @@ class TestAsyncThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -982,8 +982,8 @@ class TestAsyncThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1013,20 +1013,20 @@ class TestAsyncThreads:
                         "metadata": {},
                     },
                 ],
+                "metadata": {},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string", "string", "string"]},
                     "file_search": {
                         "vector_store_ids": ["string"],
                         "vector_stores": [
                             {
-                                "file_ids": ["string", "string", "string"],
                                 "chunking_strategy": {"type": "auto"},
+                                "file_ids": ["string", "string", "string"],
                                 "metadata": {},
                             }
                         ],
                     },
                 },
-                "metadata": {},
             },
             tool_choice="none",
             tool_resources={
@@ -1090,8 +1090,8 @@ class TestAsyncThreads:
             thread={
                 "messages": [
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1121,8 +1121,8 @@ class TestAsyncThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1152,8 +1152,8 @@ class TestAsyncThreads:
                         "metadata": {},
                     },
                     {
-                        "role": "user",
                         "content": "string",
+                        "role": "user",
                         "attachments": [
                             {
                                 "file_id": "string",
@@ -1183,20 +1183,20 @@ class TestAsyncThreads:
                         "metadata": {},
                     },
                 ],
+                "metadata": {},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string", "string", "string"]},
                     "file_search": {
                         "vector_store_ids": ["string"],
                         "vector_stores": [
                             {
-                                "file_ids": ["string", "string", "string"],
                                 "chunking_strategy": {"type": "auto"},
+                                "file_ids": ["string", "string", "string"],
                                 "metadata": {},
                             }
                         ],
                     },
                 },
-                "metadata": {},
             },
             tool_choice="none",
             tool_resources={
