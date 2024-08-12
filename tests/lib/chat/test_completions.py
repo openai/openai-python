@@ -15,6 +15,7 @@ from inline_snapshot import snapshot
 import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._compat import PYDANTIC_V2
 
 from ._utils import print_obj
 from ...conftest import base_url
@@ -146,6 +147,9 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx_mock: MockRouter, monke
     class ColorDetection(BaseModel):
         color: Color
         hex_color_code: str = Field(description="The hex color code of the detected color")
+
+    if not PYDANTIC_V2:
+        ColorDetection.update_forward_refs(**locals())  # type: ignore
 
     completion = _make_snapshot_request(
         lambda c: c.beta.chat.completions.parse(
