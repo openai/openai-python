@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Optional
 from typing_extensions import Required, TypedDict
 
-from ...types import shared_params
+from .function_parameters import FunctionParameters
 
 __all__ = ["FunctionDefinition"]
 
@@ -24,7 +24,7 @@ class FunctionDefinition(TypedDict, total=False):
     how to call the function.
     """
 
-    parameters: shared_params.FunctionParameters
+    parameters: FunctionParameters
     """The parameters the functions accepts, described as a JSON Schema object.
 
     See the [guide](https://platform.openai.com/docs/guides/function-calling) for
