@@ -2,13 +2,14 @@ from __future__ import annotations
 
 import os
 import json
+from enum import Enum
 from typing import Any, Callable
 from typing_extensions import Literal, TypeVar
 
 import httpx
 import pytest
 from respx import MockRouter
-from pydantic import BaseModel
+from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
 import openai
@@ -128,6 +129,53 @@ ParsedChatCompletion[Location](
     service_tier=None,
     system_fingerprint='fp_2a322c9ffc',
     usage=CompletionUsage(completion_tokens=14, prompt_tokens=17, total_tokens=31)
+)
+"""
+    )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_pydantic_model_enum(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+    class Color(Enum):
+        """The detected color"""
+
+        RED = "red"
+        BLUE = "blue"
+        GREEN = "green"
+
+    class ColorDetection(BaseModel):
+        color: Color
+        hex_color_code: str = Field(description="The hex color code of the detected color")
+
+    completion = _make_snapshot_request(
+        lambda c: c.beta.chat.completions.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "user", "content": "What color is a Coke can?"},
+            ],
+            response_format=ColorDetection,
+        ),
+        content_snapshot=snapshot(
+            '{"id": "chatcmpl-9vK4UZVr385F2UgZlP1ShwPn2nFxG", "object": "chat.completion", "created": 1723448878, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"color\\":\\"red\\",\\"hex_color_code\\":\\"#FF0000\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 18, "completion_tokens": 14, "total_tokens": 32}, "system_fingerprint": "fp_845eaabc1f"}'
+        ),
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    assert print_obj(completion.choices[0], monkeypatch) == snapshot(
+        """\
+ParsedChoice[ColorDetection](
+    finish_reason='stop',
+    index=0,
+    logprobs=None,
+    message=ParsedChatCompletionMessage[ColorDetection](
+        content='{"color":"red","hex_color_code":"#FF0000"}',
+        function_call=None,
+        parsed=ColorDetection(color=<Color.RED: 'red'>, hex_color_code='#FF0000'),
+        refusal=None,
+        role='assistant',
+        tool_calls=[]
+    )
 )
 """
     )
