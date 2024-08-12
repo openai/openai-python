@@ -31,7 +31,7 @@ class TestImages:
             model="dall-e-2",
             n=1,
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -77,7 +77,7 @@ class TestImages:
             model="dall-e-2",
             n=1,
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -123,7 +123,7 @@ class TestImages:
             n=1,
             quality="standard",
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             style="vivid",
             user="user-1234",
         )
@@ -171,7 +171,7 @@ class TestAsyncImages:
             model="dall-e-2",
             n=1,
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -217,7 +217,7 @@ class TestAsyncImages:
             model="dall-e-2",
             n=1,
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -263,7 +263,7 @@ class TestAsyncImages:
             n=1,
             quality="standard",
             response_format="url",
-            size="1024x1024",
+            size="256x256",
             style="vivid",
             user="user-1234",
         )
