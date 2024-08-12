@@ -47,8 +47,8 @@ class TestCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "description",
                     "name": "name",
+                    "description": "description",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -68,31 +68,31 @@ class TestCompletions:
             tool_choice="none",
             tools=[
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
             ],
             top_logprobs=0,
@@ -167,8 +167,8 @@ class TestCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "description",
                     "name": "name",
+                    "description": "description",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -187,31 +187,31 @@ class TestCompletions:
             tool_choice="none",
             tools=[
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
             ],
             top_logprobs=0,
@@ -289,8 +289,8 @@ class TestAsyncCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "description",
                     "name": "name",
+                    "description": "description",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -310,31 +310,31 @@ class TestAsyncCompletions:
             tool_choice="none",
             tools=[
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
             ],
             top_logprobs=0,
@@ -409,8 +409,8 @@ class TestAsyncCompletions:
             function_call="none",
             functions=[
                 {
-                    "description": "description",
                     "name": "name",
+                    "description": "description",
                     "parameters": {"foo": "bar"},
                 }
             ],
@@ -429,31 +429,31 @@ class TestAsyncCompletions:
             tool_choice="none",
             tools=[
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
                 {
-                    "type": "function",
                     "function": {
-                        "description": "description",
                         "name": "name",
+                        "description": "description",
                         "parameters": {"foo": "bar"},
                         "strict": True,
                     },
+                    "type": "function",
                 },
             ],
             top_logprobs=0,
