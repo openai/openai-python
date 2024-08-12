@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from enum import Enum
+
+from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
 import openai
@@ -157,6 +160,66 @@ def test_most_types() -> None:
                             "type": "string",
                         },
                     },
+                    "additionalProperties": False,
+                },
+            }
+        )
+
+
+class Color(Enum):
+    RED = "red"
+    BLUE = "blue"
+    GREEN = "green"
+
+
+class ColorDetection(BaseModel):
+    color: Color = Field(description="The detected color")
+    hex_color_code: str = Field(description="The hex color code of the detected color")
+
+
+def test_enums() -> None:
+    if PYDANTIC_V2:
+        assert openai.pydantic_function_tool(ColorDetection)["function"] == snapshot(
+            {
+                "name": "ColorDetection",
+                "strict": True,
+                "parameters": {
+                    "$defs": {"Color": {"enum": ["red", "blue", "green"], "title": "Color", "type": "string"}},
+                    "properties": {
+                        "color": {"description": "The detected color", "$ref": "#/$defs/Color"},
+                        "hex_color_code": {
+                            "description": "The hex color code of the detected color",
+                            "title": "Hex Color Code",
+                            "type": "string",
+                        },
+                    },
+                    "required": ["color", "hex_color_code"],
+                    "title": "ColorDetection",
+                    "type": "object",
+                    "additionalProperties": False,
+                },
+            }
+        )
+    else:
+        assert openai.pydantic_function_tool(ColorDetection)["function"] == snapshot(
+            {
+                "name": "ColorDetection",
+                "strict": True,
+                "parameters": {
+                    "properties": {
+                        "color": {"description": "The detected color", "$ref": "#/definitions/Color"},
+                        "hex_color_code": {
+                            "description": "The hex color code of the detected color",
+                            "title": "Hex Color Code",
+                            "type": "string",
+                        },
+                    },
+                    "required": ["color", "hex_color_code"],
+                    "title": "ColorDetection",
+                    "definitions": {
+                        "Color": {"title": "Color", "description": "An enumeration.", "enum": ["red", "blue", "green"]}
+                    },
+                    "type": "object",
                     "additionalProperties": False,
                 },
             }
