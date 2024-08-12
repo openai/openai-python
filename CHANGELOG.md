@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.40.5 (2024-08-12)
+
+Full Changelog: [v1.40.4...v1.40.5](https://github.com/openai/openai-python/compare/v1.40.4...v1.40.5)
+
+### Documentation
+
+* **helpers:** make async client usage more clear ([34e1edf](https://github.com/openai/openai-python/commit/34e1edf29d6008df7196aaebc45172fa536c6410)), closes [#1639](https://github.com/openai/openai-python/issues/1639)
+
 ## 1.40.4 (2024-08-12)
 
 Full Changelog: [v1.40.3...v1.40.4](https://github.com/openai/openai-python/compare/v1.40.3...v1.40.4)
