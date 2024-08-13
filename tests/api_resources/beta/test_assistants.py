@@ -44,8 +44,8 @@ class TestAssistants:
                     "vector_store_ids": ["string"],
                     "vector_stores": [
                         {
-                            "file_ids": ["string", "string", "string"],
                             "chunking_strategy": {"type": "auto"},
+                            "file_ids": ["string", "string", "string"],
                             "metadata": {},
                         }
                     ],
@@ -276,8 +276,8 @@ class TestAsyncAssistants:
                     "vector_store_ids": ["string"],
                     "vector_stores": [
                         {
-                            "file_ids": ["string", "string", "string"],
                             "chunking_strategy": {"type": "auto"},
+                            "file_ids": ["string", "string", "string"],
                             "metadata": {},
                         }
                     ],

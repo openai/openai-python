@@ -5,13 +5,12 @@ from __future__ import annotations
 from typing import Union
 from typing_extensions import Literal, TypeAlias
 
-from ...types import shared_params
+from ..shared_params.response_format_text import ResponseFormatText
+from ..shared_params.response_format_json_object import ResponseFormatJSONObject
+from ..shared_params.response_format_json_schema import ResponseFormatJSONSchema
 
 __all__ = ["AssistantResponseFormatOptionParam"]
 
 AssistantResponseFormatOptionParam: TypeAlias = Union[
-    Literal["auto"],
-    shared_params.ResponseFormatText,
-    shared_params.ResponseFormatJSONObject,
-    shared_params.ResponseFormatJSONSchema,
+    Literal["auto"], ResponseFormatText, ResponseFormatJSONObject, ResponseFormatJSONSchema
 ]

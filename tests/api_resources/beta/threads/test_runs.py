@@ -38,8 +38,8 @@ class TestRuns:
             additional_instructions="string",
             additional_messages=[
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -69,8 +69,8 @@ class TestRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -100,8 +100,8 @@ class TestRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -202,8 +202,8 @@ class TestRuns:
             additional_instructions="string",
             additional_messages=[
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -233,8 +233,8 @@ class TestRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -264,8 +264,8 @@ class TestRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -567,16 +567,16 @@ class TestRuns:
             thread_id="string",
             tool_outputs=[
                 {
-                    "tool_call_id": "string",
-                    "output": "string",
+                    "output": "output",
+                    "tool_call_id": "tool_call_id",
                 },
                 {
-                    "tool_call_id": "string",
-                    "output": "string",
+                    "output": "output",
+                    "tool_call_id": "tool_call_id",
                 },
                 {
-                    "tool_call_id": "string",
-                    "output": "string",
+                    "output": "output",
+                    "tool_call_id": "tool_call_id",
                 },
             ],
             stream=False,
@@ -704,8 +704,8 @@ class TestAsyncRuns:
             additional_instructions="string",
             additional_messages=[
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -735,8 +735,8 @@ class TestAsyncRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -766,8 +766,8 @@ class TestAsyncRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -868,8 +868,8 @@ class TestAsyncRuns:
             additional_instructions="string",
             additional_messages=[
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -899,8 +899,8 @@ class TestAsyncRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -930,8 +930,8 @@ class TestAsyncRuns:
                     "metadata": {},
                 },
                 {
-                    "role": "user",
                     "content": "string",
+                    "role": "user",
                     "attachments": [
                         {
                             "file_id": "string",
@@ -1233,16 +1233,16 @@ class TestAsyncRuns:
             thread_id="string",
             tool_outputs=[
                 {
-                    "tool_call_id": "string",
-                    "output": "string",
+                    "output": "output",
+                    "tool_call_id": "tool_call_id",
                 },
                 {
-                    "tool_call_id": "string",
-                    "output": "string",
+                    "output": "output",
+                    "tool_call_id": "tool_call_id",
                 },
                 {
-                    "tool_call_id": "string",
-                    "output": "string",
+                    "output": "output",
+                    "tool_call_id": "tool_call_id",
                 },
             ],
             stream=False,

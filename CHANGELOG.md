@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.40.6 (2024-08-12)
+
+Full Changelog: [v1.40.5...v1.40.6](https://github.com/openai/openai-python/compare/v1.40.5...v1.40.6)
+
+### Chores
+
+* **examples:** minor formatting changes ([#1644](https://github.com/openai/openai-python/issues/1644)) ([e08acf1](https://github.com/openai/openai-python/commit/e08acf1c6edd1501ed70c4634cd884ab1658af0d))
+* **internal:** update some imports ([#1642](https://github.com/openai/openai-python/issues/1642)) ([fce1ea7](https://github.com/openai/openai-python/commit/fce1ea72a89ba2737bc77775fe04f3a21ecb28e7))
+* sync openapi url ([#1646](https://github.com/openai/openai-python/issues/1646)) ([8ae3801](https://github.com/openai/openai-python/commit/8ae380123ada0bfaca9961e222a0e9c8b585e2d4))
+* **tests:** fix pydantic v1 tests ([2623630](https://github.com/openai/openai-python/commit/26236303f0f6de5df887e8ee3e41d5bc39a3abb1))
+
+## 1.40.5 (2024-08-12)
+
+Full Changelog: [v1.40.4...v1.40.5](https://github.com/openai/openai-python/compare/v1.40.4...v1.40.5)
+
+### Documentation
+
+* **helpers:** make async client usage more clear ([34e1edf](https://github.com/openai/openai-python/commit/34e1edf29d6008df7196aaebc45172fa536c6410)), closes [#1639](https://github.com/openai/openai-python/issues/1639)
+
+## 1.40.4 (2024-08-12)
+
+Full Changelog: [v1.40.3...v1.40.4](https://github.com/openai/openai-python/compare/v1.40.3...v1.40.4)
+
+### Bug Fixes
+
+* **json schema:** unravel `$ref`s alongside additional keys ([c7a3d29](https://github.com/openai/openai-python/commit/c7a3d2986acaf3b31844b39608d03265ad87bb04))
+* **json schema:** unwrap `allOf`s with one entry ([53d964d](https://github.com/openai/openai-python/commit/53d964defebdf385d7d832ec7f13111b4af13c27))
+
 ## 1.40.3 (2024-08-10)
 
 Full Changelog: [v1.40.2...v1.40.3](https://github.com/openai/openai-python/compare/v1.40.2...v1.40.3)

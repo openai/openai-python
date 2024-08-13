@@ -139,6 +139,10 @@ It also supports all aforementioned [parsing helpers](#parsing-helpers).
 Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
 
 ```py
+from openai import AsyncOpenAI
+
+client = AsyncOpenAI()
+
 async with client.beta.chat.completions.stream(
     model='gpt-4o-2024-08-06',
     messages=[...],
