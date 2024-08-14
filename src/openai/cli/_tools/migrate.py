@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-import json
 import shutil
 import tarfile
 import platform
@@ -84,7 +83,7 @@ def install() -> Path:
     """Installs the Grit CLI and returns the location of the binary"""
     if sys.platform == "win32":
         raise CLIError("Windows is not supported yet in the migration CLI")
-    
+
     _debug("Using Grit installer from GitHub")
 
     platform = "apple-darwin" if sys.platform == "darwin" else "unknown-linux-gnu"
@@ -132,7 +131,7 @@ def install() -> Path:
         else:
             archive.extractall(unpacked_dir)
 
-    move_files_recursively(unpacked_dir, target_dir)
+    _move_files_recursively(unpacked_dir, target_dir)
 
     shutil.rmtree(unpacked_dir)
     os.remove(temp_file)
@@ -142,12 +141,14 @@ def install() -> Path:
 
     return target_path
 
-def move_files_recursively(source_dir: Path, target_dir: Path):
+
+def _move_files_recursively(source_dir: Path, target_dir: Path):
     for item in source_dir.iterdir():
         if item.is_file():
             item.rename(target_dir / item.name)
         elif item.is_dir():
-            move_files_recursively(item, target_dir)
+            _move_files_recursively(item, target_dir)
+
 
 def _get_arch() -> str:
     architecture = platform.machine().lower()
