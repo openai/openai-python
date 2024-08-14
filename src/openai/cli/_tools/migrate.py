@@ -142,7 +142,7 @@ def install() -> Path:
     return target_path
 
 
-def _move_files_recursively(source_dir: Path, target_dir: Path):
+def _move_files_recursively(source_dir: Path, target_dir: Path) -> None:
     for item in source_dir.iterdir():
         if item.is_file():
             item.rename(target_dir / item.name)
