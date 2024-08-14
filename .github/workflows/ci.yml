@@ -51,3 +51,7 @@ jobs:
       - name: Run tests
         run: ./scripts/test
 
+      - name: debug
+        if: always()
+        run: |
+          cat .prism.log
