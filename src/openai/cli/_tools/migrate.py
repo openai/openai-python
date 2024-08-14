@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import os
 import sys
-import json
 import shutil
 import tarfile
 import platform
@@ -85,7 +84,9 @@ def install() -> Path:
     if sys.platform == "win32":
         raise CLIError("Windows is not supported yet in the migration CLI")
 
-    platform = "macos" if sys.platform == "darwin" else "linux"
+    _debug("Using Grit installer from GitHub")
+
+    platform = "apple-darwin" if sys.platform == "darwin" else "unknown-linux-gnu"
 
     dir_name = _cache_dir() / "openai-python"
     install_dir = dir_name / ".install"
@@ -109,27 +110,14 @@ def install() -> Path:
     arch = _get_arch()
     _debug(f"Using architecture {arch}")
 
-    file_name = f"marzano-{platform}-{arch}"
-    meta_url = f"https://api.keygen.sh/v1/accounts/{KEYGEN_ACCOUNT}/artifacts/{file_name}"
+    file_name = f"marzano-{arch}-{platform}"
+    download_url = f"https://github.com/getgrit/gritql/releases/latest/download/{file_name}.tar.gz"
 
-    sys.stdout.write(f"Retrieving Grit CLI metadata from {meta_url}\n")
+    sys.stdout.write(f"Downloading Grit CLI from {download_url}\n")
     with httpx.Client() as client:
-        response = client.get(meta_url)  # pyright: ignore[reportUnknownMemberType]
-
-        data = response.json()
-        errors = data.get("errors")
-        if errors:
-            for error in errors:
-                sys.stdout.write(f"{error}\n")
-
-            raise CLIError("Could not locate Grit CLI binary - see above errors")
-
-        write_manifest(install_dir, data["data"]["relationships"]["release"]["data"]["id"])
-
-        link = data["data"]["links"]["redirect"]
-        _debug(f"Redirect URL {link}")
-
-        download_response = client.get(link)  # pyright: ignore[reportUnknownMemberType]
+        download_response = client.get(download_url, follow_redirects=True)
+        if download_response.status_code != 200:
+            raise CLIError(f"Failed to download Grit CLI from {download_url}")
         with open(temp_file, "wb") as file:
             for chunk in download_response.iter_bytes():
                 file.write(chunk)
@@ -143,8 +131,7 @@ def install() -> Path:
         else:
             archive.extractall(unpacked_dir)
 
-    for item in unpacked_dir.iterdir():
-        item.rename(target_dir / item.name)
+    _move_files_recursively(unpacked_dir, target_dir)
 
     shutil.rmtree(unpacked_dir)
     os.remove(temp_file)
@@ -155,30 +142,23 @@ def install() -> Path:
     return target_path
 
 
+def _move_files_recursively(source_dir: Path, target_dir: Path) -> None:
+    for item in source_dir.iterdir():
+        if item.is_file():
+            item.rename(target_dir / item.name)
+        elif item.is_dir():
+            _move_files_recursively(item, target_dir)
+
+
 def _get_arch() -> str:
     architecture = platform.machine().lower()
 
-    # Map the architecture names to Node.js equivalents
+    # Map the architecture names to Grit equivalents
     arch_map = {
-        "x86_64": "x64",
-        "amd64": "x64",
-        "armv7l": "arm",
-        "aarch64": "arm64",
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "armv7l": "aarch64",
+        "arm64": "aarch64",
     }
 
     return arch_map.get(architecture, architecture)
-
-
-def write_manifest(install_path: Path, release: str) -> None:
-    manifest = {
-        "installPath": str(install_path),
-        "binaries": {
-            "marzano": {
-                "name": "marzano",
-                "release": release,
-            },
-        },
-    }
-    manifest_path = Path(install_path) / "manifests.json"
-    with open(manifest_path, "w") as f:
-        json.dump(manifest, f, indent=2)
