@@ -87,7 +87,7 @@ def install() -> Path:
     
     _debug("Using Grit installer from GitHub")
 
-    platform = "apple-darwin" if sys.platform == "darwin" else "linux"
+    platform = "apple-darwin" if sys.platform == "darwin" else "unknown-linux-gnu"
 
     dir_name = _cache_dir() / "openai-python"
     install_dir = dir_name / ".install"
@@ -154,9 +154,9 @@ def _get_arch() -> str:
 
     # Map the architecture names to Grit equivalents
     arch_map = {
-        "x86_64": "x64",
-        "amd64": "x64",
-        "armv7l": "arm",
+        "x86_64": "x86_64",
+        "amd64": "x86_64",
+        "armv7l": "aarch64",
         "arm64": "aarch64",
     }
 
