@@ -192,7 +192,7 @@ class Completions(SyncAPIResource):
         ) as stream:
             for event in stream:
                 if event.type == "content.delta":
-                    print(event.content, flush=True, end="")
+                    print(event.delta, flush=True, end="")
         ```
 
         When the context manager is entered, a `ChatCompletionStream` instance is returned which, like `.create(stream=True)` is an iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
@@ -404,7 +404,7 @@ class AsyncCompletions(AsyncAPIResource):
         ) as stream:
             async for event in stream:
                 if event.type == "content.delta":
-                    print(event.content, flush=True, end="")
+                    print(event.delta, flush=True, end="")
         ```
 
         When the context manager is entered, an `AsyncChatCompletionStream` instance is returned which, like `.create(stream=True)` is an async iterator. The full list of events that are yielded by the iterator are outlined in [these docs](https://github.com/openai/openai-python/blob/main/helpers.md#chat-completions-events).
