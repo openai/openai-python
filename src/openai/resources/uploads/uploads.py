@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from typing import List
-from typing_extensions import Literal
 
 import httpx
 
@@ -16,7 +15,7 @@ from .parts import (
     PartsWithStreamingResponse,
     AsyncPartsWithStreamingResponse,
 )
-from ...types import upload_create_params, upload_complete_params
+from ...types import FilePurpose, upload_create_params, upload_complete_params
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from ..._utils import (
     maybe_transform,
@@ -27,6 +26,7 @@ from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._base_client import make_request_options
 from ...types.upload import Upload
+from ...types.file_purpose import FilePurpose
 
 __all__ = ["Uploads", "AsyncUploads"]
 
@@ -50,7 +50,7 @@ class Uploads(SyncAPIResource):
         bytes: int,
         filename: str,
         mime_type: str,
-        purpose: Literal["assistants", "batch", "fine-tune", "vision"],
+        purpose: FilePurpose,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -233,7 +233,7 @@ class AsyncUploads(AsyncAPIResource):
         bytes: int,
         filename: str,
         mime_type: str,
-        purpose: Literal["assistants", "batch", "fine-tune", "vision"],
+        purpose: FilePurpose,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
