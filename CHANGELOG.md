@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.40.8 (2024-08-15)
+
+Full Changelog: [v1.40.7...v1.40.8](https://github.com/openai/openai-python/compare/v1.40.7...v1.40.8)
+
+### Chores
+
+* **types:** define FilePurpose enum ([#1653](https://github.com/openai/openai-python/issues/1653)) ([3c2eeae](https://github.com/openai/openai-python/commit/3c2eeae32adf5d4ab6bc622be6f9a95a1a298dd3))
+
 ## 1.40.7 (2024-08-15)
 
 Full Changelog: [v1.40.6...v1.40.7](https://github.com/openai/openai-python/compare/v1.40.6...v1.40.7)
