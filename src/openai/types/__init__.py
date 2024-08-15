@@ -24,6 +24,7 @@ from .file_object import FileObject as FileObject
 from .image_model import ImageModel as ImageModel
 from .file_content import FileContent as FileContent
 from .file_deleted import FileDeleted as FileDeleted
+from .file_purpose import FilePurpose as FilePurpose
 from .model_deleted import ModelDeleted as ModelDeleted
 from .images_response import ImagesResponse as ImagesResponse
 from .completion_usage import CompletionUsage as CompletionUsage

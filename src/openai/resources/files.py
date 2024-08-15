@@ -4,12 +4,11 @@ from __future__ import annotations
 
 import typing_extensions
 from typing import Mapping, cast
-from typing_extensions import Literal
 
 import httpx
 
 from .. import _legacy_response
-from ..types import file_list_params, file_create_params
+from ..types import FilePurpose, file_list_params, file_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from .._utils import (
     extract_files,
@@ -31,6 +30,7 @@ from ..pagination import SyncPage, AsyncPage
 from .._base_client import AsyncPaginator, make_request_options
 from ..types.file_object import FileObject
 from ..types.file_deleted import FileDeleted
+from ..types.file_purpose import FilePurpose
 
 __all__ = ["Files", "AsyncFiles"]
 
@@ -48,7 +48,7 @@ class Files(SyncAPIResource):
         self,
         *,
         file: FileTypes,
-        purpose: Literal["assistants", "batch", "fine-tune", "vision"],
+        purpose: FilePurpose,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -307,7 +307,7 @@ class AsyncFiles(AsyncAPIResource):
         self,
         *,
         file: FileTypes,
-        purpose: Literal["assistants", "batch", "fine-tune", "vision"],
+        purpose: FilePurpose,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
