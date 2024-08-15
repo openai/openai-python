@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Required, TypedDict
+
+from .file_purpose import FilePurpose
 
 __all__ = ["UploadCreateParams"]
 
@@ -21,7 +23,7 @@ class UploadCreateParams(TypedDict, total=False):
     supported MIME types for assistants and vision.
     """
 
-    purpose: Required[Literal["assistants", "batch", "fine-tune", "vision"]]
+    purpose: Required[FilePurpose]
     """The intended purpose of the uploaded file.
 
     See the

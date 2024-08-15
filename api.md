@@ -82,7 +82,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import FileContent, FileDeleted, FileObject
+from openai.types import FileContent, FileDeleted, FileObject, FilePurpose
 ```
 
 Methods:
