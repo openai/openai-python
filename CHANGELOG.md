@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.41.0 (2024-08-16)
+
+Full Changelog: [v1.40.8...v1.41.0](https://github.com/openai/openai-python/compare/v1.40.8...v1.41.0)
+
+### Features
+
+* **client:** add uploads.upload_file helper ([aae079d](https://github.com/openai/openai-python/commit/aae079daa3c1763ab0e46bad766ae5261b475806))
+
 ## 1.40.8 (2024-08-15)
 
 Full Changelog: [v1.40.7...v1.40.8](https://github.com/openai/openai-python/compare/v1.40.7...v1.40.8)
