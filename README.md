@@ -554,6 +554,7 @@ To access undocumented response properties, you can access the extra fields like
 can also get all the extra fields on the Pydantic model as a dict with
 [`response.model_extra`](https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel.model_extra).
 
+
 ### Configuring the HTTP client
 
 You can directly override the [httpx client](https://www.python-httpx.org/api/#client) to customize it for your use case, including:
@@ -584,6 +585,60 @@ client.with_options(http_client=DefaultHttpxClient(...))
 ### Managing HTTP resources
 
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
+
+## API Endpoints
+
+This section provides detailed information on various OpenAI API endpoints. You can refer to the specific documentation for each endpoint to understand its functionality, parameters, and usage.
+
+### 1. Audio
+
+- **Endpoint Documentation**: [Audio API Reference](https://platform.openai.com/docs/api-reference/audio)
+- **Description**: This endpoint allows you to interact with audio data. You can use it to process and analyze audio content.
+
+### 2. Chat
+
+- **Endpoint Documentation**: [Chat API Reference](https://platform.openai.com/docs/api-reference/chat)
+- **Description**: This endpoint enables interactions with the chat models. It supports generating chat responses based on the input you provide.
+
+### 3. Embeddings
+
+- **Endpoint Documentation**: [Embeddings API Reference](https://platform.openai.com/docs/api-reference/embeddings)
+- **Description**: Use this endpoint to generate and work with embeddings. Embeddings represent text data in a format suitable for various machine learning tasks.
+
+### 4. Fine-Tuning
+
+- **Endpoint Documentation**: [Fine-Tuning API Reference](https://platform.openai.com/docs/api-reference/fine-tuning)
+- **Description**: This endpoint allows you to fine-tune models based on your specific data and requirements, enhancing their performance for particular tasks.
+
+### 5. Batch
+
+- **Endpoint Documentation**: [Batch API Reference](https://platform.openai.com/docs/api-reference/batch)
+- **Description**: The batch endpoint helps manage and process batch requests for the API, improving efficiency for large-scale operations.
+
+### 6. Files
+
+- **Endpoint Documentation**: [Files API Reference](https://platform.openai.com/docs/api-reference/files)
+- **Description**: This endpoint is used to upload, manage, and interact with files used in various API operations.
+
+### 7. Uploads
+
+- **Endpoint Documentation**: [Uploads API Reference](https://platform.openai.com/docs/api-reference/uploads)
+- **Description**: Use this endpoint for uploading files and data to the OpenAI platform.
+
+### 8. Images
+
+- **Endpoint Documentation**: [Images API Reference](https://platform.openai.com/docs/api-reference/images)
+- **Description**: This endpoint provides functionality for working with images, including generating and processing image data.
+
+### 9. Models
+
+- **Endpoint Documentation**: [Models API Reference](https://platform.openai.com/docs/api-reference/models)
+- **Description**: This endpoint allows you to list and manage the models available on the OpenAI platform.
+
+### 10. Moderations
+
+- **Endpoint Documentation**: [Moderations API Reference](https://platform.openai.com/docs/api-reference/moderations)
+- **Description**: The moderations endpoint helps in analyzing and moderating content based on specified guidelines and criteria.
 
 ## Microsoft Azure OpenAI
 
