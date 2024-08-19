@@ -5,6 +5,7 @@ from typing_extensions import TypeGuard
 
 import pydantic
 
+from .._types import NOT_GIVEN
 from .._utils import is_dict as _is_dict, is_list
 from .._compat import model_json_schema
 
@@ -75,6 +76,12 @@ def _ensure_strict_json_schema(
                 _ensure_strict_json_schema(entry, path=(*path, "allOf", str(i)), root=root)
                 for i, entry in enumerate(all_of)
             ]
+
+    # strip `None` defaults as there's no meaningful distinction here
+    # the schema will still be `nullable` and the model will default
+    # to using `None` anyway
+    if json_schema.get("default", NOT_GIVEN) is None:
+        json_schema.pop("default")
 
     # we can't use `$ref`s if there are also other properties defined, e.g.
     # `{"$ref": "...", "description": "my description"}`
