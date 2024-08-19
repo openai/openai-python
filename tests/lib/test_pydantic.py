@@ -62,6 +62,7 @@ def test_most_types() -> None:
                         "Table": {"enum": ["orders", "customers", "products"], "title": "Table", "type": "string"},
                     },
                     "properties": {
+                        "name": {"anyOf": [{"type": "string"}, {"type": "null"}], "title": "Name"},
                         "table_name": {"$ref": "#/$defs/Table"},
                         "columns": {
                             "items": {"$ref": "#/$defs/Column"},
@@ -75,7 +76,7 @@ def test_most_types() -> None:
                         },
                         "order_by": {"$ref": "#/$defs/OrderBy"},
                     },
-                    "required": ["table_name", "columns", "conditions", "order_by"],
+                    "required": ["name", "table_name", "columns", "conditions", "order_by"],
                     "title": "Query",
                     "type": "object",
                     "additionalProperties": False,
@@ -91,6 +92,7 @@ def test_most_types() -> None:
                     "title": "Query",
                     "type": "object",
                     "properties": {
+                        "name": {"title": "Name", "type": "string"},
                         "table_name": {"$ref": "#/definitions/Table"},
                         "columns": {"type": "array", "items": {"$ref": "#/definitions/Column"}},
                         "conditions": {
@@ -100,7 +102,7 @@ def test_most_types() -> None:
                         },
                         "order_by": {"$ref": "#/definitions/OrderBy"},
                     },
-                    "required": ["table_name", "columns", "conditions", "order_by"],
+                    "required": ["name", "table_name", "columns", "conditions", "order_by"],
                     "definitions": {
                         "Table": {
                             "title": "Table",
