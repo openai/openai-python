@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import List, Union
+from typing import List, Union, Optional
 
 from pydantic import BaseModel
 
@@ -45,6 +45,7 @@ class Condition(BaseModel):
 
 
 class Query(BaseModel):
+    name: Optional[str] = None
     table_name: Table
     columns: List[Column]
     conditions: List[Condition]
