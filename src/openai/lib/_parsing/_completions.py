@@ -237,7 +237,7 @@ def type_to_response_format_param(
         return response_format
 
     # type checkers don't narrow the negation of a `TypeGuard` as it isn't
-    # a safe default behaviour but we know that at this point the `response_format`
+    # a safe default behavior but we know that at this point the `response_format`
     # can only be a `type`
     response_format = cast(type, response_format)
 
