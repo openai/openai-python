@@ -827,3 +827,42 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
     # if the discriminator details object stays the same between invocations then
     # we hit the cache
     assert UnionType.__discriminator__ is discriminator
+
+
+def test_discriminated_unions_nested_unknown_variant() -> None:
+
+    class Code(BaseModel):
+        type: Literal["code"]
+
+        name: str
+
+    class Function(BaseModel):
+        type: Literal["function"]
+
+        name: str
+
+    class Message(BaseModel):
+        type: Literal["message"]
+
+        message: str
+
+    class Tool(BaseModel):
+        type: Literal["tool"]
+
+        tools: list[Annotated[Union[Code, Function], PropertyInfo(discriminator="type")]]
+
+    class Model(BaseModel):
+
+        data: str
+
+        result: Annotated[Union[Message, Tool], PropertyInfo(discriminator="type")]
+
+    # should construct a Tool object regardless of unknown data in tools
+    m = construct_type(
+        value={"data": "foo", "result": {"type": "tool", "tools": [{"type": "unknown", "name": "bar"}]}},
+        type_=Model,
+    )
+    m = cast(Model, m)
+    assert isinstance(m.result, Tool)
+    assert m.result.type == "tool"
+    assert m.result.tools[0].type == "unknown"  # type: ignore[comparison-overlap]

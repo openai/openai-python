@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from .run_step import RunStep as RunStep
-from .tool_call import ToolCall as ToolCall
+from .tool_call import ToolCall as ToolCall, BaseToolCall as BaseToolCall
 from .run_step_delta import RunStepDelta as RunStepDelta
-from .tool_call_delta import ToolCallDelta as ToolCallDelta
+from .tool_call_delta import ToolCallDelta as ToolCallDelta, BaseToolCallDelta as BaseToolCallDelta
 from .step_list_params import StepListParams as StepListParams
 from .function_tool_call import FunctionToolCall as FunctionToolCall
 from .run_step_delta_event import RunStepDeltaEvent as RunStepDeltaEvent

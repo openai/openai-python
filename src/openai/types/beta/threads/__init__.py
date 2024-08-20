@@ -6,17 +6,17 @@ from .run import Run as Run
 from .text import Text as Text
 from .message import Message as Message
 from .image_url import ImageURL as ImageURL
-from .annotation import Annotation as Annotation
+from .annotation import Annotation as Annotation, BaseAnnotation as BaseAnnotation
 from .image_file import ImageFile as ImageFile
 from .run_status import RunStatus as RunStatus
 from .text_delta import TextDelta as TextDelta
 from .message_delta import MessageDelta as MessageDelta
 from .image_url_delta import ImageURLDelta as ImageURLDelta
 from .image_url_param import ImageURLParam as ImageURLParam
-from .message_content import MessageContent as MessageContent
+from .message_content import MessageContent as MessageContent, BaseContentBlock as BaseContentBlock
 from .message_deleted import MessageDeleted as MessageDeleted
 from .run_list_params import RunListParams as RunListParams
-from .annotation_delta import AnnotationDelta as AnnotationDelta
+from .annotation_delta import AnnotationDelta as AnnotationDelta, BaseDeltaAnnotation as BaseDeltaAnnotation
 from .image_file_delta import ImageFileDelta as ImageFileDelta
 from .image_file_param import ImageFileParam as ImageFileParam
 from .text_delta_block import TextDeltaBlock as TextDeltaBlock
@@ -28,7 +28,7 @@ from .message_list_params import MessageListParams as MessageListParams
 from .refusal_delta_block import RefusalDeltaBlock as RefusalDeltaBlock
 from .file_path_annotation import FilePathAnnotation as FilePathAnnotation
 from .image_url_delta_block import ImageURLDeltaBlock as ImageURLDeltaBlock
-from .message_content_delta import MessageContentDelta as MessageContentDelta
+from .message_content_delta import BaseDeltaBlock as BaseDeltaBlock, MessageContentDelta as MessageContentDelta
 from .message_create_params import MessageCreateParams as MessageCreateParams
 from .message_update_params import MessageUpdateParams as MessageUpdateParams
 from .refusal_content_block import RefusalContentBlock as RefusalContentBlock
