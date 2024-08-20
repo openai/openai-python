@@ -154,7 +154,7 @@ def _parse_args(parser: argparse.ArgumentParser) -> tuple[argparse.Namespace, Ar
     args = model_parse(Arguments, vars(parsed))
     if not args.allow_unknown_args:
         # we have to parse twice to ensure any unknown arguments
-        # result in an error if that behaviour is desired
+        # result in an error if that behavior is desired
         parser.parse_args()
 
     return parsed, args, remaining_unknown
