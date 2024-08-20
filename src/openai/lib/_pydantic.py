@@ -1,17 +1,26 @@
 from __future__ import annotations
 
-from typing import Any
+import inspect
+from typing import Any, TypeVar
 from typing_extensions import TypeGuard
 
 import pydantic
 
 from .._types import NOT_GIVEN
 from .._utils import is_dict as _is_dict, is_list
-from .._compat import model_json_schema
+from .._compat import PYDANTIC_V2, model_json_schema
+
+_T = TypeVar("_T")
 
 
-def to_strict_json_schema(model: type[pydantic.BaseModel]) -> dict[str, Any]:
-    schema = model_json_schema(model)
+def to_strict_json_schema(model: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any]) -> dict[str, Any]:
+    if inspect.isclass(model) and is_basemodel_type(model):
+        schema = model_json_schema(model)
+    elif PYDANTIC_V2 and isinstance(model, pydantic.TypeAdapter):
+        schema = model.json_schema()
+    else:
+        raise TypeError(f"Non BaseModel types are only supported with Pydantic v2 - {model}")
+
     return _ensure_strict_json_schema(schema, path=(), root=schema)
 
 
@@ -115,6 +124,15 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
         resolved = value
 
     return resolved
+
+
+def is_basemodel_type(typ: type) -> TypeGuard[type[pydantic.BaseModel]]:
+    return issubclass(typ, pydantic.BaseModel)
+
+
+def is_dataclass_like_type(typ: type) -> bool:
+    """Returns True if the given type likely used `@pydantic.dataclass`"""
+    return hasattr(typ, "__pydantic_config__")
 
 
 def is_dict(obj: object) -> TypeGuard[dict[str, object]]:
