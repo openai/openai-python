@@ -209,7 +209,7 @@ class BaseSyncPage(BasePage[_T], Generic[_T]):
     # Pydantic uses a custom `__iter__` method to support casting BaseModels
     # to dictionaries. e.g. dict(model).
     # As we want to support `for item in page`, this is inherently incompatible
-    # with the default pydantic behaviour. It is not possible to support both
+    # with the default pydantic behavior. It is not possible to support both
     # use cases at once. Fortunately, this is not a big deal as all other pydantic
     # methods should continue to work as expected as there is an alternative method
     # to cast a model to a dictionary, model.dict(), which is used internally
