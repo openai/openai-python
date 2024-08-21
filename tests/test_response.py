@@ -1,5 +1,5 @@
 import json
-from typing import List, cast
+from typing import Any, List, Union, cast
 from typing_extensions import Annotated
 
 import httpx
@@ -188,3 +188,40 @@ async def test_async_response_parse_annotated_type(async_client: AsyncOpenAI) ->
     )
     assert obj.foo == "hello!"
     assert obj.bar == 2
+
+
+class OtherModel(BaseModel):
+    a: str
+
+
+@pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
+def test_response_parse_expect_model_union_non_json_content(client: OpenAI) -> None:
+    response = APIResponse(
+        raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
+        client=client,
+        stream=False,
+        stream_cls=None,
+        cast_to=str,
+        options=FinalRequestOptions.construct(method="get", url="/foo"),
+    )
+
+    obj = response.parse(to=cast(Any, Union[CustomModel, OtherModel]))
+    assert isinstance(obj, str)
+    assert obj == "foo"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("async_client", [False], indirect=True)  # loose validation
+async def test_async_response_parse_expect_model_union_non_json_content(async_client: AsyncOpenAI) -> None:
+    response = AsyncAPIResponse(
+        raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
+        client=async_client,
+        stream=False,
+        stream_cls=None,
+        cast_to=str,
+        options=FinalRequestOptions.construct(method="get", url="/foo"),
+    )
+
+    obj = await response.parse(to=cast(Any, Union[CustomModel, OtherModel]))
+    assert isinstance(obj, str)
+    assert obj == "foo"
