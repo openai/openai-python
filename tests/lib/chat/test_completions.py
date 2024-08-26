@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import json
 from enum import Enum
-from typing import Any, Callable, Optional
+from typing import Any, List, Callable, Optional
 from typing_extensions import Literal, TypeVar
 
 import httpx
@@ -313,6 +313,63 @@ def test_parse_pydantic_model_multiple_choices(
         )
     )
 ]
+"""
+    )
+
+
+@pytest.mark.respx(base_url=base_url)
+@pytest.mark.skipif(not PYDANTIC_V2, reason="dataclasses only supported in v2")
+def test_parse_pydantic_dataclass(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+    from pydantic.dataclasses import dataclass
+
+    @dataclass
+    class CalendarEvent:
+        name: str
+        date: str
+        participants: List[str]
+
+    completion = _make_snapshot_request(
+        lambda c: c.beta.chat.completions.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {"role": "system", "content": "Extract the event information."},
+                {"role": "user", "content": "Alice and Bob are going to a science fair on Friday."},
+            ],
+            response_format=CalendarEvent,
+        ),
+        content_snapshot=snapshot(
+            '{"id": "chatcmpl-9wdGqXkJJARAz7rOrLH5u5FBwLjF3", "object": "chat.completion", "created": 1723761008, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"name\\":\\"Science Fair\\",\\"date\\":\\"Friday\\",\\"participants\\":[\\"Alice\\",\\"Bob\\"]}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 32, "completion_tokens": 17, "total_tokens": 49}, "system_fingerprint": "fp_2a322c9ffc"}'
+        ),
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    assert print_obj(completion, monkeypatch) == snapshot(
+        """\
+ParsedChatCompletion[CalendarEvent](
+    choices=[
+        ParsedChoice[CalendarEvent](
+            finish_reason='stop',
+            index=0,
+            logprobs=None,
+            message=ParsedChatCompletionMessage[CalendarEvent](
+                content='{"name":"Science Fair","date":"Friday","participants":["Alice","Bob"]}',
+                function_call=None,
+                parsed=CalendarEvent(name='Science Fair', date='Friday', participants=['Alice', 'Bob']),
+                refusal=None,
+                role='assistant',
+                tool_calls=[]
+            )
+        )
+    ],
+    created=1723761008,
+    id='chatcmpl-9wdGqXkJJARAz7rOrLH5u5FBwLjF3',
+    model='gpt-4o-2024-08-06',
+    object='chat.completion',
+    service_tier=None,
+    system_fingerprint='fp_2a322c9ffc',
+    usage=CompletionUsage(completion_tokens=17, prompt_tokens=32, total_tokens=49)
+)
 """
     )
 
