@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable, Optional, overload
+from typing import List, Union, Iterable, Optional, overload
 from typing_extensions import Literal
 
 import httpx
@@ -38,6 +38,7 @@ from .....types.beta.threads import (
 from .....types.beta.threads.run import Run
 from .....types.beta.assistant_tool_param import AssistantToolParam
 from .....types.beta.assistant_stream_event import AssistantStreamEvent
+from .....types.beta.threads.runs.run_step_include import RunStepInclude
 from .....types.beta.assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from .....types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
@@ -63,6 +64,7 @@ class Runs(SyncAPIResource):
         thread_id: str,
         *,
         assistant_id: str,
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -92,6 +94,14 @@ class Runs(SyncAPIResource):
           assistant_id: The ID of the
               [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
               execute this run.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+              for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
@@ -195,6 +205,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         stream: Literal[True],
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -227,6 +238,14 @@ class Runs(SyncAPIResource):
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+              for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
@@ -326,6 +345,7 @@ class Runs(SyncAPIResource):
         *,
         assistant_id: str,
         stream: bool,
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -358,6 +378,14 @@ class Runs(SyncAPIResource):
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+              for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
@@ -456,6 +484,7 @@ class Runs(SyncAPIResource):
         thread_id: str,
         *,
         assistant_id: str,
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -505,7 +534,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
             ),
             cast_to=Run,
             stream=stream or False,
@@ -868,6 +901,7 @@ class AsyncRuns(AsyncAPIResource):
         thread_id: str,
         *,
         assistant_id: str,
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -897,6 +931,14 @@ class AsyncRuns(AsyncAPIResource):
           assistant_id: The ID of the
               [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
               execute this run.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+              for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
@@ -1000,6 +1042,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         stream: Literal[True],
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1032,6 +1075,14 @@ class AsyncRuns(AsyncAPIResource):
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+              for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
@@ -1131,6 +1182,7 @@ class AsyncRuns(AsyncAPIResource):
         *,
         assistant_id: str,
         stream: bool,
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1163,6 +1215,14 @@ class AsyncRuns(AsyncAPIResource):
           stream: If `true`, returns a stream of events that happen during the Run as server-sent
               events, terminating when the Run enters a terminal state with a `data: [DONE]`
               message.
+
+          include: A list of additional fields to include in the response. Currently the only
+              supported value is `step_details.tool_calls[*].file_search.results[*].content`
+              to fetch the file search result content.
+
+              See the
+              [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+              for more information.
 
           additional_instructions: Appends additional instructions at the end of the instructions for the run. This
               is useful for modifying the behavior on a per-run basis without overriding other
@@ -1261,6 +1321,7 @@ class AsyncRuns(AsyncAPIResource):
         thread_id: str,
         *,
         assistant_id: str,
+        include: List[RunStepInclude] | NotGiven = NOT_GIVEN,
         additional_instructions: Optional[str] | NotGiven = NOT_GIVEN,
         additional_messages: Optional[Iterable[run_create_params.AdditionalMessage]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1310,7 +1371,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
             ),
             cast_to=Run,
             stream=stream or False,

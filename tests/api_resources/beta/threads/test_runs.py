@@ -33,6 +33,7 @@ class TestRuns:
         run = client.beta.threads.runs.create(
             thread_id="thread_id",
             assistant_id="assistant_id",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
             additional_instructions="additional_instructions",
             additional_messages=[
                 {
@@ -197,6 +198,7 @@ class TestRuns:
             thread_id="thread_id",
             assistant_id="assistant_id",
             stream=True,
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
             additional_instructions="additional_instructions",
             additional_messages=[
                 {
@@ -699,6 +701,7 @@ class TestAsyncRuns:
         run = await async_client.beta.threads.runs.create(
             thread_id="thread_id",
             assistant_id="assistant_id",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
             additional_instructions="additional_instructions",
             additional_messages=[
                 {
@@ -863,6 +866,7 @@ class TestAsyncRuns:
             thread_id="thread_id",
             assistant_id="assistant_id",
             stream=True,
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
             additional_instructions="additional_instructions",
             additional_messages=[
                 {
