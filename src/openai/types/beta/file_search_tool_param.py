@@ -4,7 +4,21 @@ from __future__ import annotations
 
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["FileSearchToolParam", "FileSearch"]
+__all__ = ["FileSearchToolParam", "FileSearch", "FileSearchRankingOptions"]
+
+
+class FileSearchRankingOptions(TypedDict, total=False):
+    ranker: Literal["auto", "default_2024_08_21"]
+    """The ranker to use for the file search.
+
+    If not specified will use the `auto` ranker.
+    """
+
+    score_threshold: float
+    """The score threshold for the file search.
+
+    All values must be a floating point number between 0 and 1.
+    """
 
 
 class FileSearch(TypedDict, total=False):
@@ -16,7 +30,15 @@ class FileSearch(TypedDict, total=False):
 
     Note that the file search tool may output fewer than `max_num_results` results.
     See the
-    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/number-of-chunks-returned)
+    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+    for more information.
+    """
+
+    ranking_options: FileSearchRankingOptions
+    """The ranking options for the file search.
+
+    See the
+    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
     for more information.
     """
 
