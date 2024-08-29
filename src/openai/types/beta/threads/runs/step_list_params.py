@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+from typing import List
 from typing_extensions import Literal, Required, TypedDict
+
+from .run_step_include import RunStepInclude
 
 __all__ = ["StepListParams"]
 
@@ -26,6 +29,18 @@ class StepListParams(TypedDict, total=False):
     you make a list request and receive 100 objects, ending with obj_foo, your
     subsequent call can include before=obj_foo in order to fetch the previous page
     of the list.
+    """
+
+    include: List[RunStepInclude]
+    """A list of additional fields to include in the response.
+
+    Currently the only supported value is
+    `step_details.tool_calls[*].file_search.results[*].content` to fetch the file
+    search result content.
+
+    See the
+    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+    for more information.
     """
 
     limit: int
