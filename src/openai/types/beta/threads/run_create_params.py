@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable, Optional
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ...chat_model import ChatModel
 from ..assistant_tool_param import AssistantToolParam
+from .runs.run_step_include import RunStepInclude
 from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
@@ -30,6 +31,18 @@ class RunCreateParamsBase(TypedDict, total=False):
     The ID of the
     [assistant](https://platform.openai.com/docs/api-reference/assistants) to use to
     execute this run.
+    """
+
+    include: List[RunStepInclude]
+    """A list of additional fields to include in the response.
+
+    Currently the only supported value is
+    `step_details.tool_calls[*].file_search.results[*].content` to fetch the file
+    search result content.
+
+    See the
+    [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)
+    for more information.
     """
 
     additional_instructions: Optional[str]

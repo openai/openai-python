@@ -33,9 +33,10 @@ class TestRuns:
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         run = client.beta.threads.runs.create(
-            "string",
-            assistant_id="string",
-            additional_instructions="string",
+            thread_id="thread_id",
+            assistant_id="assistant_id",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
+            additional_instructions="additional_instructions",
             additional_messages=[
                 {
                     "content": "string",
@@ -199,7 +200,8 @@ class TestRuns:
             "string",
             assistant_id="string",
             stream=True,
-            additional_instructions="string",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
+            additional_instructions="additional_instructions",
             additional_messages=[
                 {
                     "content": "string",
@@ -699,9 +701,10 @@ class TestAsyncRuns:
     @parametrize
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         run = await async_client.beta.threads.runs.create(
-            "string",
-            assistant_id="string",
-            additional_instructions="string",
+            thread_id="thread_id",
+            assistant_id="assistant_id",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
+            additional_instructions="additional_instructions",
             additional_messages=[
                 {
                     "content": "string",
@@ -865,7 +868,8 @@ class TestAsyncRuns:
             "string",
             assistant_id="string",
             stream=True,
-            additional_instructions="string",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
+            additional_instructions="additional_instructions",
             additional_messages=[
                 {
                     "content": "string",
