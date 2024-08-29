@@ -28,6 +28,16 @@ class TestSteps:
         assert_matches_type(RunStep, step, path=["response"])
 
     @parametrize
+    def test_method_retrieve_with_all_params(self, client: OpenAI) -> None:
+        step = client.beta.threads.runs.steps.retrieve(
+            step_id="step_id",
+            thread_id="thread_id",
+            run_id="run_id",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
+        )
+        assert_matches_type(RunStep, step, path=["response"])
+
+    @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.beta.threads.runs.steps.with_raw_response.retrieve(
             step_id="step_id",
@@ -93,6 +103,7 @@ class TestSteps:
             thread_id="thread_id",
             after="after",
             before="before",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
             limit=0,
             order="asc",
         )
@@ -148,6 +159,16 @@ class TestAsyncSteps:
             step_id="step_id",
             thread_id="thread_id",
             run_id="run_id",
+        )
+        assert_matches_type(RunStep, step, path=["response"])
+
+    @parametrize
+    async def test_method_retrieve_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        step = await async_client.beta.threads.runs.steps.retrieve(
+            step_id="step_id",
+            thread_id="thread_id",
+            run_id="run_id",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
         )
         assert_matches_type(RunStep, step, path=["response"])
 
@@ -217,6 +238,7 @@ class TestAsyncSteps:
             thread_id="thread_id",
             after="after",
             before="before",
+            include=["step_details.tool_calls[*].file_search.results[*].content"],
             limit=0,
             order="asc",
         )

@@ -6,9 +6,11 @@ from .run_step import RunStep as RunStep
 from .tool_call import ToolCall as ToolCall
 from .run_step_delta import RunStepDelta as RunStepDelta
 from .tool_call_delta import ToolCallDelta as ToolCallDelta
+from .run_step_include import RunStepInclude as RunStepInclude
 from .step_list_params import StepListParams as StepListParams
 from .function_tool_call import FunctionToolCall as FunctionToolCall
 from .run_step_delta_event import RunStepDeltaEvent as RunStepDeltaEvent
+from .step_retrieve_params import StepRetrieveParams as StepRetrieveParams
 from .code_interpreter_logs import CodeInterpreterLogs as CodeInterpreterLogs
 from .file_search_tool_call import FileSearchToolCall as FileSearchToolCall
 from .tool_call_delta_object import ToolCallDeltaObject as ToolCallDeltaObject
