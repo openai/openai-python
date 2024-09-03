@@ -170,7 +170,6 @@ def _main() -> None:
         argcomplete.autocomplete(parser)
     except ImportError:
         pass
-
     parsed, args, unknown = _parse_args(parser)
 
     if args.verbosity != 0:
