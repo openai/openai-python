@@ -5,7 +5,7 @@ from __future__ import annotations
 import sys
 import logging
 import argparse
-import argcomplete
+
 from typing import Any, List, Type, Optional
 from typing_extensions import ClassVar
 
@@ -23,6 +23,7 @@ from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V2, ConfigDict, model_parse
 from .._models import BaseModel
 from .._exceptions import APIError
+from .._extras import argcomplete as argcomplete, has_argcomplete
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -165,7 +166,8 @@ def _parse_args(parser: argparse.ArgumentParser) -> tuple[argparse.Namespace, Ar
 
 def _main() -> None:
     parser = _build_parser()
-    argcomplete.autocomplete(parser)
+    if has_argcomplete():
+        argcomplete.autocomplete(parser)
     parsed, args, unknown = _parse_args(parser)
 
     if args.verbosity != 0:
