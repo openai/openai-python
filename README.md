@@ -630,7 +630,7 @@ An example of using the client with Microsoft Entra ID (formerly known as Azure 
 ## Activating CLI Autocomplete
 Use the following commands to activate CLI autocompletion for each shell.
 
-Install openai with `[cli]` option to install argcomplete.
+Install `openai` with `[cli]` option to install argcomplete.
 ```shell
 pip install openai[cli]
 ```
