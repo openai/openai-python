@@ -15,7 +15,6 @@ dependencies = [
     "distro>=1.7.0, <2",
     "sniffio",
     "cached-property; python_version < '3.8'",
-
 ]
 requires-python = ">= 3.7.1"
 classifiers = [
@@ -35,8 +34,6 @@ classifiers = [
   "Topic :: Software Development :: Libraries :: Python Modules",
   "License :: OSI Approved :: Apache Software License"
 ]
-
-
 
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
@@ -59,7 +56,6 @@ dev-dependencies = [
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
     "rich>=13.7.1",
-
 ]
 
 [tool.rye.scripts]
