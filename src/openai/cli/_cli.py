@@ -5,7 +5,6 @@ from __future__ import annotations
 import sys
 import logging
 import argparse
-
 from typing import Any, List, Type, Optional
 from typing_extensions import ClassVar
 
