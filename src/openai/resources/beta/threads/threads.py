@@ -100,7 +100,7 @@ class Threads(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           tool_resources: A set of resources that are made available to the assistant's tools in this
@@ -186,7 +186,7 @@ class Threads(SyncAPIResource):
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           tool_resources: A set of resources that are made available to the assistant's tools in this
@@ -306,7 +306,7 @@ class Threads(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -372,7 +372,7 @@ class Threads(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -440,7 +440,7 @@ class Threads(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -502,7 +502,7 @@ class Threads(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -570,7 +570,7 @@ class Threads(SyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -632,7 +632,7 @@ class Threads(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -923,7 +923,7 @@ class AsyncThreads(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           tool_resources: A set of resources that are made available to the assistant's tools in this
@@ -1009,7 +1009,7 @@ class AsyncThreads(AsyncAPIResource):
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           tool_resources: A set of resources that are made available to the assistant's tools in this
@@ -1129,7 +1129,7 @@ class AsyncThreads(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -1195,7 +1195,7 @@ class AsyncThreads(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1263,7 +1263,7 @@ class AsyncThreads(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -1325,7 +1325,7 @@ class AsyncThreads(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1393,7 +1393,7 @@ class AsyncThreads(AsyncAPIResource):
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maxium of 512
+              can be a maximum of 64 characters long and values can be a maximum of 512
               characters long.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
@@ -1455,7 +1455,7 @@ class AsyncThreads(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 

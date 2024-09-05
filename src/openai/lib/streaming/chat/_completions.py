@@ -349,9 +349,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                 "dict[object, object]",
                                 model_dump(
                                     choice_snapshot.message,
-                                    # we don't want to serialise / deserialise our custom properties
+                                    # we don't want to serialize / deserialize our custom properties
                                     # as they won't appear in the delta and we don't want to have to
-                                    # continuosly reparse the content
+                                    # continuously reparse the content
                                     exclude={
                                         "parsed": True,
                                         "tool_calls": {

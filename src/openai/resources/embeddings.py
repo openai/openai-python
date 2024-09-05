@@ -102,7 +102,7 @@ class Embeddings(SyncAPIResource):
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
                 if not isinstance(data, str):
-                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
+                    # numpy is not installed / base64 optimization isn't enabled for this model yet
                     continue
 
                 embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
@@ -203,7 +203,7 @@ class AsyncEmbeddings(AsyncAPIResource):
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
                 if not isinstance(data, str):
-                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
+                    # numpy is not installed / base64 optimization isn't enabled for this model yet
                     continue
 
                 embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
