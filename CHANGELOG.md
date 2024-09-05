@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.43.1 (2024-09-05)
+
+Full Changelog: [v1.43.0...v1.43.1](https://github.com/openai/openai-python/compare/v1.43.0...v1.43.1)
+
+### Chores
+
+* pyproject.toml formatting changes ([#1687](https://github.com/openai/openai-python/issues/1687)) ([3387ede](https://github.com/openai/openai-python/commit/3387ede0b896788bf1197378b01941c75bd6e179))
+
 ## 1.43.0 (2024-08-29)
 
 Full Changelog: [v1.42.0...v1.43.0](https://github.com/openai/openai-python/compare/v1.42.0...v1.43.0)
