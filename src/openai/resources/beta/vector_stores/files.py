@@ -16,8 +16,10 @@ from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
+from ....types.beta import FileChunkingStrategyParam
 from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_stores import file_list_params, file_create_params
+from ....types.beta.file_chunking_strategy_param import FileChunkingStrategyParam
 from ....types.beta.vector_stores.vector_store_file import VectorStoreFile
 from ....types.beta.vector_stores.vector_store_file_deleted import VectorStoreFileDeleted
 
@@ -38,7 +40,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -57,7 +59,7 @@ class Files(SyncAPIResource):
               files.
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
-              strategy.
+              strategy. Only applicable if `file_ids` is non-empty.
 
           extra_headers: Send extra headers
 
@@ -249,7 +251,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -268,7 +270,7 @@ class AsyncFiles(AsyncAPIResource):
               files.
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
-              strategy.
+              strategy. Only applicable if `file_ids` is non-empty.
 
           extra_headers: Send extra headers
 

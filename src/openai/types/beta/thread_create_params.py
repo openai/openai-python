@@ -6,6 +6,7 @@ from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .code_interpreter_tool_param import CodeInterpreterToolParam
+from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .threads.message_content_part_param import MessageContentPartParam
 
 __all__ = [
@@ -18,10 +19,6 @@ __all__ = [
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
     "ToolResourcesFileSearchVectorStore",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategy",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
 ]
 
 
@@ -99,43 +96,12 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
-class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
-    type: Required[Literal["auto"]]
-    """Always `auto`."""
-
-
-class ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
-    chunk_overlap_tokens: Required[int]
-    """The number of tokens that overlap between chunks. The default value is `400`.
-
-    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
-    """
-
-    max_chunk_size_tokens: Required[int]
-    """The maximum number of tokens in each chunk.
-
-    The default value is `800`. The minimum value is `100` and the maximum value is
-    `4096`.
-    """
-
-
-class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
-    static: Required[ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
-
-    type: Required[Literal["static"]]
-    """Always `static`."""
-
-
-ToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
-    ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
-]
-
-
 class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
-    chunking_strategy: ToolResourcesFileSearchVectorStoreChunkingStrategy
+    chunking_strategy: FileChunkingStrategyParam
     """The chunking strategy used to chunk the file(s).
 
-    If not set, will use the `auto` strategy.
+    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
+    non-empty.
     """
 
     file_ids: List[str]
