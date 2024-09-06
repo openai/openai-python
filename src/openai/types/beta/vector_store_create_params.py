@@ -2,21 +2,16 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing import List, Optional
+from typing_extensions import Literal, Required, TypedDict
 
-__all__ = [
-    "VectorStoreCreateParams",
-    "ChunkingStrategy",
-    "ChunkingStrategyAuto",
-    "ChunkingStrategyStatic",
-    "ChunkingStrategyStaticStatic",
-    "ExpiresAfter",
-]
+from .file_chunking_strategy_param import FileChunkingStrategyParam
+
+__all__ = ["VectorStoreCreateParams", "ExpiresAfter"]
 
 
 class VectorStoreCreateParams(TypedDict, total=False):
-    chunking_strategy: ChunkingStrategy
+    chunking_strategy: FileChunkingStrategyParam
     """The chunking strategy used to chunk the file(s).
 
     If not set, will use the `auto` strategy. Only applicable if `file_ids` is
@@ -43,36 +38,6 @@ class VectorStoreCreateParams(TypedDict, total=False):
 
     name: str
     """The name of the vector store."""
-
-
-class ChunkingStrategyAuto(TypedDict, total=False):
-    type: Required[Literal["auto"]]
-    """Always `auto`."""
-
-
-class ChunkingStrategyStaticStatic(TypedDict, total=False):
-    chunk_overlap_tokens: Required[int]
-    """The number of tokens that overlap between chunks. The default value is `400`.
-
-    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
-    """
-
-    max_chunk_size_tokens: Required[int]
-    """The maximum number of tokens in each chunk.
-
-    The default value is `800`. The minimum value is `100` and the maximum value is
-    `4096`.
-    """
-
-
-class ChunkingStrategyStatic(TypedDict, total=False):
-    static: Required[ChunkingStrategyStaticStatic]
-
-    type: Required[Literal["static"]]
-    """Always `static`."""
-
-
-ChunkingStrategy: TypeAlias = Union[ChunkingStrategyAuto, ChunkingStrategyStatic]
 
 
 class ExpiresAfter(TypedDict, total=False):

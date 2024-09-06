@@ -2,16 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Union
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing_extensions import Required, TypedDict
 
-__all__ = [
-    "FileCreateParams",
-    "ChunkingStrategy",
-    "ChunkingStrategyAutoChunkingStrategyRequestParam",
-    "ChunkingStrategyStaticChunkingStrategyRequestParam",
-    "ChunkingStrategyStaticChunkingStrategyRequestParamStatic",
-]
+from ..file_chunking_strategy_param import FileChunkingStrategyParam
+
+__all__ = ["FileCreateParams"]
 
 
 class FileCreateParams(TypedDict, total=False):
@@ -22,40 +17,9 @@ class FileCreateParams(TypedDict, total=False):
     files.
     """
 
-    chunking_strategy: ChunkingStrategy
+    chunking_strategy: FileChunkingStrategyParam
     """The chunking strategy used to chunk the file(s).
 
-    If not set, will use the `auto` strategy.
+    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
+    non-empty.
     """
-
-
-class ChunkingStrategyAutoChunkingStrategyRequestParam(TypedDict, total=False):
-    type: Required[Literal["auto"]]
-    """Always `auto`."""
-
-
-class ChunkingStrategyStaticChunkingStrategyRequestParamStatic(TypedDict, total=False):
-    chunk_overlap_tokens: Required[int]
-    """The number of tokens that overlap between chunks. The default value is `400`.
-
-    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
-    """
-
-    max_chunk_size_tokens: Required[int]
-    """The maximum number of tokens in each chunk.
-
-    The default value is `800`. The minimum value is `100` and the maximum value is
-    `4096`.
-    """
-
-
-class ChunkingStrategyStaticChunkingStrategyRequestParam(TypedDict, total=False):
-    static: Required[ChunkingStrategyStaticChunkingStrategyRequestParamStatic]
-
-    type: Required[Literal["static"]]
-    """Always `static`."""
-
-
-ChunkingStrategy: TypeAlias = Union[
-    ChunkingStrategyAutoChunkingStrategyRequestParam, ChunkingStrategyStaticChunkingStrategyRequestParam
-]

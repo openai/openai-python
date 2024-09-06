@@ -22,11 +22,10 @@ from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ....types.beta import FileChunkingStrategyParam
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_stores import file_batch_create_params, file_batch_list_files_params
+from ....types.beta.file_chunking_strategy_param import FileChunkingStrategyParam
 from ....types.beta.vector_stores.vector_store_file import VectorStoreFile
 from ....types.beta.vector_stores.vector_store_file_batch import VectorStoreFileBatch
 
@@ -47,7 +46,7 @@ class FileBatches(SyncAPIResource):
         vector_store_id: str,
         *,
         file_ids: List[str],
-        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -64,7 +63,7 @@ class FileBatches(SyncAPIResource):
               files.
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
-              strategy.
+              strategy. Only applicable if `file_ids` is non-empty.
 
           extra_headers: Send extra headers
 
@@ -174,7 +173,7 @@ class FileBatches(SyncAPIResource):
         *,
         file_ids: List[str],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = self.create(
@@ -308,7 +307,7 @@ class FileBatches(SyncAPIResource):
         max_concurrency: int = 5,
         file_ids: List[str] = [],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
 
@@ -365,7 +364,7 @@ class AsyncFileBatches(AsyncAPIResource):
         vector_store_id: str,
         *,
         file_ids: List[str],
-        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -382,7 +381,7 @@ class AsyncFileBatches(AsyncAPIResource):
               files.
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
-              strategy.
+              strategy. Only applicable if `file_ids` is non-empty.
 
           extra_headers: Send extra headers
 
@@ -492,7 +491,7 @@ class AsyncFileBatches(AsyncAPIResource):
         *,
         file_ids: List[str],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = await self.create(
@@ -626,7 +625,7 @@ class AsyncFileBatches(AsyncAPIResource):
         max_concurrency: int = 5,
         file_ids: List[str] = [],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_batch_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
 

@@ -18,11 +18,10 @@ from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ....types.beta import FileChunkingStrategyParam
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_stores import file_list_params, file_create_params
+from ....types.beta.file_chunking_strategy_param import FileChunkingStrategyParam
 from ....types.beta.vector_stores.vector_store_file import VectorStoreFile
 from ....types.beta.vector_stores.vector_store_file_deleted import VectorStoreFileDeleted
 
@@ -43,7 +42,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -62,7 +61,7 @@ class Files(SyncAPIResource):
               files.
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
-              strategy.
+              strategy. Only applicable if `file_ids` is non-empty.
 
           extra_headers: Send extra headers
 
@@ -245,7 +244,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         self.create(vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy)
@@ -302,7 +301,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Upload a file to the `files` API and then attach it to the given vector store.
 
@@ -318,7 +317,7 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         file: FileTypes,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
         file_obj = self._client.files.create(file=file, purpose="assistants")
@@ -344,7 +343,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -363,7 +362,7 @@ class AsyncFiles(AsyncAPIResource):
               files.
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
-              strategy.
+              strategy. Only applicable if `file_ids` is non-empty.
 
           extra_headers: Send extra headers
 
@@ -546,7 +545,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         await self.create(vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy)
@@ -603,7 +602,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Upload a file to the `files` API and then attach it to the given vector store.
 
@@ -621,7 +620,7 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         file: FileTypes,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: file_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
         file_obj = await self._client.files.create(file=file, purpose="assistants")
