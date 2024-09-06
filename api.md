@@ -222,7 +222,17 @@ Methods:
 Types:
 
 ```python
-from openai.types.beta import VectorStore, VectorStoreDeleted
+from openai.types.beta import (
+    AutoFileChunkingStrategyParam,
+    FileChunkingStrategy,
+    FileChunkingStrategyParam,
+    OtherFileChunkingStrategyObject,
+    StaticFileChunkingStrategy,
+    StaticFileChunkingStrategyObject,
+    StaticFileChunkingStrategyParam,
+    VectorStore,
+    VectorStoreDeleted,
+)
 ```
 
 Methods:

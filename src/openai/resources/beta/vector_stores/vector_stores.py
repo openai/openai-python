@@ -33,13 +33,16 @@ from .file_batches import (
     AsyncFileBatchesWithStreamingResponse,
 )
 from ....pagination import SyncCursorPage, AsyncCursorPage
-from ....types.beta import vector_store_list_params, vector_store_create_params, vector_store_update_params
-from ...._base_client import (
-    AsyncPaginator,
-    make_request_options,
+from ....types.beta import (
+    FileChunkingStrategyParam,
+    vector_store_list_params,
+    vector_store_create_params,
+    vector_store_update_params,
 )
+from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_store import VectorStore
 from ....types.beta.vector_store_deleted import VectorStoreDeleted
+from ....types.beta.file_chunking_strategy_param import FileChunkingStrategyParam
 
 __all__ = ["VectorStores", "AsyncVectorStores"]
 
@@ -64,7 +67,7 @@ class VectorStores(SyncAPIResource):
     def create(
         self,
         *,
-        chunking_strategy: vector_store_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,
@@ -331,7 +334,7 @@ class AsyncVectorStores(AsyncAPIResource):
     async def create(
         self,
         *,
-        chunking_strategy: vector_store_create_params.ChunkingStrategy | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[object] | NotGiven = NOT_GIVEN,

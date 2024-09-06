@@ -1,19 +1,12 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Union, Optional
-from typing_extensions import Literal, Annotated, TypeAlias
+from typing import Optional
+from typing_extensions import Literal
 
-from ...._utils import PropertyInfo
 from ...._models import BaseModel
+from ..file_chunking_strategy import FileChunkingStrategy
 
-__all__ = [
-    "VectorStoreFile",
-    "LastError",
-    "ChunkingStrategy",
-    "ChunkingStrategyStatic",
-    "ChunkingStrategyStaticStatic",
-    "ChunkingStrategyOther",
-]
+__all__ = ["VectorStoreFile", "LastError"]
 
 
 class LastError(BaseModel):
@@ -22,38 +15,6 @@ class LastError(BaseModel):
 
     message: str
     """A human-readable description of the error."""
-
-
-class ChunkingStrategyStaticStatic(BaseModel):
-    chunk_overlap_tokens: int
-    """The number of tokens that overlap between chunks. The default value is `400`.
-
-    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
-    """
-
-    max_chunk_size_tokens: int
-    """The maximum number of tokens in each chunk.
-
-    The default value is `800`. The minimum value is `100` and the maximum value is
-    `4096`.
-    """
-
-
-class ChunkingStrategyStatic(BaseModel):
-    static: ChunkingStrategyStaticStatic
-
-    type: Literal["static"]
-    """Always `static`."""
-
-
-class ChunkingStrategyOther(BaseModel):
-    type: Literal["other"]
-    """Always `other`."""
-
-
-ChunkingStrategy: TypeAlias = Annotated[
-    Union[ChunkingStrategyStatic, ChunkingStrategyOther], PropertyInfo(discriminator="type")
-]
 
 
 class VectorStoreFile(BaseModel):
@@ -93,5 +54,5 @@ class VectorStoreFile(BaseModel):
     attached to.
     """
 
-    chunking_strategy: Optional[ChunkingStrategy] = None
+    chunking_strategy: Optional[FileChunkingStrategy] = None
     """The strategy used to chunk the file."""
