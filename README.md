@@ -567,7 +567,7 @@ from openai import OpenAI, DefaultHttpxClient
 
 client = OpenAI(
     # Or use the `OPENAI_BASE_URL` env var
-    base_url="http://my.test.server.example.com:8083",
+    base_url="http://my.test.server.example.com:8083/v1",
     http_client=DefaultHttpxClient(
         proxies="http://my.test.proxy.example.com",
         transport=httpx.HTTPTransport(local_address="0.0.0.0"),
