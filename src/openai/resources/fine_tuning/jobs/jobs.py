@@ -43,10 +43,21 @@ class Jobs(SyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> JobsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return JobsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> JobsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return JobsWithStreamingResponse(self)
 
     def create(
@@ -323,10 +334,21 @@ class AsyncJobs(AsyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> AsyncJobsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncJobsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncJobsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncJobsWithStreamingResponse(self)
 
     async def create(

@@ -24,10 +24,21 @@ class FineTuning(SyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> FineTuningWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return FineTuningWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> FineTuningWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return FineTuningWithStreamingResponse(self)
 
 
@@ -38,10 +49,21 @@ class AsyncFineTuning(AsyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> AsyncFineTuningWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncFineTuningWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncFineTuningWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncFineTuningWithStreamingResponse(self)
 
 

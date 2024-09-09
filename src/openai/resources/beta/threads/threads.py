@@ -72,10 +72,21 @@ class Threads(SyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> ThreadsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return ThreadsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> ThreadsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return ThreadsWithStreamingResponse(self)
 
     def create(
@@ -895,10 +906,21 @@ class AsyncThreads(AsyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> AsyncThreadsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncThreadsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncThreadsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncThreadsWithStreamingResponse(self)
 
     async def create(
