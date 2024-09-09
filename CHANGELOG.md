@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.44.1 (2024-09-09)
+
+Full Changelog: [v1.44.0...v1.44.1](https://github.com/openai/openai-python/compare/v1.44.0...v1.44.1)
+
+### Chores
+
+* add docstrings to raw response properties ([#1696](https://github.com/openai/openai-python/issues/1696)) ([1d2a19b](https://github.com/openai/openai-python/commit/1d2a19b0e8acab54c35ef2171d33321943488fdc))
+
+
+### Documentation
+
+* **readme:** add section on determining installed version ([#1697](https://github.com/openai/openai-python/issues/1697)) ([0255735](https://github.com/openai/openai-python/commit/0255735930d9c657c78e85e7f03fd1eb98a1e378))
+* **readme:** improve custom `base_url` example ([#1694](https://github.com/openai/openai-python/issues/1694)) ([05eec8a](https://github.com/openai/openai-python/commit/05eec8a0b7fcdc8651021f2e685214a353b861d1))
+
 ## 1.44.0 (2024-09-06)
 
 Full Changelog: [v1.43.1...v1.44.0](https://github.com/openai/openai-python/compare/v1.43.1...v1.44.0)
