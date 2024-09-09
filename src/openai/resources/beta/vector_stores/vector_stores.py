@@ -58,10 +58,21 @@ class VectorStores(SyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> VectorStoresWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return VectorStoresWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> VectorStoresWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return VectorStoresWithStreamingResponse(self)
 
     def create(
@@ -325,10 +336,21 @@ class AsyncVectorStores(AsyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> AsyncVectorStoresWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncVectorStoresWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncVectorStoresWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncVectorStoresWithStreamingResponse(self)
 
     async def create(
