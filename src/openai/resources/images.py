@@ -29,10 +29,21 @@ __all__ = ["Images", "AsyncImages"]
 class Images(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> ImagesWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return ImagesWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> ImagesWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return ImagesWithStreamingResponse(self)
 
     def create_variation(
@@ -275,10 +286,21 @@ class Images(SyncAPIResource):
 class AsyncImages(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncImagesWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncImagesWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncImagesWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncImagesWithStreamingResponse(self)
 
     async def create_variation(
