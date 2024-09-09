@@ -28,10 +28,21 @@ __all__ = ["Translations", "AsyncTranslations"]
 class Translations(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> TranslationsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return TranslationsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> TranslationsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return TranslationsWithStreamingResponse(self)
 
     def create(
@@ -109,10 +120,21 @@ class Translations(SyncAPIResource):
 class AsyncTranslations(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncTranslationsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncTranslationsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncTranslationsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncTranslationsWithStreamingResponse(self)
 
     async def create(

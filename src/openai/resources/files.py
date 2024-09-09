@@ -42,10 +42,21 @@ __all__ = ["Files", "AsyncFiles"]
 class Files(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return FilesWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> FilesWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return FilesWithStreamingResponse(self)
 
     def create(
@@ -324,10 +335,21 @@ class Files(SyncAPIResource):
 class AsyncFiles(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncFilesWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncFilesWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncFilesWithStreamingResponse(self)
 
     async def create(

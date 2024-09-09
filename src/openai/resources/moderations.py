@@ -26,10 +26,21 @@ __all__ = ["Moderations", "AsyncModerations"]
 class Moderations(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> ModerationsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return ModerationsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> ModerationsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return ModerationsWithStreamingResponse(self)
 
     def create(
@@ -86,10 +97,21 @@ class Moderations(SyncAPIResource):
 class AsyncModerations(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncModerationsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncModerationsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncModerationsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncModerationsWithStreamingResponse(self)
 
     async def create(
