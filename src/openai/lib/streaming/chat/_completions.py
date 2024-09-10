@@ -394,7 +394,9 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
                 if has_parseable_input(response_format=self._response_format, input_tools=self._input_tools):
                     if choice.finish_reason == "length":
-                        raise LengthFinishReasonError()
+                        # at the time of writing, `.usage` will always be `None` but
+                        # we include it here in case that is changed in the future
+                        raise LengthFinishReasonError(completion=completion_snapshot)
 
                     if choice.finish_reason == "content_filter":
                         raise ContentFilterFinishReasonError()
