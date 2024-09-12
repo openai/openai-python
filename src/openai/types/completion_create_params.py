@@ -160,7 +160,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
 
-class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):
+class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase, total=False):
     stream: Optional[Literal[False]]
     """Whether to stream back partial progress.
 

@@ -332,7 +332,7 @@ class TruncationStrategy(TypedDict, total=False):
     """
 
 
-class ThreadCreateAndRunParamsNonStreaming(ThreadCreateAndRunParamsBase):
+class ThreadCreateAndRunParamsNonStreaming(ThreadCreateAndRunParamsBase, total=False):
     stream: Optional[Literal[False]]
     """
     If `true`, returns a stream of events that happen during the Run as server-sent

@@ -262,7 +262,7 @@ class Function(TypedDict, total=False):
 ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONObject, ResponseFormatJSONSchema]
 
 
-class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):
+class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase, total=False):
     stream: Optional[Literal[False]]
     """If set, partial message deltas will be sent, like in ChatGPT.
 
