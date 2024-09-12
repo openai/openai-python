@@ -87,15 +87,22 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     `content` of `message`.
     """
 
+    max_completion_tokens: Optional[int]
+    """
+    An upper bound for the number of tokens that can be generated for a completion,
+    including visible output tokens and
+    [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    """
+
     max_tokens: Optional[int]
     """
     The maximum number of [tokens](/tokenizer) that can be generated in the chat
-    completion.
+    completion. This value can be used to control
+    [costs](https://openai.com/api/pricing/) for text generated via API.
 
-    The total length of input tokens and generated tokens is limited by the model's
-    context length.
-    [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-    for counting tokens.
+    This value is now deprecated in favor of `max_completion_tokens`, and is not
+    compatible with
+    [o1 series models](https://platform.openai.com/docs/guides/reasoning).
     """
 
     n: Optional[int]
@@ -130,11 +137,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-    Outputs which guarantees the model will match your supplied JSON schema. Learn
-    more in the
+    Outputs which ensures the model will match your supplied JSON schema. Learn more
+    in the
     [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-    Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+    Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
     message the model generates is valid JSON.
 
     **Important:** when using JSON mode, you **must** also instruct the model to
@@ -160,8 +167,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     This parameter is relevant for customers subscribed to the scale tier service:
 
-    - If set to 'auto', the system will utilize scale tier credits until they are
-      exhausted.
+    - If set to 'auto', and the Project is Scale tier enabled, the system will
+      utilize scale tier credits until they are exhausted.
+    - If set to 'auto', and the Project is not Scale tier enabled, the request will
+      be processed using the default service tier with a lower uptime SLA and no
+      latency guarentee.
     - If set to 'default', the request will be processed using the default service
       tier with a lower uptime SLA and no latency guarentee.
     - When not set, the default behavior is 'auto'.
@@ -262,7 +272,7 @@ class Function(TypedDict, total=False):
 ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONObject, ResponseFormatJSONSchema]
 
 
-class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):
+class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase, total=False):
     stream: Optional[Literal[False]]
     """If set, partial message deltas will be sent, like in ChatGPT.
 

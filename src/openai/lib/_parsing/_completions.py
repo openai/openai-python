@@ -69,7 +69,7 @@ def parse_chat_completion(
     choices: list[ParsedChoice[ResponseFormatT]] = []
     for choice in chat_completion.choices:
         if choice.finish_reason == "length":
-            raise LengthFinishReasonError()
+            raise LengthFinishReasonError(completion=chat_completion)
 
         if choice.finish_reason == "content_filter":
             raise ContentFilterFinishReasonError()

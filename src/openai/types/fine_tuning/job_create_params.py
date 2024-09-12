@@ -50,7 +50,7 @@ class JobCreateParams(TypedDict, total=False):
 
     suffix: Optional[str]
     """
-    A string of up to 18 characters that will be added to your fine-tuned model
+    A string of up to 64 characters that will be added to your fine-tuned model
     name.
 
     For example, a `suffix` of "custom-model-name" would produce a model name like
