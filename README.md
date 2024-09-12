@@ -51,6 +51,48 @@ we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `OPENAI_API_KEY="My API Key"` to your `.env` file
 so that your API Key is not stored in source control.
 
+### Vision
+
+With a hosted image:
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"{img_url}"},
+                },
+            ],
+        }
+    ],
+)
+```
+
+With the image as a base64 encoded string:
+
+```python
+response = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[
+        {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{img_type};base64,{img_b64_str}"},
+                },
+            ],
+        }
+    ],
+)
+```
+
 ### Polling Helpers
 
 When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete. The SDK includes
