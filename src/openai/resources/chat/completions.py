@@ -62,6 +62,7 @@ class Completions(SyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -130,13 +131,17 @@ class Completions(SyncAPIResource):
               returns the log probabilities of each output token returned in the `content` of
               `message`.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion.
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
+              including visible output tokens and
+              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
 
-              The total length of input tokens and generated tokens is limited by the model's
-              context length.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion. This value can be used to control
+              [costs](https://openai.com/api/pricing/) for text generated via API.
+
+              This value is now deprecated in favor of `max_completion_tokens`, and is not
+              compatible with
+              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -159,11 +164,11 @@ class Completions(SyncAPIResource):
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-              Outputs which guarantees the model will match your supplied JSON schema. Learn
-              more in the
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
 
               **Important:** when using JSON mode, you **must** also instruct the model to
@@ -183,8 +188,11 @@ class Completions(SyncAPIResource):
           service_tier: Specifies the latency tier to use for processing the request. This parameter is
               relevant for customers subscribed to the scale tier service:
 
-              - If set to 'auto', the system will utilize scale tier credits until they are
-                exhausted.
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
@@ -259,6 +267,7 @@ class Completions(SyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -333,13 +342,17 @@ class Completions(SyncAPIResource):
               returns the log probabilities of each output token returned in the `content` of
               `message`.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion.
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
+              including visible output tokens and
+              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
 
-              The total length of input tokens and generated tokens is limited by the model's
-              context length.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion. This value can be used to control
+              [costs](https://openai.com/api/pricing/) for text generated via API.
+
+              This value is now deprecated in favor of `max_completion_tokens`, and is not
+              compatible with
+              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -362,11 +375,11 @@ class Completions(SyncAPIResource):
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-              Outputs which guarantees the model will match your supplied JSON schema. Learn
-              more in the
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
 
               **Important:** when using JSON mode, you **must** also instruct the model to
@@ -386,8 +399,11 @@ class Completions(SyncAPIResource):
           service_tier: Specifies the latency tier to use for processing the request. This parameter is
               relevant for customers subscribed to the scale tier service:
 
-              - If set to 'auto', the system will utilize scale tier credits until they are
-                exhausted.
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
@@ -455,6 +471,7 @@ class Completions(SyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -529,13 +546,17 @@ class Completions(SyncAPIResource):
               returns the log probabilities of each output token returned in the `content` of
               `message`.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion.
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
+              including visible output tokens and
+              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
 
-              The total length of input tokens and generated tokens is limited by the model's
-              context length.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion. This value can be used to control
+              [costs](https://openai.com/api/pricing/) for text generated via API.
+
+              This value is now deprecated in favor of `max_completion_tokens`, and is not
+              compatible with
+              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -558,11 +579,11 @@ class Completions(SyncAPIResource):
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-              Outputs which guarantees the model will match your supplied JSON schema. Learn
-              more in the
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
 
               **Important:** when using JSON mode, you **must** also instruct the model to
@@ -582,8 +603,11 @@ class Completions(SyncAPIResource):
           service_tier: Specifies the latency tier to use for processing the request. This parameter is
               relevant for customers subscribed to the scale tier service:
 
-              - If set to 'auto', the system will utilize scale tier credits until they are
-                exhausted.
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
@@ -650,6 +674,7 @@ class Completions(SyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -684,6 +709,7 @@ class Completions(SyncAPIResource):
                     "functions": functions,
                     "logit_bias": logit_bias,
                     "logprobs": logprobs,
+                    "max_completion_tokens": max_completion_tokens,
                     "max_tokens": max_tokens,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
@@ -743,6 +769,7 @@ class AsyncCompletions(AsyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -811,13 +838,17 @@ class AsyncCompletions(AsyncAPIResource):
               returns the log probabilities of each output token returned in the `content` of
               `message`.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion.
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
+              including visible output tokens and
+              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
 
-              The total length of input tokens and generated tokens is limited by the model's
-              context length.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion. This value can be used to control
+              [costs](https://openai.com/api/pricing/) for text generated via API.
+
+              This value is now deprecated in favor of `max_completion_tokens`, and is not
+              compatible with
+              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -840,11 +871,11 @@ class AsyncCompletions(AsyncAPIResource):
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-              Outputs which guarantees the model will match your supplied JSON schema. Learn
-              more in the
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
 
               **Important:** when using JSON mode, you **must** also instruct the model to
@@ -864,8 +895,11 @@ class AsyncCompletions(AsyncAPIResource):
           service_tier: Specifies the latency tier to use for processing the request. This parameter is
               relevant for customers subscribed to the scale tier service:
 
-              - If set to 'auto', the system will utilize scale tier credits until they are
-                exhausted.
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
@@ -940,6 +974,7 @@ class AsyncCompletions(AsyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -1014,13 +1049,17 @@ class AsyncCompletions(AsyncAPIResource):
               returns the log probabilities of each output token returned in the `content` of
               `message`.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion.
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
+              including visible output tokens and
+              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
 
-              The total length of input tokens and generated tokens is limited by the model's
-              context length.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion. This value can be used to control
+              [costs](https://openai.com/api/pricing/) for text generated via API.
+
+              This value is now deprecated in favor of `max_completion_tokens`, and is not
+              compatible with
+              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1043,11 +1082,11 @@ class AsyncCompletions(AsyncAPIResource):
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-              Outputs which guarantees the model will match your supplied JSON schema. Learn
-              more in the
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
 
               **Important:** when using JSON mode, you **must** also instruct the model to
@@ -1067,8 +1106,11 @@ class AsyncCompletions(AsyncAPIResource):
           service_tier: Specifies the latency tier to use for processing the request. This parameter is
               relevant for customers subscribed to the scale tier service:
 
-              - If set to 'auto', the system will utilize scale tier credits until they are
-                exhausted.
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
@@ -1136,6 +1178,7 @@ class AsyncCompletions(AsyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -1210,13 +1253,17 @@ class AsyncCompletions(AsyncAPIResource):
               returns the log probabilities of each output token returned in the `content` of
               `message`.
 
-          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
-              completion.
+          max_completion_tokens: An upper bound for the number of tokens that can be generated for a completion,
+              including visible output tokens and
+              [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
 
-              The total length of input tokens and generated tokens is limited by the model's
-              context length.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+          max_tokens: The maximum number of [tokens](/tokenizer) that can be generated in the chat
+              completion. This value can be used to control
+              [costs](https://openai.com/api/pricing/) for text generated via API.
+
+              This value is now deprecated in favor of `max_completion_tokens`, and is not
+              compatible with
+              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1239,11 +1286,11 @@ class AsyncCompletions(AsyncAPIResource):
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
-              Outputs which guarantees the model will match your supplied JSON schema. Learn
-              more in the
+              Outputs which ensures the model will match your supplied JSON schema. Learn more
+              in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which guarantees the
+              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
               message the model generates is valid JSON.
 
               **Important:** when using JSON mode, you **must** also instruct the model to
@@ -1263,8 +1310,11 @@ class AsyncCompletions(AsyncAPIResource):
           service_tier: Specifies the latency tier to use for processing the request. This parameter is
               relevant for customers subscribed to the scale tier service:
 
-              - If set to 'auto', the system will utilize scale tier credits until they are
-                exhausted.
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
@@ -1331,6 +1381,7 @@ class AsyncCompletions(AsyncAPIResource):
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
         logit_bias: Optional[Dict[str, int]] | NotGiven = NOT_GIVEN,
         logprobs: Optional[bool] | NotGiven = NOT_GIVEN,
+        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
@@ -1365,6 +1416,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "functions": functions,
                     "logit_bias": logit_bias,
                     "logprobs": logprobs,
+                    "max_completion_tokens": max_completion_tokens,
                     "max_tokens": max_tokens,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
