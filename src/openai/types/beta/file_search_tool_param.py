@@ -8,16 +8,16 @@ __all__ = ["FileSearchToolParam", "FileSearch", "FileSearchRankingOptions"]
 
 
 class FileSearchRankingOptions(TypedDict, total=False):
+    score_threshold: Required[float]
+    """The score threshold for the file search.
+
+    All values must be a floating point number between 0 and 1.
+    """
+
     ranker: Literal["auto", "default_2024_08_21"]
     """The ranker to use for the file search.
 
     If not specified will use the `auto` ranker.
-    """
-
-    score_threshold: float
-    """The score threshold for the file search.
-
-    All values must be a floating point number between 0 and 1.
     """
 
 
@@ -36,6 +36,9 @@ class FileSearch(TypedDict, total=False):
 
     ranking_options: FileSearchRankingOptions
     """The ranking options for the file search.
+
+    If not specified, the file search tool will use the `auto` ranker and a
+    score_threshold of 0.
 
     See the
     [file search tool documentation](https://platform.openai.com/docs/assistants/tools/file-search/customizing-file-search-settings)

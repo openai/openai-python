@@ -74,7 +74,7 @@ Francisco, please check a reliable weather website or app.",
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_845eaabc1f',
-    usage=CompletionUsage(completion_tokens=28, prompt_tokens=14, total_tokens=42)
+    usage=CompletionUsage(completion_tokens=28, completion_tokens_details=None, prompt_tokens=14, total_tokens=42)
 )
 """
     )
@@ -129,7 +129,7 @@ ParsedChatCompletion[Location](
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_2a322c9ffc',
-    usage=CompletionUsage(completion_tokens=14, prompt_tokens=17, total_tokens=31)
+    usage=CompletionUsage(completion_tokens=14, completion_tokens_details=None, prompt_tokens=17, total_tokens=31)
 )
 """
     )
@@ -186,7 +186,7 @@ ParsedChatCompletion[Location](
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_2a322c9ffc',
-    usage=CompletionUsage(completion_tokens=14, prompt_tokens=17, total_tokens=31)
+    usage=CompletionUsage(completion_tokens=14, completion_tokens_details=None, prompt_tokens=17, total_tokens=31)
 )
 """
     )
@@ -368,7 +368,7 @@ ParsedChatCompletion[CalendarEvent](
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_2a322c9ffc',
-    usage=CompletionUsage(completion_tokens=17, prompt_tokens=32, total_tokens=49)
+    usage=CompletionUsage(completion_tokens=17, completion_tokens_details=None, prompt_tokens=32, total_tokens=49)
 )
 """
     )
