@@ -155,7 +155,7 @@ ParsedChatCompletion[Location](
     object='chat.completion',
     service_tier=None,
     system_fingerprint='fp_845eaabc1f',
-    usage=CompletionUsage(completion_tokens=14, prompt_tokens=17, total_tokens=31)
+    usage=CompletionUsage(completion_tokens=14, completion_tokens_details=None, prompt_tokens=17, total_tokens=31)
 )
 """
     )
