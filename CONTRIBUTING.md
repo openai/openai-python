@@ -31,13 +31,13 @@ $ pip install -r requirements-dev.lock
 
 ## Modifying/Adding code
 
-Most of the SDK is generated code, and any modified code will be overridden on the next generation. The
-`src/openai/lib/` and `examples/` directories are exceptions and will never be overridden.
+Most of the SDK is generated code. Modifications to code will be persisted between generations, but may
+result in merge conflicts between manual patches and changes from the generator. The generator will never
+modify the contents of the `src/openai/lib/` and `examples/` directories.
 
 ## Adding and running examples
 
-All files in the `examples/` directory are not modified by the Stainless generator and can be freely edited or
-added to.
+All files in the `examples/` directory are not modified by the generator and can be freely edited or added to.
 
 ```bash
 # add an example to examples/<your-example>.py
