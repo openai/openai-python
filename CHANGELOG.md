@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.45.1 (2024-09-16)
+
+Full Changelog: [v1.45.0...v1.45.1](https://github.com/openai/openai-python/compare/v1.45.0...v1.45.1)
+
+### Chores
+
+* **internal:** bump pyright / mypy version ([#1717](https://github.com/openai/openai-python/issues/1717)) ([351af85](https://github.com/openai/openai-python/commit/351af85c5b813391910301a5049edddc8c9e70dd))
+* **internal:** bump ruff ([#1714](https://github.com/openai/openai-python/issues/1714)) ([aceaf64](https://github.com/openai/openai-python/commit/aceaf641eedd092ed42e4aaf031e8cfbf37e4212))
+* **internal:** update spec link ([#1716](https://github.com/openai/openai-python/issues/1716)) ([ca58c7f](https://github.com/openai/openai-python/commit/ca58c7f83a7cede0367dec2500127573c9b00d1f))
+
+
+### Documentation
+
+* update CONTRIBUTING.md ([#1710](https://github.com/openai/openai-python/issues/1710)) ([4d45eb5](https://github.com/openai/openai-python/commit/4d45eb5eb794bcc5076c022be09e06fae103abcc))
+
 ## 1.45.0 (2024-09-12)
 
 Full Changelog: [v1.44.1...v1.45.0](https://github.com/openai/openai-python/compare/v1.44.1...v1.45.0)
