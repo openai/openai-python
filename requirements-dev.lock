@@ -83,7 +83,7 @@ msal==1.29.0
     # via msal-extensions
 msal-extensions==1.2.0
     # via azure-identity
-mypy==1.7.1
+mypy==1.11.2
 mypy-extensions==1.0.0
     # via black
     # via mypy
@@ -125,7 +125,7 @@ pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
-pyright==1.1.374
+pyright==1.1.380
 pytest==7.1.1
     # via pytest-asyncio
 pytest-asyncio==0.21.1
