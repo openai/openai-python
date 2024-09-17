@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, cast
+from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import (
     Unpack,
@@ -93,6 +93,23 @@ class BaseModel(pydantic.BaseModel):
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             extra: Any = pydantic.Extra.allow  # type: ignore
+
+    if TYPE_CHECKING:
+        _request_id: Optional[str] = None
+        """The ID of the request, returned via the X-Request-ID header. Useful for debugging requests and reporting issues to OpenAI.
+
+        This will **only** be set for the top-level response object, it will not be defined for nested objects. For example:
+        
+        ```py
+        completion = await client.chat.completions.create(...)
+        completion._request_id  # req_id_xxx
+        completion.usage._request_id  # raises `AttributeError`
+        ```
+
+        Note: unlike other properties that use an `_` prefix, this property
+        *is* public. Unless documented otherwise, all other `_` prefix properties,
+        methods and modules are *private*.
+        """
 
     def to_dict(
         self,
@@ -660,6 +677,21 @@ def set_pydantic_config(typ: Any, config: pydantic.ConfigDict) -> None:
     Note: this is a no-op on Pydantic v1.
     """
     setattr(typ, "__pydantic_config__", config)  # noqa: B010
+
+
+def add_request_id(obj: BaseModel, request_id: str | None) -> None:
+    obj._request_id = request_id
+
+    # in Pydantic v1, using setattr like we do above causes the attribute
+    # to be included when serializing the model which we don't want in this
+    # case so we need to explicitly exclude it
+    if not PYDANTIC_V2:
+        try:
+            exclude_fields = obj.__exclude_fields__  # type: ignore
+        except AttributeError:
+            cast(Any, obj).__exclude_fields__ = {"_request_id", "__exclude_fields__"}
+        else:
+            cast(Any, obj).__exclude_fields__ = {*(exclude_fields or {}), "_request_id", "__exclude_fields__"}
 
 
 # our use of subclasssing here causes weirdness for type checkers,

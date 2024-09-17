@@ -417,6 +417,24 @@ Error codes are as followed:
 | >=500       | `InternalServerError`      |
 | N/A         | `APIConnectionError`       |
 
+## Request IDs
+
+> For more information on debugging requests, see [these docs](https://platform.openai.com/docs/api-reference/debugging-requests)
+
+All object responses in the SDK provide a `_request_id` property which is added from the `x-request-id` response header so that you can quickly log failing requests and report them back to OpenAI.
+
+```python
+completion = await client.chat.completions.create(
+    messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-4"
+)
+print(completion._request_id)  # req_123
+```
+
+Note that unlike other properties that use an `_` prefix, the `_request_id` property
+*is* public. Unless documented otherwise, *all* other `_` prefix properties,
+methods and modules are *private*.
+
+
 ### Retries
 
 Certain errors are automatically retried 2 times by default, with a short exponential backoff.
