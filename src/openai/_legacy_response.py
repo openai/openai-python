@@ -25,7 +25,7 @@ import pydantic
 
 from ._types import NoneType
 from ._utils import is_given, extract_type_arg, is_annotated_type
-from ._models import BaseModel, is_basemodel
+from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
 from ._exceptions import APIResponseValidationError
@@ -138,8 +138,11 @@ class LegacyAPIResponse(Generic[R]):
         if is_given(self._options.post_parser):
             parsed = self._options.post_parser(parsed)
 
+        if isinstance(parsed, BaseModel):
+            add_request_id(parsed, self.request_id)
+
         self._parsed_by_type[cache_key] = parsed
-        return parsed
+        return cast(R, parsed)
 
     @property
     def headers(self) -> httpx.Headers:
