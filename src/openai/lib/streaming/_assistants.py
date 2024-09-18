@@ -906,11 +906,11 @@ def accumulate_run_step(
             merged = accumulate_delta(
                 cast(
                     "dict[object, object]",
-                    snapshot.model_dump(exclude_unset=True),
+                    snapshot.model_dump(exclude_unset=True, warnings=False),
                 ),
                 cast(
                     "dict[object, object]",
-                    data.delta.model_dump(exclude_unset=True),
+                    data.delta.model_dump(exclude_unset=True, warnings=False),
                 ),
             )
             run_step_snapshots[snapshot.id] = cast(RunStep, construct_type(type_=RunStep, value=merged))
@@ -948,7 +948,7 @@ def accumulate_event(
                         construct_type(
                             # mypy doesn't allow Content for some reason
                             type_=cast(Any, MessageContent),
-                            value=content_delta.model_dump(exclude_unset=True),
+                            value=content_delta.model_dump(exclude_unset=True, warnings=False),
                         ),
                     ),
                 )
@@ -957,11 +957,11 @@ def accumulate_event(
                 merged = accumulate_delta(
                     cast(
                         "dict[object, object]",
-                        block.model_dump(exclude_unset=True),
+                        block.model_dump(exclude_unset=True, warnings=False),
                     ),
                     cast(
                         "dict[object, object]",
-                        content_delta.model_dump(exclude_unset=True),
+                        content_delta.model_dump(exclude_unset=True, warnings=False),
                     ),
                 )
                 current_message_snapshot.content[content_delta.index] = cast(
