@@ -70,7 +70,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import CreateEmbeddingResponse, Embedding
+from openai.types import CreateEmbeddingResponse, Embedding, EmbeddingModel
 ```
 
 Methods:
