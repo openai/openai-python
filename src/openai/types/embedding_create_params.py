@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import List, Union, Iterable
 from typing_extensions import Literal, Required, TypedDict
 
+from .embedding_model import EmbeddingModel
+
 __all__ = ["EmbeddingCreateParams"]
 
 
@@ -20,7 +22,7 @@ class EmbeddingCreateParams(TypedDict, total=False):
     for counting tokens.
     """
 
-    model: Required[Union[str, Literal["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"]]]
+    model: Required[Union[str, EmbeddingModel]]
     """ID of the model to use.
 
     You can use the

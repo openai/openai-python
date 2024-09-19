@@ -16,9 +16,8 @@ from .._compat import cached_property
 from .._extras import numpy as np, has_numpy
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from .._base_client import (
-    make_request_options,
-)
+from .._base_client import make_request_options
+from ..types.embedding_model import EmbeddingModel
 from ..types.create_embedding_response import CreateEmbeddingResponse
 
 __all__ = ["Embeddings", "AsyncEmbeddings"]
@@ -48,7 +47,7 @@ class Embeddings(SyncAPIResource):
         self,
         *,
         input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
-        model: Union[str, Literal["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"]],
+        model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -160,7 +159,7 @@ class AsyncEmbeddings(AsyncAPIResource):
         self,
         *,
         input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
-        model: Union[str, Literal["text-embedding-ada-002", "text-embedding-3-small", "text-embedding-3-large"]],
+        model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
