@@ -788,6 +788,10 @@ class TestOpenAI:
         )
 
         assert response.retries_taken == failures_before_success
+        if failures_before_success == 0:
+            assert "x-stainless-retry-count" not in response.http_request.headers
+        else:
+            assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -818,6 +822,10 @@ class TestOpenAI:
             model="gpt-4o",
         ) as response:
             assert response.retries_taken == failures_before_success
+            if failures_before_success == 0:
+                assert "x-stainless-retry-count" not in response.http_request.headers
+            else:
+                assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
 
 class TestAsyncOpenAI:
@@ -1582,6 +1590,10 @@ class TestAsyncOpenAI:
         )
 
         assert response.retries_taken == failures_before_success
+        if failures_before_success == 0:
+            assert "x-stainless-retry-count" not in response.http_request.headers
+        else:
+            assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -1613,3 +1625,7 @@ class TestAsyncOpenAI:
             model="gpt-4o",
         ) as response:
             assert response.retries_taken == failures_before_success
+            if failures_before_success == 0:
+                assert "x-stainless-retry-count" not in response.http_request.headers
+            else:
+                assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
