@@ -26,6 +26,7 @@ from .file_content import FileContent as FileContent
 from .file_deleted import FileDeleted as FileDeleted
 from .file_purpose import FilePurpose as FilePurpose
 from .model_deleted import ModelDeleted as ModelDeleted
+from .embedding_model import EmbeddingModel as EmbeddingModel
 from .images_response import ImagesResponse as ImagesResponse
 from .completion_usage import CompletionUsage as CompletionUsage
 from .file_list_params import FileListParams as FileListParams
