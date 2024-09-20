@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.47.0 (2024-09-20)
+
+Full Changelog: [v1.46.1...v1.47.0](https://github.com/openai/openai-python/compare/v1.46.1...v1.47.0)
+
+### Features
+
+* **client:** send retry count header ([21b0c00](https://github.com/openai/openai-python/commit/21b0c0043406d81971f87455e5a48b17935dc346))
+
+
+### Chores
+
+* **types:** improve type name for embedding models ([#1730](https://github.com/openai/openai-python/issues/1730)) ([4b4eb2b](https://github.com/openai/openai-python/commit/4b4eb2b37877728d2124ad5651ceebf615c0ab28))
+
 ## 1.46.1 (2024-09-19)
 
 Full Changelog: [v1.46.0...v1.46.1](https://github.com/openai/openai-python/compare/v1.46.0...v1.46.1)
