@@ -8,6 +8,7 @@ from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_ne
 import httpx
 
 from ..._utils import is_dict, is_list, consume_sync_iterator, consume_async_iterator
+from ..._compat import model_dump
 from ..._models import construct_type
 from ..._streaming import Stream, AsyncStream
 from ...types.beta import AssistantStreamEvent
@@ -906,11 +907,11 @@ def accumulate_run_step(
             merged = accumulate_delta(
                 cast(
                     "dict[object, object]",
-                    snapshot.model_dump(exclude_unset=True, warnings=False),
+                    model_dump(snapshot, exclude_unset=True, warnings=False),
                 ),
                 cast(
                     "dict[object, object]",
-                    data.delta.model_dump(exclude_unset=True, warnings=False),
+                    model_dump(data.delta, exclude_unset=True, warnings=False),
                 ),
             )
             run_step_snapshots[snapshot.id] = cast(RunStep, construct_type(type_=RunStep, value=merged))
@@ -948,7 +949,7 @@ def accumulate_event(
                         construct_type(
                             # mypy doesn't allow Content for some reason
                             type_=cast(Any, MessageContent),
-                            value=content_delta.model_dump(exclude_unset=True, warnings=False),
+                            value=model_dump(content_delta, exclude_unset=True, warnings=False),
                         ),
                     ),
                 )
@@ -957,11 +958,11 @@ def accumulate_event(
                 merged = accumulate_delta(
                     cast(
                         "dict[object, object]",
-                        block.model_dump(exclude_unset=True, warnings=False),
+                        model_dump(block, exclude_unset=True, warnings=False),
                     ),
                     cast(
                         "dict[object, object]",
-                        content_delta.model_dump(exclude_unset=True, warnings=False),
+                        model_dump(content_delta, exclude_unset=True, warnings=False),
                     ),
                 )
                 current_message_snapshot.content[content_delta.index] = cast(
