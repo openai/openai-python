@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.47.1 (2024-09-23)
+
+Full Changelog: [v1.47.0...v1.47.1](https://github.com/openai/openai-python/compare/v1.47.0...v1.47.1)
+
+### Bug Fixes
+
+* **pydantic v1:** avoid warnings error ([1e8e7d1](https://github.com/openai/openai-python/commit/1e8e7d1f01a4ab4153085bc20484a19613d993b3))
+
+## 1.47.0 (2024-09-20)
+
+Full Changelog: [v1.46.1...v1.47.0](https://github.com/openai/openai-python/compare/v1.46.1...v1.47.0)
+
+### Features
+
+* **client:** send retry count header ([21b0c00](https://github.com/openai/openai-python/commit/21b0c0043406d81971f87455e5a48b17935dc346))
+
+
+### Chores
+
+* **types:** improve type name for embedding models ([#1730](https://github.com/openai/openai-python/issues/1730)) ([4b4eb2b](https://github.com/openai/openai-python/commit/4b4eb2b37877728d2124ad5651ceebf615c0ab28))
+
+## 1.46.1 (2024-09-19)
+
+Full Changelog: [v1.46.0...v1.46.1](https://github.com/openai/openai-python/compare/v1.46.0...v1.46.1)
+
+### Bug Fixes
+
+* **client:** handle domains with underscores ([#1726](https://github.com/openai/openai-python/issues/1726)) ([cd194df](https://github.com/openai/openai-python/commit/cd194dfdc418a84589bd903357cba349e9ad3e78))
+
+
+### Chores
+
+* **streaming:** silence pydantic model_dump warnings ([#1722](https://github.com/openai/openai-python/issues/1722)) ([30f84b9](https://github.com/openai/openai-python/commit/30f84b96081ac37f60e40a75d765dbbf563b61b3))
+
 ## 1.46.0 (2024-09-17)
 
 Full Changelog: [v1.45.1...v1.46.0](https://github.com/openai/openai-python/compare/v1.45.1...v1.46.0)

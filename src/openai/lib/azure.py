@@ -53,13 +53,15 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     def _build_request(
         self,
         options: FinalRequestOptions,
+        *,
+        retries_taken: int = 0,
     ) -> httpx.Request:
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
             if model is not None and not "/deployments" in str(self.base_url):
                 options.url = f"/deployments/{model}{options.url}"
 
-        return super()._build_request(options)
+        return super()._build_request(options, retries_taken=retries_taken)
 
 
 class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
