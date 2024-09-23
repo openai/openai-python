@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.47.1 (2024-09-23)
+
+Full Changelog: [v1.47.0...v1.47.1](https://github.com/openai/openai-python/compare/v1.47.0...v1.47.1)
+
+### Bug Fixes
+
+* **pydantic v1:** avoid warnings error ([1e8e7d1](https://github.com/openai/openai-python/commit/1e8e7d1f01a4ab4153085bc20484a19613d993b3))
+
 ## 1.47.0 (2024-09-20)
 
 Full Changelog: [v1.46.1...v1.47.0](https://github.com/openai/openai-python/compare/v1.46.1...v1.47.0)
