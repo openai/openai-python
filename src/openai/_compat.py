@@ -136,12 +136,14 @@ def model_dump(
     exclude: IncEx = None,
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
+    warnings: bool = True,
 ) -> dict[str, Any]:
     if PYDANTIC_V2:
         return model.model_dump(
             exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
+            warnings=warnings,
         )
     return cast(
         "dict[str, Any]",
