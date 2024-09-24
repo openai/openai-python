@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Mapping, cast
+from typing import Any, List, Union, Mapping, cast
 from typing_extensions import Literal
 
 import httpx
@@ -21,7 +21,7 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...types.audio.transcription import Transcription
+from ...types.audio.transcription_create_response import TranscriptionCreateResponse
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
@@ -62,7 +62,7 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Transcription:
+    ) -> TranscriptionCreateResponse:
         """
         Transcribes audio into the input language.
 
@@ -122,14 +122,19 @@ class Transcriptions(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(
-            "/audio/transcriptions",
-            body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
-            files=files,
-            options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+        return cast(
+            TranscriptionCreateResponse,
+            self._post(
+                "/audio/transcriptions",
+                body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+                files=files,
+                options=make_request_options(
+                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                ),
+                cast_to=cast(
+                    Any, TranscriptionCreateResponse
+                ),  # Union types cannot be passed in as arguments in the type system
             ),
-            cast_to=Transcription,
         )
 
 
@@ -169,7 +174,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Transcription:
+    ) -> TranscriptionCreateResponse:
         """
         Transcribes audio into the input language.
 
@@ -229,14 +234,19 @@ class AsyncTranscriptions(AsyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return await self._post(
-            "/audio/transcriptions",
-            body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
-            files=files,
-            options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+        return cast(
+            TranscriptionCreateResponse,
+            await self._post(
+                "/audio/transcriptions",
+                body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+                files=files,
+                options=make_request_options(
+                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                ),
+                cast_to=cast(
+                    Any, TranscriptionCreateResponse
+                ),  # Union types cannot be passed in as arguments in the type system
             ),
-            cast_to=Transcription,
         )
 
 
