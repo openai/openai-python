@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Union, Mapping, cast
-from typing_extensions import Literal
+from typing import TYPE_CHECKING, List, Union, Mapping, cast, overload
+from typing_extensions import Literal, assert_never
 
 import httpx
 
@@ -21,7 +21,8 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...types.audio.transcription_create_response import TranscriptionCreateResponse
+from ...types.audio.transcription import Transcription
+from ...types.audio.transcription_verbose import TranscriptionVerbose
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
@@ -46,6 +47,63 @@ class Transcriptions(SyncAPIResource):
         """
         return TranscriptionsWithStreamingResponse(self)
 
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Transcription: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["verbose_json"],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> TranscriptionVerbose: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["text", "srt", "vtt"],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> str: ...
+
     def create(
         self,
         *,
@@ -62,7 +120,7 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> TranscriptionCreateResponse:
+    ) -> Transcription | TranscriptionVerbose | str:
         """
         Transcribes audio into the input language.
 
@@ -122,19 +180,14 @@ class Transcriptions(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return cast(
-            TranscriptionCreateResponse,
-            self._post(
-                "/audio/transcriptions",
-                body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
-                files=files,
-                options=make_request_options(
-                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
-                ),
-                cast_to=cast(
-                    Any, TranscriptionCreateResponse
-                ),  # Union types cannot be passed in as arguments in the type system
+        return self._post(
+            "/audio/transcriptions",
+            body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
+            cast_to=_get_response_format_type(response_format),
         )
 
 
@@ -158,6 +211,63 @@ class AsyncTranscriptions(AsyncAPIResource):
         """
         return AsyncTranscriptionsWithStreamingResponse(self)
 
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Transcription: ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["verbose_json"],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> TranscriptionVerbose: ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["text", "srt", "vtt"],
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> str: ...
+
     async def create(
         self,
         *,
@@ -174,7 +284,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> TranscriptionCreateResponse:
+    ) -> Transcription | TranscriptionVerbose | str:
         """
         Transcribes audio into the input language.
 
@@ -234,19 +344,14 @@ class AsyncTranscriptions(AsyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return cast(
-            TranscriptionCreateResponse,
-            await self._post(
-                "/audio/transcriptions",
-                body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
-                files=files,
-                options=make_request_options(
-                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
-                ),
-                cast_to=cast(
-                    Any, TranscriptionCreateResponse
-                ),  # Union types cannot be passed in as arguments in the type system
+        return await self._post(
+            "/audio/transcriptions",
+            body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
+            cast_to=_get_response_format_type(response_format),
         )
 
 
@@ -284,3 +389,22 @@ class AsyncTranscriptionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             transcriptions.create,
         )
+
+
+def _get_response_format_type(
+    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven,
+) -> type[Transcription | TranscriptionVerbose | str]:
+    if isinstance(response_format, NotGiven):
+        return Transcription
+
+    if response_format == "json":
+        return Transcription
+    elif response_format == "verbose_json":
+        return TranscriptionVerbose
+    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
+        return str
+    elif TYPE_CHECKING:
+        assert_never(response_format)
+    else:
+        # TODO; warn
+        return Transcription
