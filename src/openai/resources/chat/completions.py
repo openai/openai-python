@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import inspect
-from typing import Dict, List, Union, Iterable, Optional, overload
-from typing_extensions import Literal
+from typing import Dict, List, Union, Iterable, Optional
+from typing_extensions import Literal, overload
 
 import httpx
 import pydantic
