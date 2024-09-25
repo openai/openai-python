@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.48.0 (2024-09-25)
+
+Full Changelog: [v1.47.1...v1.48.0](https://github.com/openai/openai-python/compare/v1.47.1...v1.48.0)
+
+### Features
+
+* **client:** allow overriding retry count header ([#1745](https://github.com/openai/openai-python/issues/1745)) ([9f07d4d](https://github.com/openai/openai-python/commit/9f07d4dbd6f24108a1f5e0309037318858f5a229))
+
+
+### Bug Fixes
+
+* **audio:** correct response_format translations type ([#1743](https://github.com/openai/openai-python/issues/1743)) ([b912108](https://github.com/openai/openai-python/commit/b9121089c696bc943323e2e75d4706401d809aaa))
+
+
+### Chores
+
+* **internal:** use `typing_extensions.overload` instead of `typing` ([#1740](https://github.com/openai/openai-python/issues/1740)) ([2522bd5](https://github.com/openai/openai-python/commit/2522bd59f7b5e903e4fc856a4c5dbdbe66bba37f))
+
 ## 1.47.1 (2024-09-23)
 
 Full Changelog: [v1.47.0...v1.47.1](https://github.com/openai/openai-python/compare/v1.47.0...v1.47.1)
