@@ -7,6 +7,7 @@ from typing import Union, Mapping, cast
 import httpx
 
 from ... import _legacy_response
+from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import (
     extract_files,
@@ -21,6 +22,7 @@ from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
 from ...types.audio.translation import Translation
+from ...types.audio_response_format import AudioResponseFormat
 
 __all__ = ["Translations", "AsyncTranslations"]
 
@@ -51,7 +53,7 @@ class Translations(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: str | NotGiven = NOT_GIVEN,
+        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -75,8 +77,8 @@ class Translations(SyncAPIResource):
               [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
               should be in English.
 
-          response_format: The format of the transcript output, in one of these options: `json`, `text`,
-              `srt`, `verbose_json`, or `vtt`.
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
@@ -143,7 +145,7 @@ class AsyncTranslations(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: str | NotGiven = NOT_GIVEN,
+        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -167,8 +169,8 @@ class AsyncTranslations(AsyncAPIResource):
               [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
               should be in English.
 
-          response_format: The format of the transcript output, in one of these options: `json`, `text`,
-              `srt`, `verbose_json`, or `vtt`.
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and

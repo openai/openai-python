@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, TypedDict
 
 from ..._types import FileTypes
 from ..audio_model import AudioModel
+from ..audio_response_format import AudioResponseFormat
 
 __all__ = ["TranscriptionCreateParams"]
 
@@ -41,10 +42,10 @@ class TranscriptionCreateParams(TypedDict, total=False):
     should match the audio language.
     """
 
-    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"]
+    response_format: AudioResponseFormat
     """
-    The format of the transcript output, in one of these options: `json`, `text`,
-    `srt`, `verbose_json`, or `vtt`.
+    The format of the output, in one of these options: `json`, `text`, `srt`,
+    `verbose_json`, or `vtt`.
     """
 
     temperature: float
