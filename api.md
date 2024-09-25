@@ -114,7 +114,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import AudioModel
+from openai.types import AudioModel, AudioResponseFormat
 ```
 
 ## Transcriptions
