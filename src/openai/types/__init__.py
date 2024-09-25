@@ -38,6 +38,7 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
 from .upload_create_params import UploadCreateParams as UploadCreateParams
+from .audio_response_format import AudioResponseFormat as AudioResponseFormat
 from .image_generate_params import ImageGenerateParams as ImageGenerateParams
 from .upload_complete_params import UploadCompleteParams as UploadCompleteParams
 from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreateParams
