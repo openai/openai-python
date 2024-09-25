@@ -7,6 +7,7 @@ from typing_extensions import Required, TypedDict
 
 from ..._types import FileTypes
 from ..audio_model import AudioModel
+from ..audio_response_format import AudioResponseFormat
 
 __all__ = ["TranslationCreateParams"]
 
@@ -33,10 +34,10 @@ class TranslationCreateParams(TypedDict, total=False):
     should be in English.
     """
 
-    response_format: str
+    response_format: AudioResponseFormat
     """
-    The format of the transcript output, in one of these options: `json`, `text`,
-    `srt`, `verbose_json`, or `vtt`.
+    The format of the output, in one of these options: `json`, `text`, `srt`,
+    `verbose_json`, or `vtt`.
     """
 
     temperature: float
