@@ -28,7 +28,7 @@ class TestModerations:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         moderation = client.moderations.create(
             input="I want to kill them.",
-            model="text-moderation-stable",
+            model="omni-moderation-2024-09-26",
         )
         assert_matches_type(ModerationCreateResponse, moderation, path=["response"])
 
@@ -71,7 +71,7 @@ class TestAsyncModerations:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         moderation = await async_client.moderations.create(
             input="I want to kill them.",
-            model="text-moderation-stable",
+            model="omni-moderation-2024-09-26",
         )
         assert_matches_type(ModerationCreateResponse, moderation, path=["response"])
 
