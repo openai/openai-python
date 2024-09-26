@@ -3,7 +3,7 @@ from __future__ import annotations
 import os
 import json
 from enum import Enum
-from typing import Any, List, Callable, Optional
+from typing import Any, List, Callable, Optional, Awaitable
 from typing_extensions import Literal, TypeVar
 
 import httpx
@@ -773,6 +773,139 @@ def test_parse_non_strict_tools(client: OpenAI) -> None:
         )
 
 
+@pytest.mark.respx(base_url=base_url)
+def test_parse_pydantic_raw_response(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    response = _make_snapshot_request(
+        lambda c: c.beta.chat.completions.with_raw_response.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "What's the weather like in SF?",
+                },
+            ],
+            response_format=Location,
+        ),
+        content_snapshot=snapshot(
+            '{"id": "chatcmpl-ABrDYCa8W1w66eUxKDO8TQF1m6trT", "object": "chat.completion", "created": 1727389540, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":58,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 14, "total_tokens": 93, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
+        ),
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+    assert response.http_request.headers.get("x-stainless-helper-method") == "beta.chat.completions.parse"
+
+    completion = response.parse()
+    message = completion.choices[0].message
+    assert message.parsed is not None
+    assert isinstance(message.parsed.city, str)
+    assert print_obj(completion, monkeypatch) == snapshot(
+        """\
+ParsedChatCompletion[Location](
+    choices=[
+        ParsedChoice[Location](
+            finish_reason='stop',
+            index=0,
+            logprobs=None,
+            message=ParsedChatCompletionMessage[Location](
+                content='{"city":"San Francisco","temperature":58,"units":"f"}',
+                function_call=None,
+                parsed=Location(city='San Francisco', temperature=58.0, units='f'),
+                refusal=None,
+                role='assistant',
+                tool_calls=[]
+            )
+        )
+    ],
+    created=1727389540,
+    id='chatcmpl-ABrDYCa8W1w66eUxKDO8TQF1m6trT',
+    model='gpt-4o-2024-08-06',
+    object='chat.completion',
+    service_tier=None,
+    system_fingerprint='fp_5050236cbd',
+    usage=CompletionUsage(
+        completion_tokens=14,
+        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        prompt_tokens=79,
+        total_tokens=93
+    )
+)
+"""
+    )
+
+
+@pytest.mark.respx(base_url=base_url)
+@pytest.mark.asyncio
+async def test_async_parse_pydantic_raw_response(
+    async_client: AsyncOpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    response = await _make_async_snapshot_request(
+        lambda c: c.beta.chat.completions.with_raw_response.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "What's the weather like in SF?",
+                },
+            ],
+            response_format=Location,
+        ),
+        content_snapshot=snapshot(
+            '{"id": "chatcmpl-ABrDQWOiw0PK5JOsxl1D9ooeQgznq", "object": "chat.completion", "created": 1727389532, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":65,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 14, "total_tokens": 93, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
+        ),
+        mock_client=async_client,
+        respx_mock=respx_mock,
+    )
+    assert response.http_request.headers.get("x-stainless-helper-method") == "beta.chat.completions.parse"
+
+    completion = response.parse()
+    message = completion.choices[0].message
+    assert message.parsed is not None
+    assert isinstance(message.parsed.city, str)
+    assert print_obj(completion, monkeypatch) == snapshot(
+        """\
+ParsedChatCompletion[Location](
+    choices=[
+        ParsedChoice[Location](
+            finish_reason='stop',
+            index=0,
+            logprobs=None,
+            message=ParsedChatCompletionMessage[Location](
+                content='{"city":"San Francisco","temperature":65,"units":"f"}',
+                function_call=None,
+                parsed=Location(city='San Francisco', temperature=65.0, units='f'),
+                refusal=None,
+                role='assistant',
+                tool_calls=[]
+            )
+        )
+    ],
+    created=1727389532,
+    id='chatcmpl-ABrDQWOiw0PK5JOsxl1D9ooeQgznq',
+    model='gpt-4o-2024-08-06',
+    object='chat.completion',
+    service_tier=None,
+    system_fingerprint='fp_5050236cbd',
+    usage=CompletionUsage(
+        completion_tokens=14,
+        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        prompt_tokens=79,
+        total_tokens=93
+    )
+)
+"""
+    )
+
+
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
 def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
     checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
@@ -822,5 +955,47 @@ def _make_snapshot_request(
 
     if live:
         client.close()
+
+    return result
+
+
+async def _make_async_snapshot_request(
+    func: Callable[[AsyncOpenAI], Awaitable[_T]],
+    *,
+    content_snapshot: Any,
+    respx_mock: MockRouter,
+    mock_client: AsyncOpenAI,
+) -> _T:
+    live = os.environ.get("OPENAI_LIVE") == "1"
+    if live:
+
+        async def _on_response(response: httpx.Response) -> None:
+            # update the content snapshot
+            assert json.dumps(json.loads(await response.aread())) == content_snapshot
+
+        respx_mock.stop()
+
+        client = AsyncOpenAI(
+            http_client=httpx.AsyncClient(
+                event_hooks={
+                    "response": [_on_response],
+                }
+            )
+        )
+    else:
+        respx_mock.post("/chat/completions").mock(
+            return_value=httpx.Response(
+                200,
+                content=content_snapshot._old_value,
+                headers={"content-type": "application/json"},
+            )
+        )
+
+        client = mock_client
+
+    result = await func(client)
+
+    if live:
+        await client.close()
 
     return result
