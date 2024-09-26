@@ -158,7 +158,14 @@ Methods:
 Types:
 
 ```python
-from openai.types import Moderation, ModerationModel, ModerationCreateResponse
+from openai.types import (
+    Moderation,
+    ModerationImageURLInput,
+    ModerationModel,
+    ModerationMultiModalInput,
+    ModerationTextInput,
+    ModerationCreateResponse,
+)
 ```
 
 Methods:
