@@ -1,11 +1,13 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+from typing import List
+from typing_extensions import Literal
 
 from pydantic import Field as FieldInfo
 
 from .._models import BaseModel
 
-__all__ = ["Moderation", "Categories", "CategoryScores"]
+__all__ = ["Moderation", "Categories", "CategoryAppliedInputTypes", "CategoryScores"]
 
 
 class Categories(BaseModel):
@@ -34,6 +36,20 @@ class Categories(BaseModel):
     Hateful content that also includes violence or serious harm towards the targeted
     group based on race, gender, ethnicity, religion, nationality, sexual
     orientation, disability status, or caste.
+    """
+
+    illicit: bool
+    """
+    Content that includes instructions or advice that facilitate the planning or
+    execution of wrongdoing, or that gives advice or instruction on how to commit
+    illicit acts. For example, "how to shoplift" would fit this category.
+    """
+
+    illicit_violent: bool = FieldInfo(alias="illicit/violent")
+    """
+    Content that includes instructions or advice that facilitate the planning or
+    execution of wrongdoing that also includes violence, or that gives advice or
+    instruction on the procurement of any weapon.
     """
 
     self_harm: bool = FieldInfo(alias="self-harm")
@@ -72,6 +88,47 @@ class Categories(BaseModel):
     """Content that depicts death, violence, or physical injury in graphic detail."""
 
 
+class CategoryAppliedInputTypes(BaseModel):
+    harassment: List[Literal["text"]]
+    """The applied input type(s) for the category 'harassment'."""
+
+    harassment_threatening: List[Literal["text"]] = FieldInfo(alias="harassment/threatening")
+    """The applied input type(s) for the category 'harassment/threatening'."""
+
+    hate: List[Literal["text"]]
+    """The applied input type(s) for the category 'hate'."""
+
+    hate_threatening: List[Literal["text"]] = FieldInfo(alias="hate/threatening")
+    """The applied input type(s) for the category 'hate/threatening'."""
+
+    illicit: List[Literal["text"]]
+    """The applied input type(s) for the category 'illicit'."""
+
+    illicit_violent: List[Literal["text"]] = FieldInfo(alias="illicit/violent")
+    """The applied input type(s) for the category 'illicit/violent'."""
+
+    self_harm: List[Literal["text", "image"]] = FieldInfo(alias="self-harm")
+    """The applied input type(s) for the category 'self-harm'."""
+
+    self_harm_instructions: List[Literal["text", "image"]] = FieldInfo(alias="self-harm/instructions")
+    """The applied input type(s) for the category 'self-harm/instructions'."""
+
+    self_harm_intent: List[Literal["text", "image"]] = FieldInfo(alias="self-harm/intent")
+    """The applied input type(s) for the category 'self-harm/intent'."""
+
+    sexual: List[Literal["text", "image"]]
+    """The applied input type(s) for the category 'sexual'."""
+
+    sexual_minors: List[Literal["text"]] = FieldInfo(alias="sexual/minors")
+    """The applied input type(s) for the category 'sexual/minors'."""
+
+    violence: List[Literal["text", "image"]]
+    """The applied input type(s) for the category 'violence'."""
+
+    violence_graphic: List[Literal["text", "image"]] = FieldInfo(alias="violence/graphic")
+    """The applied input type(s) for the category 'violence/graphic'."""
+
+
 class CategoryScores(BaseModel):
     harassment: float
     """The score for the category 'harassment'."""
@@ -84,6 +141,12 @@ class CategoryScores(BaseModel):
 
     hate_threatening: float = FieldInfo(alias="hate/threatening")
     """The score for the category 'hate/threatening'."""
+
+    illicit: float
+    """The score for the category 'illicit'."""
+
+    illicit_violent: float = FieldInfo(alias="illicit/violent")
+    """The score for the category 'illicit/violent'."""
 
     self_harm: float = FieldInfo(alias="self-harm")
     """The score for the category 'self-harm'."""
@@ -110,6 +173,11 @@ class CategoryScores(BaseModel):
 class Moderation(BaseModel):
     categories: Categories
     """A list of the categories, and whether they are flagged or not."""
+
+    category_applied_input_types: CategoryAppliedInputTypes
+    """
+    A list of the categories along with the input type(s) that the score applies to.
+    """
 
     category_scores: CategoryScores
     """A list of the categories along with their scores as predicted by model."""

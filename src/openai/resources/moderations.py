@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+from typing import List, Union, Iterable
 
 import httpx
 
@@ -19,6 +19,7 @@ from .._response import to_streamed_response_wrapper, async_to_streamed_response
 from .._base_client import make_request_options
 from ..types.moderation_model import ModerationModel
 from ..types.moderation_create_response import ModerationCreateResponse
+from ..types.moderation_multi_modal_input_param import ModerationMultiModalInputParam
 
 __all__ = ["Moderations", "AsyncModerations"]
 
@@ -46,7 +47,7 @@ class Moderations(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str]],
+        input: Union[str, List[str], Iterable[ModerationMultiModalInputParam]],
         model: Union[str, ModerationModel] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -55,20 +56,19 @@ class Moderations(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
-        """
-        Classifies if text is potentially harmful.
+        """Classifies if text and/or image inputs are potentially harmful.
+
+        Learn more in
+        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
 
         Args:
-          input: The input text to classify
+          input: Input (or inputs) to classify. Can be a single string, an array of strings, or
+              an array of multi-modal input objects similar to other models.
 
-          model: Two content moderations models are available: `text-moderation-stable` and
-              `text-moderation-latest`.
-
-              The default is `text-moderation-latest` which will be automatically upgraded
-              over time. This ensures you are always using our most accurate model. If you use
-              `text-moderation-stable`, we will provide advanced notice before updating the
-              model. Accuracy of `text-moderation-stable` may be slightly lower than for
-              `text-moderation-latest`.
+          model: The content moderation model you would like to use. Learn more in
+              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
+              learn about available models
+              [here](https://platform.openai.com/docs/models/moderation).
 
           extra_headers: Send extra headers
 
@@ -117,7 +117,7 @@ class AsyncModerations(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str]],
+        input: Union[str, List[str], Iterable[ModerationMultiModalInputParam]],
         model: Union[str, ModerationModel] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -126,20 +126,19 @@ class AsyncModerations(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ModerationCreateResponse:
-        """
-        Classifies if text is potentially harmful.
+        """Classifies if text and/or image inputs are potentially harmful.
+
+        Learn more in
+        the [moderation guide](https://platform.openai.com/docs/guides/moderation).
 
         Args:
-          input: The input text to classify
+          input: Input (or inputs) to classify. Can be a single string, an array of strings, or
+              an array of multi-modal input objects similar to other models.
 
-          model: Two content moderations models are available: `text-moderation-stable` and
-              `text-moderation-latest`.
-
-              The default is `text-moderation-latest` which will be automatically upgraded
-              over time. This ensures you are always using our most accurate model. If you use
-              `text-moderation-stable`, we will provide advanced notice before updating the
-              model. Accuracy of `text-moderation-stable` may be slightly lower than for
-              `text-moderation-latest`.
+          model: The content moderation model you would like to use. Learn more in
+              [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
+              learn about available models
+              [here](https://platform.openai.com/docs/models/moderation).
 
           extra_headers: Send extra headers
 
