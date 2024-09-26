@@ -43,7 +43,7 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
             ],
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjSozlYq8oGdlRH3vgLsiUNRg8c", "object": "chat.completion", "created": 1723024734, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "I\'m unable to provide real-time weather updates. To find out the current weather in San Francisco, please check a reliable weather website or app.", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 14, "completion_tokens": 28, "total_tokens": 42}, "system_fingerprint": "fp_845eaabc1f"}'
+            '{"id": "chatcmpl-ABfvaueLEMLNYbT8YzpJxsmiQ6HSY", "object": "chat.completion", "created": 1727346142, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "I\'m unable to provide real-time weather updates. To get the current weather in San Francisco, I recommend checking a reliable weather website or app like the Weather Channel or a local news station.", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 14, "completion_tokens": 37, "total_tokens": 51, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_b40fb1c6fb"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -58,8 +58,8 @@ ParsedChatCompletion[NoneType](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[NoneType](
-                content="I'm unable to provide real-time weather updates. To find out the current weather in San 
-Francisco, please check a reliable weather website or app.",
+                content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I
+recommend checking a reliable weather website or app like the Weather Channel or a local news station.",
                 function_call=None,
                 parsed=None,
                 refusal=None,
@@ -68,13 +68,18 @@ Francisco, please check a reliable weather website or app.",
             )
         )
     ],
-    created=1723024734,
-    id='chatcmpl-9tXjSozlYq8oGdlRH3vgLsiUNRg8c',
+    created=1727346142,
+    id='chatcmpl-ABfvaueLEMLNYbT8YzpJxsmiQ6HSY',
     model='gpt-4o-2024-08-06',
     object='chat.completion',
     service_tier=None,
-    system_fingerprint='fp_845eaabc1f',
-    usage=CompletionUsage(completion_tokens=28, completion_tokens_details=None, prompt_tokens=14, total_tokens=42)
+    system_fingerprint='fp_b40fb1c6fb',
+    usage=CompletionUsage(
+        completion_tokens=37,
+        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        prompt_tokens=14,
+        total_tokens=51
+    )
 )
 """
     )
@@ -99,7 +104,7 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
             response_format=Location,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjTNupyDe7nL1Z8eOO6BdSyrHAD", "object": "chat.completion", "created": 1723024735, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":56,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 17, "completion_tokens": 14, "total_tokens": 31}, "system_fingerprint": "fp_2a322c9ffc"}'
+            '{"id": "chatcmpl-ABfvbtVnTu5DeC4EFnRYj8mtfOM99", "object": "chat.completion", "created": 1727346143, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":65,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 14, "total_tokens": 93, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -114,22 +119,27 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
-                content='{"city":"San Francisco","temperature":56,"units":"f"}',
+                content='{"city":"San Francisco","temperature":65,"units":"f"}',
                 function_call=None,
-                parsed=Location(city='San Francisco', temperature=56.0, units='f'),
+                parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
                 tool_calls=[]
             )
         )
     ],
-    created=1723024735,
-    id='chatcmpl-9tXjTNupyDe7nL1Z8eOO6BdSyrHAD',
+    created=1727346143,
+    id='chatcmpl-ABfvbtVnTu5DeC4EFnRYj8mtfOM99',
     model='gpt-4o-2024-08-06',
     object='chat.completion',
     service_tier=None,
-    system_fingerprint='fp_2a322c9ffc',
-    usage=CompletionUsage(completion_tokens=14, completion_tokens_details=None, prompt_tokens=17, total_tokens=31)
+    system_fingerprint='fp_5050236cbd',
+    usage=CompletionUsage(
+        completion_tokens=14,
+        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        prompt_tokens=79,
+        total_tokens=93
+    )
 )
 """
     )
@@ -156,7 +166,7 @@ def test_parse_pydantic_model_optional_default(
             response_format=Location,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9y39Q2jGzWmeEZlm5CoNVOuQzcxP4", "object": "chat.completion", "created": 1724098820, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":62,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 17, "completion_tokens": 14, "total_tokens": 31}, "system_fingerprint": "fp_2a322c9ffc"}'
+            '{"id": "chatcmpl-ABfvcC8grKYsRkSoMp9CCAhbXAd0b", "object": "chat.completion", "created": 1727346144, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":65,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 88, "completion_tokens": 14, "total_tokens": 102, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_b40fb1c6fb"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -171,22 +181,27 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
-                content='{"city":"San Francisco","temperature":62,"units":"f"}',
+                content='{"city":"San Francisco","temperature":65,"units":"f"}',
                 function_call=None,
-                parsed=Location(city='San Francisco', temperature=62.0, units='f'),
+                parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
                 tool_calls=[]
             )
         )
     ],
-    created=1724098820,
-    id='chatcmpl-9y39Q2jGzWmeEZlm5CoNVOuQzcxP4',
+    created=1727346144,
+    id='chatcmpl-ABfvcC8grKYsRkSoMp9CCAhbXAd0b',
     model='gpt-4o-2024-08-06',
     object='chat.completion',
     service_tier=None,
-    system_fingerprint='fp_2a322c9ffc',
-    usage=CompletionUsage(completion_tokens=14, completion_tokens_details=None, prompt_tokens=17, total_tokens=31)
+    system_fingerprint='fp_b40fb1c6fb',
+    usage=CompletionUsage(
+        completion_tokens=14,
+        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        prompt_tokens=88,
+        total_tokens=102
+    )
 )
 """
     )
@@ -217,7 +232,7 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx_mock: MockRouter, monke
             response_format=ColorDetection,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9vK4UZVr385F2UgZlP1ShwPn2nFxG", "object": "chat.completion", "created": 1723448878, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"color\\":\\"red\\",\\"hex_color_code\\":\\"#FF0000\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 18, "completion_tokens": 14, "total_tokens": 32}, "system_fingerprint": "fp_845eaabc1f"}'
+            '{"id": "chatcmpl-ABfvjIatz0zrZu50gRbMtlp0asZpz", "object": "chat.completion", "created": 1727346151, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"color\\":\\"red\\",\\"hex_color_code\\":\\"#FF0000\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 109, "completion_tokens": 14, "total_tokens": 123, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -264,7 +279,7 @@ def test_parse_pydantic_model_multiple_choices(
             response_format=Location,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjUrNFyyjSB2FJ842TMDNRM6Gen", "object": "chat.completion", "created": 1723024736, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":58,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}, {"index": 1, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":58,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}, {"index": 2, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":63,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 17, "completion_tokens": 42, "total_tokens": 59}, "system_fingerprint": "fp_845eaabc1f"}'
+            '{"id": "chatcmpl-ABfvp8qzboW92q8ONDF4DPHlI7ckC", "object": "chat.completion", "created": 1727346157, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":64,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}, {"index": 1, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":65,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}, {"index": 2, "message": {"role": "assistant", "content": "{\\"city\\":\\"San Francisco\\",\\"temperature\\":63.0,\\"units\\":\\"f\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 44, "total_tokens": 123, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_b40fb1c6fb"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -278,9 +293,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":58,"units":"f"}',
+            content='{"city":"San Francisco","temperature":64,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=58.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=64.0, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -291,9 +306,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=1,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":58,"units":"f"}',
+            content='{"city":"San Francisco","temperature":65,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=58.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=65.0, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -304,7 +319,7 @@ def test_parse_pydantic_model_multiple_choices(
         index=2,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":63,"units":"f"}',
+            content='{"city":"San Francisco","temperature":63.0,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=63.0, units='f'),
             refusal=None,
@@ -338,7 +353,7 @@ def test_parse_pydantic_dataclass(client: OpenAI, respx_mock: MockRouter, monkey
             response_format=CalendarEvent,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9wdGqXkJJARAz7rOrLH5u5FBwLjF3", "object": "chat.completion", "created": 1723761008, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"name\\":\\"Science Fair\\",\\"date\\":\\"Friday\\",\\"participants\\":[\\"Alice\\",\\"Bob\\"]}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 32, "completion_tokens": 17, "total_tokens": 49}, "system_fingerprint": "fp_2a322c9ffc"}'
+            '{"id": "chatcmpl-ABfvqhz4uUUWsw8Ohw2Mp9B4sKKV8", "object": "chat.completion", "created": 1727346158, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"name\\":\\"Science Fair\\",\\"date\\":\\"Friday\\",\\"participants\\":[\\"Alice\\",\\"Bob\\"]}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 92, "completion_tokens": 17, "total_tokens": 109, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_7568d46099"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -362,13 +377,18 @@ ParsedChatCompletion[CalendarEvent](
             )
         )
     ],
-    created=1723761008,
-    id='chatcmpl-9wdGqXkJJARAz7rOrLH5u5FBwLjF3',
+    created=1727346158,
+    id='chatcmpl-ABfvqhz4uUUWsw8Ohw2Mp9B4sKKV8',
     model='gpt-4o-2024-08-06',
     object='chat.completion',
     service_tier=None,
-    system_fingerprint='fp_2a322c9ffc',
-    usage=CompletionUsage(completion_tokens=17, completion_tokens_details=None, prompt_tokens=32, total_tokens=49)
+    system_fingerprint='fp_7568d46099',
+    usage=CompletionUsage(
+        completion_tokens=17,
+        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        prompt_tokens=92,
+        total_tokens=109
+    )
 )
 """
     )
@@ -389,7 +409,7 @@ def test_pydantic_tool_model_all_types(client: OpenAI, respx_mock: MockRouter, m
             response_format=Query,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjVJVCLTn7CWFhpjETixvvApCk3", "object": "chat.completion", "created": 1723024737, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_Un4g0IXeQGOyqKBS3zhqNCox", "type": "function", "function": {"name": "Query", "arguments": "{\\"table_name\\":\\"orders\\",\\"columns\\":[\\"id\\",\\"status\\",\\"expected_delivery_date\\",\\"delivered_at\\",\\"shipped_at\\",\\"ordered_at\\"],\\"conditions\\":[{\\"column\\":\\"ordered_at\\",\\"operator\\":\\">=\\",\\"value\\":\\"2022-05-01\\"},{\\"column\\":\\"ordered_at\\",\\"operator\\":\\"<=\\",\\"value\\":\\"2022-05-31\\"},{\\"column\\":\\"status\\",\\"operator\\":\\"=\\",\\"value\\":\\"fulfilled\\"},{\\"column\\":\\"delivered_at\\",\\"operator\\":\\">\\",\\"value\\":{\\"column_name\\":\\"expected_delivery_date\\"}}],\\"order_by\\":\\"asc\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 195, "completion_tokens": 114, "total_tokens": 309}, "system_fingerprint": "fp_845eaabc1f"}'
+            '{"id": "chatcmpl-ABfvtNiaTNUF6OymZUnEFc9lPq9p1", "object": "chat.completion", "created": 1727346161, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_NKpApJybW1MzOjZO2FzwYw0d", "type": "function", "function": {"name": "Query", "arguments": "{\\"name\\":\\"May 2022 Fulfilled Orders Not Delivered on Time\\",\\"table_name\\":\\"orders\\",\\"columns\\":[\\"id\\",\\"status\\",\\"expected_delivery_date\\",\\"delivered_at\\",\\"shipped_at\\",\\"ordered_at\\",\\"canceled_at\\"],\\"conditions\\":[{\\"column\\":\\"ordered_at\\",\\"operator\\":\\">=\\",\\"value\\":\\"2022-05-01\\"},{\\"column\\":\\"ordered_at\\",\\"operator\\":\\"<=\\",\\"value\\":\\"2022-05-31\\"},{\\"column\\":\\"status\\",\\"operator\\":\\"=\\",\\"value\\":\\"fulfilled\\"},{\\"column\\":\\"delivered_at\\",\\"operator\\":\\">\\",\\"value\\":{\\"column_name\\":\\"expected_delivery_date\\"}}],\\"order_by\\":\\"asc\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 512, "completion_tokens": 132, "total_tokens": 644, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_7568d46099"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -410,10 +430,11 @@ ParsedChoice[Query](
         tool_calls=[
             ParsedFunctionToolCall(
                 function=ParsedFunction(
-                    arguments='{"table_name":"orders","columns":["id","status","expected_delivery_date","delivered_at","
-shipped_at","ordered_at"],"conditions":[{"column":"ordered_at","operator":">=","value":"2022-05-01"},{"column":"ordered_
-at","operator":"<=","value":"2022-05-31"},{"column":"status","operator":"=","value":"fulfilled"},{"column":"delivered_at
-","operator":">","value":{"column_name":"expected_delivery_date"}}],"order_by":"asc"}',
+                    arguments='{"name":"May 2022 Fulfilled Orders Not Delivered on 
+Time","table_name":"orders","columns":["id","status","expected_delivery_date","delivered_at","shipped_at","ordered_at","
+canceled_at"],"conditions":[{"column":"ordered_at","operator":">=","value":"2022-05-01"},{"column":"ordered_at","operato
+r":"<=","value":"2022-05-31"},{"column":"status","operator":"=","value":"fulfilled"},{"column":"delivered_at","operator"
+:">","value":{"column_name":"expected_delivery_date"}}],"order_by":"asc"}',
                     name='Query',
                     parsed_arguments=Query(
                         columns=[
@@ -422,7 +443,8 @@ at","operator":"<=","value":"2022-05-31"},{"column":"status","operator":"=","val
                             <Column.expected_delivery_date: 'expected_delivery_date'>,
                             <Column.delivered_at: 'delivered_at'>,
                             <Column.shipped_at: 'shipped_at'>,
-                            <Column.ordered_at: 'ordered_at'>
+                            <Column.ordered_at: 'ordered_at'>,
+                            <Column.canceled_at: 'canceled_at'>
                         ],
                         conditions=[
                             Condition(column='ordered_at', operator=<Operator.ge: '>='>, value='2022-05-01'),
@@ -434,12 +456,12 @@ at","operator":"<=","value":"2022-05-31"},{"column":"status","operator":"=","val
                                 value=DynamicValue(column_name='expected_delivery_date')
                             )
                         ],
-                        name=None,
+                        name='May 2022 Fulfilled Orders Not Delivered on Time',
                         order_by=<OrderBy.asc: 'asc'>,
                         table_name=<Table.orders: 'orders'>
                     )
                 ),
-                id='call_Un4g0IXeQGOyqKBS3zhqNCox',
+                id='call_NKpApJybW1MzOjZO2FzwYw0d',
                 type='function'
             )
         ]
@@ -470,7 +492,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
                 response_format=Location,
             ),
             content_snapshot=snapshot(
-                '{"id": "chatcmpl-9tXjYACgVKixKdMv2nVQqDVELkdSF", "object": "chat.completion", "created": 1723024740, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"", "refusal": null}, "logprobs": null, "finish_reason": "length"}], "usage": {"prompt_tokens": 17, "completion_tokens": 1, "total_tokens": 18}, "system_fingerprint": "fp_2a322c9ffc"}'
+                '{"id": "chatcmpl-ABfvvX7eB1KsfeZj8VcF3z7G7SbaA", "object": "chat.completion", "created": 1727346163, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"", "refusal": null}, "logprobs": null, "finish_reason": "length"}], "usage": {"prompt_tokens": 79, "completion_tokens": 1, "total_tokens": 80, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_7568d46099"}'
             ),
             mock_client=client,
             respx_mock=respx_mock,
@@ -496,7 +518,7 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
             response_format=Location,
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXm7FnIj3hSot5xM4c954MIePle0", "object": "chat.completion", "created": 1723024899, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "refusal": "I\'m very sorry, but I can\'t assist with that request."}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 17, "completion_tokens": 13, "total_tokens": 30}, "system_fingerprint": "fp_845eaabc1f"}'
+            '{"id": "chatcmpl-ABfvwoKVWPQj2UPlAcAKM7s40GsRx", "object": "chat.completion", "created": 1727346164, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "refusal": "I\'m very sorry, but I can\'t assist with that."}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 12, "total_tokens": 91, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -513,7 +535,7 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
             content=None,
             function_call=None,
             parsed=None,
-            refusal="I'm very sorry, but I can't assist with that request.",
+            refusal="I'm very sorry, but I can't assist with that.",
             role='assistant',
             tool_calls=[]
         )
@@ -544,7 +566,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
             ],
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjbQ9V0l5XPlynOJHKvrWsJQymO", "object": "chat.completion", "created": 1723024743, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_EEaIYq8aTdiDWro8jILNl3XK", "type": "function", "function": {"name": "GetWeatherArgs", "arguments": "{\\"city\\":\\"Edinburgh\\",\\"country\\":\\"GB\\",\\"units\\":\\"c\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 76, "completion_tokens": 24, "total_tokens": 100}, "system_fingerprint": "fp_2a322c9ffc"}'
+            '{"id": "chatcmpl-ABfvx6Z4dchiW2nya1N8KMsHFrQRE", "object": "chat.completion", "created": 1727346165, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_Y6qJ7ofLgOrBnMD5WbVAeiRV", "type": "function", "function": {"name": "GetWeatherArgs", "arguments": "{\\"city\\":\\"Edinburgh\\",\\"country\\":\\"UK\\",\\"units\\":\\"c\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 76, "completion_tokens": 24, "total_tokens": 100, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_e45dabd248"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -566,11 +588,11 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
             tool_calls=[
                 ParsedFunctionToolCall(
                     function=ParsedFunction(
-                        arguments='{"city":"Edinburgh","country":"GB","units":"c"}',
+                        arguments='{"city":"Edinburgh","country":"UK","units":"c"}',
                         name='GetWeatherArgs',
-                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='GB', units='c')
+                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
                     ),
-                    id='call_EEaIYq8aTdiDWro8jILNl3XK',
+                    id='call_Y6qJ7ofLgOrBnMD5WbVAeiRV',
                     type='function'
                 )
             ]
@@ -615,7 +637,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
             ],
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjcnIvzZDXRfLfbVTPNL5963GWw", "object": "chat.completion", "created": 1723024744, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_ECSuZ8gcNPPwgt24me91jHsJ", "type": "function", "function": {"name": "GetWeatherArgs", "arguments": "{\\"city\\": \\"Edinburgh\\", \\"country\\": \\"UK\\", \\"units\\": \\"c\\"}"}}, {"id": "call_Z3fM2sNBBGILhMtimk5Y3RQk", "type": "function", "function": {"name": "get_stock_price", "arguments": "{\\"ticker\\": \\"AAPL\\", \\"exchange\\": \\"NASDAQ\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 149, "completion_tokens": 60, "total_tokens": 209}, "system_fingerprint": "fp_845eaabc1f"}'
+            '{"id": "chatcmpl-ABfvyvfNWKcl7Ohqos4UFrmMs1v4C", "object": "chat.completion", "created": 1727346166, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_fdNz3vOBKYgOIpMdWotB9MjY", "type": "function", "function": {"name": "GetWeatherArgs", "arguments": "{\\"city\\": \\"Edinburgh\\", \\"country\\": \\"GB\\", \\"units\\": \\"c\\"}"}}, {"id": "call_h1DWI1POMJLb0KwIyQHWXD4p", "type": "function", "function": {"name": "get_stock_price", "arguments": "{\\"ticker\\": \\"AAPL\\", \\"exchange\\": \\"NASDAQ\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 149, "completion_tokens": 60, "total_tokens": 209, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_b40fb1c6fb"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -637,11 +659,11 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
             tool_calls=[
                 ParsedFunctionToolCall(
                     function=ParsedFunction(
-                        arguments='{"city": "Edinburgh", "country": "UK", "units": "c"}',
+                        arguments='{"city": "Edinburgh", "country": "GB", "units": "c"}',
                         name='GetWeatherArgs',
-                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
+                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='GB', units='c')
                     ),
-                    id='call_ECSuZ8gcNPPwgt24me91jHsJ',
+                    id='call_fdNz3vOBKYgOIpMdWotB9MjY',
                     type='function'
                 ),
                 ParsedFunctionToolCall(
@@ -650,7 +672,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
                         name='get_stock_price',
                         parsed_arguments=GetStockPrice(exchange='NASDAQ', ticker='AAPL')
                     ),
-                    id='call_Z3fM2sNBBGILhMtimk5Y3RQk',
+                    id='call_h1DWI1POMJLb0KwIyQHWXD4p',
                     type='function'
                 )
             ]
@@ -695,7 +717,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
             ],
         ),
         content_snapshot=snapshot(
-            '{"id": "chatcmpl-9tXjfjETDIqeYvDjsuGACbwdY0xsr", "object": "chat.completion", "created": 1723024747, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_7ZZPctBXQWexQlIHSrIHMVUq", "type": "function", "function": {"name": "get_weather", "arguments": "{\\"city\\":\\"San Francisco\\",\\"state\\":\\"CA\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 48, "completion_tokens": 19, "total_tokens": 67}, "system_fingerprint": "fp_2a322c9ffc"}'
+            '{"id": "chatcmpl-ABfvzdvCI6RaIkiEFNjqGXCSYnlzf", "object": "chat.completion", "created": 1727346167, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "tool_calls": [{"id": "call_CUdUoJpsWWVdxXntucvnol1M", "type": "function", "function": {"name": "get_weather", "arguments": "{\\"city\\":\\"San Francisco\\",\\"state\\":\\"CA\\"}"}}], "refusal": null}, "logprobs": null, "finish_reason": "tool_calls"}], "usage": {"prompt_tokens": 48, "completion_tokens": 19, "total_tokens": 67, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
         ),
         mock_client=client,
         respx_mock=respx_mock,
@@ -721,7 +743,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
                         name='get_weather',
                         parsed_arguments={'city': 'San Francisco', 'state': 'CA'}
                     ),
-                    id='call_7ZZPctBXQWexQlIHSrIHMVUq',
+                    id='call_CUdUoJpsWWVdxXntucvnol1M',
                     type='function'
                 )
             ]
