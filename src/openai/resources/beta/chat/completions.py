@@ -2,16 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, List, Type, Union, Iterable, Optional, cast
 from functools import partial
 from typing_extensions import Literal
 
 import httpx
 
+from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ...._utils import maybe_transform, async_maybe_transform
+from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
+from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ...._streaming import Stream
 from ....types.chat import completion_create_params
+from ...._base_client import make_request_options
 from ....lib._parsing import (
     ResponseFormatT,
     validate_input_tools as _validate_input_tools,
@@ -20,6 +25,7 @@ from ....lib._parsing import (
 )
 from ....types.chat_model import ChatModel
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
+from ....types.chat.chat_completion import ChatCompletion
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.parsed_chat_completion import ParsedChatCompletion
 from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
@@ -31,6 +37,25 @@ __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
+    @cached_property
+    def with_raw_response(self) -> CompletionsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return CompletionsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> CompletionsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return CompletionsWithStreamingResponse(self)
+
     def parse(
         self,
         *,
@@ -113,39 +138,55 @@ class Completions(SyncAPIResource):
             **(extra_headers or {}),
         }
 
-        raw_completion = self._client.chat.completions.create(
-            messages=messages,
-            model=model,
-            response_format=_type_to_response_format(response_format),
-            frequency_penalty=frequency_penalty,
-            function_call=function_call,
-            functions=functions,
-            logit_bias=logit_bias,
-            logprobs=logprobs,
-            max_completion_tokens=max_completion_tokens,
-            max_tokens=max_tokens,
-            n=n,
-            parallel_tool_calls=parallel_tool_calls,
-            presence_penalty=presence_penalty,
-            seed=seed,
-            service_tier=service_tier,
-            stop=stop,
-            stream_options=stream_options,
-            temperature=temperature,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            user=user,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return _parse_chat_completion(
-            response_format=response_format,
-            chat_completion=raw_completion,
-            input_tools=tools,
+        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
+            return _parse_chat_completion(
+                response_format=response_format,
+                chat_completion=raw_completion,
+                input_tools=tools,
+            )
+
+        return self._post(
+            "/chat/completions",
+            body=maybe_transform(
+                {
+                    "messages": messages,
+                    "model": model,
+                    "frequency_penalty": frequency_penalty,
+                    "function_call": function_call,
+                    "functions": functions,
+                    "logit_bias": logit_bias,
+                    "logprobs": logprobs,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_tokens": max_tokens,
+                    "n": n,
+                    "parallel_tool_calls": parallel_tool_calls,
+                    "presence_penalty": presence_penalty,
+                    "response_format": _type_to_response_format(response_format),
+                    "seed": seed,
+                    "service_tier": service_tier,
+                    "stop": stop,
+                    "stream": False,
+                    "stream_options": stream_options,
+                    "temperature": temperature,
+                    "tool_choice": tool_choice,
+                    "tools": tools,
+                    "top_logprobs": top_logprobs,
+                    "top_p": top_p,
+                    "user": user,
+                },
+                completion_create_params.CompletionCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                post_parser=parser,
+            ),
+            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
+            # in the `parser` function above
+            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
+            stream=False,
         )
 
     def stream(
@@ -247,6 +288,25 @@ class Completions(SyncAPIResource):
 
 
 class AsyncCompletions(AsyncAPIResource):
+    @cached_property
+    def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return the
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
+        return AsyncCompletionsWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncCompletionsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
+        return AsyncCompletionsWithStreamingResponse(self)
+
     async def parse(
         self,
         *,
@@ -329,39 +389,55 @@ class AsyncCompletions(AsyncAPIResource):
             **(extra_headers or {}),
         }
 
-        raw_completion = await self._client.chat.completions.create(
-            messages=messages,
-            model=model,
-            response_format=_type_to_response_format(response_format),
-            frequency_penalty=frequency_penalty,
-            function_call=function_call,
-            functions=functions,
-            logit_bias=logit_bias,
-            logprobs=logprobs,
-            max_completion_tokens=max_completion_tokens,
-            max_tokens=max_tokens,
-            n=n,
-            parallel_tool_calls=parallel_tool_calls,
-            presence_penalty=presence_penalty,
-            seed=seed,
-            service_tier=service_tier,
-            stop=stop,
-            stream_options=stream_options,
-            temperature=temperature,
-            tool_choice=tool_choice,
-            tools=tools,
-            top_logprobs=top_logprobs,
-            top_p=top_p,
-            user=user,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
-        return _parse_chat_completion(
-            response_format=response_format,
-            chat_completion=raw_completion,
-            input_tools=tools,
+        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
+            return _parse_chat_completion(
+                response_format=response_format,
+                chat_completion=raw_completion,
+                input_tools=tools,
+            )
+
+        return await self._post(
+            "/chat/completions",
+            body=await async_maybe_transform(
+                {
+                    "messages": messages,
+                    "model": model,
+                    "frequency_penalty": frequency_penalty,
+                    "function_call": function_call,
+                    "functions": functions,
+                    "logit_bias": logit_bias,
+                    "logprobs": logprobs,
+                    "max_completion_tokens": max_completion_tokens,
+                    "max_tokens": max_tokens,
+                    "n": n,
+                    "parallel_tool_calls": parallel_tool_calls,
+                    "presence_penalty": presence_penalty,
+                    "response_format": _type_to_response_format(response_format),
+                    "seed": seed,
+                    "service_tier": service_tier,
+                    "stop": stop,
+                    "stream": False,
+                    "stream_options": stream_options,
+                    "temperature": temperature,
+                    "tool_choice": tool_choice,
+                    "tools": tools,
+                    "top_logprobs": top_logprobs,
+                    "top_p": top_p,
+                    "user": user,
+                },
+                completion_create_params.CompletionCreateParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                post_parser=parser,
+            ),
+            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
+            # in the `parser` function above
+            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
+            stream=False,
         )
 
     def stream(
@@ -460,4 +536,40 @@ class AsyncCompletions(AsyncAPIResource):
             api_request,
             response_format=response_format,
             input_tools=tools,
+        )
+
+
+class CompletionsWithRawResponse:
+    def __init__(self, completions: Completions) -> None:
+        self._completions = completions
+
+        self.parse = _legacy_response.to_raw_response_wrapper(
+            completions.parse,
+        )
+
+
+class AsyncCompletionsWithRawResponse:
+    def __init__(self, completions: AsyncCompletions) -> None:
+        self._completions = completions
+
+        self.parse = _legacy_response.async_to_raw_response_wrapper(
+            completions.parse,
+        )
+
+
+class CompletionsWithStreamingResponse:
+    def __init__(self, completions: Completions) -> None:
+        self._completions = completions
+
+        self.parse = to_streamed_response_wrapper(
+            completions.parse,
+        )
+
+
+class AsyncCompletionsWithStreamingResponse:
+    def __init__(self, completions: AsyncCompletions) -> None:
+        self._completions = completions
+
+        self.parse = async_to_streamed_response_wrapper(
+            completions.parse,
         )
