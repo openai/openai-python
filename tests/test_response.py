@@ -18,6 +18,8 @@ from openai._response import (
 from openai._streaming import Stream
 from openai._base_client import FinalRequestOptions
 
+from .utils import rich_print_str
+
 
 class ConcreteBaseAPIResponse(APIResponse[bytes]): ...
 
@@ -175,6 +177,8 @@ def test_response_basemodel_request_id(client: OpenAI) -> None:
     assert obj.foo == "hello!"
     assert obj.bar == 2
     assert obj.to_dict() == {"foo": "hello!", "bar": 2}
+    assert "_request_id" not in rich_print_str(obj)
+    assert "__exclude_fields__" not in rich_print_str(obj)
 
 
 @pytest.mark.asyncio
