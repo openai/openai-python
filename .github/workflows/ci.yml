@@ -6,7 +6,6 @@ on:
   pull_request:
     branches:
       - main
-      - next
 
 jobs:
   lint:
