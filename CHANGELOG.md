@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.50.0 (2024-09-26)
+
+Full Changelog: [v1.49.0...v1.50.0](https://github.com/openai/openai-python/compare/v1.49.0...v1.50.0)
+
+### Features
+
+* **structured outputs:** add support for accessing raw responses ([#1748](https://github.com/openai/openai-python/issues/1748)) ([0189e28](https://github.com/openai/openai-python/commit/0189e28b0b062a28b16343da0460a4f0f4e17a9a))
+
+
+### Chores
+
+* **pydantic v1:** exclude specific properties when rich printing ([#1751](https://github.com/openai/openai-python/issues/1751)) ([af535ce](https://github.com/openai/openai-python/commit/af535ce6a523eca39438f117a3e55f16064567a9))
+
 ## 1.49.0 (2024-09-26)
 
 Full Changelog: [v1.48.0...v1.49.0](https://github.com/openai/openai-python/compare/v1.48.0...v1.49.0)
