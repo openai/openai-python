@@ -48,7 +48,7 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
                 },
             ],
         ),
-        content_snapshot=snapshot(external("e2aad469b71d*.bin")),
+        content_snapshot=snapshot(external("3e005c33112c*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -61,8 +61,8 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
-            content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I 
-recommend checking a reliable weather website or a weather app.",
+            content="I'm unable to provide real-time weather updates. For the most current weather in San Francisco, I 
+recommend checking a reliable weather website or using a weather app.",
             function_call=None,
             parsed=None,
             refusal=None,
@@ -76,8 +76,8 @@ recommend checking a reliable weather website or a weather app.",
     assert print_obj(listener.get_event_by_type("content.done"), monkeypatch) == snapshot(
         """\
 ContentDoneEvent[NoneType](
-    content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I recommend 
-checking a reliable weather website or a weather app.",
+    content="I'm unable to provide real-time weather updates. For the most current weather in San Francisco, I recommend
+checking a reliable weather website or using a weather app.",
     parsed=None,
     type='content.done'
 )
@@ -109,7 +109,7 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
             ],
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("7e5ea4d12e7c*.bin")),
+        content_snapshot=snapshot(external("f9807613408b*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
         on_event=on_event,
@@ -138,17 +138,17 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
-                content='{"city":"San Francisco","temperature":61,"units":"f"}',
+                content='{"city":"San Francisco","temperature":64,"units":"f"}',
                 function_call=None,
-                parsed=Location(city='San Francisco', temperature=61.0, units='f'),
+                parsed=Location(city='San Francisco', temperature=64.0, units='f'),
                 refusal=None,
                 role='assistant',
                 tool_calls=[]
             )
         )
     ],
-    created=1727346169,
-    id='chatcmpl-ABfw1e5abtU8OwGr15vOreYVb2MiF',
+    created=1727347599,
+    id='chatcmpl-ABgJ5sWpemWKMgA4pd0GRlmmpGHX0',
     model='gpt-4o-2024-08-06',
     object='chat.completion',
     service_tier=None,
@@ -165,8 +165,8 @@ ParsedChatCompletion[Location](
     assert print_obj(listener.get_event_by_type("content.done"), monkeypatch) == snapshot(
         """\
 ContentDoneEvent[Location](
-    content='{"city":"San Francisco","temperature":61,"units":"f"}',
-    parsed=Location(city='San Francisco', temperature=61.0, units='f'),
+    content='{"city":"San Francisco","temperature":64,"units":"f"}',
+    parsed=Location(city='San Francisco', temperature=64.0, units='f'),
     type='content.done'
 )
 """
@@ -194,7 +194,7 @@ def test_parse_pydantic_model_multiple_choices(
             n=3,
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("a491adda08c3*.bin")),
+        content_snapshot=snapshot(external("07fc6368a471*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -308,9 +308,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":65,"units":"f"}',
+            content='{"city":"San Francisco","temperature":60,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=65.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=60.0, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -321,9 +321,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=1,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":61,"units":"f"}',
+            content='{"city":"San Francisco","temperature":64,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=61.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=64.0, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -334,9 +334,9 @@ def test_parse_pydantic_model_multiple_choices(
         index=2,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
-            content='{"city":"San Francisco","temperature":59,"units":"f"}',
+            content='{"city":"San Francisco","temperature":68,"units":"f"}',
             function_call=None,
-            parsed=Location(city='San Francisco', temperature=59.0, units='f'),
+            parsed=Location(city='San Francisco', temperature=68.0, units='f'),
             refusal=None,
             role='assistant',
             tool_calls=[]
@@ -367,7 +367,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
                 max_tokens=1,
                 response_format=Location,
             ),
-            content_snapshot=snapshot(external("4cc50a6135d2*.bin")),
+            content_snapshot=snapshot(external("7cb5136bff92*.bin")),
             mock_client=client,
             respx_mock=respx_mock,
         )
@@ -391,13 +391,13 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
             ],
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("173417d55340*.bin")),
+        content_snapshot=snapshot(external("831699086ad4*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
 
     assert print_obj(listener.get_event_by_type("refusal.done"), monkeypatch) == snapshot("""\
-RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='refusal.done')
+RefusalDoneEvent(refusal="I'm very sorry, but I can't assist with that request.", type='refusal.done')
 """)
 
     assert print_obj(listener.stream.get_final_completion().choices, monkeypatch) == snapshot(
@@ -411,7 +411,7 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
             content=None,
             function_call=None,
             parsed=None,
-            refusal="I'm sorry, I can't assist with that request.",
+            refusal="I'm very sorry, but I can't assist with that request.",
             role='assistant',
             tool_calls=[]
         )
@@ -434,7 +434,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             ],
             logprobs=True,
         ),
-        content_snapshot=snapshot(external("83b060bae42e*.bin")),
+        content_snapshot=snapshot(external("c2bbcc5b1897*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -442,26 +442,22 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
     assert print_obj([e for e in listener.events if e.type.startswith("logprobs")], monkeypatch) == snapshot("""\
 [
     LogprobsContentDeltaEvent(
-        content=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0025094282, token='Foo', top_logprobs=[])
-        ],
-        snapshot=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0025094282, token='Foo', top_logprobs=[])
-        ],
+        content=[ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.00867213, token='Foo', top_logprobs=[])],
+        snapshot=[ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.00867213, token='Foo', top_logprobs=[])],
         type='logprobs.content.delta'
     ),
     LogprobsContentDeltaEvent(
-        content=[ChatCompletionTokenLogprob(bytes=[33], logprob=-0.26638845, token='!', top_logprobs=[])],
+        content=[ChatCompletionTokenLogprob(bytes=[33], logprob=-0.19675663, token='!', top_logprobs=[])],
         snapshot=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0025094282, token='Foo', top_logprobs=[]),
-            ChatCompletionTokenLogprob(bytes=[33], logprob=-0.26638845, token='!', top_logprobs=[])
+            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.00867213, token='Foo', top_logprobs=[]),
+            ChatCompletionTokenLogprob(bytes=[33], logprob=-0.19675663, token='!', top_logprobs=[])
         ],
         type='logprobs.content.delta'
     ),
     LogprobsContentDoneEvent(
         content=[
-            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0025094282, token='Foo', top_logprobs=[]),
-            ChatCompletionTokenLogprob(bytes=[33], logprob=-0.26638845, token='!', top_logprobs=[])
+            ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.00867213, token='Foo', top_logprobs=[]),
+            ChatCompletionTokenLogprob(bytes=[33], logprob=-0.19675663, token='!', top_logprobs=[])
         ],
         type='logprobs.content.done'
     )
@@ -475,8 +471,8 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
         index=0,
         logprobs=ChoiceLogprobs(
             content=[
-                ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.0025094282, token='Foo', top_logprobs=[]),
-                ChatCompletionTokenLogprob(bytes=[33], logprob=-0.26638845, token='!', top_logprobs=[])
+                ChatCompletionTokenLogprob(bytes=[70, 111, 111], logprob=-0.00867213, token='Foo', top_logprobs=[]),
+                ChatCompletionTokenLogprob(bytes=[33], logprob=-0.19675663, token='!', top_logprobs=[])
             ],
             refusal=None
         ),
@@ -512,7 +508,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             logprobs=True,
             response_format=Location,
         ),
-        content_snapshot=snapshot(external("569c877e6942*.bin")),
+        content_snapshot=snapshot(external("2672a71c7793*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -545,49 +541,49 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
                 ChatCompletionTokenLogprob(bytes=[73, 39, 109], logprob=-0.0012038043, token="I'm", top_logprobs=[]),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 118, 101, 114, 121],
-                    logprob=-0.8438816,
+                    logprob=-0.7845193,
                     token=' very',
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 115, 111, 114, 114, 121],
-                    logprob=-3.4121115e-06,
+                    logprob=-8.537869e-06,
                     token=' sorry',
                     top_logprobs=[]
                 ),
-                ChatCompletionTokenLogprob(bytes=[44], logprob=-3.3809047e-05, token=',', top_logprobs=[]),
+                ChatCompletionTokenLogprob(bytes=[44], logprob=-3.0828953e-05, token=',', top_logprobs=[]),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 98, 117, 116],
-                    logprob=-0.038048144,
+                    logprob=-0.029754885,
                     token=' but',
                     top_logprobs=[]
                 ),
-                ChatCompletionTokenLogprob(bytes=[32, 73], logprob=-0.0016109125, token=' I', top_logprobs=[]),
+                ChatCompletionTokenLogprob(bytes=[32, 73], logprob=-0.0018191704, token=' I', top_logprobs=[]),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 99, 97, 110, 39, 116],
-                    logprob=-0.0073532974,
+                    logprob=-0.0114746485,
                     token=" can't",
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 97, 115, 115, 105, 115, 116],
-                    logprob=-0.0020837625,
+                    logprob=-0.0023167727,
                     token=' assist',
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 119, 105, 116, 104],
-                    logprob=-0.00318354,
+                    logprob=-0.0052390876,
                     token=' with',
                     top_logprobs=[]
                 ),
                 ChatCompletionTokenLogprob(
                     bytes=[32, 116, 104, 97, 116],
-                    logprob=-0.0017186158,
+                    logprob=-0.0016676846,
                     token=' that',
                     top_logprobs=[]
                 ),
-                ChatCompletionTokenLogprob(bytes=[46], logprob=-0.57687104, token='.', top_logprobs=[])
+                ChatCompletionTokenLogprob(bytes=[46], logprob=-0.63433325, token='.', top_logprobs=[])
             ]
         ),
         message=ParsedChatCompletionMessage[Location](
@@ -623,7 +619,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
                 openai.pydantic_function_tool(GetWeatherArgs),
             ],
         ),
-        content_snapshot=snapshot(external("c6aa7e397b71*.bin")),
+        content_snapshot=snapshot(external("78eb8762cd28*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -648,7 +644,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
                         name='GetWeatherArgs',
                         parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
                     ),
-                    id='call_c91SqDXlYFuETYv8mUHzz6pp',
+                    id='call_GaxOHx7TMW5ozlqDe64MlazG',
                     index=0,
                     type='function'
                 )
@@ -679,7 +675,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
                         name='GetWeatherArgs',
                         parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
                     ),
-                    id='call_c91SqDXlYFuETYv8mUHzz6pp',
+                    id='call_GaxOHx7TMW5ozlqDe64MlazG',
                     index=0,
                     type='function'
                 )
@@ -724,7 +720,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
                 ),
             ],
         ),
-        content_snapshot=snapshot(external("f82268f2fefd*.bin")),
+        content_snapshot=snapshot(external("80e47fe8b714*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -745,11 +741,11 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
             tool_calls=[
                 ParsedFunctionToolCall(
                     function=ParsedFunction(
-                        arguments='{"city": "Edinburgh", "country": "GB", "units": "c"}',
+                        arguments='{"city": "Edinburgh", "country": "UK", "units": "c"}',
                         name='GetWeatherArgs',
-                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='GB', units='c')
+                        parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
                     ),
-                    id='call_JMW1whyEaYG438VE1OIflxA2',
+                    id='call_DUIfURCaEhuke5aUHUG9drKQ',
                     index=0,
                     type='function'
                 ),
@@ -759,7 +755,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
                         name='get_stock_price',
                         parsed_arguments=GetStockPrice(exchange='NASDAQ', ticker='AAPL')
                     ),
-                    id='call_DNYTawLBoN8fj3KN6qU9N1Ou',
+                    id='call_bxtBSMiFZj9tpEEoR2HvbYAV',
                     index=1,
                     type='function'
                 )
@@ -775,11 +771,11 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
 [
     ParsedFunctionToolCall(
         function=ParsedFunction(
-            arguments='{"city": "Edinburgh", "country": "GB", "units": "c"}',
+            arguments='{"city": "Edinburgh", "country": "UK", "units": "c"}',
             name='GetWeatherArgs',
-            parsed_arguments=GetWeatherArgs(city='Edinburgh', country='GB', units='c')
+            parsed_arguments=GetWeatherArgs(city='Edinburgh', country='UK', units='c')
         ),
-        id='call_JMW1whyEaYG438VE1OIflxA2',
+        id='call_DUIfURCaEhuke5aUHUG9drKQ',
         index=0,
         type='function'
     ),
@@ -789,7 +785,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
             name='get_stock_price',
             parsed_arguments=GetStockPrice(exchange='NASDAQ', ticker='AAPL')
         ),
-        id='call_DNYTawLBoN8fj3KN6qU9N1Ou',
+        id='call_bxtBSMiFZj9tpEEoR2HvbYAV',
         index=1,
         type='function'
     )
@@ -831,7 +827,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
                 }
             ],
         ),
-        content_snapshot=snapshot(external("a247c49c5fcd*.bin")),
+        content_snapshot=snapshot(external("04fbc4717b37*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -856,7 +852,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
                         name='get_weather',
                         parsed_arguments={'city': 'San Francisco', 'state': 'CA'}
                     ),
-                    id='call_CTf1nWJLqSeRgDqaCG27xZ74',
+                    id='call_nZUB8dEnPSMykLtTKRRS3sT8',
                     index=0,
                     type='function'
                 )
@@ -881,7 +877,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
             ],
             response_format={"type": "json_object"},
         ),
-        content_snapshot=snapshot(external("d61558011839*.bin")),
+        content_snapshot=snapshot(external("56dbdd87d96d*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -894,12 +890,8 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
-            content='\\n  {\\n    "location": "San Francisco, CA",\\n    "weather": {\\n      "temperature": "18°C",\\n      
-"condition": "Partly Cloudy",\\n      "humidity": "72%",\\n      "windSpeed": "15 km/h",\\n      "windDirection": "NW"\\n   
-},\\n    "forecast": [\\n      {\\n        "day": "Monday",\\n        "high": "20°C",\\n        "low": "14°C",\\n        
-"condition": "Sunny"\\n      },\\n      {\\n        "day": "Tuesday",\\n        "high": "19°C",\\n        "low": "15°C",\\n   
-"condition": "Mostly Cloudy"\\n      },\\n      {\\n        "day": "Wednesday",\\n        "high": "18°C",\\n        "low": 
-"14°C",\\n        "condition": "Cloudy"\\n      }\\n    ]\\n  }\\n',
+            content='\\n\\n\\n\\n\\n{\\n  "error": "I\\'m unable to provide real-time weather information. Please check a 
+weather website or app for the current conditions in San Francisco."\\n}',
             function_call=None,
             parsed=None,
             refusal=None,
@@ -930,7 +922,7 @@ def test_allows_non_strict_tools_but_no_parsing(
                 }
             ],
         ),
-        content_snapshot=snapshot(external("2018feb66ae1*.bin")),
+        content_snapshot=snapshot(external("1f7bdb779714*.bin")),
         mock_client=client,
         respx_mock=respx_mock,
     )
@@ -965,7 +957,7 @@ FunctionToolCallArgumentsDoneEvent(
                         name='get_weather',
                         parsed_arguments=None
                     ),
-                    id='call_4XzlGBLtUe9dy3GVNV4jhq7h',
+                    id='call_2NCpRQ3wEuK4kOH1budBUmZv',
                     index=0,
                     type='function'
                 )
