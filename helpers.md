@@ -128,7 +128,7 @@ The `beta.chat.completions.parse()` method imposes some additional restrictions 
 
 # Streaming Helpers
 
-OpenAI supports streaming responses when interacting with the [Chat Completion] & [Assistant](#assistant-streaming-api) APIs.
+OpenAI supports streaming responses when interacting with the [Chat Completion](#chat-completions-api) & [Assistant](#assistant-streaming-api) APIs.
 
 ## Chat Completions API
 
