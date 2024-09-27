@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Union, Mapping, cast, overload
-from typing_extensions import Literal, assert_never
+from typing import TYPE_CHECKING, List, Union, Mapping, cast
+from typing_extensions import Literal, overload, assert_never
 
 import httpx
 
@@ -55,7 +55,7 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
+        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
@@ -113,7 +113,7 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -219,7 +219,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
+        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
@@ -277,7 +277,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.

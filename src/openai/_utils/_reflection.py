@@ -15,6 +15,7 @@ def assert_signatures_in_sync(
     check_func: Callable[..., Any],
     *,
     exclude_params: set[str] = set(),
+    description: str = "",
 ) -> None:
     """Ensure that the signature of the second function matches the first."""
 
@@ -39,4 +40,6 @@ def assert_signatures_in_sync(
             continue
 
     if errors:
-        raise AssertionError(f"{len(errors)} errors encountered when comparing signatures:\n\n" + "\n\n".join(errors))
+        raise AssertionError(
+            f"{len(errors)} errors encountered when comparing signatures{description}:\n\n" + "\n\n".join(errors)
+        )

@@ -55,7 +55,7 @@ class Translations(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
+        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -106,7 +106,7 @@ class Translations(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -198,7 +198,7 @@ class AsyncTranslations(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
+        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -249,7 +249,7 @@ class AsyncTranslations(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
