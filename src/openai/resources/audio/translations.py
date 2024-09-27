@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Union, Mapping, cast
 from typing_extensions import Literal, overload
 
@@ -27,6 +28,8 @@ from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.translation_verbose import TranslationVerbose
 
 __all__ = ["Translations", "AsyncTranslations"]
+
+log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 class Translations(SyncAPIResource):
@@ -354,7 +357,7 @@ class AsyncTranslationsWithStreamingResponse:
 def _get_response_format_type(
     response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven,
 ) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, NotGiven):
+    if isinstance(response_format, NotGiven) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
         return Translation
 
     if response_format == "json":
@@ -366,5 +369,5 @@ def _get_response_format_type(
     elif TYPE_CHECKING:
         assert_never(response_format)
     else:
-        # TODO; warn
+        log.warn("Unexpected audio response format: %s", response_format)
         return Transcription
