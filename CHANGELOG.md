@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.50.1 (2024-09-27)
+
+Full Changelog: [v1.50.0...v1.50.1](https://github.com/openai/openai-python/compare/v1.50.0...v1.50.1)
+
+### Documentation
+
+* **helpers:** fix chat completion anchor ([#1753](https://github.com/openai/openai-python/issues/1753)) ([956d4e8](https://github.com/openai/openai-python/commit/956d4e8e32507fbce399f4619e06daa9d37a0532))
+
 ## 1.50.0 (2024-09-26)
 
 Full Changelog: [v1.49.0...v1.50.0](https://github.com/openai/openai-python/compare/v1.49.0...v1.50.0)
