@@ -9,7 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.audio import Translation
+from openai.types.audio import TranslationCreateResponse
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -23,7 +23,7 @@ class TestTranslations:
             file=b"raw file contents",
             model="whisper-1",
         )
-        assert_matches_type(Translation, translation, path=["response"])
+        assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
@@ -34,7 +34,7 @@ class TestTranslations:
             response_format="json",
             temperature=0,
         )
-        assert_matches_type(Translation, translation, path=["response"])
+        assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
@@ -46,7 +46,7 @@ class TestTranslations:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         translation = response.parse()
-        assert_matches_type(Translation, translation, path=["response"])
+        assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
@@ -58,7 +58,7 @@ class TestTranslations:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             translation = response.parse()
-            assert_matches_type(Translation, translation, path=["response"])
+            assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -72,7 +72,7 @@ class TestAsyncTranslations:
             file=b"raw file contents",
             model="whisper-1",
         )
-        assert_matches_type(Translation, translation, path=["response"])
+        assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
@@ -83,7 +83,7 @@ class TestAsyncTranslations:
             response_format="json",
             temperature=0,
         )
-        assert_matches_type(Translation, translation, path=["response"])
+        assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
@@ -95,7 +95,7 @@ class TestAsyncTranslations:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         translation = response.parse()
-        assert_matches_type(Translation, translation, path=["response"])
+        assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
@@ -107,6 +107,6 @@ class TestAsyncTranslations:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             translation = await response.parse()
-            assert_matches_type(Translation, translation, path=["response"])
+            assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
         assert cast(Any, response.is_closed) is True

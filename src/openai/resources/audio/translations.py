@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Mapping, cast
+from typing import Any, Union, Mapping, cast
 
 import httpx
 
@@ -21,8 +21,8 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...types.audio.translation import Translation
 from ...types.audio_response_format import AudioResponseFormat
+from ...types.audio.translation_create_response import TranslationCreateResponse
 
 __all__ = ["Translations", "AsyncTranslations"]
 
@@ -61,7 +61,7 @@ class Translations(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Translation:
+    ) -> TranslationCreateResponse:
         """
         Translates audio into English.
 
@@ -108,14 +108,19 @@ class Translations(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return self._post(
-            "/audio/translations",
-            body=maybe_transform(body, translation_create_params.TranslationCreateParams),
-            files=files,
-            options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+        return cast(
+            TranslationCreateResponse,
+            self._post(
+                "/audio/translations",
+                body=maybe_transform(body, translation_create_params.TranslationCreateParams),
+                files=files,
+                options=make_request_options(
+                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                ),
+                cast_to=cast(
+                    Any, TranslationCreateResponse
+                ),  # Union types cannot be passed in as arguments in the type system
             ),
-            cast_to=Translation,
         )
 
 
@@ -153,7 +158,7 @@ class AsyncTranslations(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Translation:
+    ) -> TranslationCreateResponse:
         """
         Translates audio into English.
 
@@ -200,14 +205,19 @@ class AsyncTranslations(AsyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return await self._post(
-            "/audio/translations",
-            body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
-            files=files,
-            options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+        return cast(
+            TranslationCreateResponse,
+            await self._post(
+                "/audio/translations",
+                body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
+                files=files,
+                options=make_request_options(
+                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                ),
+                cast_to=cast(
+                    Any, TranslationCreateResponse
+                ),  # Union types cannot be passed in as arguments in the type system
             ),
-            cast_to=Translation,
         )
 
 
