@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.50.2 (2024-09-27)
+
+Full Changelog: [v1.50.1...v1.50.2](https://github.com/openai/openai-python/compare/v1.50.1...v1.50.2)
+
+### Bug Fixes
+
+* **audio:** correct types for transcriptions / translations ([#1755](https://github.com/openai/openai-python/issues/1755)) ([76c1f3f](https://github.com/openai/openai-python/commit/76c1f3f318b68003aae124c02efc4547a398a864))
+
 ## 1.50.1 (2024-09-27)
 
 Full Changelog: [v1.50.0...v1.50.1](https://github.com/openai/openai-python/compare/v1.50.0...v1.50.1)
