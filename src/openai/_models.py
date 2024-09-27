@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, Optional, cast
+from typing import TYPE_CHECKING, Any, Type, Tuple, Union, Generic, TypeVar, Callable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import (
     Unpack,
@@ -10,6 +10,7 @@ from typing_extensions import (
     ClassVar,
     Protocol,
     Required,
+    Sequence,
     ParamSpec,
     TypedDict,
     TypeGuard,
@@ -72,6 +73,8 @@ _BaseModelT = TypeVar("_BaseModelT", bound="BaseModel")
 
 P = ParamSpec("P")
 
+ReprArgs = Sequence[Tuple[Optional[str], Any]]
+
 
 @runtime_checkable
 class _ConfigProtocol(Protocol):
@@ -93,6 +96,11 @@ class BaseModel(pydantic.BaseModel):
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             extra: Any = pydantic.Extra.allow  # type: ignore
+
+        @override
+        def __repr_args__(self) -> ReprArgs:
+            # we don't want these attributes to be included when something like `rich.print` is used
+            return [arg for arg in super().__repr_args__() if arg[0] not in {"_request_id", "__exclude_fields__"}]
 
     if TYPE_CHECKING:
         _request_id: Optional[str] = None

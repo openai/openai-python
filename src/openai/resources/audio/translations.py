@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Any, Union, Mapping, cast
+from typing import Union, Mapping, cast
+from typing_extensions import Literal, overload
 
 import httpx
 
 from ... import _legacy_response
+from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import (
     extract_files,
@@ -20,7 +22,9 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...types.audio.translation_create_response import TranslationCreateResponse
+from ...types.audio.translation import Translation
+from ...types.audio_response_format import AudioResponseFormat
+from ...types.audio.translation_verbose import TranslationVerbose
 
 __all__ = ["Translations", "AsyncTranslations"]
 
@@ -45,13 +49,14 @@ class Translations(SyncAPIResource):
         """
         return TranslationsWithStreamingResponse(self)
 
+    @overload
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -59,7 +64,57 @@ class Translations(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> TranslationCreateResponse:
+    ) -> Translation: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["verbose_json"],
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> TranslationVerbose: ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["text", "srt", "vtt"],
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> str: ...
+
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
 
@@ -75,8 +130,8 @@ class Translations(SyncAPIResource):
               [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
               should be in English.
 
-          response_format: The format of the transcript output, in one of these options: `json`, `text`,
-              `srt`, `verbose_json`, or `vtt`.
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
@@ -106,19 +161,14 @@ class Translations(SyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return cast(
-            TranslationCreateResponse,
-            self._post(
-                "/audio/translations",
-                body=maybe_transform(body, translation_create_params.TranslationCreateParams),
-                files=files,
-                options=make_request_options(
-                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
-                ),
-                cast_to=cast(
-                    Any, TranslationCreateResponse
-                ),  # Union types cannot be passed in as arguments in the type system
+        return self._post(
+            "/audio/translations",
+            body=maybe_transform(body, translation_create_params.TranslationCreateParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
+            cast_to=_get_response_format_type(response_format),
         )
 
 
@@ -142,13 +192,14 @@ class AsyncTranslations(AsyncAPIResource):
         """
         return AsyncTranslationsWithStreamingResponse(self)
 
+    @overload
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        response_format: Literal["json"] | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -156,7 +207,57 @@ class AsyncTranslations(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> TranslationCreateResponse:
+    ) -> Translation: ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["verbose_json"],
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> TranslationVerbose: ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        response_format: Literal["text", "srt", "vtt"],
+        prompt: str | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> str: ...
+
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
 
@@ -172,8 +273,8 @@ class AsyncTranslations(AsyncAPIResource):
               [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
               should be in English.
 
-          response_format: The format of the transcript output, in one of these options: `json`, `text`,
-              `srt`, `verbose_json`, or `vtt`.
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
@@ -203,19 +304,14 @@ class AsyncTranslations(AsyncAPIResource):
         # sent to the server will contain a `boundary` parameter, e.g.
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
-        return cast(
-            TranslationCreateResponse,
-            await self._post(
-                "/audio/translations",
-                body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
-                files=files,
-                options=make_request_options(
-                    extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
-                ),
-                cast_to=cast(
-                    Any, TranslationCreateResponse
-                ),  # Union types cannot be passed in as arguments in the type system
+        return await self._post(
+            "/audio/translations",
+            body=await async_maybe_transform(body, translation_create_params.TranslationCreateParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
+            cast_to=_get_response_format_type(response_format),
         )
 
 
@@ -253,3 +349,22 @@ class AsyncTranslationsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             translations.create,
         )
+
+
+def _get_response_format_type(
+    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven,
+) -> type[Translation | TranslationVerbose | str]:
+    if isinstance(response_format, NotGiven):
+        return Translation
+
+    if response_format == "json":
+        return Translation
+    elif response_format == "verbose_json":
+        return TranslationVerbose
+    elif response_format == "srt" or response_format == "text" or response_format == "vtt":
+        return str
+    elif TYPE_CHECKING:
+        assert_never(response_format)
+    else:
+        # TODO; warn
+        return Transcription

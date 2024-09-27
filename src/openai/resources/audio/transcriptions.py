@@ -8,6 +8,7 @@ from typing_extensions import Literal, assert_never
 import httpx
 
 from ... import _legacy_response
+from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import (
     extract_files,
@@ -22,6 +23,7 @@ from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
 from ...types.audio.transcription import Transcription
+from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.transcription_verbose import TranscriptionVerbose
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
@@ -111,7 +113,7 @@ class Transcriptions(SyncAPIResource):
         model: Union[str, AudioModel],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
+        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -141,8 +143,8 @@ class Transcriptions(SyncAPIResource):
               [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
               should match the audio language.
 
-          response_format: The format of the transcript output, in one of these options: `json`, `text`,
-              `srt`, `verbose_json`, or `vtt`.
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
@@ -275,7 +277,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         model: Union[str, AudioModel],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
+        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -305,8 +307,8 @@ class AsyncTranscriptions(AsyncAPIResource):
               [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
               should match the audio language.
 
-          response_format: The format of the transcript output, in one of these options: `json`, `text`,
-              `srt`, `verbose_json`, or `vtt`.
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
