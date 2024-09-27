@@ -5,7 +5,7 @@ import os
 import inspect
 import traceback
 import contextlib
-from typing import Any, TypeVar, Iterator, cast
+from typing import Any, TypeVar, Iterator, ForwardRef, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin, assert_type
 
@@ -24,6 +24,10 @@ from openai._compat import PYDANTIC_V2, field_outer_type, get_model_fields
 from openai._models import BaseModel
 
 BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
+
+
+def evaluate_forwardref(forwardref: ForwardRef, globalns: dict[str, Any]) -> type:
+    return eval(str(forwardref), globalns)  # type: ignore[no-any-return]
 
 
 def assert_matches_model(model: type[BaseModelT], value: BaseModelT, *, path: list[str]) -> bool:
