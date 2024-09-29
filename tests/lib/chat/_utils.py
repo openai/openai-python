@@ -1,13 +1,13 @@
 from __future__ import annotations
 
-import io
 import inspect
 from typing import Any, Iterable
 from typing_extensions import TypeAlias
 
-import rich
 import pytest
 import pydantic
+
+from ...utils import rich_print_str
 
 ReprArgs: TypeAlias = "Iterable[tuple[str | None, Any]]"
 
@@ -26,12 +26,7 @@ def print_obj(obj: object, monkeypatch: pytest.MonkeyPatch) -> str:
     with monkeypatch.context() as m:
         m.setattr(pydantic.BaseModel, "__repr_args__", __repr_args__)
 
-        buf = io.StringIO()
-
-        console = rich.console.Console(file=buf, width=120)
-        console.print(obj)
-
-        string = buf.getvalue()
+        string = rich_print_str(obj)
 
         # we remove all `fn_name.<locals>.` occurences
         # so that we can share the same snapshots between

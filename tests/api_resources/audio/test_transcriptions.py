@@ -9,7 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.audio import Transcription
+from openai.types.audio import TranscriptionCreateResponse
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -23,7 +23,7 @@ class TestTranscriptions:
             file=b"raw file contents",
             model="whisper-1",
         )
-        assert_matches_type(Transcription, transcription, path=["response"])
+        assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
@@ -36,7 +36,7 @@ class TestTranscriptions:
             temperature=0,
             timestamp_granularities=["word", "segment"],
         )
-        assert_matches_type(Transcription, transcription, path=["response"])
+        assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
@@ -48,7 +48,7 @@ class TestTranscriptions:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         transcription = response.parse()
-        assert_matches_type(Transcription, transcription, path=["response"])
+        assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
@@ -60,7 +60,7 @@ class TestTranscriptions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             transcription = response.parse()
-            assert_matches_type(Transcription, transcription, path=["response"])
+            assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -74,7 +74,7 @@ class TestAsyncTranscriptions:
             file=b"raw file contents",
             model="whisper-1",
         )
-        assert_matches_type(Transcription, transcription, path=["response"])
+        assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
@@ -87,7 +87,7 @@ class TestAsyncTranscriptions:
             temperature=0,
             timestamp_granularities=["word", "segment"],
         )
-        assert_matches_type(Transcription, transcription, path=["response"])
+        assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
@@ -99,7 +99,7 @@ class TestAsyncTranscriptions:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         transcription = response.parse()
-        assert_matches_type(Transcription, transcription, path=["response"])
+        assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
@@ -111,6 +111,6 @@ class TestAsyncTranscriptions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             transcription = await response.parse()
-            assert_matches_type(Transcription, transcription, path=["response"])
+            assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
         assert cast(Any, response.is_closed) is True

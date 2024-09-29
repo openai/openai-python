@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import typing_extensions
-from typing import List, Union, Iterable, Optional, overload
+from typing import List, Union, Iterable, Optional
 from functools import partial
-from typing_extensions import Literal
+from typing_extensions import Literal, overload
 
 import httpx
 

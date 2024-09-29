@@ -114,7 +114,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import AudioModel
+from openai.types import AudioModel, AudioResponseFormat
 ```
 
 ## Transcriptions
@@ -122,24 +122,30 @@ from openai.types import AudioModel
 Types:
 
 ```python
-from openai.types.audio import Transcription
+from openai.types.audio import (
+    Transcription,
+    TranscriptionSegment,
+    TranscriptionVerbose,
+    TranscriptionWord,
+    TranscriptionCreateResponse,
+)
 ```
 
 Methods:
 
-- <code title="post /audio/transcriptions">client.audio.transcriptions.<a href="./src/openai/resources/audio/transcriptions.py">create</a>(\*\*<a href="src/openai/types/audio/transcription_create_params.py">params</a>) -> <a href="./src/openai/types/audio/transcription.py">Transcription</a></code>
+- <code title="post /audio/transcriptions">client.audio.transcriptions.<a href="./src/openai/resources/audio/transcriptions.py">create</a>(\*\*<a href="src/openai/types/audio/transcription_create_params.py">params</a>) -> <a href="./src/openai/types/audio/transcription_create_response.py">TranscriptionCreateResponse</a></code>
 
 ## Translations
 
 Types:
 
 ```python
-from openai.types.audio import Translation
+from openai.types.audio import Translation, TranslationVerbose, TranslationCreateResponse
 ```
 
 Methods:
 
-- <code title="post /audio/translations">client.audio.translations.<a href="./src/openai/resources/audio/translations.py">create</a>(\*\*<a href="src/openai/types/audio/translation_create_params.py">params</a>) -> <a href="./src/openai/types/audio/translation.py">Translation</a></code>
+- <code title="post /audio/translations">client.audio.translations.<a href="./src/openai/resources/audio/translations.py">create</a>(\*\*<a href="src/openai/types/audio/translation_create_params.py">params</a>) -> <a href="./src/openai/types/audio/translation_create_response.py">TranslationCreateResponse</a></code>
 
 ## Speech
 
@@ -158,7 +164,14 @@ Methods:
 Types:
 
 ```python
-from openai.types import Moderation, ModerationModel, ModerationCreateResponse
+from openai.types import (
+    Moderation,
+    ModerationImageURLInput,
+    ModerationModel,
+    ModerationMultiModalInput,
+    ModerationTextInput,
+    ModerationCreateResponse,
+)
 ```
 
 Methods:
