@@ -508,7 +508,7 @@ The polling methods are:
 ```python
 client.beta.threads.create_and_run_poll(...)
 client.beta.threads.runs.create_and_poll(...)
-client.beta.threads.runs.submit_tool_ouptputs_and_poll(...)
+client.beta.threads.runs.submit_tool_outputs_and_poll(...)
 client.beta.vector_stores.files.upload_and_poll(...)
 client.beta.vector_stores.files.create_and_poll(...)
 client.beta.vector_stores.file_batches.create_and_poll(...)
