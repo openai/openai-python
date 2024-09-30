@@ -34,7 +34,7 @@ class ThreadCreateParams(TypedDict, total=False):
 
     This can be useful for storing additional information about the object in a
     structured format. Keys can be a maximum of 64 characters long and values can be
-    a maxium of 512 characters long.
+    a maximum of 512 characters long.
     """
 
     tool_resources: Optional[ToolResources]
@@ -83,7 +83,7 @@ class Message(TypedDict, total=False):
 
     This can be useful for storing additional information about the object in a
     structured format. Keys can be a maximum of 64 characters long and values can be
-    a maxium of 512 characters long.
+    a maximum of 512 characters long.
     """
 
 
@@ -116,7 +116,7 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
     This can be useful for storing additional information about the vector store in
     a structured format. Keys can be a maximum of 64 characters long and values can
-    be a maxium of 512 characters long.
+    be a maximum of 512 characters long.
     """
 
 
