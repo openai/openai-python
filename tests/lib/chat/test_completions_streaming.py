@@ -155,8 +155,9 @@ ParsedChatCompletion[Location](
     system_fingerprint='fp_5050236cbd',
     usage=CompletionUsage(
         completion_tokens=14,
-        completion_tokens_details=CompletionTokensDetails(reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
         prompt_tokens=79,
+        prompt_tokens_details=None,
         total_tokens=93
     )
 )
