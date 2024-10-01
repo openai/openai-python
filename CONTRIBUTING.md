@@ -43,7 +43,7 @@ modify the contents of the `src/openai/lib/` and `examples/` directories.
 
 All files in the `examples/` directory are not modified by the generator and can be freely edited or added to.
 
-```ts
+```py
 # add an example to examples/<your-example>.py
 
 #!/usr/bin/env -S rye run python
