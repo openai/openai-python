@@ -30,7 +30,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     messages: Required[Iterable[ChatCompletionMessageParam]]
     """A list of messages comprising the conversation so far.
 
-    [Example Python code](https://cookbook.openai.com/examples/how_to_format_inputs_to_chatgpt_models).
+    Depending on the [model](https://platform.openai.com/docs/models) you use,
+    different message types (modalities) are supported, like
+    [text](https://platform.openai.com/docs/guides/text-generation),
+    [images](https://platform.openai.com/docs/guides/vision), and
+    [audio](https://platform.openai.com/docs/guides/audio).
     """
 
     model: Required[Union[str, ChatModel]]
@@ -103,6 +107,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     This value is now deprecated in favor of `max_completion_tokens`, and is not
     compatible with
     [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    metadata: Optional[Dict[str, str]]
+    """
+    Developer-defined tags and values used for filtering completions in the
+    [dashboard](https://platform.openai.com/completions).
     """
 
     n: Optional[int]
@@ -182,6 +192,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     stop: Union[Optional[str], List[str]]
     """Up to 4 sequences where the API will stop generating further tokens."""
+
+    store: Optional[bool]
+    """
+    Whether or not to store the output of this completion request for traffic
+    logging in the [dashboard](https://platform.openai.com/completions).
+    """
 
     stream_options: Optional[ChatCompletionStreamOptionsParam]
     """Options for streaming response. Only set this when you set `stream: true`."""
