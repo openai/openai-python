@@ -2,9 +2,13 @@
 
 ### With Rye
 
-We use [Rye](https://rye-up.com/) to manage dependencies so we highly recommend [installing it](https://rye-up.com/guide/installation/) as it will automatically provision a Python environment with the expected Python version.
+We use [Rye](https://rye.astral.sh/) to manage dependencies because it will automatically provision a Python environment with the expected Python version. To set it up, run:
 
-After installing Rye, you'll just have to run this command:
+```sh
+$ ./scripts/bootstrap
+```
+
+Or [install Rye manually](https://rye.astral.sh/guide/installation/) and run:
 
 ```sh
 $ rye sync --all-features
@@ -39,17 +43,17 @@ modify the contents of the `src/openai/lib/` and `examples/` directories.
 
 All files in the `examples/` directory are not modified by the generator and can be freely edited or added to.
 
-```bash
+```ts
 # add an example to examples/<your-example>.py
 
 #!/usr/bin/env -S rye run python
 …
 ```
 
-```
-chmod +x examples/<your-example>.py
+```sh
+$ chmod +x examples/<your-example>.py
 # run the example against your api
-./examples/<your-example>.py
+$ ./examples/<your-example>.py
 ```
 
 ## Using the repository from source
@@ -58,8 +62,8 @@ If you’d like to use the repository from source, you can either install from g
 
 To install via git:
 
-```bash
-pip install git+ssh://git@github.com/openai/openai-python.git
+```sh
+$ pip install git+ssh://git@github.com/openai/openai-python.git
 ```
 
 Alternatively, you can build from source and install the wheel file:
@@ -68,29 +72,29 @@ Building this package will create two files in the `dist/` directory, a `.tar.gz
 
 To create a distributable version of the library, all you have to do is run this command:
 
-```bash
-rye build
+```sh
+$ rye build
 # or
-python -m build
+$ python -m build
 ```
 
 Then to install:
 
 ```sh
-pip install ./path-to-wheel-file.whl
+$ pip install ./path-to-wheel-file.whl
 ```
 
 ## Running tests
 
 Most tests require you to [set up a mock server](https://github.com/stoplightio/prism) against the OpenAPI spec to run the tests.
 
-```bash
+```sh
 # you will need npm installed
-npx prism mock path/to/your/openapi.yml
+$ npx prism mock path/to/your/openapi.yml
 ```
 
-```bash
-rye run pytest
+```sh
+$ ./scripts/test
 ```
 
 ## Linting and formatting
@@ -100,14 +104,14 @@ This repository uses [ruff](https://github.com/astral-sh/ruff) and
 
 To lint:
 
-```bash
-rye run lint
+```sh
+$ ./scripts/lint
 ```
 
 To format and fix all ruff issues automatically:
 
-```bash
-rye run format
+```sh
+$ ./scripts/format
 ```
 
 ## Publishing and releases
