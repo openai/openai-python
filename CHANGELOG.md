@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.51.0 (2024-10-01)
+
+Full Changelog: [v1.50.2...v1.51.0](https://github.com/openai/openai-python/compare/v1.50.2...v1.51.0)
+
+### Features
+
+* **api:** support storing chat completions, enabling evals and model distillation in the dashboard ([2840c6d](https://github.com/openai/openai-python/commit/2840c6df94afb44cfd80efabe0405898331ee267))
+
+
+### Chores
+
+* **docs:** fix maxium typo ([#1762](https://github.com/openai/openai-python/issues/1762)) ([de94553](https://github.com/openai/openai-python/commit/de94553f93d71fc6c8187c8d3fbe924a71cc46dd))
+* **internal:** remove ds store ([47a3968](https://github.com/openai/openai-python/commit/47a3968f9b318eb02d5602f5b10e7d9e69c3ae84))
+
+
+### Documentation
+
+* **helpers:** fix method name typo ([#1764](https://github.com/openai/openai-python/issues/1764)) ([e1bcfe8](https://github.com/openai/openai-python/commit/e1bcfe86554017ac63055060153c4fd72e65c0cf))
+
 ## 1.50.2 (2024-09-27)
 
 Full Changelog: [v1.50.1...v1.50.2](https://github.com/openai/openai-python/compare/v1.50.1...v1.50.2)
