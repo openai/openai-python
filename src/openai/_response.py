@@ -192,6 +192,9 @@ class BaseAPIResponse(Generic[R]):
         if cast_to == float:
             return cast(R, float(response.text))
 
+        if cast_to == bool:
+            return cast(R, response.text.lower() == "true")
+
         origin = get_origin(cast_to) or cast_to
 
         # handle the legacy binary response case
