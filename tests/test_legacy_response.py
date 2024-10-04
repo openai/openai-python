@@ -34,6 +34,31 @@ def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
         response.parse(to=PydanticModel)
 
 
+@pytest.mark.parametrize(
+    "content, expected",
+    [
+        ("false", False),
+        ("true", True),
+        ("False", False),
+        ("True", True),
+        ("TrUe", True),
+        ("FalSe", False),
+    ],
+)
+def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> None:
+    response = LegacyAPIResponse(
+        raw=httpx.Response(200, content=content),
+        client=client,
+        stream=False,
+        stream_cls=None,
+        cast_to=str,
+        options=FinalRequestOptions.construct(method="get", url="/foo"),
+    )
+
+    result = response.parse(to=bool)
+    assert result is expected
+
+
 def test_response_parse_custom_stream(client: OpenAI) -> None:
     response = LegacyAPIResponse(
         raw=httpx.Response(200, content=b"foo"),
