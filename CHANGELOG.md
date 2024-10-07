@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.51.1 (2024-10-07)
+
+Full Changelog: [v1.51.0...v1.51.1](https://github.com/openai/openai-python/compare/v1.51.0...v1.51.1)
+
+### Bug Fixes
+
+* **client:** avoid OverflowError with very large retry counts ([#1779](https://github.com/openai/openai-python/issues/1779)) ([fb1dacf](https://github.com/openai/openai-python/commit/fb1dacfa4d9447d123c38ab3d3d433d900d32ec5))
+
+
+### Chores
+
+* **internal:** add support for parsing bool response content ([#1774](https://github.com/openai/openai-python/issues/1774)) ([aa2e25f](https://github.com/openai/openai-python/commit/aa2e25f9a4a632357051397ea34d269eafba026d))
+
+
+### Documentation
+
+* fix typo in fenced code block language ([#1769](https://github.com/openai/openai-python/issues/1769)) ([57bbc15](https://github.com/openai/openai-python/commit/57bbc155210cc439a36f4e5cbd082e94c3349d78))
+* improve and reference contributing documentation ([#1767](https://github.com/openai/openai-python/issues/1767)) ([a985a8b](https://github.com/openai/openai-python/commit/a985a8b8ab8d0b364bd3c26b6423a7c49ae7b1ce))
+
 ## 1.51.0 (2024-10-01)
 
 Full Changelog: [v1.50.2...v1.51.0](https://github.com/openai/openai-python/compare/v1.50.2...v1.51.0)
