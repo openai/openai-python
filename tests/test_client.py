@@ -697,6 +697,7 @@ class TestOpenAI:
             [3, "", 0.5],
             [2, "", 0.5 * 2.0],
             [1, "", 0.5 * 4.0],
+            [-1100, "", 7.8],  # test large number potentially overflowing
         ],
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
@@ -1553,6 +1554,7 @@ class TestAsyncOpenAI:
             [3, "", 0.5],
             [2, "", 0.5 * 2.0],
             [1, "", 0.5 * 4.0],
+            [-1100, "", 7.8],  # test large number potentially overflowing
         ],
     )
     @mock.patch("time.time", mock.MagicMock(return_value=1696004797))
