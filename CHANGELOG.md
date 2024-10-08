@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.51.2 (2024-10-08)
+
+Full Changelog: [v1.51.1...v1.51.2](https://github.com/openai/openai-python/compare/v1.51.1...v1.51.2)
+
+### Chores
+
+* add repr to PageInfo class ([#1780](https://github.com/openai/openai-python/issues/1780)) ([63118ee](https://github.com/openai/openai-python/commit/63118ee3c2481d217682e8a31337bdcc16893127))
+
 ## 1.51.1 (2024-10-07)
 
 Full Changelog: [v1.51.0...v1.51.1](https://github.com/openai/openai-python/compare/v1.51.0...v1.51.1)
