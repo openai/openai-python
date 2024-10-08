@@ -9,7 +9,7 @@ https://github.com/openai/openai-python/issues/1777
 Resolve an alternative for httpx, using abstraction making the coding experience user friendly.
 
 ## Usage
-
+s
 Here’s an example of how to use `AsyncOpenAI` to process multiple prompts and chat messages asynchronously.
 
 ### Initialization
@@ -24,9 +24,9 @@ from openai import AsyncOpenAI
 client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 ```
 
-### Async Completion Example
+### Async completions Example
 
-You can use the `acreate_completion` method to asynchronously send a batch of prompts and retrieve completion results. The following example shows how to send a batch of prompts using the GPT-3.5 Turbo model.
+You can use the `acreate_completions` method to asynchronously send a batch of prompts and retrieve completions results. The following example shows how to send a batch of prompts using the GPT-3.5 Turbo model.
 
 ```python
 async def main():
@@ -37,11 +37,11 @@ async def main():
     ]
 
     # Send the prompts asynchronously with a batch size of 2
-    completion_results = await client.acreate_completion(prompts, "gpt-3.5-turbo", max_tokens=50, batch_size=2)
-    print(completion_results)
+    completions_results = await client.acreate_completions(prompts, "gpt-3.5-turbo", max_tokens=50, batch_size=2)
+    print(completions_results)
 ```
 
-### Async Chat Completion Example
+### Async Chat completions Example
 
 You can also handle chat completions using the `acreate_chat` method. This method accepts a list of message dictionaries that mimic a conversation format (`role: user`, `content: message`).
 
@@ -78,8 +78,8 @@ client = AsyncOpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 async def main():
     # Test completions
     prompts = ["Tell me a joke", "Write a short poem", "Explain async programming"]
-    completion_results = await client.acreate_completion(prompts, "gpt-3.5-turbo", max_tokens=50, batch_size=2)
-    print(completion_results)
+    completions_results = await client.acreate_completions(prompts, "gpt-3.5-turbo", max_tokens=50, batch_size=2)
+    print(completions_results)
 
     # Test chat completions
     messages = [
@@ -101,8 +101,8 @@ AsyncOpenAI.run(main)
 
 ## Parameters
 
-- `prompts` (for completion): A list of text prompts to send to the model.
-- `messages` (for chat completion): A list of dictionaries containing `role` and `content` to simulate a conversation.
+- `prompts` (for completions): A list of text prompts to send to the model.
+- `messages` (for chat completions): A list of dictionaries containing `role` and `content` to simulate a conversation.
 - `model`: The OpenAI model to use (e.g., `gpt-3.5-turbo`).
 - `max_tokens`: Maximum number of tokens to generate in the response.
 - `batch_size`: The number of items to process in parallel.
