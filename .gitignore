@@ -14,3 +14,4 @@ dist
 .envrc
 codegen.log
 Brewfile.lock.json
+issues.py
