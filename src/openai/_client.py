@@ -6,7 +6,13 @@ import os
 from typing import Any, Union, Mapping
 from typing_extensions import Self, override
 
+
 import httpx
+
+import asyncio
+from typing import List, Dict, Any
+import logging
+
 
 from . import resources, _exceptions
 from ._qs import Querystring
@@ -45,6 +51,9 @@ __all__ = [
     "AsyncClient",
 ]
 
+# Set up logging
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 class OpenAI(SyncAPIClient):
     completions: resources.Completions
@@ -438,6 +447,106 @@ class AsyncOpenAI(AsyncAPIClient):
     # Alias for `copy` for nicer inline usage, e.g.
     # client.with_options(timeout=10).foo.create(...)
     with_options = copy
+
+    # Start Aynsc #
+    async def acreate_completion(self, prompts: List[str], model: str, max_tokens: int, batch_size: int):
+        try:
+            logger.debug(f"Creating batch completions for {len(prompts)} prompts.")
+            results = await self._batch_request(
+                self._async_completion_task,
+                items=prompts,
+                model=model,
+                max_tokens=max_tokens,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during completion request: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during completion request: {e}")
+            raise
+
+    async def acreate_chat(self, messages: List[Dict[str, Any]], model: str, max_tokens: int, batch_size: int):
+        try:
+            logger.debug(f"Creating batch chat completions for {len(messages)} messages.")
+            results = await self._batch_request(
+                self._async_chat_task,
+                items=messages,
+                model=model,
+                max_tokens=max_tokens,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during chat request: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during chat request: {e}")
+            raise
+
+    async def _async_completion_task(self, prompt: str, model: str, max_tokens: int):
+        try:
+            logger.debug(f"Requesting completion for prompt: {prompt}")
+            response = await self.completions.create(
+                model=model,
+                prompt=prompt,
+                max_tokens=max_tokens
+            )
+            return response.choices[0].text.strip()
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error for completion task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in completion task: {e}")
+            raise
+
+    async def _async_chat_task(self, message: Dict[str, Any], model: str, max_tokens: int):
+        try:
+            logger.debug(f"Requesting chat completion for message: {message['content']}")
+            response = await self.chat.create(
+                model=model,
+                messages=[message],
+                max_tokens=max_tokens
+            )
+            return response.choices[0].message["content"].strip()
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error for chat task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in chat task: {e}")
+            raise
+
+    async def _batch_request(self, async_task, items: List[Any], model: str, max_tokens: int, batch_size: int):
+        batched_results = []
+        try:
+            logger.debug(f"Processing batch requests in chunks of {batch_size}.")
+            for i in range(0, len(items), batch_size):
+                batch_items = items[i:i+batch_size]
+                logger.debug(f"Processing batch: {batch_items}")
+                batch_results = await asyncio.gather(
+                    *[async_task(item, model, max_tokens) for item in batch_items]
+                )
+                batched_results.extend(batch_results)
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during batch request: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during batch request: {e}")
+            raise
+
+        logger.debug(f"Batch processing completed with {len(batched_results)} results.")
+        return batched_results
+
+    @staticmethod
+    def run(main_func):
+        try:
+            logger.debug("Running async main function.")
+            asyncio.run(main_func())
+        except Exception as e:
+            logger.error(f"Error running async function: {e}")
+            raise
+    # End Aysnc Here #
 
     @override
     def _make_status_error(
