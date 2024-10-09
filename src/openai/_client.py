@@ -501,7 +501,7 @@ class AsyncOpenAI(AsyncAPIClient):
     async def _async_chat_task(self, message: Any, model: str, max_tokens: int) -> str:
         try:
             logger.debug(f"Requesting chat completions for message: {message['content']}")
-            response: Any = await self.chat.create( # type: ignore
+            response: Any = await self.chat.create(
                 model=model,
                 messages=[message],
                 max_tokens=max_tokens
@@ -515,11 +515,11 @@ class AsyncOpenAI(AsyncAPIClient):
             raise
 
         # Embeddings Section #
-    async def acreate_embeddings(self, inputs: List[str], model: str, batch_size: int) -> List[dict]: # type: ignore
+    async def acreate_embeddings(self, inputs: List[str], model: str, batch_size: int) -> List[dict]:
         try:
             logger.debug(f"Creating embeddings for {len(inputs)} inputs.")
             results = await self._batch_request(
-                self._async_embeddings_task, # type: ignore
+                self._async_embeddings_task,
                 items=inputs,
                 model=model,
                 max_tokens=None,  # Embeddings don't use tokens, adjust appropriately
