@@ -1034,7 +1034,11 @@ class AsyncOpenAI(AsyncAPIClient):
     # End Uploads Section #
 
     # Example for integrating raw and streaming response #
+<<<<<<< Updated upstream
     async def afetch_with_raw_response(self, input: str, model: str):
+=======
+    async def afetch_with_raw_response(self, input: str, model: str): # type: ignore
+>>>>>>> Stashed changes
         response = await self.embeddings.create(
             model=model,
             input=input,
