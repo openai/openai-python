@@ -1,18 +1,15 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
-
 from __future__ import annotations
 
 import os
 from typing import Any, Union, Mapping
 from typing_extensions import Self, override
 
-
 import httpx
 
 import asyncio
 from typing import List, Dict, Any
 import logging
-
 
 from . import resources, _exceptions
 from ._qs import Querystring
@@ -504,7 +501,7 @@ class AsyncOpenAI(AsyncAPIClient):
     async def _async_chat_task(self, message: Any, model: str, max_tokens: int) -> str:
         try:
             logger.debug(f"Requesting chat completions for message: {message['content']}")
-            response: Any = await self.chat.create(
+            response: Any = await self.chat.create( # type: ignore
                 model=model,
                 messages=[message],
                 max_tokens=max_tokens
@@ -516,6 +513,542 @@ class AsyncOpenAI(AsyncAPIClient):
         except Exception as e:
             logger.error(f"Unexpected error in chat task: {e}")
             raise
+
+        # Embeddings Section #
+    async def acreate_embeddings(self, inputs: List[str], model: str, batch_size: int) -> List[dict]: # type: ignore
+        try:
+            logger.debug(f"Creating embeddings for {len(inputs)} inputs.")
+            results = await self._batch_request(
+                self._async_embeddings_task, # type: ignore
+                items=inputs,
+                model=model,
+                max_tokens=None,  # Embeddings don't use tokens, adjust appropriately
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during embeddings request: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during embeddings request: {e}")
+            raise
+
+    async def _async_embeddings_task(self, input_text: str, model: str, *_):
+        try:
+            response = await self.embeddings.create(
+                model=model,
+                input=input_text
+            )
+            return response['data']  # Return embedding results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error for embeddings task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in embeddings task: {e}")
+            raise
+    # End Embeddings Section #
+
+        # Files Section #
+    async def aupload_files(self, file_paths: List[str], purpose: str, batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Uploading {len(file_paths)} files.")
+            results = await self._batch_request(
+                self._async_upload_task,
+                items=file_paths,
+                model=purpose,  # Purpose acts as the model equivalent here
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file upload: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file upload: {e}")
+            raise
+
+    async def _async_upload_task(self, file_path: str, purpose: str, *_):
+        try:
+            with open(file_path, 'rb') as file:
+                response = await self.files.create(
+                    file=file,
+                    purpose=purpose
+                )
+            return response
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file upload task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in file upload task: {e}")
+            raise
+    # End Files Section #
+
+        # Images Section #
+    async def agenerate_images(self, prompts: List[str], model: str, n: int, batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Generating images for {len(prompts)} prompts.")
+            results = await self._batch_request(
+                self._async_image_task,
+                items=prompts,
+                model=model,
+                max_tokens=None,  # Image generation does not depend on tokens
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during image generation: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during image generation: {e}")
+            raise
+
+    async def _async_image_task(self, prompt: str, model: str, *_):
+        try:
+            response = await self.images.create(
+                model=model,
+                prompt=prompt,
+                n=1
+            )
+            return response['data']  # Return generated image data
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during image generation task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in image generation task: {e}")
+            raise
+    # End Images Section #
+
+        # Audio Section #
+    async def atranscribe_audio(self, audio_files: List[str], model: str, batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Transcribing {len(audio_files)} audio files.")
+            results = await self._batch_request(
+                self._async_audio_task,
+                items=audio_files,
+                model=model,
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during audio transcription: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during audio transcription: {e}")
+            raise
+
+    async def _async_audio_task(self, audio_file: str, model: str, *_):
+        try:
+            with open(audio_file, 'rb') as file:
+                response = await self.audio.transcribe(
+                    model=model,
+                    file=file
+                )
+            return response['text']  # Return the transcribed text
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during audio transcription task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in audio transcription task: {e}")
+            raise
+    # End Audio Section #
+
+    # Moderations Section #
+    async def acheck_moderation(self, inputs: List[str], model: str, batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Checking moderation for {len(inputs)} inputs.")
+            results = await self._batch_request(
+                self._async_moderation_task,
+                items=inputs,
+                model=model,
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during moderation check: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during moderation check: {e}")
+            raise
+
+    async def _async_moderation_task(self, input_text: str, model: str, *_):
+        try:
+            response = await self.moderations.create(
+                input=input_text
+            )
+            return response['results']  # Return moderation results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during moderation task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in moderation task: {e}")
+            raise
+    # End Moderations Section #
+
+        # Models Section #
+    async def alist_models(self, batch_size: int) -> List[dict]:
+        try:
+            logger.debug("Listing all models.")
+            response = await self._batch_request(
+                self._async_list_models_task,
+                items=[],
+                model=None,
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return response  # Return the list of models
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during model listing: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during model listing: {e}")
+            raise
+
+    async def _async_list_models_task(self, *_):
+        try:
+            response = await self.models.list()
+            return response['data']
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during model listing task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error in model listing task: {e}")
+            raise
+    # End Models Section #
+
+    # FineTuning Section #
+    # Fine-tune multiple models in batches using _batch_request
+    async def afine_tune_batch(self, fine_tune_requests: List[dict], batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Creating fine-tune jobs in batches of {batch_size}.")
+            results: List[dict] = await self._batch_request(
+                self._create_fine_tune_task,
+                items=fine_tune_requests,
+                model=None,  # Model is defined per fine-tune request
+                max_tokens=None,  # Not used in fine-tune
+                batch_size=batch_size
+            )
+            return results  # Return the combined results from batch fine-tuning
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during batch fine-tuning: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during batch fine-tuning: {e}")
+            raise
+
+    # Helper function to create individual fine-tune jobs
+    async def _create_fine_tune_task(self, fine_tune_request: dict, *_):
+        try:
+            logger.debug(f"Fine-tuning model: {fine_tune_request['model']} with dataset: {fine_tune_request['dataset_id']}")
+            response = await self.fine_tuning.create(
+                model=fine_tune_request['model'],
+                dataset=fine_tune_request['dataset_id'],
+                hyperparams=fine_tune_request.get('hyperparams', {})
+            )
+            return response  # Return the fine-tuning job details
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during fine-tune task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during fine-tune task: {e}")
+            raise
+
+    # List fine-tune jobs using _batch_request if needed
+    async def alist_fine_tune_jobs(self, batch_size: int = 1) -> List[dict]:
+        try:
+            logger.debug("Listing all fine-tune jobs in batches.")
+            results: List[dict] = await self._batch_request(
+                self._list_fine_tune_jobs_task,
+                items=[{}],  # Just a placeholder list for batch handling
+                model=None,
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results[0]['data'] if results else []  # Return the list of fine-tune jobs
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during fine-tune job listing: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during fine-tune job listing: {e}")
+            raise
+
+    # Helper function to list all fine-tune jobs
+    async def _list_fine_tune_jobs_task(self, *_):
+        try:
+            logger.debug("Listing all fine-tune jobs.")
+            response = await self.fine_tuning.list()
+            return response  # Return the list of fine-tune jobs
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during fine-tune job listing: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during fine-tune job listing: {e}")
+            raise
+
+    # Retrieve multiple fine-tune jobs using _batch_request
+    async def aretrieve_fine_tune_jobs(self, fine_tune_ids: List[str], batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Retrieving fine-tune jobs in batches of {batch_size}.")
+            results: List[dict] = await self._batch_request(
+                self._retrieve_fine_tune_task,
+                items=fine_tune_ids,
+                model=None,
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results  # Return the retrieved fine-tune job details
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during batch fine-tune job retrieval: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during batch fine-tune job retrieval: {e}")
+            raise
+
+    # Helper function to retrieve a single fine-tune job
+    async def _retrieve_fine_tune_task(self, fine_tune_id: str, *_):
+        try:
+            logger.debug(f"Retrieving fine-tune job with ID: {fine_tune_id}")
+            response = await self.fine_tuning.retrieve(fine_tune_id)
+            return response  # Return the fine-tune job details
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during fine-tune job retrieval: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during fine-tune job retrieval: {e}")
+            raise
+
+    # Cancel multiple fine-tune jobs using _batch_request
+    async def acancel_fine_tune_jobs(self, fine_tune_ids: List[str], batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Cancelling fine-tune jobs in batches of {batch_size}.")
+            results: List[dict] = await self._batch_request(
+                self._cancel_fine_tune_task,
+                items=fine_tune_ids,
+                model=None,
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results  # Return the cancellation details
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during batch fine-tune job cancellation: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during batch fine-tune job cancellation: {e}")
+            raise
+
+    # Helper function to cancel a single fine-tune job
+    async def _cancel_fine_tune_task(self, fine_tune_id: str, *_):
+        try:
+            logger.debug(f"Cancelling fine-tune job with ID: {fine_tune_id}")
+            response = await self.fine_tuning.cancel(fine_tune_id)
+            return response  # Return the cancellation details
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during fine-tune job cancellation: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during fine-tune job cancellation: {e}")
+            raise
+
+    # End FineTuning Section #
+
+    # Beta Section #
+    async def acreate_beta_feature(self, data: dict) -> dict:
+        try:
+            logger.debug("Requesting a beta feature.")
+            response = await self.beta.create(data)
+            return response  # Return the response of the beta feature request
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during beta feature request: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during beta feature request: {e}")
+            raise
+    # End Beta Section #
+
+    # Batches Section #
+    
+    # Batch process tasks using _batch_request
+    async def abatch_process(self, tasks: List[dict], model: str, batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Processing {len(tasks)} batch tasks in chunks of {batch_size}.")
+            results: List[dict] = await self._batch_request(
+                self._process_task,  # Use the task processor
+                items=tasks,
+                model=model,
+                max_tokens=None,  # max_tokens is defined per task
+                batch_size=batch_size
+            )
+            return results  # Return the combined results from batch processing
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during batch processing: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during batch processing: {e}")
+            raise
+
+    # Helper task processing function
+    async def _process_task(self, task: dict, model: str, *_):
+        try:
+            logger.debug(f"Processing task: {task}")
+            response = await self.completions.create(
+                model=model,
+                prompt=task['prompt'],
+                max_tokens=task.get('max_tokens', 100)
+            )
+            return response  # Return the task response
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during task processing: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during task processing: {e}")
+            raise
+    # End Batches Section #
+
+    # Uploads Section #
+    
+    # Upload multiple files using batching
+    async def aupload_files(self, file_paths: List[str], purpose: str, batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Uploading {len(file_paths)} files.")
+            results = await self._batch_request(
+                self._async_upload_task,
+                items=file_paths,
+                model=purpose,  # Purpose acts as the model equivalent here
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file uploads: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file uploads: {e}")
+            raise
+
+    async def _async_upload_task(self, file_path: str, purpose: str, *_):
+        try:
+            with open(file_path, 'rb') as file:
+                response = await self.uploads.create(
+                    file=file,
+                    purpose=purpose
+                )
+            return response  # Return the upload response
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file upload: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file upload task: {e}")
+            raise
+
+    # List uploaded files using batch requests (if applicable in large datasets)
+    async def alist_files(self, batch_size: int = 50) -> List[dict]:
+        try:
+            logger.debug("Listing all uploaded files.")
+            # We assume batching may be necessary when listing many files
+            response = await self._batch_request(
+                self._async_list_files_task,
+                items=[],  # No items necessary here since we're just listing
+                model=None,  # No specific model needed
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return response
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file listing: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file listing: {e}")
+            raise
+
+    async def _async_list_files_task(self, *_):
+        try:
+            response = await self.uploads.list()
+            return response['data']  # Return the list of uploaded files
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file listing task: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file listing task: {e}")
+            raise
+
+    # Retrieve multiple files using batching
+    async def aretrieve_files(self, file_ids: List[str], batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Retrieving {len(file_ids)} files.")
+            results = await self._batch_request(
+                self._async_retrieve_file_task,
+                items=file_ids,
+                model=None,  # No specific model needed
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file retrievals: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file retrievals: {e}")
+            raise
+
+    async def _async_retrieve_file_task(self, file_id: str, *_):
+        try:
+            response = await self.uploads.retrieve(file_id)
+            return response  # Return the file details
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file retrieval: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file retrieval task: {e}")
+            raise
+
+    # Delete multiple files using batching
+    async def adelete_files(self, file_ids: List[str], batch_size: int) -> List[dict]:
+        try:
+            logger.debug(f"Deleting {len(file_ids)} files.")
+            results = await self._batch_request(
+                self._async_delete_file_task,
+                items=file_ids,
+                model=None,  # No specific model needed
+                max_tokens=None,
+                batch_size=batch_size
+            )
+            return results
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file deletions: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file deletions: {e}")
+            raise
+
+    async def _async_delete_file_task(self, file_id: str, *_):
+        try:
+            response = await self.uploads.delete(file_id)
+            return response  # Return the deletion confirmation
+        except OpenAIError as e:
+            logger.error(f"OpenAI API error during file deletion: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"Unexpected error during file deletion task: {e}")
+            raise
+    # End Uploads Section #
+
+    # Example for integrating raw and streaming response #
+    async def afetch_with_raw_response(self, input: str, model: str):
+        response = await self.embeddings.create(
+            model=model,
+            input=input,
+            with_raw_response=True
+        )
+        return response
+
+    async def afetch_with_streaming_response(self, input: str, model: str):
+        response = await self.embeddings.create(
+            model=model,
+            input=input,
+            with_streaming_response=True
+        )
+        return response
 
     async def _batch_request(self, async_task: Any, items: List[Any], model: str, max_tokens: int, batch_size: int) -> List[str]:
         batched_results: List[str] = []
@@ -581,7 +1114,6 @@ class AsyncOpenAI(AsyncAPIClient):
         if response.status_code >= 500:
             return _exceptions.InternalServerError(err_msg, response=response, body=data)
         return APIStatusError(err_msg, response=response, body=data)
-
 
 class OpenAIWithRawResponse:
     def __init__(self, client: OpenAI) -> None:
