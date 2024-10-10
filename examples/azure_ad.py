@@ -13,6 +13,7 @@ endpoint = "https://my-resource.openai.azure.com"
 
 deployment_name = "deployment-name"  # e.g. gpt-35-instant
 
+
 def sync_main() -> None:
     from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
@@ -31,7 +32,7 @@ def sync_main() -> None:
                 "role": "user",
                 "content": "How do I output all files in a directory using Python?",
             }
-        ]
+        ],
     )
 
     print(completion.to_json())
@@ -55,10 +56,11 @@ async def async_main() -> None:
                 "role": "user",
                 "content": "How do I output all files in a directory using Python?",
             }
-        ]
+        ],
     )
 
     print(completion.to_json())
+
 
 sync_main()
 
