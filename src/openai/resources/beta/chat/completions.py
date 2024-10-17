@@ -28,7 +28,9 @@ from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatComplet
 from ....types.chat.chat_completion import ChatCompletion
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.parsed_chat_completion import ParsedChatCompletion
+from ....types.chat.chat_completion_modality import ChatCompletionModality
 from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
@@ -61,6 +63,7 @@ class Completions(SyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         response_format: type[ResponseFormatT] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -70,6 +73,7 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -153,6 +157,7 @@ class Completions(SyncAPIResource):
                 {
                     "messages": messages,
                     "model": model,
+                    "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,
@@ -161,6 +166,7 @@ class Completions(SyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_tokens": max_tokens,
                     "metadata": metadata,
+                    "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "presence_penalty": presence_penalty,
@@ -198,6 +204,7 @@ class Completions(SyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -207,6 +214,7 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -259,6 +267,7 @@ class Completions(SyncAPIResource):
             self._client.chat.completions.create,
             messages=messages,
             model=model,
+            audio=audio,
             stream=True,
             response_format=_type_to_response_format(response_format),
             frequency_penalty=frequency_penalty,
@@ -269,6 +278,7 @@ class Completions(SyncAPIResource):
             max_completion_tokens=max_completion_tokens,
             max_tokens=max_tokens,
             metadata=metadata,
+            modalities=modalities,
             n=n,
             parallel_tool_calls=parallel_tool_calls,
             presence_penalty=presence_penalty,
@@ -320,6 +330,7 @@ class AsyncCompletions(AsyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         response_format: type[ResponseFormatT] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -329,6 +340,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -412,6 +424,7 @@ class AsyncCompletions(AsyncAPIResource):
                 {
                     "messages": messages,
                     "model": model,
+                    "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,
@@ -420,6 +433,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_tokens": max_tokens,
                     "metadata": metadata,
+                    "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "presence_penalty": presence_penalty,
@@ -457,6 +471,7 @@ class AsyncCompletions(AsyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | type[ResponseFormatT] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
@@ -466,6 +481,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -519,6 +535,7 @@ class AsyncCompletions(AsyncAPIResource):
         api_request = self._client.chat.completions.create(
             messages=messages,
             model=model,
+            audio=audio,
             stream=True,
             response_format=_type_to_response_format(response_format),
             frequency_penalty=frequency_penalty,
@@ -529,6 +546,7 @@ class AsyncCompletions(AsyncAPIResource):
             max_completion_tokens=max_completion_tokens,
             max_tokens=max_tokens,
             metadata=metadata,
+            modalities=modalities,
             n=n,
             parallel_tool_calls=parallel_tool_calls,
             presence_penalty=presence_penalty,

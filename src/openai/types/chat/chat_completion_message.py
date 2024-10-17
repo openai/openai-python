@@ -4,6 +4,7 @@ from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .chat_completion_audio import ChatCompletionAudio
 from .chat_completion_message_tool_call import ChatCompletionMessageToolCall
 
 __all__ = ["ChatCompletionMessage", "FunctionCall"]
@@ -31,6 +32,13 @@ class ChatCompletionMessage(BaseModel):
 
     role: Literal["assistant"]
     """The role of the author of this message."""
+
+    audio: Optional[ChatCompletionAudio] = None
+    """
+    If the audio output modality is requested, this object contains data about the
+    audio response from the model.
+    [Learn more](https://platform.openai.com/docs/guides/audio).
+    """
 
     function_call: Optional[FunctionCall] = None
     """Deprecated and replaced by `tool_calls`.

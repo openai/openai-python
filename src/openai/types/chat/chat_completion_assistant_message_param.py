@@ -9,7 +9,13 @@ from .chat_completion_content_part_text_param import ChatCompletionContentPartTe
 from .chat_completion_message_tool_call_param import ChatCompletionMessageToolCallParam
 from .chat_completion_content_part_refusal_param import ChatCompletionContentPartRefusalParam
 
-__all__ = ["ChatCompletionAssistantMessageParam", "ContentArrayOfContentPart", "FunctionCall"]
+__all__ = ["ChatCompletionAssistantMessageParam", "Audio", "ContentArrayOfContentPart", "FunctionCall"]
+
+
+class Audio(TypedDict, total=False):
+    id: Required[str]
+    """Unique identifier for a previous audio response from the model."""
+
 
 ContentArrayOfContentPart: TypeAlias = Union[ChatCompletionContentPartTextParam, ChatCompletionContentPartRefusalParam]
 
@@ -30,6 +36,12 @@ class FunctionCall(TypedDict, total=False):
 class ChatCompletionAssistantMessageParam(TypedDict, total=False):
     role: Required[Literal["assistant"]]
     """The role of the messages author, in this case `assistant`."""
+
+    audio: Optional[Audio]
+    """Data about a previous audio response from the model.
+
+    [Learn more](https://platform.openai.com/docs/guides/audio).
+    """
 
     content: Union[str, Iterable[ContentArrayOfContentPart], None]
     """The contents of the assistant message.
