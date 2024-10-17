@@ -18,12 +18,17 @@ from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..._streaming import Stream, AsyncStream
-from ...types.chat import completion_create_params
+from ...types.chat import (
+    ChatCompletionAudioParam,
+    completion_create_params,
+)
 from ..._base_client import make_request_options
 from ...types.chat_model import ChatModel
 from ...types.chat.chat_completion import ChatCompletion
 from ...types.chat.chat_completion_chunk import ChatCompletionChunk
+from ...types.chat.chat_completion_modality import ChatCompletionModality
 from ...types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from ...types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ...types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from ...types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
@@ -57,6 +62,7 @@ class Completions(SyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -65,6 +71,7 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -88,8 +95,12 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion:
-        """
-        Creates a model response for the given chat conversation.
+        """Creates a model response for the given chat conversation.
+
+        Learn more in the
+        [text generation](https://platform.openai.com/docs/guides/text-generation),
+        [vision](https://platform.openai.com/docs/guides/vision), and
+        [audio](https://platform.openai.com/docs/guides/audio) guides.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -102,6 +113,10 @@ class Completions(SyncAPIResource):
           model: ID of the model to use. See the
               [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
               table for details on which models work with the Chat API.
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+              [Learn more](https://platform.openai.com/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -150,7 +165,18 @@ class Completions(SyncAPIResource):
               [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Developer-defined tags and values used for filtering completions in the
-              [dashboard](https://platform.openai.com/completions).
+              [dashboard](https://platform.openai.com/chat-completions).
+
+          modalities: Output types that you would like the model to generate for this request. Most
+              models are capable of generating text, which is the default:
+
+              `["text"]`
+
+              The `gpt-4o-audio-preview` model can also be used to
+              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+              this model generate both text and audio responses, you can use:
+
+              `["text", "audio"]`
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -211,8 +237,9 @@ class Completions(SyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
-          store: Whether or not to store the output of this completion request for traffic
-              logging in the [dashboard](https://platform.openai.com/completions).
+          store: Whether or not to store the output of this chat completion request for use in
+              our [model distillation](https://platform.openai.com/docs/guides/distillation)
+              or [evals](https://platform.openai.com/docs/guides/evals) products.
 
           stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
               sent as data-only
@@ -274,6 +301,7 @@ class Completions(SyncAPIResource):
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
         stream: Literal[True],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -282,6 +310,7 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -304,8 +333,12 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Stream[ChatCompletionChunk]:
-        """
-        Creates a model response for the given chat conversation.
+        """Creates a model response for the given chat conversation.
+
+        Learn more in the
+        [text generation](https://platform.openai.com/docs/guides/text-generation),
+        [vision](https://platform.openai.com/docs/guides/vision), and
+        [audio](https://platform.openai.com/docs/guides/audio) guides.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -325,6 +358,10 @@ class Completions(SyncAPIResource):
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+              [Learn more](https://platform.openai.com/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -373,7 +410,18 @@ class Completions(SyncAPIResource):
               [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Developer-defined tags and values used for filtering completions in the
-              [dashboard](https://platform.openai.com/completions).
+              [dashboard](https://platform.openai.com/chat-completions).
+
+          modalities: Output types that you would like the model to generate for this request. Most
+              models are capable of generating text, which is the default:
+
+              `["text"]`
+
+              The `gpt-4o-audio-preview` model can also be used to
+              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+              this model generate both text and audio responses, you can use:
+
+              `["text", "audio"]`
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -434,8 +482,9 @@ class Completions(SyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
-          store: Whether or not to store the output of this completion request for traffic
-              logging in the [dashboard](https://platform.openai.com/completions).
+          store: Whether or not to store the output of this chat completion request for use in
+              our [model distillation](https://platform.openai.com/docs/guides/distillation)
+              or [evals](https://platform.openai.com/docs/guides/evals) products.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -490,6 +539,7 @@ class Completions(SyncAPIResource):
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
         stream: bool,
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -498,6 +548,7 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -520,8 +571,12 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
-        """
-        Creates a model response for the given chat conversation.
+        """Creates a model response for the given chat conversation.
+
+        Learn more in the
+        [text generation](https://platform.openai.com/docs/guides/text-generation),
+        [vision](https://platform.openai.com/docs/guides/vision), and
+        [audio](https://platform.openai.com/docs/guides/audio) guides.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -541,6 +596,10 @@ class Completions(SyncAPIResource):
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+              [Learn more](https://platform.openai.com/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -589,7 +648,18 @@ class Completions(SyncAPIResource):
               [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Developer-defined tags and values used for filtering completions in the
-              [dashboard](https://platform.openai.com/completions).
+              [dashboard](https://platform.openai.com/chat-completions).
+
+          modalities: Output types that you would like the model to generate for this request. Most
+              models are capable of generating text, which is the default:
+
+              `["text"]`
+
+              The `gpt-4o-audio-preview` model can also be used to
+              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+              this model generate both text and audio responses, you can use:
+
+              `["text", "audio"]`
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -650,8 +720,9 @@ class Completions(SyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
-          store: Whether or not to store the output of this completion request for traffic
-              logging in the [dashboard](https://platform.openai.com/completions).
+          store: Whether or not to store the output of this chat completion request for use in
+              our [model distillation](https://platform.openai.com/docs/guides/distillation)
+              or [evals](https://platform.openai.com/docs/guides/evals) products.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -705,6 +776,7 @@ class Completions(SyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -713,6 +785,7 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -742,6 +815,7 @@ class Completions(SyncAPIResource):
                 {
                     "messages": messages,
                     "model": model,
+                    "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,
@@ -750,6 +824,7 @@ class Completions(SyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_tokens": max_tokens,
                     "metadata": metadata,
+                    "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "presence_penalty": presence_penalty,
@@ -804,6 +879,7 @@ class AsyncCompletions(AsyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -812,6 +888,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -835,8 +912,12 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion:
-        """
-        Creates a model response for the given chat conversation.
+        """Creates a model response for the given chat conversation.
+
+        Learn more in the
+        [text generation](https://platform.openai.com/docs/guides/text-generation),
+        [vision](https://platform.openai.com/docs/guides/vision), and
+        [audio](https://platform.openai.com/docs/guides/audio) guides.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -849,6 +930,10 @@ class AsyncCompletions(AsyncAPIResource):
           model: ID of the model to use. See the
               [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
               table for details on which models work with the Chat API.
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+              [Learn more](https://platform.openai.com/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -897,7 +982,18 @@ class AsyncCompletions(AsyncAPIResource):
               [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Developer-defined tags and values used for filtering completions in the
-              [dashboard](https://platform.openai.com/completions).
+              [dashboard](https://platform.openai.com/chat-completions).
+
+          modalities: Output types that you would like the model to generate for this request. Most
+              models are capable of generating text, which is the default:
+
+              `["text"]`
+
+              The `gpt-4o-audio-preview` model can also be used to
+              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+              this model generate both text and audio responses, you can use:
+
+              `["text", "audio"]`
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -958,8 +1054,9 @@ class AsyncCompletions(AsyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
-          store: Whether or not to store the output of this completion request for traffic
-              logging in the [dashboard](https://platform.openai.com/completions).
+          store: Whether or not to store the output of this chat completion request for use in
+              our [model distillation](https://platform.openai.com/docs/guides/distillation)
+              or [evals](https://platform.openai.com/docs/guides/evals) products.
 
           stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
               sent as data-only
@@ -1021,6 +1118,7 @@ class AsyncCompletions(AsyncAPIResource):
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
         stream: Literal[True],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -1029,6 +1127,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1051,8 +1150,12 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncStream[ChatCompletionChunk]:
-        """
-        Creates a model response for the given chat conversation.
+        """Creates a model response for the given chat conversation.
+
+        Learn more in the
+        [text generation](https://platform.openai.com/docs/guides/text-generation),
+        [vision](https://platform.openai.com/docs/guides/vision), and
+        [audio](https://platform.openai.com/docs/guides/audio) guides.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -1072,6 +1175,10 @@ class AsyncCompletions(AsyncAPIResource):
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+              [Learn more](https://platform.openai.com/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -1120,7 +1227,18 @@ class AsyncCompletions(AsyncAPIResource):
               [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Developer-defined tags and values used for filtering completions in the
-              [dashboard](https://platform.openai.com/completions).
+              [dashboard](https://platform.openai.com/chat-completions).
+
+          modalities: Output types that you would like the model to generate for this request. Most
+              models are capable of generating text, which is the default:
+
+              `["text"]`
+
+              The `gpt-4o-audio-preview` model can also be used to
+              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+              this model generate both text and audio responses, you can use:
+
+              `["text", "audio"]`
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1181,8 +1299,9 @@ class AsyncCompletions(AsyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
-          store: Whether or not to store the output of this completion request for traffic
-              logging in the [dashboard](https://platform.openai.com/completions).
+          store: Whether or not to store the output of this chat completion request for use in
+              our [model distillation](https://platform.openai.com/docs/guides/distillation)
+              or [evals](https://platform.openai.com/docs/guides/evals) products.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -1237,6 +1356,7 @@ class AsyncCompletions(AsyncAPIResource):
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
         stream: bool,
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -1245,6 +1365,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1267,8 +1388,12 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
-        """
-        Creates a model response for the given chat conversation.
+        """Creates a model response for the given chat conversation.
+
+        Learn more in the
+        [text generation](https://platform.openai.com/docs/guides/text-generation),
+        [vision](https://platform.openai.com/docs/guides/vision), and
+        [audio](https://platform.openai.com/docs/guides/audio) guides.
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -1288,6 +1413,10 @@ class AsyncCompletions(AsyncAPIResource):
               as they become available, with the stream terminated by a `data: [DONE]`
               message.
               [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+
+          audio: Parameters for audio output. Required when audio output is requested with
+              `modalities: ["audio"]`.
+              [Learn more](https://platform.openai.com/docs/guides/audio).
 
           frequency_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on their
               existing frequency in the text so far, decreasing the model's likelihood to
@@ -1336,7 +1465,18 @@ class AsyncCompletions(AsyncAPIResource):
               [o1 series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Developer-defined tags and values used for filtering completions in the
-              [dashboard](https://platform.openai.com/completions).
+              [dashboard](https://platform.openai.com/chat-completions).
+
+          modalities: Output types that you would like the model to generate for this request. Most
+              models are capable of generating text, which is the default:
+
+              `["text"]`
+
+              The `gpt-4o-audio-preview` model can also be used to
+              [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+              this model generate both text and audio responses, you can use:
+
+              `["text", "audio"]`
 
           n: How many chat completion choices to generate for each input message. Note that
               you will be charged based on the number of generated tokens across all of the
@@ -1397,8 +1537,9 @@ class AsyncCompletions(AsyncAPIResource):
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
-          store: Whether or not to store the output of this completion request for traffic
-              logging in the [dashboard](https://platform.openai.com/completions).
+          store: Whether or not to store the output of this chat completion request for use in
+              our [model distillation](https://platform.openai.com/docs/guides/distillation)
+              or [evals](https://platform.openai.com/docs/guides/evals) products.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -1452,6 +1593,7 @@ class AsyncCompletions(AsyncAPIResource):
         *,
         messages: Iterable[ChatCompletionMessageParam],
         model: Union[str, ChatModel],
+        audio: Optional[ChatCompletionAudioParam] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         function_call: completion_create_params.FunctionCall | NotGiven = NOT_GIVEN,
         functions: Iterable[completion_create_params.Function] | NotGiven = NOT_GIVEN,
@@ -1460,6 +1602,7 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1489,6 +1632,7 @@ class AsyncCompletions(AsyncAPIResource):
                 {
                     "messages": messages,
                     "model": model,
+                    "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
                     "functions": functions,
@@ -1497,6 +1641,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "max_completion_tokens": max_completion_tokens,
                     "max_tokens": max_tokens,
                     "metadata": metadata,
+                    "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
                     "presence_penalty": presence_penalty,

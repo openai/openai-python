@@ -4,10 +4,13 @@ from __future__ import annotations
 
 from .chat_completion import ChatCompletion as ChatCompletion
 from .chat_completion_role import ChatCompletionRole as ChatCompletionRole
+from .chat_completion_audio import ChatCompletionAudio as ChatCompletionAudio
 from .chat_completion_chunk import ChatCompletionChunk as ChatCompletionChunk
 from .chat_completion_message import ChatCompletionMessage as ChatCompletionMessage
+from .chat_completion_modality import ChatCompletionModality as ChatCompletionModality
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
 from .chat_completion_tool_param import ChatCompletionToolParam as ChatCompletionToolParam
+from .chat_completion_audio_param import ChatCompletionAudioParam as ChatCompletionAudioParam
 from .chat_completion_message_param import ChatCompletionMessageParam as ChatCompletionMessageParam
 from .chat_completion_token_logprob import ChatCompletionTokenLogprob as ChatCompletionTokenLogprob
 from .chat_completion_message_tool_call import ChatCompletionMessageToolCall as ChatCompletionMessageToolCall
@@ -42,4 +45,7 @@ from .chat_completion_content_part_refusal_param import (
 )
 from .chat_completion_function_call_option_param import (
     ChatCompletionFunctionCallOptionParam as ChatCompletionFunctionCallOptionParam,
+)
+from .chat_completion_content_part_input_audio_param import (
+    ChatCompletionContentPartInputAudioParam as ChatCompletionContentPartInputAudioParam,
 )
