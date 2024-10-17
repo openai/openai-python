@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.52.0 (2024-10-17)
+
+Full Changelog: [v1.51.2...v1.52.0](https://github.com/openai/openai-python/compare/v1.51.2...v1.52.0)
+
+### Features
+
+* **api:** add gpt-4o-audio-preview model for chat completions ([#1796](https://github.com/openai/openai-python/issues/1796)) ([fbf1e0c](https://github.com/openai/openai-python/commit/fbf1e0c25c4d163f06b61a43d1a94ce001033a7b))
+
 ## 1.51.2 (2024-10-08)
 
 Full Changelog: [v1.51.1...v1.51.2](https://github.com/openai/openai-python/compare/v1.51.1...v1.51.2)
