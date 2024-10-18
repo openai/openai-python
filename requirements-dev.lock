@@ -80,7 +80,7 @@ pytz==2023.3.post1
     # via dirty-equals
 respx==0.20.2
 rich==13.7.1
-ruff==0.6.5
+ruff==0.6.9
 setuptools==68.2.2
     # via nodeenv
 six==1.16.0
