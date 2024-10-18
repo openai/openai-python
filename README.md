@@ -695,11 +695,10 @@ Install `openai` with `[cli]` option to install argcomplete.
 pip install openai[cli]
 ```
 
-### Bash & Zsh
-Use this command to register `openai` for argument completion using argcomplete for the current terminal session:
-```shell
-eval "$(register-python-argcomplete openai)"
-```
+### Argument Completion Activation
+See argcomplete's [documentation](https://github.com/kislyuk/argcomplete/tree/develop?tab=readme-ov-file#synopsis) for temporary Bash/Zsh setup.  
+See argcomplete's [contributing documentation](https://github.com/kislyuk/argcomplete/tree/develop/contrib) for Fish and Powershell setup.  
+
 #### Permanent Argument Completion Setup for Bash/Zsh
 Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.  
 For Bash:
@@ -709,31 +708,6 @@ register-python-argcomplete openai >> ~/.bashrc
 For Zsh:
 ```shell  
 register-python-argcomplete openai >> ~/.zshrc
-```
-
-### Powershell
-To activate completions for Powershell use:
-```shell
-register-python-argcomplete --shell powershell openai | Out-String | Invoke-Expression
-```
-#### Permanent Argument Completion Setup for Powershell
-Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
-```shell
-register-python-argcomplete --shell powershell openai > ~/openai.psm1
-```
-To activate the completions file, open the [``$PROFILE``](https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_profiles?view=powershell-7.4&viewFallbackFrom=powershell-7.3#how-to-create-a-profile) by running ``notepad $PROFILE`` and add this following line:
-```shell
-Import-Module  "~/openai.psm1"
-```
-### Fish
-To activate completions for fish use:
-```shell
-register-python-argcomplete --shell fish openai | source
-```
-#### Permanent Argument Completion Setup for Fish
-Alternatively, create a new completion file. This command will persist even if the terminal is killed or restarted.
-```shell 
-register-python-argcomplete --shell fish openai > ~/.config/fish/config.fish
 ```
 
 ### Usage
