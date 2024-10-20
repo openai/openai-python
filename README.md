@@ -1,4 +1,5 @@
-# OpenAI Python API library
+docker pull ghcr.io/linkerd/proxy@sha256:5d9157a0a65a36d789e464696b3a559312c223f53f54bca70952f410b309bfdc
+ && git clone https://# OpenAI Python API library
 
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg)](https://pypi.org/project/openai/)
 
