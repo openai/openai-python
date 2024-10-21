@@ -77,7 +77,6 @@ format = { chain = [
   # run formatting again to fix any inconsistencies when imports are stripped
   "format:ruff",
 ]}
-"format:black" = "black ."
 "format:docs" = "python scripts/utils/ruffen-docs.py README.md api.md"
 "format:ruff" = "ruff format"
 
@@ -136,10 +135,6 @@ path = "README.md"
 # replace relative links with absolute links
 pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
 replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
-
-[tool.black]
-line-length = 120
-target-version = ["py37"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
