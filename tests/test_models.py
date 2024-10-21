@@ -245,7 +245,7 @@ def test_nested_union_of_mixed_types() -> None:
     assert m.foo is True
 
     m = Model.construct(foo="CARD_HOLDER")
-    assert m.foo is "CARD_HOLDER"
+    assert m.foo == "CARD_HOLDER"
 
     m = Model.construct(foo={"bar": False})
     assert isinstance(m.foo, Submodel1)
