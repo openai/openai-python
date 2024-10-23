@@ -687,6 +687,36 @@ In addition to the options provided in the base `OpenAI` client, the following o
 
 An example of using the client with Microsoft Entra ID (formerly known as Azure Active Directory) can be found [here](https://github.com/openai/openai-python/blob/main/examples/azure_ad.py).
 
+## Activating CLI Autocomplete
+Use the following commands to activate CLI autocompletion for each shell.
+
+Install `openai` with `[cli]` option to install argcomplete.
+```shell
+pip install openai[cli]
+```
+
+### Argument Completion Activation
+See argcomplete's [documentation](https://github.com/kislyuk/argcomplete/tree/develop?tab=readme-ov-file#synopsis) for temporary Bash/Zsh setup.  
+See argcomplete's [contributing documentation](https://github.com/kislyuk/argcomplete/tree/develop/contrib) for Fish and Powershell setup.  
+
+#### Permanent Argument Completion Setup for Bash/Zsh
+Alternatively, run this command to register `openai` for argument completion permanently, eliminating the need to run the `eval` command each time the terminal is restarted or killed.  
+For Bash:
+```shell 
+register-python-argcomplete openai >> ~/.bashrc
+```
+For Zsh:
+```shell  
+register-python-argcomplete openai >> ~/.zshrc
+```
+
+### Usage
+After completing the appropriate steps for your shell, try the following action:
+>_If you have activated permanent argument completion, restart your terminal before proceeding._
+```shell
+openai <TAB>
+```
+
 ## Versioning
 
 This package generally follows [SemVer](https://semver.org/spec/v2.0.0.html) conventions, though certain backwards-incompatible changes may be released as minor versions:
