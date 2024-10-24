@@ -157,7 +157,23 @@ class ToolResourcesFileSearch(TypedDict, total=False):
     """
 
 
+class ToolResourcesFunction(TypedDict, total=False):
+    name: str
+    """
+    Function name.
+    """
+    
+    file_ids: List[str]
+    """
+    A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
+    available to the `code_interpreter` tool. There can be a maximum of 20 files
+    associated with the tool.
+    """
+
+
 class ToolResources(TypedDict, total=False):
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch
+    
+    function: List[ToolResourcesFunction]
