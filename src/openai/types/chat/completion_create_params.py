@@ -6,7 +6,9 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..chat_model import ChatModel
+from .chat_completion_modality import ChatCompletionModality
 from .chat_completion_tool_param import ChatCompletionToolParam
+from .chat_completion_audio_param import ChatCompletionAudioParam
 from .chat_completion_message_param import ChatCompletionMessageParam
 from ..shared_params.function_parameters import FunctionParameters
 from ..shared_params.response_format_text import ResponseFormatText
@@ -43,6 +45,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     See the
     [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
     table for details on which models work with the Chat API.
+    """
+
+    audio: Optional[ChatCompletionAudioParam]
+    """Parameters for audio output.
+
+    Required when audio output is requested with `modalities: ["audio"]`.
+    [Learn more](https://platform.openai.com/docs/guides/audio).
     """
 
     frequency_penalty: Optional[float]
@@ -112,7 +121,21 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     metadata: Optional[Dict[str, str]]
     """
     Developer-defined tags and values used for filtering completions in the
-    [dashboard](https://platform.openai.com/completions).
+    [dashboard](https://platform.openai.com/chat-completions).
+    """
+
+    modalities: Optional[List[ChatCompletionModality]]
+    """
+    Output types that you would like the model to generate for this request. Most
+    models are capable of generating text, which is the default:
+
+    `["text"]`
+
+    The `gpt-4o-audio-preview` model can also be used to
+    [generate audio](https://platform.openai.com/docs/guides/audio). To request that
+    this model generate both text and audio responses, you can use:
+
+    `["text", "audio"]`
     """
 
     n: Optional[int]
@@ -195,8 +218,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     store: Optional[bool]
     """
-    Whether or not to store the output of this completion request for traffic
-    logging in the [dashboard](https://platform.openai.com/completions).
+    Whether or not to store the output of this chat completion request for use in
+    our [model distillation](https://platform.openai.com/docs/guides/distillation)
+    or [evals](https://platform.openai.com/docs/guides/evals) products.
     """
 
     stream_options: Optional[ChatCompletionStreamOptionsParam]

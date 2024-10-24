@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Union
+from typing import Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from .thread import Thread
@@ -50,6 +50,9 @@ class ThreadCreated(BaseModel):
     """
 
     event: Literal["thread.created"]
+
+    enabled: Optional[bool] = None
+    """Whether to enable input audio transcription."""
 
 
 class ThreadRunCreated(BaseModel):

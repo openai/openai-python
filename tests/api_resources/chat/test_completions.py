@@ -44,6 +44,10 @@ class TestCompletions:
                 }
             ],
             model="gpt-4o",
+            audio={
+                "format": "wav",
+                "voice": "alloy",
+            },
             frequency_penalty=-2,
             function_call="none",
             functions=[
@@ -58,6 +62,7 @@ class TestCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
+            modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
@@ -167,6 +172,10 @@ class TestCompletions:
             ],
             model="gpt-4o",
             stream=True,
+            audio={
+                "format": "wav",
+                "voice": "alloy",
+            },
             frequency_penalty=-2,
             function_call="none",
             functions=[
@@ -181,6 +190,7 @@ class TestCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
+            modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
@@ -309,6 +319,10 @@ class TestAsyncCompletions:
                 }
             ],
             model="gpt-4o",
+            audio={
+                "format": "wav",
+                "voice": "alloy",
+            },
             frequency_penalty=-2,
             function_call="none",
             functions=[
@@ -323,6 +337,7 @@ class TestAsyncCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
+            modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
@@ -432,6 +447,10 @@ class TestAsyncCompletions:
             ],
             model="gpt-4o",
             stream=True,
+            audio={
+                "format": "wav",
+                "voice": "alloy",
+            },
             frequency_penalty=-2,
             function_call="none",
             functions=[
@@ -446,6 +465,7 @@ class TestAsyncCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
+            modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
             presence_penalty=-2,
