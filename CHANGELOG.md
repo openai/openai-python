@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.52.2 (2024-10-23)
+
+Full Changelog: [v1.52.1...v1.52.2](https://github.com/openai/openai-python/compare/v1.52.1...v1.52.2)
+
+### Chores
+
+* **internal:** update spec version ([#1816](https://github.com/openai/openai-python/issues/1816)) ([c23282a](https://github.com/openai/openai-python/commit/c23282a328c48af90a88673ff5f6cc7a866f8758))
+
 ## 1.52.1 (2024-10-22)
 
 Full Changelog: [v1.52.0...v1.52.1](https://github.com/openai/openai-python/compare/v1.52.0...v1.52.1)
