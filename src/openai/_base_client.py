@@ -62,7 +62,7 @@ from ._types import (
     HttpxRequestFiles,
     ModelBuilderProtocol,
 )
-from ._utils import is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
+from ._utils import is_dict, is_list, is_given, lru_cache, is_mapping
 from ._compat import model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
@@ -1549,7 +1549,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         if self._platform is None:
             # `get_platform` can make blocking IO calls so we
             # execute it earlier while we are in an async context
-            self._platform = await asyncify(get_platform)()
+            self._platform = await asyncio.to_thread(get_platform)
 
         # create a copy of the options we were given so that if the
         # options are mutated later & we then retry, the retries are

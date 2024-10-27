@@ -150,7 +150,7 @@ filterwarnings = [
 # there are a couple of flags that are still disabled by
 # default in strict mode as they are experimental and niche.
 typeCheckingMode = "strict"
-pythonVersion = "3.7"
+pythonVersion = "3.9.18"
 
 exclude = [
     "_dev",
