@@ -133,7 +133,7 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
 def model_dump(
     model: pydantic.BaseModel,
     *,
-    exclude: IncEx = None,
+    exclude: IncEx | None = None,
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
     warnings: bool = True,

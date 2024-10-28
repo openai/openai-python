@@ -23,7 +23,7 @@ from ._events import (
     FunctionToolCallArgumentsDeltaEvent,
 )
 from .._deltas import accumulate_delta
-from ...._types import NOT_GIVEN, NotGiven
+from ...._types import NOT_GIVEN, IncEx, NotGiven
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import model_dump
 from ...._models import build, construct_type
@@ -352,13 +352,17 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     # we don't want to serialise / deserialise our custom properties
                                     # as they won't appear in the delta and we don't want to have to
                                     # continuosly reparse the content
-                                    exclude={
-                                        "parsed": True,
-                                        "tool_calls": {
-                                            idx: {"function": {"parsed_arguments": True}}
-                                            for idx, _ in enumerate(choice_snapshot.message.tool_calls or [])
+                                    exclude=cast(
+                                        # cast required as mypy isn't smart enough to infer `True` here to `Literal[True]`
+                                        IncEx,
+                                        {
+                                            "parsed": True,
+                                            "tool_calls": {
+                                                idx: {"function": {"parsed_arguments": True}}
+                                                for idx, _ in enumerate(choice_snapshot.message.tool_calls or [])
+                                            },
                                         },
-                                    },
+                                    ),
                                 ),
                             ),
                             cast("dict[object, object]", choice.delta.to_dict()),
