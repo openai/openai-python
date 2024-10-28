@@ -201,7 +201,7 @@ class BaseModel(pydantic.BaseModel):
     # Based on https://github.com/samuelcolvin/pydantic/issues/1168#issuecomment-817742836.
     @classmethod
     @override
-    def construct(
+    def construct(  # pyright: ignore[reportIncompatibleMethodOverride]
         cls: Type[ModelT],
         _fields_set: set[str] | None = None,
         **values: object,
@@ -273,8 +273,8 @@ class BaseModel(pydantic.BaseModel):
             self,
             *,
             mode: Literal["json", "python"] | str = "python",
-            include: IncEx = None,
-            exclude: IncEx = None,
+            include: IncEx | None = None,
+            exclude: IncEx | None = None,
             by_alias: bool = False,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
@@ -328,8 +328,8 @@ class BaseModel(pydantic.BaseModel):
             self,
             *,
             indent: int | None = None,
-            include: IncEx = None,
-            exclude: IncEx = None,
+            include: IncEx | None = None,
+            exclude: IncEx | None = None,
             by_alias: bool = False,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,

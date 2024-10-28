@@ -18,14 +18,13 @@ argcomplete==3.1.2
     # via nox
 asttokens==2.4.1
     # via inline-snapshot
-attrs==23.1.0
+attrs==24.2.0
     # via outcome
-    # via pytest
     # via trio
-azure-core==1.30.1
+azure-core==1.31.0
     # via azure-identity
-azure-identity==1.15.0
-black==24.4.2
+azure-identity==1.19.0
+black==24.10.0
     # via inline-snapshot
 certifi==2023.7.22
     # via httpcore
@@ -49,10 +48,11 @@ distlib==0.3.7
     # via virtualenv
 distro==1.8.0
     # via openai
-exceptiongroup==1.1.3
+exceptiongroup==1.2.2
     # via anyio
+    # via pytest
     # via trio
-executing==2.0.1
+executing==2.1.0
     # via inline-snapshot
 filelock==3.12.4
     # via virtualenv
@@ -78,7 +78,7 @@ markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-msal==1.29.0
+msal==1.31.0
     # via azure-identity
     # via msal-extensions
 msal-extensions==1.2.0
@@ -109,26 +109,24 @@ pathspec==0.12.1
 platformdirs==3.11.0
     # via black
     # via virtualenv
-pluggy==1.3.0
+pluggy==1.5.0
     # via pytest
-portalocker==2.8.2
+portalocker==2.10.1
     # via msal-extensions
-py==1.11.0
-    # via pytest
 pycparser==2.22
     # via cffi
-pydantic==2.7.1
+pydantic==2.9.2
     # via openai
-pydantic-core==2.18.2
+pydantic-core==2.23.4
     # via pydantic
 pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
 pyright==1.1.380
-pytest==7.1.1
+pytest==8.3.3
     # via pytest-asyncio
-pytest-asyncio==0.21.1
+pytest-asyncio==0.24.0
 python-dateutil==2.8.2
     # via pandas
     # via time-machine
@@ -158,21 +156,22 @@ sortedcontainers==2.4.0
 time-machine==2.9.0
 toml==0.10.2
     # via inline-snapshot
-tomli==2.0.1
+tomli==2.0.2
     # via black
     # via mypy
     # via pytest
-tqdm==4.66.1
+tqdm==4.66.5
     # via openai
-trio==0.22.2
-types-pyaudio==0.2.16.20240106
-types-pytz==2024.1.0.20240417
+trio==0.27.0
+types-pyaudio==0.2.16.20240516
+types-pytz==2024.2.0.20241003
     # via pandas-stubs
 types-toml==0.10.8.20240310
     # via inline-snapshot
-types-tqdm==4.66.0.2
+types-tqdm==4.66.0.20240417
 typing-extensions==4.12.2
     # via azure-core
+    # via azure-identity
     # via black
     # via mypy
     # via openai
