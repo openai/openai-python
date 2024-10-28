@@ -16,7 +16,7 @@ from typing import (
     Optional,
     Sequence,
 )
-from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
+from typing_extensions import Set, Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
 
 import httpx
 import pydantic
@@ -195,7 +195,9 @@ StrBytesIntFloat = Union[str, bytes, int, float]
 
 # Note: copied from Pydantic
 # https://github.com/pydantic/pydantic/blob/32ea570bf96e84234d2992e1ddf40ab8a565925a/pydantic/main.py#L49
-IncEx: TypeAlias = "set[int] | set[str] | dict[int, Any] | dict[str, Any] | None"
+IncEx: TypeAlias = Union[
+    Set[int], Set[str], Mapping[int, Union["IncEx", Literal[True]]], Mapping[str, Union["IncEx", Literal[True]]]
+]
 
 PostParser = Callable[[Any], Any]
 
