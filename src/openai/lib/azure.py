@@ -58,8 +58,8 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     ) -> httpx.Request:
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
-            if model is not None and not "/deployments" in str(self.base_url):
-                options.url = f"/deployments/{model}{options.url}"
+            if model is not None and not "/openai/deployments" in str(self.base_url):
+                options.url = f"/openai/deployments/{model}{options.url}"
 
         return super()._build_request(options, retries_taken=retries_taken)
 
@@ -195,7 +195,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             if azure_deployment is not None:
                 base_url = f"{azure_endpoint}/openai/deployments/{azure_deployment}"
             else:
-                base_url = f"{azure_endpoint}/openai"
+                base_url = f"{azure_endpoint}"
         else:
             if azure_endpoint is not None:
                 raise ValueError("base_url and azure_endpoint are mutually exclusive")
