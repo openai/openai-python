@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import os
-import asyncio
 import logging
 from typing import TYPE_CHECKING, Iterator, AsyncIterator
 
 import pytest
+from pytest_asyncio import is_async_test
 
 from openai import OpenAI, AsyncOpenAI
 
@@ -17,11 +17,13 @@ pytest.register_assert_rewrite("tests.utils")
 logging.getLogger("openai").setLevel(logging.DEBUG)
 
 
-@pytest.fixture(scope="session")
-def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
-    loop = asyncio.new_event_loop()
-    yield loop
-    loop.close()
+# automatically add `pytest.mark.asyncio()` to all of our async tests
+# so we don't have to add that boilerplate everywhere
+def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
+    pytest_asyncio_tests = (item for item in items if is_async_test(item))
+    session_scope_marker = pytest.mark.asyncio(loop_scope="session")
+    for async_test in pytest_asyncio_tests:
+        async_test.add_marker(session_scope_marker, append=False)
 
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")

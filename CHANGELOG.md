@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.53.0 (2024-10-30)
+
+Full Changelog: [v1.52.2...v1.53.0](https://github.com/openai/openai-python/compare/v1.52.2...v1.53.0)
+
+### Features
+
+* **api:** add new, expressive voices for Realtime and Audio in Chat Completions ([7cf0a49](https://github.com/openai/openai-python/commit/7cf0a4958e4c985bef4d18bb919fa3948f389a82))
+
+
+### Chores
+
+* **internal:** bump pytest to v8 & pydantic ([#1829](https://github.com/openai/openai-python/issues/1829)) ([0e67a8a](https://github.com/openai/openai-python/commit/0e67a8af5daf9da029d2bd4bdf341cc8a494254a))
+
 ## 1.52.2 (2024-10-23)
 
 Full Changelog: [v1.52.1...v1.52.2](https://github.com/openai/openai-python/compare/v1.52.1...v1.52.2)
