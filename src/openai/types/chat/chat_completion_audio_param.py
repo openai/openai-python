@@ -14,8 +14,9 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     Must be one of `wav`, `mp3`, `flac`, `opus`, or `pcm16`.
     """
 
-    voice: Required[Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"]]
-    """Specifies the voice type.
+    voice: Required[Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
+    """The voice the model uses to respond.
 
-    Supported voices are `alloy`, `echo`, `fable`, `onyx`, `nova`, and `shimmer`.
+    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`,
+    `shimmer`, and `verse`.
     """
