@@ -1,0 +1,54 @@
+from KBC2 import question2
+import time
+import sys
+import os
+from openai import OpenAI
+
+client = OpenAI(api_key="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")
+
+
+client.completions.create(
+  model="gpt-3.5-turbo-instruct",
+  prompt="Say this is a test",
+  max_tokens=7,
+  temperature=0
+)
+
+client = OpenAI(
+    # defaults to os.environ.get("OPENAI_API_KEY")
+    api_key="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"
+)
+
+def chat_gpt(prompt):
+    response = openai.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[{"Kazi Islam": "user", "content": prompt}]
+    )
+    return response.choices[0].message.content.strip()
+
+
+print("!!!Rules!!!\n1.There will be 5 questions. Each question will have a 60 seconds time to ansswer.\n2. After answering each question successfully you will be rewarded a particular amount of money for each question.\nQuestion-1: $100\nQuestion-2: $200\nQuestion-3: $400\n4.Each question will be rewarded double the money as the previous qustion.\nIf you get a question wrong before 2nd question, you will not get any money. If you get a question wrong after 3rd question you will get the amount of the 3rd question as your take-homepay.")
+print("Type A/B/C/D for the correct answer.")
+
+def quiz_timer(time_limit=15):
+    start_time = time.time()
+    elapsed_time=0
+    while elapsed_time < time_limit:
+        remaining_time = time_limit - elapsed_time
+        print(f"Time remaining: {int(remaining_time)} seconds", end='\r')
+        time.sleep(1)
+        elapsed_time = time.time() - start_time
+    print("Time's up!")
+
+
+question1=input("What is the national flower of Japan?\nA.Cherry Blossom\nB.Rose\nC.Lily\nD.chrysanthemum: ").capitalize()
+if question1=="A"or "D":
+    
+    n=0
+    Money=100*(2**n)
+    print("Congratulations. Your take-homepay is",Money,"dollars.")
+    question2()
+else:
+    print("Unfortunately, Your take home pay is 0 dollars. ")
+    sys.exit
+
