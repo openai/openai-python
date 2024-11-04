@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.54.0 (2024-11-04)
+
+Full Changelog: [v1.53.1...v1.54.0](https://github.com/openai/openai-python/compare/v1.53.1...v1.54.0)
+
+### Features
+
+* **api:** add support for predicted outputs ([#1847](https://github.com/openai/openai-python/issues/1847)) ([42a4103](https://github.com/openai/openai-python/commit/42a410379a1b5f72424cc2e96dc6ddff22fd00be))
+* **project:** drop support for Python 3.7 ([#1845](https://github.com/openai/openai-python/issues/1845)) ([0ed5b1a](https://github.com/openai/openai-python/commit/0ed5b1a9302ccf2f40c3c751cd777740a4749cda))
+
 ## 1.53.1 (2024-11-04)
 
 Full Changelog: [v1.53.0...v1.53.1](https://github.com/openai/openai-python/compare/v1.53.0...v1.53.1)
