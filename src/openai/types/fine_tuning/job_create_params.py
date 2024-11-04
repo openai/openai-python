@@ -13,7 +13,7 @@ class JobCreateParams(TypedDict, total=False):
     """The name of the model to fine-tune.
 
     You can select one of the
-    [supported models](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned).
+    [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
     """
 
     training_file: Required[str]

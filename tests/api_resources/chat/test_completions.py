@@ -65,6 +65,10 @@ class TestCompletions:
             modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
+            prediction={
+                "content": "string",
+                "type": "content",
+            },
             presence_penalty=-2,
             response_format={"type": "text"},
             seed=-9007199254740991,
@@ -193,6 +197,10 @@ class TestCompletions:
             modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
+            prediction={
+                "content": "string",
+                "type": "content",
+            },
             presence_penalty=-2,
             response_format={"type": "text"},
             seed=-9007199254740991,
@@ -340,6 +348,10 @@ class TestAsyncCompletions:
             modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
+            prediction={
+                "content": "string",
+                "type": "content",
+            },
             presence_penalty=-2,
             response_format={"type": "text"},
             seed=-9007199254740991,
@@ -468,6 +480,10 @@ class TestAsyncCompletions:
             modalities=["text", "audio"],
             n=1,
             parallel_tool_calls=True,
+            prediction={
+                "content": "string",
+                "type": "content",
+            },
             presence_penalty=-2,
             response_format={"type": "text"},
             seed=-9007199254740991,
