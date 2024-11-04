@@ -29,8 +29,8 @@ def setup_logging() -> None:
 class APIKeyFilter(logging.Filter):
     @override
     def filter(self, record: logging.LogRecord) -> bool:
-        if hasattr(record, "args") and isinstance(record.args, dict):
-            if record.args.get("headers") and isinstance(record.args["headers"], dict):
+        if isinstance(record.args, dict) and "headers" in record.args:
+            if isinstance(record.args["headers"], dict):
                 if "api-key" in record.args["headers"]:
                     record.args["headers"]["api-key"] = "<redacted>"
                 if "Authorization" in record.args["headers"]:
