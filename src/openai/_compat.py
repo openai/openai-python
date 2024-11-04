@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, cast, overload
 from datetime import date, datetime
-from typing_extensions import Self
+from typing_extensions import Self, Literal
 
 import pydantic
 from pydantic.fields import FieldInfo
@@ -137,9 +137,11 @@ def model_dump(
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
     warnings: bool = True,
+    mode: Literal["json", "python"] = "python",
 ) -> dict[str, Any]:
-    if PYDANTIC_V2:
+    if PYDANTIC_V2 or hasattr(model, "model_dump"):
         return model.model_dump(
+            mode=mode,
             exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
