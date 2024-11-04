@@ -1,5 +1,6 @@
 import os
 import logging
+from typing_extensions import override
 
 logger: logging.Logger = logging.getLogger("openai")
 httpx_logger: logging.Logger = logging.getLogger("httpx")
@@ -23,3 +24,15 @@ def setup_logging() -> None:
         _basic_config()
         logger.setLevel(logging.INFO)
         httpx_logger.setLevel(logging.INFO)
+
+
+class APIKeyFilter(logging.Filter):
+    @override
+    def filter(self, record: logging.LogRecord) -> bool:
+        if hasattr(record, "args") and isinstance(record.args, dict):
+            if record.args.get("headers") and isinstance(record.args["headers"], dict):
+                if "api-key" in record.args["headers"]:
+                    record.args["headers"]["api-key"] = "<redacted>"
+                if "Authorization" in record.args["headers"]:
+                    record.args["headers"]["Authorization"] = "<redacted>"
+        return True
