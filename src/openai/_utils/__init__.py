@@ -6,6 +6,7 @@ from ._utils import (
     is_list as is_list,
     is_given as is_given,
     is_tuple as is_tuple,
+    json_safe as json_safe,
     lru_cache as lru_cache,
     is_mapping as is_mapping,
     is_tuple_t as is_tuple_t,
