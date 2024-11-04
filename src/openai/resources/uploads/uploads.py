@@ -85,7 +85,7 @@ class Uploads(SyncAPIResource):
         For certain `purpose`s, the correct `mime_type` must be specified. Please refer
         to documentation for the supported MIME types for your use case:
 
-        - [Assistants](https://platform.openai.com/docs/assistants/tools/file-search/supported-files)
+        - [Assistants](https://platform.openai.com/docs/assistants/tools/file-search#supported-files)
 
         For guidance on the proper filename extensions for each purpose, please follow
         the documentation on
@@ -279,7 +279,7 @@ class AsyncUploads(AsyncAPIResource):
         For certain `purpose`s, the correct `mime_type` must be specified. Please refer
         to documentation for the supported MIME types for your use case:
 
-        - [Assistants](https://platform.openai.com/docs/assistants/tools/file-search/supported-files)
+        - [Assistants](https://platform.openai.com/docs/assistants/tools/file-search#supported-files)
 
         For guidance on the proper filename extensions for each purpose, please follow
         the documentation on
