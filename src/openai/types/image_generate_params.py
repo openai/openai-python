@@ -61,5 +61,5 @@ class ImageGenerateParams(TypedDict, total=False):
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """

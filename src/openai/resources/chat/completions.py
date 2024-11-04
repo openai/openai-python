@@ -33,6 +33,7 @@ from ...types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ...types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ...types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from ...types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
+from ...types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
@@ -76,6 +77,7 @@ class Completions(SyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -113,7 +115,7 @@ class Completions(SyncAPIResource):
               [audio](https://platform.openai.com/docs/guides/audio).
 
           model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
               table for details on which models work with the Chat API.
 
           audio: Parameters for audio output. Required when audio output is requested with
@@ -124,7 +126,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -185,19 +187,22 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          prediction: Static predicted output content, such as the content of a text file that is
+              being regenerated.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -284,7 +289,7 @@ class Completions(SyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
 
@@ -315,6 +320,7 @@ class Completions(SyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -351,7 +357,7 @@ class Completions(SyncAPIResource):
               [audio](https://platform.openai.com/docs/guides/audio).
 
           model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
               table for details on which models work with the Chat API.
 
           stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
@@ -369,7 +375,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -430,19 +436,22 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          prediction: Static predicted output content, such as the content of a text file that is
+              being regenerated.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -522,7 +531,7 @@ class Completions(SyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
 
@@ -553,6 +562,7 @@ class Completions(SyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -589,7 +599,7 @@ class Completions(SyncAPIResource):
               [audio](https://platform.openai.com/docs/guides/audio).
 
           model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
               table for details on which models work with the Chat API.
 
           stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
@@ -607,7 +617,7 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -668,19 +678,22 @@ class Completions(SyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          prediction: Static predicted output content, such as the content of a text file that is
+              being regenerated.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -760,7 +773,7 @@ class Completions(SyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
 
@@ -790,6 +803,7 @@ class Completions(SyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -830,6 +844,7 @@ class Completions(SyncAPIResource):
                     "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "response_format": response_format,
                     "seed": seed,
@@ -894,6 +909,7 @@ class AsyncCompletions(AsyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -931,7 +947,7 @@ class AsyncCompletions(AsyncAPIResource):
               [audio](https://platform.openai.com/docs/guides/audio).
 
           model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
               table for details on which models work with the Chat API.
 
           audio: Parameters for audio output. Required when audio output is requested with
@@ -942,7 +958,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -1003,19 +1019,22 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          prediction: Static predicted output content, such as the content of a text file that is
+              being regenerated.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -1102,7 +1121,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
 
@@ -1133,6 +1152,7 @@ class AsyncCompletions(AsyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1169,7 +1189,7 @@ class AsyncCompletions(AsyncAPIResource):
               [audio](https://platform.openai.com/docs/guides/audio).
 
           model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
               table for details on which models work with the Chat API.
 
           stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
@@ -1187,7 +1207,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -1248,19 +1268,22 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          prediction: Static predicted output content, such as the content of a text file that is
+              being regenerated.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -1340,7 +1363,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
 
@@ -1371,6 +1394,7 @@ class AsyncCompletions(AsyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1407,7 +1431,7 @@ class AsyncCompletions(AsyncAPIResource):
               [audio](https://platform.openai.com/docs/guides/audio).
 
           model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
               table for details on which models work with the Chat API.
 
           stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
@@ -1425,7 +1449,7 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           function_call: Deprecated in favor of `tool_choice`.
 
@@ -1486,19 +1510,22 @@ class AsyncCompletions(AsyncAPIResource):
               choices. Keep `n` as `1` to minimize costs.
 
           parallel_tool_calls: Whether to enable
-              [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+              [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          prediction: Static predicted output content, such as the content of a text file that is
+              being regenerated.
 
           presence_penalty: Number between -2.0 and 2.0. Positive values penalize new tokens based on
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
 
           response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
               all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -1578,7 +1605,7 @@ class AsyncCompletions(AsyncAPIResource):
 
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
 
@@ -1608,6 +1635,7 @@ class AsyncCompletions(AsyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1648,6 +1676,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "response_format": response_format,
                     "seed": seed,

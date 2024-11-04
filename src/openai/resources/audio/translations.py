@@ -130,7 +130,7 @@ class Translations(SyncAPIResource):
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
+              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
               should be in English.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
@@ -273,7 +273,7 @@ class AsyncTranslations(AsyncAPIResource):
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
+              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
               should be in English.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
