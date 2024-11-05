@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.54.0 (2024-11-04)
+
+Full Changelog: [v1.53.1...v1.54.0](https://github.com/openai/openai-python/compare/v1.53.1...v1.54.0)
+
+### Features
+
+* **api:** add support for predicted outputs ([#1847](https://github.com/openai/openai-python/issues/1847)) ([42a4103](https://github.com/openai/openai-python/commit/42a410379a1b5f72424cc2e96dc6ddff22fd00be))
+* **project:** drop support for Python 3.7 ([#1845](https://github.com/openai/openai-python/issues/1845)) ([0ed5b1a](https://github.com/openai/openai-python/commit/0ed5b1a9302ccf2f40c3c751cd777740a4749cda))
+
+## 1.53.1 (2024-11-04)
+
+Full Changelog: [v1.53.0...v1.53.1](https://github.com/openai/openai-python/compare/v1.53.0...v1.53.1)
+
+### Bug Fixes
+
+* don't use dicts as iterables in transform ([#1842](https://github.com/openai/openai-python/issues/1842)) ([258f265](https://github.com/openai/openai-python/commit/258f26535744ab3b2f0746991fd29eae72ebd667))
+* support json safe serialization for basemodel subclasses ([#1844](https://github.com/openai/openai-python/issues/1844)) ([2b80c90](https://github.com/openai/openai-python/commit/2b80c90c21d3b2468dfa3bf40c08c5b0e0eebffa))
+
+
+### Chores
+
+* **internal:** bump mypy ([#1839](https://github.com/openai/openai-python/issues/1839)) ([d92f959](https://github.com/openai/openai-python/commit/d92f959aa6f49be56574b4d1d1ac5ac48689dd46))
+
 ## 1.53.0 (2024-10-30)
 
 Full Changelog: [v1.52.2...v1.53.0](https://github.com/openai/openai-python/compare/v1.52.2...v1.53.0)

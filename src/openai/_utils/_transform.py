@@ -173,6 +173,11 @@ def _transform_recursive(
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
     ):
+        # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
+        # intended as an iterable, so we don't transform it.
+        if isinstance(data, dict):
+            return cast(object, data)
+
         inner_type = extract_type_arg(stripped_type, 0)
         return [_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
 
@@ -186,7 +191,7 @@ def _transform_recursive(
         return data
 
     if isinstance(data, pydantic.BaseModel):
-        return model_dump(data, exclude_unset=True)
+        return model_dump(data, exclude_unset=True, mode="json")
 
     annotated_type = _get_annotated_type(annotation)
     if annotated_type is None:
@@ -324,7 +329,7 @@ async def _async_transform_recursive(
         return data
 
     if isinstance(data, pydantic.BaseModel):
-        return model_dump(data, exclude_unset=True)
+        return model_dump(data, exclude_unset=True, mode="json")
 
     annotated_type = _get_annotated_type(annotation)
     if annotated_type is None:

@@ -83,7 +83,7 @@ msal==1.31.0
     # via msal-extensions
 msal-extensions==1.2.0
     # via azure-identity
-mypy==1.11.2
+mypy==1.13.0
 mypy-extensions==1.0.0
     # via black
     # via mypy

@@ -88,7 +88,7 @@ class Jobs(SyncAPIResource):
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned).
+              [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
 
           training_file: The ID of an uploaded file that contains training data.
 
@@ -379,7 +379,7 @@ class AsyncJobs(AsyncAPIResource):
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
-              [supported models](https://platform.openai.com/docs/guides/fine-tuning/which-models-can-be-fine-tuned).
+              [supported models](https://platform.openai.com/docs/guides/fine-tuning#which-models-can-be-fine-tuned).
 
           training_file: The ID of an uploaded file that contains training data.
 

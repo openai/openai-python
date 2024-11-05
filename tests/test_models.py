@@ -520,19 +520,15 @@ def test_to_dict() -> None:
     assert m3.to_dict(exclude_none=True) == {}
     assert m3.to_dict(exclude_defaults=True) == {}
 
-    if PYDANTIC_V2:
+    class Model2(BaseModel):
+        created_at: datetime
 
-        class Model2(BaseModel):
-            created_at: datetime
+    time_str = "2024-03-21T11:39:01.275859"
+    m4 = Model2.construct(created_at=time_str)
+    assert m4.to_dict(mode="python") == {"created_at": datetime.fromisoformat(time_str)}
+    assert m4.to_dict(mode="json") == {"created_at": time_str}
 
-        time_str = "2024-03-21T11:39:01.275859"
-        m4 = Model2.construct(created_at=time_str)
-        assert m4.to_dict(mode="python") == {"created_at": datetime.fromisoformat(time_str)}
-        assert m4.to_dict(mode="json") == {"created_at": time_str}
-    else:
-        with pytest.raises(ValueError, match="mode is only supported in Pydantic v2"):
-            m.to_dict(mode="json")
-
+    if not PYDANTIC_V2:
         with pytest.raises(ValueError, match="warnings is only supported in Pydantic v2"):
             m.to_dict(warnings=False)
 
@@ -558,9 +554,6 @@ def test_forwards_compat_model_dump_method() -> None:
     assert m3.model_dump(exclude_none=True) == {}
 
     if not PYDANTIC_V2:
-        with pytest.raises(ValueError, match="mode is only supported in Pydantic v2"):
-            m.model_dump(mode="json")
-
         with pytest.raises(ValueError, match="round_trip is only supported in Pydantic v2"):
             m.model_dump(round_trip=True)
 
