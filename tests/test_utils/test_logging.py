@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Tuple, cast
+from typing import Any, Dict, cast
 
 import pytest
 
