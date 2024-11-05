@@ -32,6 +32,24 @@ def test_keys_redacted(logger_with_filter: logging.Logger, caplog: pytest.LogCap
     assert log_record["headers"]["Authorization"] == "<redacted>"
 
 
+def test_keys_redacted_case_insensitive(logger_with_filter: logging.Logger, caplog: pytest.LogCaptureFixture) -> None:
+    with caplog.at_level(logging.DEBUG):
+        logger_with_filter.debug(
+            "Request options: %s",
+            {
+                "method": "post",
+                "url": "chat/completions",
+                "headers": {"Api-key": "12345", "authorization": "Bearer token"}
+            },
+        )
+
+    log_record = cast(Dict[str, Any], caplog.records[0].args)
+    assert log_record["method"] == "post"
+    assert log_record["url"] == "chat/completions"
+    assert log_record["headers"]["Api-key"] == "<redacted>"
+    assert log_record["headers"]["authorization"] == "<redacted>"
+
+
 def test_no_headers(logger_with_filter: logging.Logger, caplog: pytest.LogCaptureFixture) -> None:
     with caplog.at_level(logging.DEBUG):
         logger_with_filter.debug(

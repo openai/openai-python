@@ -1,5 +1,6 @@
 import os
 import logging
+from typing import Any, Dict
 from typing_extensions import override
 
 logger: logging.Logger = logging.getLogger("openai")
@@ -31,8 +32,8 @@ class APIKeyFilter(logging.Filter):
     def filter(self, record: logging.LogRecord) -> bool:
         if isinstance(record.args, dict) and "headers" in record.args:
             if isinstance(record.args["headers"], dict):
-                if "api-key" in record.args["headers"]:
-                    record.args["headers"]["api-key"] = "<redacted>"
-                if "Authorization" in record.args["headers"]:
-                    record.args["headers"]["Authorization"] = "<redacted>"
+                logged_headers: Dict[str, Any] = record.args["headers"]
+                for header in logged_headers:
+                    if header.lower() in ["api-key", "authorization"]:
+                        logged_headers[header] = "<redacted>"
         return True
