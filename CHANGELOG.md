@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.54.1 (2024-11-05)
+
+Full Changelog: [v1.54.0...v1.54.1](https://github.com/openai/openai-python/compare/v1.54.0...v1.54.1)
+
+### Bug Fixes
+
+* add new prediction param to all methods ([6aa424d](https://github.com/openai/openai-python/commit/6aa424d076098312801febd938bd4b5e8baf4851))
+
 ## 1.54.0 (2024-11-04)
 
 Full Changelog: [v1.53.1...v1.54.0](https://github.com/openai/openai-python/compare/v1.53.1...v1.54.0)
