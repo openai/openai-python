@@ -46,6 +46,9 @@ from .chat_completion_named_tool_choice_param import (
 from .chat_completion_content_part_image_param import (
     ChatCompletionContentPartImageParam as ChatCompletionContentPartImageParam,
 )
+from .chat_completion_prediction_content_param import (
+    ChatCompletionPredictionContentParam as ChatCompletionPredictionContentParam,
+)
 from .chat_completion_tool_choice_option_param import (
     ChatCompletionToolChoiceOptionParam as ChatCompletionToolChoiceOptionParam,
 )

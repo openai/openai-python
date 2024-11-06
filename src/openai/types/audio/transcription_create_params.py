@@ -38,7 +38,7 @@ class TranscriptionCreateParams(TypedDict, total=False):
     """An optional text to guide the model's style or continue a previous audio
     segment.
 
-    The [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
+    The [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
     should match the audio language.
     """
 
