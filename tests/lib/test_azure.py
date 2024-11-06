@@ -1,3 +1,4 @@
+import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
 
@@ -5,6 +6,7 @@ import httpx
 import pytest
 from respx import MockRouter
 
+from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
 
@@ -148,3 +150,102 @@ async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> No
 
     assert calls[0].request.headers.get("Authorization") == "Bearer first"
     assert calls[1].request.headers.get("Authorization") == "Bearer second"
+
+
+class TestAzureLogging:
+
+    @pytest.fixture(autouse=True)
+    def logger_with_filter(self) -> logging.Logger:
+        logger = logging.getLogger("openai")
+        logger.setLevel(logging.DEBUG)
+        logger.addFilter(SensitiveHeadersFilter())
+        return logger
+
+    @pytest.mark.respx()
+    def test_azure_api_key_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+        respx_mock.post(
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
+        ).mock(
+            return_value=httpx.Response(200, json={"model": "gpt-4"})
+        )
+
+        client = AzureOpenAI(
+            api_version="2024-06-01",
+            api_key="example_api_key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+        )
+
+        with caplog.at_level(logging.DEBUG):
+            client.chat.completions.create(messages=[], model="gpt-4")
+
+        for record in caplog.records:
+            if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
+                assert record.args["headers"]["api-key"] == "<redacted>"
+
+
+    @pytest.mark.respx()
+    def test_azure_bearer_token_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+        respx_mock.post(
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
+        ).mock(
+            return_value=httpx.Response(200, json={"model": "gpt-4"})
+        )
+
+        client = AzureOpenAI(
+            api_version="2024-06-01",
+            azure_ad_token="example_token",
+            azure_endpoint="https://example-resource.azure.openai.com",
+        )
+
+        with caplog.at_level(logging.DEBUG):
+            client.chat.completions.create(messages=[], model="gpt-4")
+
+        for record in caplog.records:
+            if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
+                assert record.args["headers"]["Authorization"] == "<redacted>"
+
+
+    @pytest.mark.asyncio
+    @pytest.mark.respx()
+    async def test_azure_api_key_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+        respx_mock.post(
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
+        ).mock(
+            return_value=httpx.Response(200, json={"model": "gpt-4"})
+        )
+
+        client = AsyncAzureOpenAI(
+            api_version="2024-06-01",
+            api_key="example_api_key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+        )
+
+        with caplog.at_level(logging.DEBUG):
+            await client.chat.completions.create(messages=[], model="gpt-4")
+
+        for record in caplog.records:
+            if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
+                assert record.args["headers"]["api-key"] == "<redacted>"
+
+
+    @pytest.mark.asyncio
+    @pytest.mark.respx()
+    async def test_azure_bearer_token_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+        respx_mock.post(
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
+        ).mock(
+            return_value=httpx.Response(200, json={"model": "gpt-4"})
+        )
+
+        client = AsyncAzureOpenAI(
+            api_version="2024-06-01",
+            azure_ad_token="example_token",
+            azure_endpoint="https://example-resource.azure.openai.com",
+        )
+
+        with caplog.at_level(logging.DEBUG):
+            await client.chat.completions.create(messages=[], model="gpt-4")
+
+        for record in caplog.records:
+            if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
+                assert record.args["headers"]["Authorization"] == "<redacted>"
