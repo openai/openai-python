@@ -77,7 +77,12 @@ recommend checking a reliable weather website or app like the Weather Channel or
     system_fingerprint='fp_b40fb1c6fb',
     usage=CompletionUsage(
         completion_tokens=37,
-        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(
+            accepted_prediction_tokens=None,
+            audio_tokens=None,
+            reasoning_tokens=0,
+            rejected_prediction_tokens=None
+        ),
         prompt_tokens=14,
         prompt_tokens_details=None,
         total_tokens=51
@@ -139,7 +144,12 @@ ParsedChatCompletion[Location](
     system_fingerprint='fp_5050236cbd',
     usage=CompletionUsage(
         completion_tokens=14,
-        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(
+            accepted_prediction_tokens=None,
+            audio_tokens=None,
+            reasoning_tokens=0,
+            rejected_prediction_tokens=None
+        ),
         prompt_tokens=79,
         prompt_tokens_details=None,
         total_tokens=93
@@ -203,7 +213,12 @@ ParsedChatCompletion[Location](
     system_fingerprint='fp_b40fb1c6fb',
     usage=CompletionUsage(
         completion_tokens=14,
-        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(
+            accepted_prediction_tokens=None,
+            audio_tokens=None,
+            reasoning_tokens=0,
+            rejected_prediction_tokens=None
+        ),
         prompt_tokens=88,
         prompt_tokens_details=None,
         total_tokens=102
@@ -396,7 +411,12 @@ ParsedChatCompletion[CalendarEvent](
     system_fingerprint='fp_7568d46099',
     usage=CompletionUsage(
         completion_tokens=17,
-        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(
+            accepted_prediction_tokens=None,
+            audio_tokens=None,
+            reasoning_tokens=0,
+            rejected_prediction_tokens=None
+        ),
         prompt_tokens=92,
         prompt_tokens_details=None,
         total_tokens=109
@@ -847,7 +867,12 @@ ParsedChatCompletion[Location](
     system_fingerprint='fp_5050236cbd',
     usage=CompletionUsage(
         completion_tokens=14,
-        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(
+            accepted_prediction_tokens=None,
+            audio_tokens=None,
+            reasoning_tokens=0,
+            rejected_prediction_tokens=None
+        ),
         prompt_tokens=79,
         prompt_tokens_details=None,
         total_tokens=93
@@ -917,7 +942,12 @@ ParsedChatCompletion[Location](
     system_fingerprint='fp_5050236cbd',
     usage=CompletionUsage(
         completion_tokens=14,
-        completion_tokens_details=CompletionTokensDetails(audio_tokens=None, reasoning_tokens=0),
+        completion_tokens_details=CompletionTokensDetails(
+            accepted_prediction_tokens=None,
+            audio_tokens=None,
+            reasoning_tokens=0,
+            rejected_prediction_tokens=None
+        ),
         prompt_tokens=79,
         prompt_tokens_details=None,
         total_tokens=93

@@ -33,6 +33,7 @@ from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
 from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
+from ....types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
@@ -76,6 +77,7 @@ class Completions(SyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -169,6 +171,7 @@ class Completions(SyncAPIResource):
                     "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "response_format": _type_to_response_format(response_format),
                     "seed": seed,
@@ -217,6 +220,7 @@ class Completions(SyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -281,6 +285,7 @@ class Completions(SyncAPIResource):
             modalities=modalities,
             n=n,
             parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
             presence_penalty=presence_penalty,
             seed=seed,
             service_tier=service_tier,
@@ -343,6 +348,7 @@ class AsyncCompletions(AsyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -436,6 +442,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "modalities": modalities,
                     "n": n,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "response_format": _type_to_response_format(response_format),
                     "seed": seed,
@@ -484,6 +491,7 @@ class AsyncCompletions(AsyncAPIResource):
         modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -549,6 +557,7 @@ class AsyncCompletions(AsyncAPIResource):
             modalities=modalities,
             n=n,
             parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
             presence_penalty=presence_penalty,
             seed=seed,
             service_tier=service_tier,
