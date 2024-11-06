@@ -1,10 +1,14 @@
 import os
 import logging
-from typing import Any, Dict
 from typing_extensions import override
+
+from ._utils import is_dict
 
 logger: logging.Logger = logging.getLogger("openai")
 httpx_logger: logging.Logger = logging.getLogger("httpx")
+
+
+SENSITIVE_HEADERS = {"api-key", "authorization"}
 
 
 def _basic_config() -> None:
@@ -27,13 +31,12 @@ def setup_logging() -> None:
         httpx_logger.setLevel(logging.INFO)
 
 
-class APIKeyFilter(logging.Filter):
+class SensitiveHeadersFilter(logging.Filter):
     @override
     def filter(self, record: logging.LogRecord) -> bool:
-        if isinstance(record.args, dict) and "headers" in record.args:
-            if isinstance(record.args["headers"], dict):
-                logged_headers: Dict[str, Any] = record.args["headers"]
-                for header in logged_headers:
-                    if header.lower() in ["api-key", "authorization"]:
-                        logged_headers[header] = "<redacted>"
+        if is_dict(record.args) and "headers" in record.args and is_dict(record.args["headers"]):
+            headers = record.args["headers"] = {**record.args["headers"]}
+            for header in headers:
+                if str(header).lower() in SENSITIVE_HEADERS:
+                    headers[header] = "<redacted>"
         return True
