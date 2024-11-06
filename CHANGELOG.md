@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.54.3 (2024-11-06)
+
+Full Changelog: [v1.54.2...v1.54.3](https://github.com/openai/openai-python/compare/v1.54.2...v1.54.3)
+
+### Bug Fixes
+
+* **logs:** redact sensitive headers ([#1850](https://github.com/openai/openai-python/issues/1850)) ([466608f](https://github.com/openai/openai-python/commit/466608fa56b7a9939c08a4c78be2f6fe4a05111b))
+
 ## 1.54.2 (2024-11-06)
 
 Full Changelog: [v1.54.1...v1.54.2](https://github.com/openai/openai-python/compare/v1.54.1...v1.54.2)
