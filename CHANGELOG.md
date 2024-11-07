@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.54.3 (2024-11-06)
+
+Full Changelog: [v1.54.2...v1.54.3](https://github.com/openai/openai-python/compare/v1.54.2...v1.54.3)
+
+### Bug Fixes
+
+* **logs:** redact sensitive headers ([#1850](https://github.com/openai/openai-python/issues/1850)) ([466608f](https://github.com/openai/openai-python/commit/466608fa56b7a9939c08a4c78be2f6fe4a05111b))
+
+## 1.54.2 (2024-11-06)
+
+Full Changelog: [v1.54.1...v1.54.2](https://github.com/openai/openai-python/compare/v1.54.1...v1.54.2)
+
+### Chores
+
+* **tests:** adjust retry timeout values ([#1851](https://github.com/openai/openai-python/issues/1851)) ([cc8009c](https://github.com/openai/openai-python/commit/cc8009c9de56fe80f2689f69e7b891ff4ed297a3))
+
 ## 1.54.1 (2024-11-05)
 
 Full Changelog: [v1.54.0...v1.54.1](https://github.com/openai/openai-python/compare/v1.54.0...v1.54.1)
