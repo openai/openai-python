@@ -65,7 +65,9 @@ dev-dependencies = [
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
     "types-pyaudio > 0",
-    "trio >=0.22.2"
+    "trio >=0.22.2",
+    "nest_asyncio==1.6.0"
+
 ]
 
 [tool.rye.scripts]
