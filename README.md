@@ -197,6 +197,7 @@ The async client uses the exact same interface.
 
 ```python
 from openai import AsyncOpenAI
+import asyncio
 
 client = AsyncOpenAI()
 
