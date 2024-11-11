@@ -26,8 +26,7 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
 
 chat_completion = client.chat.completions.create(
@@ -56,8 +55,7 @@ import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
 
 
