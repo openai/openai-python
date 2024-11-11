@@ -196,6 +196,7 @@ for chunk in stream:
 The async client uses the exact same interface.
 
 ```python
+import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
