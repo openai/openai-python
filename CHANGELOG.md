@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.54.4 (2024-11-12)
+
+Full Changelog: [v1.54.3...v1.54.4](https://github.com/openai/openai-python/compare/v1.54.3...v1.54.4)
+
+### Bug Fixes
+
+* don't use dicts as iterables in transform ([#1865](https://github.com/openai/openai-python/issues/1865)) ([76a51b1](https://github.com/openai/openai-python/commit/76a51b11efae50659a562197b1e18c6343964b56))
+
+
+### Documentation
+
+* bump models in example snippets to gpt-4o ([#1861](https://github.com/openai/openai-python/issues/1861)) ([adafe08](https://github.com/openai/openai-python/commit/adafe0859178d406fa93b38f3547f3d262651331))
+* move comments in example snippets ([#1860](https://github.com/openai/openai-python/issues/1860)) ([362cf74](https://github.com/openai/openai-python/commit/362cf74d6c34506f98f6c4fb2304357be21f7691))
+* **readme:** add missing asyncio import ([#1858](https://github.com/openai/openai-python/issues/1858)) ([dec9d0c](https://github.com/openai/openai-python/commit/dec9d0c97b702b6bcf9c71f5bdd6172bb5718354))
+
 ## 1.54.3 (2024-11-06)
 
 Full Changelog: [v1.54.2...v1.54.3](https://github.com/openai/openai-python/compare/v1.54.2...v1.54.3)
