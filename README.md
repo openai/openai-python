@@ -41,7 +41,7 @@ chat_completion = client.chat.completions.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 ```
 
@@ -164,7 +164,7 @@ async def main() -> None:
                 "content": "Say this is a test",
             }
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
     )
 
 
@@ -183,8 +183,13 @@ from openai import OpenAI
 client = OpenAI()
 
 stream = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Say this is a test"}],
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
+    model="gpt-4o",
     stream=True,
 )
 for chunk in stream:
@@ -231,7 +236,7 @@ openai.base_url = "https://..."
 openai.default_headers = {"x-foo": "true"}
 
 completion = openai.chat.completions.create(
-    model="gpt-4",
+    model="gpt-4o",
     messages=[
         {
             "role": "user",
@@ -349,7 +354,7 @@ completion = client.chat.completions.create(
             "content": "Can you generate an example json object describing a fruit?",
         }
     ],
-    model="gpt-3.5-turbo-1106",
+    model="gpt-4o",
     response_format={"type": "json_object"},
 )
 ```
@@ -389,7 +394,7 @@ client = OpenAI()
 
 try:
     client.fine_tuning.jobs.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         training_file="file-abc123",
     )
 except openai.APIConnectionError as e:
@@ -456,10 +461,10 @@ client.with_options(max_retries=5).chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": "How can I get the name of the current day in Node.js?",
+            "content": "How can I get the name of the current day in JavaScript?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 ```
 
@@ -490,7 +495,7 @@ client.with_options(timeout=5.0).chat.completions.create(
             "content": "How can I list all files in a directory using Python?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 ```
 
@@ -535,7 +540,7 @@ response = client.chat.completions.with_raw_response.create(
         "role": "user",
         "content": "Say this is a test",
     }],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -568,7 +573,7 @@ with client.chat.completions.with_streaming_response.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 ) as response:
     print(response.headers.get("X-My-Header"))
 

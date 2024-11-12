@@ -727,7 +727,7 @@ class TestOpenAI:
                                 "content": "Say this is a test",
                             }
                         ],
-                        model="gpt-3.5-turbo",
+                        model="gpt-4o",
                     ),
                 ),
                 cast_to=httpx.Response,
@@ -753,7 +753,7 @@ class TestOpenAI:
                                 "content": "Say this is a test",
                             }
                         ],
-                        model="gpt-3.5-turbo",
+                        model="gpt-4o",
                     ),
                 ),
                 cast_to=httpx.Response,
@@ -1594,7 +1594,7 @@ class TestAsyncOpenAI:
                                 "content": "Say this is a test",
                             }
                         ],
-                        model="gpt-3.5-turbo",
+                        model="gpt-4o",
                     ),
                 ),
                 cast_to=httpx.Response,
@@ -1620,7 +1620,7 @@ class TestAsyncOpenAI:
                                 "content": "Say this is a test",
                             }
                         ],
-                        model="gpt-3.5-turbo",
+                        model="gpt-4o",
                     ),
                 ),
                 cast_to=httpx.Response,
