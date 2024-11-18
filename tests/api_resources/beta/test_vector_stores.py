@@ -34,7 +34,7 @@ class TestVectorStores:
                 "anchor": "last_active_at",
                 "days": 1,
             },
-            file_ids=["string", "string", "string"],
+            file_ids=["string"],
             metadata={},
             name="string",
         )
@@ -239,7 +239,7 @@ class TestAsyncVectorStores:
                 "anchor": "last_active_at",
                 "days": 1,
             },
-            file_ids=["string", "string", "string"],
+            file_ids=["string"],
             metadata={},
             name="string",
         )
