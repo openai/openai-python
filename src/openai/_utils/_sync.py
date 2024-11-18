@@ -14,7 +14,9 @@ T_ParamSpec = ParamSpec("T_ParamSpec")
 if sys.version_info >= (3, 9):
     to_thread = asyncio.to_thread
 else:
-    async def _to_thread(
+    # backport of https://docs.python.org/3/library/asyncio-task.html#asyncio.to_thread
+    # for Python 3.8 support
+    async def to_thread(
         func: Callable[T_ParamSpec, T_Retval], /, *args: T_ParamSpec.args, **kwargs: T_ParamSpec.kwargs
     ) -> Any:
         """Asynchronously run function *func* in a separate thread.
@@ -31,7 +33,6 @@ else:
         func_call = functools.partial(ctx.run, func, *args, **kwargs)
         return await loop.run_in_executor(None, func_call)
 
-    to_thread = _to_thread
 
 # inspired by `asyncer`, https://github.com/tiangolo/asyncer
 def asyncify(function: Callable[T_ParamSpec, T_Retval]) -> Callable[T_ParamSpec, Awaitable[T_Retval]]:
