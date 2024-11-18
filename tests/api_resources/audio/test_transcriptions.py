@@ -34,7 +34,7 @@ class TestTranscriptions:
             prompt="prompt",
             response_format="json",
             temperature=0,
-            timestamp_granularities=["word", "segment"],
+            timestamp_granularities=["word"],
         )
         assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
@@ -85,7 +85,7 @@ class TestAsyncTranscriptions:
             prompt="prompt",
             response_format="json",
             temperature=0,
-            timestamp_granularities=["word", "segment"],
+            timestamp_granularities=["word"],
         )
         assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 

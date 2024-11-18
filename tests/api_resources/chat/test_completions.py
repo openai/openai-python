@@ -61,7 +61,7 @@ class TestCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
-            modalities=["text", "audio"],
+            modalities=["text"],
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -87,25 +87,7 @@ class TestCompletions:
                         "strict": True,
                     },
                     "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
+                }
             ],
             top_logprobs=0,
             top_p=1,
@@ -193,7 +175,7 @@ class TestCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
-            modalities=["text", "audio"],
+            modalities=["text"],
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -218,25 +200,7 @@ class TestCompletions:
                         "strict": True,
                     },
                     "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
+                }
             ],
             top_logprobs=0,
             top_p=1,
@@ -327,7 +291,7 @@ class TestAsyncCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
-            modalities=["text", "audio"],
+            modalities=["text"],
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -353,25 +317,7 @@ class TestAsyncCompletions:
                         "strict": True,
                     },
                     "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
+                }
             ],
             top_logprobs=0,
             top_p=1,
@@ -459,7 +405,7 @@ class TestAsyncCompletions:
             max_completion_tokens=0,
             max_tokens=0,
             metadata={"foo": "string"},
-            modalities=["text", "audio"],
+            modalities=["text"],
             n=1,
             parallel_tool_calls=True,
             prediction={
@@ -484,25 +430,7 @@ class TestAsyncCompletions:
                         "strict": True,
                     },
                     "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
-                {
-                    "function": {
-                        "name": "name",
-                        "description": "description",
-                        "parameters": {"foo": "bar"},
-                        "strict": True,
-                    },
-                    "type": "function",
-                },
+                }
             ],
             top_logprobs=0,
             top_p=1,
