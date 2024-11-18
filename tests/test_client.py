@@ -1771,18 +1771,18 @@ class TestAsyncOpenAI:
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
     def test_get_platform(self) -> None:
-        # Issue https://github.com/openai/openai-python/issues/1827 was caused
-        # asyncify leaving threads unterminated when used with nest_asyncio.
+        # A previous implementation of asyncify could leave threads unterminated when
+        # used with nest_asyncio.
+        #
         # Since nest_asyncio.apply() is global and cannot be un-applied, this
         # test is run in a separate process to avoid affecting other tests.
-        test_code = dedent("""\
+        test_code = dedent("""
         import asyncio
         import nest_asyncio
-
         import threading
 
-        from openai._base_client import get_platform
         from openai._utils import asyncify
+        from openai._base_client import get_platform 
 
         async def test_main() -> None:
             result = await asyncify(get_platform)()
@@ -1795,17 +1795,12 @@ class TestAsyncOpenAI:
         """)
         with subprocess.Popen(
             [sys.executable, "-c", test_code],
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
             text=True,
         ) as process:
             try:
                 process.wait(2)
                 if process.returncode:
-                    print(process.stdout)
-                    print(process.stderr)
                     raise AssertionError("calling get_platform using asyncify resulted in a non-zero exit code")
             except subprocess.TimeoutExpired as e:
                 process.kill()
                 raise AssertionError("calling get_platform using asyncify resulted in a hung process") from e
-
