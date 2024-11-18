@@ -4,11 +4,14 @@ from __future__ import annotations
 
 import gc
 import os
+import sys
 import json
 import asyncio
 import inspect
+import subprocess
 import tracemalloc
 from typing import Any, Union, cast
+from textwrap import dedent
 from unittest import mock
 from typing_extensions import Literal
 
@@ -1766,3 +1769,43 @@ class TestAsyncOpenAI:
         ) as response:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    def test_get_platform(self) -> None:
+        # Issue https://github.com/openai/openai-python/issues/1827 was caused
+        # asyncify leaving threads unterminated when used with nest_asyncio.
+        # Since nest_asyncio.apply() is global and cannot be un-applied, this
+        # test is run in a separate process to avoid affecting other tests.
+        test_code = dedent("""\
+        import asyncio
+        import nest_asyncio
+
+        import threading
+
+        from openai._base_client import get_platform
+        from openai._utils import asyncify
+
+        async def test_main() -> None:
+            result = await asyncify(get_platform)()
+            print(result)
+            for thread in threading.enumerate():
+                print(thread.name)
+
+        nest_asyncio.apply()
+        asyncio.run(test_main())
+        """)
+        with subprocess.Popen(
+            [sys.executable, "-c", test_code],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+        ) as process:
+            try:
+                process.wait(2)
+                if process.returncode:
+                    print(process.stdout)
+                    print(process.stderr)
+                    raise AssertionError("calling get_platform using asyncify resulted in a non-zero exit code")
+            except subprocess.TimeoutExpired as e:
+                process.kill()
+                raise AssertionError("calling get_platform using asyncify resulted in a hung process") from e
+

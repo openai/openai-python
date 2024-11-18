@@ -7,6 +7,7 @@
 #   all-features: true
 #   with-sources: false
 #   generate-hashes: false
+#   universal: false
 
 -e file:.
 annotated-types==0.6.0
@@ -87,6 +88,7 @@ mypy==1.13.0
 mypy-extensions==1.0.0
     # via black
     # via mypy
+nest-asyncio==1.6.0
 nodeenv==1.8.0
     # via pyright
 nox==2023.4.22
