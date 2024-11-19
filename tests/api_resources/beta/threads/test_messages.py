@@ -38,17 +38,9 @@ class TestMessages:
             role="user",
             attachments=[
                 {
-                    "file_id": "string",
-                    "tools": [{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
-                },
-                {
-                    "file_id": "string",
-                    "tools": [{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
-                },
-                {
-                    "file_id": "string",
-                    "tools": [{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
-                },
+                    "file_id": "file_id",
+                    "tools": [{"type": "code_interpreter"}],
+                }
             ],
             metadata={},
         )
@@ -315,17 +307,9 @@ class TestAsyncMessages:
             role="user",
             attachments=[
                 {
-                    "file_id": "string",
-                    "tools": [{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
-                },
-                {
-                    "file_id": "string",
-                    "tools": [{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
-                },
-                {
-                    "file_id": "string",
-                    "tools": [{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
-                },
+                    "file_id": "file_id",
+                    "tools": [{"type": "code_interpreter"}],
+                }
             ],
             metadata={},
         )

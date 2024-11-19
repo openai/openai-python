@@ -43,94 +43,12 @@ class TestRuns:
                     "role": "user",
                     "attachments": [
                         {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
+                            "file_id": "file_id",
+                            "tools": [{"type": "code_interpreter"}],
+                        }
                     ],
                     "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
+                }
             ],
             instructions="string",
             max_completion_tokens=256,
@@ -142,7 +60,7 @@ class TestRuns:
             stream=False,
             temperature=1,
             tool_choice="none",
-            tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            tools=[{"type": "code_interpreter"}],
             top_p=1,
             truncation_strategy={
                 "type": "auto",
@@ -208,94 +126,12 @@ class TestRuns:
                     "role": "user",
                     "attachments": [
                         {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
+                            "file_id": "file_id",
+                            "tools": [{"type": "code_interpreter"}],
+                        }
                     ],
                     "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
+                }
             ],
             instructions="string",
             max_completion_tokens=256,
@@ -306,7 +142,7 @@ class TestRuns:
             response_format="auto",
             temperature=1,
             tool_choice="none",
-            tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            tools=[{"type": "code_interpreter"}],
             top_p=1,
             truncation_strategy={
                 "type": "auto",
@@ -556,9 +392,9 @@ class TestRuns:
     @parametrize
     def test_method_submit_tool_outputs_overload_1(self, client: OpenAI) -> None:
         run = client.beta.threads.runs.submit_tool_outputs(
-            "string",
-            thread_id="string",
-            tool_outputs=[{}, {}, {}],
+            run_id="run_id",
+            thread_id="thread_id",
+            tool_outputs=[{}],
         )
         assert_matches_type(Run, run, path=["response"])
 
@@ -571,15 +407,7 @@ class TestRuns:
                 {
                     "output": "output",
                     "tool_call_id": "tool_call_id",
-                },
-                {
-                    "output": "output",
-                    "tool_call_id": "tool_call_id",
-                },
-                {
-                    "output": "output",
-                    "tool_call_id": "tool_call_id",
-                },
+                }
             ],
             stream=False,
         )
@@ -588,9 +416,9 @@ class TestRuns:
     @parametrize
     def test_raw_response_submit_tool_outputs_overload_1(self, client: OpenAI) -> None:
         response = client.beta.threads.runs.with_raw_response.submit_tool_outputs(
-            "string",
-            thread_id="string",
-            tool_outputs=[{}, {}, {}],
+            run_id="run_id",
+            thread_id="thread_id",
+            tool_outputs=[{}],
         )
 
         assert response.is_closed is True
@@ -601,9 +429,9 @@ class TestRuns:
     @parametrize
     def test_streaming_response_submit_tool_outputs_overload_1(self, client: OpenAI) -> None:
         with client.beta.threads.runs.with_streaming_response.submit_tool_outputs(
-            "string",
-            thread_id="string",
-            tool_outputs=[{}, {}, {}],
+            run_id="run_id",
+            thread_id="thread_id",
+            tool_outputs=[{}],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -619,14 +447,14 @@ class TestRuns:
             client.beta.threads.runs.with_raw_response.submit_tool_outputs(
                 "string",
                 thread_id="",
-                tool_outputs=[{}, {}, {}],
+                tool_outputs=[{}],
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
             client.beta.threads.runs.with_raw_response.submit_tool_outputs(
-                "",
-                thread_id="string",
-                tool_outputs=[{}, {}, {}],
+                run_id="",
+                thread_id="thread_id",
+                tool_outputs=[{}],
             )
 
     @parametrize
@@ -635,7 +463,7 @@ class TestRuns:
             "string",
             thread_id="string",
             stream=True,
-            tool_outputs=[{}, {}, {}],
+            tool_outputs=[{}],
         )
         run_stream.response.close()
 
@@ -645,7 +473,7 @@ class TestRuns:
             "string",
             thread_id="string",
             stream=True,
-            tool_outputs=[{}, {}, {}],
+            tool_outputs=[{}],
         )
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -658,7 +486,7 @@ class TestRuns:
             "string",
             thread_id="string",
             stream=True,
-            tool_outputs=[{}, {}, {}],
+            tool_outputs=[{}],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -675,7 +503,7 @@ class TestRuns:
                 "string",
                 thread_id="",
                 stream=True,
-                tool_outputs=[{}, {}, {}],
+                tool_outputs=[{}],
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
@@ -683,7 +511,7 @@ class TestRuns:
                 "",
                 thread_id="string",
                 stream=True,
-                tool_outputs=[{}, {}, {}],
+                tool_outputs=[{}],
             )
 
 
@@ -711,94 +539,12 @@ class TestAsyncRuns:
                     "role": "user",
                     "attachments": [
                         {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
+                            "file_id": "file_id",
+                            "tools": [{"type": "code_interpreter"}],
+                        }
                     ],
                     "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
+                }
             ],
             instructions="string",
             max_completion_tokens=256,
@@ -810,7 +556,7 @@ class TestAsyncRuns:
             stream=False,
             temperature=1,
             tool_choice="none",
-            tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            tools=[{"type": "code_interpreter"}],
             top_p=1,
             truncation_strategy={
                 "type": "auto",
@@ -876,94 +622,12 @@ class TestAsyncRuns:
                     "role": "user",
                     "attachments": [
                         {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
+                            "file_id": "file_id",
+                            "tools": [{"type": "code_interpreter"}],
+                        }
                     ],
                     "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
-                {
-                    "content": "string",
-                    "role": "user",
-                    "attachments": [
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                        {
-                            "file_id": "string",
-                            "tools": [
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                                {"type": "code_interpreter"},
-                            ],
-                        },
-                    ],
-                    "metadata": {},
-                },
+                }
             ],
             instructions="string",
             max_completion_tokens=256,
@@ -974,7 +638,7 @@ class TestAsyncRuns:
             response_format="auto",
             temperature=1,
             tool_choice="none",
-            tools=[{"type": "code_interpreter"}, {"type": "code_interpreter"}, {"type": "code_interpreter"}],
+            tools=[{"type": "code_interpreter"}],
             top_p=1,
             truncation_strategy={
                 "type": "auto",
@@ -1224,9 +888,9 @@ class TestAsyncRuns:
     @parametrize
     async def test_method_submit_tool_outputs_overload_1(self, async_client: AsyncOpenAI) -> None:
         run = await async_client.beta.threads.runs.submit_tool_outputs(
-            "string",
-            thread_id="string",
-            tool_outputs=[{}, {}, {}],
+            run_id="run_id",
+            thread_id="thread_id",
+            tool_outputs=[{}],
         )
         assert_matches_type(Run, run, path=["response"])
 
@@ -1239,15 +903,7 @@ class TestAsyncRuns:
                 {
                     "output": "output",
                     "tool_call_id": "tool_call_id",
-                },
-                {
-                    "output": "output",
-                    "tool_call_id": "tool_call_id",
-                },
-                {
-                    "output": "output",
-                    "tool_call_id": "tool_call_id",
-                },
+                }
             ],
             stream=False,
         )
@@ -1256,9 +912,9 @@ class TestAsyncRuns:
     @parametrize
     async def test_raw_response_submit_tool_outputs_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.beta.threads.runs.with_raw_response.submit_tool_outputs(
-            "string",
-            thread_id="string",
-            tool_outputs=[{}, {}, {}],
+            run_id="run_id",
+            thread_id="thread_id",
+            tool_outputs=[{}],
         )
 
         assert response.is_closed is True
@@ -1269,9 +925,9 @@ class TestAsyncRuns:
     @parametrize
     async def test_streaming_response_submit_tool_outputs_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.threads.runs.with_streaming_response.submit_tool_outputs(
-            "string",
-            thread_id="string",
-            tool_outputs=[{}, {}, {}],
+            run_id="run_id",
+            thread_id="thread_id",
+            tool_outputs=[{}],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -1287,14 +943,14 @@ class TestAsyncRuns:
             await async_client.beta.threads.runs.with_raw_response.submit_tool_outputs(
                 "string",
                 thread_id="",
-                tool_outputs=[{}, {}, {}],
+                tool_outputs=[{}],
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
             await async_client.beta.threads.runs.with_raw_response.submit_tool_outputs(
-                "",
-                thread_id="string",
-                tool_outputs=[{}, {}, {}],
+                run_id="",
+                thread_id="thread_id",
+                tool_outputs=[{}],
             )
 
     @parametrize
@@ -1303,7 +959,7 @@ class TestAsyncRuns:
             "string",
             thread_id="string",
             stream=True,
-            tool_outputs=[{}, {}, {}],
+            tool_outputs=[{}],
         )
         await run_stream.response.aclose()
 
@@ -1313,7 +969,7 @@ class TestAsyncRuns:
             "string",
             thread_id="string",
             stream=True,
-            tool_outputs=[{}, {}, {}],
+            tool_outputs=[{}],
         )
 
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -1326,7 +982,7 @@ class TestAsyncRuns:
             "string",
             thread_id="string",
             stream=True,
-            tool_outputs=[{}, {}, {}],
+            tool_outputs=[{}],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -1343,7 +999,7 @@ class TestAsyncRuns:
                 "string",
                 thread_id="",
                 stream=True,
-                tool_outputs=[{}, {}, {}],
+                tool_outputs=[{}],
             )
 
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `run_id` but received ''"):
@@ -1351,5 +1007,5 @@ class TestAsyncRuns:
                 "",
                 thread_id="string",
                 stream=True,
-                tool_outputs=[{}, {}, {}],
+                tool_outputs=[{}],
             )

@@ -46,27 +46,9 @@ class TestJobs:
                         "project": "my-wandb-project",
                         "entity": "entity",
                         "name": "name",
-                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                        "tags": ["custom-tag"],
                     },
-                },
-                {
-                    "type": "wandb",
-                    "wandb": {
-                        "project": "my-wandb-project",
-                        "entity": "entity",
-                        "name": "name",
-                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
-                    },
-                },
-                {
-                    "type": "wandb",
-                    "wandb": {
-                        "project": "my-wandb-project",
-                        "entity": "entity",
-                        "name": "name",
-                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
-                    },
-                },
+                }
             ],
             seed=42,
             suffix="x",
@@ -285,27 +267,9 @@ class TestAsyncJobs:
                         "project": "my-wandb-project",
                         "entity": "entity",
                         "name": "name",
-                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
+                        "tags": ["custom-tag"],
                     },
-                },
-                {
-                    "type": "wandb",
-                    "wandb": {
-                        "project": "my-wandb-project",
-                        "entity": "entity",
-                        "name": "name",
-                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
-                    },
-                },
-                {
-                    "type": "wandb",
-                    "wandb": {
-                        "project": "my-wandb-project",
-                        "entity": "entity",
-                        "name": "name",
-                        "tags": ["custom-tag", "custom-tag", "custom-tag"],
-                    },
-                },
+                }
             ],
             seed=42,
             suffix="x",
