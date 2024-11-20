@@ -362,7 +362,7 @@ class BaseModel(pydantic.BaseModel):
             """
             if round_trip != False:
                 raise ValueError("round_trip is only supported in Pydantic v2")
-            if warnings != True:
+            if warnings == True:
                 raise ValueError("warnings is only supported in Pydantic v2")
             if context is not None:
                 raise ValueError("context is only supported in Pydantic v2")
