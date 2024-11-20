@@ -81,7 +81,7 @@ class Batches(SyncAPIResource):
               Your input file must be formatted as a
               [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
-              requests, and can be up to 100 MB in size.
+              requests, and can be up to 200 MB in size.
 
           metadata: Optional custom metadata for the batch.
 
@@ -286,7 +286,7 @@ class AsyncBatches(AsyncAPIResource):
               Your input file must be formatted as a
               [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
-              requests, and can be up to 100 MB in size.
+              requests, and can be up to 200 MB in size.
 
           metadata: Optional custom metadata for the batch.
 
