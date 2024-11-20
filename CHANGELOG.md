@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.55.0 (2024-11-20)
+
+Full Changelog: [v1.54.5...v1.55.0](https://github.com/openai/openai-python/compare/v1.54.5...v1.55.0)
+
+### Features
+
+* **api:** add gpt-4o-2024-11-20 model ([#1877](https://github.com/openai/openai-python/issues/1877)) ([ff64c2a](https://github.com/openai/openai-python/commit/ff64c2a0733854ed8cc1d7dd959a8287b2ec8120))
+
 ## 1.54.5 (2024-11-19)
 
 Full Changelog: [v1.54.4...v1.54.5](https://github.com/openai/openai-python/compare/v1.54.4...v1.54.5)
