@@ -17,6 +17,7 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     voice: Required[Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
     """The voice the model uses to respond.
 
-    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`,
-    `shimmer`, and `verse`.
+    Supported voices are `ash`, `ballad`, `coral`, `sage`, and `verse` (also
+    supported but not recommended are `alloy`, `echo`, and `shimmer`; these voices
+    are less expressive).
     """

@@ -10,6 +10,7 @@ ChatModel: TypeAlias = Literal[
     "o1-mini",
     "o1-mini-2024-09-12",
     "gpt-4o",
+    "gpt-4o-2024-11-20",
     "gpt-4o-2024-08-06",
     "gpt-4o-2024-05-13",
     "gpt-4o-realtime-preview",
