@@ -561,6 +561,14 @@ def test_forwards_compat_model_dump_method() -> None:
             m.model_dump(warnings=False)
 
 
+def test_compat_method_no_error_for_warnings() -> None:
+    class Model(BaseModel):
+        foo: Optional[str]
+
+    m = Model(foo="hello")
+    assert isinstance(model_dump(m, warnings=False), dict)
+
+
 def test_to_json() -> None:
     class Model(BaseModel):
         foo: Optional[str] = Field(alias="FOO", default=None)
