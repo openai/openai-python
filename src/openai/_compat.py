@@ -145,7 +145,8 @@ def model_dump(
             exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
-            warnings=warnings,
+            # warnings are not supported in Pydantic v1
+            warnings=warnings if PYDANTIC_V2 else True,
         )
     return cast(
         "dict[str, Any]",
