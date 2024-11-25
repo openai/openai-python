@@ -214,9 +214,6 @@ if TYPE_CHECKING:
         # __set__ is not defined at runtime, but @cached_property is designed to be settable
         def __set__(self, instance: object, value: _T) -> None: ...
 else:
-    try:
-        from functools import cached_property as cached_property
-    except ImportError:
-        from cached_property import cached_property as cached_property
+    from functools import cached_property as cached_property
 
     typed_cached_property = cached_property
