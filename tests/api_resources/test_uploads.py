@@ -99,7 +99,7 @@ class TestUploads:
     def test_method_complete(self, client: OpenAI) -> None:
         upload = client.uploads.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
         )
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -107,7 +107,7 @@ class TestUploads:
     def test_method_complete_with_all_params(self, client: OpenAI) -> None:
         upload = client.uploads.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
             md5="md5",
         )
         assert_matches_type(Upload, upload, path=["response"])
@@ -116,7 +116,7 @@ class TestUploads:
     def test_raw_response_complete(self, client: OpenAI) -> None:
         response = client.uploads.with_raw_response.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
         )
 
         assert response.is_closed is True
@@ -128,7 +128,7 @@ class TestUploads:
     def test_streaming_response_complete(self, client: OpenAI) -> None:
         with client.uploads.with_streaming_response.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -143,7 +143,7 @@ class TestUploads:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `upload_id` but received ''"):
             client.uploads.with_raw_response.complete(
                 upload_id="",
-                part_ids=["string", "string", "string"],
+                part_ids=["string"],
             )
 
 
@@ -232,7 +232,7 @@ class TestAsyncUploads:
     async def test_method_complete(self, async_client: AsyncOpenAI) -> None:
         upload = await async_client.uploads.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
         )
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -240,7 +240,7 @@ class TestAsyncUploads:
     async def test_method_complete_with_all_params(self, async_client: AsyncOpenAI) -> None:
         upload = await async_client.uploads.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
             md5="md5",
         )
         assert_matches_type(Upload, upload, path=["response"])
@@ -249,7 +249,7 @@ class TestAsyncUploads:
     async def test_raw_response_complete(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.uploads.with_raw_response.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
         )
 
         assert response.is_closed is True
@@ -261,7 +261,7 @@ class TestAsyncUploads:
     async def test_streaming_response_complete(self, async_client: AsyncOpenAI) -> None:
         async with async_client.uploads.with_streaming_response.complete(
             upload_id="upload_abc123",
-            part_ids=["string", "string", "string"],
+            part_ids=["string"],
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -276,5 +276,5 @@ class TestAsyncUploads:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `upload_id` but received ''"):
             await async_client.uploads.with_raw_response.complete(
                 upload_id="",
-                part_ids=["string", "string", "string"],
+                part_ids=["string"],
             )
