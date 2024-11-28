@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.55.3 (2024-11-28)
+
+Full Changelog: [v1.55.2...v1.55.3](https://github.com/openai/openai-python/compare/v1.55.2...v1.55.3)
+
+### Bug Fixes
+
+* **client:** compat with new httpx 0.28.0 release ([#1904](https://github.com/openai/openai-python/issues/1904)) ([72b6c63](https://github.com/openai/openai-python/commit/72b6c636c526885ef873580a07eff1c18e76bc10))
+
 ## 1.55.2 (2024-11-27)
 
 Full Changelog: [v1.55.1...v1.55.2](https://github.com/openai/openai-python/compare/v1.55.1...v1.55.2)
