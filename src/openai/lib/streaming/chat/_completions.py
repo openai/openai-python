@@ -287,11 +287,31 @@ class AsyncChatCompletionStreamManager(Generic[ResponseFormatT]):
 
 
 class ChatCompletionStreamState(Generic[ResponseFormatT]):
+    """Helper class for manually accumulating `ChatCompletionChunk`s into a final `ChatCompletion` object.
+
+    This is useful in cases where you can't always use the `.stream()` method, e.g.
+
+    ```py
+    from openai.lib.streaming.chat import ChatCompletionStreamState
+
+    state = ChatCompletionStreamState()
+
+    stream = client.chat.completions.create(..., stream=True)
+    for chunk in response:
+        state.handle_chunk(chunk)
+
+        # can also access the accumulated `ChatCompletion` mid-stream
+        state.current_completion_snapshot
+
+    print(state.get_final_completion())
+    ```
+    """
+
     def __init__(
         self,
         *,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
+        input_tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven = NOT_GIVEN,
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
         self.__choice_event_states: list[ChoiceEventState] = []
@@ -301,6 +321,11 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
         self._rich_response_format: type | NotGiven = response_format if inspect.isclass(response_format) else NOT_GIVEN
 
     def get_final_completion(self) -> ParsedChatCompletion[ResponseFormatT]:
+        """Parse the final completion object.
+
+        Note this does not provide any guarantees that the stream has actually finished, you must
+        only call this method when the stream is finished.
+        """
         return parse_chat_completion(
             chat_completion=self.current_completion_snapshot,
             response_format=self._rich_response_format,
@@ -312,8 +337,8 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
         assert self.__current_completion_snapshot is not None
         return self.__current_completion_snapshot
 
-    def handle_chunk(self, chunk: ChatCompletionChunk) -> list[ChatCompletionStreamEvent[ResponseFormatT]]:
-        """Accumulate a new chunk into the snapshot and returns a list of events to yield."""
+    def handle_chunk(self, chunk: ChatCompletionChunk) -> Iterable[ChatCompletionStreamEvent[ResponseFormatT]]:
+        """Accumulate a new chunk into the snapshot and returns an iterable of events to yield."""
         self.__current_completion_snapshot = self._accumulate_chunk(chunk)
 
         return self._build_events(
