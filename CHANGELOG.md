@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.55.3 (2024-11-28)
+
+Full Changelog: [v1.55.2...v1.55.3](https://github.com/openai/openai-python/compare/v1.55.2...v1.55.3)
+
+### Bug Fixes
+
+* **client:** compat with new httpx 0.28.0 release ([#1904](https://github.com/openai/openai-python/issues/1904)) ([72b6c63](https://github.com/openai/openai-python/commit/72b6c636c526885ef873580a07eff1c18e76bc10))
+
+## 1.55.2 (2024-11-27)
+
+Full Changelog: [v1.55.1...v1.55.2](https://github.com/openai/openai-python/compare/v1.55.1...v1.55.2)
+
+### Chores
+
+* **internal:** exclude mypy from running on tests ([#1899](https://github.com/openai/openai-python/issues/1899)) ([e2496f1](https://github.com/openai/openai-python/commit/e2496f1d274126bdaa46a8256b3dd384b4ae244b))
+
+
+### Documentation
+
+* **assistants:** correct on_text_delta example ([#1896](https://github.com/openai/openai-python/issues/1896)) ([460b663](https://github.com/openai/openai-python/commit/460b663567ed1031467a8d69eb13fd3b3da38827))
+
 ## 1.55.1 (2024-11-25)
 
 Full Changelog: [v1.55.0...v1.55.1](https://github.com/openai/openai-python/compare/v1.55.0...v1.55.1)
