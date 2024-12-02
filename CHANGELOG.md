@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.56.0 (2024-12-02)
+
+Full Changelog: [v1.55.3...v1.56.0](https://github.com/openai/openai-python/compare/v1.55.3...v1.56.0)
+
+### Features
+
+* **client:** make ChatCompletionStreamState public ([#1898](https://github.com/openai/openai-python/issues/1898)) ([dc7f6cb](https://github.com/openai/openai-python/commit/dc7f6cb2618686ff04bfdca228913cda3d320884))
+
 ## 1.55.3 (2024-11-28)
 
 Full Changelog: [v1.55.2...v1.55.3](https://github.com/openai/openai-python/compare/v1.55.2...v1.55.3)
