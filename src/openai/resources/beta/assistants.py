@@ -79,8 +79,8 @@ class Assistants(SyncAPIResource):
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
               see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
+              [Model overview](https://platform.openai.com/docs/models) for descriptions of
+              them.
 
           description: The description of the assistant. The maximum length is 512 characters.
 
@@ -95,8 +95,8 @@ class Assistants(SyncAPIResource):
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -239,14 +239,14 @@ class Assistants(SyncAPIResource):
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
               see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
+              [Model overview](https://platform.openai.com/docs/models) for descriptions of
+              them.
 
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -344,8 +344,8 @@ class Assistants(SyncAPIResource):
 
           before: A cursor for use in pagination. `before` is an object ID that defines your place
               in the list. For instance, if you make a list request and receive 100 objects,
-              ending with obj_foo, your subsequent call can include before=obj_foo in order to
-              fetch the previous page of the list.
+              starting with obj_foo, your subsequent call can include before=obj_foo in order
+              to fetch the previous page of the list.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -465,8 +465,8 @@ class AsyncAssistants(AsyncAPIResource):
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
               see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
+              [Model overview](https://platform.openai.com/docs/models) for descriptions of
+              them.
 
           description: The description of the assistant. The maximum length is 512 characters.
 
@@ -481,8 +481,8 @@ class AsyncAssistants(AsyncAPIResource):
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -625,14 +625,14 @@ class AsyncAssistants(AsyncAPIResource):
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
               see all of your available models, or see our
-              [Model overview](https://platform.openai.com/docs/models/overview) for
-              descriptions of them.
+              [Model overview](https://platform.openai.com/docs/models) for descriptions of
+              them.
 
           name: The name of the assistant. The maximum length is 256 characters.
 
           response_format: Specifies the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-turbo-and-gpt-4),
+              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
               and all GPT-3.5 Turbo models since `gpt-3.5-turbo-1106`.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -730,8 +730,8 @@ class AsyncAssistants(AsyncAPIResource):
 
           before: A cursor for use in pagination. `before` is an object ID that defines your place
               in the list. For instance, if you make a list request and receive 100 objects,
-              ending with obj_foo, your subsequent call can include before=obj_foo in order to
-              fetch the previous page of the list.
+              starting with obj_foo, your subsequent call can include before=obj_foo in order
+              to fetch the previous page of the list.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.

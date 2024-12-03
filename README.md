@@ -2,7 +2,7 @@
 
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg)](https://pypi.org/project/openai/)
 
-The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.7+
+The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.8+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -31,8 +31,7 @@ import os
 from openai import OpenAI
 
 client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
 
 chat_completion = client.chat.completions.create(
@@ -42,7 +41,7 @@ chat_completion = client.chat.completions.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 ```
 
@@ -153,8 +152,7 @@ import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
 )
 
 
@@ -166,7 +164,7 @@ async def main() -> None:
                 "content": "Say this is a test",
             }
         ],
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
     )
 
 
@@ -185,8 +183,13 @@ from openai import OpenAI
 client = OpenAI()
 
 stream = client.chat.completions.create(
-    model="gpt-4",
-    messages=[{"role": "user", "content": "Say this is a test"}],
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
+    model="gpt-4o",
     stream=True,
 )
 for chunk in stream:
@@ -196,6 +199,7 @@ for chunk in stream:
 The async client uses the exact same interface.
 
 ```python
+import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI()
@@ -232,7 +236,7 @@ openai.base_url = "https://..."
 openai.default_headers = {"x-foo": "true"}
 
 completion = openai.chat.completions.create(
-    model="gpt-4",
+    model="gpt-4o",
     messages=[
         {
             "role": "user",
@@ -350,7 +354,7 @@ completion = client.chat.completions.create(
             "content": "Can you generate an example json object describing a fruit?",
         }
     ],
-    model="gpt-3.5-turbo-1106",
+    model="gpt-4o",
     response_format={"type": "json_object"},
 )
 ```
@@ -390,7 +394,7 @@ client = OpenAI()
 
 try:
     client.fine_tuning.jobs.create(
-        model="gpt-3.5-turbo",
+        model="gpt-4o",
         training_file="file-abc123",
     )
 except openai.APIConnectionError as e:
@@ -457,10 +461,10 @@ client.with_options(max_retries=5).chat.completions.create(
     messages=[
         {
             "role": "user",
-            "content": "How can I get the name of the current day in Node.js?",
+            "content": "How can I get the name of the current day in JavaScript?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 ```
 
@@ -491,7 +495,7 @@ client.with_options(timeout=5.0).chat.completions.create(
             "content": "How can I list all files in a directory using Python?",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 ```
 
@@ -505,11 +509,13 @@ Note that requests that time out are [retried twice by default](#retries).
 
 We use the standard library [`logging`](https://docs.python.org/3/library/logging.html) module.
 
-You can enable logging by setting the environment variable `OPENAI_LOG` to `debug`.
+You can enable logging by setting the environment variable `OPENAI_LOG` to `info`.
 
 ```shell
-$ export OPENAI_LOG=debug
+$ export OPENAI_LOG=info
 ```
+
+Or to `debug` for more verbose logging.
 
 ### How to tell whether `None` means `null` or missing
 
@@ -536,7 +542,7 @@ response = client.chat.completions.with_raw_response.create(
         "role": "user",
         "content": "Say this is a test",
     }],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 )
 print(response.headers.get('X-My-Header'))
 
@@ -569,7 +575,7 @@ with client.chat.completions.with_streaming_response.create(
             "content": "Say this is a test",
         }
     ],
-    model="gpt-3.5-turbo",
+    model="gpt-4o",
 ) as response:
     print(response.headers.get("X-My-Header"))
 
@@ -712,7 +718,7 @@ print(openai.__version__)
 
 ## Requirements
 
-Python 3.7 or higher.
+Python 3.8 or higher.
 
 ## Contributing
 

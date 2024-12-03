@@ -13,6 +13,7 @@ from .chat_completion_message_param import ChatCompletionMessageParam
 from ..shared_params.function_parameters import FunctionParameters
 from ..shared_params.response_format_text import ResponseFormatText
 from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
+from .chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from .chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 from ..shared_params.response_format_json_object import ResponseFormatJSONObject
 from ..shared_params.response_format_json_schema import ResponseFormatJSONSchema
@@ -43,7 +44,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """ID of the model to use.
 
     See the
-    [model endpoint compatibility](https://platform.openai.com/docs/models/model-endpoint-compatibility)
+    [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
     table for details on which models work with the Chat API.
     """
 
@@ -60,7 +61,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Positive values penalize new tokens based on their existing frequency in the
     text so far, decreasing the model's likelihood to repeat the same line verbatim.
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
     """
 
     function_call: FunctionCall
@@ -148,8 +149,14 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     parallel_tool_calls: bool
     """
     Whether to enable
-    [parallel function calling](https://platform.openai.com/docs/guides/function-calling/parallel-function-calling)
+    [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
     during tool use.
+    """
+
+    prediction: Optional[ChatCompletionPredictionContentParam]
+    """
+    Static predicted output content, such as the content of a text file that is
+    being regenerated.
     """
 
     presence_penalty: Optional[float]
@@ -158,15 +165,15 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Positive values penalize new tokens based on whether they appear in the text so
     far, increasing the model's likelihood to talk about new topics.
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
     """
 
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
 
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models/gpt-4o),
-    [GPT-4o mini](https://platform.openai.com/docs/models/gpt-4o-mini),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models/gpt-4-and-gpt-4-turbo) and
+    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
+    [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
+    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
     all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -276,7 +283,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """
 
 

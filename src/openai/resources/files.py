@@ -5,6 +5,7 @@ from __future__ import annotations
 import time
 import typing_extensions
 from typing import Mapping, cast
+from typing_extensions import Literal
 
 import httpx
 
@@ -27,11 +28,8 @@ from .._response import (
     to_custom_streamed_response_wrapper,
     async_to_custom_streamed_response_wrapper,
 )
-from ..pagination import SyncPage, AsyncPage
-from .._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from ..pagination import SyncCursorPage, AsyncCursorPage
+from .._base_client import AsyncPaginator, make_request_options
 from ..types.file_object import FileObject
 from ..types.file_deleted import FileDeleted
 from ..types.file_purpose import FilePurpose
@@ -88,7 +86,7 @@ class Files(SyncAPIResource):
         [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
         models.
 
-        The Batch API only supports `.jsonl` files up to 100 MB in size. The input also
+        The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
         has a specific required
         [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
@@ -172,6 +170,9 @@ class Files(SyncAPIResource):
     def list(
         self,
         *,
+        after: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
         purpose: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -179,11 +180,23 @@ class Files(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> SyncPage[FileObject]:
-        """
-        Returns a list of files that belong to the user's organization.
+    ) -> SyncCursorPage[FileObject]:
+        """Returns a list of files.
 
         Args:
+          after: A cursor for use in pagination.
+
+        `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              10,000, and the default is 10,000.
+
+          order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
+              order and `desc` for descending order.
+
           purpose: Only return files with the given purpose.
 
           extra_headers: Send extra headers
@@ -196,13 +209,21 @@ class Files(SyncAPIResource):
         """
         return self._get_api_list(
             "/files",
-            page=SyncPage[FileObject],
+            page=SyncCursorPage[FileObject],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                query=maybe_transform({"purpose": purpose}, file_list_params.FileListParams),
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "order": order,
+                        "purpose": purpose,
+                    },
+                    file_list_params.FileListParams,
+                ),
             ),
             model=FileObject,
         )
@@ -381,7 +402,7 @@ class AsyncFiles(AsyncAPIResource):
         [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
         models.
 
-        The Batch API only supports `.jsonl` files up to 100 MB in size. The input also
+        The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
         has a specific required
         [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
@@ -465,6 +486,9 @@ class AsyncFiles(AsyncAPIResource):
     def list(
         self,
         *,
+        after: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
         purpose: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -472,11 +496,23 @@ class AsyncFiles(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncPaginator[FileObject, AsyncPage[FileObject]]:
-        """
-        Returns a list of files that belong to the user's organization.
+    ) -> AsyncPaginator[FileObject, AsyncCursorPage[FileObject]]:
+        """Returns a list of files.
 
         Args:
+          after: A cursor for use in pagination.
+
+        `after` is an object ID that defines your place
+              in the list. For instance, if you make a list request and receive 100 objects,
+              ending with obj_foo, your subsequent call can include after=obj_foo in order to
+              fetch the next page of the list.
+
+          limit: A limit on the number of objects to be returned. Limit can range between 1 and
+              10,000, and the default is 10,000.
+
+          order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
+              order and `desc` for descending order.
+
           purpose: Only return files with the given purpose.
 
           extra_headers: Send extra headers
@@ -489,13 +525,21 @@ class AsyncFiles(AsyncAPIResource):
         """
         return self._get_api_list(
             "/files",
-            page=AsyncPage[FileObject],
+            page=AsyncCursorPage[FileObject],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                query=maybe_transform({"purpose": purpose}, file_list_params.FileListParams),
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "order": order,
+                        "purpose": purpose,
+                    },
+                    file_list_params.FileListParams,
+                ),
             ),
             model=FileObject,
         )

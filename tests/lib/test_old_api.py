@@ -6,7 +6,7 @@ from openai.lib._old_api import APIRemovedInV1
 
 def test_basic_attribute_access_works() -> None:
     for attr in dir(openai):
-        dir(getattr(openai, attr))
+        getattr(openai, attr)
 
 
 def test_helpful_error_is_raised() -> None:

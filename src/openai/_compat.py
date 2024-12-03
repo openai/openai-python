@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, cast, overload
 from datetime import date, datetime
-from typing_extensions import Self
+from typing_extensions import Self, Literal
 
 import pydantic
 from pydantic.fields import FieldInfo
@@ -133,17 +133,20 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
 def model_dump(
     model: pydantic.BaseModel,
     *,
-    exclude: IncEx = None,
+    exclude: IncEx | None = None,
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
     warnings: bool = True,
+    mode: Literal["json", "python"] = "python",
 ) -> dict[str, Any]:
-    if PYDANTIC_V2:
+    if PYDANTIC_V2 or hasattr(model, "model_dump"):
         return model.model_dump(
+            mode=mode,
             exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
-            warnings=warnings,
+            # warnings are not supported in Pydantic v1
+            warnings=warnings if PYDANTIC_V2 else True,
         )
     return cast(
         "dict[str, Any]",
@@ -223,9 +226,6 @@ if TYPE_CHECKING:
         # __set__ is not defined at runtime, but @cached_property is designed to be settable
         def __set__(self, instance: object, value: _T) -> None: ...
 else:
-    try:
-        from functools import cached_property as cached_property
-    except ImportError:
-        from cached_property import cached_property as cached_property
+    from functools import cached_property as cached_property
 
     typed_cached_property = cached_property

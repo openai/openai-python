@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.52.2"
+version = "1.56.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -14,15 +14,13 @@ dependencies = [
     "anyio>=3.5.0, <5",
     "distro>=1.7.0, <2",
     "sniffio",
-    "cached-property; python_version < '3.8'",
     "tqdm > 4",
     "jiter>=0.4.0, <1",
 ]
-requires-python = ">= 3.7.1"
+requires-python = ">= 3.8"
 classifiers = [
   "Typing :: Typed",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -66,7 +64,9 @@ dev-dependencies = [
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
     "types-pyaudio > 0",
-    "trio >=0.22.2"
+    "trio >=0.22.2",
+    "nest_asyncio==1.6.0"
+
 ]
 
 [tool.rye.scripts]
@@ -150,7 +150,7 @@ filterwarnings = [
 # there are a couple of flags that are still disabled by
 # default in strict mode as they are experimental and niche.
 typeCheckingMode = "strict"
-pythonVersion = "3.7"
+pythonVersion = "3.8"
 
 exclude = [
     "_dev",
