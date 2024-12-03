@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.56.1 (2024-12-03)
+
+Full Changelog: [v1.56.0...v1.56.1](https://github.com/openai/openai-python/compare/v1.56.0...v1.56.1)
+
+### Bug Fixes
+
+* **cli:** remove usage of httpx proxies ([0e9fc3d](https://github.com/openai/openai-python/commit/0e9fc3dfbc7dec5b8c8f84dea9d87aad9f3d9cf6))
+
+
+### Chores
+
+* **internal:** bump pyright ([#1917](https://github.com/openai/openai-python/issues/1917)) ([0e87346](https://github.com/openai/openai-python/commit/0e8734637666ab22bc27fe4ec2cf7c39fddb5d08))
+
 ## 1.56.0 (2024-12-02)
 
 Full Changelog: [v1.55.3...v1.56.0](https://github.com/openai/openai-python/compare/v1.55.3...v1.56.0)
