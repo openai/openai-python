@@ -6,7 +6,7 @@ import os as _os
 from typing_extensions import override
 
 from . import types
-from ._types import NOT_GIVEN, NoneType, NotGiven, Transport, ProxiesTypes
+from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
 from ._models import BaseModel
@@ -43,6 +43,7 @@ __all__ = [
     "ProxiesTypes",
     "NotGiven",
     "NOT_GIVEN",
+    "Omit",
     "OpenAIError",
     "APIError",
     "APIStatusError",
