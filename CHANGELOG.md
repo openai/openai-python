@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.56.2 (2024-12-04)
+
+Full Changelog: [v1.56.1...v1.56.2](https://github.com/openai/openai-python/compare/v1.56.1...v1.56.2)
+
+### Chores
+
+* make the `Omit` type public ([#1919](https://github.com/openai/openai-python/issues/1919)) ([4fb8a1c](https://github.com/openai/openai-python/commit/4fb8a1cf1f8df37ce8c027bbaaac85a648bae02a))
+
 ## 1.56.1 (2024-12-03)
 
 Full Changelog: [v1.56.0...v1.56.1](https://github.com/openai/openai-python/compare/v1.56.0...v1.56.1)
