@@ -125,7 +125,7 @@ pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
-pyright==1.1.380
+pyright==1.1.389
 pytest==8.3.3
     # via pytest-asyncio
 pytest-asyncio==0.24.0
@@ -179,6 +179,7 @@ typing-extensions==4.12.2
     # via openai
     # via pydantic
     # via pydantic-core
+    # via pyright
 tzdata==2024.1
     # via pandas
 urllib3==2.2.1
