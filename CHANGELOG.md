@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.57.0 (2024-12-05)
+
+Full Changelog: [v1.56.2...v1.57.0](https://github.com/openai/openai-python/compare/v1.56.2...v1.57.0)
+
+### Features
+
+* **api:** updates ([#1924](https://github.com/openai/openai-python/issues/1924)) ([82ba614](https://github.com/openai/openai-python/commit/82ba6144682b0a6b3a22d4f764231c0c6afdcf6e))
+
+
+### Chores
+
+* bump openapi url ([#1922](https://github.com/openai/openai-python/issues/1922)) ([a472a8f](https://github.com/openai/openai-python/commit/a472a8fd0ba36b6897dcd02b6005fcf23f98f056))
+
 ## 1.56.2 (2024-12-04)
 
 Full Changelog: [v1.56.1...v1.56.2](https://github.com/openai/openai-python/compare/v1.56.1...v1.56.2)
