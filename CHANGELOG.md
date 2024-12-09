@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.57.1 (2024-12-09)
+
+Full Changelog: [v1.57.0...v1.57.1](https://github.com/openai/openai-python/compare/v1.57.0...v1.57.1)
+
+### Chores
+
+* **internal:** bump pydantic dependency ([#1929](https://github.com/openai/openai-python/issues/1929)) ([5227c95](https://github.com/openai/openai-python/commit/5227c95eff9c7b1395e6d8f14b94652a91ed2ee2))
+
 ## 1.57.0 (2024-12-05)
 
 Full Changelog: [v1.56.2...v1.57.0](https://github.com/openai/openai-python/compare/v1.56.2...v1.57.0)
