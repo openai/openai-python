@@ -624,18 +624,19 @@ can also get all the extra fields on the Pydantic model as a dict with
 
 You can directly override the [httpx client](https://www.python-httpx.org/api/#client) to customize it for your use case, including:
 
-- Support for proxies
-- Custom transports
+- Support for [proxies](https://www.python-httpx.org/advanced/proxies/)
+- Custom [transports](https://www.python-httpx.org/advanced/transports/)
 - Additional [advanced](https://www.python-httpx.org/advanced/clients/) functionality
 
 ```python
+import httpx
 from openai import OpenAI, DefaultHttpxClient
 
 client = OpenAI(
     # Or use the `OPENAI_BASE_URL` env var
     base_url="http://my.test.server.example.com:8083/v1",
     http_client=DefaultHttpxClient(
-        proxies="http://my.test.proxy.example.com",
+        proxy="http://my.test.proxy.example.com",
         transport=httpx.HTTPTransport(local_address="0.0.0.0"),
     ),
 )
