@@ -7,7 +7,6 @@
 #   all-features: true
 #   with-sources: false
 #   generate-hashes: false
-#   universal: false
 
 -e file:.
 annotated-types==0.6.0
@@ -117,9 +116,9 @@ portalocker==2.10.1
     # via msal-extensions
 pycparser==2.22
     # via cffi
-pydantic==2.9.2
+pydantic==2.10.3
     # via openai
-pydantic-core==2.23.4
+pydantic-core==2.27.1
     # via pydantic
 pygments==2.18.0
     # via rich
