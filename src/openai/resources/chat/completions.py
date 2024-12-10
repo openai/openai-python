@@ -826,6 +826,7 @@ class Completions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
         validate_response_format(response_format)
+        extra_headers = {"Accept": "text/event-stream", **(extra_headers or {})} if stream else extra_headers
         return self._post(
             "/chat/completions",
             body=maybe_transform(
