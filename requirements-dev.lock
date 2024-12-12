@@ -124,7 +124,7 @@ pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
-pyright==1.1.389
+pyright==1.1.390
 pytest==8.3.3
     # via pytest-asyncio
 pytest-asyncio==0.24.0
