@@ -24,7 +24,7 @@ import httpx
 import pydantic
 
 from ._types import NoneType
-from ._utils import is_given, extract_type_arg, is_annotated_type
+from ._utils import is_given, extract_type_arg, is_annotated_type, is_type_alias_type
 from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
@@ -195,9 +195,15 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.elapsed
 
     def _parse(self, *, to: type[_T] | None = None) -> R | _T:
+        cast_to = to if to is not None else self._cast_to
+
+        # unwrap `TypeAlias('Name', T)` -> `T`
+        if is_type_alias_type(cast_to):
+            cast_to = cast_to.__value__  # type: ignore[unreachable]
+
         # unwrap `Annotated[T, ...]` -> `T`
-        if to and is_annotated_type(to):
-            to = extract_type_arg(to, 0)
+        if cast_to and is_annotated_type(cast_to):
+            cast_to = extract_type_arg(cast_to, 0)
 
         if self._stream:
             if to:
@@ -233,17 +239,11 @@ class LegacyAPIResponse(Generic[R]):
             return cast(
                 R,
                 stream_cls(
-                    cast_to=self._cast_to,
+                    cast_to=cast_to,
                     response=self.http_response,
                     client=cast(Any, self._client),
                 ),
             )
-
-        cast_to = to if to is not None else self._cast_to
-
-        # unwrap `Annotated[T, ...]` -> `T`
-        if is_annotated_type(cast_to):
-            cast_to = extract_type_arg(cast_to, 0)
 
         if cast_to is NoneType:
             return cast(R, None)
