@@ -68,7 +68,7 @@ pydantic-core==2.27.1
     # via pydantic
 pygments==2.18.0
     # via rich
-pyright==1.1.389
+pyright==1.1.390
 pytest==8.3.3
     # via pytest-asyncio
 pytest-asyncio==0.24.0
