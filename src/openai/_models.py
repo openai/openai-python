@@ -46,6 +46,7 @@ from ._utils import (
     strip_not_given,
     extract_type_arg,
     is_annotated_type,
+    is_type_alias_type,
     strip_annotated_type,
 )
 from ._compat import (
@@ -428,6 +429,8 @@ def construct_type(*, value: object, type_: object) -> object:
     # we allow `object` as the input type because otherwise, passing things like
     # `Literal['value']` will be reported as a type error by type checkers
     type_ = cast("type[object]", type_)
+    if is_type_alias_type(type_):
+        type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):

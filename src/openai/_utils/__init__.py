@@ -39,6 +39,7 @@ from ._typing import (
     is_iterable_type as is_iterable_type,
     is_required_type as is_required_type,
     is_annotated_type as is_annotated_type,
+    is_type_alias_type as is_type_alias_type,
     strip_annotated_type as strip_annotated_type,
     extract_type_var_from_base as extract_type_var_from_base,
 )
