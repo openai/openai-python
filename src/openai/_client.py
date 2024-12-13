@@ -8,7 +8,7 @@ from typing_extensions import Self, override
 
 import httpx
 
-from . import resources, _exceptions
+from . import _exceptions
 from ._qs import Querystring
 from ._types import (
     NOT_GIVEN,
@@ -25,6 +25,7 @@ from ._utils import (
     get_async_library,
 )
 from ._version import __version__
+from .resources import files, images, models, batches, embeddings, completions, moderations
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
 from ._base_client import (
@@ -32,33 +33,28 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
+from .resources.beta import beta
+from .resources.chat import chat
+from .resources.audio import audio
+from .resources.uploads import uploads
+from .resources.fine_tuning import fine_tuning
 
-__all__ = [
-    "Timeout",
-    "Transport",
-    "ProxiesTypes",
-    "RequestOptions",
-    "resources",
-    "OpenAI",
-    "AsyncOpenAI",
-    "Client",
-    "AsyncClient",
-]
+__all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
 
 class OpenAI(SyncAPIClient):
-    completions: resources.Completions
-    chat: resources.Chat
-    embeddings: resources.Embeddings
-    files: resources.Files
-    images: resources.Images
-    audio: resources.Audio
-    moderations: resources.Moderations
-    models: resources.Models
-    fine_tuning: resources.FineTuning
-    beta: resources.Beta
-    batches: resources.Batches
-    uploads: resources.Uploads
+    completions: completions.Completions
+    chat: chat.Chat
+    embeddings: embeddings.Embeddings
+    files: files.Files
+    images: images.Images
+    audio: audio.Audio
+    moderations: moderations.Moderations
+    models: models.Models
+    fine_tuning: fine_tuning.FineTuning
+    beta: beta.Beta
+    batches: batches.Batches
+    uploads: uploads.Uploads
     with_raw_response: OpenAIWithRawResponse
     with_streaming_response: OpenAIWithStreamedResponse
 
@@ -133,18 +129,18 @@ class OpenAI(SyncAPIClient):
 
         self._default_stream_cls = Stream
 
-        self.completions = resources.Completions(self)
-        self.chat = resources.Chat(self)
-        self.embeddings = resources.Embeddings(self)
-        self.files = resources.Files(self)
-        self.images = resources.Images(self)
-        self.audio = resources.Audio(self)
-        self.moderations = resources.Moderations(self)
-        self.models = resources.Models(self)
-        self.fine_tuning = resources.FineTuning(self)
-        self.beta = resources.Beta(self)
-        self.batches = resources.Batches(self)
-        self.uploads = resources.Uploads(self)
+        self.completions = completions.Completions(self)
+        self.chat = chat.Chat(self)
+        self.embeddings = embeddings.Embeddings(self)
+        self.files = files.Files(self)
+        self.images = images.Images(self)
+        self.audio = audio.Audio(self)
+        self.moderations = moderations.Moderations(self)
+        self.models = models.Models(self)
+        self.fine_tuning = fine_tuning.FineTuning(self)
+        self.beta = beta.Beta(self)
+        self.batches = batches.Batches(self)
+        self.uploads = uploads.Uploads(self)
         self.with_raw_response = OpenAIWithRawResponse(self)
         self.with_streaming_response = OpenAIWithStreamedResponse(self)
 
@@ -261,18 +257,18 @@ class OpenAI(SyncAPIClient):
 
 
 class AsyncOpenAI(AsyncAPIClient):
-    completions: resources.AsyncCompletions
-    chat: resources.AsyncChat
-    embeddings: resources.AsyncEmbeddings
-    files: resources.AsyncFiles
-    images: resources.AsyncImages
-    audio: resources.AsyncAudio
-    moderations: resources.AsyncModerations
-    models: resources.AsyncModels
-    fine_tuning: resources.AsyncFineTuning
-    beta: resources.AsyncBeta
-    batches: resources.AsyncBatches
-    uploads: resources.AsyncUploads
+    completions: completions.AsyncCompletions
+    chat: chat.AsyncChat
+    embeddings: embeddings.AsyncEmbeddings
+    files: files.AsyncFiles
+    images: images.AsyncImages
+    audio: audio.AsyncAudio
+    moderations: moderations.AsyncModerations
+    models: models.AsyncModels
+    fine_tuning: fine_tuning.AsyncFineTuning
+    beta: beta.AsyncBeta
+    batches: batches.AsyncBatches
+    uploads: uploads.AsyncUploads
     with_raw_response: AsyncOpenAIWithRawResponse
     with_streaming_response: AsyncOpenAIWithStreamedResponse
 
@@ -347,18 +343,18 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self._default_stream_cls = AsyncStream
 
-        self.completions = resources.AsyncCompletions(self)
-        self.chat = resources.AsyncChat(self)
-        self.embeddings = resources.AsyncEmbeddings(self)
-        self.files = resources.AsyncFiles(self)
-        self.images = resources.AsyncImages(self)
-        self.audio = resources.AsyncAudio(self)
-        self.moderations = resources.AsyncModerations(self)
-        self.models = resources.AsyncModels(self)
-        self.fine_tuning = resources.AsyncFineTuning(self)
-        self.beta = resources.AsyncBeta(self)
-        self.batches = resources.AsyncBatches(self)
-        self.uploads = resources.AsyncUploads(self)
+        self.completions = completions.AsyncCompletions(self)
+        self.chat = chat.AsyncChat(self)
+        self.embeddings = embeddings.AsyncEmbeddings(self)
+        self.files = files.AsyncFiles(self)
+        self.images = images.AsyncImages(self)
+        self.audio = audio.AsyncAudio(self)
+        self.moderations = moderations.AsyncModerations(self)
+        self.models = models.AsyncModels(self)
+        self.fine_tuning = fine_tuning.AsyncFineTuning(self)
+        self.beta = beta.AsyncBeta(self)
+        self.batches = batches.AsyncBatches(self)
+        self.uploads = uploads.AsyncUploads(self)
         self.with_raw_response = AsyncOpenAIWithRawResponse(self)
         self.with_streaming_response = AsyncOpenAIWithStreamedResponse(self)
 
@@ -476,66 +472,66 @@ class AsyncOpenAI(AsyncAPIClient):
 
 class OpenAIWithRawResponse:
     def __init__(self, client: OpenAI) -> None:
-        self.completions = resources.CompletionsWithRawResponse(client.completions)
-        self.chat = resources.ChatWithRawResponse(client.chat)
-        self.embeddings = resources.EmbeddingsWithRawResponse(client.embeddings)
-        self.files = resources.FilesWithRawResponse(client.files)
-        self.images = resources.ImagesWithRawResponse(client.images)
-        self.audio = resources.AudioWithRawResponse(client.audio)
-        self.moderations = resources.ModerationsWithRawResponse(client.moderations)
-        self.models = resources.ModelsWithRawResponse(client.models)
-        self.fine_tuning = resources.FineTuningWithRawResponse(client.fine_tuning)
-        self.beta = resources.BetaWithRawResponse(client.beta)
-        self.batches = resources.BatchesWithRawResponse(client.batches)
-        self.uploads = resources.UploadsWithRawResponse(client.uploads)
+        self.completions = completions.CompletionsWithRawResponse(client.completions)
+        self.chat = chat.ChatWithRawResponse(client.chat)
+        self.embeddings = embeddings.EmbeddingsWithRawResponse(client.embeddings)
+        self.files = files.FilesWithRawResponse(client.files)
+        self.images = images.ImagesWithRawResponse(client.images)
+        self.audio = audio.AudioWithRawResponse(client.audio)
+        self.moderations = moderations.ModerationsWithRawResponse(client.moderations)
+        self.models = models.ModelsWithRawResponse(client.models)
+        self.fine_tuning = fine_tuning.FineTuningWithRawResponse(client.fine_tuning)
+        self.beta = beta.BetaWithRawResponse(client.beta)
+        self.batches = batches.BatchesWithRawResponse(client.batches)
+        self.uploads = uploads.UploadsWithRawResponse(client.uploads)
 
 
 class AsyncOpenAIWithRawResponse:
     def __init__(self, client: AsyncOpenAI) -> None:
-        self.completions = resources.AsyncCompletionsWithRawResponse(client.completions)
-        self.chat = resources.AsyncChatWithRawResponse(client.chat)
-        self.embeddings = resources.AsyncEmbeddingsWithRawResponse(client.embeddings)
-        self.files = resources.AsyncFilesWithRawResponse(client.files)
-        self.images = resources.AsyncImagesWithRawResponse(client.images)
-        self.audio = resources.AsyncAudioWithRawResponse(client.audio)
-        self.moderations = resources.AsyncModerationsWithRawResponse(client.moderations)
-        self.models = resources.AsyncModelsWithRawResponse(client.models)
-        self.fine_tuning = resources.AsyncFineTuningWithRawResponse(client.fine_tuning)
-        self.beta = resources.AsyncBetaWithRawResponse(client.beta)
-        self.batches = resources.AsyncBatchesWithRawResponse(client.batches)
-        self.uploads = resources.AsyncUploadsWithRawResponse(client.uploads)
+        self.completions = completions.AsyncCompletionsWithRawResponse(client.completions)
+        self.chat = chat.AsyncChatWithRawResponse(client.chat)
+        self.embeddings = embeddings.AsyncEmbeddingsWithRawResponse(client.embeddings)
+        self.files = files.AsyncFilesWithRawResponse(client.files)
+        self.images = images.AsyncImagesWithRawResponse(client.images)
+        self.audio = audio.AsyncAudioWithRawResponse(client.audio)
+        self.moderations = moderations.AsyncModerationsWithRawResponse(client.moderations)
+        self.models = models.AsyncModelsWithRawResponse(client.models)
+        self.fine_tuning = fine_tuning.AsyncFineTuningWithRawResponse(client.fine_tuning)
+        self.beta = beta.AsyncBetaWithRawResponse(client.beta)
+        self.batches = batches.AsyncBatchesWithRawResponse(client.batches)
+        self.uploads = uploads.AsyncUploadsWithRawResponse(client.uploads)
 
 
 class OpenAIWithStreamedResponse:
     def __init__(self, client: OpenAI) -> None:
-        self.completions = resources.CompletionsWithStreamingResponse(client.completions)
-        self.chat = resources.ChatWithStreamingResponse(client.chat)
-        self.embeddings = resources.EmbeddingsWithStreamingResponse(client.embeddings)
-        self.files = resources.FilesWithStreamingResponse(client.files)
-        self.images = resources.ImagesWithStreamingResponse(client.images)
-        self.audio = resources.AudioWithStreamingResponse(client.audio)
-        self.moderations = resources.ModerationsWithStreamingResponse(client.moderations)
-        self.models = resources.ModelsWithStreamingResponse(client.models)
-        self.fine_tuning = resources.FineTuningWithStreamingResponse(client.fine_tuning)
-        self.beta = resources.BetaWithStreamingResponse(client.beta)
-        self.batches = resources.BatchesWithStreamingResponse(client.batches)
-        self.uploads = resources.UploadsWithStreamingResponse(client.uploads)
+        self.completions = completions.CompletionsWithStreamingResponse(client.completions)
+        self.chat = chat.ChatWithStreamingResponse(client.chat)
+        self.embeddings = embeddings.EmbeddingsWithStreamingResponse(client.embeddings)
+        self.files = files.FilesWithStreamingResponse(client.files)
+        self.images = images.ImagesWithStreamingResponse(client.images)
+        self.audio = audio.AudioWithStreamingResponse(client.audio)
+        self.moderations = moderations.ModerationsWithStreamingResponse(client.moderations)
+        self.models = models.ModelsWithStreamingResponse(client.models)
+        self.fine_tuning = fine_tuning.FineTuningWithStreamingResponse(client.fine_tuning)
+        self.beta = beta.BetaWithStreamingResponse(client.beta)
+        self.batches = batches.BatchesWithStreamingResponse(client.batches)
+        self.uploads = uploads.UploadsWithStreamingResponse(client.uploads)
 
 
 class AsyncOpenAIWithStreamedResponse:
     def __init__(self, client: AsyncOpenAI) -> None:
-        self.completions = resources.AsyncCompletionsWithStreamingResponse(client.completions)
-        self.chat = resources.AsyncChatWithStreamingResponse(client.chat)
-        self.embeddings = resources.AsyncEmbeddingsWithStreamingResponse(client.embeddings)
-        self.files = resources.AsyncFilesWithStreamingResponse(client.files)
-        self.images = resources.AsyncImagesWithStreamingResponse(client.images)
-        self.audio = resources.AsyncAudioWithStreamingResponse(client.audio)
-        self.moderations = resources.AsyncModerationsWithStreamingResponse(client.moderations)
-        self.models = resources.AsyncModelsWithStreamingResponse(client.models)
-        self.fine_tuning = resources.AsyncFineTuningWithStreamingResponse(client.fine_tuning)
-        self.beta = resources.AsyncBetaWithStreamingResponse(client.beta)
-        self.batches = resources.AsyncBatchesWithStreamingResponse(client.batches)
-        self.uploads = resources.AsyncUploadsWithStreamingResponse(client.uploads)
+        self.completions = completions.AsyncCompletionsWithStreamingResponse(client.completions)
+        self.chat = chat.AsyncChatWithStreamingResponse(client.chat)
+        self.embeddings = embeddings.AsyncEmbeddingsWithStreamingResponse(client.embeddings)
+        self.files = files.AsyncFilesWithStreamingResponse(client.files)
+        self.images = images.AsyncImagesWithStreamingResponse(client.images)
+        self.audio = audio.AsyncAudioWithStreamingResponse(client.audio)
+        self.moderations = moderations.AsyncModerationsWithStreamingResponse(client.moderations)
+        self.models = models.AsyncModelsWithStreamingResponse(client.models)
+        self.fine_tuning = fine_tuning.AsyncFineTuningWithStreamingResponse(client.fine_tuning)
+        self.beta = beta.AsyncBetaWithStreamingResponse(client.beta)
+        self.batches = batches.AsyncBatchesWithStreamingResponse(client.batches)
+        self.uploads = uploads.AsyncUploadsWithStreamingResponse(client.uploads)
 
 
 Client = OpenAI
