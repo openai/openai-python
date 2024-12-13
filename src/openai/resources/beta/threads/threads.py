@@ -9,14 +9,6 @@ from typing_extensions import Literal, overload
 import httpx
 
 from .... import _legacy_response
-from .runs import (
-    Runs,
-    AsyncRuns,
-    RunsWithRawResponse,
-    AsyncRunsWithRawResponse,
-    RunsWithStreamingResponse,
-    AsyncRunsWithStreamingResponse,
-)
 from .messages import (
     Messages,
     AsyncMessages,
@@ -31,7 +23,14 @@ from ...._utils import (
     maybe_transform,
     async_maybe_transform,
 )
-from .runs.runs import Runs, AsyncRuns
+from .runs.runs import (
+    Runs,
+    AsyncRuns,
+    RunsWithRawResponse,
+    AsyncRunsWithRawResponse,
+    RunsWithStreamingResponse,
+    AsyncRunsWithStreamingResponse,
+)
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper

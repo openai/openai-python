@@ -2,14 +2,6 @@
 
 from __future__ import annotations
 
-from .threads import (
-    Threads,
-    AsyncThreads,
-    ThreadsWithRawResponse,
-    AsyncThreadsWithRawResponse,
-    ThreadsWithStreamingResponse,
-    AsyncThreadsWithStreamingResponse,
-)
 from ..._compat import cached_property
 from .chat.chat import Chat, AsyncChat
 from .assistants import (
@@ -21,7 +13,15 @@ from .assistants import (
     AsyncAssistantsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from .vector_stores import (
+from .threads.threads import (
+    Threads,
+    AsyncThreads,
+    ThreadsWithRawResponse,
+    AsyncThreadsWithRawResponse,
+    ThreadsWithStreamingResponse,
+    AsyncThreadsWithStreamingResponse,
+)
+from .vector_stores.vector_stores import (
     VectorStores,
     AsyncVectorStores,
     VectorStoresWithRawResponse,
@@ -29,8 +29,6 @@ from .vector_stores import (
     VectorStoresWithStreamingResponse,
     AsyncVectorStoresWithStreamingResponse,
 )
-from .threads.threads import Threads, AsyncThreads
-from .vector_stores.vector_stores import VectorStores, AsyncVectorStores
 
 __all__ = ["Beta", "AsyncBeta"]
 

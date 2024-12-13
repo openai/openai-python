@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from .jobs import (
+from ..._compat import cached_property
+from .jobs.jobs import (
     Jobs,
     AsyncJobs,
     JobsWithRawResponse,
@@ -10,8 +11,6 @@ from .jobs import (
     JobsWithStreamingResponse,
     AsyncJobsWithStreamingResponse,
 )
-from ..._compat import cached_property
-from .jobs.jobs import Jobs, AsyncJobs
 from ..._resource import SyncAPIResource, AsyncAPIResource
 
 __all__ = ["FineTuning", "AsyncFineTuning"]
