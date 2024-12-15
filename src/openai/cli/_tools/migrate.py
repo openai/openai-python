@@ -92,8 +92,8 @@ def install() -> Path:
     install_dir = dir_name / ".install"
     target_dir = install_dir / "bin"
 
-    target_path = target_dir / "marzano"
-    temp_file = target_dir / "marzano.tmp"
+    target_path = target_dir / "grit"
+    temp_file = target_dir / "grit.tmp"
 
     if target_path.exists():
         _debug(f"{target_path} already exists")
@@ -110,7 +110,7 @@ def install() -> Path:
     arch = _get_arch()
     _debug(f"Using architecture {arch}")
 
-    file_name = f"marzano-{arch}-{platform}"
+    file_name = f"grit-{arch}-{platform}"
     download_url = f"https://github.com/getgrit/gritql/releases/latest/download/{file_name}.tar.gz"
 
     sys.stdout.write(f"Downloading Grit CLI from {download_url}\n")
