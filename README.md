@@ -652,6 +652,16 @@ client.with_options(http_client=DefaultHttpxClient(...))
 
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
 
+```py
+from openai import OpenAI
+
+with OpenAI() as client:
+  # make requests here
+  ...
+
+# HTTP client is now closed
+```
+
 ## Microsoft Azure OpenAI
 
 To use this library with [Azure OpenAI](https://learn.microsoft.com/azure/ai-services/openai/overview), use the `AzureOpenAI`
