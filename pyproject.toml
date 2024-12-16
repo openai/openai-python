@@ -157,6 +157,11 @@ exclude = [
     "_dev",
     ".venv",
     ".nox",
+
+    # uses inline `uv` script dependencies
+    # which means it can't be type checked
+    "examples/realtime/audio_util.py",
+    "examples/realtime/push_to_talk_app.py"
 ]
 
 reportImplicitOverride = true
