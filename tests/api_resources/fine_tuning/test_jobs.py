@@ -50,6 +50,24 @@ class TestJobs:
                     },
                 }
             ],
+            method={
+                "dpo": {
+                    "hyperparameters": {
+                        "batch_size": "auto",
+                        "beta": "auto",
+                        "learning_rate_multiplier": "auto",
+                        "n_epochs": "auto",
+                    }
+                },
+                "supervised": {
+                    "hyperparameters": {
+                        "batch_size": "auto",
+                        "learning_rate_multiplier": "auto",
+                        "n_epochs": "auto",
+                    }
+                },
+                "type": "supervised",
+            },
             seed=42,
             suffix="x",
             validation_file="file-abc123",
@@ -271,6 +289,24 @@ class TestAsyncJobs:
                     },
                 }
             ],
+            method={
+                "dpo": {
+                    "hyperparameters": {
+                        "batch_size": "auto",
+                        "beta": "auto",
+                        "learning_rate_multiplier": "auto",
+                        "n_epochs": "auto",
+                    }
+                },
+                "supervised": {
+                    "hyperparameters": {
+                        "batch_size": "auto",
+                        "learning_rate_multiplier": "auto",
+                        "n_epochs": "auto",
+                    }
+                },
+                "type": "supervised",
+            },
             seed=42,
             suffix="x",
             validation_file="file-abc123",

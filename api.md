@@ -47,6 +47,7 @@ from openai.types.chat import (
     ChatCompletionContentPartInputAudio,
     ChatCompletionContentPartRefusal,
     ChatCompletionContentPartText,
+    ChatCompletionDeveloperMessageParam,
     ChatCompletionFunctionCallOption,
     ChatCompletionFunctionMessageParam,
     ChatCompletionMessage,
@@ -55,6 +56,7 @@ from openai.types.chat import (
     ChatCompletionModality,
     ChatCompletionNamedToolChoice,
     ChatCompletionPredictionContent,
+    ChatCompletionReasoningEffort,
     ChatCompletionRole,
     ChatCompletionStreamOptions,
     ChatCompletionSystemMessageParam,
@@ -234,6 +236,20 @@ Methods:
 - <code title="get /fine_tuning/jobs/{fine_tuning_job_id}/checkpoints">client.fine_tuning.jobs.checkpoints.<a href="./src/openai/resources/fine_tuning/jobs/checkpoints.py">list</a>(fine_tuning_job_id, \*\*<a href="src/openai/types/fine_tuning/jobs/checkpoint_list_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/jobs/fine_tuning_job_checkpoint.py">SyncCursorPage[FineTuningJobCheckpoint]</a></code>
 
 # Beta
+
+## Realtime
+
+### Sessions
+
+Types:
+
+```python
+from openai.types.beta.realtime import Session, SessionCreateResponse
+```
+
+Methods:
+
+- <code title="post /realtime/sessions">client.beta.realtime.sessions.<a href="./src/openai/resources/beta/realtime/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/realtime/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/realtime/session_create_response.py">SessionCreateResponse</a></code>
 
 ## VectorStores
 

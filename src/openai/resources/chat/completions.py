@@ -22,6 +22,7 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ..._streaming import Stream, AsyncStream
 from ...types.chat import (
     ChatCompletionAudioParam,
+    ChatCompletionReasoningEffort,
     completion_create_params,
 )
 from ..._base_client import make_request_options
@@ -32,6 +33,7 @@ from ...types.chat.chat_completion_modality import ChatCompletionModality
 from ...types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ...types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ...types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from ...types.chat.chat_completion_reasoning_effort import ChatCompletionReasoningEffort
 from ...types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from ...types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
@@ -79,6 +81,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -106,6 +109,12 @@ class Completions(SyncAPIResource):
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
 
+        Parameter support can differ depending on the model used to generate the
+        response, particularly for newer reasoning models. Parameters that are only
+        supported for reasoning models are noted below. For the current state of
+        unsupported parameters in reasoning models,
+        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -126,15 +135,17 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
-
           function_call: Deprecated in favor of `tool_choice`.
 
-              Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via `{"name": "my_function"}` forces the model to call that
+              Controls which (if any) function is called by the model.
+
+              `none` means the model will not call a function and instead generates a message.
+
+              `auto` means the model can pick between generating a message or calling a
               function.
+
+              Specifying a particular function via `{"name": "my_function"}` forces the model
+              to call that function.
 
               `none` is the default when no functions are present. `auto` is the default if
               functions are present.
@@ -197,13 +208,14 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+          reasoning_effort: **o1 models only**
 
-          response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
+          response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -259,9 +271,8 @@ class Completions(SyncAPIResource):
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
-              focused and deterministic.
-
-              We generally recommend altering this or `top_p` but not both.
+              focused and deterministic. We generally recommend altering this or `top_p` but
+              not both.
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tool and instead generates a message. `auto` means the model can
@@ -322,6 +333,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -347,6 +359,12 @@ class Completions(SyncAPIResource):
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
+
+        Parameter support can differ depending on the model used to generate the
+        response, particularly for newer reasoning models. Parameters that are only
+        supported for reasoning models are noted below. For the current state of
+        unsupported parameters in reasoning models,
+        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -375,15 +393,17 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
-
           function_call: Deprecated in favor of `tool_choice`.
 
-              Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via `{"name": "my_function"}` forces the model to call that
+              Controls which (if any) function is called by the model.
+
+              `none` means the model will not call a function and instead generates a message.
+
+              `auto` means the model can pick between generating a message or calling a
               function.
+
+              Specifying a particular function via `{"name": "my_function"}` forces the model
+              to call that function.
 
               `none` is the default when no functions are present. `auto` is the default if
               functions are present.
@@ -446,13 +466,14 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+          reasoning_effort: **o1 models only**
 
-          response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
+          response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -501,9 +522,8 @@ class Completions(SyncAPIResource):
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
-              focused and deterministic.
-
-              We generally recommend altering this or `top_p` but not both.
+              focused and deterministic. We generally recommend altering this or `top_p` but
+              not both.
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tool and instead generates a message. `auto` means the model can
@@ -564,6 +584,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -589,6 +610,12 @@ class Completions(SyncAPIResource):
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
+
+        Parameter support can differ depending on the model used to generate the
+        response, particularly for newer reasoning models. Parameters that are only
+        supported for reasoning models are noted below. For the current state of
+        unsupported parameters in reasoning models,
+        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -617,15 +644,17 @@ class Completions(SyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
-
           function_call: Deprecated in favor of `tool_choice`.
 
-              Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via `{"name": "my_function"}` forces the model to call that
+              Controls which (if any) function is called by the model.
+
+              `none` means the model will not call a function and instead generates a message.
+
+              `auto` means the model can pick between generating a message or calling a
               function.
+
+              Specifying a particular function via `{"name": "my_function"}` forces the model
+              to call that function.
 
               `none` is the default when no functions are present. `auto` is the default if
               functions are present.
@@ -688,13 +717,14 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+          reasoning_effort: **o1 models only**
 
-          response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
+          response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -743,9 +773,8 @@ class Completions(SyncAPIResource):
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
-              focused and deterministic.
-
-              We generally recommend altering this or `top_p` but not both.
+              focused and deterministic. We generally recommend altering this or `top_p` but
+              not both.
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tool and instead generates a message. `auto` means the model can
@@ -805,6 +834,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -846,6 +876,7 @@ class Completions(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "seed": seed,
                     "service_tier": service_tier,
@@ -911,6 +942,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -938,6 +970,12 @@ class AsyncCompletions(AsyncAPIResource):
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
 
+        Parameter support can differ depending on the model used to generate the
+        response, particularly for newer reasoning models. Parameters that are only
+        supported for reasoning models are noted below. For the current state of
+        unsupported parameters in reasoning models,
+        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
+
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
               [model](https://platform.openai.com/docs/models) you use, different message
@@ -958,15 +996,17 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
-
           function_call: Deprecated in favor of `tool_choice`.
 
-              Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via `{"name": "my_function"}` forces the model to call that
+              Controls which (if any) function is called by the model.
+
+              `none` means the model will not call a function and instead generates a message.
+
+              `auto` means the model can pick between generating a message or calling a
               function.
+
+              Specifying a particular function via `{"name": "my_function"}` forces the model
+              to call that function.
 
               `none` is the default when no functions are present. `auto` is the default if
               functions are present.
@@ -1029,13 +1069,14 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+          reasoning_effort: **o1 models only**
 
-          response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
+          response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -1091,9 +1132,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
-              focused and deterministic.
-
-              We generally recommend altering this or `top_p` but not both.
+              focused and deterministic. We generally recommend altering this or `top_p` but
+              not both.
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tool and instead generates a message. `auto` means the model can
@@ -1154,6 +1194,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -1179,6 +1220,12 @@ class AsyncCompletions(AsyncAPIResource):
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
+
+        Parameter support can differ depending on the model used to generate the
+        response, particularly for newer reasoning models. Parameters that are only
+        supported for reasoning models are noted below. For the current state of
+        unsupported parameters in reasoning models,
+        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -1207,15 +1254,17 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
-
           function_call: Deprecated in favor of `tool_choice`.
 
-              Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via `{"name": "my_function"}` forces the model to call that
+              Controls which (if any) function is called by the model.
+
+              `none` means the model will not call a function and instead generates a message.
+
+              `auto` means the model can pick between generating a message or calling a
               function.
+
+              Specifying a particular function via `{"name": "my_function"}` forces the model
+              to call that function.
 
               `none` is the default when no functions are present. `auto` is the default if
               functions are present.
@@ -1278,13 +1327,14 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+          reasoning_effort: **o1 models only**
 
-          response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
+          response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -1333,9 +1383,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
-              focused and deterministic.
-
-              We generally recommend altering this or `top_p` but not both.
+              focused and deterministic. We generally recommend altering this or `top_p` but
+              not both.
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tool and instead generates a message. `auto` means the model can
@@ -1396,6 +1445,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -1421,6 +1471,12 @@ class AsyncCompletions(AsyncAPIResource):
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
+
+        Parameter support can differ depending on the model used to generate the
+        response, particularly for newer reasoning models. Parameters that are only
+        supported for reasoning models are noted below. For the current state of
+        unsupported parameters in reasoning models,
+        [refer to the reasoning guide](https://platform.openai.com/docs/guides/reasoning).
 
         Args:
           messages: A list of messages comprising the conversation so far. Depending on the
@@ -1449,15 +1505,17 @@ class AsyncCompletions(AsyncAPIResource):
               existing frequency in the text so far, decreasing the model's likelihood to
               repeat the same line verbatim.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
-
           function_call: Deprecated in favor of `tool_choice`.
 
-              Controls which (if any) function is called by the model. `none` means the model
-              will not call a function and instead generates a message. `auto` means the model
-              can pick between generating a message or calling a function. Specifying a
-              particular function via `{"name": "my_function"}` forces the model to call that
+              Controls which (if any) function is called by the model.
+
+              `none` means the model will not call a function and instead generates a message.
+
+              `auto` means the model can pick between generating a message or calling a
               function.
+
+              Specifying a particular function via `{"name": "my_function"}` forces the model
+              to call that function.
 
               `none` is the default when no functions are present. `auto` is the default if
               functions are present.
@@ -1520,13 +1578,14 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-              [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+          reasoning_effort: **o1 models only**
 
-          response_format: An object specifying the format that the model must output. Compatible with
-              [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-              [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-              [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-              all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
+          response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
               Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -1575,9 +1634,8 @@ class AsyncCompletions(AsyncAPIResource):
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
-              focused and deterministic.
-
-              We generally recommend altering this or `top_p` but not both.
+              focused and deterministic. We generally recommend altering this or `top_p` but
+              not both.
 
           tool_choice: Controls which (if any) tool is called by the model. `none` means the model will
               not call any tool and instead generates a message. `auto` means the model can
@@ -1637,6 +1695,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -1678,6 +1737,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "seed": seed,
                     "service_tier": service_tier,
