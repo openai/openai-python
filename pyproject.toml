@@ -37,7 +37,8 @@ classifiers = [
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
 
-
+[project.optional-dependencies]
+realtime = ["websockets >= 13, < 15"]
 
 [tool.rye]
 managed = true

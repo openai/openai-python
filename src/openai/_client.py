@@ -63,6 +63,14 @@ class OpenAI(SyncAPIClient):
     organization: str | None
     project: str | None
 
+    websocket_base_url: str | httpx.URL | None
+    """Base URL for WebSocket connections.
+
+    If not specified, the default base URL will be used, with 'wss://' replacing the
+    'http://' or 'https://' scheme. For example: 'http://example.com' becomes
+    'wss://example.com'
+    """
+
     def __init__(
         self,
         *,
@@ -70,6 +78,7 @@ class OpenAI(SyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -110,6 +119,8 @@ class OpenAI(SyncAPIClient):
         if project is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
+
+        self.websocket_base_url = websocket_base_url
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
@@ -172,6 +183,7 @@ class OpenAI(SyncAPIClient):
         api_key: str | None = None,
         organization: str | None = None,
         project: str | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.Client | None = None,
@@ -208,6 +220,7 @@ class OpenAI(SyncAPIClient):
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
+            websocket_base_url=websocket_base_url or self.websocket_base_url,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,
@@ -277,6 +290,14 @@ class AsyncOpenAI(AsyncAPIClient):
     organization: str | None
     project: str | None
 
+    websocket_base_url: str | httpx.URL | None
+    """Base URL for WebSocket connections.
+
+    If not specified, the default base URL will be used, with 'wss://' replacing the
+    'http://' or 'https://' scheme. For example: 'http://example.com' becomes
+    'wss://example.com'
+    """
+
     def __init__(
         self,
         *,
@@ -284,6 +305,7 @@ class AsyncOpenAI(AsyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -324,6 +346,8 @@ class AsyncOpenAI(AsyncAPIClient):
         if project is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
+
+        self.websocket_base_url = websocket_base_url
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
@@ -386,6 +410,7 @@ class AsyncOpenAI(AsyncAPIClient):
         api_key: str | None = None,
         organization: str | None = None,
         project: str | None = None,
+        websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.AsyncClient | None = None,
@@ -422,6 +447,7 @@ class AsyncOpenAI(AsyncAPIClient):
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
+            websocket_base_url=websocket_base_url or self.websocket_base_url,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
             http_client=http_client,

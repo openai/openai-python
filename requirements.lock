@@ -43,3 +43,5 @@ typing-extensions==4.12.2
     # via openai
     # via pydantic
     # via pydantic-core
+websockets==14.1
+    # via openai
