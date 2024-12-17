@@ -35,15 +35,16 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License"
 ]
 
-[project.optional-dependencies]
-datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
-
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
 
 [project.scripts]
 openai = "openai.cli:main"
+
+[project.optional-dependencies]
+realtime = ["websockets >= 13, < 15"]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 
 [tool.rye]
 managed = true

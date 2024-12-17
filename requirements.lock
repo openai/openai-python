@@ -64,3 +64,5 @@ typing-extensions==4.12.2
     # via pydantic-core
 tzdata==2024.1
     # via pandas
+websockets==14.1
+    # via openai
