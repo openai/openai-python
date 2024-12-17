@@ -795,7 +795,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -827,7 +827,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -859,7 +859,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -891,7 +891,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1663,7 +1663,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1696,7 +1696,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1729,7 +1729,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1762,7 +1762,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
