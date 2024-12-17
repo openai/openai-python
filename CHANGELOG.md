@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.58.1 (2024-12-17)
+
+Full Changelog: [v1.58.0...v1.58.1](https://github.com/openai/openai-python/compare/v1.58.0...v1.58.1)
+
+### Documentation
+
+* **readme:** fix example script link ([23ba877](https://github.com/openai/openai-python/commit/23ba8778fd55e0f54f36685e9c5950b452d8e10c))
+
 ## 1.58.0 (2024-12-17)
 
 Full Changelog: [v1.57.4...v1.58.0](https://github.com/openai/openai-python/compare/v1.57.4...v1.58.0)
