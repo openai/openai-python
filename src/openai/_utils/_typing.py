@@ -1,8 +1,17 @@
 from __future__ import annotations
 
+import sys
+import typing
+import typing_extensions
 from typing import Any, TypeVar, Iterable, cast
 from collections import abc as _c_abc
-from typing_extensions import Required, Annotated, get_args, get_origin
+from typing_extensions import (
+    TypeIs,
+    Required,
+    Annotated,
+    get_args,
+    get_origin,
+)
 
 from .._types import InheritsGeneric
 from .._compat import is_union as _is_union
@@ -34,6 +43,26 @@ def is_typevar(typ: type) -> bool:
     # type ignore is required because type checkers
     # think this expression will always return False
     return type(typ) == TypeVar  # type: ignore
+
+
+_TYPE_ALIAS_TYPES: tuple[type[typing_extensions.TypeAliasType], ...] = (typing_extensions.TypeAliasType,)
+if sys.version_info >= (3, 12):
+    _TYPE_ALIAS_TYPES = (*_TYPE_ALIAS_TYPES, typing.TypeAliasType)
+
+
+def is_type_alias_type(tp: Any, /) -> TypeIs[typing_extensions.TypeAliasType]:
+    """Return whether the provided argument is an instance of `TypeAliasType`.
+
+    ```python
+    type Int = int
+    is_type_alias_type(Int)
+    # > True
+    Str = TypeAliasType("Str", str)
+    is_type_alias_type(Str)
+    # > True
+    ```
+    """
+    return isinstance(tp, _TYPE_ALIAS_TYPES)
 
 
 # Extracts T from Annotated[T, ...] or from Required[Annotated[T, ...]]

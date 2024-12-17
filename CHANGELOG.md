@@ -1,5 +1,107 @@
 # Changelog
 
+## 1.57.4 (2024-12-13)
+
+Full Changelog: [v1.57.3...v1.57.4](https://github.com/openai/openai-python/compare/v1.57.3...v1.57.4)
+
+### Chores
+
+* **internal:** remove some duplicated imports ([#1946](https://github.com/openai/openai-python/issues/1946)) ([f94fddd](https://github.com/openai/openai-python/commit/f94fddd377015764b3c82919fdf956f619447b77))
+* **internal:** updated imports ([#1948](https://github.com/openai/openai-python/issues/1948)) ([13971fc](https://github.com/openai/openai-python/commit/13971fc450106746c0ae02ab931e68b770ee105e))
+
+## 1.57.3 (2024-12-12)
+
+Full Changelog: [v1.57.2...v1.57.3](https://github.com/openai/openai-python/compare/v1.57.2...v1.57.3)
+
+### Chores
+
+* **internal:** add support for TypeAliasType ([#1942](https://github.com/openai/openai-python/issues/1942)) ([d3442ff](https://github.com/openai/openai-python/commit/d3442ff28f2394200e14122f683d1f94686e8231))
+* **internal:** bump pyright ([#1939](https://github.com/openai/openai-python/issues/1939)) ([190d1a8](https://github.com/openai/openai-python/commit/190d1a805dee7c37fb8f9dcb93b1715caa06cf95))
+
+## 1.57.2 (2024-12-10)
+
+Full Changelog: [v1.57.1...v1.57.2](https://github.com/openai/openai-python/compare/v1.57.1...v1.57.2)
+
+### Bug Fixes
+
+* **azure:** handle trailing slash in `azure_endpoint` ([#1935](https://github.com/openai/openai-python/issues/1935)) ([69b73c5](https://github.com/openai/openai-python/commit/69b73c553b1982277c2f1b9d110ed951ddca689e))
+
+
+### Documentation
+
+* **readme:** fix http client proxies example ([#1932](https://github.com/openai/openai-python/issues/1932)) ([7a83e0f](https://github.com/openai/openai-python/commit/7a83e0fe4cc29e484ae417448b002c997745e4a3))
+
+## 1.57.1 (2024-12-09)
+
+Full Changelog: [v1.57.0...v1.57.1](https://github.com/openai/openai-python/compare/v1.57.0...v1.57.1)
+
+### Chores
+
+* **internal:** bump pydantic dependency ([#1929](https://github.com/openai/openai-python/issues/1929)) ([5227c95](https://github.com/openai/openai-python/commit/5227c95eff9c7b1395e6d8f14b94652a91ed2ee2))
+
+## 1.57.0 (2024-12-05)
+
+Full Changelog: [v1.56.2...v1.57.0](https://github.com/openai/openai-python/compare/v1.56.2...v1.57.0)
+
+### Features
+
+* **api:** updates ([#1924](https://github.com/openai/openai-python/issues/1924)) ([82ba614](https://github.com/openai/openai-python/commit/82ba6144682b0a6b3a22d4f764231c0c6afdcf6e))
+
+
+### Chores
+
+* bump openapi url ([#1922](https://github.com/openai/openai-python/issues/1922)) ([a472a8f](https://github.com/openai/openai-python/commit/a472a8fd0ba36b6897dcd02b6005fcf23f98f056))
+
+## 1.56.2 (2024-12-04)
+
+Full Changelog: [v1.56.1...v1.56.2](https://github.com/openai/openai-python/compare/v1.56.1...v1.56.2)
+
+### Chores
+
+* make the `Omit` type public ([#1919](https://github.com/openai/openai-python/issues/1919)) ([4fb8a1c](https://github.com/openai/openai-python/commit/4fb8a1cf1f8df37ce8c027bbaaac85a648bae02a))
+
+## 1.56.1 (2024-12-03)
+
+Full Changelog: [v1.56.0...v1.56.1](https://github.com/openai/openai-python/compare/v1.56.0...v1.56.1)
+
+### Bug Fixes
+
+* **cli:** remove usage of httpx proxies ([0e9fc3d](https://github.com/openai/openai-python/commit/0e9fc3dfbc7dec5b8c8f84dea9d87aad9f3d9cf6))
+
+
+### Chores
+
+* **internal:** bump pyright ([#1917](https://github.com/openai/openai-python/issues/1917)) ([0e87346](https://github.com/openai/openai-python/commit/0e8734637666ab22bc27fe4ec2cf7c39fddb5d08))
+
+## 1.56.0 (2024-12-02)
+
+Full Changelog: [v1.55.3...v1.56.0](https://github.com/openai/openai-python/compare/v1.55.3...v1.56.0)
+
+### Features
+
+* **client:** make ChatCompletionStreamState public ([#1898](https://github.com/openai/openai-python/issues/1898)) ([dc7f6cb](https://github.com/openai/openai-python/commit/dc7f6cb2618686ff04bfdca228913cda3d320884))
+
+## 1.55.3 (2024-11-28)
+
+Full Changelog: [v1.55.2...v1.55.3](https://github.com/openai/openai-python/compare/v1.55.2...v1.55.3)
+
+### Bug Fixes
+
+* **client:** compat with new httpx 0.28.0 release ([#1904](https://github.com/openai/openai-python/issues/1904)) ([72b6c63](https://github.com/openai/openai-python/commit/72b6c636c526885ef873580a07eff1c18e76bc10))
+
+## 1.55.2 (2024-11-27)
+
+Full Changelog: [v1.55.1...v1.55.2](https://github.com/openai/openai-python/compare/v1.55.1...v1.55.2)
+
+### Chores
+
+* **internal:** exclude mypy from running on tests ([#1899](https://github.com/openai/openai-python/issues/1899)) ([e2496f1](https://github.com/openai/openai-python/commit/e2496f1d274126bdaa46a8256b3dd384b4ae244b))
+
+
+### Documentation
+
+* **assistants:** correct on_text_delta example ([#1896](https://github.com/openai/openai-python/issues/1896)) ([460b663](https://github.com/openai/openai-python/commit/460b663567ed1031467a8d69eb13fd3b3da38827))
+
 ## 1.55.1 (2024-11-25)
 
 Full Changelog: [v1.55.0...v1.55.1](https://github.com/openai/openai-python/compare/v1.55.0...v1.55.1)

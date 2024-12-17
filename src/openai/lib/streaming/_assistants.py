@@ -243,7 +243,7 @@ class AssistantEventHandler:
         on_text_delta(TextDelta(value=" solution"), Text(value="The solution")),
         on_text_delta(TextDelta(value=" to"), Text(value="The solution to")),
         on_text_delta(TextDelta(value=" the"), Text(value="The solution to the")),
-        on_text_delta(TextDelta(value=" equation"), Text(value="The solution to the equivalent")),
+        on_text_delta(TextDelta(value=" equation"), Text(value="The solution to the equation")),
         """
 
     def on_text_done(self, text: Text) -> None:

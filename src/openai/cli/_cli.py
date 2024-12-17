@@ -15,7 +15,6 @@ from . import _tools
 from .. import _ApiType, __version__
 from ._api import register_commands
 from ._utils import can_use_http2
-from .._types import ProxiesDict
 from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V2, ConfigDict, model_parse
 from .._models import BaseModel
@@ -167,17 +166,17 @@ def _main() -> None:
     if args.verbosity != 0:
         sys.stderr.write("Warning: --verbosity isn't supported yet\n")
 
-    proxies: ProxiesDict = {}
+    proxies: dict[str, httpx.BaseTransport] = {}
     if args.proxy is not None:
         for proxy in args.proxy:
             key = "https://" if proxy.startswith("https") else "http://"
             if key in proxies:
                 raise CLIError(f"Multiple {key} proxies given - only the last one would be used")
 
-            proxies[key] = proxy
+            proxies[key] = httpx.HTTPTransport(proxy=httpx.Proxy(httpx.URL(proxy)))
 
     http_client = httpx.Client(
-        proxies=proxies or None,
+        mounts=proxies or None,
         http2=can_use_http2(),
     )
     openai.http_client = http_client
