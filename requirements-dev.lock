@@ -100,5 +100,7 @@ typing-extensions==4.12.2
     # via pyright
 virtualenv==20.24.5
     # via nox
+websockets==14.1
+    # via openai
 zipp==3.17.0
     # via importlib-metadata
