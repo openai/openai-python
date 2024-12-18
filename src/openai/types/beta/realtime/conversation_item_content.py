@@ -11,8 +11,9 @@ __all__ = ["ConversationItemContent"]
 class ConversationItemContent(BaseModel):
     id: Optional[str] = None
     """
-    ID of a previous conversation item (like a model response), used for
-    `item_reference` content types.
+    ID of a previous conversation item to reference (for `item_reference` content
+    types in `response.create` events). These can reference both client and server
+    created items.
     """
 
     audio: Optional[str] = None
