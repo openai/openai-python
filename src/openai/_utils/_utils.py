@@ -22,7 +22,7 @@ from typing_extensions import TypeGuard
 
 import sniffio
 
-from .._types import NotGiven, FileTypes, NotGivenOr, HeadersLike
+from .._types import Query, NotGiven, FileTypes, NotGivenOr, HeadersLike
 from .._compat import parse_date as parse_date, parse_datetime as parse_datetime
 
 _T = TypeVar("_T")
@@ -419,8 +419,46 @@ def json_safe(data: object) -> object:
 
 
 def is_azure_client(client: object) -> TypeGuard[AzureOpenAI]:
-    return hasattr(client, "_azure_ad_token_provider")
+    from ..lib.azure import AzureOpenAI
+
+    return isinstance(client, AzureOpenAI)
 
 
 def is_async_azure_client(client: object) -> TypeGuard[AsyncAzureOpenAI]:
-    return hasattr(client, "_azure_ad_token_provider")
+    from ..lib.azure import AsyncAzureOpenAI
+
+    return isinstance(client, AsyncAzureOpenAI)
+
+
+def configure_azure_realtime(client: AzureOpenAI, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+    auth_headers = {}
+    query = {
+        **extra_query,
+        "api-version": client._api_version,
+        "deployment": client._azure_deployment or model,
+    }
+    if client.api_key != "<missing API key>":
+        auth_headers = {"api-key": client.api_key}
+    else:
+        token = client._get_azure_ad_token()
+        if token:
+            auth_headers = {"Authorization": f"Bearer {token}"}
+    return query, auth_headers
+
+
+async def configure_azure_realtime_async(
+    client: AsyncAzureOpenAI, model: str, extra_query: Query
+) -> tuple[Query, dict[str, str]]:
+    auth_headers = {}
+    query = {
+        **extra_query,
+        "api-version": client._api_version,
+        "deployment": client._azure_deployment or model,
+    }
+    if client.api_key != "<missing API key>":
+        auth_headers = {"api-key": client.api_key}
+    else:
+        token = await client._get_azure_ad_token()
+        if token:
+            auth_headers = {"Authorization": f"Bearer {token}"}
+    return query, auth_headers

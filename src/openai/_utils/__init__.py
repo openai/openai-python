@@ -34,6 +34,8 @@ from ._utils import (
     maybe_coerce_boolean as maybe_coerce_boolean,
     maybe_coerce_integer as maybe_coerce_integer,
     is_async_azure_client as is_async_azure_client,
+    configure_azure_realtime as configure_azure_realtime,
+    configure_azure_realtime_async as configure_azure_realtime_async,
 )
 from ._typing import (
     is_list_type as is_list_type,

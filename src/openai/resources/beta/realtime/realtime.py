@@ -26,6 +26,8 @@ from ...._utils import (
     strip_not_given,
     async_maybe_transform,
     is_async_azure_client,
+    configure_azure_realtime,
+    configure_azure_realtime_async,
 )
 from ...._compat import cached_property
 from ...._models import construct_type_unchecked
@@ -321,20 +323,10 @@ class AsyncRealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        auth_headers = self.__client.auth_headers
         extra_query = self.__extra_query
+        auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
-            extra_query = {
-                **self.__extra_query,
-                "api-version": self.__client._api_version,
-                "deployment": self.__client._azure_deployment or self.__model,
-            }
-            if self.__client.api_key != "<missing API key>":
-                auth_headers = {"api-key": self.__client.api_key}
-            else:
-                token = await self.__client._get_azure_ad_token()
-                if token:
-                    auth_headers = {"Authorization": f"Bearer {token}"}
+            extra_query, auth_headers = await configure_azure_realtime_async(self.__client, self.__model, extra_query)
 
         url = self._prepare_url().copy_with(
             params={
@@ -513,20 +505,10 @@ class RealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
-        auth_headers = self.__client.auth_headers
         extra_query = self.__extra_query
+        auth_headers = self.__client.auth_headers
         if is_azure_client(self.__client):
-            extra_query = {
-                **self.__extra_query,
-                "api-version": self.__client._api_version,
-                "deployment": self.__client._azure_deployment or self.__model,
-            }
-            if self.__client.api_key != "<missing API key>":
-                auth_headers = {"api-key": self.__client.api_key}
-            else:
-                token = self.__client._get_azure_ad_token()
-                if token:
-                    auth_headers = {"Authorization": f"Bearer {token}"}
+            extra_query, auth_headers = configure_azure_realtime(self.__client, self.__model, extra_query)
 
         url = self._prepare_url().copy_with(
             params={
