@@ -21,9 +21,11 @@ from .sessions import (
 )
 from ...._types import NOT_GIVEN, Query, Headers, NotGiven
 from ...._utils import (
+    is_azure_client,
     maybe_transform,
     strip_not_given,
     async_maybe_transform,
+    is_async_azure_client,
 )
 from ...._compat import cached_property
 from ...._models import construct_type_unchecked
@@ -321,11 +323,11 @@ class AsyncRealtimeConnectionManager:
 
         auth_headers = self.__client.auth_headers
         extra_query = self.__extra_query
-        if self.__client.__class__.__name__ == "AsyncAzureOpenAI":
+        if is_async_azure_client(self.__client):
             extra_query = {
                 **self.__extra_query,
                 "api-version": self.__client._api_version,
-                "deployment": self.__client._azure_deployment or self.__model
+                "deployment": self.__client._azure_deployment or self.__model,
             }
             if self.__client.api_key != "<missing API key>":
                 auth_headers = {"api-key": self.__client.api_key}
@@ -513,11 +515,11 @@ class RealtimeConnectionManager:
 
         auth_headers = self.__client.auth_headers
         extra_query = self.__extra_query
-        if self.__client.__class__.__name__ == "AzureOpenAI":
+        if is_azure_client(self.__client):
             extra_query = {
                 **self.__extra_query,
                 "api-version": self.__client._api_version,
-                "deployment": self.__client._azure_deployment or self.__model
+                "deployment": self.__client._azure_deployment or self.__model,
             }
             if self.__client.api_key != "<missing API key>":
                 auth_headers = {"api-key": self.__client.api_key}
