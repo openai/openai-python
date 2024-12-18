@@ -319,11 +319,26 @@ class AsyncRealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
+        auth_headers = self.__client.auth_headers
+        extra_query = self.__extra_query
+        if self.__client.__class__.__name__ == "AsyncAzureOpenAI":
+            extra_query = {
+                **self.__extra_query,
+                "api-version": self.__client._api_version,
+                "deployment": self.__client._azure_deployment or self.__model
+            }
+            if self.__client.api_key != "<missing API key>":
+                auth_headers = {"api-key": self.__client.api_key}
+            else:
+                token = await self.__client._get_azure_ad_token()
+                if token:
+                    auth_headers = {"Authorization": f"Bearer {token}"}
+
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
                 "model": self.__model,
-                **self.__extra_query,
+                **extra_query,
             },
         )
         log.debug("Connecting to %s", url)
@@ -336,7 +351,7 @@ class AsyncRealtimeConnectionManager:
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
                     {
-                        **self.__client.auth_headers,
+                        **auth_headers,
                         "OpenAI-Beta": "realtime=v1",
                     },
                     self.__extra_headers,
@@ -496,11 +511,26 @@ class RealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
+        auth_headers = self.__client.auth_headers
+        extra_query = self.__extra_query
+        if self.__client.__class__.__name__ == "AzureOpenAI":
+            extra_query = {
+                **self.__extra_query,
+                "api-version": self.__client._api_version,
+                "deployment": self.__client._azure_deployment or self.__model
+            }
+            if self.__client.api_key != "<missing API key>":
+                auth_headers = {"api-key": self.__client.api_key}
+            else:
+                token = self.__client._get_azure_ad_token()
+                if token:
+                    auth_headers = {"Authorization": f"Bearer {token}"}
+
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
                 "model": self.__model,
-                **self.__extra_query,
+                **extra_query,
             },
         )
         log.debug("Connecting to %s", url)
@@ -513,7 +543,7 @@ class RealtimeConnectionManager:
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
                     {
-                        **self.__client.auth_headers,
+                        **auth_headers,
                         "OpenAI-Beta": "realtime=v1",
                     },
                     self.__extra_headers,
