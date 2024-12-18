@@ -14,3 +14,5 @@ dist
 .envrc
 codegen.log
 Brewfile.lock.json
+
+*.ipynb

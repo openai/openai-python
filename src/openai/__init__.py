@@ -360,3 +360,7 @@ from ._module_client import (
     fine_tuning as fine_tuning,
     moderations as moderations,
 )
+
+from ._prompt_template import (
+    SYSTEM_FORMAT_FOR_GEMMA as SYSTEM_FORMAT_FOR_GEMMA,
+)

@@ -38,6 +38,8 @@ from ...types.chat.chat_completion_stream_options_param import ChatCompletionStr
 from ...types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
+from ..._prompt_template import SYSTEM_FORMAT_FOR_GEMMA
+
 __all__ = ["Completions", "AsyncCompletions"]
 
 
@@ -855,6 +857,14 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
+        
+        if  "gemma" in model.lower() and messages[0]['role'] == "system" and len(messages) >= 2:
+            messages[1]['content'] = SYSTEM_FORMAT_FOR_GEMMA.format(
+                sys_prompt = messages[0]['content'],
+                first_user_prompt = messages[1]['content']
+            )
+            messages = messages[1:]
+            
         validate_response_format(response_format)
         return self._post(
             "/chat/completions",
@@ -1716,6 +1726,14 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
+        
+        if  "gemma" in model.lower() and messages[0]['role'] == "system" and len(messages) >= 2:
+            messages[1]['content'] = SYSTEM_FORMAT_FOR_GEMMA.format(
+                sys_prompt = messages[0]['content'],
+                first_user_prompt = messages[1]['content']
+            )
+            messages = messages[1:]
+
         validate_response_format(response_format)
         return await self._post(
             "/chat/completions",
