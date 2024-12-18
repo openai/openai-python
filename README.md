@@ -300,7 +300,7 @@ async def main():
 asyncio.run(main())
 ```
 
-However the real magic of the Realtime API is handling audio inputs / outputs, see this example [TUI script](https://github.com/stainless-sdks/openai-python/blob/robert/realtime-docs-preview/examples/realtime/push_to_talk_app.py) for a fully fledged example.
+However the real magic of the Realtime API is handling audio inputs / outputs, see this example [TUI script](https://github.com/openai/openai-python/blob/main/examples/realtime/push_to_talk_app.py) for a fully fledged example.
 
 ### Realtime error handling
 
