@@ -89,7 +89,8 @@ class Response(BaseModel):
     tool_choice: Optional[str] = None
     """How the model chooses tools.
 
-    Options are `auto`, `none`, `required`, or specify a function.
+    Options are `auto`, `none`, `required`, or specify a function, like
+    `{"type": "function", "function": {"name": "my_function"}}`.
     """
 
     tools: Optional[List[ResponseTool]] = None
