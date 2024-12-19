@@ -26,8 +26,6 @@ from ...._utils import (
     strip_not_given,
     async_maybe_transform,
     is_async_azure_client,
-    configure_azure_realtime,
-    configure_azure_realtime_async,
 )
 from ...._compat import cached_property
 from ...._models import construct_type_unchecked
@@ -326,7 +324,7 @@ class AsyncRealtimeConnectionManager:
         extra_query = self.__extra_query
         auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
-            extra_query, auth_headers = await configure_azure_realtime_async(self.__client, self.__model, extra_query)
+            extra_query, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
 
         url = self._prepare_url().copy_with(
             params={
@@ -508,7 +506,7 @@ class RealtimeConnectionManager:
         extra_query = self.__extra_query
         auth_headers = self.__client.auth_headers
         if is_azure_client(self.__client):
-            extra_query, auth_headers = configure_azure_realtime(self.__client, self.__model, extra_query)
+            extra_query, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
 
         url = self._prepare_url().copy_with(
             params={
