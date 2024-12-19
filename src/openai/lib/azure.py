@@ -224,7 +224,6 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
-        self._azure_deployment = azure_deployment
 
     @override
     def copy(
@@ -472,7 +471,6 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
-        self._azure_deployment = azure_deployment
 
     @override
     def copy(

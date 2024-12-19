@@ -435,7 +435,7 @@ def configure_azure_realtime(client: AzureOpenAI, model: str, extra_query: Query
     query = {
         **extra_query,
         "api-version": client._api_version,
-        "deployment": client._azure_deployment or model,
+        "deployment": model,
     }
     if client.api_key != "<missing API key>":
         auth_headers = {"api-key": client.api_key}
@@ -453,7 +453,7 @@ async def configure_azure_realtime_async(
     query = {
         **extra_query,
         "api-version": client._api_version,
-        "deployment": client._azure_deployment or model,
+        "deployment": model,
     }
     if client.api_key != "<missing API key>":
         auth_headers = {"api-key": client.api_key}
