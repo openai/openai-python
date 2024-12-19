@@ -21,9 +21,11 @@ from .sessions import (
 )
 from ...._types import NOT_GIVEN, Query, Headers, NotGiven
 from ...._utils import (
+    is_azure_client,
     maybe_transform,
     strip_not_given,
     async_maybe_transform,
+    is_async_azure_client,
 )
 from ...._compat import cached_property
 from ...._models import construct_type_unchecked
@@ -319,11 +321,16 @@ class AsyncRealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
+        extra_query = self.__extra_query
+        auth_headers = self.__client.auth_headers
+        if is_async_azure_client(self.__client):
+            extra_query, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
+
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
                 "model": self.__model,
-                **self.__extra_query,
+                **extra_query,
             },
         )
         log.debug("Connecting to %s", url)
@@ -336,7 +343,7 @@ class AsyncRealtimeConnectionManager:
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
                     {
-                        **self.__client.auth_headers,
+                        **auth_headers,
                         "OpenAI-Beta": "realtime=v1",
                     },
                     self.__extra_headers,
@@ -496,11 +503,16 @@ class RealtimeConnectionManager:
         except ImportError as exc:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
+        extra_query = self.__extra_query
+        auth_headers = self.__client.auth_headers
+        if is_azure_client(self.__client):
+            extra_query, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
+
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
                 "model": self.__model,
-                **self.__extra_query,
+                **extra_query,
             },
         )
         log.debug("Connecting to %s", url)
@@ -513,7 +525,7 @@ class RealtimeConnectionManager:
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
                     {
-                        **self.__client.auth_headers,
+                        **auth_headers,
                         "OpenAI-Beta": "realtime=v1",
                     },
                     self.__extra_headers,

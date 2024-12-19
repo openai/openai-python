@@ -5,6 +5,7 @@ import re
 import inspect
 import functools
 from typing import (
+    TYPE_CHECKING,
     Any,
     Tuple,
     Mapping,
@@ -29,6 +30,9 @@ _TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
 _MappingT = TypeVar("_MappingT", bound=Mapping[str, object])
 _SequenceT = TypeVar("_SequenceT", bound=Sequence[object])
 CallableT = TypeVar("CallableT", bound=Callable[..., Any])
+
+if TYPE_CHECKING:
+    from ..lib.azure import AzureOpenAI, AsyncAzureOpenAI
 
 
 def flatten(t: Iterable[Iterable[_T]]) -> list[_T]:
@@ -412,3 +416,15 @@ def json_safe(data: object) -> object:
         return data.isoformat()
 
     return data
+
+
+def is_azure_client(client: object) -> TypeGuard[AzureOpenAI]:
+    from ..lib.azure import AzureOpenAI
+
+    return isinstance(client, AzureOpenAI)
+
+
+def is_async_azure_client(client: object) -> TypeGuard[AsyncAzureOpenAI]:
+    from ..lib.azure import AsyncAzureOpenAI
+
+    return isinstance(client, AsyncAzureOpenAI)
