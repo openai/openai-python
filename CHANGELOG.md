@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.58.2 (2024-12-19)
+
+Full Changelog: [v1.58.1...v1.58.2](https://github.com/openai/openai-python/compare/v1.58.1...v1.58.2)
+
+### Chores
+
+* **realtime:** update docstrings ([#1964](https://github.com/openai/openai-python/issues/1964)) ([3dee863](https://github.com/openai/openai-python/commit/3dee863554d28272103e90a6a199ac196e92ff05))
+
 ## 1.58.1 (2024-12-17)
 
 Full Changelog: [v1.58.0...v1.58.1](https://github.com/openai/openai-python/compare/v1.58.0...v1.58.1)
