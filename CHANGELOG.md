@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.59.0 (2024-12-21)
+
+Full Changelog: [v1.58.1...v1.59.0](https://github.com/openai/openai-python/compare/v1.58.1...v1.59.0)
+
+### Features
+
+* **azure:** support for the Realtime API ([#1963](https://github.com/openai/openai-python/issues/1963)) ([9fda141](https://github.com/openai/openai-python/commit/9fda14172abdb66fe240aa7b4dc7cfae4faf1d73))
+
+
+### Chores
+
+* **realtime:** update docstrings ([#1964](https://github.com/openai/openai-python/issues/1964)) ([3dee863](https://github.com/openai/openai-python/commit/3dee863554d28272103e90a6a199ac196e92ff05))
+
 ## 1.58.1 (2024-12-17)
 
 Full Changelog: [v1.58.0...v1.58.1](https://github.com/openai/openai-python/compare/v1.58.0...v1.58.1)

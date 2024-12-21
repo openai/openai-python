@@ -7,7 +7,7 @@ from typing_extensions import Self, override
 
 import httpx
 
-from .._types import NOT_GIVEN, Omit, Timeout, NotGiven
+from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
@@ -307,6 +307,21 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         return options
 
+    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+        auth_headers = {}
+        query = {
+            **extra_query,
+            "api-version": self._api_version,
+            "deployment": model,
+        }
+        if self.api_key != "<missing API key>":
+            auth_headers = {"api-key": self.api_key}
+        else:
+            token = self._get_azure_ad_token()
+            if token:
+                auth_headers = {"Authorization": f"Bearer {token}"}
+        return query, auth_headers
+
 
 class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], AsyncOpenAI):
     @overload
@@ -555,3 +570,18 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             raise ValueError("Unable to handle auth")
 
         return options
+
+    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+        auth_headers = {}
+        query = {
+            **extra_query,
+            "api-version": self._api_version,
+            "deployment": model,
+        }
+        if self.api_key != "<missing API key>":
+            auth_headers = {"api-key": self.api_key}
+        else:
+            token = await self._get_azure_ad_token()
+            if token:
+                auth_headers = {"Authorization": f"Bearer {token}"}
+        return query, auth_headers

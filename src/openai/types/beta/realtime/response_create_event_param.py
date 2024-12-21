@@ -90,7 +90,8 @@ class Response(TypedDict, total=False):
     tool_choice: str
     """How the model chooses tools.
 
-    Options are `auto`, `none`, `required`, or specify a function.
+    Options are `auto`, `none`, `required`, or specify a function, like
+    `{"type": "function", "function": {"name": "my_function"}}`.
     """
 
     tools: Iterable[ResponseTool]
