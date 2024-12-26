@@ -46,7 +46,7 @@ class Embeddings(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Tuple[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, List[str], Tuple[str, ...], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
@@ -162,7 +162,7 @@ class AsyncEmbeddings(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Tuple[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, List[str], Tuple[str, ...], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
