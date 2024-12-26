@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import base64
-from typing import List, Union, Iterable, cast
+from typing import List, Tuple, Union, Iterable, cast
 from typing_extensions import Literal
 
 import httpx
@@ -46,7 +46,7 @@ class Embeddings(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, List[str], Tuple[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
@@ -94,6 +94,10 @@ class Embeddings(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+
+        if isinstance(input, tuple) and all(isinstance(item, str) for item in input):
+            input = list(input)
+
         params = {
             "input": input,
             "model": model,
@@ -158,7 +162,7 @@ class AsyncEmbeddings(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, List[str], Tuple[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
@@ -206,6 +210,10 @@ class AsyncEmbeddings(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        
+        if isinstance(input, tuple) and all(isinstance(item, str) for item in input):
+            input = list(input)
+            
         params = {
             "input": input,
             "model": model,
