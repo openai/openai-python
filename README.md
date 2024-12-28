@@ -258,6 +258,67 @@ We recommend that you always instantiate a client (e.g., with `client = OpenAI()
 - It's harder to mock for testing purposes
 - It's not possible to control cleanup of network connections
 
+## Realtime API beta
+
+The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as [function calling](https://platform.openai.com/docs/guides/function-calling) through a WebSocket connection.
+
+Under the hood the SDK uses the [`websockets`](https://websockets.readthedocs.io/en/stable/) library to manage connections.
+
+The Realtime API works through a combination of client-sent events and server-sent events. Clients can send events to do things like update session configuration or send text and audio inputs. Server events confirm when audio responses have completed, or when a text response from the model has been received. A full event reference can be found [here](platform.openai.com/docs/api-reference/realtime-client-events) and a guide can be found [here](https://platform.openai.com/docs/guides/realtime).
+
+Basic text based example:
+
+```py
+import asyncio
+from openai import AsyncOpenAI
+
+async def main():
+    client = AsyncOpenAI()
+
+    async with client.beta.realtime.connect(model="gpt-4o-realtime-preview-2024-10-01") as connection:
+        await connection.session.update(session={'modalities': ['text']})
+
+        await connection.conversation.item.create(
+            item={
+                "type": "message",
+                "role": "user",
+                "content": [{"type": "input_text", "text": "Say hello!"}],
+            }
+        )
+        await connection.response.create()
+
+        async for event in connection:
+            if event.type == 'response.text.delta':
+                print(event.delta, flush=True, end="")
+
+            elif event.type == 'response.text.done':
+                print()
+
+            elif event.type == "response.done":
+                break
+
+asyncio.run(main())
+```
+
+However the real magic of the Realtime API is handling audio inputs / outputs, see this example [TUI script](https://github.com/openai/openai-python/blob/main/examples/realtime/push_to_talk_app.py) for a fully fledged example.
+
+### Realtime error handling
+
+Whenever an error occurs, the Realtime API will send an [`error` event](https://platform.openai.com/docs/guides/realtime/realtime-api-beta#handling-errors) and the connection will stay open and remain usable. This means you need to handle it yourself, as *no errors are raised directly* by the SDK when an `error` event comes in.
+
+```py
+client = AsyncOpenAI()
+
+async with client.beta.realtime.connect(model="gpt-4o-realtime-preview-2024-10-01") as connection:
+    ...
+    async for event in connection:
+        if event.type == 'error':
+            print(event.error.type)
+            print(event.error.code)
+            print(event.error.event_id)
+            print(event.error.message)
+```
+
 ## Using types
 
 Nested request parameters are [TypedDicts](https://docs.python.org/3/library/typing.html#typing.TypedDict). Responses are [Pydantic models](https://docs.pydantic.dev) which also provide helper methods for things like:
@@ -651,6 +712,16 @@ client.with_options(http_client=DefaultHttpxClient(...))
 ### Managing HTTP resources
 
 By default the library closes underlying HTTP connections whenever the client is [garbage collected](https://docs.python.org/3/reference/datamodel.html#object.__del__). You can manually close the client using the `.close()` method if desired, or with a context manager that closes when exiting.
+
+```py
+from openai import OpenAI
+
+with OpenAI() as client:
+  # make requests here
+  ...
+
+# HTTP client is now closed
+```
 
 ## Microsoft Azure OpenAI
 

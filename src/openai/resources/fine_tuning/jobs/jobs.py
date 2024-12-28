@@ -67,6 +67,7 @@ class Jobs(SyncAPIResource):
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
+        method: job_create_params.Method | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         validation_file: Optional[str] | NotGiven = NOT_GIVEN,
@@ -99,16 +100,21 @@ class Jobs(SyncAPIResource):
               your file with the purpose `fine-tune`.
 
               The contents of the file should differ depending on if the model uses the
-              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
+              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input),
               [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+              format, or if the fine-tuning method uses the
+              [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
               format.
 
               See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
               for more details.
 
-          hyperparameters: The hyperparameters used for the fine-tuning job.
+          hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
+              in favor of `method`, and should be passed in under the `method` parameter.
 
           integrations: A list of integrations to enable for your fine-tuning job.
+
+          method: The method used for fine-tuning.
 
           seed: The seed controls the reproducibility of the job. Passing in the same seed and
               job parameters should produce the same results, but may differ in rare cases. If
@@ -149,6 +155,7 @@ class Jobs(SyncAPIResource):
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
                     "integrations": integrations,
+                    "method": method,
                     "seed": seed,
                     "suffix": suffix,
                     "validation_file": validation_file,
@@ -358,6 +365,7 @@ class AsyncJobs(AsyncAPIResource):
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
+        method: job_create_params.Method | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         validation_file: Optional[str] | NotGiven = NOT_GIVEN,
@@ -390,16 +398,21 @@ class AsyncJobs(AsyncAPIResource):
               your file with the purpose `fine-tune`.
 
               The contents of the file should differ depending on if the model uses the
-              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
+              [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input),
               [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+              format, or if the fine-tuning method uses the
+              [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
               format.
 
               See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
               for more details.
 
-          hyperparameters: The hyperparameters used for the fine-tuning job.
+          hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
+              in favor of `method`, and should be passed in under the `method` parameter.
 
           integrations: A list of integrations to enable for your fine-tuning job.
+
+          method: The method used for fine-tuning.
 
           seed: The seed controls the reproducibility of the job. Passing in the same seed and
               job parameters should produce the same results, but may differ in rare cases. If
@@ -440,6 +453,7 @@ class AsyncJobs(AsyncAPIResource):
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
                     "integrations": integrations,
+                    "method": method,
                     "seed": seed,
                     "suffix": suffix,
                     "validation_file": validation_file,

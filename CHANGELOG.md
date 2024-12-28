@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.59.0 (2024-12-21)
+
+Full Changelog: [v1.58.1...v1.59.0](https://github.com/openai/openai-python/compare/v1.58.1...v1.59.0)
+
+### Features
+
+* **azure:** support for the Realtime API ([#1963](https://github.com/openai/openai-python/issues/1963)) ([9fda141](https://github.com/openai/openai-python/commit/9fda14172abdb66fe240aa7b4dc7cfae4faf1d73))
+
+
+### Chores
+
+* **realtime:** update docstrings ([#1964](https://github.com/openai/openai-python/issues/1964)) ([3dee863](https://github.com/openai/openai-python/commit/3dee863554d28272103e90a6a199ac196e92ff05))
+
+## 1.58.1 (2024-12-17)
+
+Full Changelog: [v1.58.0...v1.58.1](https://github.com/openai/openai-python/compare/v1.58.0...v1.58.1)
+
+### Documentation
+
+* **readme:** fix example script link ([23ba877](https://github.com/openai/openai-python/commit/23ba8778fd55e0f54f36685e9c5950b452d8e10c))
+
+## 1.58.0 (2024-12-17)
+
+Full Changelog: [v1.57.4...v1.58.0](https://github.com/openai/openai-python/compare/v1.57.4...v1.58.0)
+
+### Features
+
+* add Realtime API support ([#1958](https://github.com/openai/openai-python/issues/1958)) ([97d73cf](https://github.com/openai/openai-python/commit/97d73cf89935ca6098bb889a92f0ec2cdff16989))
+* **api:** new o1 and GPT-4o models + preference fine-tuning ([#1956](https://github.com/openai/openai-python/issues/1956)) ([ec22ffb](https://github.com/openai/openai-python/commit/ec22ffb129c524525caa33b088405d27c271e631))
+
+
+### Bug Fixes
+
+* add reasoning_effort to all methods ([8829c32](https://github.com/openai/openai-python/commit/8829c3202dbe790ca3646476c802ec55ed47d864))
+* **assistants:** correctly send `include` query param ([9a4c69c](https://github.com/openai/openai-python/commit/9a4c69c383bc6719b6521a485f2c7e62a9c036a9))
+* **cli/migrate:** change grit binaries prefix ([#1951](https://github.com/openai/openai-python/issues/1951)) ([1c396c9](https://github.com/openai/openai-python/commit/1c396c95b040fb3d1a2523b09eaad4ff62d96846))
+
+
+### Chores
+
+* **internal:** fix some typos ([#1955](https://github.com/openai/openai-python/issues/1955)) ([628dead](https://github.com/openai/openai-python/commit/628dead660c00435bf46e09081c7b90b7bbe4a8a))
+
+
+### Documentation
+
+* add examples + guidance on Realtime API support ([1cb00f8](https://github.com/openai/openai-python/commit/1cb00f8fed78052aacbb9e0fac997b6ba0d44d2a))
+* **readme:** example snippet for client context manager ([#1953](https://github.com/openai/openai-python/issues/1953)) ([ad80255](https://github.com/openai/openai-python/commit/ad802551d8aaf4e6eff711118676ec4e64392638))
+
 ## 1.57.4 (2024-12-13)
 
 Full Changelog: [v1.57.3...v1.57.4](https://github.com/openai/openai-python/compare/v1.57.3...v1.57.4)

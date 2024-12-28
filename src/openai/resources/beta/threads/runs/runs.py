@@ -1106,7 +1106,6 @@ class Runs(SyncAPIResource):
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
-                    "include": include,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
                     "instructions": instructions,
@@ -1126,7 +1125,11 @@ class Runs(SyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
             ),
             cast_to=Run,
             stream=True,
@@ -1899,7 +1902,6 @@ class AsyncRuns(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "assistant_id": assistant_id,
-                    "include": include,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
                     "instructions": instructions,
@@ -2472,7 +2474,6 @@ class AsyncRuns(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "assistant_id": assistant_id,
-                    "include": include,
                     "additional_instructions": additional_instructions,
                     "additional_messages": additional_messages,
                     "instructions": instructions,
@@ -2492,7 +2493,11 @@ class AsyncRuns(AsyncAPIResource):
                 run_create_params.RunCreateParams,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
             ),
             cast_to=Run,
             stream=True,

@@ -22,6 +22,7 @@ from .chat_completion_tool_param import ChatCompletionToolParam as ChatCompletio
 from .chat_completion_audio_param import ChatCompletionAudioParam as ChatCompletionAudioParam
 from .chat_completion_message_param import ChatCompletionMessageParam as ChatCompletionMessageParam
 from .chat_completion_token_logprob import ChatCompletionTokenLogprob as ChatCompletionTokenLogprob
+from .chat_completion_reasoning_effort import ChatCompletionReasoningEffort as ChatCompletionReasoningEffort
 from .chat_completion_message_tool_call import ChatCompletionMessageToolCall as ChatCompletionMessageToolCall
 from .chat_completion_content_part_param import ChatCompletionContentPartParam as ChatCompletionContentPartParam
 from .chat_completion_tool_message_param import ChatCompletionToolMessageParam as ChatCompletionToolMessageParam
@@ -36,6 +37,9 @@ from .chat_completion_assistant_message_param import (
 )
 from .chat_completion_content_part_text_param import (
     ChatCompletionContentPartTextParam as ChatCompletionContentPartTextParam,
+)
+from .chat_completion_developer_message_param import (
+    ChatCompletionDeveloperMessageParam as ChatCompletionDeveloperMessageParam,
 )
 from .chat_completion_message_tool_call_param import (
     ChatCompletionMessageToolCallParam as ChatCompletionMessageToolCallParam,
