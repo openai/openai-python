@@ -153,7 +153,6 @@ async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> No
 
 
 class TestAzureLogging:
-
     @pytest.fixture(autouse=True)
     def logger_with_filter(self) -> logging.Logger:
         logger = logging.getLogger("openai")
@@ -165,9 +164,7 @@ class TestAzureLogging:
     def test_azure_api_key_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -182,14 +179,11 @@ class TestAzureLogging:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
-
     @pytest.mark.respx()
     def test_azure_bearer_token_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -204,15 +198,12 @@ class TestAzureLogging:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["Authorization"] == "<redacted>"
 
-
     @pytest.mark.asyncio
     @pytest.mark.respx()
     async def test_azure_api_key_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",
@@ -227,15 +218,14 @@ class TestAzureLogging:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
-
     @pytest.mark.asyncio
     @pytest.mark.respx()
-    async def test_azure_bearer_token_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_azure_bearer_token_redacted_async(
+        self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture
+    ) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",
