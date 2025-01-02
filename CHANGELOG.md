@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.59.1 (2025-01-02)
+
+Full Changelog: [v1.59.0...v1.59.1](https://github.com/openai/openai-python/compare/v1.59.0...v1.59.1)
+
+### Chores
+
+* bump license year ([#1981](https://github.com/openai/openai-python/issues/1981)) ([f29011a](https://github.com/openai/openai-python/commit/f29011a6426d3fa4844ecd723ee20561ee60c665))
+
 ## 1.59.0 (2024-12-21)
 
 Full Changelog: [v1.58.1...v1.59.0](https://github.com/openai/openai-python/compare/v1.58.1...v1.59.0)
