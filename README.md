@@ -22,6 +22,44 @@ The REST API documentation can be found on [platform.openai.com](https://platfor
 pip install openai
 ```
 
+## Setting OpenAI API Key
+
+To use the OpenAI Python library, you first need to obtain an OpenAI API key and set it as an environment variable on your local computer so that the API key information is automatically loaded when making API calls. If you don't set it as an environment variable, you will need to include the API key as a parameter in your code every time you call the API.
+
+### Windows
+
+Run the following in the cmd prompt, replacing "your_api_key_here" with your API key:
+
+```sh
+setx OPENAI_API_KEY "your_api_key_here"
+```
+
+This will apply to future cmd prompt window, so you will need to open a new one to use that variable. You can validate that this variable has been set by opening a new cmd prompt window and typing in: 
+
+```sh
+echo %OPENAI_API_KEY%
+```
+
+### macOS/Linux
+
+Open your shell configuration file (e.g., .bashrc, .zshrc, .profile) in a text editor. For example:
+
+```sh
+nano ~/.bashrc
+```
+
+Add the following line to set your API key:
+
+```sh
+export OPENAI_API_KEY="your_api_key_here"
+```
+
+Save the file and reload your shell configuration:
+
+```sh
+source ~/.bashrc
+```
+
 ## Usage
 
 The full API of this library can be found in [api.md](api.md).
