@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.59.3 (2025-01-03)
+
+Full Changelog: [v1.59.2...v1.59.3](https://github.com/openai/openai-python/compare/v1.59.2...v1.59.3)
+
+### Chores
+
+* **api:** bump spec version ([#1985](https://github.com/openai/openai-python/issues/1985)) ([c6f1b35](https://github.com/openai/openai-python/commit/c6f1b357fcf669065f4ed6819d47a528b0787128))
+
 ## 1.59.2 (2025-01-03)
 
 Full Changelog: [v1.59.1...v1.59.2](https://github.com/openai/openai-python/compare/v1.59.1...v1.59.2)
