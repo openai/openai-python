@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.59.2 (2025-01-03)
+
+Full Changelog: [v1.59.1...v1.59.2](https://github.com/openai/openai-python/compare/v1.59.1...v1.59.2)
+
+### Chores
+
+* **ci:** fix publish workflow ([0be1f5d](https://github.com/openai/openai-python/commit/0be1f5de0daf807cece564abf061c8bb188bb9aa))
+* **internal:** empty commit ([fe8dc2e](https://github.com/openai/openai-python/commit/fe8dc2e97fc430ea2433ed28cfaa79425af223ec))
+
 ## 1.59.1 (2025-01-02)
 
 Full Changelog: [v1.59.0...v1.59.1](https://github.com/openai/openai-python/compare/v1.59.0...v1.59.1)
