@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.59.3 (2025-01-03)
+
+Full Changelog: [v1.59.2...v1.59.3](https://github.com/openai/openai-python/compare/v1.59.2...v1.59.3)
+
+### Chores
+
+* **api:** bump spec version ([#1985](https://github.com/openai/openai-python/issues/1985)) ([c6f1b35](https://github.com/openai/openai-python/commit/c6f1b357fcf669065f4ed6819d47a528b0787128))
+
+## 1.59.2 (2025-01-03)
+
+Full Changelog: [v1.59.1...v1.59.2](https://github.com/openai/openai-python/compare/v1.59.1...v1.59.2)
+
+### Chores
+
+* **ci:** fix publish workflow ([0be1f5d](https://github.com/openai/openai-python/commit/0be1f5de0daf807cece564abf061c8bb188bb9aa))
+* **internal:** empty commit ([fe8dc2e](https://github.com/openai/openai-python/commit/fe8dc2e97fc430ea2433ed28cfaa79425af223ec))
+
+## 1.59.1 (2025-01-02)
+
+Full Changelog: [v1.59.0...v1.59.1](https://github.com/openai/openai-python/compare/v1.59.0...v1.59.1)
+
+### Chores
+
+* bump license year ([#1981](https://github.com/openai/openai-python/issues/1981)) ([f29011a](https://github.com/openai/openai-python/commit/f29011a6426d3fa4844ecd723ee20561ee60c665))
+
 ## 1.59.0 (2024-12-21)
 
 Full Changelog: [v1.58.1...v1.59.0](https://github.com/openai/openai-python/compare/v1.58.1...v1.59.0)
