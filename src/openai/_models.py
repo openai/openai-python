@@ -488,7 +488,11 @@ def construct_type(*, value: object, type_: object) -> object:
         _, items_type = get_args(type_)  # Dict[_, items_type]
         return {key: construct_type(value=item, type_=items_type) for key, item in value.items()}
 
-    if not is_literal_type(type_) and (issubclass(origin, BaseModel) or issubclass(origin, GenericModel)):
+    if (
+        not is_literal_type(type_)
+        and inspect.isclass(origin)
+        and (issubclass(origin, BaseModel) or issubclass(origin, GenericModel))
+    ):
         if is_list(value):
             return [cast(Any, type_).construct(**entry) if is_mapping(entry) else entry for entry in value]
 
