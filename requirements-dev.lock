@@ -60,7 +60,7 @@ h11==0.14.0
     # via httpcore
 httpcore==1.0.2
     # via httpx
-httpx==0.25.2
+httpx==0.28.1
     # via openai
     # via respx
 idna==3.4
@@ -137,7 +137,7 @@ pytz==2023.3.post1
 requests==2.31.0
     # via azure-core
     # via msal
-respx==0.20.2
+respx==0.22.0
 rich==13.7.1
     # via inline-snapshot
 ruff==0.6.9
@@ -149,7 +149,6 @@ six==1.16.0
     # via python-dateutil
 sniffio==1.3.0
     # via anyio
-    # via httpx
     # via openai
     # via trio
 sortedcontainers==2.4.0
