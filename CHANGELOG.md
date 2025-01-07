@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.59.4 (2025-01-07)
+
+Full Changelog: [v1.59.3...v1.59.4](https://github.com/openai/openai-python/compare/v1.59.3...v1.59.4)
+
+### Chores
+
+* add missing isclass check ([#1988](https://github.com/openai/openai-python/issues/1988)) ([61d9072](https://github.com/openai/openai-python/commit/61d9072fbace58d64910ec7378c3686ac555972e))
+* add missing isclass check for structured outputs ([bcbf013](https://github.com/openai/openai-python/commit/bcbf013e8d825b8b5f88172313dfb6e0313ca34c))
+* **internal:** bump httpx dependency ([#1990](https://github.com/openai/openai-python/issues/1990)) ([288c2c3](https://github.com/openai/openai-python/commit/288c2c30dc405cbaa89924f9243442300e95e100))
+
+
+### Documentation
+
+* **realtime:** fix event reference link ([9b6885d](https://github.com/openai/openai-python/commit/9b6885d50f8d65ba5009642046727d291e0f14fa))
+
 ## 1.59.3 (2025-01-03)
 
 Full Changelog: [v1.59.2...v1.59.3](https://github.com/openai/openai-python/compare/v1.59.2...v1.59.3)
