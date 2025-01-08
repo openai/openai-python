@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.59.5 (2025-01-08)
+
+Full Changelog: [v1.59.4...v1.59.5](https://github.com/openai/openai-python/compare/v1.59.4...v1.59.5)
+
+### Bug Fixes
+
+* **client:** only call .close() when needed ([#1992](https://github.com/openai/openai-python/issues/1992)) ([bdfd699](https://github.com/openai/openai-python/commit/bdfd699b99522e83f7610b5f98e36fe43ddf8338))
+
+
+### Documentation
+
+* fix typos ([#1995](https://github.com/openai/openai-python/issues/1995)) ([be694a0](https://github.com/openai/openai-python/commit/be694a097d6cf2668f08ecf94c882773b2ee1f84))
+* fix typos ([#1996](https://github.com/openai/openai-python/issues/1996)) ([714aed9](https://github.com/openai/openai-python/commit/714aed9d7eb74a19f6e502fb6d4fe83399f82851))
+* more typo fixes ([#1998](https://github.com/openai/openai-python/issues/1998)) ([7bd92f0](https://github.com/openai/openai-python/commit/7bd92f06a75f11f6afc2d1223d2426e186cc74cb))
+* **readme:** moved period to inside parentheses ([#1980](https://github.com/openai/openai-python/issues/1980)) ([e7fae94](https://github.com/openai/openai-python/commit/e7fae948f2ba8db23461e4374308417570196847))
+
 ## 1.59.4 (2025-01-07)
 
 Full Changelog: [v1.59.3...v1.59.4](https://github.com/openai/openai-python/compare/v1.59.3...v1.59.4)
