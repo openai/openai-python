@@ -655,7 +655,7 @@ If you need to access undocumented endpoints, params, or response properties, th
 #### Undocumented endpoints
 
 To make requests to undocumented endpoints, you can make requests using `client.get`, `client.post`, and other
-http verbs. Options on the client will be respected (such as retries) will be respected when making this
+http verbs. Options on the client (such as retries) will be respected when making this
 request.
 
 ```py
