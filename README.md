@@ -394,7 +394,7 @@ completion = response.parse()  # get the object that `chat.completions.create()`
 print(completion)
 ```
 
-These methods return a [`LegagcyAPIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_legacy_response.py) object. This is a legacy class as we're changing it slightly in the next major version.
+These methods return a [`LegacyAPIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_legacy_response.py) object. This is a legacy class as we're changing it slightly in the next major version.
 
 For the sync client this will mostly be the same with the exception
 of `content` & `text` will be methods instead of properties. In the
