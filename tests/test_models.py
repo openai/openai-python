@@ -844,3 +844,13 @@ def test_type_alias_type() -> None:
     assert m.alias == "foo"
     assert isinstance(m.union, str)
     assert m.union == "bar"
+
+
+@pytest.mark.skipif(not PYDANTIC_V2, reason="TypeAliasType is not supported in Pydantic v1")
+def test_field_named_cls() -> None:
+    class Model(BaseModel):
+        cls: str
+
+    m = construct_type(value={"cls": "foo"}, type_=Model)
+    assert isinstance(m, Model)
+    assert isinstance(m.cls, str)
