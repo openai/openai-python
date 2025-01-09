@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.59.6 (2025-01-09)
+
+Full Changelog: [v1.59.5...v1.59.6](https://github.com/openai/openai-python/compare/v1.59.5...v1.59.6)
+
+### Bug Fixes
+
+* correctly handle deserialising `cls` fields ([#2002](https://github.com/openai/openai-python/issues/2002)) ([089c820](https://github.com/openai/openai-python/commit/089c820c8a5d20e9db6a171f0a4f11b481fe8465))
+
+
+### Chores
+
+* **internal:** spec update ([#2000](https://github.com/openai/openai-python/issues/2000)) ([36548f8](https://github.com/openai/openai-python/commit/36548f871763fdd7b5ce44903d186bc916331549))
+
 ## 1.59.5 (2025-01-08)
 
 Full Changelog: [v1.59.4...v1.59.5](https://github.com/openai/openai-python/compare/v1.59.4...v1.59.5)
