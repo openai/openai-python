@@ -179,14 +179,14 @@ class BaseModel(pydantic.BaseModel):
     @classmethod
     @override
     def construct(  # pyright: ignore[reportIncompatibleMethodOverride]
-        cls: Type[ModelT],
+        __cls: Type[ModelT],
         _fields_set: set[str] | None = None,
         **values: object,
     ) -> ModelT:
-        m = cls.__new__(cls)
+        m = __cls.__new__(__cls)
         fields_values: dict[str, object] = {}
 
-        config = get_model_config(cls)
+        config = get_model_config(__cls)
         populate_by_name = (
             config.allow_population_by_field_name
             if isinstance(config, _ConfigProtocol)
@@ -196,7 +196,7 @@ class BaseModel(pydantic.BaseModel):
         if _fields_set is None:
             _fields_set = set()
 
-        model_fields = get_model_fields(cls)
+        model_fields = get_model_fields(__cls)
         for name, field in model_fields.items():
             key = field.alias
             if key is None or (key not in values and populate_by_name):
