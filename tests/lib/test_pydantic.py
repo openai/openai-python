@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
+from typing import Any, Dict
 
-from pydantic import Field, BaseModel
+from pydantic import Field, BaseModel, ConfigDict
 from inline_snapshot import snapshot
 
 import openai
@@ -235,3 +236,75 @@ def test_enums() -> None:
                 },
             }
         )
+
+
+class GenerateToolCallArguments(BaseModel):
+    arguments: Dict[str, Any] = Field(description="The arguments to pass to the tool")
+
+
+def test_dictionaries():
+    # JSON schema definitions for this pydantic model are the same in Pydantic 1.x and 2.x
+    assert openai.pydantic_function_tool(GenerateToolCallArguments)["function"] == snapshot(
+        {
+            'name': 'GenerateToolCallArguments',
+            'parameters': {
+                'additionalProperties': False,
+                'properties': {
+                    'arguments': {
+                        'description': 'The arguments to pass to the tool',
+                        'title': 'Arguments',
+                        'type': 'object',
+                    },
+                },
+                'required': [
+                    'arguments',
+                ],
+                'title': 'GenerateToolCallArguments',
+                'type': 'object',
+            },
+            'strict': True,
+        }
+    )
+
+
+class EmptyAllowExtras(BaseModel):
+    pass
+
+
+if PYDANTIC_V2:
+    class EmptyForbidExtras(BaseModel):
+        model_config = ConfigDict(extra="forbid")
+else:
+    class EmptyForbidExtras(BaseModel):
+        class Config:
+            extra = "forbid"
+
+
+def test_empty_objects():
+    # JSON schema definitions for these pydantic models are the same in Pydantic 1.x and 2.x
+    assert openai.pydantic_function_tool(EmptyAllowExtras)["function"] == snapshot(
+        {
+            'name': 'EmptyAllowExtras',
+            'parameters': {
+                'properties': {},
+                'required': [],
+                'title': 'EmptyAllowExtras',
+                'type': 'object',
+            },
+            'strict': True,
+        }
+    )
+
+    assert openai.pydantic_function_tool(EmptyForbidExtras)["function"] == snapshot(
+        {
+            'name': 'EmptyForbidExtras',
+            'parameters': {
+                'additionalProperties': False,
+                'properties': {},
+                'required': [],
+                'title': 'EmptyForbidExtras',
+                'type': 'object',
+            },
+            'strict': True,
+        }
+    )
