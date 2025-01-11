@@ -434,6 +434,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 choice_snapshot.message.content
                 and not choice_snapshot.message.refusal
                 and is_given(self._rich_response_format)
+                and choice_snapshot.message.content.strip() # Add filter to ensure no parsing errors
             ):
                 choice_snapshot.message.parsed = from_json(
                     bytes(choice_snapshot.message.content, "utf-8"),
