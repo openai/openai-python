@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.59.7 (2025-01-13)
+
+Full Changelog: [v1.59.6...v1.59.7](https://github.com/openai/openai-python/compare/v1.59.6...v1.59.7)
+
+### Chores
+
+* export HttpxBinaryResponseContent class ([7191b71](https://github.com/openai/openai-python/commit/7191b71f3dcbbfcb2f2bec855c3bba93c956384e))
+
 ## 1.59.6 (2025-01-09)
 
 Full Changelog: [v1.59.5...v1.59.6](https://github.com/openai/openai-python/compare/v1.59.5...v1.59.6)
