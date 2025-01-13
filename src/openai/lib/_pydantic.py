@@ -127,6 +127,8 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
 
 
 def is_basemodel_type(typ: type) -> TypeGuard[type[pydantic.BaseModel]]:
+    if not inspect.isclass(typ):
+        return False
     return issubclass(typ, pydantic.BaseModel)
 
 

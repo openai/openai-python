@@ -1,5 +1,49 @@
 # Changelog
 
+## 1.59.6 (2025-01-09)
+
+Full Changelog: [v1.59.5...v1.59.6](https://github.com/openai/openai-python/compare/v1.59.5...v1.59.6)
+
+### Bug Fixes
+
+* correctly handle deserialising `cls` fields ([#2002](https://github.com/openai/openai-python/issues/2002)) ([089c820](https://github.com/openai/openai-python/commit/089c820c8a5d20e9db6a171f0a4f11b481fe8465))
+
+
+### Chores
+
+* **internal:** spec update ([#2000](https://github.com/openai/openai-python/issues/2000)) ([36548f8](https://github.com/openai/openai-python/commit/36548f871763fdd7b5ce44903d186bc916331549))
+
+## 1.59.5 (2025-01-08)
+
+Full Changelog: [v1.59.4...v1.59.5](https://github.com/openai/openai-python/compare/v1.59.4...v1.59.5)
+
+### Bug Fixes
+
+* **client:** only call .close() when needed ([#1992](https://github.com/openai/openai-python/issues/1992)) ([bdfd699](https://github.com/openai/openai-python/commit/bdfd699b99522e83f7610b5f98e36fe43ddf8338))
+
+
+### Documentation
+
+* fix typos ([#1995](https://github.com/openai/openai-python/issues/1995)) ([be694a0](https://github.com/openai/openai-python/commit/be694a097d6cf2668f08ecf94c882773b2ee1f84))
+* fix typos ([#1996](https://github.com/openai/openai-python/issues/1996)) ([714aed9](https://github.com/openai/openai-python/commit/714aed9d7eb74a19f6e502fb6d4fe83399f82851))
+* more typo fixes ([#1998](https://github.com/openai/openai-python/issues/1998)) ([7bd92f0](https://github.com/openai/openai-python/commit/7bd92f06a75f11f6afc2d1223d2426e186cc74cb))
+* **readme:** moved period to inside parentheses ([#1980](https://github.com/openai/openai-python/issues/1980)) ([e7fae94](https://github.com/openai/openai-python/commit/e7fae948f2ba8db23461e4374308417570196847))
+
+## 1.59.4 (2025-01-07)
+
+Full Changelog: [v1.59.3...v1.59.4](https://github.com/openai/openai-python/compare/v1.59.3...v1.59.4)
+
+### Chores
+
+* add missing isclass check ([#1988](https://github.com/openai/openai-python/issues/1988)) ([61d9072](https://github.com/openai/openai-python/commit/61d9072fbace58d64910ec7378c3686ac555972e))
+* add missing isclass check for structured outputs ([bcbf013](https://github.com/openai/openai-python/commit/bcbf013e8d825b8b5f88172313dfb6e0313ca34c))
+* **internal:** bump httpx dependency ([#1990](https://github.com/openai/openai-python/issues/1990)) ([288c2c3](https://github.com/openai/openai-python/commit/288c2c30dc405cbaa89924f9243442300e95e100))
+
+
+### Documentation
+
+* **realtime:** fix event reference link ([9b6885d](https://github.com/openai/openai-python/commit/9b6885d50f8d65ba5009642046727d291e0f14fa))
+
 ## 1.59.3 (2025-01-03)
 
 Full Changelog: [v1.59.2...v1.59.3](https://github.com/openai/openai-python/compare/v1.59.2...v1.59.3)

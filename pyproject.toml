@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.59.3"
+version = "1.59.6"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -67,8 +67,7 @@ dev-dependencies = [
     "types-tqdm > 4",
     "types-pyaudio > 0",
     "trio >=0.22.2",
-    "nest_asyncio==1.6.0"
-
+    "nest_asyncio==1.6.0",
 ]
 
 [tool.rye.scripts]
