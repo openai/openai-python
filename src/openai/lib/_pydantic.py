@@ -47,12 +47,17 @@ def _ensure_strict_json_schema(
             _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
 
     typ = json_schema.get("type")
-    if typ == "object" and "additionalProperties" not in json_schema:
+    properties = json_schema.get("properties")
+    if (
+        typ == "object" and
+        "additionalProperties" not in json_schema and
+        is_dict(properties) and
+        len(properties) > 0
+    ):
         json_schema["additionalProperties"] = False
 
     # object types
     # { 'type': 'object', 'properties': { 'a':  {...} } }
-    properties = json_schema.get("properties")
     if is_dict(properties):
         json_schema["required"] = [prop for prop in properties.keys()]
         json_schema["properties"] = {
