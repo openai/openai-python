@@ -314,7 +314,7 @@ from openai.types.beta import (
     OtherFileChunkingStrategyObject,
     StaticFileChunkingStrategy,
     StaticFileChunkingStrategyObject,
-    StaticFileChunkingStrategyParam,
+    StaticFileChunkingStrategyObjectParam,
     VectorStore,
     VectorStoreDeleted,
 )
