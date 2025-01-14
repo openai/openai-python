@@ -48,7 +48,7 @@ markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-mypy==1.13.0
+mypy==1.14.1
 mypy-extensions==1.0.0
     # via mypy
 nest-asyncio==1.6.0
@@ -68,7 +68,7 @@ pydantic-core==2.27.1
     # via pydantic
 pygments==2.18.0
     # via rich
-pyright==1.1.390
+pyright==1.1.391
 pytest==8.3.3
     # via pytest-asyncio
 pytest-asyncio==0.24.0
