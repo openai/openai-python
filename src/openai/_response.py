@@ -214,7 +214,13 @@ class BaseAPIResponse(Generic[R]):
                 raise ValueError(f"Subclasses of httpx.Response cannot be passed to `cast_to`")
             return cast(R, response)
 
-        if inspect.isclass(origin) and not issubclass(origin, BaseModel) and issubclass(origin, pydantic.BaseModel):
+        if (
+            inspect.isclass(
+                origin  # pyright: ignore[reportUnknownArgumentType]
+            )
+            and not issubclass(origin, BaseModel)
+            and issubclass(origin, pydantic.BaseModel)
+        ):
             raise TypeError("Pydantic models must subclass our base model type, e.g. `from openai import BaseModel`")
 
         if (
