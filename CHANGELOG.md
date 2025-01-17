@@ -1,5 +1,29 @@
 # Changelog
 
+## 1.59.8 (2025-01-17)
+
+Full Changelog: [v1.59.7...v1.59.8](https://github.com/openai/openai-python/compare/v1.59.7...v1.59.8)
+
+### Bug Fixes
+
+* streaming ([c16f58e](https://github.com/openai/openai-python/commit/c16f58ead0bc85055b164182689ba74b7e939dfa))
+* **structured outputs:** avoid parsing empty empty content ([#2023](https://github.com/openai/openai-python/issues/2023)) ([6d3513c](https://github.com/openai/openai-python/commit/6d3513c86f6e5800f8f73a45e089b7a205327121))
+* **structured outputs:** correct schema coercion for inline ref expansion ([#2025](https://github.com/openai/openai-python/issues/2025)) ([2f4f0b3](https://github.com/openai/openai-python/commit/2f4f0b374207f162060c328b71ec995049dc42e8))
+* **types:** correct type for vector store chunking strategy ([#2017](https://github.com/openai/openai-python/issues/2017)) ([e389279](https://github.com/openai/openai-python/commit/e38927950a5cdad99065853fe7b72aad6bb322e9))
+
+
+### Chores
+
+* **examples:** update realtime model ([f26746c](https://github.com/openai/openai-python/commit/f26746cbcd893d66cf8a3fd68a7c3779dc8c833c)), closes [#2020](https://github.com/openai/openai-python/issues/2020)
+* **internal:** bump pyright dependency ([#2021](https://github.com/openai/openai-python/issues/2021)) ([0a9a0f5](https://github.com/openai/openai-python/commit/0a9a0f5d8b9d5457643798287f893305006dd518))
+* **internal:** streaming refactors ([#2012](https://github.com/openai/openai-python/issues/2012)) ([d76a748](https://github.com/openai/openai-python/commit/d76a748f606743407f94dfc26758095560e2082a))
+* **internal:** update deps ([#2015](https://github.com/openai/openai-python/issues/2015)) ([514e0e4](https://github.com/openai/openai-python/commit/514e0e415f87ab4510262d29ed6125384e017b84))
+
+
+### Documentation
+
+* **examples/azure:** example script with realtime API ([#1967](https://github.com/openai/openai-python/issues/1967)) ([84f2f9c](https://github.com/openai/openai-python/commit/84f2f9c0439229a7db7136fe78419292d34d1f81))
+
 ## 1.59.7 (2025-01-13)
 
 Full Changelog: [v1.59.6...v1.59.7](https://github.com/openai/openai-python/compare/v1.59.6...v1.59.7)
