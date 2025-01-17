@@ -7,6 +7,7 @@ from inline_snapshot import snapshot
 
 import openai
 from openai._compat import PYDANTIC_V2
+from openai.lib._pydantic import to_strict_json_schema
 
 from .schema_types.query import Query
 
@@ -233,5 +234,178 @@ def test_enums() -> None:
                     "type": "object",
                     "additionalProperties": False,
                 },
+            }
+        )
+
+
+class Star(BaseModel):
+    name: str = Field(description="The name of the star.")
+
+
+class Galaxy(BaseModel):
+    name: str = Field(description="The name of the galaxy.")
+    largest_star: Star = Field(description="The largest star in the galaxy.")
+
+
+class Universe(BaseModel):
+    name: str = Field(description="The name of the universe.")
+    galaxy: Galaxy = Field(description="A galaxy in the universe.")
+
+
+def test_nested_inline_ref_expansion() -> None:
+    if PYDANTIC_V2:
+        assert to_strict_json_schema(Universe) == snapshot(
+            {
+                "title": "Universe",
+                "type": "object",
+                "$defs": {
+                    "Star": {
+                        "title": "Star",
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "title": "Name",
+                                "description": "The name of the star.",
+                            }
+                        },
+                        "required": ["name"],
+                        "additionalProperties": False,
+                    },
+                    "Galaxy": {
+                        "title": "Galaxy",
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "title": "Name",
+                                "description": "The name of the galaxy.",
+                            },
+                            "largest_star": {
+                                "title": "Star",
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "title": "Name",
+                                        "description": "The name of the star.",
+                                    }
+                                },
+                                "required": ["name"],
+                                "description": "The largest star in the galaxy.",
+                                "additionalProperties": False,
+                            },
+                        },
+                        "required": ["name", "largest_star"],
+                        "additionalProperties": False,
+                    },
+                },
+                "properties": {
+                    "name": {
+                        "type": "string",
+                        "title": "Name",
+                        "description": "The name of the universe.",
+                    },
+                    "galaxy": {
+                        "title": "Galaxy",
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string",
+                                "title": "Name",
+                                "description": "The name of the galaxy.",
+                            },
+                            "largest_star": {
+                                "title": "Star",
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "title": "Name",
+                                        "description": "The name of the star.",
+                                    }
+                                },
+                                "required": ["name"],
+                                "description": "The largest star in the galaxy.",
+                                "additionalProperties": False,
+                            },
+                        },
+                        "required": ["name", "largest_star"],
+                        "description": "A galaxy in the universe.",
+                        "additionalProperties": False,
+                    },
+                },
+                "required": ["name", "galaxy"],
+                "additionalProperties": False,
+            }
+        )
+    else:
+        assert to_strict_json_schema(Universe) == snapshot(
+            {
+                "title": "Universe",
+                "type": "object",
+                "definitions": {
+                    "Star": {
+                        "title": "Star",
+                        "type": "object",
+                        "properties": {
+                            "name": {"title": "Name", "description": "The name of the star.", "type": "string"}
+                        },
+                        "required": ["name"],
+                        "additionalProperties": False,
+                    },
+                    "Galaxy": {
+                        "title": "Galaxy",
+                        "type": "object",
+                        "properties": {
+                            "name": {"title": "Name", "description": "The name of the galaxy.", "type": "string"},
+                            "largest_star": {
+                                "title": "Largest Star",
+                                "description": "The largest star in the galaxy.",
+                                "type": "object",
+                                "properties": {
+                                    "name": {"title": "Name", "description": "The name of the star.", "type": "string"}
+                                },
+                                "required": ["name"],
+                                "additionalProperties": False,
+                            },
+                        },
+                        "required": ["name", "largest_star"],
+                        "additionalProperties": False,
+                    },
+                },
+                "properties": {
+                    "name": {
+                        "title": "Name",
+                        "description": "The name of the universe.",
+                        "type": "string",
+                    },
+                    "galaxy": {
+                        "title": "Galaxy",
+                        "description": "A galaxy in the universe.",
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "title": "Name",
+                                "description": "The name of the galaxy.",
+                                "type": "string",
+                            },
+                            "largest_star": {
+                                "title": "Largest Star",
+                                "description": "The largest star in the galaxy.",
+                                "type": "object",
+                                "properties": {
+                                    "name": {"title": "Name", "description": "The name of the star.", "type": "string"}
+                                },
+                                "required": ["name"],
+                                "additionalProperties": False,
+                            },
+                        },
+                        "required": ["name", "largest_star"],
+                        "additionalProperties": False,
+                    },
+                },
+                "required": ["name", "galaxy"],
+                "additionalProperties": False,
             }
         )
