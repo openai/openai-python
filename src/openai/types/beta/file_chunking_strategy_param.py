@@ -6,8 +6,8 @@ from typing import Union
 from typing_extensions import TypeAlias
 
 from .auto_file_chunking_strategy_param import AutoFileChunkingStrategyParam
-from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObject
+from .static_file_chunking_strategy_object_param import StaticFileChunkingStrategyObjectParam
 
 __all__ = ["FileChunkingStrategyParam"]
 
-FileChunkingStrategyParam: TypeAlias = Union[AutoFileChunkingStrategyParam, StaticFileChunkingStrategyObject]
+FileChunkingStrategyParam: TypeAlias = Union[AutoFileChunkingStrategyParam, StaticFileChunkingStrategyObjectParam]
