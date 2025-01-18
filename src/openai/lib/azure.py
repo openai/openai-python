@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
+from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, Literal, cast, overload
 from typing_extensions import Self, override
 
 import httpx
@@ -71,7 +71,20 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         *,
         azure_endpoint: str,
         azure_deployment: str | None = None,
-        api_version: str | None = None,
+        api_version: Optional[
+            Literal[
+                "2023-06-01-preview",
+                "2023-07-01-preview",
+                "2023-09-01-preview",
+                "2023-10-01-preview",
+                "2023-12-01-preview",
+                "2024-02-15-preview",
+                "2024-03-01-preview",
+                "2024-05-01-preview",
+                "2024-10-01-preview",  # Latest Authoring
+                "2024-12-01-preview",  # Latest Inference
+            ]
+        ] = "2024-12-01-preview",  # Default to latest Inference version
         api_key: str | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
