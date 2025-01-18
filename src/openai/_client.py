@@ -7,6 +7,7 @@ from typing import Any, Union, Mapping
 from typing_extensions import Self, override
 
 import httpx
+from openai._interceptor import Interceptor
 
 from . import _exceptions
 from ._qs import Querystring
@@ -96,7 +97,8 @@ class OpenAI(SyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
-    ) -> None:
+        interceptors: list[Interceptor] | None = None,
+ ) -> None:
         """Construct a new synchronous openai client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
@@ -136,7 +138,8 @@ class OpenAI(SyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
-        )
+            interceptors=interceptors,  
+)
 
         self._default_stream_cls = Stream
 
@@ -192,6 +195,7 @@ class OpenAI(SyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        interceptors: list[Interceptor] | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -227,6 +231,7 @@ class OpenAI(SyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            interceptors=interceptors,
             **_extra_kwargs,
         )
 
@@ -323,7 +328,8 @@ class AsyncOpenAI(AsyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
-    ) -> None:
+        interceptors: list[Interceptor] | None = None,
+ ) -> None:
         """Construct a new async openai client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
@@ -363,6 +369,7 @@ class AsyncOpenAI(AsyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            interceptors=interceptors,
         )
 
         self._default_stream_cls = AsyncStream
@@ -419,6 +426,7 @@ class AsyncOpenAI(AsyncAPIClient):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        interceptors: list[Interceptor] | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -454,6 +462,7 @@ class AsyncOpenAI(AsyncAPIClient):
             max_retries=max_retries if is_given(max_retries) else self.max_retries,
             default_headers=headers,
             default_query=params,
+            interceptors=interceptors,
             **_extra_kwargs,
         )
 

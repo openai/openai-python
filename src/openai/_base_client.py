@@ -89,6 +89,8 @@ from ._exceptions import (
 )
 from ._legacy_response import LegacyAPIResponse
 
+from ._interceptor import InterceptorChain, InterceptorRequest, InterceptorResponse, Interceptor 
+
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
 
@@ -339,6 +341,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _strict_response_validation: bool
     _idempotency_header: str | None
     _default_stream_cls: type[_DefaultStreamT] | None = None
+    _interceptor_chain: InterceptorChain
+
 
     def __init__(
         self,
@@ -353,6 +357,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         proxies: ProxiesTypes | None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
+        interceptors: list[Interceptor] | None = None,
+
     ) -> None:
         self._version = version
         self._base_url = self._enforce_trailing_slash(URL(base_url))
@@ -372,7 +378,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 "max_retries cannot be None. If you want to disable retries, pass `0`; if you want unlimited retries, pass `math.inf` or a very high number; if you want the default behavior, pass `openai.DEFAULT_MAX_RETRIES`"
             )
 
-    def _enforce_trailing_slash(self, url: URL) -> URL:
+
+        self._interceptor_chain = InterceptorChain(interceptors)
+     def _enforce_trailing_slash(self, url: URL) -> URL:
         if url.raw_path.endswith(b"/"):
             return url
         return url.copy_with(raw_path=url.raw_path + b"/")
@@ -463,8 +471,27 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             else:
                 raise RuntimeError(f"Unexpected JSON data type, {type(json_data)}, cannot merge with `extra_body`")
 
+        # Build base headers and params
         headers = self._build_headers(options, retries_taken=retries_taken)
         params = _merge_mappings(self.default_query, options.params)
+        prepared_url = self._prepare_url(options.url)
+
+        # Execute request interceptors
+        interceptor_request = InterceptorRequest(
+            method=options.method,
+            url=str(prepared_url),
+            headers=dict(headers),
+            params=dict(params),
+            body=json_data,
+        )
+        interceptor_request = self._interceptor_chain.execute_before_request(interceptor_request)
+
+        # Apply interceptor modifications
+        headers = httpx.Headers(interceptor_request.headers)
+        params = interceptor_request.params or {}
+        json_data = interceptor_request.body
+        prepared_url = URL(interceptor_request.url)
+
         content_type = headers.get("Content-Type")
         files = options.files
 
@@ -506,7 +533,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
             headers=headers,
             timeout=self.timeout if isinstance(options.timeout, NotGiven) else options.timeout,
-            method=options.method,
+            method=interceptor_request.method,
             url=prepared_url,
             # the `Query` type that we use is incompatible with qs'
             # `Params` type as it needs to be typed as `Mapping[str, object]`
@@ -582,6 +609,22 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             return cast(ResponseT, data)
 
         try:
+            # Create InterceptorResponse and execute interceptors
+            interceptor_response = InterceptorResponse(
+                status_code=response.status_code,
+                headers=dict(response.headers),
+                body=data,
+                request=InterceptorRequest(
+                    method=response.request.method,
+                    url=str(response.request.url),
+                    headers=dict(response.request.headers),
+                    body=response.request._content if response.request._content else None,
+                ),
+                raw_response=response,
+            )
+            interceptor_response = self._interceptor_chain.execute_after_response(interceptor_response)
+            data = interceptor_response.body
+
             if inspect.isclass(cast_to) and issubclass(cast_to, ModelBuilderProtocol):
                 return cast(ResponseT, cast_to.build(response=response, data=data))
 
@@ -796,6 +839,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
+
+        interceptors: list[Interceptor] | None = None,
+
     ) -> None:
         kwargs: dict[str, Any] = {}
         if limits is not None:
@@ -859,6 +905,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
+
+            interceptors=interceptors,
+
         )
         self._client = http_client or SyncHttpxClientWrapper(
             base_url=base_url,
@@ -1382,6 +1431,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
+
+        interceptors: list[Interceptor] | None = None,
     ) -> None:
         kwargs: dict[str, Any] = {}
         if limits is not None:
@@ -1445,6 +1496,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
+
+            interceptors=interceptors,
+
         )
         self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,
