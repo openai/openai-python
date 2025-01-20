@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.59.9 (2025-01-20)
+
+Full Changelog: [v1.59.8...v1.59.9](https://github.com/openai/openai-python/compare/v1.59.8...v1.59.9)
+
+### Bug Fixes
+
+* **tests:** make test_get_platform less flaky ([#2040](https://github.com/openai/openai-python/issues/2040)) ([72ea05c](https://github.com/openai/openai-python/commit/72ea05cf18caaa7a5e6fe7e2251ab93fa0ba3140))
+
+
+### Chores
+
+* **internal:** avoid pytest-asyncio deprecation warning ([#2041](https://github.com/openai/openai-python/issues/2041)) ([b901046](https://github.com/openai/openai-python/commit/b901046ddda9c79b7f019e2263c02d126a3b2ee2))
+* **internal:** update websockets dep ([#2036](https://github.com/openai/openai-python/issues/2036)) ([642cd11](https://github.com/openai/openai-python/commit/642cd119482c6fbca925ba702ad2579f9dc47bf9))
+
+
+### Documentation
+
+* fix typo ([#2031](https://github.com/openai/openai-python/issues/2031)) ([02fcf15](https://github.com/openai/openai-python/commit/02fcf15611953089826a74725cb96201d94658bb))
+* **raw responses:** fix duplicate `the` ([#2039](https://github.com/openai/openai-python/issues/2039)) ([9b8eab9](https://github.com/openai/openai-python/commit/9b8eab99fdc6a581a1f5cc421c6f74b0e2b30415))
+
 ## 1.59.8 (2025-01-17)
 
 Full Changelog: [v1.59.7...v1.59.8](https://github.com/openai/openai-python/compare/v1.59.7...v1.59.8)
