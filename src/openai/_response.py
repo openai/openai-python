@@ -136,6 +136,8 @@ class BaseAPIResponse(Generic[R]):
         if cast_to and is_annotated_type(cast_to):
             cast_to = extract_type_arg(cast_to, 0)
 
+        origin = get_origin(cast_to) or cast_to
+
         if self._is_sse_stream:
             if to:
                 if not is_stream_class_type(to):
@@ -194,8 +196,6 @@ class BaseAPIResponse(Generic[R]):
 
         if cast_to == bool:
             return cast(R, response.text.lower() == "true")
-
-        origin = get_origin(cast_to) or cast_to
 
         # handle the legacy binary response case
         if inspect.isclass(cast_to) and cast_to.__name__ == "HttpxBinaryResponseContent":
