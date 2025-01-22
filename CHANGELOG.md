@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.60.0 (2025-01-22)
+
+Full Changelog: [v1.59.9...v1.60.0](https://github.com/openai/openai-python/compare/v1.59.9...v1.60.0)
+
+### Features
+
+* **api:** update enum values, comments, and examples ([#2045](https://github.com/openai/openai-python/issues/2045)) ([e8205fd](https://github.com/openai/openai-python/commit/e8205fd58f0d677f476c577a8d9afb90f5710506))
+
+
+### Chores
+
+* **internal:** minor style changes ([#2043](https://github.com/openai/openai-python/issues/2043)) ([89a9dd8](https://github.com/openai/openai-python/commit/89a9dd821eaf5300ad11b0270b61fdfa4fd6e9b6))
+
+
+### Documentation
+
+* **readme:** mention failed requests in request IDs ([5f7c30b](https://github.com/openai/openai-python/commit/5f7c30bc006ffb666c324011a68aae357cb33e35))
+
 ## 1.59.9 (2025-01-20)
 
 Full Changelog: [v1.59.8...v1.59.9](https://github.com/openai/openai-python/compare/v1.59.8...v1.59.9)
