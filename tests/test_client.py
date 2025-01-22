@@ -6,6 +6,7 @@ import gc
 import os
 import sys
 import json
+import time
 import asyncio
 import inspect
 import subprocess
@@ -349,11 +350,11 @@ class TestOpenAI:
             FinalRequestOptions(
                 method="get",
                 url="/foo",
-                params={"foo": "baz", "query_param": "overriden"},
+                params={"foo": "baz", "query_param": "overridden"},
             )
         )
         url = httpx.URL(request.url)
-        assert dict(url.params) == {"foo": "baz", "query_param": "overriden"}
+        assert dict(url.params) == {"foo": "baz", "query_param": "overridden"}
 
     def test_request_extra_json(self) -> None:
         request = self.client._build_request(
@@ -795,7 +796,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -827,7 +828,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -859,7 +860,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -891,7 +892,7 @@ class TestOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1201,11 +1202,11 @@ class TestAsyncOpenAI:
             FinalRequestOptions(
                 method="get",
                 url="/foo",
-                params={"foo": "baz", "query_param": "overriden"},
+                params={"foo": "baz", "query_param": "overridden"},
             )
         )
         url = httpx.URL(request.url)
-        assert dict(url.params) == {"foo": "baz", "query_param": "overriden"}
+        assert dict(url.params) == {"foo": "baz", "query_param": "overridden"}
 
     def test_request_extra_json(self) -> None:
         request = self.client._build_request(
@@ -1663,7 +1664,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1696,7 +1697,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1729,7 +1730,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1762,7 +1763,7 @@ class TestAsyncOpenAI:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -1797,10 +1798,20 @@ class TestAsyncOpenAI:
             [sys.executable, "-c", test_code],
             text=True,
         ) as process:
-            try:
-                process.wait(2)
-                if process.returncode:
-                    raise AssertionError("calling get_platform using asyncify resulted in a non-zero exit code")
-            except subprocess.TimeoutExpired as e:
-                process.kill()
-                raise AssertionError("calling get_platform using asyncify resulted in a hung process") from e
+            timeout = 10  # seconds
+
+            start_time = time.monotonic()
+            while True:
+                return_code = process.poll()
+                if return_code is not None:
+                    if return_code != 0:
+                        raise AssertionError("calling get_platform using asyncify resulted in a non-zero exit code")
+
+                    # success
+                    break
+
+                if time.monotonic() - start_time > timeout:
+                    process.kill()
+                    raise AssertionError("calling get_platform using asyncify resulted in a hung process")
+
+                time.sleep(0.1)

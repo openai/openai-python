@@ -47,6 +47,7 @@ from ._utils import (
     strip_not_given,
     extract_type_arg,
     is_annotated_type,
+    is_type_alias_type,
     strip_annotated_type,
 )
 from ._compat import (
@@ -203,14 +204,14 @@ class BaseModel(pydantic.BaseModel):
     @classmethod
     @override
     def construct(  # pyright: ignore[reportIncompatibleMethodOverride]
-        cls: Type[ModelT],
+        __cls: Type[ModelT],
         _fields_set: set[str] | None = None,
         **values: object,
     ) -> ModelT:
-        m = cls.__new__(cls)
+        m = __cls.__new__(__cls)
         fields_values: dict[str, object] = {}
 
-        config = get_model_config(cls)
+        config = get_model_config(__cls)
         populate_by_name = (
             config.allow_population_by_field_name
             if isinstance(config, _ConfigProtocol)
@@ -220,7 +221,7 @@ class BaseModel(pydantic.BaseModel):
         if _fields_set is None:
             _fields_set = set()
 
-        model_fields = get_model_fields(cls)
+        model_fields = get_model_fields(__cls)
         for name, field in model_fields.items():
             key = field.alias
             if key is None or (key not in values and populate_by_name):
@@ -453,6 +454,8 @@ def construct_type(*, value: object, type_: object) -> object:
     # we allow `object` as the input type because otherwise, passing things like
     # `Literal['value']` will be reported as a type error by type checkers
     type_ = cast("type[object]", type_)
+    if is_type_alias_type(type_):
+        type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
     if is_annotated_type(type_):
@@ -510,7 +513,11 @@ def construct_type(*, value: object, type_: object) -> object:
         _, items_type = get_args(type_)  # Dict[_, items_type]
         return {key: construct_type(value=item, type_=items_type) for key, item in value.items()}
 
-    if not is_literal_type(type_) and (issubclass(origin, BaseModel) or issubclass(origin, GenericModel)):
+    if (
+        not is_literal_type(type_)
+        and inspect.isclass(origin)
+        and (issubclass(origin, BaseModel) or issubclass(origin, GenericModel))
+    ):
         if is_list(value):
             return [cast(Any, type_).construct(**entry) if is_mapping(entry) else entry for entry in value]
 

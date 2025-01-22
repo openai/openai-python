@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.56.0"
+version = "1.60.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -35,15 +35,16 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License"
 ]
 
-[project.optional-dependencies]
-datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
-
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
 
 [project.scripts]
 openai = "openai.cli:main"
+
+[project.optional-dependencies]
+realtime = ["websockets >= 13, < 15"]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 
 [tool.rye]
 managed = true
@@ -65,8 +66,7 @@ dev-dependencies = [
     "types-tqdm > 4",
     "types-pyaudio > 0",
     "trio >=0.22.2",
-    "nest_asyncio==1.6.0"
-
+    "nest_asyncio==1.6.0",
 ]
 
 [tool.rye.scripts]
@@ -141,6 +141,7 @@ testpaths = ["tests"]
 addopts = "--tb=short"
 xfail_strict = true
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
 ]
@@ -156,6 +157,11 @@ exclude = [
     "_dev",
     ".venv",
     ".nox",
+
+    # uses inline `uv` script dependencies
+    # which means it can't be type checked
+    "examples/realtime/audio_util.py",
+    "examples/realtime/push_to_talk_app.py"
 ]
 
 reportImplicitOverride = true

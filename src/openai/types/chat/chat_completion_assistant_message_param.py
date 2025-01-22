@@ -38,8 +38,8 @@ class ChatCompletionAssistantMessageParam(TypedDict, total=False):
     """The role of the messages author, in this case `assistant`."""
 
     audio: Optional[Audio]
-    """Data about a previous audio response from the model.
-
+    """
+    Data about a previous audio response from the model.
     [Learn more](https://platform.openai.com/docs/guides/audio).
     """
 

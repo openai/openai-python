@@ -7,7 +7,6 @@
 #   all-features: true
 #   with-sources: false
 #   generate-hashes: false
-#   universal: false
 
 -e file:.
 annotated-types==0.6.0
@@ -26,7 +25,7 @@ h11==0.14.0
     # via httpcore
 httpcore==1.0.2
     # via httpx
-httpx==0.25.2
+httpx==0.28.1
     # via openai
 idna==3.4
     # via anyio
@@ -41,9 +40,9 @@ pandas==2.2.3
     # via openai
 pandas-stubs==2.2.2.240807
     # via openai
-pydantic==2.9.2
+pydantic==2.10.3
     # via openai
-pydantic-core==2.23.4
+pydantic-core==2.27.1
     # via pydantic
 python-dateutil==2.9.0.post0
     # via pandas
@@ -53,7 +52,6 @@ six==1.16.0
     # via python-dateutil
 sniffio==1.3.0
     # via anyio
-    # via httpx
     # via openai
 tqdm==4.66.5
     # via openai
@@ -65,3 +63,5 @@ typing-extensions==4.12.2
     # via pydantic-core
 tzdata==2024.1
     # via pandas
+websockets==14.2
+    # via openai

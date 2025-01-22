@@ -27,7 +27,7 @@ class Embeddings(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> EmbeddingsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -68,7 +68,8 @@ class Embeddings(SyncAPIResource):
               `text-embedding-ada-002`), cannot be an empty string, and any array must be 2048
               dimensions or less.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+              for counting tokens. Some models may also impose a limit on total number of
+              tokens summed across inputs.
 
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -139,7 +140,7 @@ class AsyncEmbeddings(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncEmbeddingsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -180,7 +181,8 @@ class AsyncEmbeddings(AsyncAPIResource):
               `text-embedding-ada-002`), cannot be an empty string, and any array must be 2048
               dimensions or less.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens.
+              for counting tokens. Some models may also impose a limit on total number of
+              tokens summed across inputs.
 
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to

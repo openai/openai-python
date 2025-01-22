@@ -26,7 +26,7 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -39,8 +39,8 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
-                    "name": "string",
+                    "role": "developer",
+                    "name": "name",
                 }
             ],
             model="gpt-4o",
@@ -70,8 +70,9 @@ class TestCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
+            reasoning_effort="low",
             response_format={"type": "text"},
-            seed=-9007199254740991,
+            seed=0,
             service_tier="auto",
             stop="string",
             store=True,
@@ -102,7 +103,7 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -119,7 +120,7 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -138,7 +139,7 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -152,8 +153,8 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
-                    "name": "string",
+                    "role": "developer",
+                    "name": "name",
                 }
             ],
             model="gpt-4o",
@@ -184,8 +185,9 @@ class TestCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
+            reasoning_effort="low",
             response_format={"type": "text"},
-            seed=-9007199254740991,
+            seed=0,
             service_tier="auto",
             stop="string",
             store=True,
@@ -215,7 +217,7 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -232,7 +234,7 @@ class TestCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -273,7 +275,7 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -286,8 +288,8 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
-                    "name": "string",
+                    "role": "developer",
+                    "name": "name",
                 }
             ],
             model="gpt-4o",
@@ -317,8 +319,9 @@ class TestAsyncCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
+            reasoning_effort="low",
             response_format={"type": "text"},
-            seed=-9007199254740991,
+            seed=0,
             service_tier="auto",
             stop="string",
             store=True,
@@ -349,7 +352,7 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -366,7 +369,7 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -385,7 +388,7 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -399,8 +402,8 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
-                    "name": "string",
+                    "role": "developer",
+                    "name": "name",
                 }
             ],
             model="gpt-4o",
@@ -431,8 +434,9 @@ class TestAsyncCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
+            reasoning_effort="low",
             response_format={"type": "text"},
-            seed=-9007199254740991,
+            seed=0,
             service_tier="auto",
             stop="string",
             store=True,
@@ -462,7 +466,7 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
@@ -479,7 +483,7 @@ class TestAsyncCompletions:
             messages=[
                 {
                     "content": "string",
-                    "role": "system",
+                    "role": "developer",
                 }
             ],
             model="gpt-4o",
