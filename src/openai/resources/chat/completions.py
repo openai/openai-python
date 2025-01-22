@@ -251,9 +251,6 @@ class Completions(SyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -509,9 +506,6 @@ class Completions(SyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -759,9 +753,6 @@ class Completions(SyncAPIResource):
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
-
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
@@ -1112,9 +1103,6 @@ class AsyncCompletions(AsyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -1370,9 +1358,6 @@ class AsyncCompletions(AsyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -1620,9 +1605,6 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
-
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
