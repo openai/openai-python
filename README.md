@@ -499,6 +499,21 @@ Note that unlike other properties that use an `_` prefix, the `_request_id` prop
 *is* public. Unless documented otherwise, *all* other `_` prefix properties,
 methods and modules are *private*.
 
+> [!IMPORTANT]  
+> If you need to access request IDs for failed requests you must catch the `APIStatusError` exception
+
+```python
+import openai
+
+try:
+    completion = await client.chat.completions.create(
+        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-4"
+    )
+except openai.APIStatusError as exc:
+    print(exc.request_id)  # req_123
+    raise exc
+```
+
 
 ### Retries
 
