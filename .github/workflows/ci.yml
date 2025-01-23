@@ -30,6 +30,7 @@ jobs:
 
       - name: Run lints
         run: ./scripts/lint
+
   test:
     name: test
     runs-on: ubuntu-latest
@@ -51,4 +52,3 @@ jobs:
 
       - name: Run tests
         run: ./scripts/test
-
