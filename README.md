@@ -108,7 +108,7 @@ run = client.beta.threads.runs.create_and_poll(
 )
 ```
 
-More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
+More information on the lifecycle of a Run can be found in the: [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
 
 ### Bulk Upload Helpers
 
