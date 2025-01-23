@@ -1,5 +1,5 @@
 import openai
-
+#this is ketan commited cahnges this cahnges
 # gets API Key from environment variable OPENAI_API_KEY
 client = openai.OpenAI()
 
