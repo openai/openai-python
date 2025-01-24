@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.60.1 (2025-01-24)
+
+Full Changelog: [v1.60.0...v1.60.1](https://github.com/openai/openai-python/compare/v1.60.0...v1.60.1)
+
+### Chores
+
+* **internal:** minor formatting changes ([#2050](https://github.com/openai/openai-python/issues/2050)) ([9c44192](https://github.com/openai/openai-python/commit/9c44192be5776d9252d36dc027a33c60b33d81b2))
+
+
+### Documentation
+
+* **examples/azure:** add async snippet ([#1787](https://github.com/openai/openai-python/issues/1787)) ([f60eda1](https://github.com/openai/openai-python/commit/f60eda1c1e8caf0ec2274b18b3fb2252304196db))
+
 ## 1.60.0 (2025-01-22)
 
 Full Changelog: [v1.59.9...v1.60.0](https://github.com/openai/openai-python/compare/v1.59.9...v1.60.0)
