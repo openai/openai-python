@@ -129,11 +129,7 @@ class ChatCompletionChunk(BaseModel):
     """The object type, which is always `chat.completion.chunk`."""
 
     service_tier: Optional[Literal["scale", "default"]] = None
-    """The service tier used for processing the request.
-
-    This field is only included if the `service_tier` parameter is specified in the
-    request.
-    """
+    """The service tier used for processing the request."""
 
     system_fingerprint: Optional[str] = None
     """
