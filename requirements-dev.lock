@@ -83,7 +83,7 @@ msal==1.31.0
     # via msal-extensions
 msal-extensions==1.2.0
     # via azure-identity
-mypy==1.13.0
+mypy==1.14.1
 mypy-extensions==1.0.0
     # via black
     # via mypy
@@ -124,7 +124,7 @@ pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
-pyright==1.1.390
+pyright==1.1.392.post0
 pytest==8.3.3
     # via pytest-asyncio
 pytest-asyncio==0.24.0
@@ -184,7 +184,7 @@ urllib3==2.2.1
     # via requests
 virtualenv==20.24.5
     # via nox
-websockets==14.1
+websockets==14.2
     # via openai
 zipp==3.17.0
     # via importlib-metadata

@@ -45,7 +45,7 @@ class Completions(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> CompletionsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -250,9 +250,6 @@ class Completions(SyncAPIResource):
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
-
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
@@ -509,9 +506,6 @@ class Completions(SyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -760,9 +754,6 @@ class Completions(SyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -906,7 +897,7 @@ class AsyncCompletions(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -1111,9 +1102,6 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
-
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
@@ -1370,9 +1358,6 @@ class AsyncCompletions(AsyncAPIResource):
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
-
           stop: Up to 4 sequences where the API will stop generating further tokens.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -1620,9 +1605,6 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
-
-              When this parameter is set, the response body will include the `service_tier`
-              utilized.
 
           stop: Up to 4 sequences where the API will stop generating further tokens.
 

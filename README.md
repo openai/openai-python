@@ -275,7 +275,7 @@ from openai import AsyncOpenAI
 async def main():
     client = AsyncOpenAI()
 
-    async with client.beta.realtime.connect(model="gpt-4o-realtime-preview-2024-10-01") as connection:
+    async with client.beta.realtime.connect(model="gpt-4o-realtime-preview") as connection:
         await connection.session.update(session={'modalities': ['text']})
 
         await connection.conversation.item.create(
@@ -309,7 +309,7 @@ Whenever an error occurs, the Realtime API will send an [`error` event](https://
 ```py
 client = AsyncOpenAI()
 
-async with client.beta.realtime.connect(model="gpt-4o-realtime-preview-2024-10-01") as connection:
+async with client.beta.realtime.connect(model="gpt-4o-realtime-preview") as connection:
     ...
     async for event in connection:
         if event.type == 'error':
@@ -498,6 +498,21 @@ print(completion._request_id)  # req_123
 Note that unlike other properties that use an `_` prefix, the `_request_id` property
 *is* public. Unless documented otherwise, *all* other `_` prefix properties,
 methods and modules are *private*.
+
+> [!IMPORTANT]  
+> If you need to access request IDs for failed requests you must catch the `APIStatusError` exception
+
+```python
+import openai
+
+try:
+    completion = await client.chat.completions.create(
+        messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-4"
+    )
+except openai.APIStatusError as exc:
+    print(exc.request_id)  # req_123
+    raise exc
+```
 
 
 ### Retries

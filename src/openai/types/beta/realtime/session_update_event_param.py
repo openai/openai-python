@@ -71,19 +71,13 @@ class SessionTurnDetection(TypedDict, total=False):
 
 
 class Session(TypedDict, total=False):
-    model: Required[
-        Literal[
-            "gpt-4o-realtime-preview",
-            "gpt-4o-realtime-preview-2024-10-01",
-            "gpt-4o-realtime-preview-2024-12-17",
-            "gpt-4o-mini-realtime-preview",
-            "gpt-4o-mini-realtime-preview-2024-12-17",
-        ]
-    ]
-    """The Realtime model used for this session."""
-
     input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"]
-    """The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`."""
+    """The format of input audio.
+
+    Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, input audio must
+    be 16-bit PCM at a 24kHz sample rate, single channel (mono), and little-endian
+    byte order.
+    """
 
     input_audio_transcription: SessionInputAudioTranscription
     """
@@ -123,8 +117,21 @@ class Session(TypedDict, total=False):
     To disable audio, set this to ["text"].
     """
 
+    model: Literal[
+        "gpt-4o-realtime-preview",
+        "gpt-4o-realtime-preview-2024-10-01",
+        "gpt-4o-realtime-preview-2024-12-17",
+        "gpt-4o-mini-realtime-preview",
+        "gpt-4o-mini-realtime-preview-2024-12-17",
+    ]
+    """The Realtime model used for this session."""
+
     output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"]
-    """The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`."""
+    """The format of output audio.
+
+    Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
+    sampled at a rate of 24kHz.
+    """
 
     temperature: float
     """Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8."""

@@ -32,7 +32,7 @@ class Speech(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> SpeechWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -53,7 +53,7 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -73,9 +73,9 @@ class Speech(SyncAPIResource):
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
               `tts-1` or `tts-1-hd`
 
-          voice: The voice to use when generating the audio. Supported voices are `alloy`,
-              `echo`, `fable`, `onyx`, `nova`, and `shimmer`. Previews of the voices are
-              available in the
+          voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
+              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
+              voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
 
           response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, `flac`,
@@ -116,7 +116,7 @@ class AsyncSpeech(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncSpeechWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -137,7 +137,7 @@ class AsyncSpeech(AsyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "echo", "fable", "onyx", "nova", "shimmer"],
+        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -157,9 +157,9 @@ class AsyncSpeech(AsyncAPIResource):
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
               `tts-1` or `tts-1-hd`
 
-          voice: The voice to use when generating the audio. Supported voices are `alloy`,
-              `echo`, `fable`, `onyx`, `nova`, and `shimmer`. Previews of the voices are
-              available in the
+          voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
+              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
+              voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
 
           response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, `flac`,
