@@ -268,6 +268,8 @@ class Completions(SyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
+        _validate_input_tools(tools)
+
         extra_headers = {
             "X-Stainless-Helper-Method": "beta.chat.completions.stream",
             **(extra_headers or {}),

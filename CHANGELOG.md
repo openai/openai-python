@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.60.2 (2025-01-27)
+
+Full Changelog: [v1.60.1...v1.60.2](https://github.com/openai/openai-python/compare/v1.60.1...v1.60.2)
+
+### Bug Fixes
+
+* **parsing:** don't validate input tools in the asynchronous `.parse()` method ([6fcfe73](https://github.com/openai/openai-python/commit/6fcfe73cd335853c7dd2cd3151a0d5d1785cfc9c))
+
 ## 1.60.1 (2025-01-24)
 
 Full Changelog: [v1.60.0...v1.60.1](https://github.com/openai/openai-python/compare/v1.60.0...v1.60.1)
