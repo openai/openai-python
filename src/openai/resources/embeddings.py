@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import array
 import base64
 from typing import List, Union, Iterable, cast
 from typing_extensions import Literal
@@ -113,8 +114,8 @@ class Embeddings(SyncAPIResource):
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
                 if not isinstance(data, str):
-                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
-                    continue
+                    # numpy is not installed / use array for base64 optimisation
+                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
 
                 embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
                     base64.b64decode(data), dtype="float32"
@@ -226,8 +227,8 @@ class AsyncEmbeddings(AsyncAPIResource):
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
                 if not isinstance(data, str):
-                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
-                    continue
+                    # numpy is not installed / use array for base64 optimisation
+                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
 
                 embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
                     base64.b64decode(data), dtype="float32"
