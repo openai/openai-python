@@ -118,10 +118,10 @@ class Embeddings(SyncAPIResource):
                 if not has_numpy():
                     # use array for base64 optimisation
                     embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
-
-                embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                    base64.b64decode(data), dtype="float32"
-                ).tolist()
+                else:
+                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                        base64.b64decode(data), dtype="float32"
+                    ).tolist()
 
             return obj
 
@@ -233,10 +233,10 @@ class AsyncEmbeddings(AsyncAPIResource):
                 if not has_numpy():
                     # use array for base64 optimisation
                     embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
-
-                embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                    base64.b64decode(data), dtype="float32"
-                ).tolist()
+                else:
+                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                        base64.b64decode(data), dtype="float32"
+                    ).tolist()
 
             return obj
 
