@@ -8,6 +8,7 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 from ...chat_model import ChatModel
 from ..assistant_tool_param import AssistantToolParam
 from .runs.run_step_include import RunStepInclude
+from ...shared_params.metadata import Metadata
 from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
@@ -80,12 +81,14 @@ class RunCreateParamsBase(TypedDict, total=False):
     `incomplete_details` for more info.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     model: Union[str, ChatModel, None]
@@ -199,12 +202,14 @@ class AdditionalMessage(TypedDict, total=False):
     attachments: Optional[Iterable[AdditionalMessageAttachment]]
     """A list of files attached to the message, and the tools they should be added to."""
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
 

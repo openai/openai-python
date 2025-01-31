@@ -6,6 +6,7 @@ from .batch import Batch as Batch
 from .image import Image as Image
 from .model import Model as Model
 from .shared import (
+    Metadata as Metadata,
     ErrorObject as ErrorObject,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
