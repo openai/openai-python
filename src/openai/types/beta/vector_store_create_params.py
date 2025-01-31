@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import List, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from ..shared_params.metadata import Metadata
 from .file_chunking_strategy_param import FileChunkingStrategyParam
 
 __all__ = ["VectorStoreCreateParams", "ExpiresAfter"]
@@ -28,12 +29,14 @@ class VectorStoreCreateParams(TypedDict, total=False):
     files.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     name: str

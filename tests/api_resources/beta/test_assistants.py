@@ -34,7 +34,7 @@ class TestAssistants:
             model="gpt-4o",
             description="description",
             instructions="instructions",
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
             response_format="auto",
             temperature=1,
@@ -46,7 +46,7 @@ class TestAssistants:
                         {
                             "chunking_strategy": {"type": "auto"},
                             "file_ids": ["string"],
-                            "metadata": {},
+                            "metadata": {"foo": "string"},
                         }
                     ],
                 },
@@ -131,7 +131,7 @@ class TestAssistants:
             assistant_id="assistant_id",
             description="description",
             instructions="instructions",
-            metadata={},
+            metadata={"foo": "string"},
             model="model",
             name="name",
             response_format="auto",
@@ -266,7 +266,7 @@ class TestAsyncAssistants:
             model="gpt-4o",
             description="description",
             instructions="instructions",
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
             response_format="auto",
             temperature=1,
@@ -278,7 +278,7 @@ class TestAsyncAssistants:
                         {
                             "chunking_strategy": {"type": "auto"},
                             "file_ids": ["string"],
-                            "metadata": {},
+                            "metadata": {"foo": "string"},
                         }
                     ],
                 },
@@ -363,7 +363,7 @@ class TestAsyncAssistants:
             assistant_id="assistant_id",
             description="description",
             instructions="instructions",
-            metadata={},
+            metadata={"foo": "string"},
             model="model",
             name="name",
             response_format="auto",

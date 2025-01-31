@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Optional
 from typing_extensions import Literal
 
 import httpx
@@ -20,6 +20,7 @@ from .._response import to_streamed_response_wrapper, async_to_streamed_response
 from ..pagination import SyncCursorPage, AsyncCursorPage
 from ..types.batch import Batch
 from .._base_client import AsyncPaginator, make_request_options
+from ..types.shared_params.metadata import Metadata
 
 __all__ = ["Batches", "AsyncBatches"]
 
@@ -50,7 +51,7 @@ class Batches(SyncAPIResource):
         completion_window: Literal["24h"],
         endpoint: Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -80,7 +81,12 @@ class Batches(SyncAPIResource):
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
               requests, and can be up to 200 MB in size.
 
-          metadata: Optional custom metadata for the batch.
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -255,7 +261,7 @@ class AsyncBatches(AsyncAPIResource):
         completion_window: Literal["24h"],
         endpoint: Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -285,7 +291,12 @@ class AsyncBatches(AsyncAPIResource):
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
               requests, and can be up to 200 MB in size.
 
-          metadata: Optional custom metadata for the batch.
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 

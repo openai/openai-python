@@ -5,6 +5,7 @@ from openai.types import (
     ErrorObject,
     FunctionDefinition,
     FunctionParameters,
+    Metadata,
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,

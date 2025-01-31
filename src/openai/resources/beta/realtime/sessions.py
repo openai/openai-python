@@ -89,8 +89,11 @@ class Sessions(SyncAPIResource):
           input_audio_transcription: Configuration for input audio transcription, defaults to off and can be set to
               `null` to turn off once on. Input audio transcription is not native to the
               model, since the model consumes audio directly. Transcription runs
-              asynchronously through Whisper and should be treated as rough guidance rather
-              than the representation understood by the model.
+              asynchronously through
+              [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+              and should be treated as rough guidance rather than the representation
+              understood by the model. The client can optionally set the language and prompt
+              for transcription, these fields will be passed to the Whisper API.
 
           instructions: The default system instructions (i.e. system message) prepended to model calls.
               This field allows the client to guide the model on desired responses. The model
@@ -232,8 +235,11 @@ class AsyncSessions(AsyncAPIResource):
           input_audio_transcription: Configuration for input audio transcription, defaults to off and can be set to
               `null` to turn off once on. Input audio transcription is not native to the
               model, since the model consumes audio directly. Transcription runs
-              asynchronously through Whisper and should be treated as rough guidance rather
-              than the representation understood by the model.
+              asynchronously through
+              [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+              and should be treated as rough guidance rather than the representation
+              understood by the model. The client can optionally set the language and prompt
+              for transcription, these fields will be passed to the Whisper API.
 
           instructions: The default system instructions (i.e. system message) prepended to model calls.
               This field allows the client to guide the model on desired responses. The model

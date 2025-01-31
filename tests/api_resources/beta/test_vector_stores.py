@@ -35,7 +35,7 @@ class TestVectorStores:
                 "days": 1,
             },
             file_ids=["string"],
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -113,7 +113,7 @@ class TestVectorStores:
                 "anchor": "last_active_at",
                 "days": 1,
             },
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -240,7 +240,7 @@ class TestAsyncVectorStores:
                 "days": 1,
             },
             file_ids=["string"],
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -318,7 +318,7 @@ class TestAsyncVectorStores:
                 "anchor": "last_active_at",
                 "days": 1,
             },
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
         )
         assert_matches_type(VectorStore, vector_store, path=["response"])
