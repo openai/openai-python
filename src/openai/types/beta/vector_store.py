@@ -4,6 +4,7 @@ from typing import Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from ..shared.metadata import Metadata
 
 __all__ = ["VectorStore", "FileCounts", "ExpiresAfter"]
 
@@ -48,12 +49,14 @@ class VectorStore(BaseModel):
     last_active_at: Optional[int] = None
     """The Unix timestamp (in seconds) for when the vector store was last active."""
 
-    metadata: Optional[object] = None
+    metadata: Optional[Metadata] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     name: str

@@ -42,7 +42,7 @@ class TestMessages:
                     "tools": [{"type": "code_interpreter"}],
                 }
             ],
-            metadata={},
+            metadata={"foo": "string"},
         )
         assert_matches_type(Message, message, path=["response"])
 
@@ -144,7 +144,7 @@ class TestMessages:
         message = client.beta.threads.messages.update(
             message_id="message_id",
             thread_id="thread_id",
-            metadata={},
+            metadata={"foo": "string"},
         )
         assert_matches_type(Message, message, path=["response"])
 
@@ -311,7 +311,7 @@ class TestAsyncMessages:
                     "tools": [{"type": "code_interpreter"}],
                 }
             ],
-            metadata={},
+            metadata={"foo": "string"},
         )
         assert_matches_type(Message, message, path=["response"])
 
@@ -413,7 +413,7 @@ class TestAsyncMessages:
         message = await async_client.beta.threads.messages.update(
             message_id="message_id",
             thread_id="thread_id",
-            metadata={},
+            metadata={"foo": "string"},
         )
         assert_matches_type(Message, message, path=["response"])
 

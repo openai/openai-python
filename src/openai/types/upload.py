@@ -39,4 +39,4 @@ class Upload(BaseModel):
     """The status of the Upload."""
 
     file: Optional[FileObject] = None
-    """The ready File object after the Upload is completed."""
+    """The `File` object represents a document that has been uploaded to OpenAI."""
