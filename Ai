@@ -1,0 +1,38 @@
+import openai
+
+# Set your OpenAI API key
+openai.api_key = "your-api-key-here"
+
+def chat_with_ai():
+    print("Hello! I'm your AI assistant. Type 'exit' to end the conversation.")
+    
+    conversation_history = []  # Stores chat history
+
+    while True:
+        user_input = input("\nYou: ")
+
+        if user_input.lower() == "exit":
+            print("Goodbye! Have a great day.")
+            break
+        
+        # Append user input to history
+        conversation_history.append({"role": "user", "content": user_input})
+
+        try:
+            # Get AI response
+            response = openai.ChatCompletion.create(
+                model="gpt-4",
+                messages=conversation_history
+            )
+
+            ai_reply = response["choices"][0]["message"]["content"]
+            print("\nAI:", ai_reply)
+
+            # Append AI response to history
+            conversation_history.append({"role": "assistant", "content": ai_reply})
+
+        except Exception as e:
+            print("Error:", str(e))
+
+if __name__ == "__main__":
+    chat_with_ai()
