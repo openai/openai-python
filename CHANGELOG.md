@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.61.0 (2025-01-31)
+
+Full Changelog: [v1.60.2...v1.61.0](https://github.com/openai/openai-python/compare/v1.60.2...v1.61.0)
+
+### Features
+
+* **api:** add o3-mini ([#2067](https://github.com/openai/openai-python/issues/2067)) ([12b87a4](https://github.com/openai/openai-python/commit/12b87a4a1e6cb071a6b063d089585dec56a5d534))
+
+
+### Bug Fixes
+
+* **types:** correct metadata type + other fixes ([12b87a4](https://github.com/openai/openai-python/commit/12b87a4a1e6cb071a6b063d089585dec56a5d534))
+
+
+### Chores
+
+* **helpers:** section links ([ef8d3cc](https://github.com/openai/openai-python/commit/ef8d3cce40022d3482d341455be604e5f1afbd70))
+* **types:** fix Metadata types ([82d3156](https://github.com/openai/openai-python/commit/82d3156e74ed2f95edd10cd7ebea53d2b5562794))
+* update api.md ([#2063](https://github.com/openai/openai-python/issues/2063)) ([21964f0](https://github.com/openai/openai-python/commit/21964f00fb104011c4c357544114702052b74548))
+
+
+### Documentation
+
+* **readme:** current section links ([#2055](https://github.com/openai/openai-python/issues/2055)) ([ef8d3cc](https://github.com/openai/openai-python/commit/ef8d3cce40022d3482d341455be604e5f1afbd70))
+
 ## 1.60.2 (2025-01-27)
 
 Full Changelog: [v1.60.1...v1.60.2](https://github.com/openai/openai-python/compare/v1.60.1...v1.60.2)

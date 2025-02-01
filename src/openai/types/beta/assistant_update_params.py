@@ -6,6 +6,7 @@ from typing import List, Iterable, Optional
 from typing_extensions import TypedDict
 
 from .assistant_tool_param import AssistantToolParam
+from ..shared_params.metadata import Metadata
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["AssistantUpdateParams", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResourcesFileSearch"]
@@ -21,12 +22,14 @@ class AssistantUpdateParams(TypedDict, total=False):
     The maximum length is 256,000 characters.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     model: str
