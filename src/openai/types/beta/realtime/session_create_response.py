@@ -9,13 +9,13 @@ __all__ = ["SessionCreateResponse", "ClientSecret", "InputAudioTranscription", "
 
 
 class ClientSecret(BaseModel):
-    expires_at: Optional[int] = None
+    expires_at: int
     """Timestamp for when the token expires.
 
     Currently, all tokens expire after one minute.
     """
 
-    value: Optional[str] = None
+    value: str
     """
     Ephemeral key usable in client environments to authenticate connections to the
     Realtime API. Use this in client-side environments rather than a standard API
@@ -74,7 +74,7 @@ class TurnDetection(BaseModel):
 
 
 class SessionCreateResponse(BaseModel):
-    client_secret: Optional[ClientSecret] = None
+    client_secret: ClientSecret
     """Ephemeral key returned by the API."""
 
     input_audio_format: Optional[str] = None
