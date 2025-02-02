@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+from typing import Any, Dict, Union, Generic, TypeVar, Optional
 from dataclasses import dataclass
-from typing import Dict, Optional, TypeVar, Generic, Any, Union
 
 import httpx
 
@@ -10,23 +10,28 @@ from ._types import Body
 
 T = TypeVar("T")
 
+
 @dataclass
 class InterceptorRequest:
     """Request data container for interceptor processing"""
+
     method: str
     url: str
     headers: Dict[str, str]
     params: Optional[Dict[str, Any]] = None
     body: Optional[Union[Body, bytes]] = None
 
+
 @dataclass
 class InterceptorResponse(Generic[T]):
     """Response data container for interceptor processing"""
+
     status_code: int
     headers: Dict[str, str]
     body: T
     request: InterceptorRequest
     raw_response: httpx.Response
+
 
 class Interceptor(ABC):
     """Base class for request/response interceptors"""
@@ -40,6 +45,7 @@ class Interceptor(ABC):
     def after_response(self, response: InterceptorResponse[T]) -> InterceptorResponse[T]:
         """Process response after receiving"""
         pass
+
 
 class InterceptorChain:
     """Chain of interceptors for sequential request/response processing"""
@@ -55,7 +61,7 @@ class InterceptorChain:
         for interceptor in self._interceptors:
             try:
                 current_request = interceptor.before_request(current_request)
-            except Exception as e:
+            except Exception:
                 continue
         return current_request
 
@@ -64,6 +70,6 @@ class InterceptorChain:
         for interceptor in self._interceptors:
             try:
                 current_response = interceptor.after_response(current_response)
-            except Exception as e:
+            except Exception:
                 continue
-        return current_response 
+        return current_response

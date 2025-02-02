@@ -87,9 +87,8 @@ from ._exceptions import (
     APIConnectionError,
     APIResponseValidationError,
 )
+from ._interceptor import Interceptor, InterceptorChain, InterceptorRequest, InterceptorResponse
 from ._legacy_response import LegacyAPIResponse
-
-from ._interceptor import InterceptorChain, InterceptorRequest, InterceptorResponse, Interceptor 
 
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
@@ -343,7 +342,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _default_stream_cls: type[_DefaultStreamT] | None = None
     _interceptor_chain: InterceptorChain
 
-
     def __init__(
         self,
         *,
@@ -358,7 +356,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         interceptors: list[Interceptor] | None = None,
-
     ) -> None:
         self._version = version
         self._base_url = self._enforce_trailing_slash(URL(base_url))
@@ -378,9 +375,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
                 "max_retries cannot be None. If you want to disable retries, pass `0`; if you want unlimited retries, pass `math.inf` or a very high number; if you want the default behavior, pass `openai.DEFAULT_MAX_RETRIES`"
             )
 
-
         self._interceptor_chain = InterceptorChain(interceptors)
-     def _enforce_trailing_slash(self, url: URL) -> URL:
+
+    def _enforce_trailing_slash(self, url: URL) -> URL:
         if url.raw_path.endswith(b"/"):
             return url
         return url.copy_with(raw_path=url.raw_path + b"/")
@@ -839,9 +836,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
-
         interceptors: list[Interceptor] | None = None,
-
     ) -> None:
         kwargs: dict[str, Any] = {}
         if limits is not None:
@@ -905,9 +900,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
-
             interceptors=interceptors,
-
         )
         self._client = http_client or SyncHttpxClientWrapper(
             base_url=base_url,
@@ -1431,7 +1424,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
-
         interceptors: list[Interceptor] | None = None,
     ) -> None:
         kwargs: dict[str, Any] = {}
@@ -1496,9 +1488,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_query=custom_query,
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
-
             interceptors=interceptors,
-
         )
         self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,

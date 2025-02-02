@@ -7,6 +7,8 @@ from typing_extensions import Self, override
 
 import httpx
 
+from openai._interceptor import Interceptor
+
 from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
@@ -83,6 +85,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None: ...
 
     @overload
@@ -102,6 +105,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None: ...
 
     @overload
@@ -121,6 +125,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None: ...
 
     def __init__(
@@ -142,6 +147,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.Client | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None:
         """Construct a new synchronous azure openai client instance.
 
@@ -220,6 +226,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             http_client=http_client,
             websocket_base_url=websocket_base_url,
             _strict_response_validation=_strict_response_validation,
+            interceptors=interceptors,
         )
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
@@ -244,6 +251,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
+        interceptors: list[Interceptor] | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
     ) -> Self:
         """
@@ -268,6 +276,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
                 **_extra_kwargs,
             },
+            interceptors=interceptors,
         )
 
     with_options = copy
@@ -343,6 +352,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None: ...
 
     @overload
@@ -383,6 +393,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None: ...
 
     def __init__(
@@ -404,6 +415,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         http_client: httpx.AsyncClient | None = None,
         _strict_response_validation: bool = False,
+        interceptors: list[Interceptor] | None = None,
     ) -> None:
         """Construct a new asynchronous azure openai client instance.
 
@@ -482,6 +494,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             http_client=http_client,
             websocket_base_url=websocket_base_url,
             _strict_response_validation=_strict_response_validation,
+            interceptors=interceptors,
         )
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
@@ -507,6 +520,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         default_query: Mapping[str, object] | None = None,
         set_default_query: Mapping[str, object] | None = None,
         _extra_kwargs: Mapping[str, Any] = {},
+        interceptors: list[Interceptor] | None = None,
     ) -> Self:
         """
         Create a new client instance re-using the same options given to the current client with optional overriding.
@@ -530,6 +544,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 "azure_ad_token_provider": azure_ad_token_provider or self._azure_ad_token_provider,
                 **_extra_kwargs,
             },
+            interceptors=interceptors,
         )
 
     with_options = copy

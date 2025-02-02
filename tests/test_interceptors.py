@@ -1,18 +1,20 @@
-import pytest
-import httpx
-from typing import Dict, Any, cast, TypeVar
+from typing import Any, Dict, TypeVar, cast
 from typing_extensions import override
-from openai._interceptor import InterceptorRequest, InterceptorResponse, Interceptor
+
+import httpx
+
+from openai._interceptor import Interceptor, InterceptorRequest, InterceptorResponse
 
 T = TypeVar("T")
 
+
 class TestMessageModifierInterceptor:
-    def test_before_request_chat_completions(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_before_request_chat_completions(self) -> None:
         class MessageModifierInterceptor(Interceptor):
             @override
             def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
                 if isinstance(request.body, dict):
-                    body = cast(Dict[str, Any], request.body) # type: ignore
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
                     if "messages" in body:
                         print("\n=== Message Modification Process ===")
                         for message in body["messages"]:
@@ -36,29 +38,27 @@ class TestMessageModifierInterceptor:
             method="post",
             url="https://api.openai.com/v1/chat/completions",
             headers={"Authorization": "Bearer test_key"},
-            body={
-                "model": "gpt-3.5-turbo",
-                "messages": [{"role": "user", "content": "Hello"}]
-            }
+            body={"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": "Hello"}]},
         )
 
         processed_request = interceptor.before_request(request)
 
         # Verify the message was modified
         assert isinstance(processed_request.body, dict)
-        body = cast(Dict[str, Any], processed_request.body) # type: ignore
+        body = cast(Dict[str, Any], processed_request.body)  # type: ignore
         assert body["messages"][0]["content"] == "Hello [Disclaimer: This is a modified message]"
         assert body["model"] == "gpt-3.5-turbo"  # Other fields unchanged
         assert processed_request.method == "post"  # Request properties unchanged
         assert processed_request.url == "https://api.openai.com/v1/chat/completions"
 
-    def test_before_request_non_chat_completions(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_before_request_non_chat_completions(self) -> None:
         """Test that the interceptor doesn't modify non-chat-completions requests"""
+
         class MessageModifierInterceptor(Interceptor):
             @override
             def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
                 if isinstance(request.body, dict):
-                    body = cast(Dict[str, Any], request.body) # type: ignore
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
                     if "messages" in body:
                         print("\n=== Message Modification Process ===")
                         for message in body["messages"]:
@@ -82,27 +82,25 @@ class TestMessageModifierInterceptor:
             method="post",
             url="https://api.openai.com/v1/embeddings",
             headers={"Authorization": "Bearer test_key"},
-            body={
-                "model": "text-embedding-ada-002",
-                "input": "Hello"
-            }
+            body={"model": "text-embedding-ada-002", "input": "Hello"},
         )
 
         processed_request = interceptor.before_request(request)
 
         # Verify the request was not modified
         assert isinstance(processed_request.body, dict)
-        body = cast(Dict[str, Any], processed_request.body) # type: ignore
+        body = cast(Dict[str, Any], processed_request.body)  # type: ignore
         assert body["input"] == "Hello"  # Content unchanged
         assert body["model"] == "text-embedding-ada-002"  # Model unchanged
 
-    def test_after_response(self, caplog: pytest.LogCaptureFixture) -> None:
+    def test_after_response(self) -> None:
         """Test that after_response doesn't modify the response"""
+
         class MessageModifierInterceptor(Interceptor):
             @override
             def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
                 if isinstance(request.body, dict):
-                    body = cast(Dict[str, Any], request.body) # type: ignore
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
                     if "messages" in body:
                         print("\n=== Message Modification Process ===")
                         for message in body["messages"]:
@@ -125,25 +123,25 @@ class TestMessageModifierInterceptor:
         request = InterceptorRequest(
             method="post",
             url="https://api.openai.com/v1/chat/completions",
-            headers={"Authorization": "Bearer test_key"}
+            headers={"Authorization": "Bearer test_key"},
         )
-        
+
         mock_raw_response = httpx.Response(
             status_code=200,
             headers={"Content-Type": "application/json"},
-            json={"choices": [{"message": {"content": "Hello!"}}]}
+            json={"choices": [{"message": {"content": "Hello!"}}]},
         )
-        
+
         response = InterceptorResponse[Dict[str, Any]](
             status_code=200,
             headers={"Content-Type": "application/json"},
             body={"choices": [{"message": {"content": "Hello!"}}]},
             request=request,
-            raw_response=mock_raw_response
+            raw_response=mock_raw_response,
         )
 
         processed_response = interceptor.after_response(response)
-        
+
         # Verify response is unchanged
         assert processed_response == response
         assert processed_response.status_code == 200

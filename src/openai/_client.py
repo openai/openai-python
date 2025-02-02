@@ -7,6 +7,7 @@ from typing import Any, Union, Mapping
 from typing_extensions import Self, override
 
 import httpx
+
 from openai._interceptor import Interceptor
 
 from . import _exceptions
@@ -98,7 +99,7 @@ class OpenAI(SyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
         interceptors: list[Interceptor] | None = None,
- ) -> None:
+    ) -> None:
         """Construct a new synchronous openai client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
@@ -138,8 +139,8 @@ class OpenAI(SyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
-            interceptors=interceptors,  
-)
+            interceptors=interceptors,
+        )
 
         self._default_stream_cls = Stream
 
@@ -329,7 +330,7 @@ class AsyncOpenAI(AsyncAPIClient):
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
         interceptors: list[Interceptor] | None = None,
- ) -> None:
+    ) -> None:
         """Construct a new async openai client instance.
 
         This automatically infers the following arguments from their corresponding environment variables if they are not provided:
