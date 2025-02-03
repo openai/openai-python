@@ -1,6 +1,7 @@
+import json
 import logging
-from typing import Union, cast
-from typing_extensions import Literal, Protocol
+from typing import Any, Dict, Union, cast
+from typing_extensions import Literal, Protocol, override
 
 import httpx
 import pytest
@@ -9,6 +10,7 @@ from respx import MockRouter
 from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
 from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI
+from openai._interceptor import Interceptor, InterceptorRequest, InterceptorResponse
 
 Client = Union[AzureOpenAI, AsyncAzureOpenAI]
 
@@ -153,7 +155,6 @@ async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> No
 
 
 class TestAzureLogging:
-
     @pytest.fixture(autouse=True)
     def logger_with_filter(self) -> logging.Logger:
         logger = logging.getLogger("openai")
@@ -165,9 +166,7 @@ class TestAzureLogging:
     def test_azure_api_key_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -182,14 +181,11 @@ class TestAzureLogging:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
-
     @pytest.mark.respx()
     def test_azure_bearer_token_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -203,16 +199,13 @@ class TestAzureLogging:
         for record in caplog.records:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["Authorization"] == "<redacted>"
-
 
     @pytest.mark.asyncio
     @pytest.mark.respx()
     async def test_azure_api_key_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",
@@ -227,15 +220,14 @@ class TestAzureLogging:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
-
     @pytest.mark.asyncio
     @pytest.mark.respx()
-    async def test_azure_bearer_token_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_azure_bearer_token_redacted_async(
+        self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture
+    ) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(
-            return_value=httpx.Response(200, json={"model": "gpt-4"})
-        )
+        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",
@@ -249,3 +241,162 @@ class TestAzureLogging:
         for record in caplog.records:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["Authorization"] == "<redacted>"
+
+
+class TestAzureInterceptors:
+    def test_azure_interceptor_chat_completions(self) -> None:
+        """Test that interceptors work with Azure chat completions endpoint"""
+
+        class AzureMessageModifierInterceptor(Interceptor):
+            @override
+            def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
+                if isinstance(request.body, dict):
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
+                    if "messages" in body:
+                        for message in body["messages"]:
+                            if message["role"] == "user":
+                                message["content"] += " [Azure Modified]"
+                return request
+
+            @override
+            def after_response(self, response: InterceptorResponse[Any]) -> InterceptorResponse[Any]:
+                return response
+
+        interceptor = AzureMessageModifierInterceptor()
+        request = InterceptorRequest(
+            method="post",
+            url="https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions",
+            headers={"api-key": "test_key"},
+            body={"messages": [{"role": "user", "content": "Hello"}]},
+        )
+
+        processed_request = interceptor.before_request(request)
+
+        # Verify the message was modified
+        assert isinstance(processed_request.body, dict)
+        body = cast(Dict[str, Any], processed_request.body)  # type: ignore
+        assert body["messages"][0]["content"] == "Hello [Azure Modified]"
+        assert processed_request.method == "post"
+        assert (
+            processed_request.url
+            == "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions"
+        )
+
+    def test_azure_interceptor_embeddings(self) -> None:
+        """Test that interceptors work with Azure embeddings endpoint"""
+
+        class AzureInputModifierInterceptor(Interceptor):
+            @override
+            def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
+                if isinstance(request.body, dict):
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
+                    if "input" in body:
+                        body["input"] = f"{body['input']} [Azure Modified]"
+                return request
+
+            @override
+            def after_response(self, response: InterceptorResponse[Any]) -> InterceptorResponse[Any]:
+                return response
+
+        interceptor = AzureInputModifierInterceptor()
+        request = InterceptorRequest(
+            method="post",
+            url="https://example-resource.azure.openai.com/openai/deployments/text-embedding-ada-002/embeddings",
+            headers={"api-key": "test_key"},
+            body={"input": "Hello"},
+        )
+
+        processed_request = interceptor.before_request(request)
+
+        # Verify the input was modified
+        assert isinstance(processed_request.body, dict)
+        body = cast(Dict[str, Any], processed_request.body)  # type: ignore
+        assert body["input"] == "Hello [Azure Modified]"
+        assert processed_request.method == "post"
+        assert (
+            processed_request.url
+            == "https://example-resource.azure.openai.com/openai/deployments/text-embedding-ada-002/embeddings"
+        )
+
+    @pytest.mark.respx()
+    def test_azure_interceptor_with_client(self, respx_mock: MockRouter) -> None:
+        """Test that interceptors work when used with the Azure client"""
+
+        class AzureMessageModifierInterceptor(Interceptor):
+            @override
+            def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
+                if isinstance(request.body, dict):
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
+                    if "messages" in body:
+                        for message in body["messages"]:
+                            if message["role"] == "user":
+                                message["content"] += " [Azure Modified]"
+                return request
+
+            @override
+            def after_response(self, response: InterceptorResponse[Any]) -> InterceptorResponse[Any]:
+                return response
+
+        respx_mock.post(
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+        ).mock(return_value=httpx.Response(200, json={"choices": [{"message": {"content": "Hello!"}}]}))
+
+        client = AzureOpenAI(
+            api_version="2024-02-01",
+            api_key="test_key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+            interceptors=[AzureMessageModifierInterceptor()],
+        )
+
+        # Send request through client to trigger interceptor
+        client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": "Hello"}],
+        )
+
+        # Verify the request was intercepted by checking the recorded request
+        request = cast(MockRequestCall, respx_mock.calls[0]).request
+        body = json.loads(request.content)
+        assert body["messages"][0]["content"] == "Hello [Azure Modified]"
+
+    @pytest.mark.asyncio
+    @pytest.mark.respx()
+    async def test_azure_interceptor_with_async_client(self, respx_mock: MockRouter) -> None:
+        """Test that interceptors work when used with the async Azure client"""
+
+        class AzureMessageModifierInterceptor(Interceptor):
+            @override
+            def before_request(self, request: InterceptorRequest) -> InterceptorRequest:
+                if isinstance(request.body, dict):
+                    body = cast(Dict[str, Any], request.body)  # type: ignore
+                    if "messages" in body:
+                        for message in body["messages"]:
+                            if message["role"] == "user":
+                                message["content"] += " [Azure Modified]"
+                return request
+
+            @override
+            def after_response(self, response: InterceptorResponse[Any]) -> InterceptorResponse[Any]:
+                return response
+
+        respx_mock.post(
+            "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+        ).mock(return_value=httpx.Response(200, json={"choices": [{"message": {"content": "Hello!"}}]}))
+
+        client = AsyncAzureOpenAI(
+            api_version="2024-02-01",
+            api_key="test_key",
+            azure_endpoint="https://example-resource.azure.openai.com",
+            interceptors=[AzureMessageModifierInterceptor()],
+        )
+
+        # Send request through client to trigger interceptor
+        await client.chat.completions.create(
+            model="gpt-4",
+            messages=[{"role": "user", "content": "Hello"}],
+        )
+
+        # Verify the request was intercepted by checking the recorded request
+        request = cast(MockRequestCall, respx_mock.calls[0]).request
+        body = json.loads(request.content)
+        assert body["messages"][0]["content"] == "Hello [Azure Modified]"
