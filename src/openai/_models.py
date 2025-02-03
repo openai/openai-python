@@ -172,7 +172,7 @@ class BaseModel(pydantic.BaseModel):
     @override
     def __str__(self) -> str:
         # mypy complains about an invalid self arg
-        return f'{self.__repr_name__()}({self.__repr_str__(", ")})'  # type: ignore[misc]
+        return f"{self.__repr_name__()}({self.__repr_str__(', ')})"  # type: ignore[misc]
 
     # Override the 'construct' method in a way that supports recursive parsing without validation.
     # Based on https://github.com/samuelcolvin/pydantic/issues/1168#issuecomment-817742836.
