@@ -26,7 +26,11 @@ class TestSessions:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         session = client.beta.realtime.sessions.create(
             input_audio_format="pcm16",
-            input_audio_transcription={"model": "model"},
+            input_audio_transcription={
+                "language": "language",
+                "model": "model",
+                "prompt": "prompt",
+            },
             instructions="instructions",
             max_response_output_tokens=0,
             modalities=["text"],
@@ -86,7 +90,11 @@ class TestAsyncSessions:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         session = await async_client.beta.realtime.sessions.create(
             input_audio_format="pcm16",
-            input_audio_transcription={"model": "model"},
+            input_audio_transcription={
+                "language": "language",
+                "model": "model",
+                "prompt": "prompt",
+            },
             instructions="instructions",
             max_response_output_tokens=0,
             modalities=["text"],

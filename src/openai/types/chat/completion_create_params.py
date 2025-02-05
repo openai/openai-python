@@ -6,6 +6,7 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..chat_model import ChatModel
+from ..shared_params.metadata import Metadata
 from .chat_completion_modality import ChatCompletionModality
 from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_audio_param import ChatCompletionAudioParam
@@ -122,10 +123,14 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [o1 series models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    metadata: Optional[Dict[str, str]]
-    """
-    Developer-defined tags and values used for filtering completions in the
-    [dashboard](https://platform.openai.com/chat-completions).
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     modalities: Optional[List[ChatCompletionModality]]
@@ -216,9 +221,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
       utilize scale tier credits until they are exhausted.
     - If set to 'auto', and the Project is not Scale tier enabled, the request will
       be processed using the default service tier with a lower uptime SLA and no
-      latency guarentee.
+      latency guarantee.
     - If set to 'default', the request will be processed using the default service
-      tier with a lower uptime SLA and no latency guarentee.
+      tier with a lower uptime SLA and no latency guarantee.
     - When not set, the default behavior is 'auto'.
     """
 
