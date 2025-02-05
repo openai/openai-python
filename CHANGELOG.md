@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.61.1 (2025-02-05)
+
+Full Changelog: [v1.61.0...v1.61.1](https://github.com/openai/openai-python/compare/v1.61.0...v1.61.1)
+
+### Bug Fixes
+
+* **api/types:** correct audio duration & role types ([#2091](https://github.com/openai/openai-python/issues/2091)) ([afcea48](https://github.com/openai/openai-python/commit/afcea4891ff85de165ccc2b5497ccf9a90520e9e))
+* **cli/chat:** only send params when set ([#2077](https://github.com/openai/openai-python/issues/2077)) ([688b223](https://github.com/openai/openai-python/commit/688b223d9a733d241d50e5d7df62f346592c537c))
+
+
+### Chores
+
+* **internal:** bummp ruff dependency ([#2080](https://github.com/openai/openai-python/issues/2080)) ([b7a80b1](https://github.com/openai/openai-python/commit/b7a80b1994ab86e81485b88531e4aea63b3da594))
+* **internal:** change default timeout to an int ([#2079](https://github.com/openai/openai-python/issues/2079)) ([d3df1c6](https://github.com/openai/openai-python/commit/d3df1c6ca090598701e38fd376a9796aadba88f1))
+
 ## 1.61.0 (2025-01-31)
 
 Full Changelog: [v1.60.2...v1.61.0](https://github.com/openai/openai-python/compare/v1.60.2...v1.61.0)
