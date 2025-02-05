@@ -36,6 +36,7 @@ class TestAssistants:
             instructions="instructions",
             metadata={"foo": "string"},
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -132,8 +133,9 @@ class TestAssistants:
             description="description",
             instructions="instructions",
             metadata={"foo": "string"},
-            model="model",
+            model="string",
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -268,6 +270,7 @@ class TestAsyncAssistants:
             instructions="instructions",
             metadata={"foo": "string"},
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -364,8 +367,9 @@ class TestAsyncAssistants:
             description="description",
             instructions="instructions",
             metadata={"foo": "string"},
-            model="model",
+            model="string",
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
