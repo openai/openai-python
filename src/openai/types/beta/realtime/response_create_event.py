@@ -5,7 +5,7 @@ from typing_extensions import Literal
 
 from ...._models import BaseModel
 from ...shared.metadata import Metadata
-from .conversation_item import ConversationItem
+from .conversation_item_with_reference import ConversationItemWithReference
 
 __all__ = ["ResponseCreateEvent", "Response", "ResponseTool"]
 
@@ -37,11 +37,13 @@ class Response(BaseModel):
     will not add items to default conversation.
     """
 
-    input: Optional[List[ConversationItem]] = None
+    input: Optional[List[ConversationItemWithReference]] = None
     """Input items to include in the prompt for the model.
 
-    Creates a new context for this response, without including the default
-    conversation. Can include references to items from the default conversation.
+    Using this field creates a new context for this Response instead of using the
+    default conversation. An empty array `[]` will clear the context for this
+    Response. Note that this can include references to items from the default
+    conversation.
     """
 
     instructions: Optional[str] = None

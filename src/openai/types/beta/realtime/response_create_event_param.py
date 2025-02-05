@@ -5,8 +5,8 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from .conversation_item_param import ConversationItemParam
 from ...shared_params.metadata import Metadata
+from .conversation_item_with_reference_param import ConversationItemWithReferenceParam
 
 __all__ = ["ResponseCreateEventParam", "Response", "ResponseTool"]
 
@@ -38,11 +38,13 @@ class Response(TypedDict, total=False):
     will not add items to default conversation.
     """
 
-    input: Iterable[ConversationItemParam]
+    input: Iterable[ConversationItemWithReferenceParam]
     """Input items to include in the prompt for the model.
 
-    Creates a new context for this response, without including the default
-    conversation. Can include references to items from the default conversation.
+    Using this field creates a new context for this Response instead of using the
+    default conversation. An empty array `[]` will clear the context for this
+    Response. Note that this can include references to items from the default
+    conversation.
     """
 
     instructions: str
