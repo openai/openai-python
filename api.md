@@ -255,6 +255,7 @@ from openai.types.beta.realtime import (
     ConversationItemInputAudioTranscriptionFailedEvent,
     ConversationItemTruncateEvent,
     ConversationItemTruncatedEvent,
+    ConversationItemWithReference,
     ErrorEvent,
     InputAudioBufferAppendEvent,
     InputAudioBufferClearEvent,
