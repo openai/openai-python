@@ -85,6 +85,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -152,6 +153,13 @@ class Runs(SyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -228,6 +236,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -298,6 +307,13 @@ class Runs(SyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -370,6 +386,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -441,6 +458,13 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
@@ -511,6 +535,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -541,6 +566,7 @@ class Runs(SyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
@@ -941,6 +967,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1008,6 +1035,13 @@ class AsyncRuns(AsyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1084,6 +1118,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1154,6 +1189,13 @@ class AsyncRuns(AsyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1226,6 +1268,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1297,6 +1340,13 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
+
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
@@ -1367,6 +1417,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1397,6 +1448,7 @@ class AsyncRuns(AsyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,

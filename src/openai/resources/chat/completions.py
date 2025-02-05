@@ -80,7 +80,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -211,7 +211,7 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 models only**
+          reasoning_effort: **o1 and o3-mini models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -333,7 +333,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -470,7 +470,7 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 models only**
+          reasoning_effort: **o1 and o3-mini models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -585,7 +585,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -722,7 +722,7 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 models only**
+          reasoning_effort: **o1 and o3-mini models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -836,7 +836,7 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -943,7 +943,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -1074,7 +1074,7 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 models only**
+          reasoning_effort: **o1 and o3-mini models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1196,7 +1196,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -1333,7 +1333,7 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 models only**
+          reasoning_effort: **o1 and o3-mini models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1448,7 +1448,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
@@ -1585,7 +1585,7 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 models only**
+          reasoning_effort: **o1 and o3-mini models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1699,7 +1699,7 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: ChatCompletionReasoningEffort | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,

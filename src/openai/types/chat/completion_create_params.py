@@ -174,8 +174,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     far, increasing the model's likelihood to talk about new topics.
     """
 
-    reasoning_effort: ChatCompletionReasoningEffort
-    """**o1 models only**
+    reasoning_effort: Optional[ChatCompletionReasoningEffort]
+    """**o1 and o3-mini models only**
 
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
