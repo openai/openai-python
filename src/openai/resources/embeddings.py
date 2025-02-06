@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import array
 import base64
 from typing import List, Union, Iterable, cast
 from typing_extensions import Literal
@@ -102,7 +103,7 @@ class Embeddings(SyncAPIResource):
             "dimensions": dimensions,
             "encoding_format": encoding_format,
         }
-        if not is_given(encoding_format) and has_numpy():
+        if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
         def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
@@ -113,12 +114,14 @@ class Embeddings(SyncAPIResource):
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
                 if not isinstance(data, str):
-                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
                     continue
-
-                embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                    base64.b64decode(data), dtype="float32"
-                ).tolist()
+                if not has_numpy():
+                    # use array for base64 optimisation
+                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
+                else:
+                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                        base64.b64decode(data), dtype="float32"
+                    ).tolist()
 
             return obj
 
@@ -215,7 +218,7 @@ class AsyncEmbeddings(AsyncAPIResource):
             "dimensions": dimensions,
             "encoding_format": encoding_format,
         }
-        if not is_given(encoding_format) and has_numpy():
+        if not is_given(encoding_format):
             params["encoding_format"] = "base64"
 
         def parser(obj: CreateEmbeddingResponse) -> CreateEmbeddingResponse:
@@ -226,12 +229,14 @@ class AsyncEmbeddings(AsyncAPIResource):
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
                 if not isinstance(data, str):
-                    # numpy is not installed / base64 optimisation isn't enabled for this model yet
                     continue
-
-                embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
-                    base64.b64decode(data), dtype="float32"
-                ).tolist()
+                if not has_numpy():
+                    # use array for base64 optimisation
+                    embedding.embedding = array.array("f", base64.b64decode(data)).tolist()
+                else:
+                    embedding.embedding = np.frombuffer(  # type: ignore[no-untyped-call]
+                        base64.b64decode(data), dtype="float32"
+                    ).tolist()
 
             return obj
 
