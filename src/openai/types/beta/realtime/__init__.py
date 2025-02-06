@@ -42,6 +42,7 @@ from .input_audio_buffer_append_event import InputAudioBufferAppendEvent as Inpu
 from .input_audio_buffer_commit_event import InputAudioBufferCommitEvent as InputAudioBufferCommitEvent
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
 from .conversation_item_truncate_event import ConversationItemTruncateEvent as ConversationItemTruncateEvent
+from .conversation_item_with_reference import ConversationItemWithReference as ConversationItemWithReference
 from .input_audio_buffer_cleared_event import InputAudioBufferClearedEvent as InputAudioBufferClearedEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent as ResponseContentPartDoneEvent
 from .response_output_item_added_event import ResponseOutputItemAddedEvent as ResponseOutputItemAddedEvent
@@ -59,6 +60,9 @@ from .response_audio_transcript_delta_event import (
 )
 from .conversation_item_truncate_event_param import (
     ConversationItemTruncateEventParam as ConversationItemTruncateEventParam,
+)
+from .conversation_item_with_reference_param import (
+    ConversationItemWithReferenceParam as ConversationItemWithReferenceParam,
 )
 from .input_audio_buffer_speech_started_event import (
     InputAudioBufferSpeechStartedEvent as InputAudioBufferSpeechStartedEvent,
