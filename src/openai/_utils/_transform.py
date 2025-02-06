@@ -25,7 +25,7 @@ from ._typing import (
     is_annotated_type,
     strip_annotated_type,
 )
-from .._compat import model_dump, is_typeddict
+from .._compat import get_origin, model_dump, is_typeddict
 
 _T = TypeVar("_T")
 
@@ -164,8 +164,13 @@ def _transform_recursive(
         inner_type = annotation
 
     stripped_type = strip_annotated_type(inner_type)
+    origin = get_origin(stripped_type) or stripped_type
     if is_typeddict(stripped_type) and is_mapping(data):
         return _transform_typeddict(data, stripped_type)
+
+    if origin == dict and is_mapping(data):
+        items_type = get_args(stripped_type)[1]
+        return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
         # List[T]
@@ -307,8 +312,13 @@ async def _async_transform_recursive(
         inner_type = annotation
 
     stripped_type = strip_annotated_type(inner_type)
+    origin = get_origin(stripped_type) or stripped_type
     if is_typeddict(stripped_type) and is_mapping(data):
         return await _async_transform_typeddict(data, stripped_type)
+
+    if origin == dict and is_mapping(data):
+        items_type = get_args(stripped_type)[1]
+        return {key: _transform_recursive(value, annotation=items_type) for key, value in data.items()}
 
     if (
         # List[T]
