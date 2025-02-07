@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.61.0"
+version = "1.61.1"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -194,7 +194,7 @@ select = [
   "T201",
   "T203",
   # misuse of typing.TYPE_CHECKING
-  "TCH004",
+  "TC004",
   # import rules
   "TID251",
 ]
