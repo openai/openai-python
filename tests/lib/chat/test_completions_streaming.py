@@ -70,7 +70,7 @@ recommend checking a reliable weather website or a weather app.",
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -147,7 +147,7 @@ ParsedChatCompletion[Location](
                 parsed=Location(city='San Francisco', temperature=61.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -324,7 +324,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=65.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -338,7 +338,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=61.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -352,7 +352,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=59.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -427,7 +427,7 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
             parsed=None,
             refusal="I'm sorry, I can't assist with that request.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -501,7 +501,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -612,7 +612,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             parsed=None,
             refusal="I'm very sorry, but I can't assist with that.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -925,7 +925,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -1040,7 +1040,7 @@ recommend checking a reliable weather website or a weather app.",
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
