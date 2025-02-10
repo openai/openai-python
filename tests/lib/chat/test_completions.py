@@ -65,7 +65,7 @@ recommend checking a reliable weather website or app like the Weather Channel or
                 parsed=None,
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -132,7 +132,7 @@ ParsedChatCompletion[Location](
                 parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -201,7 +201,7 @@ ParsedChatCompletion[Location](
                 parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -272,7 +272,7 @@ ParsedChoice[ColorDetection](
         parsed=ColorDetection(color=<Color.RED: 'red'>, hex_color_code='#FF0000'),
         refusal=None,
         role='assistant',
-        tool_calls=[]
+        tool_calls=None
     )
 )
 """
@@ -321,7 +321,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=64.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -335,7 +335,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=65.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -349,7 +349,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=63.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -399,7 +399,7 @@ ParsedChatCompletion[CalendarEvent](
                 parsed=CalendarEvent(name='Science Fair', date='Friday', participants=['Alice', 'Bob']),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -571,7 +571,7 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
             parsed=None,
             refusal="I'm very sorry, but I can't assist with that.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -855,7 +855,7 @@ ParsedChatCompletion[Location](
                 parsed=Location(city='San Francisco', temperature=58.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -930,7 +930,7 @@ ParsedChatCompletion[Location](
                 parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
