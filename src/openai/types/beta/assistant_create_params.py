@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable, Optional
-from typing_extensions import Required, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
 from ..chat_model import ChatModel
 from .assistant_tool_param import AssistantToolParam
@@ -52,6 +52,15 @@ class AssistantCreateParams(TypedDict, total=False):
 
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
+
+    reasoning_effort: Optional[Literal["low", "medium", "high"]]
+    """**o1 and o3-mini models only**
+
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+    result in faster responses and fewer tokens used on reasoning in a response.
+    """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.

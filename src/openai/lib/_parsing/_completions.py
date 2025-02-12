@@ -111,7 +111,7 @@ def parse_chat_completion(
                             response_format=response_format,
                             message=message,
                         ),
-                        "tool_calls": tool_calls,
+                        "tool_calls": tool_calls if tool_calls else None,
                     },
                 },
             )

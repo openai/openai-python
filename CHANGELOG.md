@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.62.0 (2025-02-12)
+
+Full Changelog: [v1.61.1...v1.62.0](https://github.com/openai/openai-python/compare/v1.61.1...v1.62.0)
+
+### Features
+
+* **client:** send `X-Stainless-Read-Timeout` header ([#2094](https://github.com/openai/openai-python/issues/2094)) ([0288213](https://github.com/openai/openai-python/commit/0288213fbfa935c9bf9d56416619ea929ae1cf63))
+* **embeddings:** use stdlib array type for improved performance ([#2060](https://github.com/openai/openai-python/issues/2060)) ([9a95db9](https://github.com/openai/openai-python/commit/9a95db9154ac98678970e7f1652a7cacfd2f7fdb))
+* **pagination:** avoid fetching when has_more: false ([#2098](https://github.com/openai/openai-python/issues/2098)) ([1882483](https://github.com/openai/openai-python/commit/18824832d3a676ae49206cd2b5e09d4796fdf033))
+
+
+### Bug Fixes
+
+* **api:** add missing reasoning effort + model enums ([#2096](https://github.com/openai/openai-python/issues/2096)) ([e0ca9f0](https://github.com/openai/openai-python/commit/e0ca9f0f6fae40230f8cab97573914ed632920b6))
+* **parsing:** don't default to an empty array ([#2106](https://github.com/openai/openai-python/issues/2106)) ([8e748bb](https://github.com/openai/openai-python/commit/8e748bb08d9c0d1f7e8a1af31452e25eb7154f55))
+
+
+### Chores
+
+* **internal:** fix type traversing dictionary params ([#2097](https://github.com/openai/openai-python/issues/2097)) ([4e5b368](https://github.com/openai/openai-python/commit/4e5b368bf576f38d0f125778edde74ed6d101d7d))
+* **internal:** minor type handling changes ([#2099](https://github.com/openai/openai-python/issues/2099)) ([a2c6da0](https://github.com/openai/openai-python/commit/a2c6da0fbc610ee80a2e044a0b20fc1cc2376962))
+
 ## 1.61.1 (2025-02-05)
 
 Full Changelog: [v1.61.0...v1.61.1](https://github.com/openai/openai-python/compare/v1.61.0...v1.61.1)
