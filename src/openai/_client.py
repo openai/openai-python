@@ -19,11 +19,7 @@ from ._types import (
     ProxiesTypes,
     RequestOptions,
 )
-from ._utils import (
-    is_given,
-    is_mapping,
-    get_async_library,
-)
+from ._utils import is_given, is_mapping, get_async_library, verify_api_key
 from ._version import __version__
 from .resources import files, images, models, batches, embeddings, completions, moderations
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
@@ -104,8 +100,8 @@ class OpenAI(SyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = verify_api_key(api_key, "OPENAI_API_KEY")
+
         if api_key is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
@@ -331,8 +327,7 @@ class AsyncOpenAI(AsyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         """
-        if api_key is None:
-            api_key = os.environ.get("OPENAI_API_KEY")
+        api_key = api_key = verify_api_key(api_key, "OPENAI_API_KEY")
         if api_key is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"

@@ -8,7 +8,7 @@ from typing_extensions import Self, override
 import httpx
 
 from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
-from .._utils import is_given, is_mapping
+from .._utils import is_given, is_mapping, verify_api_key
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
 from .._models import FinalRequestOptions
@@ -163,8 +163,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
                 Note: this means you won't be able to use non-deployment endpoints. Not supported with Assistants APIs.
         """
-        if api_key is None:
-            api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+        api_key = verify_api_key(api_key, "AZURE_OPENAI_API_KEY")
 
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")
@@ -425,8 +424,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
                 Note: this means you won't be able to use non-deployment endpoints. Not supported with Assistants APIs.
         """
-        if api_key is None:
-            api_key = os.environ.get("AZURE_OPENAI_API_KEY")
+        api_key = verify_api_key(api_key, "AZURE_OPENAI_API_KEY")
 
         if azure_ad_token is None:
             azure_ad_token = os.environ.get("AZURE_OPENAI_AD_TOKEN")

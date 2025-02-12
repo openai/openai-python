@@ -428,3 +428,10 @@ def is_async_azure_client(client: object) -> TypeGuard[AsyncAzureOpenAI]:
     from ..lib.azure import AsyncAzureOpenAI
 
     return isinstance(client, AsyncAzureOpenAI)
+
+
+def verify_api_key(api_key: str, env_name: str) -> str | None:
+    if api_key is None or api_key.strip() == "":
+        env_api_key = os.environ.get(env_name)
+        api_key = env_api_key if env_api_key and env_api_key.strip() != "" else None
+    return api_key
