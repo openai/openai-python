@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.63.0 (2025-02-13)
+
+Full Changelog: [v1.62.0...v1.63.0](https://github.com/openai/openai-python/compare/v1.62.0...v1.63.0)
+
+### Features
+
+* **api:** add support for storing chat completions ([#2117](https://github.com/openai/openai-python/issues/2117)) ([2357a8f](https://github.com/openai/openai-python/commit/2357a8f97246a3fe17c6ac1fb0d7a67d6f1ffc1d))
+
 ## 1.62.0 (2025-02-12)
 
 Full Changelog: [v1.61.1...v1.62.0](https://github.com/openai/openai-python/compare/v1.61.1...v1.62.0)
