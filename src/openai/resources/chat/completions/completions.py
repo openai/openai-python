@@ -9,40 +9,56 @@ from typing_extensions import Literal, overload
 import httpx
 import pydantic
 
-from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import (
+from .... import _legacy_response
+from .messages import (
+    Messages,
+    AsyncMessages,
+    MessagesWithRawResponse,
+    AsyncMessagesWithRawResponse,
+    MessagesWithStreamingResponse,
+    AsyncMessagesWithStreamingResponse,
+)
+from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ...._utils import (
     required_args,
     maybe_transform,
     async_maybe_transform,
 )
-from ..._compat import cached_property
-from ..._resource import SyncAPIResource, AsyncAPIResource
-from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ..._streaming import Stream, AsyncStream
-from ...types.chat import (
+from ...._compat import cached_property
+from ...._resource import SyncAPIResource, AsyncAPIResource
+from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ...._streaming import Stream, AsyncStream
+from ....pagination import SyncCursorPage, AsyncCursorPage
+from ....types.chat import (
     ChatCompletionAudioParam,
     ChatCompletionReasoningEffort,
+    completion_list_params,
     completion_create_params,
+    completion_update_params,
 )
-from ..._base_client import make_request_options
-from ...types.chat_model import ChatModel
-from ...types.chat.chat_completion import ChatCompletion
-from ...types.shared_params.metadata import Metadata
-from ...types.chat.chat_completion_chunk import ChatCompletionChunk
-from ...types.chat.chat_completion_modality import ChatCompletionModality
-from ...types.chat.chat_completion_tool_param import ChatCompletionToolParam
-from ...types.chat.chat_completion_audio_param import ChatCompletionAudioParam
-from ...types.chat.chat_completion_message_param import ChatCompletionMessageParam
-from ...types.chat.chat_completion_reasoning_effort import ChatCompletionReasoningEffort
-from ...types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
-from ...types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
-from ...types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
+from ...._base_client import AsyncPaginator, make_request_options
+from ....types.chat_model import ChatModel
+from ....types.chat.chat_completion import ChatCompletion
+from ....types.shared_params.metadata import Metadata
+from ....types.chat.chat_completion_chunk import ChatCompletionChunk
+from ....types.chat.chat_completion_deleted import ChatCompletionDeleted
+from ....types.chat.chat_completion_modality import ChatCompletionModality
+from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
+from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
+from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from ....types.chat.chat_completion_reasoning_effort import ChatCompletionReasoningEffort
+from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
+from ....types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
+from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
 
 __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
+    @cached_property
+    def messages(self) -> Messages:
+        return Messages(self._client)
+
     @cached_property
     def with_raw_response(self) -> CompletionsWithRawResponse:
         """
@@ -905,8 +921,192 @@ class Completions(SyncAPIResource):
             stream_cls=Stream[ChatCompletionChunk],
         )
 
+    def retrieve(
+        self,
+        completion_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ChatCompletion:
+        """Get a stored chat completion.
+
+        Only chat completions that have been created with
+        the `store` parameter set to `true` will be returned.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not completion_id:
+            raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
+        return self._get(
+            f"/chat/completions/{completion_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ChatCompletion,
+        )
+
+    def update(
+        self,
+        completion_id: str,
+        *,
+        metadata: Optional[Metadata],
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ChatCompletion:
+        """Modify a stored chat completion.
+
+        Only chat completions that have been created
+        with the `store` parameter set to `true` can be modified. Currently, the only
+        supported modification is to update the `metadata` field.
+
+        Args:
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not completion_id:
+            raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
+        return self._post(
+            f"/chat/completions/{completion_id}",
+            body=maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ChatCompletion,
+        )
+
+    def list(
+        self,
+        *,
+        after: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: str | NotGiven = NOT_GIVEN,
+        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> SyncCursorPage[ChatCompletion]:
+        """List stored chat completions.
+
+        Only chat completions that have been stored with
+        the `store` parameter set to `true` will be returned.
+
+        Args:
+          after: Identifier for the last chat completion from the previous pagination request.
+
+          limit: Number of chat completions to retrieve.
+
+          metadata:
+              A list of metadata keys to filter the chat completions by. Example:
+
+              `metadata[key1]=value1&metadata[key2]=value2`
+
+          model: The model used to generate the chat completions.
+
+          order: Sort order for chat completions by timestamp. Use `asc` for ascending order or
+              `desc` for descending order. Defaults to `asc`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get_api_list(
+            "/chat/completions",
+            page=SyncCursorPage[ChatCompletion],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "metadata": metadata,
+                        "model": model,
+                        "order": order,
+                    },
+                    completion_list_params.CompletionListParams,
+                ),
+            ),
+            model=ChatCompletion,
+        )
+
+    def delete(
+        self,
+        completion_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ChatCompletionDeleted:
+        """Delete a stored chat completion.
+
+        Only chat completions that have been created
+        with the `store` parameter set to `true` can be deleted.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not completion_id:
+            raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
+        return self._delete(
+            f"/chat/completions/{completion_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ChatCompletionDeleted,
+        )
+
 
 class AsyncCompletions(AsyncAPIResource):
+    @cached_property
+    def messages(self) -> AsyncMessages:
+        return AsyncMessages(self._client)
+
     @cached_property
     def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
         """
@@ -1769,6 +1969,186 @@ class AsyncCompletions(AsyncAPIResource):
             stream_cls=AsyncStream[ChatCompletionChunk],
         )
 
+    async def retrieve(
+        self,
+        completion_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ChatCompletion:
+        """Get a stored chat completion.
+
+        Only chat completions that have been created with
+        the `store` parameter set to `true` will be returned.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not completion_id:
+            raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
+        return await self._get(
+            f"/chat/completions/{completion_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ChatCompletion,
+        )
+
+    async def update(
+        self,
+        completion_id: str,
+        *,
+        metadata: Optional[Metadata],
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ChatCompletion:
+        """Modify a stored chat completion.
+
+        Only chat completions that have been created
+        with the `store` parameter set to `true` can be modified. Currently, the only
+        supported modification is to update the `metadata` field.
+
+        Args:
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not completion_id:
+            raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
+        return await self._post(
+            f"/chat/completions/{completion_id}",
+            body=await async_maybe_transform({"metadata": metadata}, completion_update_params.CompletionUpdateParams),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ChatCompletion,
+        )
+
+    def list(
+        self,
+        *,
+        after: str | NotGiven = NOT_GIVEN,
+        limit: int | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: str | NotGiven = NOT_GIVEN,
+        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncPaginator[ChatCompletion, AsyncCursorPage[ChatCompletion]]:
+        """List stored chat completions.
+
+        Only chat completions that have been stored with
+        the `store` parameter set to `true` will be returned.
+
+        Args:
+          after: Identifier for the last chat completion from the previous pagination request.
+
+          limit: Number of chat completions to retrieve.
+
+          metadata:
+              A list of metadata keys to filter the chat completions by. Example:
+
+              `metadata[key1]=value1&metadata[key2]=value2`
+
+          model: The model used to generate the chat completions.
+
+          order: Sort order for chat completions by timestamp. Use `asc` for ascending order or
+              `desc` for descending order. Defaults to `asc`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._get_api_list(
+            "/chat/completions",
+            page=AsyncCursorPage[ChatCompletion],
+            options=make_request_options(
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                query=maybe_transform(
+                    {
+                        "after": after,
+                        "limit": limit,
+                        "metadata": metadata,
+                        "model": model,
+                        "order": order,
+                    },
+                    completion_list_params.CompletionListParams,
+                ),
+            ),
+            model=ChatCompletion,
+        )
+
+    async def delete(
+        self,
+        completion_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ChatCompletionDeleted:
+        """Delete a stored chat completion.
+
+        Only chat completions that have been created
+        with the `store` parameter set to `true` can be deleted.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not completion_id:
+            raise ValueError(f"Expected a non-empty value for `completion_id` but received {completion_id!r}")
+        return await self._delete(
+            f"/chat/completions/{completion_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=ChatCompletionDeleted,
+        )
+
 
 class CompletionsWithRawResponse:
     def __init__(self, completions: Completions) -> None:
@@ -1777,6 +2157,22 @@ class CompletionsWithRawResponse:
         self.create = _legacy_response.to_raw_response_wrapper(
             completions.create,
         )
+        self.retrieve = _legacy_response.to_raw_response_wrapper(
+            completions.retrieve,
+        )
+        self.update = _legacy_response.to_raw_response_wrapper(
+            completions.update,
+        )
+        self.list = _legacy_response.to_raw_response_wrapper(
+            completions.list,
+        )
+        self.delete = _legacy_response.to_raw_response_wrapper(
+            completions.delete,
+        )
+
+    @cached_property
+    def messages(self) -> MessagesWithRawResponse:
+        return MessagesWithRawResponse(self._completions.messages)
 
 
 class AsyncCompletionsWithRawResponse:
@@ -1786,6 +2182,22 @@ class AsyncCompletionsWithRawResponse:
         self.create = _legacy_response.async_to_raw_response_wrapper(
             completions.create,
         )
+        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
+            completions.retrieve,
+        )
+        self.update = _legacy_response.async_to_raw_response_wrapper(
+            completions.update,
+        )
+        self.list = _legacy_response.async_to_raw_response_wrapper(
+            completions.list,
+        )
+        self.delete = _legacy_response.async_to_raw_response_wrapper(
+            completions.delete,
+        )
+
+    @cached_property
+    def messages(self) -> AsyncMessagesWithRawResponse:
+        return AsyncMessagesWithRawResponse(self._completions.messages)
 
 
 class CompletionsWithStreamingResponse:
@@ -1795,6 +2207,22 @@ class CompletionsWithStreamingResponse:
         self.create = to_streamed_response_wrapper(
             completions.create,
         )
+        self.retrieve = to_streamed_response_wrapper(
+            completions.retrieve,
+        )
+        self.update = to_streamed_response_wrapper(
+            completions.update,
+        )
+        self.list = to_streamed_response_wrapper(
+            completions.list,
+        )
+        self.delete = to_streamed_response_wrapper(
+            completions.delete,
+        )
+
+    @cached_property
+    def messages(self) -> MessagesWithStreamingResponse:
+        return MessagesWithStreamingResponse(self._completions.messages)
 
 
 class AsyncCompletionsWithStreamingResponse:
@@ -1804,6 +2232,22 @@ class AsyncCompletionsWithStreamingResponse:
         self.create = async_to_streamed_response_wrapper(
             completions.create,
         )
+        self.retrieve = async_to_streamed_response_wrapper(
+            completions.retrieve,
+        )
+        self.update = async_to_streamed_response_wrapper(
+            completions.update,
+        )
+        self.list = async_to_streamed_response_wrapper(
+            completions.list,
+        )
+        self.delete = async_to_streamed_response_wrapper(
+            completions.delete,
+        )
+
+    @cached_property
+    def messages(self) -> AsyncMessagesWithStreamingResponse:
+        return AsyncMessagesWithStreamingResponse(self._completions.messages)
 
 
 def validate_response_format(response_format: object) -> None:
