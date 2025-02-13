@@ -23,11 +23,13 @@ from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from openai._types import Omit
+from openai._utils import maybe_transform
 from openai._models import BaseModel, FinalRequestOptions
 from openai._constants import RAW_RESPONSE_HEADER
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import OpenAIError, APIStatusError, APITimeoutError, APIResponseValidationError
 from openai._base_client import DEFAULT_TIMEOUT, HTTPX_DEFAULT_TIMEOUT, BaseClient, make_request_options
+from openai.types.chat.completion_create_params import CompletionCreateParamsNonStreaming
 
 from .utils import update_env
 
@@ -724,14 +726,17 @@ class TestOpenAI:
                 "/chat/completions",
                 body=cast(
                     object,
-                    dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-4o",
+                    maybe_transform(
+                        dict(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": "Say this is a test",
+                                }
+                            ],
+                            model="gpt-4o",
+                        ),
+                        CompletionCreateParamsNonStreaming,
                     ),
                 ),
                 cast_to=httpx.Response,
@@ -750,14 +755,17 @@ class TestOpenAI:
                 "/chat/completions",
                 body=cast(
                     object,
-                    dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-4o",
+                    maybe_transform(
+                        dict(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": "Say this is a test",
+                                }
+                            ],
+                            model="gpt-4o",
+                        ),
+                        CompletionCreateParamsNonStreaming,
                     ),
                 ),
                 cast_to=httpx.Response,
@@ -1591,14 +1599,17 @@ class TestAsyncOpenAI:
                 "/chat/completions",
                 body=cast(
                     object,
-                    dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-4o",
+                    maybe_transform(
+                        dict(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": "Say this is a test",
+                                }
+                            ],
+                            model="gpt-4o",
+                        ),
+                        CompletionCreateParamsNonStreaming,
                     ),
                 ),
                 cast_to=httpx.Response,
@@ -1617,14 +1628,17 @@ class TestAsyncOpenAI:
                 "/chat/completions",
                 body=cast(
                     object,
-                    dict(
-                        messages=[
-                            {
-                                "role": "user",
-                                "content": "Say this is a test",
-                            }
-                        ],
-                        model="gpt-4o",
+                    maybe_transform(
+                        dict(
+                            messages=[
+                                {
+                                    "role": "user",
+                                    "content": "Say this is a test",
+                                }
+                            ],
+                            model="gpt-4o",
+                        ),
+                        CompletionCreateParamsNonStreaming,
                     ),
                 ),
                 cast_to=httpx.Response,
