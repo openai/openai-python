@@ -239,3 +239,490 @@ class TestAzureLogging:
         for record in caplog.records:
             if is_dict(record.args) and record.args.get("headers") and is_dict(record.args["headers"]):
                 assert record.args["headers"]["Authorization"] == "<redacted>"
+
+
+@pytest.mark.parametrize(
+    "client,base_url,api,json_data,expected",
+    [
+        # Deployment-based endpoints
+        # AzureOpenAI: No deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-body/chat/completions?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: Deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/chat/completions?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: "deployments" in the DNS name
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://deployments.example-resource.azure.openai.com",
+            ),
+            "https://deployments.example-resource.azure.openai.com/openai/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://deployments.example-resource.azure.openai.com/openai/deployments/deployment-body/chat/completions?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: Deployment called deployments
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployments"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/chat/completions?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: base_url and azure_deployment specified; ignored b/c not supported
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                base_url="https://example.azure-api.net/PTU/",
+                azure_deployment="deployment-client"
+            ),
+            "https://example.azure-api.net/PTU/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example.azure-api.net/PTU/deployments/deployment-body/chat/completions?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: No deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-body/chat/completions?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: Deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/chat/completions?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: "deployments" in the DNS name
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://deployments.example-resource.azure.openai.com",
+            ),
+            "https://deployments.example-resource.azure.openai.com/openai/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://deployments.example-resource.azure.openai.com/openai/deployments/deployment-body/chat/completions?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: Deployment called deployments
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployments"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/chat/completions?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                base_url="https://example.azure-api.net/PTU/",
+                azure_deployment="deployment-client"
+            ),
+            "https://example.azure-api.net/PTU/",
+            "/chat/completions",
+            {"model": "deployment-body"},
+            "https://example.azure-api.net/PTU/deployments/deployment-body/chat/completions?api-version=2024-02-01"
+        ),
+    ],
+)
+def test_prepare_url_deployment_endpoint(client: Client, base_url: str, api: str, json_data: dict[str, str], expected: str) -> None:
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url=api,
+            json_data=json_data,
+        )
+    )
+    assert req.url == expected
+    assert client.base_url == base_url
+
+
+@pytest.mark.parametrize(
+    "client,base_url,api,json_data,expected",
+    [
+        # Non-deployment endpoints
+        # AzureOpenAI: No deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/models",
+            {},
+            "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: No deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/assistants",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/assistants?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: Deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/models",
+            {},
+            "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: Deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/assistants",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/assistants?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: "deployments" in the DNS name
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://deployments.example-resource.azure.openai.com",
+            ),
+            "https://deployments.example-resource.azure.openai.com/openai/",
+            "/models",
+            {},
+            "https://deployments.example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: Deployment called "deployments"
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployments"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/",
+            "/models",
+            {},
+            "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                base_url="https://example.azure-api.net/PTU/",
+                azure_deployment="deployment-client"
+            ),
+            "https://example.azure-api.net/PTU/",
+            "/models",
+            {},
+            "https://example.azure-api.net/PTU/models?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: No deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/models",
+            {},
+            "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: No deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/assistants",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/assistants?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: Deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/models",
+            {},
+            "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: Deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/assistants",
+            {"model": "deployment-body"},
+            "https://example-resource.azure.openai.com/openai/assistants?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: "deployments" in the DNS name
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://deployments.example-resource.azure.openai.com",
+            ),
+            "https://deployments.example-resource.azure.openai.com/openai/",
+            "/models",
+            {},
+            "https://deployments.example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: Deployment called "deployments"
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployments"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/",
+            "/models",
+            {},
+            "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+        ),
+        # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                base_url="https://example.azure-api.net/PTU/",
+                azure_deployment="deployment-client"
+            ),
+            "https://example.azure-api.net/PTU/",
+            "/models",
+            {},
+            "https://example.azure-api.net/PTU/models?api-version=2024-02-01"
+        ),
+    ],
+)
+def test_prepare_url_nondeployment_endpoint(client: Client, base_url: str, api: str, json_data: dict[str, str], expected: str) -> None:
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url=api,
+            json_data=json_data,
+        )
+    )
+    assert req.url == expected
+    assert client.base_url == base_url
+
+
+@pytest.mark.parametrize(
+    "client,base_url,api,json_data,expected",
+    [
+        # Realtime endpoint
+        # AzureOpenAI: No deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
+        ),
+        # AzureOpenAI: Deployment specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-client"
+        ),
+        # AzureOpenAI: "deployments" in the DNS name
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://deployments.azure.openai.com",
+            ),
+            "https://deployments.azure.openai.com/openai/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://deployments.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
+        ),
+        # AzureOpenAI: Deployment called "deployments"
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployments"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployments"
+        ),
+        # AzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                base_url="https://example.azure-api.net/PTU/",
+                azure_deployment="my-deployment"
+            ),
+            "https://example.azure-api.net/PTU/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example.azure-api.net/PTU/realtime?api-version=2024-02-01&deployment=deployment-body"
+        ),
+    ],
+)
+def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, api: str, json_data: dict[str, str], expected: str) -> None:
+    url, _ = client._configure_realtime(json_data["model"], {})
+    assert str(url) == expected
+    assert client.base_url == base_url
+
+
+@pytest.mark.parametrize(
+    "client,base_url,api,json_data,expected",
+    [
+        # AsyncAzureOpenAI: No deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
+        ),
+        # AsyncAzureOpenAI: Deployment specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployment-client"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-client"
+        ),
+        # AsyncAzureOpenAI: "deployments" in the DNS name
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://deployments.azure.openai.com",
+            ),
+            "https://deployments.azure.openai.com/openai/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://deployments.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
+        ),
+        # AsyncAzureOpenAI: Deployment called "deployments"
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                azure_deployment="deployments"
+            ),
+            "https://example-resource.azure.openai.com/openai/deployments/deployments/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployments"
+        ),
+        # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                base_url="https://example.azure-api.net/PTU/",
+                azure_deployment="deployment-client"
+            ),
+            "https://example.azure-api.net/PTU/",
+            "/realtime",
+            {"model": "deployment-body"},
+            "wss://example.azure-api.net/PTU/realtime?api-version=2024-02-01&deployment=deployment-body"
+        ),
+    ],
+)
+async def test_prepare_url_realtime_async(client: AsyncAzureOpenAI, base_url: str, api: str, json_data: dict[str, str], expected: str) -> None:
+    url, _ = await client._configure_realtime(json_data["model"], {})
+    assert str(url) == expected
+    assert client.base_url == base_url
