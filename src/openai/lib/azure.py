@@ -49,6 +49,8 @@ class MutuallyExclusiveAuthError(OpenAIError):
 
 
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
+    _azure_deployment: str | None
+
     @override
     def _build_request(
         self,

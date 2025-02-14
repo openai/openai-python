@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
@@ -297,7 +299,7 @@ class TestAzureLogging:
         ),
         # AzureOpenAI: base_url and azure_deployment specified; ignored b/c not supported
         (
-            AzureOpenAI(
+            AzureOpenAI(  # type: ignore
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -360,7 +362,7 @@ class TestAzureLogging:
         ),
         # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AsyncAzureOpenAI(
+            AsyncAzureOpenAI(  # type: ignore
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -466,7 +468,7 @@ def test_prepare_url_deployment_endpoint(client: Client, base_url: str, api: str
         ),
         # AzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AzureOpenAI(
+            AzureOpenAI(  # type: ignore
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -554,7 +556,7 @@ def test_prepare_url_deployment_endpoint(client: Client, base_url: str, api: str
         ),
         # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AsyncAzureOpenAI(
+            AsyncAzureOpenAI(  # type: ignore
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
@@ -580,7 +582,7 @@ def test_prepare_url_nondeployment_endpoint(client: Client, base_url: str, api: 
 
 
 @pytest.mark.parametrize(
-    "client,base_url,api,json_data,expected",
+    "client,base_url,json_data,expected",
     [
         # Realtime endpoint
         # AzureOpenAI: No deployment specified
@@ -591,7 +593,6 @@ def test_prepare_url_nondeployment_endpoint(client: Client, base_url: str, api: 
                 azure_endpoint="https://example-resource.azure.openai.com",
             ),
             "https://example-resource.azure.openai.com/openai/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
         ),
@@ -604,7 +605,6 @@ def test_prepare_url_nondeployment_endpoint(client: Client, base_url: str, api: 
                 azure_deployment="deployment-client"
             ),
             "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-client"
         ),
@@ -616,7 +616,6 @@ def test_prepare_url_nondeployment_endpoint(client: Client, base_url: str, api: 
                 azure_endpoint="https://deployments.azure.openai.com",
             ),
             "https://deployments.azure.openai.com/openai/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://deployments.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
         ),
@@ -629,33 +628,31 @@ def test_prepare_url_nondeployment_endpoint(client: Client, base_url: str, api: 
                 azure_deployment="deployments"
             ),
             "https://example-resource.azure.openai.com/openai/deployments/deployments/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployments"
         ),
         # AzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AzureOpenAI(
+            AzureOpenAI(  # type: ignore
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
                 azure_deployment="my-deployment"
             ),
             "https://example.azure-api.net/PTU/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example.azure-api.net/PTU/realtime?api-version=2024-02-01&deployment=deployment-body"
         ),
     ],
 )
-def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, api: str, json_data: dict[str, str], expected: str) -> None:
+def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, json_data: dict[str, str], expected: str) -> None:
     url, _ = client._configure_realtime(json_data["model"], {})
     assert str(url) == expected
     assert client.base_url == base_url
 
 
 @pytest.mark.parametrize(
-    "client,base_url,api,json_data,expected",
+    "client,base_url,json_data,expected",
     [
         # AsyncAzureOpenAI: No deployment specified
         (
@@ -665,7 +662,6 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, api: str, json
                 azure_endpoint="https://example-resource.azure.openai.com",
             ),
             "https://example-resource.azure.openai.com/openai/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
         ),
@@ -678,7 +674,6 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, api: str, json
                 azure_deployment="deployment-client"
             ),
             "https://example-resource.azure.openai.com/openai/deployments/deployment-client/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-client"
         ),
@@ -690,7 +685,6 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, api: str, json
                 azure_endpoint="https://deployments.azure.openai.com",
             ),
             "https://deployments.azure.openai.com/openai/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://deployments.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployment-body"
         ),
@@ -703,26 +697,24 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, api: str, json
                 azure_deployment="deployments"
             ),
             "https://example-resource.azure.openai.com/openai/deployments/deployments/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example-resource.azure.openai.com/openai/realtime?api-version=2024-02-01&deployment=deployments"
         ),
         # AsyncAzureOpenAI: base_url and azure_deployment specified; azure_deployment ignored b/c not supported
         (
-            AsyncAzureOpenAI(
+            AsyncAzureOpenAI(  # type: ignore
                 api_version="2024-02-01",
                 api_key="example API key",
                 base_url="https://example.azure-api.net/PTU/",
                 azure_deployment="deployment-client"
             ),
             "https://example.azure-api.net/PTU/",
-            "/realtime",
             {"model": "deployment-body"},
             "wss://example.azure-api.net/PTU/realtime?api-version=2024-02-01&deployment=deployment-body"
         ),
     ],
 )
-async def test_prepare_url_realtime_async(client: AsyncAzureOpenAI, base_url: str, api: str, json_data: dict[str, str], expected: str) -> None:
+async def test_prepare_url_realtime_async(client: AsyncAzureOpenAI, base_url: str, json_data: dict[str, str], expected: str) -> None:
     url, _ = await client._configure_realtime(json_data["model"], {})
     assert str(url) == expected
     assert client.base_url == base_url
