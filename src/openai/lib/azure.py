@@ -208,6 +208,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             # define a sentinel value to avoid any typing issues
             api_key = API_KEY_SENTINEL
 
+        self._azure_deployment = azure_deployment
+
         super().__init__(
             api_key=api_key,
             organization=organization,
@@ -308,11 +310,14 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return options
 
     def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+        if not self._azure_deployment:
+            raise ValueError("Azure deployment is required for this API")
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
-            "deployment": model,
+            "model": model,
+            "deployment": self._azure_deployment,
         }
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
@@ -470,6 +475,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             # define a sentinel value to avoid any typing issues
             api_key = API_KEY_SENTINEL
 
+        self._azure_deployment = azure_deployment
+
         super().__init__(
             api_key=api_key,
             organization=organization,
@@ -572,11 +579,14 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         return options
 
     async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+        if not self._azure_deployment:
+            raise ValueError("Azure deployment is required for this API")
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
-            "deployment": model,
+            "model": model,
+            "deployment": self._azure_deployment,
         }
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
