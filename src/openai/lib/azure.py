@@ -318,6 +318,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         }
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
+        else:
+            token = self._get_azure_ad_token()
+            if token:
+                auth_headers = {"Authorization": f"Bearer {token}"}
         return query, auth_headers
 
 
@@ -580,4 +584,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         }
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
+        else:
+            token = await self._get_azure_ad_token()
+            if token:
+                auth_headers = {"Authorization": f"Bearer {token}"}
         return query, auth_headers
