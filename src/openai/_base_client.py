@@ -420,10 +420,17 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if idempotency_header and options.method.lower() != "get" and idempotency_header not in headers:
             headers[idempotency_header] = options.idempotency_key or self._idempotency_key()
 
-        # Don't set the retry count header if it was already set or removed by the caller. We check
+        # Don't set these headers if they were already set or removed by the caller. We check
         # `custom_headers`, which can contain `Omit()`, instead of `headers` to account for the removal case.
-        if "x-stainless-retry-count" not in (header.lower() for header in custom_headers):
+        lower_custom_headers = [header.lower() for header in custom_headers]
+        if "x-stainless-retry-count" not in lower_custom_headers:
             headers["x-stainless-retry-count"] = str(retries_taken)
+        if "x-stainless-read-timeout" not in lower_custom_headers:
+            timeout = self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+            if isinstance(timeout, Timeout):
+                timeout = timeout.read
+            if timeout is not None:
+                headers["x-stainless-read-timeout"] = str(timeout)
 
         return headers
 

@@ -61,6 +61,7 @@ class Assistants(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_resources: Optional[assistant_create_params.ToolResources] | NotGiven = NOT_GIVEN,
@@ -96,6 +97,13 @@ class Assistants(SyncAPIResource):
               a maximum length of 512 characters.
 
           name: The name of the assistant. The maximum length is 256 characters.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -155,6 +163,7 @@ class Assistants(SyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "name": name,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "temperature": temperature,
                     "tool_resources": tool_resources,
@@ -210,8 +219,42 @@ class Assistants(SyncAPIResource):
         description: Optional[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: str | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "o3-mini",
+                "o3-mini-2025-01-31",
+                "o1",
+                "o1-2024-12-17",
+                "gpt-4o",
+                "gpt-4o-2024-11-20",
+                "gpt-4o-2024-08-06",
+                "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+        ]
+        | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_resources: Optional[assistant_update_params.ToolResources] | NotGiven = NOT_GIVEN,
@@ -248,6 +291,13 @@ class Assistants(SyncAPIResource):
               them.
 
           name: The name of the assistant. The maximum length is 256 characters.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -309,6 +359,7 @@ class Assistants(SyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "name": name,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "temperature": temperature,
                     "tool_resources": tool_resources,
@@ -451,6 +502,7 @@ class AsyncAssistants(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_resources: Optional[assistant_create_params.ToolResources] | NotGiven = NOT_GIVEN,
@@ -486,6 +538,13 @@ class AsyncAssistants(AsyncAPIResource):
               a maximum length of 512 characters.
 
           name: The name of the assistant. The maximum length is 256 characters.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -545,6 +604,7 @@ class AsyncAssistants(AsyncAPIResource):
                     "instructions": instructions,
                     "metadata": metadata,
                     "name": name,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "temperature": temperature,
                     "tool_resources": tool_resources,
@@ -600,8 +660,42 @@ class AsyncAssistants(AsyncAPIResource):
         description: Optional[str] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: str | NotGiven = NOT_GIVEN,
+        model: Union[
+            str,
+            Literal[
+                "o3-mini",
+                "o3-mini-2025-01-31",
+                "o1",
+                "o1-2024-12-17",
+                "gpt-4o",
+                "gpt-4o-2024-11-20",
+                "gpt-4o-2024-08-06",
+                "gpt-4o-2024-05-13",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+            ],
+        ]
+        | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_resources: Optional[assistant_update_params.ToolResources] | NotGiven = NOT_GIVEN,
@@ -638,6 +732,13 @@ class AsyncAssistants(AsyncAPIResource):
               them.
 
           name: The name of the assistant. The maximum length is 256 characters.
+
+          reasoning_effort: **o1 and o3-mini models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -699,6 +800,7 @@ class AsyncAssistants(AsyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "name": name,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "temperature": temperature,
                     "tool_resources": tool_resources,

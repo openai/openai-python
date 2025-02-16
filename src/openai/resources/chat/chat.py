@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from .completions import (
+from .completions.completions import (
     Completions,
     AsyncCompletions,
     CompletionsWithRawResponse,

@@ -104,13 +104,13 @@ class CLIChatCompletion:
             "stream": False,
         }
         if args.temperature is not None:
-            params['temperature'] = args.temperature
+            params["temperature"] = args.temperature
         if args.stop is not None:
-            params['stop'] = args.stop
+            params["stop"] = args.stop
         if args.top_p is not None:
-            params['top_p'] = args.top_p
+            params["top_p"] = args.top_p
         if args.n is not None:
-            params['n'] = args.n
+            params["n"] = args.n
         if args.stream:
             params["stream"] = args.stream  # type: ignore
         if args.max_tokens is not None:
