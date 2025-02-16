@@ -8,7 +8,7 @@ from openai.types import (
     Metadata,
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
-    ResponseFormatText,
+    ResponseFormatText
 )
 ```
 
