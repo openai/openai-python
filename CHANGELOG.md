@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.63.2 (2025-02-17)
+
+Full Changelog: [v1.63.1...v1.63.2](https://github.com/openai/openai-python/compare/v1.63.1...v1.63.2)
+
+### Chores
+
+* **internal:** revert temporary commit ([#2121](https://github.com/openai/openai-python/issues/2121)) ([72458ab](https://github.com/openai/openai-python/commit/72458abeed3dd95db8aabed94a33bb12a916f8b7))
+
 ## 1.63.1 (2025-02-17)
 
 Full Changelog: [v1.63.0...v1.63.1](https://github.com/openai/openai-python/compare/v1.63.0...v1.63.1)
