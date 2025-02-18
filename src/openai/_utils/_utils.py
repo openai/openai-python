@@ -430,8 +430,12 @@ def is_async_azure_client(client: object) -> TypeGuard[AsyncAzureOpenAI]:
     return isinstance(client, AsyncAzureOpenAI)
 
 
-def verify_api_key(api_key: str, env_name: str) -> str | None:
+def get_api_key(api_key: str, env_name: str) -> str | None:
     if api_key is None or api_key.strip() == "":
         env_api_key = os.environ.get(env_name)
         api_key = env_api_key if env_api_key and env_api_key.strip() != "" else None
+    if api_key is None:
+        raise OpenAIError(
+            "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+        )
     return api_key

@@ -34,7 +34,7 @@ from ._utils import (
     maybe_coerce_boolean as maybe_coerce_boolean,
     maybe_coerce_integer as maybe_coerce_integer,
     is_async_azure_client as is_async_azure_client,
-    verify_api_key as verify_api_key,
+    get_api_key as get_api_key,
 )
 from ._typing import (
     is_list_type as is_list_type,
