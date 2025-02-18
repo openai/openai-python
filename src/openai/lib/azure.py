@@ -74,7 +74,7 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         if deployment_segment in str(self.base_url.path) and url not in _deployments_endpoints:
             merge_url = httpx.URL(url)
             if merge_url.is_relative_url:
-                base_path = self.base_url.path.split(deployment_segment)[0]
+                base_path = self.base_url.path.rsplit(deployment_segment, maxsplit=1)[0]
                 merge_path = f"{base_path}/{merge_url.path.lstrip('/')}"
                 return self.base_url.copy_with(path=merge_path)
 
