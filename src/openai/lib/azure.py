@@ -304,7 +304,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         return options
 
-    def _configure_realtime(self, extra_query: Query) -> tuple[Query, dict[str, str]]:
+    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
         auth_headers = {}
         query = {
             **extra_query,
@@ -312,6 +312,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         }
         if self._azure_deployment:
             query["deployment"] = self._azure_deployment
+        else:
+            query["deployment"] = model
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
@@ -566,7 +568,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         return options
 
-    async def _configure_realtime(self, extra_query: Query) -> tuple[Query, dict[str, str]]:
+    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
         auth_headers = {}
         query = {
             **extra_query,
@@ -574,7 +576,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         }
         if self._azure_deployment:
             query["deployment"] = self._azure_deployment
-
+        else:
+            query["deployment"] = model
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
