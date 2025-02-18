@@ -308,14 +308,14 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         return options
 
     def _configure_realtime(self, extra_query: Query) -> tuple[Query, dict[str, str]]:
-        if not self._azure_deployment:
-            raise ValueError("Azure deployment is required for this API")
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
-            "deployment": self._azure_deployment,
         }
+        if self._azure_deployment:
+            query["deployment"] = self._azure_deployment
+
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
