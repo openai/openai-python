@@ -328,7 +328,6 @@ class AsyncRealtimeConnectionManager:
 
         url = self._prepare_url().copy_with(
             params={
-                **self.__client.base_url.params,
                 "model": self.__model,
                 **extra_query,
             },
@@ -510,7 +509,6 @@ class RealtimeConnectionManager:
 
         url = self._prepare_url().copy_with(
             params={
-                **self.__client.base_url.params,
                 "model": self.__model,
                 **extra_query,
             },
