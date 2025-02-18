@@ -436,6 +436,6 @@ def get_api_key(api_key: str, env_name: str) -> str | None:
         api_key = env_api_key if env_api_key and env_api_key.strip() != "" else None
     if api_key is None:
         raise OpenAIError(
-            "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+            f"The api_key client option must be set either by passing api_key to the client or by setting the {env_name} environment variable"
         )
     return api_key
