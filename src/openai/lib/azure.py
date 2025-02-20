@@ -49,6 +49,7 @@ class MutuallyExclusiveAuthError(OpenAIError):
 
 
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
+    _original_url: httpx.URL | None
     _azure_deployment: str | None
 
     @override
@@ -67,16 +68,21 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
 
     @override
     def _prepare_url(self, url: str) -> httpx.URL:
-        if not self._azure_deployment:
-            return super()._prepare_url(url)
-
-        deployment_segment = f"/deployments/{self._azure_deployment}"
-        if deployment_segment in str(self.base_url.path) and url not in _deployments_endpoints:
+        """Adjust the URL if the client was configured with an Azure deployment
+        and the API feature being called is **not** a deployments-based endpoint
+        (aka requires /deployments/deployment-name in the URL path).
+        """
+        if (
+            self._azure_deployment
+            and f"/deployments/{self._azure_deployment}" in str(self.base_url.path)
+            and url not in _deployments_endpoints
+        ):
             merge_url = httpx.URL(url)
-            if merge_url.is_relative_url:
-                base_path = self.base_url.path.rsplit(deployment_segment, maxsplit=1)[0]
-                merge_path = f"{base_path}/{merge_url.path.lstrip('/')}"
-                return self.base_url.copy_with(path=merge_path)
+            if merge_url.is_relative_url and self._original_url:
+                merge_raw_path = self._original_url.raw_path + merge_url.raw_path.lstrip(b"/")
+                return self._original_url.copy_with(raw_path=merge_raw_path)
+
+            return merge_url
 
         return super()._prepare_url(url)
 
@@ -242,6 +248,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
         self._azure_deployment = azure_deployment if azure_endpoint else None
+        self._original_url = httpx.URL(f"{azure_endpoint.rstrip('/')}/openai/") if azure_endpoint else None
 
     @override
     def copy(
@@ -514,6 +521,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
         self._azure_deployment = azure_deployment if azure_endpoint else None
+        self._original_url = httpx.URL(f"{azure_endpoint.rstrip('/')}/openai/") if azure_endpoint else None
 
     @override
     def copy(
