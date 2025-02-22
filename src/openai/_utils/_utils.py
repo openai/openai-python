@@ -124,8 +124,9 @@ def _extract_items(
 
 
 def is_given(obj: NotGivenOr[_T]) -> TypeGuard[_T]:
+    if obj is None or obj == []:
+        return False  # is_given() Misinterprets None as a Tool issue #2138
     return not isinstance(obj, NotGiven)
-
 
 # Type safe methods for narrowing types with TypeVars.
 # The default narrowing for isinstance(obj, dict) is dict[unknown, unknown],
