@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.64.0 (2025-02-22)
+
+Full Changelog: [v1.63.2...v1.64.0](https://github.com/openai/openai-python/compare/v1.63.2...v1.64.0)
+
+### Features
+
+* **client:** allow passing `NotGiven` for body ([#2135](https://github.com/openai/openai-python/issues/2135)) ([4451f56](https://github.com/openai/openai-python/commit/4451f5677f9eaad9b8fee74f71c2e5fe6785c420))
+
+
+### Bug Fixes
+
+* **client:** mark some request bodies as optional ([4451f56](https://github.com/openai/openai-python/commit/4451f5677f9eaad9b8fee74f71c2e5fe6785c420))
+
+
+### Chores
+
+* **internal:** fix devcontainers setup ([#2137](https://github.com/openai/openai-python/issues/2137)) ([4d88402](https://github.com/openai/openai-python/commit/4d884020cbeb1ca6093dd5317e3e5812551f7a46))
+
 ## 1.63.2 (2025-02-17)
 
 Full Changelog: [v1.63.1...v1.63.2](https://github.com/openai/openai-python/compare/v1.63.1...v1.63.2)
