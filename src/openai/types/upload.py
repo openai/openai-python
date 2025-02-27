@@ -20,7 +20,7 @@ class Upload(BaseModel):
     """The Unix timestamp (in seconds) for when the Upload was created."""
 
     expires_at: int
-    """The Unix timestamp (in seconds) for when the Upload was created."""
+    """The Unix timestamp (in seconds) for when the Upload will expire."""
 
     filename: str
     """The name of the file to be uploaded."""

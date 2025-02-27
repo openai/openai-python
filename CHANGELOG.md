@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.65.1 (2025-02-27)
+
+Full Changelog: [v1.65.0...v1.65.1](https://github.com/openai/openai-python/compare/v1.65.0...v1.65.1)
+
+### Documentation
+
+* update URLs from stainlessapi.com to stainless.com ([#2150](https://github.com/openai/openai-python/issues/2150)) ([dee4298](https://github.com/openai/openai-python/commit/dee42986eff46dd23ba25b3e2a5bb7357aca39d9))
+
+## 1.65.0 (2025-02-27)
+
+Full Changelog: [v1.64.0...v1.65.0](https://github.com/openai/openai-python/compare/v1.64.0...v1.65.0)
+
+### Features
+
+* **api:** add gpt-4.5-preview ([#2149](https://github.com/openai/openai-python/issues/2149)) ([4cee52e](https://github.com/openai/openai-python/commit/4cee52e8d191b0532f28d86446da79b43a58b907))
+
+
+### Chores
+
+* **internal:** properly set __pydantic_private__ ([#2144](https://github.com/openai/openai-python/issues/2144)) ([2b1bd16](https://github.com/openai/openai-python/commit/2b1bd1604a038ded67367742a0b1c9d92e29dfc8))
+
 ## 1.64.0 (2025-02-22)
 
 Full Changelog: [v1.63.2...v1.64.0](https://github.com/openai/openai-python/compare/v1.63.2...v1.64.0)
