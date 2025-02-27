@@ -79,7 +79,9 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         ):
             merge_url = httpx.URL(url)
             if merge_url.is_relative_url and self._azure_endpoint:
-                merge_raw_path = self._azure_endpoint.raw_path.rstrip(b"/") + b"/openai/" + merge_url.raw_path.lstrip(b"/")
+                merge_raw_path = (
+                    self._azure_endpoint.raw_path.rstrip(b"/") + b"/openai/" + merge_url.raw_path.lstrip(b"/")
+                )
                 return self._azure_endpoint.copy_with(raw_path=merge_raw_path)
 
             return merge_url
@@ -354,7 +356,6 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         url = base_url.copy_with(params={**query})
         return url, auth_headers
-
 
 
 class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], AsyncOpenAI):
