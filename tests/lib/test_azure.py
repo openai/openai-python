@@ -780,3 +780,25 @@ def test_client_sets_base_url(client: Client) -> None:
         )
     )
     assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+
+    # (not recommended) user sets base_url to remove deployment
+    client.base_url = "https://example-resource.azure.openai.com/openai/"
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/chat/completions",
+            json_data={"model": "deployment"},
+        )
+    )
+    assert (
+        req.url
+        == "https://example-resource.azure.openai.com/openai/deployments/deployment/chat/completions?api-version=2024-02-01"
+    )
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/models",
+            json_data={},
+        )
+    )
+    assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
