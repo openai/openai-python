@@ -34,6 +34,20 @@ class Tool(BaseModel):
 
 
 class TurnDetection(BaseModel):
+    create_response: Optional[bool] = None
+    """Whether or not to automatically generate a response when a VAD stop event
+    occurs.
+
+    `true` by default.
+    """
+
+    interrupt_response: Optional[bool] = None
+    """
+    Whether or not to automatically interrupt any ongoing response with output to
+    the default conversation (i.e. `conversation` of `auto`) when a VAD start event
+    occurs. `true` by default.
+    """
+
     prefix_padding_ms: Optional[int] = None
     """Amount of audio to include before the VAD detected speech (in milliseconds).
 
