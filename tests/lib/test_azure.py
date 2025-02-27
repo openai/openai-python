@@ -647,6 +647,18 @@ def test_prepare_url_nondeployment_endpoint(
             {"model": "deployment-body"},
             "wss://example.azure-api.net/PTU/realtime?api-version=2024-02-01&deployment=deployment-body",
         ),
+        # AzureOpenAI: websocket_base_url specified
+        (
+            AzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                websocket_base_url="wss://example-resource.azure.openai.com/base",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/base/realtime?api-version=2024-02-01&deployment=deployment-body",
+        ),
     ],
 )
 def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, json_data: dict[str, str], expected: str) -> None:
@@ -715,6 +727,18 @@ def test_prepare_url_realtime(client: AzureOpenAI, base_url: str, json_data: dic
             "https://example.azure-api.net/PTU/",
             {"model": "deployment-body"},
             "wss://example.azure-api.net/PTU/realtime?api-version=2024-02-01&deployment=deployment-body",
+        ),
+        # AsyncAzureOpenAI: websocket_base_url specified
+        (
+            AsyncAzureOpenAI(
+                api_version="2024-02-01",
+                api_key="example API key",
+                azure_endpoint="https://example-resource.azure.openai.com",
+                websocket_base_url="wss://example-resource.azure.openai.com/base",
+            ),
+            "https://example-resource.azure.openai.com/openai/",
+            {"model": "deployment-body"},
+            "wss://example-resource.azure.openai.com/base/realtime?api-version=2024-02-01&deployment=deployment-body",
         ),
     ],
 )
