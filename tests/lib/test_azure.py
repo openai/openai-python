@@ -724,3 +724,35 @@ async def test_prepare_url_realtime_async(
     url, _ = await client._configure_realtime(json_data["model"], {})
     assert str(url) == expected
     assert client.base_url == base_url
+
+
+def test_client_sets_base_url(client: Client) -> None:
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key="example API key",
+        azure_endpoint="https://example-resource.azure.openai.com",
+        azure_deployment="my-deployment",
+    )
+    assert client.base_url == "https://example-resource.azure.openai.com/openai/deployments/my-deployment/"
+
+    # (not recommended) user sets base_url to target different deployment
+    client.base_url = "https://example-resource.azure.openai.com/openai/deployments/different-deployment/"
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/chat/completions",
+            json_data={"model": "placeholder"},
+        )
+    )
+    assert (
+        req.url
+        == "https://example-resource.azure.openai.com/openai/deployments/different-deployment/chat/completions?api-version=2024-02-01"
+    )
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/models",
+            json_data={},
+        )
+    )
+    assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"

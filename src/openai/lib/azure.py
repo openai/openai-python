@@ -72,13 +72,9 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         and the API feature being called is **not** a deployments-based endpoint
         (i.e. requires /deployments/deployment-name in the URL path).
         """
-        if (
-            self._azure_deployment
-            and f"/deployments/{self._azure_deployment}" in str(self.base_url.path)
-            and url not in _deployments_endpoints
-        ):
+        if self._azure_deployment and self._azure_endpoint and url not in _deployments_endpoints:
             merge_url = httpx.URL(url)
-            if merge_url.is_relative_url and self._azure_endpoint:
+            if merge_url.is_relative_url:
                 merge_raw_path = (
                     self._azure_endpoint.raw_path.rstrip(b"/") + b"/openai/" + merge_url.raw_path.lstrip(b"/")
                 )
