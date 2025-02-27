@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.65.1 (2025-02-27)
+
+Full Changelog: [v1.65.0...v1.65.1](https://github.com/openai/openai-python/compare/v1.65.0...v1.65.1)
+
+### Documentation
+
+* update URLs from stainlessapi.com to stainless.com ([#2150](https://github.com/openai/openai-python/issues/2150)) ([dee4298](https://github.com/openai/openai-python/commit/dee42986eff46dd23ba25b3e2a5bb7357aca39d9))
+
 ## 1.65.0 (2025-02-27)
 
 Full Changelog: [v1.64.0...v1.65.0](https://github.com/openai/openai-python/compare/v1.64.0...v1.65.0)
