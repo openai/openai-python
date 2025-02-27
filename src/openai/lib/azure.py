@@ -68,9 +68,9 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
 
     @override
     def _prepare_url(self, url: str) -> httpx.URL:
-        """Adjust the URL if the client was configured with an Azure deployment
+        """Adjust the URL if the client was configured with an Azure endpoint + deployment
         and the API feature being called is **not** a deployments-based endpoint
-        (aka requires /deployments/deployment-name in the URL path).
+        (i.e. requires /deployments/deployment-name in the URL path).
         """
         if (
             self._azure_deployment
