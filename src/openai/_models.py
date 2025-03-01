@@ -652,7 +652,7 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
                 # Note: if one variant defines an alias then they all should
                 discriminator_alias = field_info.alias
 
-                if field_info.annotation and is_literal_type(field_info.annotation):
+                if hasattr(field_info, 'annotation') and is_literal_type(field_info.annotation):
                     for entry in get_args(field_info.annotation):
                         if isinstance(entry, str):
                             mapping[entry] = variant
