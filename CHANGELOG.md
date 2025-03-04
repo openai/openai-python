@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.65.3 (2025-03-04)
+
+Full Changelog: [v1.65.2...v1.65.3](https://github.com/openai/openai-python/compare/v1.65.2...v1.65.3)
+
+### Chores
+
+* **internal:** remove unused http client options forwarding ([#2158](https://github.com/openai/openai-python/issues/2158)) ([76ec464](https://github.com/openai/openai-python/commit/76ec464cfe3db3fa59a766259d6d6ee5bb889f86))
+* **internal:** run example files in CI ([#2160](https://github.com/openai/openai-python/issues/2160)) ([9979345](https://github.com/openai/openai-python/commit/9979345038594440eec2f500c0c7cc5417cc7c08))
+
 ## 1.65.2 (2025-03-01)
 
 Full Changelog: [v1.65.1...v1.65.2](https://github.com/openai/openai-python/compare/v1.65.1...v1.65.2)
