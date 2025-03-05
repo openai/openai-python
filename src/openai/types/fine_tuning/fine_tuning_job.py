@@ -4,6 +4,7 @@ from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from ..shared.metadata import Metadata
 from .fine_tuning_job_wandb_integration_object import FineTuningJobWandbIntegrationObject
 
 __all__ = [
@@ -207,6 +208,16 @@ class FineTuningJob(BaseModel):
 
     integrations: Optional[List[FineTuningJobWandbIntegrationObject]] = None
     """A list of integrations to enable for this fine-tuning job."""
+
+    metadata: Optional[Metadata] = None
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """
 
     method: Optional[Method] = None
     """The method used for fine-tuning."""
