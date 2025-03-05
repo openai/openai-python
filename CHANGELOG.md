@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.65.4 (2025-03-05)
+
+Full Changelog: [v1.65.3...v1.65.4](https://github.com/openai/openai-python/compare/v1.65.3...v1.65.4)
+
+### Bug Fixes
+
+* **api:** add missing file rank enum + more metadata ([#2164](https://github.com/openai/openai-python/issues/2164)) ([0387e48](https://github.com/openai/openai-python/commit/0387e48e0880e496eb74b60eec9ed76a3171f14d))
+
 ## 1.65.3 (2025-03-04)
 
 Full Changelog: [v1.65.2...v1.65.3](https://github.com/openai/openai-python/compare/v1.65.2...v1.65.3)

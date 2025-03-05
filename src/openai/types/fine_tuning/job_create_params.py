@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from ..shared_params.metadata import Metadata
+
 __all__ = [
     "JobCreateParams",
     "Hyperparameters",
@@ -54,6 +56,16 @@ class JobCreateParams(TypedDict, total=False):
 
     integrations: Optional[Iterable[Integration]]
     """A list of integrations to enable for your fine-tuning job."""
+
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """
 
     method: Method
     """The method used for fine-tuning."""
