@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Dict, Optional
 from typing_extensions import TypedDict
 
 __all__ = ["JobListParams"]
@@ -13,3 +14,10 @@ class JobListParams(TypedDict, total=False):
 
     limit: int
     """Number of fine-tuning jobs to retrieve."""
+
+    metadata: Optional[Dict[str, str]]
+    """Optional metadata filter.
+
+    To filter, use the syntax `metadata[k]=v`. Alternatively, set `metadata=null` to
+    indicate no metadata.
+    """
