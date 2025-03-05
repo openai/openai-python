@@ -43,3 +43,6 @@ from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObje
 from .assistant_response_format_option_param import (
     AssistantResponseFormatOptionParam as AssistantResponseFormatOptionParam,
 )
+from .static_file_chunking_strategy_object_param import (
+    StaticFileChunkingStrategyObjectParam as StaticFileChunkingStrategyObjectParam,
+)

@@ -47,15 +47,16 @@ class TestRuns:
                             "tools": [{"type": "code_interpreter"}],
                         }
                     ],
-                    "metadata": {},
+                    "metadata": {"foo": "string"},
                 }
             ],
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
+            reasoning_effort="low",
             response_format="auto",
             stream=False,
             temperature=1,
@@ -130,15 +131,16 @@ class TestRuns:
                             "tools": [{"type": "code_interpreter"}],
                         }
                     ],
-                    "metadata": {},
+                    "metadata": {"foo": "string"},
                 }
             ],
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_choice="none",
@@ -246,9 +248,9 @@ class TestRuns:
     @parametrize
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         run = client.beta.threads.runs.update(
-            "string",
-            thread_id="string",
-            metadata={},
+            run_id="run_id",
+            thread_id="thread_id",
+            metadata={"foo": "string"},
         )
         assert_matches_type(Run, run, path=["response"])
 
@@ -543,15 +545,16 @@ class TestAsyncRuns:
                             "tools": [{"type": "code_interpreter"}],
                         }
                     ],
-                    "metadata": {},
+                    "metadata": {"foo": "string"},
                 }
             ],
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
+            reasoning_effort="low",
             response_format="auto",
             stream=False,
             temperature=1,
@@ -626,15 +629,16 @@ class TestAsyncRuns:
                             "tools": [{"type": "code_interpreter"}],
                         }
                     ],
-                    "metadata": {},
+                    "metadata": {"foo": "string"},
                 }
             ],
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_choice="none",
@@ -742,9 +746,9 @@ class TestAsyncRuns:
     @parametrize
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         run = await async_client.beta.threads.runs.update(
-            "string",
-            thread_id="string",
-            metadata={},
+            run_id="run_id",
+            thread_id="thread_id",
+            metadata={"foo": "string"},
         )
         assert_matches_type(Run, run, path=["response"])
 

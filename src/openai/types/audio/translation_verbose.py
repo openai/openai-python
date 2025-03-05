@@ -9,7 +9,7 @@ __all__ = ["TranslationVerbose"]
 
 
 class TranslationVerbose(BaseModel):
-    duration: str
+    duration: float
     """The duration of the input audio."""
 
     language: str

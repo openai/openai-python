@@ -39,10 +39,10 @@ class TestThreads:
                             "tools": [{"type": "code_interpreter"}],
                         }
                     ],
-                    "metadata": {},
+                    "metadata": {"foo": "string"},
                 }
             ],
-            metadata={},
+            metadata={"foo": "string"},
             tool_resources={
                 "code_interpreter": {"file_ids": ["string"]},
                 "file_search": {
@@ -51,7 +51,7 @@ class TestThreads:
                         {
                             "chunking_strategy": {"type": "auto"},
                             "file_ids": ["string"],
-                            "metadata": {},
+                            "metadata": {"foo": "string"},
                         }
                     ],
                 },
@@ -127,8 +127,8 @@ class TestThreads:
     @parametrize
     def test_method_update_with_all_params(self, client: OpenAI) -> None:
         thread = client.beta.threads.update(
-            "string",
-            metadata={},
+            thread_id="thread_id",
+            metadata={"foo": "string"},
             tool_resources={
                 "code_interpreter": {"file_ids": ["string"]},
                 "file_search": {"vector_store_ids": ["string"]},
@@ -219,7 +219,7 @@ class TestThreads:
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
             response_format="auto",
@@ -236,10 +236,10 @@ class TestThreads:
                                 "tools": [{"type": "code_interpreter"}],
                             }
                         ],
-                        "metadata": {},
+                        "metadata": {"foo": "string"},
                     }
                 ],
-                "metadata": {},
+                "metadata": {"foo": "string"},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string"]},
                     "file_search": {
@@ -248,7 +248,7 @@ class TestThreads:
                             {
                                 "chunking_strategy": {"type": "auto"},
                                 "file_ids": ["string"],
-                                "metadata": {},
+                                "metadata": {"foo": "string"},
                             }
                         ],
                     },
@@ -308,7 +308,7 @@ class TestThreads:
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
             response_format="auto",
@@ -324,10 +324,10 @@ class TestThreads:
                                 "tools": [{"type": "code_interpreter"}],
                             }
                         ],
-                        "metadata": {},
+                        "metadata": {"foo": "string"},
                     }
                 ],
-                "metadata": {},
+                "metadata": {"foo": "string"},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string"]},
                     "file_search": {
@@ -336,7 +336,7 @@ class TestThreads:
                             {
                                 "chunking_strategy": {"type": "auto"},
                                 "file_ids": ["string"],
-                                "metadata": {},
+                                "metadata": {"foo": "string"},
                             }
                         ],
                     },
@@ -403,10 +403,10 @@ class TestAsyncThreads:
                             "tools": [{"type": "code_interpreter"}],
                         }
                     ],
-                    "metadata": {},
+                    "metadata": {"foo": "string"},
                 }
             ],
-            metadata={},
+            metadata={"foo": "string"},
             tool_resources={
                 "code_interpreter": {"file_ids": ["string"]},
                 "file_search": {
@@ -415,7 +415,7 @@ class TestAsyncThreads:
                         {
                             "chunking_strategy": {"type": "auto"},
                             "file_ids": ["string"],
-                            "metadata": {},
+                            "metadata": {"foo": "string"},
                         }
                     ],
                 },
@@ -491,8 +491,8 @@ class TestAsyncThreads:
     @parametrize
     async def test_method_update_with_all_params(self, async_client: AsyncOpenAI) -> None:
         thread = await async_client.beta.threads.update(
-            "string",
-            metadata={},
+            thread_id="thread_id",
+            metadata={"foo": "string"},
             tool_resources={
                 "code_interpreter": {"file_ids": ["string"]},
                 "file_search": {"vector_store_ids": ["string"]},
@@ -583,7 +583,7 @@ class TestAsyncThreads:
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
             response_format="auto",
@@ -600,10 +600,10 @@ class TestAsyncThreads:
                                 "tools": [{"type": "code_interpreter"}],
                             }
                         ],
-                        "metadata": {},
+                        "metadata": {"foo": "string"},
                     }
                 ],
-                "metadata": {},
+                "metadata": {"foo": "string"},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string"]},
                     "file_search": {
@@ -612,7 +612,7 @@ class TestAsyncThreads:
                             {
                                 "chunking_strategy": {"type": "auto"},
                                 "file_ids": ["string"],
-                                "metadata": {},
+                                "metadata": {"foo": "string"},
                             }
                         ],
                     },
@@ -672,7 +672,7 @@ class TestAsyncThreads:
             instructions="string",
             max_completion_tokens=256,
             max_prompt_tokens=256,
-            metadata={},
+            metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
             response_format="auto",
@@ -688,10 +688,10 @@ class TestAsyncThreads:
                                 "tools": [{"type": "code_interpreter"}],
                             }
                         ],
-                        "metadata": {},
+                        "metadata": {"foo": "string"},
                     }
                 ],
-                "metadata": {},
+                "metadata": {"foo": "string"},
                 "tool_resources": {
                     "code_interpreter": {"file_ids": ["string"]},
                     "file_search": {
@@ -700,7 +700,7 @@ class TestAsyncThreads:
                             {
                                 "chunking_strategy": {"type": "auto"},
                                 "file_ids": ["string"],
-                                "metadata": {},
+                                "metadata": {"foo": "string"},
                             }
                         ],
                     },

@@ -47,7 +47,7 @@ def format_str(
         with _collect_error(match):
             code = format_code_block(code)
         code = textwrap.indent(code, match["indent"])
-        return f'{match["before"]}{code}{match["after"]}'
+        return f"{match['before']}{code}{match['after']}"
 
     def _pycon_match(match: Match[str]) -> str:
         code = ""
@@ -97,7 +97,7 @@ def format_str(
     def _md_pycon_match(match: Match[str]) -> str:
         code = _pycon_match(match)
         code = textwrap.indent(code, match["indent"])
-        return f'{match["before"]}{code}{match["after"]}'
+        return f"{match['before']}{code}{match['after']}"
 
     src = MD_RE.sub(_md_match, src)
     src = MD_PYCON_RE.sub(_md_pycon_match, src)

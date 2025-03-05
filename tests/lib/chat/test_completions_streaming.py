@@ -13,12 +13,14 @@ from inline_snapshot import external, snapshot, outsource
 
 import openai
 from openai import OpenAI, AsyncOpenAI
-from openai._utils import assert_signatures_in_sync
+from openai._utils import consume_sync_iterator, assert_signatures_in_sync
 from openai._compat import model_copy
+from openai.types.chat import ChatCompletionChunk
 from openai.lib.streaming.chat import (
     ContentDoneEvent,
     ChatCompletionStream,
     ChatCompletionStreamEvent,
+    ChatCompletionStreamState,
     ChatCompletionStreamManager,
     ParsedChatCompletionSnapshot,
 )
@@ -68,7 +70,7 @@ recommend checking a reliable weather website or a weather app.",
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -145,7 +147,7 @@ ParsedChatCompletion[Location](
                 parsed=Location(city='San Francisco', temperature=61.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -322,7 +324,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=65.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -336,7 +338,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=61.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -350,7 +352,7 @@ def test_parse_pydantic_model_multiple_choices(
             parsed=Location(city='San Francisco', temperature=59.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -425,7 +427,7 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
             parsed=None,
             refusal="I'm sorry, I can't assist with that request.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -499,7 +501,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -610,7 +612,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             parsed=None,
             refusal="I'm very sorry, but I can't assist with that.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -923,7 +925,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -990,6 +992,55 @@ FunctionToolCallArgumentsDoneEvent(
                     type='function'
                 )
             ]
+        )
+    )
+]
+"""
+    )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_chat_completion_state_helper(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+    state = ChatCompletionStreamState()
+
+    def streamer(client: OpenAI) -> Iterator[ChatCompletionChunk]:
+        stream = client.chat.completions.create(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "What's the weather like in SF?",
+                },
+            ],
+            stream=True,
+        )
+        for chunk in stream:
+            state.handle_chunk(chunk)
+            yield chunk
+
+    _make_raw_stream_snapshot_request(
+        streamer,
+        content_snapshot=snapshot(external("e2aad469b71d*.bin")),
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    assert print_obj(state.get_final_completion().choices, monkeypatch) == snapshot(
+        """\
+[
+    ParsedChoice[NoneType](
+        finish_reason='stop',
+        index=0,
+        logprobs=None,
+        message=ParsedChatCompletionMessage[NoneType](
+            audio=None,
+            content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I 
+recommend checking a reliable weather website or a weather app.",
+            function_call=None,
+            parsed=None,
+            refusal=None,
+            role='assistant',
+            tool_calls=None
         )
     )
 ]
@@ -1075,3 +1126,44 @@ def _make_stream_snapshot_request(
         client.close()
 
     return listener
+
+
+def _make_raw_stream_snapshot_request(
+    func: Callable[[OpenAI], Iterator[ChatCompletionChunk]],
+    *,
+    content_snapshot: Any,
+    respx_mock: MockRouter,
+    mock_client: OpenAI,
+) -> None:
+    live = os.environ.get("OPENAI_LIVE") == "1"
+    if live:
+
+        def _on_response(response: httpx.Response) -> None:
+            # update the content snapshot
+            assert outsource(response.read()) == content_snapshot
+
+        respx_mock.stop()
+
+        client = OpenAI(
+            http_client=httpx.Client(
+                event_hooks={
+                    "response": [_on_response],
+                }
+            )
+        )
+    else:
+        respx_mock.post("/chat/completions").mock(
+            return_value=httpx.Response(
+                200,
+                content=content_snapshot._old_value._load_value(),
+                headers={"content-type": "text/event-stream"},
+            )
+        )
+
+        client = mock_client
+
+    stream = func(client)
+    consume_sync_iterator(stream)
+
+    if live:
+        client.close()

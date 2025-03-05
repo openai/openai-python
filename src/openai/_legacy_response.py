@@ -24,7 +24,7 @@ import httpx
 import pydantic
 
 from ._types import NoneType
-from ._utils import is_given, extract_type_arg, is_annotated_type
+from ._utils import is_given, extract_type_arg, is_annotated_type, is_type_alias_type
 from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
@@ -195,9 +195,17 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.elapsed
 
     def _parse(self, *, to: type[_T] | None = None) -> R | _T:
+        cast_to = to if to is not None else self._cast_to
+
+        # unwrap `TypeAlias('Name', T)` -> `T`
+        if is_type_alias_type(cast_to):
+            cast_to = cast_to.__value__  # type: ignore[unreachable]
+
         # unwrap `Annotated[T, ...]` -> `T`
-        if to and is_annotated_type(to):
-            to = extract_type_arg(to, 0)
+        if cast_to and is_annotated_type(cast_to):
+            cast_to = extract_type_arg(cast_to, 0)
+
+        origin = get_origin(cast_to) or cast_to
 
         if self._stream:
             if to:
@@ -233,17 +241,11 @@ class LegacyAPIResponse(Generic[R]):
             return cast(
                 R,
                 stream_cls(
-                    cast_to=self._cast_to,
+                    cast_to=cast_to,
                     response=self.http_response,
                     client=cast(Any, self._client),
                 ),
             )
-
-        cast_to = to if to is not None else self._cast_to
-
-        # unwrap `Annotated[T, ...]` -> `T`
-        if is_annotated_type(cast_to):
-            cast_to = extract_type_arg(cast_to, 0)
 
         if cast_to is NoneType:
             return cast(R, None)
@@ -261,15 +263,15 @@ class LegacyAPIResponse(Generic[R]):
         if cast_to == bool:
             return cast(R, response.text.lower() == "true")
 
-        origin = get_origin(cast_to) or cast_to
-
         if inspect.isclass(origin) and issubclass(origin, HttpxBinaryResponseContent):
             return cast(R, cast_to(response))  # type: ignore
 
         if origin == LegacyAPIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
 
-        if inspect.isclass(origin) and issubclass(origin, httpx.Response):
+        if inspect.isclass(
+            origin  # pyright: ignore[reportUnknownArgumentType]
+        ) and issubclass(origin, httpx.Response):
             # Because of the invariance of our ResponseT TypeVar, users can subclass httpx.Response
             # and pass that class to our request functions. We cannot change the variance to be either
             # covariant or contravariant as that makes our usage of ResponseT illegal. We could construct
@@ -279,7 +281,13 @@ class LegacyAPIResponse(Generic[R]):
                 raise ValueError(f"Subclasses of httpx.Response cannot be passed to `cast_to`")
             return cast(R, response)
 
-        if inspect.isclass(origin) and not issubclass(origin, BaseModel) and issubclass(origin, pydantic.BaseModel):
+        if (
+            inspect.isclass(
+                origin  # pyright: ignore[reportUnknownArgumentType]
+            )
+            and not issubclass(origin, BaseModel)
+            and issubclass(origin, pydantic.BaseModel)
+        ):
             raise TypeError("Pydantic models must subclass our base model type, e.g. `from openai import BaseModel`")
 
         if (

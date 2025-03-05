@@ -5,6 +5,7 @@ from openai.types import (
     ErrorObject,
     FunctionDefinition,
     FunctionParameters,
+    Metadata,
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,
@@ -47,6 +48,8 @@ from openai.types.chat import (
     ChatCompletionContentPartInputAudio,
     ChatCompletionContentPartRefusal,
     ChatCompletionContentPartText,
+    ChatCompletionDeleted,
+    ChatCompletionDeveloperMessageParam,
     ChatCompletionFunctionCallOption,
     ChatCompletionFunctionMessageParam,
     ChatCompletionMessage,
@@ -55,7 +58,9 @@ from openai.types.chat import (
     ChatCompletionModality,
     ChatCompletionNamedToolChoice,
     ChatCompletionPredictionContent,
+    ChatCompletionReasoningEffort,
     ChatCompletionRole,
+    ChatCompletionStoreMessage,
     ChatCompletionStreamOptions,
     ChatCompletionSystemMessageParam,
     ChatCompletionTokenLogprob,
@@ -68,7 +73,17 @@ from openai.types.chat import (
 
 Methods:
 
-- <code title="post /chat/completions">client.chat.completions.<a href="./src/openai/resources/chat/completions.py">create</a>(\*\*<a href="src/openai/types/chat/completion_create_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="post /chat/completions">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">create</a>(\*\*<a href="src/openai/types/chat/completion_create_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="get /chat/completions/{completion_id}">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">retrieve</a>(completion_id) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="post /chat/completions/{completion_id}">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">update</a>(completion_id, \*\*<a href="src/openai/types/chat/completion_update_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="get /chat/completions">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">list</a>(\*\*<a href="src/openai/types/chat/completion_list_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">SyncCursorPage[ChatCompletion]</a></code>
+- <code title="delete /chat/completions/{completion_id}">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">delete</a>(completion_id) -> <a href="./src/openai/types/chat/chat_completion_deleted.py">ChatCompletionDeleted</a></code>
+
+### Messages
+
+Methods:
+
+- <code title="get /chat/completions/{completion_id}/messages">client.chat.completions.messages.<a href="./src/openai/resources/chat/completions/messages.py">list</a>(completion_id, \*\*<a href="src/openai/types/chat/completions/message_list_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion_store_message.py">SyncCursorPage[ChatCompletionStoreMessage]</a></code>
 
 # Embeddings
 
@@ -97,7 +112,7 @@ Methods:
 - <code title="get /files">client.files.<a href="./src/openai/resources/files.py">list</a>(\*\*<a href="src/openai/types/file_list_params.py">params</a>) -> <a href="./src/openai/types/file_object.py">SyncCursorPage[FileObject]</a></code>
 - <code title="delete /files/{file_id}">client.files.<a href="./src/openai/resources/files.py">delete</a>(file_id) -> <a href="./src/openai/types/file_deleted.py">FileDeleted</a></code>
 - <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">content</a>(file_id) -> HttpxBinaryResponseContent</code>
-- <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">retrieve_content</a>(file_id) -> str</code>
+- <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">retrieve_content</a>(file_id) -> <a href="./src/openai/types/file_content.py">str</a></code>
 - <code>client.files.<a href="./src/openai/resources/files.py">wait_for_processing</a>(\*args) -> FileObject</code>
 
 # Images
@@ -235,6 +250,72 @@ Methods:
 
 # Beta
 
+## Realtime
+
+Types:
+
+```python
+from openai.types.beta.realtime import (
+    ConversationCreatedEvent,
+    ConversationItem,
+    ConversationItemContent,
+    ConversationItemCreateEvent,
+    ConversationItemCreatedEvent,
+    ConversationItemDeleteEvent,
+    ConversationItemDeletedEvent,
+    ConversationItemInputAudioTranscriptionCompletedEvent,
+    ConversationItemInputAudioTranscriptionFailedEvent,
+    ConversationItemTruncateEvent,
+    ConversationItemTruncatedEvent,
+    ConversationItemWithReference,
+    ErrorEvent,
+    InputAudioBufferAppendEvent,
+    InputAudioBufferClearEvent,
+    InputAudioBufferClearedEvent,
+    InputAudioBufferCommitEvent,
+    InputAudioBufferCommittedEvent,
+    InputAudioBufferSpeechStartedEvent,
+    InputAudioBufferSpeechStoppedEvent,
+    RateLimitsUpdatedEvent,
+    RealtimeClientEvent,
+    RealtimeResponse,
+    RealtimeResponseStatus,
+    RealtimeResponseUsage,
+    RealtimeServerEvent,
+    ResponseAudioDeltaEvent,
+    ResponseAudioDoneEvent,
+    ResponseAudioTranscriptDeltaEvent,
+    ResponseAudioTranscriptDoneEvent,
+    ResponseCancelEvent,
+    ResponseContentPartAddedEvent,
+    ResponseContentPartDoneEvent,
+    ResponseCreateEvent,
+    ResponseCreatedEvent,
+    ResponseDoneEvent,
+    ResponseFunctionCallArgumentsDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent,
+    ResponseOutputItemAddedEvent,
+    ResponseOutputItemDoneEvent,
+    ResponseTextDeltaEvent,
+    ResponseTextDoneEvent,
+    SessionCreatedEvent,
+    SessionUpdateEvent,
+    SessionUpdatedEvent,
+)
+```
+
+### Sessions
+
+Types:
+
+```python
+from openai.types.beta.realtime import Session, SessionCreateResponse
+```
+
+Methods:
+
+- <code title="post /realtime/sessions">client.beta.realtime.sessions.<a href="./src/openai/resources/beta/realtime/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/realtime/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/realtime/session_create_response.py">SessionCreateResponse</a></code>
+
 ## VectorStores
 
 Types:
@@ -247,7 +328,7 @@ from openai.types.beta import (
     OtherFileChunkingStrategyObject,
     StaticFileChunkingStrategy,
     StaticFileChunkingStrategyObject,
-    StaticFileChunkingStrategyParam,
+    StaticFileChunkingStrategyObjectParam,
     VectorStore,
     VectorStoreDeleted,
 )

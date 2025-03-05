@@ -8,6 +8,7 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
+    environment: publish
 
     steps:
       - uses: actions/checkout@v4

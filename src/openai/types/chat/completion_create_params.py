@@ -6,10 +6,12 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..chat_model import ChatModel
+from ..shared_params.metadata import Metadata
 from .chat_completion_modality import ChatCompletionModality
 from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_audio_param import ChatCompletionAudioParam
 from .chat_completion_message_param import ChatCompletionMessageParam
+from .chat_completion_reasoning_effort import ChatCompletionReasoningEffort
 from ..shared_params.function_parameters import FunctionParameters
 from ..shared_params.response_format_text import ResponseFormatText
 from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
@@ -60,18 +62,20 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     Positive values penalize new tokens based on their existing frequency in the
     text so far, decreasing the model's likelihood to repeat the same line verbatim.
-
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
     """
 
     function_call: FunctionCall
     """Deprecated in favor of `tool_choice`.
 
-    Controls which (if any) function is called by the model. `none` means the model
-    will not call a function and instead generates a message. `auto` means the model
-    can pick between generating a message or calling a function. Specifying a
-    particular function via `{"name": "my_function"}` forces the model to call that
+    Controls which (if any) function is called by the model.
+
+    `none` means the model will not call a function and instead generates a message.
+
+    `auto` means the model can pick between generating a message or calling a
     function.
+
+    Specifying a particular function via `{"name": "my_function"}` forces the model
+    to call that function.
 
     `none` is the default when no functions are present. `auto` is the default if
     functions are present.
@@ -119,10 +123,14 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     [o1 series models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    metadata: Optional[Dict[str, str]]
-    """
-    Developer-defined tags and values used for filtering completions in the
-    [dashboard](https://platform.openai.com/chat-completions).
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     modalities: Optional[List[ChatCompletionModality]]
@@ -164,17 +172,19 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     Positive values penalize new tokens based on whether they appear in the text so
     far, increasing the model's likelihood to talk about new topics.
+    """
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
+    reasoning_effort: Optional[ChatCompletionReasoningEffort]
+    """**o1 and o3-mini models only**
+
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+    result in faster responses and fewer tokens used on reasoning in a response.
     """
 
     response_format: ResponseFormat
     """An object specifying the format that the model must output.
-
-    Compatible with [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
-    [GPT-4o mini](https://platform.openai.com/docs/models#gpt-4o-mini),
-    [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4) and
-    all GPT-3.5 Turbo models newer than `gpt-3.5-turbo-1106`.
 
     Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
     Outputs which ensures the model will match your supplied JSON schema. Learn more
@@ -211,13 +221,10 @@ class CompletionCreateParamsBase(TypedDict, total=False):
       utilize scale tier credits until they are exhausted.
     - If set to 'auto', and the Project is not Scale tier enabled, the request will
       be processed using the default service tier with a lower uptime SLA and no
-      latency guarentee.
+      latency guarantee.
     - If set to 'default', the request will be processed using the default service
-      tier with a lower uptime SLA and no latency guarentee.
+      tier with a lower uptime SLA and no latency guarantee.
     - When not set, the default behavior is 'auto'.
-
-    When this parameter is set, the response body will include the `service_tier`
-    utilized.
     """
 
     stop: Union[Optional[str], List[str]]
@@ -237,9 +244,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """What sampling temperature to use, between 0 and 2.
 
     Higher values like 0.8 will make the output more random, while lower values like
-    0.2 will make it more focused and deterministic.
-
-    We generally recommend altering this or `top_p` but not both.
+    0.2 will make it more focused and deterministic. We generally recommend altering
+    this or `top_p` but not both.
     """
 
     tool_choice: ChatCompletionToolChoiceOptionParam

@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from .shared_params.metadata import Metadata
 
 __all__ = ["BatchCreateParams"]
 
@@ -32,8 +34,15 @@ class BatchCreateParams(TypedDict, total=False):
     Your input file must be formatted as a
     [JSONL file](https://platform.openai.com/docs/api-reference/batch/request-input),
     and must be uploaded with the purpose `batch`. The file can contain up to 50,000
-    requests, and can be up to 100 MB in size.
+    requests, and can be up to 200 MB in size.
     """
 
-    metadata: Optional[Dict[str, str]]
-    """Optional custom metadata for the batch."""
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """

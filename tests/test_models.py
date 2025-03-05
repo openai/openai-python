@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict, List, Union, Optional, cast
 from datetime import datetime, timezone
-from typing_extensions import Literal, Annotated
+from typing_extensions import Literal, Annotated, TypeAliasType
 
 import pytest
 import pydantic
@@ -561,6 +561,14 @@ def test_forwards_compat_model_dump_method() -> None:
             m.model_dump(warnings=False)
 
 
+def test_compat_method_no_error_for_warnings() -> None:
+    class Model(BaseModel):
+        foo: Optional[str]
+
+    m = Model(foo="hello")
+    assert isinstance(model_dump(m, warnings=False), dict)
+
+
 def test_to_json() -> None:
     class Model(BaseModel):
         foo: Optional[str] = Field(alias="FOO", default=None)
@@ -820,3 +828,29 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
     # if the discriminator details object stays the same between invocations then
     # we hit the cache
     assert UnionType.__discriminator__ is discriminator
+
+
+@pytest.mark.skipif(not PYDANTIC_V2, reason="TypeAliasType is not supported in Pydantic v1")
+def test_type_alias_type() -> None:
+    Alias = TypeAliasType("Alias", str)
+
+    class Model(BaseModel):
+        alias: Alias
+        union: Union[int, Alias]
+
+    m = construct_type(value={"alias": "foo", "union": "bar"}, type_=Model)
+    assert isinstance(m, Model)
+    assert isinstance(m.alias, str)
+    assert m.alias == "foo"
+    assert isinstance(m.union, str)
+    assert m.union == "bar"
+
+
+@pytest.mark.skipif(not PYDANTIC_V2, reason="TypeAliasType is not supported in Pydantic v1")
+def test_field_named_cls() -> None:
+    class Model(BaseModel):
+        cls: str
+
+    m = construct_type(value={"cls": "foo"}, type_=Model)
+    assert isinstance(m, Model)
+    assert isinstance(m.cls, str)

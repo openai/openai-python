@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable, Optional
-from typing_extensions import Required, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
 from ..chat_model import ChatModel
 from .assistant_tool_param import AssistantToolParam
+from ..shared_params.metadata import Metadata
 from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
@@ -39,16 +40,27 @@ class AssistantCreateParams(TypedDict, total=False):
     The maximum length is 256,000 characters.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
+
+    reasoning_effort: Optional[Literal["low", "medium", "high"]]
+    """**o1 and o3-mini models only**
+
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+    result in faster responses and fewer tokens used on reasoning in a response.
+    """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.
@@ -130,12 +142,14 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
     store.
     """
 
-    metadata: object
-    """Set of 16 key-value pairs that can be attached to a vector store.
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
 
-    This can be useful for storing additional information about the vector store in
-    a structured format. Keys can be a maximum of 64 characters long and values can
-    be a maximum of 512 characters long.
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
 

@@ -41,7 +41,7 @@ class Files(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -86,7 +86,7 @@ class Files(SyncAPIResource):
         [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
         models.
 
-        The Batch API only supports `.jsonl` files up to 100 MB in size. The input also
+        The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
         has a specific required
         [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
@@ -357,7 +357,7 @@ class AsyncFiles(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -402,7 +402,7 @@ class AsyncFiles(AsyncAPIResource):
         [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
         models.
 
-        The Batch API only supports `.jsonl` files up to 100 MB in size. The input also
+        The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
         has a specific required
         [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 

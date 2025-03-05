@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.54.5"
+version = "1.65.3"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -14,7 +14,6 @@ dependencies = [
     "anyio>=3.5.0, <5",
     "distro>=1.7.0, <2",
     "sniffio",
-    "cached-property; python_version < '3.8'",
     "tqdm > 4",
     "jiter>=0.4.0, <1",
 ]
@@ -36,15 +35,16 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License"
 ]
 
-[project.optional-dependencies]
-datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
-
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
 
 [project.scripts]
 openai = "openai.cli:main"
+
+[project.optional-dependencies]
+realtime = ["websockets >= 13, < 15"]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 
 [tool.rye]
 managed = true
@@ -66,8 +66,7 @@ dev-dependencies = [
     "types-tqdm > 4",
     "types-pyaudio > 0",
     "trio >=0.22.2",
-    "nest_asyncio==1.6.0"
-
+    "nest_asyncio==1.6.0",
 ]
 
 [tool.rye.scripts]
@@ -142,6 +141,7 @@ testpaths = ["tests"]
 addopts = "--tb=short"
 xfail_strict = true
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
 ]
@@ -157,6 +157,11 @@ exclude = [
     "_dev",
     ".venv",
     ".nox",
+
+    # uses inline `uv` script dependencies
+    # which means it can't be type checked
+    "examples/realtime/audio_util.py",
+    "examples/realtime/push_to_talk_app.py"
 ]
 
 reportImplicitOverride = true
@@ -189,7 +194,7 @@ select = [
   "T201",
   "T203",
   # misuse of typing.TYPE_CHECKING
-  "TCH004",
+  "TC004",
   # import rules
   "TID251",
 ]

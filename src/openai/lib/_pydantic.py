@@ -108,6 +108,9 @@ def _ensure_strict_json_schema(
         # properties from the json schema take priority over the ones on the `$ref`
         json_schema.update({**resolved, **json_schema})
         json_schema.pop("$ref")
+        # Since the schema expanded from `$ref` might not have `additionalProperties: false` applied,
+        # we call `_ensure_strict_json_schema` again to fix the inlined schema and ensure it's valid.
+        return _ensure_strict_json_schema(json_schema, path=path, root=root)
 
     return json_schema
 
@@ -127,6 +130,8 @@ def resolve_ref(*, root: dict[str, object], ref: str) -> object:
 
 
 def is_basemodel_type(typ: type) -> TypeGuard[type[pydantic.BaseModel]]:
+    if not inspect.isclass(typ):
+        return False
     return issubclass(typ, pydantic.BaseModel)
 
 

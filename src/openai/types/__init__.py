@@ -6,6 +6,7 @@ from .batch import Batch as Batch
 from .image import Image as Image
 from .model import Model as Model
 from .shared import (
+    Metadata as Metadata,
     ErrorObject as ErrorObject,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
@@ -47,6 +48,7 @@ from .moderation_create_params import ModerationCreateParams as ModerationCreate
 from .create_embedding_response import CreateEmbeddingResponse as CreateEmbeddingResponse
 from .moderation_create_response import ModerationCreateResponse as ModerationCreateResponse
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
+from .websocket_connection_options import WebsocketConnectionOptions as WebsocketConnectionOptions
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .moderation_image_url_input_param import ModerationImageURLInputParam as ModerationImageURLInputParam
 from .moderation_multi_modal_input_param import ModerationMultiModalInputParam as ModerationMultiModalInputParam

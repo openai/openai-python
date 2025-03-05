@@ -41,6 +41,7 @@ from ....types.beta import (
 )
 from ...._base_client import AsyncPaginator, make_request_options
 from ....types.beta.vector_store import VectorStore
+from ....types.shared_params.metadata import Metadata
 from ....types.beta.vector_store_deleted import VectorStoreDeleted
 from ....types.beta.file_chunking_strategy_param import FileChunkingStrategyParam
 
@@ -59,7 +60,7 @@ class VectorStores(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> VectorStoresWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -81,7 +82,7 @@ class VectorStores(SyncAPIResource):
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -104,9 +105,11 @@ class VectorStores(SyncAPIResource):
               files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           name: The name of the vector store.
 
@@ -176,7 +179,7 @@ class VectorStores(SyncAPIResource):
         vector_store_id: str,
         *,
         expires_after: Optional[vector_store_update_params.ExpiresAfter] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -192,9 +195,11 @@ class VectorStores(SyncAPIResource):
           expires_after: The expiration policy for a vector store.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           name: The name of the vector store.
 
@@ -337,7 +342,7 @@ class AsyncVectorStores(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncVectorStoresWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -359,7 +364,7 @@ class AsyncVectorStores(AsyncAPIResource):
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -382,9 +387,11 @@ class AsyncVectorStores(AsyncAPIResource):
               files.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           name: The name of the vector store.
 
@@ -454,7 +461,7 @@ class AsyncVectorStores(AsyncAPIResource):
         vector_store_id: str,
         *,
         expires_after: Optional[vector_store_update_params.ExpiresAfter] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -470,9 +477,11 @@ class AsyncVectorStores(AsyncAPIResource):
           expires_after: The expiration policy for a vector store.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           name: The name of the vector store.
 
