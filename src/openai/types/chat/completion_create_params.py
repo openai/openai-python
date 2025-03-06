@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..chat_model import ChatModel
+from ..shared.chat_model import ChatModel
 from ..shared_params.metadata import Metadata
 from .chat_completion_modality import ChatCompletionModality
 from .chat_completion_tool_param import ChatCompletionToolParam
