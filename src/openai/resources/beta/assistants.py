@@ -23,8 +23,8 @@ from ...types.beta import (
     assistant_update_params,
 )
 from ..._base_client import AsyncPaginator, make_request_options
-from ...types.chat_model import ChatModel
 from ...types.beta.assistant import Assistant
+from ...types.shared.chat_model import ChatModel
 from ...types.beta.assistant_deleted import AssistantDeleted
 from ...types.shared_params.metadata import Metadata
 from ...types.beta.assistant_tool_param import AssistantToolParam

@@ -2,6 +2,7 @@
 
 ```python
 from openai.types import (
+    ChatModel,
     ErrorObject,
     FunctionDefinition,
     FunctionParameters,
@@ -222,9 +223,9 @@ Types:
 from openai.types.fine_tuning import (
     FineTuningJob,
     FineTuningJobEvent,
-    FineTuningJobIntegration,
     FineTuningJobWandbIntegration,
     FineTuningJobWandbIntegrationObject,
+    FineTuningJobIntegration,
 )
 ```
 
