@@ -37,7 +37,7 @@ from ....types.chat import (
     completion_update_params,
 )
 from ...._base_client import AsyncPaginator, make_request_options
-from ....types.chat_model import ChatModel
+from ....types.shared.chat_model import ChatModel
 from ....types.chat.chat_completion import ChatCompletion
 from ....types.shared_params.metadata import Metadata
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk

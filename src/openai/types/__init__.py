@@ -7,6 +7,7 @@ from .image import Image as Image
 from .model import Model as Model
 from .shared import (
     Metadata as Metadata,
+    ChatModel as ChatModel,
     ErrorObject as ErrorObject,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
@@ -16,7 +17,6 @@ from .shared import (
 )
 from .upload import Upload as Upload
 from .embedding import Embedding as Embedding
-from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
 from .audio_model import AudioModel as AudioModel

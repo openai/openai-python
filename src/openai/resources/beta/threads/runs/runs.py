@@ -39,7 +39,6 @@ from .....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from .....types.chat_model import ChatModel
 from .....types.beta.threads import (
     run_list_params,
     run_create_params,
@@ -47,6 +46,7 @@ from .....types.beta.threads import (
     run_submit_tool_outputs_params,
 )
 from .....types.beta.threads.run import Run
+from .....types.shared.chat_model import ChatModel
 from .....types.shared_params.metadata import Metadata
 from .....types.beta.assistant_tool_param import AssistantToolParam
 from .....types.beta.assistant_stream_event import AssistantStreamEvent
