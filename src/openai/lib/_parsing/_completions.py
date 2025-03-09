@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import weakref
 from typing import TYPE_CHECKING, Any, Iterable, cast
 from typing_extensions import TypeVar, TypeGuard, assert_never
 
@@ -27,6 +28,9 @@ from ..._exceptions import LengthFinishReasonError, ContentFilterFinishReasonErr
 from ...types.shared_params import FunctionDefinition
 from ...types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
 from ...types.chat.chat_completion_message_tool_call import Function
+
+# Cache to store weak references to schema objects
+_schema_cache = weakref.WeakKeyDictionary()
 
 ResponseFormatT = TypeVar(
     "ResponseFormatT",
@@ -243,6 +247,10 @@ def type_to_response_format_param(
     # can only be a `type`
     response_format = cast(type, response_format)
 
+    # Check if we already have a schema for this type in the cache
+    if response_format in _schema_cache:
+        return _schema_cache[response_format]
+
     json_schema_type: type[pydantic.BaseModel] | pydantic.TypeAdapter[Any] | None = None
 
     if is_basemodel_type(response_format):
@@ -254,7 +262,7 @@ def type_to_response_format_param(
     else:
         raise TypeError(f"Unsupported response_format type - {response_format}")
 
-    return {
+    schema_param = {
         "type": "json_schema",
         "json_schema": {
             "schema": to_strict_json_schema(json_schema_type),
@@ -262,3 +270,8 @@ def type_to_response_format_param(
             "strict": True,
         },
     }
+
+    # Store a weak reference to the schema parameter
+    _schema_cache[response_format] = schema_param
+
+    return schema_param
