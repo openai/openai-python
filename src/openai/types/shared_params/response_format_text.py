@@ -9,4 +9,4 @@ __all__ = ["ResponseFormatText"]
 
 class ResponseFormatText(TypedDict, total=False):
     type: Required[Literal["text"]]
-    """The type of response format being defined: `text`"""
+    """The type of response format being defined. Always `text`."""
