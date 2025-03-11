@@ -640,6 +640,7 @@ from openai.types.responses import (
     ResponseOutputMessage,
     ResponseOutputRefusal,
     ResponseOutputText,
+    ResponseReasoningItem,
     ResponseRefusalDeltaEvent,
     ResponseRefusalDoneEvent,
     ResponseStatus,
