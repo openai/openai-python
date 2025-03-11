@@ -17,5 +17,5 @@ class ComputerTool(BaseModel):
     environment: Literal["mac", "windows", "ubuntu", "browser"]
     """The type of computer environment to control."""
 
-    type: Literal["computer-preview"]
+    type: Literal["computer_use_preview"]
     """The type of the computer use tool. Always `computer_use_preview`."""
