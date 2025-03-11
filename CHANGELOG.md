@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.66.0 (2025-03-11)
+
+Full Changelog: [v1.65.5...v1.66.0](https://github.com/openai/openai-python/compare/v1.65.5...v1.66.0)
+
+### Features
+
+* **api:** add /v1/responses and built-in tools ([854df97](https://github.com/openai/openai-python/commit/854df97884736244d46060fd3d5a92916826ec8f))
+
+
+### Chores
+
+* export more types ([#2176](https://github.com/openai/openai-python/issues/2176)) ([a730f0e](https://github.com/openai/openai-python/commit/a730f0efedd228f96a49467f17fb19b6a219246c))
+
 ## 1.65.5 (2025-03-09)
 
 Full Changelog: [v1.65.4...v1.65.5](https://github.com/openai/openai-python/compare/v1.65.4...v1.65.5)

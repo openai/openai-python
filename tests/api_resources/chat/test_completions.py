@@ -74,9 +74,9 @@ class TestCompletions:
             presence_penalty=-2,
             reasoning_effort="low",
             response_format={"type": "text"},
-            seed=0,
+            seed=-9007199254740991,
             service_tier="auto",
-            stop="string",
+            stop="\n",
             store=True,
             stream=False,
             stream_options={"include_usage": True},
@@ -96,6 +96,18 @@ class TestCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            web_search_options={
+                "search_context_size": "low",
+                "user_location": {
+                    "approximate": {
+                        "city": "city",
+                        "country": "country",
+                        "region": "region",
+                        "timezone": "timezone",
+                    },
+                    "type": "approximate",
+                },
+            },
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -189,9 +201,9 @@ class TestCompletions:
             presence_penalty=-2,
             reasoning_effort="low",
             response_format={"type": "text"},
-            seed=0,
+            seed=-9007199254740991,
             service_tier="auto",
-            stop="string",
+            stop="\n",
             store=True,
             stream_options={"include_usage": True},
             temperature=1,
@@ -210,6 +222,18 @@ class TestCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            web_search_options={
+                "search_context_size": "low",
+                "user_location": {
+                    "approximate": {
+                        "city": "city",
+                        "country": "country",
+                        "region": "region",
+                        "timezone": "timezone",
+                    },
+                    "type": "approximate",
+                },
+            },
         )
         completion_stream.response.close()
 
@@ -477,9 +501,9 @@ class TestAsyncCompletions:
             presence_penalty=-2,
             reasoning_effort="low",
             response_format={"type": "text"},
-            seed=0,
+            seed=-9007199254740991,
             service_tier="auto",
-            stop="string",
+            stop="\n",
             store=True,
             stream=False,
             stream_options={"include_usage": True},
@@ -499,6 +523,18 @@ class TestAsyncCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            web_search_options={
+                "search_context_size": "low",
+                "user_location": {
+                    "approximate": {
+                        "city": "city",
+                        "country": "country",
+                        "region": "region",
+                        "timezone": "timezone",
+                    },
+                    "type": "approximate",
+                },
+            },
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -592,9 +628,9 @@ class TestAsyncCompletions:
             presence_penalty=-2,
             reasoning_effort="low",
             response_format={"type": "text"},
-            seed=0,
+            seed=-9007199254740991,
             service_tier="auto",
-            stop="string",
+            stop="\n",
             store=True,
             stream_options={"include_usage": True},
             temperature=1,
@@ -613,6 +649,18 @@ class TestAsyncCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            web_search_options={
+                "search_context_size": "low",
+                "user_location": {
+                    "approximate": {
+                        "city": "city",
+                        "country": "country",
+                        "region": "region",
+                        "timezone": "timezone",
+                    },
+                    "type": "approximate",
+                },
+            },
         )
         await completion_stream.response.aclose()
 
