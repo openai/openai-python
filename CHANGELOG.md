@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.66.2 (2025-03-11)
+
+Full Changelog: [v1.66.1...v1.66.2](https://github.com/openai/openai-python/compare/v1.66.1...v1.66.2)
+
+### Bug Fixes
+
+* **responses:** correct reasoning output type ([#2181](https://github.com/openai/openai-python/issues/2181)) ([8cb1129](https://github.com/openai/openai-python/commit/8cb11299acc40c80061af275691cd09a2bf30c65))
+
 ## 1.66.1 (2025-03-11)
 
 Full Changelog: [v1.66.0...v1.66.1](https://github.com/openai/openai-python/compare/v1.66.0...v1.66.1)
