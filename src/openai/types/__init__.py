@@ -17,6 +17,7 @@ from .shared import (
 )
 from .upload import Upload as Upload
 from .embedding import Embedding as Embedding
+from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
 from .audio_model import AudioModel as AudioModel
