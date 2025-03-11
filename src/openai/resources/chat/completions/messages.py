@@ -56,7 +56,7 @@ class Messages(SyncAPIResource):
     ) -> SyncCursorPage[ChatCompletionStoreMessage]:
         """Get the messages in a stored chat completion.
 
-        Only chat completions that have
+        Only Chat Completions that have
         been created with the `store` parameter set to `true` will be returned.
 
         Args:
@@ -134,7 +134,7 @@ class AsyncMessages(AsyncAPIResource):
     ) -> AsyncPaginator[ChatCompletionStoreMessage, AsyncCursorPage[ChatCompletionStoreMessage]]:
         """Get the messages in a stored chat completion.
 
-        Only chat completions that have
+        Only Chat Completions that have
         been created with the `store` parameter set to `true` will be returned.
 
         Args:
