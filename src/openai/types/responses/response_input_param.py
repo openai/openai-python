@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .easy_input_message_param import EasyInputMessageParam
 from .response_output_message_param import ResponseOutputMessageParam
+from .response_reasoning_item_param import ResponseReasoningItemParam
 from .response_computer_tool_call_param import ResponseComputerToolCallParam
 from .response_function_tool_call_param import ResponseFunctionToolCallParam
 from .response_function_web_search_param import ResponseFunctionWebSearchParam
@@ -21,8 +22,6 @@ __all__ = [
     "ComputerCallOutputOutput",
     "ComputerCallOutputAcknowledgedSafetyCheck",
     "FunctionCallOutput",
-    "Reasoning",
-    "ReasoningContent",
     "ItemReference",
 ]
 
@@ -124,34 +123,6 @@ class FunctionCallOutput(TypedDict, total=False):
     """
 
 
-class ReasoningContent(TypedDict, total=False):
-    text: Required[str]
-    """
-    A short summary of the reasoning used by the model when generating the response.
-    """
-
-    type: Required[Literal["reasoning_summary"]]
-    """The type of the object. Always `text`."""
-
-
-class Reasoning(TypedDict, total=False):
-    id: Required[str]
-    """The unique identifier of the reasoning content."""
-
-    content: Required[Iterable[ReasoningContent]]
-    """Reasoning text contents."""
-
-    type: Required[Literal["reasoning"]]
-    """The type of the object. Always `reasoning`."""
-
-    status: Literal["in_progress", "completed", "incomplete"]
-    """The status of the item.
-
-    One of `in_progress`, `completed`, or `incomplete`. Populated when items are
-    returned via API.
-    """
-
-
 class ItemReference(TypedDict, total=False):
     id: Required[str]
     """The ID of the item to reference."""
@@ -170,7 +141,7 @@ ResponseInputItemParam: TypeAlias = Union[
     ResponseFunctionWebSearchParam,
     ResponseFunctionToolCallParam,
     FunctionCallOutput,
-    Reasoning,
+    ResponseReasoningItemParam,
     ItemReference,
 ]
 
