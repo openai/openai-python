@@ -7,10 +7,10 @@ from ..._utils import PropertyInfo
 from .response import Response
 from ..._models import GenericModel
 from ..._utils._transform import PropertyInfo
-from .response_output_item import Reasoning
 from .response_output_text import ResponseOutputText
 from .response_output_message import ResponseOutputMessage
 from .response_output_refusal import ResponseOutputRefusal
+from .response_reasoning_item import ResponseReasoningItem
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
 from .response_function_web_search import ResponseFunctionWebSearch
@@ -54,7 +54,7 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         ResponseFileSearchToolCall,
         ResponseFunctionWebSearch,
         ResponseComputerToolCall,
-        Reasoning,
+        ResponseReasoningItem,
     ],
     PropertyInfo(discriminator="type"),
 ]
