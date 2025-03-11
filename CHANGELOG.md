@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.66.1 (2025-03-11)
+
+Full Changelog: [v1.66.0...v1.66.1](https://github.com/openai/openai-python/compare/v1.66.0...v1.66.1)
+
+### Bug Fixes
+
+* **responses:** correct computer use enum value ([#2180](https://github.com/openai/openai-python/issues/2180)) ([48f4628](https://github.com/openai/openai-python/commit/48f4628c5fb18ddd7d71e8730184f3ac50c4ffea))
+
+
+### Chores
+
+* **internal:** temporary commit ([afabec1](https://github.com/openai/openai-python/commit/afabec1b5b18b41ac870970d06e6c2f152ef7bbe))
+
 ## 1.66.0 (2025-03-11)
 
 Full Changelog: [v1.65.5...v1.66.0](https://github.com/openai/openai-python/compare/v1.65.5...v1.66.0)
