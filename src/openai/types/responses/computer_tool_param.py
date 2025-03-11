@@ -17,5 +17,5 @@ class ComputerToolParam(TypedDict, total=False):
     environment: Required[Literal["mac", "windows", "ubuntu", "browser"]]
     """The type of computer environment to control."""
 
-    type: Required[Literal["computer-preview"]]
+    type: Required[Literal["computer_use_preview"]]
     """The type of the computer use tool. Always `computer_use_preview`."""
