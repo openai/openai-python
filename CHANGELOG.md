@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.66.3 (2025-03-12)
+
+Full Changelog: [v1.66.2...v1.66.3](https://github.com/openai/openai-python/compare/v1.66.2...v1.66.3)
+
+### Bug Fixes
+
+* update module level client ([#2185](https://github.com/openai/openai-python/issues/2185)) ([456f324](https://github.com/openai/openai-python/commit/456f3240a0c33e71521c6b73c32e8adc1b8cd3bc))
+
 ## 1.66.2 (2025-03-11)
 
 Full Changelog: [v1.66.1...v1.66.2](https://github.com/openai/openai-python/compare/v1.66.1...v1.66.2)
