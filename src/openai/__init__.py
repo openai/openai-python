@@ -252,7 +252,6 @@ from ._module_client import (
     chat as chat,
     audio as audio,
     files as files,
-    client as client,
     images as images,
     models as models,
     batches as batches,
