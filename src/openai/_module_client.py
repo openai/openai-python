@@ -42,12 +42,6 @@ class ModelsProxy(LazyProxy[resources.Models]):
         return _load_client().models
 
 
-class ClientProxy(LazyProxy[resources.OpenAI]):
-    @override
-    def __load__(self) -> resources.OpenAI:
-        return _load_client().client
-
-
 class BatchesProxy(LazyProxy[resources.Batches]):
     @override
     def __load__(self) -> resources.Batches:
@@ -102,7 +96,6 @@ files: resources.Files = FilesProxy().__as_proxied__()
 audio: resources.Audio = AudioProxy().__as_proxied__()
 images: resources.Images = ImagesProxy().__as_proxied__()
 models: resources.Models = ModelsProxy().__as_proxied__()
-client: resources.OpenAI = ClientProxy().__as_proxied__()
 batches: resources.Batches = BatchesProxy().__as_proxied__()
 uploads: resources.Uploads = UploadsProxy().__as_proxied__()
 responses: resources.Responses = ResponsesProxy().__as_proxied__()
