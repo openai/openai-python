@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -27,7 +27,6 @@ from ...._response import to_streamed_response_wrapper, async_to_streamed_respon
 from ....pagination import SyncCursorPage, AsyncCursorPage
 from ...._base_client import AsyncPaginator, make_request_options
 from ....types.fine_tuning import job_list_params, job_create_params, job_list_events_params
-from ....types.shared_params.metadata import Metadata
 from ....types.fine_tuning.fine_tuning_job import FineTuningJob
 from ....types.fine_tuning.fine_tuning_job_event import FineTuningJobEvent
 
@@ -65,7 +64,6 @@ class Jobs(SyncAPIResource):
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         method: job_create_params.Method | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -113,13 +111,6 @@ class Jobs(SyncAPIResource):
 
           integrations: A list of integrations to enable for your fine-tuning job.
 
-          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard.
-
-              Keys are strings with a maximum length of 64 characters. Values are strings with
-              a maximum length of 512 characters.
-
           method: The method used for fine-tuning.
 
           seed: The seed controls the reproducibility of the job. Passing in the same seed and
@@ -161,7 +152,6 @@ class Jobs(SyncAPIResource):
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
                     "integrations": integrations,
-                    "metadata": metadata,
                     "method": method,
                     "seed": seed,
                     "suffix": suffix,
@@ -215,7 +205,6 @@ class Jobs(SyncAPIResource):
         *,
         after: str | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -230,9 +219,6 @@ class Jobs(SyncAPIResource):
           after: Identifier for the last job from the previous pagination request.
 
           limit: Number of fine-tuning jobs to retrieve.
-
-          metadata: Optional metadata filter. To filter, use the syntax `metadata[k]=v`.
-              Alternatively, set `metadata=null` to indicate no metadata.
 
           extra_headers: Send extra headers
 
@@ -254,7 +240,6 @@ class Jobs(SyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
-                        "metadata": metadata,
                     },
                     job_list_params.JobListParams,
                 ),
@@ -377,7 +362,6 @@ class AsyncJobs(AsyncAPIResource):
         training_file: str,
         hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
         integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         method: job_create_params.Method | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -425,13 +409,6 @@ class AsyncJobs(AsyncAPIResource):
 
           integrations: A list of integrations to enable for your fine-tuning job.
 
-          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard.
-
-              Keys are strings with a maximum length of 64 characters. Values are strings with
-              a maximum length of 512 characters.
-
           method: The method used for fine-tuning.
 
           seed: The seed controls the reproducibility of the job. Passing in the same seed and
@@ -473,7 +450,6 @@ class AsyncJobs(AsyncAPIResource):
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
                     "integrations": integrations,
-                    "metadata": metadata,
                     "method": method,
                     "seed": seed,
                     "suffix": suffix,
@@ -527,7 +503,6 @@ class AsyncJobs(AsyncAPIResource):
         *,
         after: str | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -542,9 +517,6 @@ class AsyncJobs(AsyncAPIResource):
           after: Identifier for the last job from the previous pagination request.
 
           limit: Number of fine-tuning jobs to retrieve.
-
-          metadata: Optional metadata filter. To filter, use the syntax `metadata[k]=v`.
-              Alternatively, set `metadata=null` to indicate no metadata.
 
           extra_headers: Send extra headers
 
@@ -566,7 +538,6 @@ class AsyncJobs(AsyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
-                        "metadata": metadata,
                     },
                     job_list_params.JobListParams,
                 ),

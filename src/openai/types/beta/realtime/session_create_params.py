@@ -146,17 +146,9 @@ class Tool(TypedDict, total=False):
 
 class TurnDetection(TypedDict, total=False):
     create_response: bool
-    """Whether or not to automatically generate a response when a VAD stop event
-    occurs.
+    """Whether or not to automatically generate a response when VAD is enabled.
 
     `true` by default.
-    """
-
-    interrupt_response: bool
-    """
-    Whether or not to automatically interrupt any ongoing response with output to
-    the default conversation (i.e. `conversation` of `auto`) when a VAD start event
-    occurs. `true` by default.
     """
 
     prefix_padding_ms: int

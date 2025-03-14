@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
-from ..shared.chat_model import ChatModel
+from ..chat_model import ChatModel
 from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
-from ..shared.reasoning_effort import ReasoningEffort
+from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = [
@@ -17,10 +17,6 @@ __all__ = [
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
     "ToolResourcesFileSearchVectorStore",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategy",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
-    "ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
 ]
 
 
@@ -57,8 +53,8 @@ class AssistantCreateParams(TypedDict, total=False):
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
 
-    reasoning_effort: Optional[ReasoningEffort]
-    """**o-series models only**
+    reasoning_effort: Optional[Literal["low", "medium", "high"]]
+    """**o1 and o3-mini models only**
 
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -131,43 +127,12 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
-class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
-    type: Required[Literal["auto"]]
-    """Always `auto`."""
-
-
-class ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
-    chunk_overlap_tokens: Required[int]
-    """The number of tokens that overlap between chunks. The default value is `400`.
-
-    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
-    """
-
-    max_chunk_size_tokens: Required[int]
-    """The maximum number of tokens in each chunk.
-
-    The default value is `800`. The minimum value is `100` and the maximum value is
-    `4096`.
-    """
-
-
-class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
-    static: Required[ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
-
-    type: Required[Literal["static"]]
-    """Always `static`."""
-
-
-ToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
-    ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
-]
-
-
 class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
-    chunking_strategy: ToolResourcesFileSearchVectorStoreChunkingStrategy
+    chunking_strategy: FileChunkingStrategyParam
     """The chunking strategy used to chunk the file(s).
 
-    If not set, will use the `auto` strategy.
+    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
+    non-empty.
     """
 
     file_ids: List[str]
