@@ -15,11 +15,8 @@ __all__ = [
 
 
 class FileSearchRankingOptions(BaseModel):
-    ranker: Literal["auto", "default_2024_08_21"]
-    """The ranker to use for the file search.
-
-    If not specified will use the `auto` ranker.
-    """
+    ranker: Literal["default_2024_08_21"]
+    """The ranker used for the file search."""
 
     score_threshold: float
     """The score threshold for the file search.

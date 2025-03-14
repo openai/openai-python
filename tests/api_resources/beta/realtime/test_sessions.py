@@ -48,7 +48,6 @@ class TestSessions:
             ],
             turn_detection={
                 "create_response": True,
-                "interrupt_response": True,
                 "prefix_padding_ms": 0,
                 "silence_duration_ms": 0,
                 "threshold": 0,
@@ -113,7 +112,6 @@ class TestAsyncSessions:
             ],
             turn_detection={
                 "create_response": True,
-                "interrupt_response": True,
                 "prefix_padding_ms": 0,
                 "silence_duration_ms": 0,
                 "threshold": 0,

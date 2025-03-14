@@ -12,7 +12,6 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
-    if: github.repository == 'openai/openai-python'
 
     steps:
       - uses: actions/checkout@v4
@@ -34,7 +33,6 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-    if: github.repository == 'openai/openai-python'
 
     steps:
       - uses: actions/checkout@v4
@@ -52,30 +50,3 @@ jobs:
 
       - name: Run tests
         run: ./scripts/test
-
-  examples:
-    name: examples
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Rye
-        run: |
-          curl -sSf https://rye.astral.sh/get | bash
-          echo "$HOME/.rye/shims" >> $GITHUB_PATH
-        env:
-          RYE_VERSION: '0.44.0'
-          RYE_INSTALL_OPTION: '--yes'
-      - name: Install dependencies
-        run: |
-          rye sync --all-features
-
-      - env: 
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-            rye run python examples/demo.py
-      - env: 
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-        run: |
-            rye run python examples/async_demo.py

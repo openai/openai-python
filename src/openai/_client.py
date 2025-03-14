@@ -37,9 +37,7 @@ from .resources.beta import beta
 from .resources.chat import chat
 from .resources.audio import audio
 from .resources.uploads import uploads
-from .resources.responses import responses
 from .resources.fine_tuning import fine_tuning
-from .resources.vector_stores import vector_stores
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
@@ -54,11 +52,9 @@ class OpenAI(SyncAPIClient):
     moderations: moderations.Moderations
     models: models.Models
     fine_tuning: fine_tuning.FineTuning
-    vector_stores: vector_stores.VectorStores
     beta: beta.Beta
     batches: batches.Batches
     uploads: uploads.Uploads
-    responses: responses.Responses
     with_raw_response: OpenAIWithRawResponse
     with_streaming_response: OpenAIWithStreamedResponse
 
@@ -153,11 +149,9 @@ class OpenAI(SyncAPIClient):
         self.moderations = moderations.Moderations(self)
         self.models = models.Models(self)
         self.fine_tuning = fine_tuning.FineTuning(self)
-        self.vector_stores = vector_stores.VectorStores(self)
         self.beta = beta.Beta(self)
         self.batches = batches.Batches(self)
         self.uploads = uploads.Uploads(self)
-        self.responses = responses.Responses(self)
         self.with_raw_response = OpenAIWithRawResponse(self)
         self.with_streaming_response = OpenAIWithStreamedResponse(self)
 
@@ -285,11 +279,9 @@ class AsyncOpenAI(AsyncAPIClient):
     moderations: moderations.AsyncModerations
     models: models.AsyncModels
     fine_tuning: fine_tuning.AsyncFineTuning
-    vector_stores: vector_stores.AsyncVectorStores
     beta: beta.AsyncBeta
     batches: batches.AsyncBatches
     uploads: uploads.AsyncUploads
-    responses: responses.AsyncResponses
     with_raw_response: AsyncOpenAIWithRawResponse
     with_streaming_response: AsyncOpenAIWithStreamedResponse
 
@@ -384,11 +376,9 @@ class AsyncOpenAI(AsyncAPIClient):
         self.moderations = moderations.AsyncModerations(self)
         self.models = models.AsyncModels(self)
         self.fine_tuning = fine_tuning.AsyncFineTuning(self)
-        self.vector_stores = vector_stores.AsyncVectorStores(self)
         self.beta = beta.AsyncBeta(self)
         self.batches = batches.AsyncBatches(self)
         self.uploads = uploads.AsyncUploads(self)
-        self.responses = responses.AsyncResponses(self)
         self.with_raw_response = AsyncOpenAIWithRawResponse(self)
         self.with_streaming_response = AsyncOpenAIWithStreamedResponse(self)
 
@@ -517,11 +507,9 @@ class OpenAIWithRawResponse:
         self.moderations = moderations.ModerationsWithRawResponse(client.moderations)
         self.models = models.ModelsWithRawResponse(client.models)
         self.fine_tuning = fine_tuning.FineTuningWithRawResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.VectorStoresWithRawResponse(client.vector_stores)
         self.beta = beta.BetaWithRawResponse(client.beta)
         self.batches = batches.BatchesWithRawResponse(client.batches)
         self.uploads = uploads.UploadsWithRawResponse(client.uploads)
-        self.responses = responses.ResponsesWithRawResponse(client.responses)
 
 
 class AsyncOpenAIWithRawResponse:
@@ -535,11 +523,9 @@ class AsyncOpenAIWithRawResponse:
         self.moderations = moderations.AsyncModerationsWithRawResponse(client.moderations)
         self.models = models.AsyncModelsWithRawResponse(client.models)
         self.fine_tuning = fine_tuning.AsyncFineTuningWithRawResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.AsyncVectorStoresWithRawResponse(client.vector_stores)
         self.beta = beta.AsyncBetaWithRawResponse(client.beta)
         self.batches = batches.AsyncBatchesWithRawResponse(client.batches)
         self.uploads = uploads.AsyncUploadsWithRawResponse(client.uploads)
-        self.responses = responses.AsyncResponsesWithRawResponse(client.responses)
 
 
 class OpenAIWithStreamedResponse:
@@ -553,11 +539,9 @@ class OpenAIWithStreamedResponse:
         self.moderations = moderations.ModerationsWithStreamingResponse(client.moderations)
         self.models = models.ModelsWithStreamingResponse(client.models)
         self.fine_tuning = fine_tuning.FineTuningWithStreamingResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.VectorStoresWithStreamingResponse(client.vector_stores)
         self.beta = beta.BetaWithStreamingResponse(client.beta)
         self.batches = batches.BatchesWithStreamingResponse(client.batches)
         self.uploads = uploads.UploadsWithStreamingResponse(client.uploads)
-        self.responses = responses.ResponsesWithStreamingResponse(client.responses)
 
 
 class AsyncOpenAIWithStreamedResponse:
@@ -571,11 +555,9 @@ class AsyncOpenAIWithStreamedResponse:
         self.moderations = moderations.AsyncModerationsWithStreamingResponse(client.moderations)
         self.models = models.AsyncModelsWithStreamingResponse(client.models)
         self.fine_tuning = fine_tuning.AsyncFineTuningWithStreamingResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.AsyncVectorStoresWithStreamingResponse(client.vector_stores)
         self.beta = beta.AsyncBetaWithStreamingResponse(client.beta)
         self.batches = batches.AsyncBatchesWithStreamingResponse(client.batches)
         self.uploads = uploads.AsyncUploadsWithStreamingResponse(client.uploads)
-        self.responses = responses.AsyncResponsesWithStreamingResponse(client.responses)
 
 
 Client = OpenAI

@@ -17,8 +17,10 @@ class FileCreateParams(TypedDict, total=False):
     purpose: Required[FilePurpose]
     """The intended purpose of the uploaded file.
 
-    One of: - `assistants`: Used in the Assistants API - `batch`: Used in the Batch
-    API - `fine-tune`: Used for fine-tuning - `vision`: Images used for vision
-    fine-tuning - `user_data`: Flexible file type for any purpose - `evals`: Used
-    for eval data sets
+    Use "assistants" for
+    [Assistants](https://platform.openai.com/docs/api-reference/assistants) and
+    [Message](https://platform.openai.com/docs/api-reference/messages) files,
+    "vision" for Assistants image file inputs, "batch" for
+    [Batch API](https://platform.openai.com/docs/guides/batch), and "fine-tune" for
+    [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning).
     """

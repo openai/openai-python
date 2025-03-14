@@ -40,9 +40,6 @@ class FileObject(BaseModel):
     `error`.
     """
 
-    expires_at: Optional[int] = None
-    """The Unix timestamp (in seconds) for when the file will expire."""
-
     status_details: Optional[str] = None
     """Deprecated.
 

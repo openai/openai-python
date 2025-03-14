@@ -549,17 +549,14 @@ class BaseRealtimeConnectionResource:
 
 class RealtimeSessionResource(BaseRealtimeConnectionResource):
     def update(self, *, session: session_update_event_param.Session, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """
-        Send this event to update the session’s default configuration.
-        The client may send this event at any time to update any field,
-        except for `voice`. However, note that once a session has been
-        initialized with a particular `model`, it can’t be changed to
-        another model using `session.update`.
+        """Send this event to update the session’s default configuration.
 
-        When the server receives a `session.update`, it will respond
-        with a `session.updated` event showing the full, effective configuration.
-        Only the fields that are present are updated. To clear a field like
-        `instructions`, pass an empty string.
+        The client may
+        send this event at any time to update the session configuration, and any
+        field may be updated at any time, except for "voice". The server will respond
+        with a `session.updated` event that shows the full effective configuration.
+        Only fields that are present are updated, thus the correct way to clear a
+        field like "instructions" is to pass an empty string.
         """
         self._connection.send(
             cast(
@@ -759,17 +756,14 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
     async def update(
         self, *, session: session_update_event_param.Session, event_id: str | NotGiven = NOT_GIVEN
     ) -> None:
-        """
-        Send this event to update the session’s default configuration.
-        The client may send this event at any time to update any field,
-        except for `voice`. However, note that once a session has been
-        initialized with a particular `model`, it can’t be changed to
-        another model using `session.update`.
+        """Send this event to update the session’s default configuration.
 
-        When the server receives a `session.update`, it will respond
-        with a `session.updated` event showing the full, effective configuration.
-        Only the fields that are present are updated. To clear a field like
-        `instructions`, pass an empty string.
+        The client may
+        send this event at any time to update the session configuration, and any
+        field may be updated at any time, except for "voice". The server will respond
+        with a `session.updated` event that shows the full effective configuration.
+        Only fields that are present are updated, thus the correct way to clear a
+        field like "instructions" is to pass an empty string.
         """
         await self._connection.send(
             cast(
