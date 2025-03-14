@@ -2,9 +2,15 @@
 
 ```python
 from openai.types import (
+    ChatModel,
+    ComparisonFilter,
+    CompoundFilter,
     ErrorObject,
     FunctionDefinition,
     FunctionParameters,
+    Metadata,
+    Reasoning,
+    ReasoningEffort,
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,
@@ -47,6 +53,7 @@ from openai.types.chat import (
     ChatCompletionContentPartInputAudio,
     ChatCompletionContentPartRefusal,
     ChatCompletionContentPartText,
+    ChatCompletionDeleted,
     ChatCompletionDeveloperMessageParam,
     ChatCompletionFunctionCallOption,
     ChatCompletionFunctionMessageParam,
@@ -56,8 +63,8 @@ from openai.types.chat import (
     ChatCompletionModality,
     ChatCompletionNamedToolChoice,
     ChatCompletionPredictionContent,
-    ChatCompletionReasoningEffort,
     ChatCompletionRole,
+    ChatCompletionStoreMessage,
     ChatCompletionStreamOptions,
     ChatCompletionSystemMessageParam,
     ChatCompletionTokenLogprob,
@@ -65,12 +72,23 @@ from openai.types.chat import (
     ChatCompletionToolChoiceOption,
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
+    ChatCompletionReasoningEffort,
 )
 ```
 
 Methods:
 
-- <code title="post /chat/completions">client.chat.completions.<a href="./src/openai/resources/chat/completions.py">create</a>(\*\*<a href="src/openai/types/chat/completion_create_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="post /chat/completions">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">create</a>(\*\*<a href="src/openai/types/chat/completion_create_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="get /chat/completions/{completion_id}">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">retrieve</a>(completion_id) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="post /chat/completions/{completion_id}">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">update</a>(completion_id, \*\*<a href="src/openai/types/chat/completion_update_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">ChatCompletion</a></code>
+- <code title="get /chat/completions">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">list</a>(\*\*<a href="src/openai/types/chat/completion_list_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion.py">SyncCursorPage[ChatCompletion]</a></code>
+- <code title="delete /chat/completions/{completion_id}">client.chat.completions.<a href="./src/openai/resources/chat/completions/completions.py">delete</a>(completion_id) -> <a href="./src/openai/types/chat/chat_completion_deleted.py">ChatCompletionDeleted</a></code>
+
+### Messages
+
+Methods:
+
+- <code title="get /chat/completions/{completion_id}/messages">client.chat.completions.messages.<a href="./src/openai/resources/chat/completions/messages.py">list</a>(completion_id, \*\*<a href="src/openai/types/chat/completions/message_list_params.py">params</a>) -> <a href="./src/openai/types/chat/chat_completion_store_message.py">SyncCursorPage[ChatCompletionStoreMessage]</a></code>
 
 # Embeddings
 
@@ -99,7 +117,7 @@ Methods:
 - <code title="get /files">client.files.<a href="./src/openai/resources/files.py">list</a>(\*\*<a href="src/openai/types/file_list_params.py">params</a>) -> <a href="./src/openai/types/file_object.py">SyncCursorPage[FileObject]</a></code>
 - <code title="delete /files/{file_id}">client.files.<a href="./src/openai/resources/files.py">delete</a>(file_id) -> <a href="./src/openai/types/file_deleted.py">FileDeleted</a></code>
 - <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">content</a>(file_id) -> HttpxBinaryResponseContent</code>
-- <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">retrieve_content</a>(file_id) -> str</code>
+- <code title="get /files/{file_id}/content">client.files.<a href="./src/openai/resources/files.py">retrieve_content</a>(file_id) -> <a href="./src/openai/types/file_content.py">str</a></code>
 - <code>client.files.<a href="./src/openai/resources/files.py">wait_for_processing</a>(\*args) -> FileObject</code>
 
 # Images
@@ -209,9 +227,9 @@ Types:
 from openai.types.fine_tuning import (
     FineTuningJob,
     FineTuningJobEvent,
-    FineTuningJobIntegration,
     FineTuningJobWandbIntegration,
     FineTuningJobWandbIntegrationObject,
+    FineTuningJobIntegration,
 )
 ```
 
@@ -235,6 +253,73 @@ Methods:
 
 - <code title="get /fine_tuning/jobs/{fine_tuning_job_id}/checkpoints">client.fine_tuning.jobs.checkpoints.<a href="./src/openai/resources/fine_tuning/jobs/checkpoints.py">list</a>(fine_tuning_job_id, \*\*<a href="src/openai/types/fine_tuning/jobs/checkpoint_list_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/jobs/fine_tuning_job_checkpoint.py">SyncCursorPage[FineTuningJobCheckpoint]</a></code>
 
+# VectorStores
+
+Types:
+
+```python
+from openai.types import (
+    AutoFileChunkingStrategyParam,
+    FileChunkingStrategy,
+    FileChunkingStrategyParam,
+    OtherFileChunkingStrategyObject,
+    StaticFileChunkingStrategy,
+    StaticFileChunkingStrategyObject,
+    StaticFileChunkingStrategyObjectParam,
+    VectorStore,
+    VectorStoreDeleted,
+    VectorStoreSearchResponse,
+)
+```
+
+Methods:
+
+- <code title="post /vector_stores">client.vector_stores.<a href="./src/openai/resources/vector_stores/vector_stores.py">create</a>(\*\*<a href="src/openai/types/vector_store_create_params.py">params</a>) -> <a href="./src/openai/types/vector_store.py">VectorStore</a></code>
+- <code title="get /vector_stores/{vector_store_id}">client.vector_stores.<a href="./src/openai/resources/vector_stores/vector_stores.py">retrieve</a>(vector_store_id) -> <a href="./src/openai/types/vector_store.py">VectorStore</a></code>
+- <code title="post /vector_stores/{vector_store_id}">client.vector_stores.<a href="./src/openai/resources/vector_stores/vector_stores.py">update</a>(vector_store_id, \*\*<a href="src/openai/types/vector_store_update_params.py">params</a>) -> <a href="./src/openai/types/vector_store.py">VectorStore</a></code>
+- <code title="get /vector_stores">client.vector_stores.<a href="./src/openai/resources/vector_stores/vector_stores.py">list</a>(\*\*<a href="src/openai/types/vector_store_list_params.py">params</a>) -> <a href="./src/openai/types/vector_store.py">SyncCursorPage[VectorStore]</a></code>
+- <code title="delete /vector_stores/{vector_store_id}">client.vector_stores.<a href="./src/openai/resources/vector_stores/vector_stores.py">delete</a>(vector_store_id) -> <a href="./src/openai/types/vector_store_deleted.py">VectorStoreDeleted</a></code>
+- <code title="post /vector_stores/{vector_store_id}/search">client.vector_stores.<a href="./src/openai/resources/vector_stores/vector_stores.py">search</a>(vector_store_id, \*\*<a href="src/openai/types/vector_store_search_params.py">params</a>) -> <a href="./src/openai/types/vector_store_search_response.py">SyncPage[VectorStoreSearchResponse]</a></code>
+
+## Files
+
+Types:
+
+```python
+from openai.types.vector_stores import VectorStoreFile, VectorStoreFileDeleted, FileContentResponse
+```
+
+Methods:
+
+- <code title="post /vector_stores/{vector_store_id}/files">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">create</a>(vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_create_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code title="get /vector_stores/{vector_store_id}/files/{file_id}">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">retrieve</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code title="post /vector_stores/{vector_store_id}/files/{file_id}">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">update</a>(file_id, \*, vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_update_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
+- <code title="get /vector_stores/{vector_store_id}/files">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">list</a>(vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_list_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
+- <code title="delete /vector_stores/{vector_store_id}/files/{file_id}">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">delete</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_deleted.py">VectorStoreFileDeleted</a></code>
+- <code title="get /vector_stores/{vector_store_id}/files/{file_id}/content">client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">content</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/file_content_response.py">SyncPage[FileContentResponse]</a></code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">create_and_poll</a>(\*args) -> VectorStoreFile</code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">poll</a>(\*args) -> VectorStoreFile</code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">upload</a>(\*args) -> VectorStoreFile</code>
+- <code>client.vector_stores.files.<a href="./src/openai/resources/vector_stores/files.py">upload_and_poll</a>(\*args) -> VectorStoreFile</code>
+
+## FileBatches
+
+Types:
+
+```python
+from openai.types.vector_stores import VectorStoreFileBatch
+```
+
+Methods:
+
+- <code title="post /vector_stores/{vector_store_id}/file_batches">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">create</a>(vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_batch_create_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">retrieve</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
+- <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
+- <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">create_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
+- <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
+- <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
+
 # Beta
 
 ## Realtime
@@ -254,6 +339,7 @@ from openai.types.beta.realtime import (
     ConversationItemInputAudioTranscriptionFailedEvent,
     ConversationItemTruncateEvent,
     ConversationItemTruncatedEvent,
+    ConversationItemWithReference,
     ErrorEvent,
     InputAudioBufferAppendEvent,
     InputAudioBufferClearEvent,
@@ -301,69 +387,6 @@ from openai.types.beta.realtime import Session, SessionCreateResponse
 Methods:
 
 - <code title="post /realtime/sessions">client.beta.realtime.sessions.<a href="./src/openai/resources/beta/realtime/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/realtime/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/realtime/session_create_response.py">SessionCreateResponse</a></code>
-
-## VectorStores
-
-Types:
-
-```python
-from openai.types.beta import (
-    AutoFileChunkingStrategyParam,
-    FileChunkingStrategy,
-    FileChunkingStrategyParam,
-    OtherFileChunkingStrategyObject,
-    StaticFileChunkingStrategy,
-    StaticFileChunkingStrategyObject,
-    StaticFileChunkingStrategyParam,
-    VectorStore,
-    VectorStoreDeleted,
-)
-```
-
-Methods:
-
-- <code title="post /vector_stores">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">create</a>(\*\*<a href="src/openai/types/beta/vector_store_create_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_store.py">VectorStore</a></code>
-- <code title="get /vector_stores/{vector_store_id}">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">retrieve</a>(vector_store_id) -> <a href="./src/openai/types/beta/vector_store.py">VectorStore</a></code>
-- <code title="post /vector_stores/{vector_store_id}">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">update</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_store_update_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_store.py">VectorStore</a></code>
-- <code title="get /vector_stores">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">list</a>(\*\*<a href="src/openai/types/beta/vector_store_list_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_store.py">SyncCursorPage[VectorStore]</a></code>
-- <code title="delete /vector_stores/{vector_store_id}">client.beta.vector_stores.<a href="./src/openai/resources/beta/vector_stores/vector_stores.py">delete</a>(vector_store_id) -> <a href="./src/openai/types/beta/vector_store_deleted.py">VectorStoreDeleted</a></code>
-
-### Files
-
-Types:
-
-```python
-from openai.types.beta.vector_stores import VectorStoreFile, VectorStoreFileDeleted
-```
-
-Methods:
-
-- <code title="post /vector_stores/{vector_store_id}/files">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">create</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_create_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
-- <code title="get /vector_stores/{vector_store_id}/files/{file_id}">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">retrieve</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">VectorStoreFile</a></code>
-- <code title="get /vector_stores/{vector_store_id}/files">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">list</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_list_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
-- <code title="delete /vector_stores/{vector_store_id}/files/{file_id}">client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">delete</a>(file_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_deleted.py">VectorStoreFileDeleted</a></code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">create_and_poll</a>(\*args) -> VectorStoreFile</code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">poll</a>(\*args) -> VectorStoreFile</code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">upload</a>(\*args) -> VectorStoreFile</code>
-- <code>client.beta.vector_stores.files.<a href="./src/openai/resources/beta/vector_stores/files.py">upload_and_poll</a>(\*args) -> VectorStoreFile</code>
-
-### FileBatches
-
-Types:
-
-```python
-from openai.types.beta.vector_stores import VectorStoreFileBatch
-```
-
-Methods:
-
-- <code title="post /vector_stores/{vector_store_id}/file_batches">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">create</a>(vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_batch_create_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
-- <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">retrieve</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
-- <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
-- <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/beta/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/beta/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
-- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">create_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
-- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
-- <code>client.beta.vector_stores.file_batches.<a href="./src/openai/resources/beta/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
 
 ## Assistants
 
@@ -558,3 +581,100 @@ from openai.types.uploads import UploadPart
 Methods:
 
 - <code title="post /uploads/{upload_id}/parts">client.uploads.parts.<a href="./src/openai/resources/uploads/parts.py">create</a>(upload_id, \*\*<a href="src/openai/types/uploads/part_create_params.py">params</a>) -> <a href="./src/openai/types/uploads/upload_part.py">UploadPart</a></code>
+
+# Responses
+
+Types:
+
+```python
+from openai.types.responses import (
+    ComputerTool,
+    EasyInputMessage,
+    FileSearchTool,
+    FunctionTool,
+    Response,
+    ResponseAudioDeltaEvent,
+    ResponseAudioDoneEvent,
+    ResponseAudioTranscriptDeltaEvent,
+    ResponseAudioTranscriptDoneEvent,
+    ResponseCodeInterpreterCallCodeDeltaEvent,
+    ResponseCodeInterpreterCallCodeDoneEvent,
+    ResponseCodeInterpreterCallCompletedEvent,
+    ResponseCodeInterpreterCallInProgressEvent,
+    ResponseCodeInterpreterCallInterpretingEvent,
+    ResponseCodeInterpreterToolCall,
+    ResponseCompletedEvent,
+    ResponseComputerToolCall,
+    ResponseContent,
+    ResponseContentPartAddedEvent,
+    ResponseContentPartDoneEvent,
+    ResponseCreatedEvent,
+    ResponseError,
+    ResponseErrorEvent,
+    ResponseFailedEvent,
+    ResponseFileSearchCallCompletedEvent,
+    ResponseFileSearchCallInProgressEvent,
+    ResponseFileSearchCallSearchingEvent,
+    ResponseFileSearchToolCall,
+    ResponseFormatTextConfig,
+    ResponseFormatTextJSONSchemaConfig,
+    ResponseFunctionCallArgumentsDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent,
+    ResponseFunctionToolCall,
+    ResponseFunctionWebSearch,
+    ResponseInProgressEvent,
+    ResponseIncludable,
+    ResponseIncompleteEvent,
+    ResponseInput,
+    ResponseInputAudio,
+    ResponseInputContent,
+    ResponseInputFile,
+    ResponseInputImage,
+    ResponseInputItem,
+    ResponseInputMessageContentList,
+    ResponseInputText,
+    ResponseOutputAudio,
+    ResponseOutputItem,
+    ResponseOutputItemAddedEvent,
+    ResponseOutputItemDoneEvent,
+    ResponseOutputMessage,
+    ResponseOutputRefusal,
+    ResponseOutputText,
+    ResponseReasoningItem,
+    ResponseRefusalDeltaEvent,
+    ResponseRefusalDoneEvent,
+    ResponseStatus,
+    ResponseStreamEvent,
+    ResponseTextAnnotationDeltaEvent,
+    ResponseTextConfig,
+    ResponseTextDeltaEvent,
+    ResponseTextDoneEvent,
+    ResponseUsage,
+    ResponseWebSearchCallCompletedEvent,
+    ResponseWebSearchCallInProgressEvent,
+    ResponseWebSearchCallSearchingEvent,
+    Tool,
+    ToolChoiceFunction,
+    ToolChoiceOptions,
+    ToolChoiceTypes,
+    WebSearchTool,
+)
+```
+
+Methods:
+
+- <code title="post /responses">client.responses.<a href="./src/openai/resources/responses/responses.py">create</a>(\*\*<a href="src/openai/types/responses/response_create_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
+- <code title="get /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/responses/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
+- <code title="delete /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">delete</a>(response_id) -> None</code>
+
+## InputItems
+
+Types:
+
+```python
+from openai.types.responses import ResponseItemList
+```
+
+Methods:
+
+- <code title="get /responses/{response_id}/input_items">client.responses.input_items.<a href="./src/openai/resources/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/responses/input_item_list_params.py">params</a>) -> SyncCursorPage[Data]</code>

@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.59.3"
+version = "1.66.3"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -66,8 +66,7 @@ dev-dependencies = [
     "types-tqdm > 4",
     "types-pyaudio > 0",
     "trio >=0.22.2",
-    "nest_asyncio==1.6.0"
-
+    "nest_asyncio==1.6.0",
 ]
 
 [tool.rye.scripts]
@@ -142,6 +141,7 @@ testpaths = ["tests"]
 addopts = "--tb=short"
 xfail_strict = true
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
 ]
@@ -194,7 +194,7 @@ select = [
   "T201",
   "T203",
   # misuse of typing.TYPE_CHECKING
-  "TCH004",
+  "TC004",
   # import rules
   "TID251",
 ]

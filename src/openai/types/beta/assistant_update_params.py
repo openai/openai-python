@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List, Iterable, Optional
-from typing_extensions import TypedDict
+from typing import List, Union, Iterable, Optional
+from typing_extensions import Literal, TypedDict
 
 from .assistant_tool_param import AssistantToolParam
+from ..shared_params.metadata import Metadata
+from ..shared.reasoning_effort import ReasoningEffort
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["AssistantUpdateParams", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResourcesFileSearch"]
@@ -21,15 +23,51 @@ class AssistantUpdateParams(TypedDict, total=False):
     The maximum length is 256,000 characters.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
-    model: str
+    model: Union[
+        str,
+        Literal[
+            "o3-mini",
+            "o3-mini-2025-01-31",
+            "o1",
+            "o1-2024-12-17",
+            "gpt-4o",
+            "gpt-4o-2024-11-20",
+            "gpt-4o-2024-08-06",
+            "gpt-4o-2024-05-13",
+            "gpt-4o-mini",
+            "gpt-4o-mini-2024-07-18",
+            "gpt-4.5-preview",
+            "gpt-4.5-preview-2025-02-27",
+            "gpt-4-turbo",
+            "gpt-4-turbo-2024-04-09",
+            "gpt-4-0125-preview",
+            "gpt-4-turbo-preview",
+            "gpt-4-1106-preview",
+            "gpt-4-vision-preview",
+            "gpt-4",
+            "gpt-4-0314",
+            "gpt-4-0613",
+            "gpt-4-32k",
+            "gpt-4-32k-0314",
+            "gpt-4-32k-0613",
+            "gpt-3.5-turbo",
+            "gpt-3.5-turbo-16k",
+            "gpt-3.5-turbo-0613",
+            "gpt-3.5-turbo-1106",
+            "gpt-3.5-turbo-0125",
+            "gpt-3.5-turbo-16k-0613",
+        ],
+    ]
     """ID of the model to use.
 
     You can use the
@@ -41,6 +79,15 @@ class AssistantUpdateParams(TypedDict, total=False):
 
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
+
+    reasoning_effort: Optional[ReasoningEffort]
+    """**o-series models only**
+
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+    result in faster responses and fewer tokens used on reasoning in a response.
+    """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
     """Specifies the format that the model must output.

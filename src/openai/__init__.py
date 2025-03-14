@@ -33,6 +33,7 @@ from ._exceptions import (
 )
 from ._base_client import DefaultHttpxClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
+from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 
 __all__ = [
     "types",
@@ -355,8 +356,11 @@ from ._module_client import (
     images as images,
     models as models,
     batches as batches,
+    uploads as uploads,
+    responses as responses,
     embeddings as embeddings,
     completions as completions,
     fine_tuning as fine_tuning,
     moderations as moderations,
+    vector_stores as vector_stores,
 )

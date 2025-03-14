@@ -39,7 +39,6 @@ from .....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from .....types.chat_model import ChatModel
 from .....types.beta.threads import (
     run_list_params,
     run_create_params,
@@ -47,6 +46,9 @@ from .....types.beta.threads import (
     run_submit_tool_outputs_params,
 )
 from .....types.beta.threads.run import Run
+from .....types.shared.chat_model import ChatModel
+from .....types.shared_params.metadata import Metadata
+from .....types.shared.reasoning_effort import ReasoningEffort
 from .....types.beta.assistant_tool_param import AssistantToolParam
 from .....types.beta.assistant_stream_event import AssistantStreamEvent
 from .....types.beta.threads.runs.run_step_include import RunStepInclude
@@ -64,7 +66,7 @@ class Runs(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> RunsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -92,9 +94,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -148,9 +151,11 @@ class Runs(SyncAPIResource):
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
               be used to execute this run. If a value is provided here, it will override the
@@ -160,6 +165,13 @@ class Runs(SyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o-series models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -233,9 +245,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -292,9 +305,11 @@ class Runs(SyncAPIResource):
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
               be used to execute this run. If a value is provided here, it will override the
@@ -304,6 +319,13 @@ class Runs(SyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o-series models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -373,9 +395,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -432,9 +455,11 @@ class Runs(SyncAPIResource):
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
               be used to execute this run. If a value is provided here, it will override the
@@ -444,6 +469,13 @@ class Runs(SyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o-series models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -512,9 +544,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -545,6 +578,7 @@ class Runs(SyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
@@ -609,7 +643,7 @@ class Runs(SyncAPIResource):
         run_id: str,
         *,
         thread_id: str,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -622,9 +656,11 @@ class Runs(SyncAPIResource):
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -762,9 +798,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -800,6 +837,7 @@ class Runs(SyncAPIResource):
             temperature=temperature,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
             # We assume we are not streaming when polling
             stream=False,
             tools=tools,
@@ -831,9 +869,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -862,9 +901,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -893,9 +933,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -941,6 +982,7 @@ class Runs(SyncAPIResource):
                     "tools": tools,
                     "truncation_strategy": truncation_strategy,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "top_p": top_p,
                 },
                 run_create_params.RunCreateParams,
@@ -1010,9 +1052,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1041,9 +1084,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1072,9 +1116,10 @@ class Runs(SyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1119,6 +1164,7 @@ class Runs(SyncAPIResource):
                     "stream": True,
                     "tools": tools,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "truncation_strategy": truncation_strategy,
                     "top_p": top_p,
                 },
@@ -1429,7 +1475,7 @@ class AsyncRuns(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncRunsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -1457,9 +1503,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1513,9 +1560,11 @@ class AsyncRuns(AsyncAPIResource):
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
               be used to execute this run. If a value is provided here, it will override the
@@ -1525,6 +1574,13 @@ class AsyncRuns(AsyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o-series models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1598,9 +1654,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1657,9 +1714,11 @@ class AsyncRuns(AsyncAPIResource):
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
               be used to execute this run. If a value is provided here, it will override the
@@ -1669,6 +1728,13 @@ class AsyncRuns(AsyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o-series models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1738,9 +1804,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1797,9 +1864,11 @@ class AsyncRuns(AsyncAPIResource):
               `incomplete_details` for more info.
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           model: The ID of the [Model](https://platform.openai.com/docs/api-reference/models) to
               be used to execute this run. If a value is provided here, it will override the
@@ -1809,6 +1878,13 @@ class AsyncRuns(AsyncAPIResource):
           parallel_tool_calls: Whether to enable
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
+
+          reasoning_effort: **o-series models only**
+
+              Constrains effort on reasoning for
+              [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
+              result in faster responses and fewer tokens used on reasoning in a response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1877,9 +1953,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1910,6 +1987,7 @@ class AsyncRuns(AsyncAPIResource):
                     "metadata": metadata,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "stream": stream,
                     "temperature": temperature,
@@ -1974,7 +2052,7 @@ class AsyncRuns(AsyncAPIResource):
         run_id: str,
         *,
         thread_id: str,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1987,9 +2065,11 @@ class AsyncRuns(AsyncAPIResource):
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
-              for storing additional information about the object in a structured format. Keys
-              can be a maximum of 64 characters long and values can be a maximum of 512
-              characters long.
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -2127,9 +2207,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2165,6 +2246,7 @@ class AsyncRuns(AsyncAPIResource):
             temperature=temperature,
             tool_choice=tool_choice,
             parallel_tool_calls=parallel_tool_calls,
+            reasoning_effort=reasoning_effort,
             # We assume we are not streaming when polling
             stream=False,
             tools=tools,
@@ -2196,7 +2278,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
@@ -2227,7 +2309,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
@@ -2258,7 +2340,7 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
@@ -2376,9 +2458,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2407,9 +2490,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2438,9 +2522,10 @@ class AsyncRuns(AsyncAPIResource):
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[object] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2487,6 +2572,7 @@ class AsyncRuns(AsyncAPIResource):
                     "stream": True,
                     "tools": tools,
                     "parallel_tool_calls": parallel_tool_calls,
+                    "reasoning_effort": reasoning_effort,
                     "truncation_strategy": truncation_strategy,
                     "top_p": top_p,
                 },

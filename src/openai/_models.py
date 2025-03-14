@@ -197,21 +197,21 @@ class BaseModel(pydantic.BaseModel):
     @override
     def __str__(self) -> str:
         # mypy complains about an invalid self arg
-        return f'{self.__repr_name__()}({self.__repr_str__(", ")})'  # type: ignore[misc]
+        return f"{self.__repr_name__()}({self.__repr_str__(', ')})"  # type: ignore[misc]
 
     # Override the 'construct' method in a way that supports recursive parsing without validation.
     # Based on https://github.com/samuelcolvin/pydantic/issues/1168#issuecomment-817742836.
     @classmethod
     @override
     def construct(  # pyright: ignore[reportIncompatibleMethodOverride]
-        cls: Type[ModelT],
+        __cls: Type[ModelT],
         _fields_set: set[str] | None = None,
         **values: object,
     ) -> ModelT:
-        m = cls.__new__(cls)
+        m = __cls.__new__(__cls)
         fields_values: dict[str, object] = {}
 
-        config = get_model_config(cls)
+        config = get_model_config(__cls)
         populate_by_name = (
             config.allow_population_by_field_name
             if isinstance(config, _ConfigProtocol)
@@ -221,7 +221,7 @@ class BaseModel(pydantic.BaseModel):
         if _fields_set is None:
             _fields_set = set()
 
-        model_fields = get_model_fields(cls)
+        model_fields = get_model_fields(__cls)
         for name, field in model_fields.items():
             key = field.alias
             if key is None or (key not in values and populate_by_name):
@@ -451,10 +451,16 @@ def construct_type(*, value: object, type_: object) -> object:
 
     If the given value does not match the expected type then it is returned as-is.
     """
+
+    # store a reference to the original type we were given before we extract any inner
+    # types so that we can properly resolve forward references in `TypeAliasType` annotations
+    original_type = None
+
     # we allow `object` as the input type because otherwise, passing things like
     # `Literal['value']` will be reported as a type error by type checkers
     type_ = cast("type[object]", type_)
     if is_type_alias_type(type_):
+        original_type = type_  # type: ignore[unreachable]
         type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
@@ -471,7 +477,7 @@ def construct_type(*, value: object, type_: object) -> object:
 
     if is_union(origin):
         try:
-            return validate_type(type_=cast("type[object]", type_), value=value)
+            return validate_type(type_=cast("type[object]", original_type or type_), value=value)
         except Exception:
             pass
 
@@ -513,7 +519,11 @@ def construct_type(*, value: object, type_: object) -> object:
         _, items_type = get_args(type_)  # Dict[_, items_type]
         return {key: construct_type(value=item, type_=items_type) for key, item in value.items()}
 
-    if not is_literal_type(type_) and (issubclass(origin, BaseModel) or issubclass(origin, GenericModel)):
+    if (
+        not is_literal_type(type_)
+        and inspect.isclass(origin)
+        and (issubclass(origin, BaseModel) or issubclass(origin, GenericModel))
+    ):
         if is_list(value):
             return [cast(Any, type_).construct(**entry) if is_mapping(entry) else entry for entry in value]
 

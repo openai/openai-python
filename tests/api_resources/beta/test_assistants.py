@@ -34,8 +34,9 @@ class TestAssistants:
             model="gpt-4o",
             description="description",
             instructions="instructions",
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -46,7 +47,7 @@ class TestAssistants:
                         {
                             "chunking_strategy": {"type": "auto"},
                             "file_ids": ["string"],
-                            "metadata": {},
+                            "metadata": {"foo": "string"},
                         }
                     ],
                 },
@@ -131,9 +132,10 @@ class TestAssistants:
             assistant_id="assistant_id",
             description="description",
             instructions="instructions",
-            metadata={},
-            model="model",
+            metadata={"foo": "string"},
+            model="string",
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -266,8 +268,9 @@ class TestAsyncAssistants:
             model="gpt-4o",
             description="description",
             instructions="instructions",
-            metadata={},
+            metadata={"foo": "string"},
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -278,7 +281,7 @@ class TestAsyncAssistants:
                         {
                             "chunking_strategy": {"type": "auto"},
                             "file_ids": ["string"],
-                            "metadata": {},
+                            "metadata": {"foo": "string"},
                         }
                     ],
                 },
@@ -363,9 +366,10 @@ class TestAsyncAssistants:
             assistant_id="assistant_id",
             description="description",
             instructions="instructions",
-            metadata={},
-            model="model",
+            metadata={"foo": "string"},
+            model="string",
             name="name",
+            reasoning_effort="low",
             response_format="auto",
             temperature=1,
             tool_resources={

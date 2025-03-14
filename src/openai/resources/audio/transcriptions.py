@@ -36,7 +36,7 @@ class Transcriptions(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> TranscriptionsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -138,8 +138,8 @@ class Transcriptions(SyncAPIResource):
               Whisper V2 model) is currently available.
 
           language: The language of the input audio. Supplying the input language in
-              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will
-              improve accuracy and latency.
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
+              format will improve accuracy and latency.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The
@@ -200,7 +200,7 @@ class AsyncTranscriptions(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncTranscriptionsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -302,8 +302,8 @@ class AsyncTranscriptions(AsyncAPIResource):
               Whisper V2 model) is currently available.
 
           language: The language of the input audio. Supplying the input language in
-              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) format will
-              improve accuracy and latency.
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
+              format will improve accuracy and latency.
 
           prompt: An optional text to guide the model's style or continue a previous audio
               segment. The

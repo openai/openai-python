@@ -100,13 +100,17 @@ class CLIChatCompletion:
             "messages": [
                 {"role": cast(Literal["user"], message.role), "content": message.content} for message in args.message
             ],
-            "n": args.n,
-            "temperature": args.temperature,
-            "top_p": args.top_p,
-            "stop": args.stop,
             # type checkers are not good at inferring union types so we have to set stream afterwards
             "stream": False,
         }
+        if args.temperature is not None:
+            params["temperature"] = args.temperature
+        if args.stop is not None:
+            params["stop"] = args.stop
+        if args.top_p is not None:
+            params["top_p"] = args.top_p
+        if args.n is not None:
+            params["n"] = args.n
         if args.stream:
             params["stream"] = args.stream  # type: ignore
         if args.max_tokens is not None:

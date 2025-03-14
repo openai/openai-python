@@ -41,7 +41,7 @@ class Files(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -96,14 +96,10 @@ class Files(SyncAPIResource):
         Args:
           file: The File object (not file name) to be uploaded.
 
-          purpose: The intended purpose of the uploaded file.
-
-              Use "assistants" for
-              [Assistants](https://platform.openai.com/docs/api-reference/assistants) and
-              [Message](https://platform.openai.com/docs/api-reference/messages) files,
-              "vision" for Assistants image file inputs, "batch" for
-              [Batch API](https://platform.openai.com/docs/guides/batch), and "fine-tune" for
-              [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning).
+          purpose: The intended purpose of the uploaded file. One of: - `assistants`: Used in the
+              Assistants API - `batch`: Used in the Batch API - `fine-tune`: Used for
+              fine-tuning - `vision`: Images used for vision fine-tuning - `user_data`:
+              Flexible file type for any purpose - `evals`: Used for eval data sets
 
           extra_headers: Send extra headers
 
@@ -357,7 +353,7 @@ class AsyncFiles(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -412,14 +408,10 @@ class AsyncFiles(AsyncAPIResource):
         Args:
           file: The File object (not file name) to be uploaded.
 
-          purpose: The intended purpose of the uploaded file.
-
-              Use "assistants" for
-              [Assistants](https://platform.openai.com/docs/api-reference/assistants) and
-              [Message](https://platform.openai.com/docs/api-reference/messages) files,
-              "vision" for Assistants image file inputs, "batch" for
-              [Batch API](https://platform.openai.com/docs/guides/batch), and "fine-tune" for
-              [Fine-tuning](https://platform.openai.com/docs/api-reference/fine-tuning).
+          purpose: The intended purpose of the uploaded file. One of: - `assistants`: Used in the
+              Assistants API - `batch`: Used in the Batch API - `fine-tune`: Used for
+              fine-tuning - `vision`: Images used for vision fine-tuning - `user_data`:
+              Flexible file type for any purpose - `evals`: Used for eval data sets
 
           extra_headers: Send extra headers
 

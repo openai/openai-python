@@ -27,7 +27,7 @@ class Sessions(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> SessionsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -46,18 +46,19 @@ class Sessions(SyncAPIResource):
     def create(
         self,
         *,
+        input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
+        instructions: str | NotGiven = NOT_GIVEN,
+        max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
+        modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
         model: Literal[
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
-        ],
-        input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
-        input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
-        instructions: str | NotGiven = NOT_GIVEN,
-        max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
-        modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
+        ]
+        | NotGiven = NOT_GIVEN,
         output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         tool_choice: str | NotGiven = NOT_GIVEN,
@@ -81,15 +82,18 @@ class Sessions(SyncAPIResource):
         the Realtime API.
 
         Args:
-          model: The Realtime model used for this session.
-
-          input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+          input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For
+              `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
+              (mono), and little-endian byte order.
 
           input_audio_transcription: Configuration for input audio transcription, defaults to off and can be set to
               `null` to turn off once on. Input audio transcription is not native to the
               model, since the model consumes audio directly. Transcription runs
-              asynchronously through Whisper and should be treated as rough guidance rather
-              than the representation understood by the model.
+              asynchronously through
+              [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+              and should be treated as rough guidance rather than the representation
+              understood by the model. The client can optionally set the language and prompt
+              for transcription, these fields will be passed to the Whisper API.
 
           instructions: The default system instructions (i.e. system message) prepended to model calls.
               This field allows the client to guide the model on desired responses. The model
@@ -110,7 +114,10 @@ class Sessions(SyncAPIResource):
           modalities: The set of modalities the model can respond with. To disable audio, set this to
               ["text"].
 
+          model: The Realtime model used for this session.
+
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+              For `pcm16`, output audio is sampled at a rate of 24kHz.
 
           temperature: Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8.
 
@@ -140,12 +147,12 @@ class Sessions(SyncAPIResource):
             "/realtime/sessions",
             body=maybe_transform(
                 {
-                    "model": model,
                     "input_audio_format": input_audio_format,
                     "input_audio_transcription": input_audio_transcription,
                     "instructions": instructions,
                     "max_response_output_tokens": max_response_output_tokens,
                     "modalities": modalities,
+                    "model": model,
                     "output_audio_format": output_audio_format,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
@@ -166,7 +173,7 @@ class AsyncSessions(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncSessionsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -185,18 +192,19 @@ class AsyncSessions(AsyncAPIResource):
     async def create(
         self,
         *,
+        input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
+        instructions: str | NotGiven = NOT_GIVEN,
+        max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
+        modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
         model: Literal[
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
-        ],
-        input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
-        input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
-        instructions: str | NotGiven = NOT_GIVEN,
-        max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
-        modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
+        ]
+        | NotGiven = NOT_GIVEN,
         output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         tool_choice: str | NotGiven = NOT_GIVEN,
@@ -220,15 +228,18 @@ class AsyncSessions(AsyncAPIResource):
         the Realtime API.
 
         Args:
-          model: The Realtime model used for this session.
-
-          input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+          input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For
+              `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
+              (mono), and little-endian byte order.
 
           input_audio_transcription: Configuration for input audio transcription, defaults to off and can be set to
               `null` to turn off once on. Input audio transcription is not native to the
               model, since the model consumes audio directly. Transcription runs
-              asynchronously through Whisper and should be treated as rough guidance rather
-              than the representation understood by the model.
+              asynchronously through
+              [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+              and should be treated as rough guidance rather than the representation
+              understood by the model. The client can optionally set the language and prompt
+              for transcription, these fields will be passed to the Whisper API.
 
           instructions: The default system instructions (i.e. system message) prepended to model calls.
               This field allows the client to guide the model on desired responses. The model
@@ -249,7 +260,10 @@ class AsyncSessions(AsyncAPIResource):
           modalities: The set of modalities the model can respond with. To disable audio, set this to
               ["text"].
 
+          model: The Realtime model used for this session.
+
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
+              For `pcm16`, output audio is sampled at a rate of 24kHz.
 
           temperature: Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8.
 
@@ -279,12 +293,12 @@ class AsyncSessions(AsyncAPIResource):
             "/realtime/sessions",
             body=await async_maybe_transform(
                 {
-                    "model": model,
                     "input_audio_format": input_audio_format,
                     "input_audio_transcription": input_audio_transcription,
                     "instructions": instructions,
                     "max_response_output_tokens": max_response_output_tokens,
                     "modalities": modalities,
+                    "model": model,
                     "output_audio_format": output_audio_format,
                     "temperature": temperature,
                     "tool_choice": tool_choice,

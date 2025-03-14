@@ -45,13 +45,13 @@ def validate_input_tools(
     for tool in tools:
         if tool["type"] != "function":
             raise ValueError(
-                f'Currently only `function` tool types support auto-parsing; Received `{tool["type"]}`',
+                f"Currently only `function` tool types support auto-parsing; Received `{tool['type']}`",
             )
 
         strict = tool["function"].get("strict")
         if strict is not True:
             raise ValueError(
-                f'`{tool["function"]["name"]}` is not strict. Only `strict` function tools can be auto-parsed'
+                f"`{tool['function']['name']}` is not strict. Only `strict` function tools can be auto-parsed"
             )
 
 
@@ -111,7 +111,7 @@ def parse_chat_completion(
                             response_format=response_format,
                             message=message,
                         ),
-                        "tool_calls": tool_calls,
+                        "tool_calls": tool_calls if tool_calls else None,
                     },
                 },
             )
@@ -157,7 +157,7 @@ def maybe_parse_content(
     response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
     message: ChatCompletionMessage | ParsedChatCompletionMessage[object],
 ) -> ResponseFormatT | None:
-    if has_rich_response_format(response_format) and message.content is not None and not message.refusal:
+    if has_rich_response_format(response_format) and message.content and not message.refusal:
         return _parse_content(response_format, message.content)
 
     return None

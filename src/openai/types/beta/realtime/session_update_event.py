@@ -9,10 +9,26 @@ __all__ = ["SessionUpdateEvent", "Session", "SessionInputAudioTranscription", "S
 
 
 class SessionInputAudioTranscription(BaseModel):
+    language: Optional[str] = None
+    """The language of the input audio.
+
+    Supplying the input language in
+    [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
+    format will improve accuracy and latency.
+    """
+
     model: Optional[str] = None
     """
     The model to use for transcription, `whisper-1` is the only currently supported
     model.
+    """
+
+    prompt: Optional[str] = None
+    """An optional text to guide the model's style or continue a previous audio
+    segment.
+
+    The [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+    should match the audio language.
     """
 
 
@@ -35,9 +51,17 @@ class SessionTool(BaseModel):
 
 class SessionTurnDetection(BaseModel):
     create_response: Optional[bool] = None
-    """Whether or not to automatically generate a response when VAD is enabled.
+    """Whether or not to automatically generate a response when a VAD stop event
+    occurs.
 
     `true` by default.
+    """
+
+    interrupt_response: Optional[bool] = None
+    """
+    Whether or not to automatically interrupt any ongoing response with output to
+    the default conversation (i.e. `conversation` of `auto`) when a VAD start event
+    occurs. `true` by default.
     """
 
     prefix_padding_ms: Optional[int] = None
@@ -65,25 +89,24 @@ class SessionTurnDetection(BaseModel):
 
 
 class Session(BaseModel):
-    model: Literal[
-        "gpt-4o-realtime-preview",
-        "gpt-4o-realtime-preview-2024-10-01",
-        "gpt-4o-realtime-preview-2024-12-17",
-        "gpt-4o-mini-realtime-preview",
-        "gpt-4o-mini-realtime-preview-2024-12-17",
-    ]
-    """The Realtime model used for this session."""
-
     input_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
-    """The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`."""
+    """The format of input audio.
+
+    Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, input audio must
+    be 16-bit PCM at a 24kHz sample rate, single channel (mono), and little-endian
+    byte order.
+    """
 
     input_audio_transcription: Optional[SessionInputAudioTranscription] = None
     """
     Configuration for input audio transcription, defaults to off and can be set to
     `null` to turn off once on. Input audio transcription is not native to the
     model, since the model consumes audio directly. Transcription runs
-    asynchronously through Whisper and should be treated as rough guidance rather
-    than the representation understood by the model.
+    asynchronously through
+    [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+    and should be treated as rough guidance rather than the representation
+    understood by the model. The client can optionally set the language and prompt
+    for transcription, these fields will be passed to the Whisper API.
     """
 
     instructions: Optional[str] = None
@@ -115,8 +138,23 @@ class Session(BaseModel):
     To disable audio, set this to ["text"].
     """
 
+    model: Optional[
+        Literal[
+            "gpt-4o-realtime-preview",
+            "gpt-4o-realtime-preview-2024-10-01",
+            "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-mini-realtime-preview",
+            "gpt-4o-mini-realtime-preview-2024-12-17",
+        ]
+    ] = None
+    """The Realtime model used for this session."""
+
     output_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
-    """The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`."""
+    """The format of output audio.
+
+    Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
+    sampled at a rate of 24kHz.
+    """
 
     temperature: Optional[float] = None
     """Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8."""

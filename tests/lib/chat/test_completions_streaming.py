@@ -63,6 +63,7 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I 
 recommend checking a reliable weather website or a weather app.",
@@ -70,7 +71,7 @@ recommend checking a reliable weather website or a weather app.",
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -141,13 +142,14 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
+                annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":61,"units":"f"}',
                 function_call=None,
                 parsed=Location(city='San Francisco', temperature=61.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -318,13 +320,14 @@ def test_parse_pydantic_model_multiple_choices(
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":65,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=65.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -332,13 +335,14 @@ def test_parse_pydantic_model_multiple_choices(
         index=1,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":61,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=61.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -346,13 +350,14 @@ def test_parse_pydantic_model_multiple_choices(
         index=2,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":59,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=59.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -421,13 +426,14 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
             parsed=None,
             refusal="I'm sorry, I can't assist with that request.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -495,13 +501,14 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             refusal=None
         ),
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content='Foo!',
             function_call=None,
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -606,13 +613,14 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
             ]
         ),
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
             parsed=None,
             refusal="I'm very sorry, but I can't assist with that.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -652,6 +660,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[object](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -684,6 +693,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -755,6 +765,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[object](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -863,6 +874,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[object](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -914,6 +926,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content='\\n  {\\n    "location": "San Francisco, CA",\\n    "weather": {\\n      "temperature": "18°C",\\n      
 "condition": "Partly Cloudy",\\n      "humidity": "72%",\\n      "windSpeed": "15 km/h",\\n      "windDirection": "NW"\\n   
@@ -925,7 +938,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -974,6 +987,7 @@ FunctionToolCallArgumentsDoneEvent(
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -1033,6 +1047,7 @@ def test_chat_completion_state_helper(client: OpenAI, respx_mock: MockRouter, mo
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I 
 recommend checking a reliable weather website or a weather app.",
@@ -1040,7 +1055,7 @@ recommend checking a reliable weather website or a weather app.",
             parsed=None,
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
