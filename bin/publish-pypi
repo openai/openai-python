@@ -3,8 +3,4 @@
 set -eux
 mkdir -p dist
 rye build --clean
-# Patching importlib-metadata version until upstream library version is updated
-# https://github.com/pypa/twine/issues/977#issuecomment-2189800841
-"$HOME/.rye/self/bin/python3" -m ensurepip
-"$HOME/.rye/self/bin/python3" -m pip install 'importlib-metadata==7.2.1'
 rye publish --yes --token=$PYPI_TOKEN
