@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.66.4 (2025-03-17)
+
+Full Changelog: [v1.66.3...v1.66.4](https://github.com/openai/openai-python/compare/v1.66.3...v1.66.4)
+
+### Bug Fixes
+
+* **ci:** ensure pip is always available ([#2207](https://github.com/openai/openai-python/issues/2207)) ([3f08e56](https://github.com/openai/openai-python/commit/3f08e56a48a04c2b7f03a4ad63f38228e25810e6))
+* **ci:** remove publishing patch ([#2208](https://github.com/openai/openai-python/issues/2208)) ([dd2dab7](https://github.com/openai/openai-python/commit/dd2dab7faf2a003da3e6af66780bd250be6e7f3f))
+* **types:** handle more discriminated union shapes ([#2206](https://github.com/openai/openai-python/issues/2206)) ([f85a9c6](https://github.com/openai/openai-python/commit/f85a9c633dcb9b64c0eb47d20151894742bbef22))
+
+
+### Chores
+
+* **internal:** bump rye to 0.44.0 ([#2200](https://github.com/openai/openai-python/issues/2200)) ([2dd3139](https://github.com/openai/openai-python/commit/2dd3139df6e7fe6307f9847e6527073e355e5047))
+* **internal:** remove CI condition ([#2203](https://github.com/openai/openai-python/issues/2203)) ([9620fdc](https://github.com/openai/openai-python/commit/9620fdcf4f2d01b6753ecc0abc16e5239c2b41e1))
+* **internal:** remove extra empty newlines ([#2195](https://github.com/openai/openai-python/issues/2195)) ([a1016a7](https://github.com/openai/openai-python/commit/a1016a78fe551e0f0e2562a0e81d1cb724d195da))
+* **internal:** update release workflows ([e2def44](https://github.com/openai/openai-python/commit/e2def4453323aa1cf8077df447fd55eb4c626393))
+
 ## 1.66.3 (2025-03-12)
 
 Full Changelog: [v1.66.2...v1.66.3](https://github.com/openai/openai-python/compare/v1.66.2...v1.66.3)
