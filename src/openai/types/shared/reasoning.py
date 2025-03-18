@@ -20,7 +20,7 @@ class Reasoning(BaseModel):
     """
 
     generate_summary: Optional[Literal["concise", "detailed"]] = None
-    """**o-series models only**
+    """**computer_use_preview only**
 
     A summary of the reasoning performed by the model. This can be useful for
     debugging and understanding the model's reasoning process. One of `concise` or
