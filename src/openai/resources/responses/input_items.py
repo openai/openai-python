@@ -16,7 +16,7 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...pagination import SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
 from ...types.responses import input_item_list_params
-from ...types.responses.response_item_list import Data
+from ...types.responses.response_item import ResponseItem
 
 __all__ = ["InputItems", "AsyncInputItems"]
 
@@ -55,7 +55,7 @@ class InputItems(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> SyncCursorPage[Data]:
+    ) -> SyncCursorPage[ResponseItem]:
         """
         Returns a list of input items for a given response.
 
@@ -84,7 +84,7 @@ class InputItems(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get_api_list(
             f"/responses/{response_id}/input_items",
-            page=SyncCursorPage[Data],
+            page=SyncCursorPage[ResponseItem],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -100,7 +100,7 @@ class InputItems(SyncAPIResource):
                     input_item_list_params.InputItemListParams,
                 ),
             ),
-            model=cast(Any, Data),  # Union types cannot be passed in as arguments in the type system
+            model=cast(Any, ResponseItem),  # Union types cannot be passed in as arguments in the type system
         )
 
 
@@ -138,7 +138,7 @@ class AsyncInputItems(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncPaginator[Data, AsyncCursorPage[Data]]:
+    ) -> AsyncPaginator[ResponseItem, AsyncCursorPage[ResponseItem]]:
         """
         Returns a list of input items for a given response.
 
@@ -167,7 +167,7 @@ class AsyncInputItems(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get_api_list(
             f"/responses/{response_id}/input_items",
-            page=AsyncCursorPage[Data],
+            page=AsyncCursorPage[ResponseItem],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -183,7 +183,7 @@ class AsyncInputItems(AsyncAPIResource):
                     input_item_list_params.InputItemListParams,
                 ),
             ),
-            model=cast(Any, Data),  # Union types cannot be passed in as arguments in the type system
+            model=cast(Any, ResponseItem),  # Union types cannot be passed in as arguments in the type system
         )
 
 
