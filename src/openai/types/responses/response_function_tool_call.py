@@ -9,9 +9,6 @@ __all__ = ["ResponseFunctionToolCall"]
 
 
 class ResponseFunctionToolCall(BaseModel):
-    id: str
-    """The unique ID of the function tool call."""
-
     arguments: str
     """A JSON string of the arguments to pass to the function."""
 
@@ -23,6 +20,9 @@ class ResponseFunctionToolCall(BaseModel):
 
     type: Literal["function_call"]
     """The type of the function tool call. Always `function_call`."""
+
+    id: Optional[str] = None
+    """The unique ID of the function tool call."""
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the item.
