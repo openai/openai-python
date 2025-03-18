@@ -3,7 +3,15 @@
 
 from ..._models import BaseModel
 
-__all__ = ["ResponseUsage", "OutputTokensDetails"]
+__all__ = ["ResponseUsage", "InputTokensDetails", "OutputTokensDetails"]
+
+
+class InputTokensDetails(BaseModel):
+    cached_tokens: int
+    """The number of tokens that were retrieved from the cache.
+
+    [More on prompt caching](https://platform.openai.com/docs/guides/prompt-caching).
+    """
 
 
 class OutputTokensDetails(BaseModel):
@@ -14,6 +22,9 @@ class OutputTokensDetails(BaseModel):
 class ResponseUsage(BaseModel):
     input_tokens: int
     """The number of input tokens."""
+
+    input_tokens_details: InputTokensDetails
+    """A detailed breakdown of the input tokens."""
 
     output_tokens: int
     """The number of output tokens."""
