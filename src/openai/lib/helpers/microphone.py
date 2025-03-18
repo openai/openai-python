@@ -1,14 +1,15 @@
-import asyncio
 import io
-from typing_extensions import Literal
-import wave
-import numpy as np
-import numpy.typing as npt
-import sounddevice as sd
 import time
-from typing import Any, Callable, Generic, Type, TypeVar, Union, overload
+import wave
+import asyncio
+from typing import Any, Type, Union, Generic, TypeVar, Callable, overload
+from typing_extensions import Literal
 
-from openai._types import FileContent, FileTypes
+import numpy as np
+import sounddevice as sd
+import numpy.typing as npt
+
+from openai._types import FileTypes, FileContent
 
 SAMPLE_RATE = 24000
 
@@ -49,9 +50,7 @@ class Microphone(Generic[DType]):
     @overload
     async def record(self, return_ndarray: None = ...) -> FileTypes: ...
 
-    async def record(
-        self, return_ndarray: Union[bool, None] = False
-    ) -> Union[npt.NDArray[DType], FileTypes]:
+    async def record(self, return_ndarray: Union[bool, None] = False) -> Union[npt.NDArray[DType], FileTypes]:
         loop = asyncio.get_event_loop()
         event = asyncio.Event()
         self.buffer_chunks: list[npt.NDArray[DType]] = []
@@ -59,21 +58,17 @@ class Microphone(Generic[DType]):
 
         def callback(
             indata: npt.NDArray[DType],
-            frame_count: int,
-            time_info: Any,
-            status: Any,
+            _frame_count: int,
+            _time_info: Any,
+            _status: Any,
         ):
             execution_time = time.perf_counter() - start_time
-            reached_recording_timeout = (
-                execution_time > self.timeout if self.timeout is not None else False
-            )
+            reached_recording_timeout = execution_time > self.timeout if self.timeout is not None else False
             if reached_recording_timeout:
                 loop.call_soon_threadsafe(event.set)
                 raise sd.CallbackStop
 
-            should_be_recording = (
-                self.should_record() if callable(self.should_record) else True
-            )
+            should_be_recording = self.should_record() if callable(self.should_record) else True
             if not should_be_recording:
                 loop.call_soon_threadsafe(event.set)
                 raise sd.CallbackStop

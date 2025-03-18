@@ -11,7 +11,6 @@ speech_file_path = Path(__file__).parent / "speech.mp3"
 
 
 def main() -> None:
-
     # Create text-to-speech audio file
     with openai.audio.speech.with_streaming_response.create(
         model="tts-1",

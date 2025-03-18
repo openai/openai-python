@@ -1,7 +1,7 @@
 #!/usr/bin/env rye run python
 
-import asyncio
 import time
+import asyncio
 
 from openai import AsyncOpenAI
 from openai.helpers import LocalAudioPlayer

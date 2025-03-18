@@ -1,3 +1,3 @@
-from .lib.helpers import LocalAudioPlayer, Microphone
+from .lib.helpers import Microphone, LocalAudioPlayer
 
 __all__ = ["LocalAudioPlayer", "Microphone"]

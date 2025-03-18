@@ -1,12 +1,13 @@
-import asyncio
-import numpy as np
-import numpy.typing as npt
 import queue
+import asyncio
+from typing import Any, Union, Callable, AsyncGenerator, cast
+
+import numpy as np
 import sounddevice as sd
-from typing import Any, AsyncGenerator, Callable, Union, cast
+import numpy.typing as npt
 
 from ... import _legacy_response
-from ..._response import AsyncStreamedBinaryAPIResponse, StreamedBinaryAPIResponse
+from ..._response import StreamedBinaryAPIResponse, AsyncStreamedBinaryAPIResponse
 
 SAMPLE_RATE = 24000
 
@@ -29,9 +30,9 @@ class LocalAudioPlayer:
         ],
     ) -> npt.NDArray[np.float32]:
         chunks: list[bytes] = []
-        if isinstance(
-            response, _legacy_response.HttpxBinaryResponseContent
-        ) or isinstance(response, StreamedBinaryAPIResponse):
+        if isinstance(response, _legacy_response.HttpxBinaryResponseContent) or isinstance(
+            response, StreamedBinaryAPIResponse
+        ):
             for chunk in response.iter_bytes(chunk_size=1024):
                 if chunk:
                     chunks.append(chunk)
@@ -41,9 +42,7 @@ class LocalAudioPlayer:
                     chunks.append(chunk)
 
         audio_bytes = b"".join(chunks)
-        audio_np = (
-            np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32767.0
-        )
+        audio_np = np.frombuffer(audio_bytes, dtype=np.int16).astype(np.float32) / 32767.0
         audio_np = audio_np.reshape(-1, 1)
         return audio_np
 
@@ -60,9 +59,7 @@ class LocalAudioPlayer:
         audio_content: npt.NDArray[np.float32]
         if isinstance(input, np.ndarray):
             if input.dtype == np.int16 and self.dtype == np.float32:
-                audio_content = (input.astype(np.float32) / 32767.0).reshape(
-                    -1, self.channels
-                )
+                audio_content = (input.astype(np.float32) / 32767.0).reshape(-1, self.channels)
             elif input.dtype == np.float32:
                 audio_content = cast(npt.NDArray[np.float32], input)
             else:
@@ -77,8 +74,8 @@ class LocalAudioPlayer:
         def callback(
             outdata: npt.NDArray[np.float32],
             frame_count: int,
-            time_info: Any,
-            status: Any,
+            _time_info: Any,
+            _status: Any,
         ):
             nonlocal idx
 
@@ -102,30 +99,24 @@ class LocalAudioPlayer:
 
     async def play_stream(
         self,
-        buffer_stream: AsyncGenerator[
-            Union[npt.NDArray[np.float32], npt.NDArray[np.int16], None], None
-        ],
+        buffer_stream: AsyncGenerator[Union[npt.NDArray[np.float32], npt.NDArray[np.int16], None], None],
     ) -> None:
         loop = asyncio.get_event_loop()
         event = asyncio.Event()
-        buffer_queue: queue.Queue[
-            Union[npt.NDArray[np.float32], npt.NDArray[np.int16], None]
-        ] = queue.Queue(maxsize=50)
+        buffer_queue: queue.Queue[Union[npt.NDArray[np.float32], npt.NDArray[np.int16], None]] = queue.Queue(maxsize=50)
 
         async def buffer_producer():
             async for buffer in buffer_stream:
                 if buffer is None:
                     break
                 await loop.run_in_executor(None, buffer_queue.put, buffer)
-            await loop.run_in_executor(
-                None, buffer_queue.put, None
-            )  # Signal completion
+            await loop.run_in_executor(None, buffer_queue.put, None)  # Signal completion
 
         def callback(
             outdata: npt.NDArray[np.float32],
             frame_count: int,
-            time_info: Any,
-            status: Any,
+            _time_info: Any,
+            _status: Any,
         ):
             nonlocal current_buffer, buffer_pos
 
@@ -139,13 +130,8 @@ class LocalAudioPlayer:
                             raise sd.CallbackStop
                         buffer_pos = 0
 
-                        if (
-                            current_buffer.dtype == np.int16
-                            and self.dtype == np.float32
-                        ):
-                            current_buffer = (
-                                current_buffer.astype(np.float32) / 32767.0
-                            ).reshape(-1, self.channels)
+                        if current_buffer.dtype == np.int16 and self.dtype == np.float32:
+                            current_buffer = (current_buffer.astype(np.float32) / 32767.0).reshape(-1, self.channels)
 
                     except queue.Empty:
                         outdata[frames_written:] = 0
@@ -153,9 +139,9 @@ class LocalAudioPlayer:
 
                 remaining_frames = len(current_buffer) - buffer_pos
                 frames_to_write = min(frame_count - frames_written, remaining_frames)
-                outdata[frames_written : frames_written + frames_to_write] = (
-                    current_buffer[buffer_pos : buffer_pos + frames_to_write]
-                )
+                outdata[frames_written : frames_written + frames_to_write] = current_buffer[
+                    buffer_pos : buffer_pos + frames_to_write
+                ]
                 buffer_pos += frames_to_write
                 frames_written += frames_to_write
 
