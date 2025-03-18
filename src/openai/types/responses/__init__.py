@@ -7,6 +7,7 @@ from .response import Response as Response
 from .tool_param import ToolParam as ToolParam
 from .computer_tool import ComputerTool as ComputerTool
 from .function_tool import FunctionTool as FunctionTool
+from .response_item import ResponseItem as ResponseItem
 from .response_error import ResponseError as ResponseError
 from .response_usage import ResponseUsage as ResponseUsage
 from .parsed_response import (
@@ -66,6 +67,7 @@ from .tool_choice_function_param import ToolChoiceFunctionParam as ToolChoiceFun
 from .response_computer_tool_call import ResponseComputerToolCall as ResponseComputerToolCall
 from .response_format_text_config import ResponseFormatTextConfig as ResponseFormatTextConfig
 from .response_function_tool_call import ResponseFunctionToolCall as ResponseFunctionToolCall
+from .response_input_message_item import ResponseInputMessageItem as ResponseInputMessageItem
 from .response_refusal_done_event import ResponseRefusalDoneEvent as ResponseRefusalDoneEvent
 from .response_function_web_search import ResponseFunctionWebSearch as ResponseFunctionWebSearch
 from .response_input_content_param import ResponseInputContentParam as ResponseInputContentParam
@@ -76,6 +78,7 @@ from .response_reasoning_item_param import ResponseReasoningItemParam as Respons
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent as ResponseContentPartDoneEvent
+from .response_function_tool_call_item import ResponseFunctionToolCallItem as ResponseFunctionToolCallItem
 from .response_output_item_added_event import ResponseOutputItemAddedEvent as ResponseOutputItemAddedEvent
 from .response_computer_tool_call_param import ResponseComputerToolCallParam as ResponseComputerToolCallParam
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
@@ -90,8 +93,14 @@ from .response_text_annotation_delta_event import ResponseTextAnnotationDeltaEve
 from .response_audio_transcript_delta_event import (
     ResponseAudioTranscriptDeltaEvent as ResponseAudioTranscriptDeltaEvent,
 )
+from .response_computer_tool_call_output_item import (
+    ResponseComputerToolCallOutputItem as ResponseComputerToolCallOutputItem,
+)
 from .response_format_text_json_schema_config import (
     ResponseFormatTextJSONSchemaConfig as ResponseFormatTextJSONSchemaConfig,
+)
+from .response_function_tool_call_output_item import (
+    ResponseFunctionToolCallOutputItem as ResponseFunctionToolCallOutputItem,
 )
 from .response_web_search_call_completed_event import (
     ResponseWebSearchCallCompletedEvent as ResponseWebSearchCallCompletedEvent,
@@ -120,6 +129,9 @@ from .response_function_call_arguments_done_event import (
 from .response_function_call_arguments_delta_event import (
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,
 )
+from .response_computer_tool_call_output_screenshot import (
+    ResponseComputerToolCallOutputScreenshot as ResponseComputerToolCallOutputScreenshot,
+)
 from .response_format_text_json_schema_config_param import (
     ResponseFormatTextJSONSchemaConfigParam as ResponseFormatTextJSONSchemaConfigParam,
 )
@@ -137,4 +149,7 @@ from .response_code_interpreter_call_in_progress_event import (
 )
 from .response_code_interpreter_call_interpreting_event import (
     ResponseCodeInterpreterCallInterpretingEvent as ResponseCodeInterpreterCallInterpretingEvent,
+)
+from .response_computer_tool_call_output_screenshot_param import (
+    ResponseComputerToolCallOutputScreenshotParam as ResponseComputerToolCallOutputScreenshotParam,
 )
