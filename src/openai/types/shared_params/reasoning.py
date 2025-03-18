@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, TypedDict
 
 from ..shared.reasoning_effort import ReasoningEffort
 
@@ -11,7 +11,7 @@ __all__ = ["Reasoning"]
 
 
 class Reasoning(TypedDict, total=False):
-    effort: Required[Optional[ReasoningEffort]]
+    effort: Optional[ReasoningEffort]
     """**o-series models only**
 
     Constrains effort on reasoning for
@@ -21,7 +21,7 @@ class Reasoning(TypedDict, total=False):
     """
 
     generate_summary: Optional[Literal["concise", "detailed"]]
-    """**o-series models only**
+    """**computer_use_preview only**
 
     A summary of the reasoning performed by the model. This can be useful for
     debugging and understanding the model's reasoning process. One of `concise` or
