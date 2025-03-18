@@ -8,9 +8,6 @@ __all__ = ["ResponseFunctionToolCallParam"]
 
 
 class ResponseFunctionToolCallParam(TypedDict, total=False):
-    id: Required[str]
-    """The unique ID of the function tool call."""
-
     arguments: Required[str]
     """A JSON string of the arguments to pass to the function."""
 
@@ -22,6 +19,9 @@ class ResponseFunctionToolCallParam(TypedDict, total=False):
 
     type: Required[Literal["function_call"]]
     """The type of the function tool call. Always `function_call`."""
+
+    id: str
+    """The unique ID of the function tool call."""
 
     status: Literal["in_progress", "completed", "incomplete"]
     """The status of the item.
