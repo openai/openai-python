@@ -13,12 +13,12 @@ from .response_function_tool_call_param import ResponseFunctionToolCallParam
 from .response_function_web_search_param import ResponseFunctionWebSearchParam
 from .response_file_search_tool_call_param import ResponseFileSearchToolCallParam
 from .response_input_message_content_list_param import ResponseInputMessageContentListParam
+from .response_computer_tool_call_output_screenshot_param import ResponseComputerToolCallOutputScreenshotParam
 
 __all__ = [
     "ResponseInputItemParam",
     "Message",
     "ComputerCallOutput",
-    "ComputerCallOutputOutput",
     "ComputerCallOutputAcknowledgedSafetyCheck",
     "FunctionCallOutput",
     "ItemReference",
@@ -46,20 +46,6 @@ class Message(TypedDict, total=False):
     """The type of the message input. Always set to `message`."""
 
 
-class ComputerCallOutputOutput(TypedDict, total=False):
-    type: Required[Literal["computer_screenshot"]]
-    """Specifies the event type.
-
-    For a computer screenshot, this property is always set to `computer_screenshot`.
-    """
-
-    file_id: str
-    """The identifier of an uploaded file that contains the screenshot."""
-
-    image_url: str
-    """The URL of the screenshot image."""
-
-
 class ComputerCallOutputAcknowledgedSafetyCheck(TypedDict, total=False):
     id: Required[str]
     """The ID of the pending safety check."""
@@ -75,7 +61,7 @@ class ComputerCallOutput(TypedDict, total=False):
     call_id: Required[str]
     """The ID of the computer tool call that produced the output."""
 
-    output: Required[ComputerCallOutputOutput]
+    output: Required[ResponseComputerToolCallOutputScreenshotParam]
     """A computer screenshot image used with the computer use tool."""
 
     type: Required[Literal["computer_call_output"]]
