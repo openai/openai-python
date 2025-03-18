@@ -22,7 +22,7 @@ class FileFile(TypedDict, total=False):
     file_id: str
     """The ID of an uploaded file to use as input."""
 
-    file_name: str
+    filename: str
     """The name of the file, used when passing the file to the model as a string."""
 
 
