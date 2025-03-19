@@ -6,7 +6,6 @@ from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .tool_param import ToolParam
-from ..shared.chat_model import ChatModel
 from .response_includable import ResponseIncludable
 from .tool_choice_options import ToolChoiceOptions
 from .response_input_param import ResponseInputParam
@@ -15,6 +14,7 @@ from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
 from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
+from ..shared_params.responses_model import ResponsesModel
 
 __all__ = [
     "ResponseCreateParamsBase",
@@ -37,7 +37,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     - [Function calling](https://platform.openai.com/docs/guides/function-calling)
     """
 
-    model: Required[Union[str, ChatModel]]
+    model: Required[ResponsesModel]
     """Model ID used to generate the response, like `gpt-4o` or `o1`.
 
     OpenAI offers a wide range of models with different capabilities, performance
