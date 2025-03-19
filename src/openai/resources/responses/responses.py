@@ -28,12 +28,12 @@ from .input_items import (
 from ..._streaming import Stream, AsyncStream
 from ..._base_client import make_request_options
 from ...types.responses import response_create_params, response_retrieve_params
-from ...types.shared.chat_model import ChatModel
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam
 from ...types.shared_params.metadata import Metadata
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.response_includable import ResponseIncludable
+from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
@@ -70,7 +70,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -235,7 +235,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         stream: Literal[True],
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -400,7 +400,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         stream: bool,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -565,7 +565,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -727,7 +727,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -892,7 +892,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         stream: Literal[True],
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1057,7 +1057,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         stream: bool,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1222,7 +1222,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,

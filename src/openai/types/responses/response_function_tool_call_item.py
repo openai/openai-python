@@ -8,4 +8,4 @@ __all__ = ["ResponseFunctionToolCallItem"]
 
 class ResponseFunctionToolCallItem(ResponseFunctionToolCall):
     id: str  # type: ignore
-    """The unique ID of the function call tool output."""
+    """The unique ID of the function tool call."""
