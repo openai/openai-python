@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.67.0 (2025-03-19)
+
+Full Changelog: [v1.66.5...v1.67.0](https://github.com/openai/openai-python/compare/v1.66.5...v1.67.0)
+
+### Features
+
+* **api:** o1-pro now available through the API ([#2228](https://github.com/openai/openai-python/issues/2228)) ([40a19d8](https://github.com/openai/openai-python/commit/40a19d8592c1767d6318230fc93e37c360d1bcd1))
+
 ## 1.66.5 (2025-03-18)
 
 Full Changelog: [v1.66.4...v1.66.5](https://github.com/openai/openai-python/compare/v1.66.4...v1.66.5)
