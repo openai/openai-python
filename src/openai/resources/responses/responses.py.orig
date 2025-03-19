@@ -31,12 +31,17 @@ from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
 from ..._base_client import make_request_options
 from ...types.responses import response_create_params, response_retrieve_params
+<<<<<<< HEAD
 from ...lib._parsing._responses import (
     TextFormatT,
     parse_response,
     type_to_text_format_param as _type_to_text_format_param,
 )
 from ...types.shared.chat_model import ChatModel
+||||||| parent of 001707b8 (feat(api): o1-pro now available through the API (#2228))
+from ...types.shared.chat_model import ChatModel
+=======
+>>>>>>> 001707b8 (feat(api): o1-pro now available through the API (#2228))
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.shared_params.metadata import Metadata

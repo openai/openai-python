@@ -2,6 +2,7 @@
 
 ```python
 from openai.types import (
+    AllModels,
     ChatModel,
     ComparisonFilter,
     CompoundFilter,
@@ -14,6 +15,7 @@ from openai.types import (
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,
+    ResponsesModel,
 )
 ```
 
