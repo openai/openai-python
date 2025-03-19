@@ -7,10 +7,12 @@ from .image import Image as Image
 from .model import Model as Model
 from .shared import (
     Metadata as Metadata,
+    AllModels as AllModels,
     ChatModel as ChatModel,
     Reasoning as Reasoning,
     ErrorObject as ErrorObject,
     CompoundFilter as CompoundFilter,
+    ResponsesModel as ResponsesModel,
     ReasoningEffort as ReasoningEffort,
     ComparisonFilter as ComparisonFilter,
     FunctionDefinition as FunctionDefinition,
