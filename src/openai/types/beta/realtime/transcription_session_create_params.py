@@ -2,13 +2,19 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import List
 from typing_extensions import Literal, TypedDict
 
-__all__ = ["SessionCreateParams", "InputAudioNoiseReduction", "InputAudioTranscription", "Tool", "TurnDetection"]
+__all__ = ["TranscriptionSessionCreateParams", "InputAudioNoiseReduction", "InputAudioTranscription", "TurnDetection"]
 
 
-class SessionCreateParams(TypedDict, total=False):
+class TranscriptionSessionCreateParams(TypedDict, total=False):
+    include: List[str]
+    """The set of items to include in the transcription. Current available items are:
+
+    - `item.input_audio_transcription.logprobs`
+    """
+
     input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"]
     """The format of input audio.
 
@@ -27,38 +33,10 @@ class SessionCreateParams(TypedDict, total=False):
     """
 
     input_audio_transcription: InputAudioTranscription
-    """
-    Configuration for input audio transcription, defaults to off and can be set to
-    `null` to turn off once on. Input audio transcription is not native to the
-    model, since the model consumes audio directly. Transcription runs
-    asynchronously through
-    [the /audio/transcriptions endpoint](https://platform.openai.com/docs/api-reference/audio/createTranscription)
-    and should be treated as guidance of input audio content rather than precisely
-    what the model heard. The client can optionally set the language and prompt for
-    transcription, these offer additional guidance to the transcription service.
-    """
+    """Configuration for input audio transcription.
 
-    instructions: str
-    """The default system instructions (i.e.
-
-    system message) prepended to model calls. This field allows the client to guide
-    the model on desired responses. The model can be instructed on response content
-    and format, (e.g. "be extremely succinct", "act friendly", "here are examples of
-    good responses") and on audio behavior (e.g. "talk quickly", "inject emotion
-    into your voice", "laugh frequently"). The instructions are not guaranteed to be
-    followed by the model, but they provide guidance to the model on the desired
-    behavior.
-
-    Note that the server sets default instructions which will be used if this field
-    is not set and are visible in the `session.created` event at the start of the
-    session.
-    """
-
-    max_response_output_tokens: Union[int, Literal["inf"]]
-    """
-    Maximum number of output tokens for a single assistant response, inclusive of
-    tool calls. Provide an integer between 1 and 4096 to limit output tokens, or
-    `inf` for the maximum available tokens for a given model. Defaults to `inf`.
+    The client can optionally set the language and prompt for transcription, these
+    offer additional guidance to the transcription service.
     """
 
     modalities: List[Literal["text", "audio"]]
@@ -66,38 +44,6 @@ class SessionCreateParams(TypedDict, total=False):
 
     To disable audio, set this to ["text"].
     """
-
-    model: Literal[
-        "gpt-4o-realtime-preview",
-        "gpt-4o-realtime-preview-2024-10-01",
-        "gpt-4o-realtime-preview-2024-12-17",
-        "gpt-4o-mini-realtime-preview",
-        "gpt-4o-mini-realtime-preview-2024-12-17",
-    ]
-    """The Realtime model used for this session."""
-
-    output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"]
-    """The format of output audio.
-
-    Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
-    sampled at a rate of 24kHz.
-    """
-
-    temperature: float
-    """Sampling temperature for the model, limited to [0.6, 1.2].
-
-    For audio models a temperature of 0.8 is highly recommended for best
-    performance.
-    """
-
-    tool_choice: str
-    """How the model chooses tools.
-
-    Options are `auto`, `none`, `required`, or specify a function.
-    """
-
-    tools: Iterable[Tool]
-    """Tools (functions) available to the model."""
 
     turn_detection: TurnDetection
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
@@ -111,14 +57,6 @@ class SessionCreateParams(TypedDict, total=False):
     trails off with "uhhm", the model will score a low probability of turn end and
     wait longer for the user to continue speaking. This can be useful for more
     natural conversations, but may have a higher latency.
-    """
-
-    voice: Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]
-    """The voice the model uses to respond.
-
-    Voice cannot be changed during the session once the model has responded with
-    audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo` `sage`, `shimmer` and `verse`.
     """
 
 
@@ -140,7 +78,7 @@ class InputAudioTranscription(TypedDict, total=False):
     format will improve accuracy and latency.
     """
 
-    model: str
+    model: Literal["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"]
     """
     The model to use for transcription, current options are `gpt-4o-transcribe`,
     `gpt-4o-mini-transcribe`, and `whisper-1`.
@@ -154,23 +92,6 @@ class InputAudioTranscription(TypedDict, total=False):
     For `gpt-4o-transcribe` models, the prompt is a free text string, for example
     "expect words related to technology".
     """
-
-
-class Tool(TypedDict, total=False):
-    description: str
-    """
-    The description of the function, including guidance on when and how to call it,
-    and guidance about what to tell the user when calling (if anything).
-    """
-
-    name: str
-    """The name of the function."""
-
-    parameters: object
-    """Parameters of the function in JSON Schema."""
-
-    type: Literal["function"]
-    """The type of the tool, i.e. `function`."""
 
 
 class TurnDetection(TypedDict, total=False):

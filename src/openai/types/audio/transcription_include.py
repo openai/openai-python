@@ -2,6 +2,6 @@
 
 from typing_extensions import Literal, TypeAlias
 
-__all__ = ["AudioModel"]
+__all__ = ["TranscriptionInclude"]
 
-AudioModel: TypeAlias = Literal["whisper-1", "gpt-4o-transcribe", "gpt-4o-mini-transcribe"]
+TranscriptionInclude: TypeAlias = Literal["logprobs"]

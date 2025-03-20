@@ -5,7 +5,7 @@ from typing_extensions import Literal
 
 from ...._models import BaseModel
 
-__all__ = ["ConversationItemInputAudioTranscriptionCompletedEvent", "Logprob"]
+__all__ = ["ConversationItemInputAudioTranscriptionDeltaEvent", "Logprob"]
 
 
 class Logprob(BaseModel):
@@ -19,23 +19,21 @@ class Logprob(BaseModel):
     """The log probability of the token."""
 
 
-class ConversationItemInputAudioTranscriptionCompletedEvent(BaseModel):
-    content_index: int
-    """The index of the content part containing the audio."""
-
+class ConversationItemInputAudioTranscriptionDeltaEvent(BaseModel):
     event_id: str
     """The unique ID of the server event."""
 
     item_id: str
-    """The ID of the user message item containing the audio."""
+    """The ID of the item."""
 
-    transcript: str
-    """The transcribed text."""
+    type: Literal["conversation.item.input_audio_transcription.delta"]
+    """The event type, must be `conversation.item.input_audio_transcription.delta`."""
 
-    type: Literal["conversation.item.input_audio_transcription.completed"]
-    """
-    The event type, must be `conversation.item.input_audio_transcription.completed`.
-    """
+    content_index: Optional[int] = None
+    """The index of the content part in the item's content array."""
+
+    delta: Optional[str] = None
+    """The text delta."""
 
     logprobs: Optional[List[Logprob]] = None
     """The log probabilities of the transcription."""
