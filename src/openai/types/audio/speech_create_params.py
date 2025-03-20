@@ -17,7 +17,7 @@ class SpeechCreateParams(TypedDict, total=False):
     model: Required[Union[str, SpeechModel]]
     """
     One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-    `tts-1` or `tts-1-hd`
+    `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
     """
 
     voice: Required[Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"]]
@@ -26,6 +26,12 @@ class SpeechCreateParams(TypedDict, total=False):
     Supported voices are `alloy`, `ash`, `coral`, `echo`, `fable`, `onyx`, `nova`,
     `sage` and `shimmer`. Previews of the voices are available in the
     [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+    """
+
+    instructions: str
+    """Control the voice of your generated audio with additional instructions.
+
+    Does not work with `tts-1` or `tts-1-hd`.
     """
 
     response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"]

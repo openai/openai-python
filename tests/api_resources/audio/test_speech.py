@@ -41,6 +41,7 @@ class TestSpeech:
             input="input",
             model="string",
             voice="alloy",
+            instructions="instructions",
             response_format="mp3",
             speed=0.25,
         )
@@ -104,6 +105,7 @@ class TestAsyncSpeech:
             input="input",
             model="string",
             voice="alloy",
+            instructions="instructions",
             response_format="mp3",
             speed=0.25,
         )

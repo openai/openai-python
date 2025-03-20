@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 from typing import Any, Union, Mapping, cast
+from typing_extensions import Literal
 
 import httpx
 
 from ... import _legacy_response
-from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import (
     extract_files,
@@ -21,7 +21,6 @@ from ..._response import to_streamed_response_wrapper, async_to_streamed_respons
 from ...types.audio import translation_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
-from ...types.audio_response_format import AudioResponseFormat
 from ...types.audio.translation_create_response import TranslationCreateResponse
 
 __all__ = ["Translations", "AsyncTranslations"]
@@ -53,7 +52,7 @@ class Translations(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -150,7 +149,7 @@ class AsyncTranslations(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: AudioResponseFormat | NotGiven = NOT_GIVEN,
+        response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
