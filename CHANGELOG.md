@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.68.0 (2025-03-20)
+
+Full Changelog: [v1.67.0...v1.68.0](https://github.com/openai/openai-python/compare/v1.67.0...v1.68.0)
+
+### Features
+
+* add audio helpers ([423655c](https://github.com/openai/openai-python/commit/423655ca9077cfd258f1e52f6eb386fc8307fa5f))
+* **api:** new models for TTS, STT, + new audio features for Realtime ([#2232](https://github.com/openai/openai-python/issues/2232)) ([ab5192d](https://github.com/openai/openai-python/commit/ab5192d0a7b417ade622ec94dd48f86beb90692c))
+
 ## 1.67.0 (2025-03-19)
 
 Full Changelog: [v1.66.5...v1.67.0](https://github.com/openai/openai-python/compare/v1.66.5...v1.67.0)
