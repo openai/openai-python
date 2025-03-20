@@ -49,9 +49,9 @@ from ....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from ....types.chat_model import ChatModel
 from ....types.beta.thread import Thread
 from ....types.beta.threads.run import Run
+from ....types.shared.chat_model import ChatModel
 from ....types.beta.thread_deleted import ThreadDeleted
 from ....types.shared_params.metadata import Metadata
 from ....types.beta.assistant_stream_event import AssistantStreamEvent

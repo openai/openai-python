@@ -39,7 +39,6 @@ from .....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from .....types.chat_model import ChatModel
 from .....types.beta.threads import (
     run_list_params,
     run_create_params,
@@ -47,7 +46,9 @@ from .....types.beta.threads import (
     run_submit_tool_outputs_params,
 )
 from .....types.beta.threads.run import Run
+from .....types.shared.chat_model import ChatModel
 from .....types.shared_params.metadata import Metadata
+from .....types.shared.reasoning_effort import ReasoningEffort
 from .....types.beta.assistant_tool_param import AssistantToolParam
 from .....types.beta.assistant_stream_event import AssistantStreamEvent
 from .....types.beta.threads.runs.run_step_include import RunStepInclude
@@ -96,7 +97,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -165,7 +166,7 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -247,7 +248,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -319,7 +320,7 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -397,7 +398,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -469,7 +470,7 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -546,7 +547,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -800,7 +801,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -871,7 +872,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -903,7 +904,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -935,7 +936,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1054,7 +1055,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1086,7 +1087,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1118,7 +1119,7 @@ class Runs(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1505,7 +1506,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1574,7 +1575,7 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1656,7 +1657,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1728,7 +1729,7 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1806,7 +1807,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -1878,7 +1879,7 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1955,7 +1956,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -2209,7 +2210,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2460,7 +2461,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2492,7 +2493,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
@@ -2524,7 +2525,7 @@ class AsyncRuns(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,

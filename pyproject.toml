@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.65.4"
+version = "1.68.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -16,6 +16,8 @@ dependencies = [
     "sniffio",
     "tqdm > 4",
     "jiter>=0.4.0, <1",
+    "sounddevice>=0.5.1",
+    "numpy>=2.0.2",
 ]
 requires-python = ">= 3.8"
 classifiers = [
@@ -100,7 +102,7 @@ typecheck = { chain = [
 "typecheck:mypy" = "mypy ."
 
 [build-system]
-requires = ["hatchling", "hatch-fancy-pypi-readme"]
+requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -169,7 +171,6 @@ reportImplicitOverride = true
 
 reportImportCycles = false
 reportPrivateUsage = false
-
 
 [tool.ruff]
 line-length = 120

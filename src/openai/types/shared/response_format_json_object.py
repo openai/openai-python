@@ -9,4 +9,4 @@ __all__ = ["ResponseFormatJSONObject"]
 
 class ResponseFormatJSONObject(BaseModel):
     type: Literal["json_object"]
-    """The type of response format being defined: `json_object`"""
+    """The type of response format being defined. Always `json_object`."""

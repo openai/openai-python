@@ -31,22 +31,20 @@ from ...._streaming import Stream, AsyncStream
 from ....pagination import SyncCursorPage, AsyncCursorPage
 from ....types.chat import (
     ChatCompletionAudioParam,
-    ChatCompletionReasoningEffort,
     completion_list_params,
     completion_create_params,
     completion_update_params,
 )
 from ...._base_client import AsyncPaginator, make_request_options
-from ....types.chat_model import ChatModel
+from ....types.shared.chat_model import ChatModel
 from ....types.chat.chat_completion import ChatCompletion
 from ....types.shared_params.metadata import Metadata
+from ....types.shared.reasoning_effort import ReasoningEffort
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.chat_completion_deleted import ChatCompletionDeleted
-from ....types.chat.chat_completion_modality import ChatCompletionModality
 from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
-from ....types.chat.chat_completion_reasoning_effort import ChatCompletionReasoningEffort
 from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from ....types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
@@ -93,16 +91,16 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -112,6 +110,7 @@ class Completions(SyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -119,9 +118,15 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion:
-        """Creates a model response for the given chat conversation.
+        """
+        **Starting a new project?** We recommend trying
+        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
+        advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
 
-        Learn more in the
+        ---
+
+        Creates a model response for the given chat conversation. Learn more in the
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
@@ -140,9 +145,11 @@ class Completions(SyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
-              table for details on which models work with the Chat API.
+          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -203,8 +210,8 @@ class Completions(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          modalities: Output types that you would like the model to generate for this request. Most
-              models are capable of generating text, which is the default:
+          modalities: Output types that you would like the model to generate. Most models are capable
+              of generating text, which is the default:
 
               `["text"]`
 
@@ -229,7 +236,7 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -243,16 +250,9 @@ class Completions(SyncAPIResource):
               in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
-              message the model generates is valid JSON.
-
-              **Important:** when using JSON mode, you **must** also instruct the model to
-              produce JSON yourself via a system or user message. Without this, the model may
-              generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in a long-running and seemingly "stuck" request. Also note that
-              the message content may be partially cut off if `finish_reason="length"`, which
-              indicates the generation exceeded `max_tokens` or the conversation exceeded the
-              max context length.
+              Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+              ensures the message the model generates is valid JSON. Using `json_schema` is
+              preferred for models that support it.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -267,23 +267,29 @@ class Completions(SyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarantee.
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarantee.
+                tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens.
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens. The
+              returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-          stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-              sent as data-only
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-              as they become available, with the stream terminated by a `data: [DONE]`
-              message.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              for more information, along with the
+              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              guide for more information on how to handle the streaming events.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -319,6 +325,10 @@ class Completions(SyncAPIResource):
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+
+          web_search_options: This tool searches the web for relevant results to use in a response. Learn more
+              about the
+              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
 
           extra_headers: Send extra headers
 
@@ -346,16 +356,16 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -364,6 +374,7 @@ class Completions(SyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -371,9 +382,15 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Stream[ChatCompletionChunk]:
-        """Creates a model response for the given chat conversation.
+        """
+        **Starting a new project?** We recommend trying
+        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
+        advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
 
-        Learn more in the
+        ---
+
+        Creates a model response for the given chat conversation. Learn more in the
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
@@ -392,16 +409,20 @@ class Completions(SyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
-              table for details on which models work with the Chat API.
+          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
-          stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-              sent as data-only
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-              as they become available, with the stream terminated by a `data: [DONE]`
-              message.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              for more information, along with the
+              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -462,8 +483,8 @@ class Completions(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          modalities: Output types that you would like the model to generate for this request. Most
-              models are capable of generating text, which is the default:
+          modalities: Output types that you would like the model to generate. Most models are capable
+              of generating text, which is the default:
 
               `["text"]`
 
@@ -488,7 +509,7 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -502,16 +523,9 @@ class Completions(SyncAPIResource):
               in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
-              message the model generates is valid JSON.
-
-              **Important:** when using JSON mode, you **must** also instruct the model to
-              produce JSON yourself via a system or user message. Without this, the model may
-              generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in a long-running and seemingly "stuck" request. Also note that
-              the message content may be partially cut off if `finish_reason="length"`, which
-              indicates the generation exceeded `max_tokens` or the conversation exceeded the
-              max context length.
+              Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+              ensures the message the model generates is valid JSON. Using `json_schema` is
+              preferred for models that support it.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -526,12 +540,16 @@ class Completions(SyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarantee.
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarantee.
+                tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens.
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens. The
+              returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
@@ -571,6 +589,10 @@ class Completions(SyncAPIResource):
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+
+          web_search_options: This tool searches the web for relevant results to use in a response. Learn more
+              about the
+              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
 
           extra_headers: Send extra headers
 
@@ -598,16 +620,16 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -616,6 +638,7 @@ class Completions(SyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -623,9 +646,15 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | Stream[ChatCompletionChunk]:
-        """Creates a model response for the given chat conversation.
+        """
+        **Starting a new project?** We recommend trying
+        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
+        advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
 
-        Learn more in the
+        ---
+
+        Creates a model response for the given chat conversation. Learn more in the
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
@@ -644,16 +673,20 @@ class Completions(SyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
-              table for details on which models work with the Chat API.
+          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
-          stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-              sent as data-only
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-              as they become available, with the stream terminated by a `data: [DONE]`
-              message.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              for more information, along with the
+              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -714,8 +747,8 @@ class Completions(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          modalities: Output types that you would like the model to generate for this request. Most
-              models are capable of generating text, which is the default:
+          modalities: Output types that you would like the model to generate. Most models are capable
+              of generating text, which is the default:
 
               `["text"]`
 
@@ -740,7 +773,7 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -754,16 +787,9 @@ class Completions(SyncAPIResource):
               in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
-              message the model generates is valid JSON.
-
-              **Important:** when using JSON mode, you **must** also instruct the model to
-              produce JSON yourself via a system or user message. Without this, the model may
-              generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in a long-running and seemingly "stuck" request. Also note that
-              the message content may be partially cut off if `finish_reason="length"`, which
-              indicates the generation exceeded `max_tokens` or the conversation exceeded the
-              max context length.
+              Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+              ensures the message the model generates is valid JSON. Using `json_schema` is
+              preferred for models that support it.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -778,12 +804,16 @@ class Completions(SyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarantee.
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarantee.
+                tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens.
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens. The
+              returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
@@ -824,6 +854,10 @@ class Completions(SyncAPIResource):
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
+          web_search_options: This tool searches the web for relevant results to use in a response. Learn more
+              about the
+              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -849,16 +883,16 @@ class Completions(SyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -868,6 +902,7 @@ class Completions(SyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -910,6 +945,7 @@ class Completions(SyncAPIResource):
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
+                    "web_search_options": web_search_options,
                 },
                 completion_create_params.CompletionCreateParams,
             ),
@@ -934,7 +970,7 @@ class Completions(SyncAPIResource):
     ) -> ChatCompletion:
         """Get a stored chat completion.
 
-        Only chat completions that have been created with
+        Only Chat Completions that have been created with
         the `store` parameter set to `true` will be returned.
 
         Args:
@@ -970,7 +1006,7 @@ class Completions(SyncAPIResource):
     ) -> ChatCompletion:
         """Modify a stored chat completion.
 
-        Only chat completions that have been created
+        Only Chat Completions that have been created
         with the `store` parameter set to `true` can be modified. Currently, the only
         supported modification is to update the `metadata` field.
 
@@ -1016,24 +1052,24 @@ class Completions(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SyncCursorPage[ChatCompletion]:
-        """List stored chat completions.
+        """List stored Chat Completions.
 
-        Only chat completions that have been stored with
+        Only Chat Completions that have been stored with
         the `store` parameter set to `true` will be returned.
 
         Args:
           after: Identifier for the last chat completion from the previous pagination request.
 
-          limit: Number of chat completions to retrieve.
+          limit: Number of Chat Completions to retrieve.
 
           metadata:
-              A list of metadata keys to filter the chat completions by. Example:
+              A list of metadata keys to filter the Chat Completions by. Example:
 
               `metadata[key1]=value1&metadata[key2]=value2`
 
-          model: The model used to generate the chat completions.
+          model: The model used to generate the Chat Completions.
 
-          order: Sort order for chat completions by timestamp. Use `asc` for ascending order or
+          order: Sort order for Chat Completions by timestamp. Use `asc` for ascending order or
               `desc` for descending order. Defaults to `asc`.
 
           extra_headers: Send extra headers
@@ -1079,7 +1115,7 @@ class Completions(SyncAPIResource):
     ) -> ChatCompletionDeleted:
         """Delete a stored chat completion.
 
-        Only chat completions that have been created
+        Only Chat Completions that have been created
         with the `store` parameter set to `true` can be deleted.
 
         Args:
@@ -1141,16 +1177,16 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -1160,6 +1196,7 @@ class AsyncCompletions(AsyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1167,9 +1204,15 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion:
-        """Creates a model response for the given chat conversation.
+        """
+        **Starting a new project?** We recommend trying
+        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
+        advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
 
-        Learn more in the
+        ---
+
+        Creates a model response for the given chat conversation. Learn more in the
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
@@ -1188,9 +1231,11 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
-              table for details on which models work with the Chat API.
+          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -1251,8 +1296,8 @@ class AsyncCompletions(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          modalities: Output types that you would like the model to generate for this request. Most
-              models are capable of generating text, which is the default:
+          modalities: Output types that you would like the model to generate. Most models are capable
+              of generating text, which is the default:
 
               `["text"]`
 
@@ -1277,7 +1322,7 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1291,16 +1336,9 @@ class AsyncCompletions(AsyncAPIResource):
               in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
-              message the model generates is valid JSON.
-
-              **Important:** when using JSON mode, you **must** also instruct the model to
-              produce JSON yourself via a system or user message. Without this, the model may
-              generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in a long-running and seemingly "stuck" request. Also note that
-              the message content may be partially cut off if `finish_reason="length"`, which
-              indicates the generation exceeded `max_tokens` or the conversation exceeded the
-              max context length.
+              Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+              ensures the message the model generates is valid JSON. Using `json_schema` is
+              preferred for models that support it.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1315,23 +1353,29 @@ class AsyncCompletions(AsyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarantee.
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarantee.
+                tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens.
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens. The
+              returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-          stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-              sent as data-only
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-              as they become available, with the stream terminated by a `data: [DONE]`
-              message.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              for more information, along with the
+              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              guide for more information on how to handle the streaming events.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -1367,6 +1411,10 @@ class AsyncCompletions(AsyncAPIResource):
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+
+          web_search_options: This tool searches the web for relevant results to use in a response. Learn more
+              about the
+              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
 
           extra_headers: Send extra headers
 
@@ -1394,16 +1442,16 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1412,6 +1460,7 @@ class AsyncCompletions(AsyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1419,9 +1468,15 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncStream[ChatCompletionChunk]:
-        """Creates a model response for the given chat conversation.
+        """
+        **Starting a new project?** We recommend trying
+        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
+        advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
 
-        Learn more in the
+        ---
+
+        Creates a model response for the given chat conversation. Learn more in the
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
@@ -1440,16 +1495,20 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
-              table for details on which models work with the Chat API.
+          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
-          stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-              sent as data-only
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-              as they become available, with the stream terminated by a `data: [DONE]`
-              message.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              for more information, along with the
+              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -1510,8 +1569,8 @@ class AsyncCompletions(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          modalities: Output types that you would like the model to generate for this request. Most
-              models are capable of generating text, which is the default:
+          modalities: Output types that you would like the model to generate. Most models are capable
+              of generating text, which is the default:
 
               `["text"]`
 
@@ -1536,7 +1595,7 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1550,16 +1609,9 @@ class AsyncCompletions(AsyncAPIResource):
               in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
-              message the model generates is valid JSON.
-
-              **Important:** when using JSON mode, you **must** also instruct the model to
-              produce JSON yourself via a system or user message. Without this, the model may
-              generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in a long-running and seemingly "stuck" request. Also note that
-              the message content may be partially cut off if `finish_reason="length"`, which
-              indicates the generation exceeded `max_tokens` or the conversation exceeded the
-              max context length.
+              Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+              ensures the message the model generates is valid JSON. Using `json_schema` is
+              preferred for models that support it.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1574,12 +1626,16 @@ class AsyncCompletions(AsyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarantee.
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarantee.
+                tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens.
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens. The
+              returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
@@ -1619,6 +1675,10 @@ class AsyncCompletions(AsyncAPIResource):
           user: A unique identifier representing your end-user, which can help OpenAI to monitor
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+
+          web_search_options: This tool searches the web for relevant results to use in a response. Learn more
+              about the
+              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
 
           extra_headers: Send extra headers
 
@@ -1646,16 +1706,16 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1664,6 +1724,7 @@ class AsyncCompletions(AsyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1671,9 +1732,15 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ChatCompletion | AsyncStream[ChatCompletionChunk]:
-        """Creates a model response for the given chat conversation.
+        """
+        **Starting a new project?** We recommend trying
+        [Responses](https://platform.openai.com/docs/api-reference/responses) to take
+        advantage of the latest OpenAI platform features. Compare
+        [Chat Completions with Responses](https://platform.openai.com/docs/guides/responses-vs-chat-completions?api-mode=responses).
 
-        Learn more in the
+        ---
+
+        Creates a model response for the given chat conversation. Learn more in the
         [text generation](https://platform.openai.com/docs/guides/text-generation),
         [vision](https://platform.openai.com/docs/guides/vision), and
         [audio](https://platform.openai.com/docs/guides/audio) guides.
@@ -1692,16 +1759,20 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: ID of the model to use. See the
-              [model endpoint compatibility](https://platform.openai.com/docs/models#model-endpoint-compatibility)
-              table for details on which models work with the Chat API.
+          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
-          stream: If set, partial message deltas will be sent, like in ChatGPT. Tokens will be
-              sent as data-only
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format)
-              as they become available, with the stream terminated by a `data: [DONE]`
-              message.
-              [Example Python code](https://cookbook.openai.com/examples/how_to_stream_completions).
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/chat/streaming)
+              for more information, along with the
+              [streaming responses](https://platform.openai.com/docs/guides/streaming-responses)
+              guide for more information on how to handle the streaming events.
 
           audio: Parameters for audio output. Required when audio output is requested with
               `modalities: ["audio"]`.
@@ -1762,8 +1833,8 @@ class AsyncCompletions(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
-          modalities: Output types that you would like the model to generate for this request. Most
-              models are capable of generating text, which is the default:
+          modalities: Output types that you would like the model to generate. Most models are capable
+              of generating text, which is the default:
 
               `["text"]`
 
@@ -1788,7 +1859,7 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o1 and o3-mini models only**
+          reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
@@ -1802,16 +1873,9 @@ class AsyncCompletions(AsyncAPIResource):
               in the
               [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
 
-              Setting to `{ "type": "json_object" }` enables JSON mode, which ensures the
-              message the model generates is valid JSON.
-
-              **Important:** when using JSON mode, you **must** also instruct the model to
-              produce JSON yourself via a system or user message. Without this, the model may
-              generate an unending stream of whitespace until the generation reaches the token
-              limit, resulting in a long-running and seemingly "stuck" request. Also note that
-              the message content may be partially cut off if `finish_reason="length"`, which
-              indicates the generation exceeded `max_tokens` or the conversation exceeded the
-              max context length.
+              Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+              ensures the message the model generates is valid JSON. Using `json_schema` is
+              preferred for models that support it.
 
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
@@ -1826,12 +1890,16 @@ class AsyncCompletions(AsyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarantee.
+                latency guarentee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarantee.
+                tier with a lower uptime SLA and no latency guarentee.
               - When not set, the default behavior is 'auto'.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens.
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
+
+          stop: Up to 4 sequences where the API will stop generating further tokens. The
+              returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
@@ -1872,6 +1940,10 @@ class AsyncCompletions(AsyncAPIResource):
               and detect abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
+          web_search_options: This tool searches the web for relevant results to use in a response. Learn more
+              about the
+              [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1897,16 +1969,16 @@ class AsyncCompletions(AsyncAPIResource):
         max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         max_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        modalities: Optional[List[ChatCompletionModality]] | NotGiven = NOT_GIVEN,
+        modalities: Optional[List[Literal["text", "audio"]]] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[ChatCompletionReasoningEffort] | NotGiven = NOT_GIVEN,
+        reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str]] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -1916,6 +1988,7 @@ class AsyncCompletions(AsyncAPIResource):
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1958,6 +2031,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
+                    "web_search_options": web_search_options,
                 },
                 completion_create_params.CompletionCreateParams,
             ),
@@ -1982,7 +2056,7 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> ChatCompletion:
         """Get a stored chat completion.
 
-        Only chat completions that have been created with
+        Only Chat Completions that have been created with
         the `store` parameter set to `true` will be returned.
 
         Args:
@@ -2018,7 +2092,7 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> ChatCompletion:
         """Modify a stored chat completion.
 
-        Only chat completions that have been created
+        Only Chat Completions that have been created
         with the `store` parameter set to `true` can be modified. Currently, the only
         supported modification is to update the `metadata` field.
 
@@ -2064,24 +2138,24 @@ class AsyncCompletions(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncPaginator[ChatCompletion, AsyncCursorPage[ChatCompletion]]:
-        """List stored chat completions.
+        """List stored Chat Completions.
 
-        Only chat completions that have been stored with
+        Only Chat Completions that have been stored with
         the `store` parameter set to `true` will be returned.
 
         Args:
           after: Identifier for the last chat completion from the previous pagination request.
 
-          limit: Number of chat completions to retrieve.
+          limit: Number of Chat Completions to retrieve.
 
           metadata:
-              A list of metadata keys to filter the chat completions by. Example:
+              A list of metadata keys to filter the Chat Completions by. Example:
 
               `metadata[key1]=value1&metadata[key2]=value2`
 
-          model: The model used to generate the chat completions.
+          model: The model used to generate the Chat Completions.
 
-          order: Sort order for chat completions by timestamp. Use `asc` for ascending order or
+          order: Sort order for Chat Completions by timestamp. Use `asc` for ascending order or
               `desc` for descending order. Defaults to `asc`.
 
           extra_headers: Send extra headers
@@ -2127,7 +2201,7 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> ChatCompletionDeleted:
         """Delete a stored chat completion.
 
-        Only chat completions that have been created
+        Only Chat Completions that have been created
         with the `store` parameter set to `true` can be deleted.
 
         Args:

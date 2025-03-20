@@ -10,12 +10,9 @@ It is generated from our [OpenAPI specification](https://github.com/openai/opena
 
 ## Documentation
 
-The REST API documentation can be found on [platform.openai.com](https://platform.openai.com/docs). The full API of this library can be found in [api.md](api.md).
+The REST API documentation can be found on [platform.openai.com](https://platform.openai.com/docs/api-reference). The full API of this library can be found in [api.md](api.md).
 
 ## Installation
-
-> [!IMPORTANT]
-> The SDK was rewritten in v1, which was released November 6th 2023. See the [v1 migration guide](https://github.com/openai/openai-python/discussions/742), which includes scripts to automatically update your code.
 
 ```sh
 # install from PyPI
@@ -26,46 +23,69 @@ pip install openai
 
 The full API of this library can be found in [api.md](api.md).
 
+The primary API for interacting with OpenAI models is the [Responses API](https://platform.openai.com/docs/api-reference/responses). You can generate text from the model with the code below.
+
 ```python
 import os
 from openai import OpenAI
 
 client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
-chat_completion = client.chat.completions.create(
+response = client.responses.create(
+    model="gpt-4o",
+    instructions="You are a coding assistant that talks like a pirate.",
+    input="How do I check if a Python object is an instance of a class?",
+)
+
+print(response.output_text)
+```
+
+The previous standard (supported indefinitely) for generating text is the [Chat Completions API](https://platform.openai.com/docs/api-reference/chat). You can use that API to generate text from the model with the code below.
+
+```python
+from openai import OpenAI
+
+client = OpenAI()
+
+completion = client.chat.completions.create(
+    model="gpt-4o",
     messages=[
+        {"role": "developer", "content": "Talk like a pirate."},
         {
             "role": "user",
-            "content": "Say this is a test",
-        }
+            "content": "How do I check if a Python object is an instance of a class?",
+        },
     ],
-    model="gpt-4o",
 )
+
+print(completion.choices[0].message.content)
 ```
 
 While you can provide an `api_key` keyword argument,
 we recommend using [python-dotenv](https://pypi.org/project/python-dotenv/)
 to add `OPENAI_API_KEY="My API Key"` to your `.env` file
-so that your API Key is not stored in source control.
+so that your API key is not stored in source control.
+[Get an API key here](https://platform.openai.com/settings/organization/api-keys).
 
 ### Vision
 
-With a hosted image:
+With an image URL:
 
 ```python
-response = client.chat.completions.create(
+prompt = "What is in this image?"
+img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+
+response = client.responses.create(
     model="gpt-4o-mini",
-    messages=[
+    input=[
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"{img_url}"},
-                },
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": f"{img_url}"},
             ],
         }
     ],
@@ -75,72 +95,28 @@ response = client.chat.completions.create(
 With the image as a base64 encoded string:
 
 ```python
-response = client.chat.completions.create(
+import base64
+from openai import OpenAI
+
+client = OpenAI()
+
+prompt = "What is in this image?"
+with open("path/to/image.png", "rb") as image_file:
+    b64_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+response = client.responses.create(
     model="gpt-4o-mini",
-    messages=[
+    input=[
         {
             "role": "user",
             "content": [
-                {"type": "text", "text": prompt},
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:{img_type};base64,{img_b64_str}"},
-                },
+                {"type": "input_text", "text": prompt},
+                {"type": "input_image", "image_url": f"data:image/png;base64,{b64_image}"},
             ],
         }
     ],
 )
 ```
-
-### Polling Helpers
-
-When interacting with the API some actions such as starting a Run and adding files to vector stores are asynchronous and take time to complete. The SDK includes
-helper functions which will poll the status until it reaches a terminal state and then return the resulting object.
-If an API method results in an action that could benefit from polling there will be a corresponding version of the
-method ending in '\_and_poll'.
-
-For instance to create a Run and poll until it reaches a terminal state you can run:
-
-```python
-run = client.beta.threads.runs.create_and_poll(
-    thread_id=thread.id,
-    assistant_id=assistant.id,
-)
-```
-
-More information on the lifecycle of a Run can be found in the [Run Lifecycle Documentation](https://platform.openai.com/docs/assistants/how-it-works/run-lifecycle)
-
-### Bulk Upload Helpers
-
-When creating and interacting with vector stores, you can use polling helpers to monitor the status of operations.
-For convenience, we also provide a bulk upload helper to allow you to simultaneously upload several files at once.
-
-```python
-sample_files = [Path("sample-paper.pdf"), ...]
-
-batch = await client.vector_stores.file_batches.upload_and_poll(
-    store.id,
-    files=sample_files,
-)
-```
-
-### Streaming Helpers
-
-The SDK also includes helpers to process streams and handle incoming events.
-
-```python
-with client.beta.threads.runs.stream(
-    thread_id=thread.id,
-    assistant_id=assistant.id,
-    instructions="Please address the user as Jane Doe. The user has a premium account.",
-) as stream:
-    for event in stream:
-        # Print the text from text delta events
-        if event.type == "thread.message.delta" and event.data.delta.content:
-            print(event.data.delta.content[0].text)
-```
-
-More information on streaming helpers can be found in the dedicated documentation: [helpers.md](helpers.md)
 
 ## Async usage
 
@@ -152,20 +128,16 @@ import asyncio
 from openai import AsyncOpenAI
 
 client = AsyncOpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
+    # This is the default and can be omitted
+    api_key=os.environ.get("OPENAI_API_KEY"),
 )
 
 
 async def main() -> None:
-    chat_completion = await client.chat.completions.create(
-        messages=[
-            {
-                "role": "user",
-                "content": "Say this is a test",
-            }
-        ],
-        model="gpt-4o",
+    response = await client.responses.create(
+        model="gpt-4o", input="Explain disestablishmentarianism to a smart five year old."
     )
+    print(response.output_text)
 
 
 asyncio.run(main())
@@ -182,18 +154,14 @@ from openai import OpenAI
 
 client = OpenAI()
 
-stream = client.chat.completions.create(
-    messages=[
-        {
-            "role": "user",
-            "content": "Say this is a test",
-        }
-    ],
+stream = client.responses.create(
     model="gpt-4o",
+    input="Write a one-sentence bedtime story about a unicorn.",
     stream=True,
 )
-for chunk in stream:
-    print(chunk.choices[0].delta.content or "", end="")
+
+for event in stream:
+    print(event)
 ```
 
 The async client uses the exact same interface.
@@ -206,57 +174,18 @@ client = AsyncOpenAI()
 
 
 async def main():
-    stream = await client.chat.completions.create(
-        model="gpt-4",
-        messages=[{"role": "user", "content": "Say this is a test"}],
+    stream = client.responses.create(
+        model="gpt-4o",
+        input="Write a one-sentence bedtime story about a unicorn.",
         stream=True,
     )
-    async for chunk in stream:
-        print(chunk.choices[0].delta.content or "", end="")
+
+    for event in stream:
+        print(event)
 
 
 asyncio.run(main())
 ```
-
-## Module-level client
-
-> [!IMPORTANT]
-> We highly recommend instantiating client instances instead of relying on the global client.
-
-We also expose a global client instance that is accessible in a similar fashion to versions prior to v1.
-
-```py
-import openai
-
-# optional; defaults to `os.environ['OPENAI_API_KEY']`
-openai.api_key = '...'
-
-# all client options can be configured just like the `OpenAI` instantiation counterpart
-openai.base_url = "https://..."
-openai.default_headers = {"x-foo": "true"}
-
-completion = openai.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {
-            "role": "user",
-            "content": "How do I output all files in a directory using Python?",
-        },
-    ],
-)
-print(completion.choices[0].message.content)
-```
-
-The API is the exact same as the standard client instance-based API.
-
-This is intended to be used within REPLs or notebooks for faster iteration, **not** in application code.
-
-We recommend that you always instantiate a client (e.g., with `client = OpenAI()`) in application code because:
-
-- It can be difficult to reason about where client options are configured
-- It's not possible to change certain client options without potentially causing race conditions
-- It's harder to mock for testing purposes
-- It's not possible to control cleanup of network connections
 
 ## Realtime API beta
 
@@ -304,7 +233,7 @@ However the real magic of the Realtime API is handling audio inputs / outputs, s
 
 ### Realtime error handling
 
-Whenever an error occurs, the Realtime API will send an [`error` event](https://platform.openai.com/docs/guides/realtime-model-capabilities#error-handling) and the connection will stay open and remain usable. This means you need to handle it yourself, as *no errors are raised directly* by the SDK when an `error` event comes in.
+Whenever an error occurs, the Realtime API will send an [`error` event](https://platform.openai.com/docs/guides/realtime-model-capabilities#error-handling) and the connection will stay open and remain usable. This means you need to handle it yourself, as _no errors are raised directly_ by the SDK when an `error` event comes in.
 
 ```py
 client = AsyncOpenAI()
@@ -408,11 +337,11 @@ from openai import OpenAI
 
 client = OpenAI()
 
-completion = client.chat.completions.create(
-    messages=[
+response = client.chat.responses.create(
+    input=[
         {
             "role": "user",
-            "content": "Can you generate an example json object describing a fruit?",
+            "content": "How much ?",
         }
     ],
     model="gpt-4o",
@@ -489,15 +418,16 @@ Error codes are as follows:
 All object responses in the SDK provide a `_request_id` property which is added from the `x-request-id` response header so that you can quickly log failing requests and report them back to OpenAI.
 
 ```python
-completion = await client.chat.completions.create(
-    messages=[{"role": "user", "content": "Say this is a test"}], model="gpt-4"
+response = await client.responses.create(
+    model="gpt-4o-mini",
+    input="Say 'this is a test'.",
 )
-print(completion._request_id)  # req_123
+print(response._request_id)  # req_123
 ```
 
 Note that unlike other properties that use an `_` prefix, the `_request_id` property
-*is* public. Unless documented otherwise, *all* other `_` prefix properties,
-methods and modules are *private*.
+_is_ public. Unless documented otherwise, _all_ other `_` prefix properties,
+methods and modules are _private_.
 
 > [!IMPORTANT]  
 > If you need to access request IDs for failed requests you must catch the `APIStatusError` exception
@@ -514,8 +444,7 @@ except openai.APIStatusError as exc:
     raise exc
 ```
 
-
-### Retries
+## Retries
 
 Certain errors are automatically retried 2 times by default, with a short exponential backoff.
 Connection errors (for example, due to a network connectivity problem), 408 Request Timeout, 409 Conflict,
@@ -544,7 +473,7 @@ client.with_options(max_retries=5).chat.completions.create(
 )
 ```
 
-### Timeouts
+## Timeouts
 
 By default requests time out after 10 minutes. You can configure this with a `timeout` option,
 which accepts a float or an [`httpx.Timeout`](https://www.python-httpx.org/advanced/timeouts/#fine-tuning-the-configuration) object:

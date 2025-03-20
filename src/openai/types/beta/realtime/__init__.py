@@ -15,6 +15,7 @@ from .response_create_event import ResponseCreateEvent as ResponseCreateEvent
 from .session_create_params import SessionCreateParams as SessionCreateParams
 from .session_created_event import SessionCreatedEvent as SessionCreatedEvent
 from .session_updated_event import SessionUpdatedEvent as SessionUpdatedEvent
+from .transcription_session import TranscriptionSession as TranscriptionSession
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
 from .conversation_item_param import ConversationItemParam as ConversationItemParam
 from .realtime_connect_params import RealtimeConnectParams as RealtimeConnectParams
@@ -32,6 +33,7 @@ from .session_update_event_param import SessionUpdateEventParam as SessionUpdate
 from .realtime_client_event_param import RealtimeClientEventParam as RealtimeClientEventParam
 from .response_cancel_event_param import ResponseCancelEventParam as ResponseCancelEventParam
 from .response_create_event_param import ResponseCreateEventParam as ResponseCreateEventParam
+from .transcription_session_update import TranscriptionSessionUpdate as TranscriptionSessionUpdate
 from .conversation_item_create_event import ConversationItemCreateEvent as ConversationItemCreateEvent
 from .conversation_item_delete_event import ConversationItemDeleteEvent as ConversationItemDeleteEvent
 from .input_audio_buffer_clear_event import InputAudioBufferClearEvent as InputAudioBufferClearEvent
@@ -41,6 +43,7 @@ from .conversation_item_deleted_event import ConversationItemDeletedEvent as Con
 from .input_audio_buffer_append_event import InputAudioBufferAppendEvent as InputAudioBufferAppendEvent
 from .input_audio_buffer_commit_event import InputAudioBufferCommitEvent as InputAudioBufferCommitEvent
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
+from .conversation_item_retrieve_event import ConversationItemRetrieveEvent as ConversationItemRetrieveEvent
 from .conversation_item_truncate_event import ConversationItemTruncateEvent as ConversationItemTruncateEvent
 from .conversation_item_with_reference import ConversationItemWithReference as ConversationItemWithReference
 from .input_audio_buffer_cleared_event import InputAudioBufferClearedEvent as InputAudioBufferClearedEvent
@@ -49,6 +52,9 @@ from .response_output_item_added_event import ResponseOutputItemAddedEvent as Re
 from .conversation_item_truncated_event import ConversationItemTruncatedEvent as ConversationItemTruncatedEvent
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
 from .input_audio_buffer_committed_event import InputAudioBufferCommittedEvent as InputAudioBufferCommittedEvent
+from .transcription_session_update_param import TranscriptionSessionUpdateParam as TranscriptionSessionUpdateParam
+from .transcription_session_create_params import TranscriptionSessionCreateParams as TranscriptionSessionCreateParams
+from .transcription_session_updated_event import TranscriptionSessionUpdatedEvent as TranscriptionSessionUpdatedEvent
 from .conversation_item_create_event_param import ConversationItemCreateEventParam as ConversationItemCreateEventParam
 from .conversation_item_delete_event_param import ConversationItemDeleteEventParam as ConversationItemDeleteEventParam
 from .input_audio_buffer_clear_event_param import InputAudioBufferClearEventParam as InputAudioBufferClearEventParam
@@ -57,6 +63,9 @@ from .input_audio_buffer_append_event_param import InputAudioBufferAppendEventPa
 from .input_audio_buffer_commit_event_param import InputAudioBufferCommitEventParam as InputAudioBufferCommitEventParam
 from .response_audio_transcript_delta_event import (
     ResponseAudioTranscriptDeltaEvent as ResponseAudioTranscriptDeltaEvent,
+)
+from .conversation_item_retrieve_event_param import (
+    ConversationItemRetrieveEventParam as ConversationItemRetrieveEventParam,
 )
 from .conversation_item_truncate_event_param import (
     ConversationItemTruncateEventParam as ConversationItemTruncateEventParam,
@@ -75,6 +84,9 @@ from .response_function_call_arguments_done_event import (
 )
 from .response_function_call_arguments_delta_event import (
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,
+)
+from .conversation_item_input_audio_transcription_delta_event import (
+    ConversationItemInputAudioTranscriptionDeltaEvent as ConversationItemInputAudioTranscriptionDeltaEvent,
 )
 from .conversation_item_input_audio_transcription_failed_event import (
     ConversationItemInputAudioTranscriptionFailedEvent as ConversationItemInputAudioTranscriptionFailedEvent,
