@@ -1,16 +1,15 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
 
 __all__ = [
-    "SessionUpdateEvent",
+    "TranscriptionSessionUpdate",
     "Session",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
-    "SessionTool",
     "SessionTurnDetection",
 ]
 
@@ -33,7 +32,7 @@ class SessionInputAudioTranscription(BaseModel):
     format will improve accuracy and latency.
     """
 
-    model: Optional[str] = None
+    model: Optional[Literal["gpt-4o-transcribe", "gpt-4o-mini-transcribe", "whisper-1"]] = None
     """
     The model to use for transcription, current options are `gpt-4o-transcribe`,
     `gpt-4o-mini-transcribe`, and `whisper-1`.
@@ -47,23 +46,6 @@ class SessionInputAudioTranscription(BaseModel):
     For `gpt-4o-transcribe` models, the prompt is a free text string, for example
     "expect words related to technology".
     """
-
-
-class SessionTool(BaseModel):
-    description: Optional[str] = None
-    """
-    The description of the function, including guidance on when and how to call it,
-    and guidance about what to tell the user when calling (if anything).
-    """
-
-    name: Optional[str] = None
-    """The name of the function."""
-
-    parameters: Optional[object] = None
-    """Parameters of the function in JSON Schema."""
-
-    type: Optional[Literal["function"]] = None
-    """The type of the tool, i.e. `function`."""
 
 
 class SessionTurnDetection(BaseModel):
@@ -116,6 +98,12 @@ class SessionTurnDetection(BaseModel):
 
 
 class Session(BaseModel):
+    include: Optional[List[str]] = None
+    """The set of items to include in the transcription. Current available items are:
+
+    - `item.input_audio_transcription.logprobs`
+    """
+
     input_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
     """The format of input audio.
 
@@ -134,38 +122,10 @@ class Session(BaseModel):
     """
 
     input_audio_transcription: Optional[SessionInputAudioTranscription] = None
-    """
-    Configuration for input audio transcription, defaults to off and can be set to
-    `null` to turn off once on. Input audio transcription is not native to the
-    model, since the model consumes audio directly. Transcription runs
-    asynchronously through
-    [the /audio/transcriptions endpoint](https://platform.openai.com/docs/api-reference/audio/createTranscription)
-    and should be treated as guidance of input audio content rather than precisely
-    what the model heard. The client can optionally set the language and prompt for
-    transcription, these offer additional guidance to the transcription service.
-    """
+    """Configuration for input audio transcription.
 
-    instructions: Optional[str] = None
-    """The default system instructions (i.e.
-
-    system message) prepended to model calls. This field allows the client to guide
-    the model on desired responses. The model can be instructed on response content
-    and format, (e.g. "be extremely succinct", "act friendly", "here are examples of
-    good responses") and on audio behavior (e.g. "talk quickly", "inject emotion
-    into your voice", "laugh frequently"). The instructions are not guaranteed to be
-    followed by the model, but they provide guidance to the model on the desired
-    behavior.
-
-    Note that the server sets default instructions which will be used if this field
-    is not set and are visible in the `session.created` event at the start of the
-    session.
-    """
-
-    max_response_output_tokens: Union[int, Literal["inf"], None] = None
-    """
-    Maximum number of output tokens for a single assistant response, inclusive of
-    tool calls. Provide an integer between 1 and 4096 to limit output tokens, or
-    `inf` for the maximum available tokens for a given model. Defaults to `inf`.
+    The client can optionally set the language and prompt for transcription, these
+    offer additional guidance to the transcription service.
     """
 
     modalities: Optional[List[Literal["text", "audio"]]] = None
@@ -173,40 +133,6 @@ class Session(BaseModel):
 
     To disable audio, set this to ["text"].
     """
-
-    model: Optional[
-        Literal[
-            "gpt-4o-realtime-preview",
-            "gpt-4o-realtime-preview-2024-10-01",
-            "gpt-4o-realtime-preview-2024-12-17",
-            "gpt-4o-mini-realtime-preview",
-            "gpt-4o-mini-realtime-preview-2024-12-17",
-        ]
-    ] = None
-    """The Realtime model used for this session."""
-
-    output_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
-    """The format of output audio.
-
-    Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
-    sampled at a rate of 24kHz.
-    """
-
-    temperature: Optional[float] = None
-    """Sampling temperature for the model, limited to [0.6, 1.2].
-
-    For audio models a temperature of 0.8 is highly recommended for best
-    performance.
-    """
-
-    tool_choice: Optional[str] = None
-    """How the model chooses tools.
-
-    Options are `auto`, `none`, `required`, or specify a function.
-    """
-
-    tools: Optional[List[SessionTool]] = None
-    """Tools (functions) available to the model."""
 
     turn_detection: Optional[SessionTurnDetection] = None
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
@@ -222,21 +148,13 @@ class Session(BaseModel):
     natural conversations, but may have a higher latency.
     """
 
-    voice: Optional[Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]] = None
-    """The voice the model uses to respond.
 
-    Voice cannot be changed during the session once the model has responded with
-    audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo` `sage`, `shimmer` and `verse`.
-    """
-
-
-class SessionUpdateEvent(BaseModel):
+class TranscriptionSessionUpdate(BaseModel):
     session: Session
-    """Realtime session object configuration."""
+    """Realtime transcription session object configuration."""
 
-    type: Literal["session.update"]
-    """The event type, must be `session.update`."""
+    type: Literal["transcription_session.update"]
+    """The event type, must be `transcription_session.update`."""
 
     event_id: Optional[str] = None
     """Optional client-generated ID used to identify this event."""

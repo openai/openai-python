@@ -3,11 +3,10 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Required, TypedDict
+from typing_extensions import Literal, Required, TypedDict
 
 from ..._types import FileTypes
 from ..audio_model import AudioModel
-from ..audio_response_format import AudioResponseFormat
 
 __all__ = ["TranslationCreateParams"]
 
@@ -34,7 +33,7 @@ class TranslationCreateParams(TypedDict, total=False):
     should be in English.
     """
 
-    response_format: AudioResponseFormat
+    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"]
     """
     The format of the output, in one of these options: `json`, `text`, `srt`,
     `verbose_json`, or `vtt`.
