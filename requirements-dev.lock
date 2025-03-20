@@ -33,6 +33,7 @@ certifi==2023.7.22
     # via requests
 cffi==1.16.0
     # via cryptography
+    # via sounddevice
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
@@ -92,7 +93,7 @@ nest-asyncio==1.6.0
 nodeenv==1.8.0
     # via pyright
 nox==2023.4.22
-numpy==1.26.3
+numpy==2.0.2
     # via openai
     # via pandas
     # via pandas-stubs
@@ -102,7 +103,7 @@ packaging==23.2
     # via black
     # via nox
     # via pytest
-pandas==2.1.4
+pandas==2.2.3
     # via openai
 pandas-stubs==2.1.4.231227
     # via openai
@@ -154,6 +155,8 @@ sniffio==1.3.0
     # via trio
 sortedcontainers==2.4.0
     # via trio
+sounddevice==0.5.1
+    # via openai
 time-machine==2.9.0
 toml==0.10.2
     # via inline-snapshot
