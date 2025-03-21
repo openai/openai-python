@@ -1,14 +1,17 @@
 # mypy: ignore-errors
+from __future__ import annotations
+
 import queue
 import asyncio
 from typing import Any, Union, Callable, AsyncGenerator, cast
-
-import numpy as np
-import sounddevice as sd  # type: ignore
-import numpy.typing as npt
+from typing_extensions import TYPE_CHECKING
 
 from .. import _legacy_response
+from .._extras import numpy as np, sounddevice as sd
 from .._response import StreamedBinaryAPIResponse, AsyncStreamedBinaryAPIResponse
+
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 SAMPLE_RATE = 24000
 
@@ -62,7 +65,7 @@ class LocalAudioPlayer:
             if input.dtype == np.int16 and self.dtype == np.float32:
                 audio_content = (input.astype(np.float32) / 32767.0).reshape(-1, self.channels)
             elif input.dtype == np.float32:
-                audio_content = cast(npt.NDArray[np.float32], input)
+                audio_content = cast('npt.NDArray[np.float32]', input)
             else:
                 raise ValueError(f"Unsupported dtype: {input.dtype}")
         else:
