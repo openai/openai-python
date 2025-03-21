@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.68.2 (2025-03-21)
+
+Full Changelog: [v1.68.1...v1.68.2](https://github.com/openai/openai-python/compare/v1.68.1...v1.68.2)
+
+### Refactors
+
+* **package:** rename audio extra to voice_helpers ([2dd6cb8](https://github.com/openai/openai-python/commit/2dd6cb87489fe12c5e45128f44d985c3f49aba1d))
+
 ## 1.68.1 (2025-03-21)
 
 Full Changelog: [v1.68.0...v1.68.1](https://github.com/openai/openai-python/compare/v1.68.0...v1.68.1)
