@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     import sounddevice as sounddevice  # type: ignore
 
 
-SOUNDDEVICE_INSTRUCTIONS = format_instructions(library="sounddevice", extra="audio")
+SOUNDDEVICE_INSTRUCTIONS = format_instructions(library="sounddevice", extra="voice_helpers")
 
 
 class SounddeviceProxy(LazyProxy[Any]):
