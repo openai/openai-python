@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.68.0"
+version = "1.68.2"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -16,8 +16,6 @@ dependencies = [
     "sniffio",
     "tqdm > 4",
     "jiter>=0.4.0, <1",
-    "sounddevice>=0.5.1",
-    "numpy>=2.0.2",
 ]
 requires-python = ">= 3.8"
 classifiers = [
@@ -47,6 +45,7 @@ openai = "openai.cli:main"
 [project.optional-dependencies]
 realtime = ["websockets >= 13, < 15"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 
 [tool.rye]
 managed = true

@@ -1,16 +1,18 @@
 # mypy: ignore-errors
+from __future__ import annotations
+
 import io
 import time
 import wave
 import asyncio
 from typing import Any, Type, Union, Generic, TypeVar, Callable, overload
-from typing_extensions import Literal
+from typing_extensions import TYPE_CHECKING, Literal
 
-import numpy as np
-import sounddevice as sd  # type: ignore
-import numpy.typing as npt
+from .._types import FileTypes, FileContent
+from .._extras import numpy as np, sounddevice as sd
 
-from openai._types import FileTypes, FileContent
+if TYPE_CHECKING:
+    import numpy.typing as npt
 
 SAMPLE_RATE = 24000
 
