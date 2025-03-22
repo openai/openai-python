@@ -66,7 +66,7 @@ from ._compat import (
 from ._constants import RAW_RESPONSE_HEADER
 
 if TYPE_CHECKING:
-    from pydantic_core.core_schema import ModelField, LiteralSchema, ModelFieldsSchema
+    from pydantic_core.core_schema import ModelField, ModelSchema, LiteralSchema, ModelFieldsSchema
 
 __all__ = ["BaseModel", "GenericModel"]
 
@@ -451,10 +451,16 @@ def construct_type(*, value: object, type_: object) -> object:
 
     If the given value does not match the expected type then it is returned as-is.
     """
+
+    # store a reference to the original type we were given before we extract any inner
+    # types so that we can properly resolve forward references in `TypeAliasType` annotations
+    original_type = None
+
     # we allow `object` as the input type because otherwise, passing things like
     # `Literal['value']` will be reported as a type error by type checkers
     type_ = cast("type[object]", type_)
     if is_type_alias_type(type_):
+        original_type = type_  # type: ignore[unreachable]
         type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
@@ -471,7 +477,7 @@ def construct_type(*, value: object, type_: object) -> object:
 
     if is_union(origin):
         try:
-            return validate_type(type_=cast("type[object]", type_), value=value)
+            return validate_type(type_=cast("type[object]", original_type or type_), value=value)
         except Exception:
             pass
 
@@ -665,15 +671,18 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
 
 def _extract_field_schema_pv2(model: type[BaseModel], field_name: str) -> ModelField | None:
     schema = model.__pydantic_core_schema__
+    if schema["type"] == "definitions":
+        schema = schema["schema"]
+
     if schema["type"] != "model":
         return None
 
+    schema = cast("ModelSchema", schema)
     fields_schema = schema["schema"]
     if fields_schema["type"] != "model-fields":
         return None
 
     fields_schema = cast("ModelFieldsSchema", fields_schema)
-
     field = fields_schema["fields"].get(field_name)
     if not field:
         return None

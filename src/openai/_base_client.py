@@ -9,7 +9,6 @@ import asyncio
 import inspect
 import logging
 import platform
-import warnings
 import email.utils
 from types import TracebackType
 from random import random
@@ -36,7 +35,7 @@ import anyio
 import httpx
 import distro
 import pydantic
-from httpx import URL, Limits
+from httpx import URL
 from pydantic import PrivateAttr
 
 from . import _exceptions
@@ -51,19 +50,16 @@ from ._types import (
     Timeout,
     NotGiven,
     ResponseT,
-    Transport,
     AnyMapping,
     PostParser,
-    ProxiesTypes,
     RequestFiles,
     HttpxSendArgs,
-    AsyncTransport,
     RequestOptions,
     HttpxRequestFiles,
     ModelBuilderProtocol,
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
-from ._compat import model_copy, model_dump
+from ._compat import PYDANTIC_V2, model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
     APIResponse,
@@ -209,6 +205,9 @@ class BaseSyncPage(BasePage[_T], Generic[_T]):
         model: Type[_T],
         options: FinalRequestOptions,
     ) -> None:
+        if PYDANTIC_V2 and getattr(self, "__pydantic_private__", None) is None:
+            self.__pydantic_private__ = {}
+
         self._model = model
         self._client = client
         self._options = options
@@ -294,6 +293,9 @@ class BaseAsyncPage(BasePage[_T], Generic[_T]):
         client: AsyncAPIClient,
         options: FinalRequestOptions,
     ) -> None:
+        if PYDANTIC_V2 and getattr(self, "__pydantic_private__", None) is None:
+            self.__pydantic_private__ = {}
+
         self._model = model
         self._client = client
         self._options = options
@@ -333,9 +335,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _base_url: URL
     max_retries: int
     timeout: Union[float, Timeout, None]
-    _limits: httpx.Limits
-    _proxies: ProxiesTypes | None
-    _transport: Transport | AsyncTransport | None
     _strict_response_validation: bool
     _idempotency_header: str | None
     _default_stream_cls: type[_DefaultStreamT] | None = None
@@ -348,9 +347,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None = DEFAULT_TIMEOUT,
-        limits: httpx.Limits,
-        transport: Transport | AsyncTransport | None,
-        proxies: ProxiesTypes | None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
@@ -358,9 +354,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._base_url = self._enforce_trailing_slash(URL(base_url))
         self.max_retries = max_retries
         self.timeout = timeout
-        self._limits = limits
-        self._proxies = proxies
-        self._transport = transport
         self._custom_headers = custom_headers or {}
         self._custom_query = custom_query or {}
         self._strict_response_validation = _strict_response_validation
@@ -420,10 +413,17 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         if idempotency_header and options.method.lower() != "get" and idempotency_header not in headers:
             headers[idempotency_header] = options.idempotency_key or self._idempotency_key()
 
-        # Don't set the retry count header if it was already set or removed by the caller. We check
+        # Don't set these headers if they were already set or removed by the caller. We check
         # `custom_headers`, which can contain `Omit()`, instead of `headers` to account for the removal case.
-        if "x-stainless-retry-count" not in (header.lower() for header in custom_headers):
+        lower_custom_headers = [header.lower() for header in custom_headers]
+        if "x-stainless-retry-count" not in lower_custom_headers:
             headers["x-stainless-retry-count"] = str(retries_taken)
+        if "x-stainless-read-timeout" not in lower_custom_headers:
+            timeout = self.timeout if isinstance(options.timeout, NotGiven) else options.timeout
+            if isinstance(timeout, Timeout):
+                timeout = timeout.read
+            if timeout is not None:
+                headers["x-stainless-read-timeout"] = str(timeout)
 
         return headers
 
@@ -513,7 +513,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # so that passing a `TypedDict` doesn't cause an error.
             # https://github.com/microsoft/pyright/issues/3526#event-6715453066
             params=self.qs.stringify(cast(Mapping[str, Any], params)) if params else None,
-            json=json_data,
+            json=json_data if is_given(json_data) else None,
             files=files,
             **kwargs,
         )
@@ -789,46 +789,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         base_url: str | URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        transport: Transport | None = None,
-        proxies: ProxiesTypes | None = None,
-        limits: Limits | None = None,
         http_client: httpx.Client | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
     ) -> None:
-        kwargs: dict[str, Any] = {}
-        if limits is not None:
-            warnings.warn(
-                "The `connection_pool_limits` argument is deprecated. The `http_client` argument should be passed instead",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-            if http_client is not None:
-                raise ValueError("The `http_client` argument is mutually exclusive with `connection_pool_limits`")
-        else:
-            limits = DEFAULT_CONNECTION_LIMITS
-
-        if transport is not None:
-            kwargs["transport"] = transport
-            warnings.warn(
-                "The `transport` argument is deprecated. The `http_client` argument should be passed instead",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-            if http_client is not None:
-                raise ValueError("The `http_client` argument is mutually exclusive with `transport`")
-
-        if proxies is not None:
-            kwargs["proxies"] = proxies
-            warnings.warn(
-                "The `proxies` argument is deprecated. The `http_client` argument should be passed instead",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-            if http_client is not None:
-                raise ValueError("The `http_client` argument is mutually exclusive with `proxies`")
-
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
@@ -849,12 +814,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
         super().__init__(
             version=version,
-            limits=limits,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
-            proxies=proxies,
             base_url=base_url,
-            transport=transport,
             max_retries=max_retries,
             custom_query=custom_query,
             custom_headers=custom_headers,
@@ -864,9 +826,6 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
-            limits=limits,
-            follow_redirects=True,
-            **kwargs,  # type: ignore
         )
 
     def is_closed(self) -> bool:
@@ -1376,45 +1335,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
-        transport: AsyncTransport | None = None,
-        proxies: ProxiesTypes | None = None,
-        limits: Limits | None = None,
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
-        kwargs: dict[str, Any] = {}
-        if limits is not None:
-            warnings.warn(
-                "The `connection_pool_limits` argument is deprecated. The `http_client` argument should be passed instead",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-            if http_client is not None:
-                raise ValueError("The `http_client` argument is mutually exclusive with `connection_pool_limits`")
-        else:
-            limits = DEFAULT_CONNECTION_LIMITS
-
-        if transport is not None:
-            kwargs["transport"] = transport
-            warnings.warn(
-                "The `transport` argument is deprecated. The `http_client` argument should be passed instead",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-            if http_client is not None:
-                raise ValueError("The `http_client` argument is mutually exclusive with `transport`")
-
-        if proxies is not None:
-            kwargs["proxies"] = proxies
-            warnings.warn(
-                "The `proxies` argument is deprecated. The `http_client` argument should be passed instead",
-                category=DeprecationWarning,
-                stacklevel=3,
-            )
-            if http_client is not None:
-                raise ValueError("The `http_client` argument is mutually exclusive with `proxies`")
-
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
@@ -1436,11 +1360,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         super().__init__(
             version=version,
             base_url=base_url,
-            limits=limits,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
-            proxies=proxies,
-            transport=transport,
             max_retries=max_retries,
             custom_query=custom_query,
             custom_headers=custom_headers,
@@ -1450,9 +1371,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
-            limits=limits,
-            follow_redirects=True,
-            **kwargs,  # type: ignore
         )
 
     def is_closed(self) -> bool:
