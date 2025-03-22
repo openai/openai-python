@@ -58,6 +58,7 @@ ParsedChatCompletion[NoneType](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[NoneType](
+                annotations=None,
                 audio=None,
                 content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I
 recommend checking a reliable weather website or app like the Weather Channel or a local news station.",
@@ -65,7 +66,7 @@ recommend checking a reliable weather website or app like the Weather Channel or
                 parsed=None,
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -126,13 +127,14 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
+                annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":65,"units":"f"}',
                 function_call=None,
                 parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -195,13 +197,14 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
+                annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":65,"units":"f"}',
                 function_call=None,
                 parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -266,13 +269,14 @@ ParsedChoice[ColorDetection](
     index=0,
     logprobs=None,
     message=ParsedChatCompletionMessage[ColorDetection](
+        annotations=None,
         audio=None,
         content='{"color":"red","hex_color_code":"#FF0000"}',
         function_call=None,
         parsed=ColorDetection(color=<Color.RED: 'red'>, hex_color_code='#FF0000'),
         refusal=None,
         role='assistant',
-        tool_calls=[]
+        tool_calls=None
     )
 )
 """
@@ -315,13 +319,14 @@ def test_parse_pydantic_model_multiple_choices(
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":64,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=64.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -329,13 +334,14 @@ def test_parse_pydantic_model_multiple_choices(
         index=1,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":65,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=65.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     ),
     ParsedChoice[Location](
@@ -343,13 +349,14 @@ def test_parse_pydantic_model_multiple_choices(
         index=2,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":63.0,"units":"f"}',
             function_call=None,
             parsed=Location(city='San Francisco', temperature=63.0, units='f'),
             refusal=None,
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -393,13 +400,14 @@ ParsedChatCompletion[CalendarEvent](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[CalendarEvent](
+                annotations=None,
                 audio=None,
                 content='{"name":"Science Fair","date":"Friday","participants":["Alice","Bob"]}',
                 function_call=None,
                 parsed=CalendarEvent(name='Science Fair', date='Friday', participants=['Alice', 'Bob']),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -454,6 +462,7 @@ ParsedChoice[Query](
     index=0,
     logprobs=None,
     message=ParsedChatCompletionMessage[Query](
+        annotations=None,
         audio=None,
         content=None,
         function_call=None,
@@ -565,13 +574,14 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[Location](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
             parsed=None,
             refusal="I'm very sorry, but I can't assist with that.",
             role='assistant',
-            tool_calls=[]
+            tool_calls=None
         )
     )
 ]
@@ -614,6 +624,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -686,6 +697,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -767,6 +779,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
         index=0,
         logprobs=None,
         message=ParsedChatCompletionMessage[NoneType](
+            annotations=None,
             audio=None,
             content=None,
             function_call=None,
@@ -849,13 +862,14 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
+                annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":58,"units":"f"}',
                 function_call=None,
                 parsed=Location(city='San Francisco', temperature=58.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],
@@ -924,13 +938,14 @@ ParsedChatCompletion[Location](
             index=0,
             logprobs=None,
             message=ParsedChatCompletionMessage[Location](
+                annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":65,"units":"f"}',
                 function_call=None,
                 parsed=Location(city='San Francisco', temperature=65.0, units='f'),
                 refusal=None,
                 role='assistant',
-                tool_calls=[]
+                tool_calls=None
             )
         )
     ],

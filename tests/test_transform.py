@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import io
 import pathlib
-from typing import Any, List, Union, TypeVar, Iterable, Optional, cast
+from typing import Any, Dict, List, Union, TypeVar, Iterable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import Required, Annotated, TypedDict
 
@@ -386,6 +386,15 @@ async def test_iterable_of_dictionaries(use_async: bool) -> None:
     assert await transform({"foo": my_iter()}, TypedDictIterableUnion, use_async) == {
         "FOO": [{"fooBaz": "hello"}, {"fooBaz": "world"}]
     }
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_dictionary_items(use_async: bool) -> None:
+    class DictItems(TypedDict):
+        foo_baz: Annotated[str, PropertyInfo(alias="fooBaz")]
+
+    assert await transform({"foo": {"foo_baz": "bar"}}, Dict[str, DictItems], use_async) == {"foo": {"fooBaz": "bar"}}
 
 
 class TypedDictIterableUnionStr(TypedDict):

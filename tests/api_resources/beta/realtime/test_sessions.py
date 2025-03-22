@@ -19,20 +19,23 @@ class TestSessions:
 
     @parametrize
     def test_method_create(self, client: OpenAI) -> None:
-        session = client.beta.realtime.sessions.create(
-            model="gpt-4o-realtime-preview",
-        )
+        session = client.beta.realtime.sessions.create()
         assert_matches_type(SessionCreateResponse, session, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         session = client.beta.realtime.sessions.create(
-            model="gpt-4o-realtime-preview",
             input_audio_format="pcm16",
-            input_audio_transcription={"model": "model"},
+            input_audio_noise_reduction={"type": "near_field"},
+            input_audio_transcription={
+                "language": "language",
+                "model": "model",
+                "prompt": "prompt",
+            },
             instructions="instructions",
             max_response_output_tokens=0,
             modalities=["text"],
+            model="gpt-4o-realtime-preview",
             output_audio_format="pcm16",
             temperature=0,
             tool_choice="tool_choice",
@@ -46,10 +49,12 @@ class TestSessions:
             ],
             turn_detection={
                 "create_response": True,
+                "eagerness": "low",
+                "interrupt_response": True,
                 "prefix_padding_ms": 0,
                 "silence_duration_ms": 0,
                 "threshold": 0,
-                "type": "type",
+                "type": "server_vad",
             },
             voice="alloy",
         )
@@ -57,9 +62,7 @@ class TestSessions:
 
     @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
-        response = client.beta.realtime.sessions.with_raw_response.create(
-            model="gpt-4o-realtime-preview",
-        )
+        response = client.beta.realtime.sessions.with_raw_response.create()
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -68,9 +71,7 @@ class TestSessions:
 
     @parametrize
     def test_streaming_response_create(self, client: OpenAI) -> None:
-        with client.beta.realtime.sessions.with_streaming_response.create(
-            model="gpt-4o-realtime-preview",
-        ) as response:
+        with client.beta.realtime.sessions.with_streaming_response.create() as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
@@ -85,20 +86,23 @@ class TestAsyncSessions:
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
-        session = await async_client.beta.realtime.sessions.create(
-            model="gpt-4o-realtime-preview",
-        )
+        session = await async_client.beta.realtime.sessions.create()
         assert_matches_type(SessionCreateResponse, session, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         session = await async_client.beta.realtime.sessions.create(
-            model="gpt-4o-realtime-preview",
             input_audio_format="pcm16",
-            input_audio_transcription={"model": "model"},
+            input_audio_noise_reduction={"type": "near_field"},
+            input_audio_transcription={
+                "language": "language",
+                "model": "model",
+                "prompt": "prompt",
+            },
             instructions="instructions",
             max_response_output_tokens=0,
             modalities=["text"],
+            model="gpt-4o-realtime-preview",
             output_audio_format="pcm16",
             temperature=0,
             tool_choice="tool_choice",
@@ -112,10 +116,12 @@ class TestAsyncSessions:
             ],
             turn_detection={
                 "create_response": True,
+                "eagerness": "low",
+                "interrupt_response": True,
                 "prefix_padding_ms": 0,
                 "silence_duration_ms": 0,
                 "threshold": 0,
-                "type": "type",
+                "type": "server_vad",
             },
             voice="alloy",
         )
@@ -123,9 +129,7 @@ class TestAsyncSessions:
 
     @parametrize
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.beta.realtime.sessions.with_raw_response.create(
-            model="gpt-4o-realtime-preview",
-        )
+        response = await async_client.beta.realtime.sessions.with_raw_response.create()
 
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -134,9 +138,7 @@ class TestAsyncSessions:
 
     @parametrize
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.beta.realtime.sessions.with_streaming_response.create(
-            model="gpt-4o-realtime-preview",
-        ) as response:
+        async with async_client.beta.realtime.sessions.with_streaming_response.create() as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 

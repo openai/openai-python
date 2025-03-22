@@ -4,7 +4,8 @@ from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
-from .conversation_item import ConversationItem
+from ...shared.metadata import Metadata
+from .conversation_item_with_reference import ConversationItemWithReference
 
 __all__ = ["ResponseCreateEvent", "Response", "ResponseTool"]
 
@@ -36,11 +37,13 @@ class Response(BaseModel):
     will not add items to default conversation.
     """
 
-    input: Optional[List[ConversationItem]] = None
+    input: Optional[List[ConversationItemWithReference]] = None
     """Input items to include in the prompt for the model.
 
-    Creates a new context for this response, without including the default
-    conversation. Can include references to items from the default conversation.
+    Using this field creates a new context for this Response instead of using the
+    default conversation. An empty array `[]` will clear the context for this
+    Response. Note that this can include references to items from the default
+    conversation.
     """
 
     instructions: Optional[str] = None
@@ -66,12 +69,14 @@ class Response(BaseModel):
     `inf` for the maximum available tokens for a given model. Defaults to `inf`.
     """
 
-    metadata: Optional[object] = None
+    metadata: Optional[Metadata] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     modalities: Optional[List[Literal["text", "audio"]]] = None

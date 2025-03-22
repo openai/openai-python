@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Optional
 from typing_extensions import Literal
 
 import httpx
@@ -19,10 +19,8 @@ from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..pagination import SyncCursorPage, AsyncCursorPage
 from ..types.batch import Batch
-from .._base_client import (
-    AsyncPaginator,
-    make_request_options,
-)
+from .._base_client import AsyncPaginator, make_request_options
+from ..types.shared_params.metadata import Metadata
 
 __all__ = ["Batches", "AsyncBatches"]
 
@@ -31,7 +29,7 @@ class Batches(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> BatchesWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -51,9 +49,9 @@ class Batches(SyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
+        endpoint: Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -69,9 +67,9 @@ class Batches(SyncAPIResource):
               is supported.
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
-              `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions` are supported.
-              Note that `/v1/embeddings` batches are also restricted to a maximum of 50,000
-              embedding inputs across all requests in the batch.
+              `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions`
+              are supported. Note that `/v1/embeddings` batches are also restricted to a
+              maximum of 50,000 embedding inputs across all requests in the batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -83,7 +81,12 @@ class Batches(SyncAPIResource):
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
               requests, and can be up to 200 MB in size.
 
-          metadata: Optional custom metadata for the batch.
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -236,7 +239,7 @@ class AsyncBatches(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncBatchesWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -256,9 +259,9 @@ class AsyncBatches(AsyncAPIResource):
         self,
         *,
         completion_window: Literal["24h"],
-        endpoint: Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
+        endpoint: Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -274,9 +277,9 @@ class AsyncBatches(AsyncAPIResource):
               is supported.
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
-              `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions` are supported.
-              Note that `/v1/embeddings` batches are also restricted to a maximum of 50,000
-              embedding inputs across all requests in the batch.
+              `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions`
+              are supported. Note that `/v1/embeddings` batches are also restricted to a
+              maximum of 50,000 embedding inputs across all requests in the batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -288,7 +291,12 @@ class AsyncBatches(AsyncAPIResource):
               and must be uploaded with the purpose `batch`. The file can contain up to 50,000
               requests, and can be up to 200 MB in size.
 
-          metadata: Optional custom metadata for the batch.
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 

@@ -20,7 +20,7 @@ class Upload(BaseModel):
     """The Unix timestamp (in seconds) for when the Upload was created."""
 
     expires_at: int
-    """The Unix timestamp (in seconds) for when the Upload was created."""
+    """The Unix timestamp (in seconds) for when the Upload will expire."""
 
     filename: str
     """The name of the file to be uploaded."""
@@ -39,4 +39,4 @@ class Upload(BaseModel):
     """The status of the Upload."""
 
     file: Optional[FileObject] = None
-    """The ready File object after the Upload is completed."""
+    """The `File` object represents a document that has been uploaded to OpenAI."""

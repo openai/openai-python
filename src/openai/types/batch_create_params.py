@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, Optional
+from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from .shared_params.metadata import Metadata
 
 __all__ = ["BatchCreateParams"]
 
@@ -15,12 +17,13 @@ class BatchCreateParams(TypedDict, total=False):
     Currently only `24h` is supported.
     """
 
-    endpoint: Required[Literal["/v1/chat/completions", "/v1/embeddings", "/v1/completions"]]
+    endpoint: Required[Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"]]
     """The endpoint to be used for all requests in the batch.
 
-    Currently `/v1/chat/completions`, `/v1/embeddings`, and `/v1/completions` are
-    supported. Note that `/v1/embeddings` batches are also restricted to a maximum
-    of 50,000 embedding inputs across all requests in the batch.
+    Currently `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, and
+    `/v1/completions` are supported. Note that `/v1/embeddings` batches are also
+    restricted to a maximum of 50,000 embedding inputs across all requests in the
+    batch.
     """
 
     input_file_id: Required[str]
@@ -35,5 +38,12 @@ class BatchCreateParams(TypedDict, total=False):
     requests, and can be up to 200 MB in size.
     """
 
-    metadata: Optional[Dict[str, str]]
-    """Optional custom metadata for the batch."""
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """

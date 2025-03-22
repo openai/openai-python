@@ -9,7 +9,6 @@ from typing_extensions import Literal, overload, assert_never
 import httpx
 
 from ... import _legacy_response
-from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import (
     extract_files,
@@ -36,7 +35,7 @@ class Translations(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> TranslationsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -109,7 +108,7 @@ class Translations(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
+        response_format: Union[Literal["json", "text", "srt", "verbose_json", "vtt"], NotGiven] = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -179,7 +178,7 @@ class AsyncTranslations(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncTranslationsWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers

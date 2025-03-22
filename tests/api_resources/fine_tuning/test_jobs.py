@@ -50,6 +50,7 @@ class TestJobs:
                     },
                 }
             ],
+            metadata={"foo": "string"},
             method={
                 "dpo": {
                     "hyperparameters": {
@@ -148,6 +149,7 @@ class TestJobs:
         job = client.fine_tuning.jobs.list(
             after="string",
             limit=0,
+            metadata={"foo": "string"},
         )
         assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
 
@@ -289,6 +291,7 @@ class TestAsyncJobs:
                     },
                 }
             ],
+            metadata={"foo": "string"},
             method={
                 "dpo": {
                     "hyperparameters": {
@@ -387,6 +390,7 @@ class TestAsyncJobs:
         job = await async_client.fine_tuning.jobs.list(
             after="string",
             limit=0,
+            metadata={"foo": "string"},
         )
         assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
 

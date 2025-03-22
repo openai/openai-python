@@ -134,7 +134,7 @@ OpenAI supports streaming responses when interacting with the [Chat Completion](
 
 The SDK provides a `.beta.chat.completions.stream()` method that wraps the `.chat.completions.create(stream=True)` stream providing a more granular event API & automatic accumulation of each delta.
 
-It also supports all aforementioned [parsing helpers](#parsing-helpers).
+It also supports all aforementioned [parsing helpers](#structured-outputs-parsing-helpers).
 
 Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
 

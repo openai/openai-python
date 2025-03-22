@@ -5,11 +5,11 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..chat_model import ChatModel
+from ..shared.chat_model import ChatModel
 from .function_tool_param import FunctionToolParam
 from .file_search_tool_param import FileSearchToolParam
+from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
-from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from .threads.message_content_part_param import MessageContentPartParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
@@ -25,6 +25,10 @@ __all__ = [
     "ThreadToolResourcesCodeInterpreter",
     "ThreadToolResourcesFileSearch",
     "ThreadToolResourcesFileSearchVectorStore",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
@@ -67,12 +71,14 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     `incomplete_details` for more info.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     model: Union[str, ChatModel, None]
@@ -122,7 +128,11 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     """
 
     thread: Thread
-    """If no thread is provided, an empty thread will be created."""
+    """Options to create a new thread.
+
+    If no thread is provided when running a request, an empty thread will be
+    created.
+    """
 
     tool_choice: Optional[AssistantToolChoiceOptionParam]
     """
@@ -197,12 +207,14 @@ class ThreadMessage(TypedDict, total=False):
     attachments: Optional[Iterable[ThreadMessageAttachment]]
     """A list of files attached to the message, and the tools they should be added to."""
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
 
@@ -215,12 +227,44 @@ class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
+    """
+
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ThreadToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto,
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic,
+]
+
+
 class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
-    chunking_strategy: FileChunkingStrategyParam
+    chunking_strategy: ThreadToolResourcesFileSearchVectorStoreChunkingStrategy
     """The chunking strategy used to chunk the file(s).
 
-    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
-    non-empty.
+    If not set, will use the `auto` strategy.
     """
 
     file_ids: List[str]
@@ -230,12 +274,14 @@ class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
     store.
     """
 
-    metadata: object
-    """Set of 16 key-value pairs that can be attached to a vector store.
+    metadata: Optional[Metadata]
+    """Set of 16 key-value pairs that can be attached to an object.
 
-    This can be useful for storing additional information about the vector store in
-    a structured format. Keys can be a maximum of 64 characters long and values can
-    be a maximum of 512 characters long.
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
 
@@ -270,12 +316,14 @@ class Thread(TypedDict, total=False):
     start the thread with.
     """
 
-    metadata: Optional[object]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maximum of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     tool_resources: Optional[ThreadToolResources]

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
-from .completions import (
+from .completions.completions import (
     Completions,
     AsyncCompletions,
     CompletionsWithRawResponse,
@@ -24,7 +24,7 @@ class Chat(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> ChatWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
@@ -49,7 +49,7 @@ class AsyncChat(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncChatWithRawResponse:
         """
-        This property can be used as a prefix for any HTTP method call to return the
+        This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
 
         For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers

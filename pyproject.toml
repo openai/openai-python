@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.59.0"
+version = "1.68.2"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -45,6 +45,7 @@ openai = "openai.cli:main"
 [project.optional-dependencies]
 realtime = ["websockets >= 13, < 15"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 
 [tool.rye]
 managed = true
@@ -66,8 +67,7 @@ dev-dependencies = [
     "types-tqdm > 4",
     "types-pyaudio > 0",
     "trio >=0.22.2",
-    "nest_asyncio==1.6.0"
-
+    "nest_asyncio==1.6.0",
 ]
 
 [tool.rye.scripts]
@@ -100,7 +100,7 @@ typecheck = { chain = [
 "typecheck:mypy" = "mypy ."
 
 [build-system]
-requires = ["hatchling", "hatch-fancy-pypi-readme"]
+requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -142,6 +142,7 @@ testpaths = ["tests"]
 addopts = "--tb=short"
 xfail_strict = true
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
 ]
@@ -169,7 +170,6 @@ reportImplicitOverride = true
 reportImportCycles = false
 reportPrivateUsage = false
 
-
 [tool.ruff]
 line-length = 120
 output-format = "grouped"
@@ -194,7 +194,7 @@ select = [
   "T201",
   "T203",
   # misuse of typing.TYPE_CHECKING
-  "TCH004",
+  "TC004",
   # import rules
   "TID251",
 ]

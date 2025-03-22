@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List
+from typing import List, Optional
 from typing_extensions import Literal
 
 from pydantic import Field as FieldInfo
@@ -38,14 +38,14 @@ class Categories(BaseModel):
     orientation, disability status, or caste.
     """
 
-    illicit: bool
+    illicit: Optional[bool] = None
     """
     Content that includes instructions or advice that facilitate the planning or
     execution of wrongdoing, or that gives advice or instruction on how to commit
     illicit acts. For example, "how to shoplift" would fit this category.
     """
 
-    illicit_violent: bool = FieldInfo(alias="illicit/violent")
+    illicit_violent: Optional[bool] = FieldInfo(alias="illicit/violent", default=None)
     """
     Content that includes instructions or advice that facilitate the planning or
     execution of wrongdoing that also includes violence, or that gives advice or
