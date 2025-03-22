@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypedDict, Optional
 
 __all__ = ["ResponseFunctionToolCallParam"]
 
@@ -20,7 +20,7 @@ class ResponseFunctionToolCallParam(TypedDict, total=False):
     type: Required[Literal["function_call"]]
     """The type of the function tool call. Always `function_call`."""
 
-    id: str
+    id: Optional[str]
     """The unique ID of the function tool call."""
 
     status: Literal["in_progress", "completed", "incomplete"]
