@@ -32,6 +32,7 @@ from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
 from .response_input_image import ResponseInputImage as ResponseInputImage
 from .response_input_param import ResponseInputParam as ResponseInputParam
+from .response_input_param import ComputerCallOutput as ComputerCallOutput
 from .response_output_item import ResponseOutputItem as ResponseOutputItem
 from .response_output_text import ResponseOutputText as ResponseOutputText
 from .response_text_config import ResponseTextConfig as ResponseTextConfig
