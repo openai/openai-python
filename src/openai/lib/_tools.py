@@ -7,6 +7,7 @@ import pydantic
 from ._pydantic import to_strict_json_schema
 from ..types.chat import ChatCompletionToolParam
 from ..types.shared_params import FunctionDefinition
+from ..types.responses.function_tool_param import FunctionToolParam as ResponsesFunctionToolParam
 
 
 class PydanticFunctionTool(Dict[str, Any]):
@@ -23,6 +24,17 @@ class PydanticFunctionTool(Dict[str, Any]):
 
     def cast(self) -> FunctionDefinition:
         return cast(FunctionDefinition, self)
+
+
+class ResponsesPydanticFunctionTool(Dict[str, Any]):
+    model: type[pydantic.BaseModel]
+
+    def __init__(self, tool: ResponsesFunctionToolParam, model: type[pydantic.BaseModel]) -> None:
+        super().__init__(tool)
+        self.model = model
+
+    def cast(self) -> ResponsesFunctionToolParam:
+        return cast(ResponsesFunctionToolParam, self)
 
 
 def pydantic_function_tool(

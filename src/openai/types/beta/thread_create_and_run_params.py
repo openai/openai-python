@@ -5,12 +5,11 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..chat_model import ChatModel
+from ..shared.chat_model import ChatModel
 from .function_tool_param import FunctionToolParam
 from .file_search_tool_param import FileSearchToolParam
 from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
-from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from .threads.message_content_part_param import MessageContentPartParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
@@ -26,6 +25,10 @@ __all__ = [
     "ThreadToolResourcesCodeInterpreter",
     "ThreadToolResourcesFileSearch",
     "ThreadToolResourcesFileSearchVectorStore",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
@@ -224,12 +227,44 @@ class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
+    """
+
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ThreadToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto,
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic,
+]
+
+
 class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
-    chunking_strategy: FileChunkingStrategyParam
+    chunking_strategy: ThreadToolResourcesFileSearchVectorStoreChunkingStrategy
     """The chunking strategy used to chunk the file(s).
 
-    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
-    non-empty.
+    If not set, will use the `auto` strategy.
     """
 
     file_ids: List[str]

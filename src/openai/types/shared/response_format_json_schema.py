@@ -25,20 +25,24 @@ class JSONSchema(BaseModel):
     """
 
     schema_: Optional[Dict[str, object]] = FieldInfo(alias="schema", default=None)
-    """The schema for the response format, described as a JSON Schema object."""
+    """
+    The schema for the response format, described as a JSON Schema object. Learn how
+    to build JSON schemas [here](https://json-schema.org/).
+    """
 
     strict: Optional[bool] = None
-    """Whether to enable strict schema adherence when generating the output.
-
-    If set to true, the model will always follow the exact schema defined in the
-    `schema` field. Only a subset of JSON Schema is supported when `strict` is
-    `true`. To learn more, read the
+    """
+    Whether to enable strict schema adherence when generating the output. If set to
+    true, the model will always follow the exact schema defined in the `schema`
+    field. Only a subset of JSON Schema is supported when `strict` is `true`. To
+    learn more, read the
     [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
     """
 
 
 class ResponseFormatJSONSchema(BaseModel):
     json_schema: JSONSchema
+    """Structured Outputs configuration options, including a JSON Schema."""
 
     type: Literal["json_schema"]
-    """The type of response format being defined: `json_schema`"""
+    """The type of response format being defined. Always `json_schema`."""

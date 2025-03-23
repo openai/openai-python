@@ -5,10 +5,11 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ...chat_model import ChatModel
+from ...shared.chat_model import ChatModel
 from ..assistant_tool_param import AssistantToolParam
 from .runs.run_step_include import RunStepInclude
 from ...shared_params.metadata import Metadata
+from ...shared.reasoning_effort import ReasoningEffort
 from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
 from ..assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
@@ -106,8 +107,8 @@ class RunCreateParamsBase(TypedDict, total=False):
     during tool use.
     """
 
-    reasoning_effort: Optional[Literal["low", "medium", "high"]]
-    """**o1 and o3-mini models only**
+    reasoning_effort: Optional[ReasoningEffort]
+    """**o-series models only**
 
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently

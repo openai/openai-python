@@ -52,6 +52,8 @@ else
   echo
 fi
 
+export DEFER_PYDANTIC_BUILD=false
+
 echo "==> Running tests"
 rye run pytest "$@"
 

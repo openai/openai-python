@@ -7,6 +7,7 @@ from typing_extensions import Literal, TypedDict
 
 from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
+from ..shared.reasoning_effort import ReasoningEffort
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
 __all__ = ["AssistantUpdateParams", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResourcesFileSearch"]
@@ -45,6 +46,8 @@ class AssistantUpdateParams(TypedDict, total=False):
             "gpt-4o-2024-05-13",
             "gpt-4o-mini",
             "gpt-4o-mini-2024-07-18",
+            "gpt-4.5-preview",
+            "gpt-4.5-preview-2025-02-27",
             "gpt-4-turbo",
             "gpt-4-turbo-2024-04-09",
             "gpt-4-0125-preview",
@@ -77,8 +80,8 @@ class AssistantUpdateParams(TypedDict, total=False):
     name: Optional[str]
     """The name of the assistant. The maximum length is 256 characters."""
 
-    reasoning_effort: Optional[Literal["low", "medium", "high"]]
-    """**o1 and o3-mini models only**
+    reasoning_effort: Optional[ReasoningEffort]
+    """**o-series models only**
 
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently

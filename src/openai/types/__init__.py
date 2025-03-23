@@ -7,7 +7,14 @@ from .image import Image as Image
 from .model import Model as Model
 from .shared import (
     Metadata as Metadata,
+    AllModels as AllModels,
+    ChatModel as ChatModel,
+    Reasoning as Reasoning,
     ErrorObject as ErrorObject,
+    CompoundFilter as CompoundFilter,
+    ResponsesModel as ResponsesModel,
+    ReasoningEffort as ReasoningEffort,
+    ComparisonFilter as ComparisonFilter,
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
     ResponseFormatText as ResponseFormatText,
@@ -26,6 +33,7 @@ from .image_model import ImageModel as ImageModel
 from .file_content import FileContent as FileContent
 from .file_deleted import FileDeleted as FileDeleted
 from .file_purpose import FilePurpose as FilePurpose
+from .vector_store import VectorStore as VectorStore
 from .model_deleted import ModelDeleted as ModelDeleted
 from .embedding_model import EmbeddingModel as EmbeddingModel
 from .images_response import ImagesResponse as ImagesResponse
@@ -39,16 +47,32 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
 from .upload_create_params import UploadCreateParams as UploadCreateParams
+from .vector_store_deleted import VectorStoreDeleted as VectorStoreDeleted
 from .audio_response_format import AudioResponseFormat as AudioResponseFormat
 from .image_generate_params import ImageGenerateParams as ImageGenerateParams
+from .file_chunking_strategy import FileChunkingStrategy as FileChunkingStrategy
 from .upload_complete_params import UploadCompleteParams as UploadCompleteParams
 from .embedding_create_params import EmbeddingCreateParams as EmbeddingCreateParams
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
 from .moderation_create_params import ModerationCreateParams as ModerationCreateParams
+from .vector_store_list_params import VectorStoreListParams as VectorStoreListParams
 from .create_embedding_response import CreateEmbeddingResponse as CreateEmbeddingResponse
 from .moderation_create_response import ModerationCreateResponse as ModerationCreateResponse
+from .vector_store_create_params import VectorStoreCreateParams as VectorStoreCreateParams
+from .vector_store_search_params import VectorStoreSearchParams as VectorStoreSearchParams
+from .vector_store_update_params import VectorStoreUpdateParams as VectorStoreUpdateParams
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
+from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
+from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .websocket_connection_options import WebsocketConnectionOptions as WebsocketConnectionOptions
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
+from .static_file_chunking_strategy import StaticFileChunkingStrategy as StaticFileChunkingStrategy
 from .moderation_image_url_input_param import ModerationImageURLInputParam as ModerationImageURLInputParam
+from .auto_file_chunking_strategy_param import AutoFileChunkingStrategyParam as AutoFileChunkingStrategyParam
 from .moderation_multi_modal_input_param import ModerationMultiModalInputParam as ModerationMultiModalInputParam
+from .other_file_chunking_strategy_object import OtherFileChunkingStrategyObject as OtherFileChunkingStrategyObject
+from .static_file_chunking_strategy_param import StaticFileChunkingStrategyParam as StaticFileChunkingStrategyParam
+from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObject as StaticFileChunkingStrategyObject
+from .static_file_chunking_strategy_object_param import (
+    StaticFileChunkingStrategyObjectParam as StaticFileChunkingStrategyObjectParam,
+)

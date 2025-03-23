@@ -7,16 +7,20 @@ import contextvars
 from typing import Any, TypeVar, Callable, Awaitable
 from typing_extensions import ParamSpec
 
+import anyio
+import sniffio
+import anyio.to_thread
+
 T_Retval = TypeVar("T_Retval")
 T_ParamSpec = ParamSpec("T_ParamSpec")
 
 
 if sys.version_info >= (3, 9):
-    to_thread = asyncio.to_thread
+    _asyncio_to_thread = asyncio.to_thread
 else:
     # backport of https://docs.python.org/3/library/asyncio-task.html#asyncio.to_thread
     # for Python 3.8 support
-    async def to_thread(
+    async def _asyncio_to_thread(
         func: Callable[T_ParamSpec, T_Retval], /, *args: T_ParamSpec.args, **kwargs: T_ParamSpec.kwargs
     ) -> Any:
         """Asynchronously run function *func* in a separate thread.
@@ -34,6 +38,17 @@ else:
         return await loop.run_in_executor(None, func_call)
 
 
+async def to_thread(
+    func: Callable[T_ParamSpec, T_Retval], /, *args: T_ParamSpec.args, **kwargs: T_ParamSpec.kwargs
+) -> T_Retval:
+    if sniffio.current_async_library() == "asyncio":
+        return await _asyncio_to_thread(func, *args, **kwargs)
+
+    return await anyio.to_thread.run_sync(
+        functools.partial(func, *args, **kwargs),
+    )
+
+
 # inspired by `asyncer`, https://github.com/tiangolo/asyncer
 def asyncify(function: Callable[T_ParamSpec, T_Retval]) -> Callable[T_ParamSpec, Awaitable[T_Retval]]:
     """
@@ -49,6 +64,7 @@ def asyncify(function: Callable[T_ParamSpec, T_Retval]) -> Callable[T_ParamSpec,
     def blocking_func(arg1, arg2, kwarg1=None):
         # blocking code
         return result
+
 
     result = asyncify(blocking_function)(arg1, arg2, kwarg1=value1)
     ```
