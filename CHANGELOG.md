@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.68.2 (2025-03-21)
+
+Full Changelog: [v1.68.1...v1.68.2](https://github.com/openai/openai-python/compare/v1.68.1...v1.68.2)
+
+### Refactors
+
+* **package:** rename audio extra to voice_helpers ([2dd6cb8](https://github.com/openai/openai-python/commit/2dd6cb87489fe12c5e45128f44d985c3f49aba1d))
+
+## 1.68.1 (2025-03-21)
+
+Full Changelog: [v1.68.0...v1.68.1](https://github.com/openai/openai-python/compare/v1.68.0...v1.68.1)
+
+### Bug Fixes
+
+* **client:** remove duplicate types ([#2235](https://github.com/openai/openai-python/issues/2235)) ([063f7d0](https://github.com/openai/openai-python/commit/063f7d0684c350ca9d766e2cb150233a22a623c8))
+* **helpers/audio:** remove duplicative module ([f253d04](https://github.com/openai/openai-python/commit/f253d0415145f2c4904ea2e7b389d31d94e45a54))
+* **package:** make sounddevice and numpy optional dependencies ([8b04453](https://github.com/openai/openai-python/commit/8b04453f0483736c13f0209a9f8f3618bc0e86c9))
+
+
+### Chores
+
+* **ci:** run workflows on next too ([67f89d4](https://github.com/openai/openai-python/commit/67f89d478aab780d1481c9bf6682c6633e431137))
+
 ## 1.68.0 (2025-03-20)
 
 Full Changelog: [v1.67.0...v1.68.0](https://github.com/openai/openai-python/compare/v1.67.0...v1.68.0)
