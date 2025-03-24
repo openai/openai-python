@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import logging
-from typing import TYPE_CHECKING, List, Union, Mapping, cast
+from typing import TYPE_CHECKING, List, Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload, assert_never
 
 import httpx
@@ -13,6 +13,7 @@ from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
 from ..._utils import (
     extract_files,
+    required_args,
     maybe_transform,
     deepcopy_minimal,
     async_maybe_transform,
@@ -20,12 +21,16 @@ from ..._utils import (
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
+from ..._streaming import Stream, AsyncStream
 from ...types.audio import transcription_create_params
 from ..._base_client import make_request_options
 from ...types.audio_model import AudioModel
 from ...types.audio.transcription import Transcription
 from ...types.audio_response_format import AudioResponseFormat
+from ...types.audio.transcription_include import TranscriptionInclude
 from ...types.audio.transcription_verbose import TranscriptionVerbose
+from ...types.audio.transcription_stream_event import TranscriptionStreamEvent
+from ...types.audio.transcription_create_response import TranscriptionCreateResponse
 
 __all__ = ["Transcriptions", "AsyncTranscriptions"]
 
@@ -58,6 +63,7 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -77,6 +83,7 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         response_format: Literal["verbose_json"],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -97,6 +104,7 @@ class Transcriptions(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         response_format: Literal["text", "srt", "vtt"],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
@@ -109,11 +117,14 @@ class Transcriptions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> str: ...
 
+    @overload
     def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        stream: Literal[True],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
@@ -125,7 +136,7 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Transcription | TranscriptionVerbose | str:
+    ) -> Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
 
@@ -134,8 +145,24 @@ class Transcriptions(SyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
-              Whisper V2 model) is currently available.
+          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+              `gpt-4o-mini-transcribe`, and `whisper-1` (which is powered by our open source
+              Whisper V2 model).
+
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              for more information.
+
+              Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          include: Additional information to include in the transcription response. `logprobs` will
+              return the log probabilities of the tokens in the response to understand the
+              model's confidence in the transcription. `logprobs` only works with
+              response_format set to `json` and only with the models `gpt-4o-transcribe` and
+              `gpt-4o-mini-transcribe`.
 
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
@@ -147,7 +174,8 @@ class Transcriptions(SyncAPIResource):
               should match the audio language.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
-              `verbose_json`, or `vtt`.
+              `verbose_json`, or `vtt`. For `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`,
+              the only supported format is `json`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
@@ -169,13 +197,119 @@ class Transcriptions(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        stream: bool,
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
+        """
+        Transcribes audio into the input language.
+
+        Args:
+          file:
+              The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+
+          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+              `gpt-4o-mini-transcribe`, and `whisper-1` (which is powered by our open source
+              Whisper V2 model).
+
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              for more information.
+
+              Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          include: Additional information to include in the transcription response. `logprobs` will
+              return the log probabilities of the tokens in the response to understand the
+              model's confidence in the transcription. `logprobs` only works with
+              response_format set to `json` and only with the models `gpt-4o-transcribe` and
+              `gpt-4o-mini-transcribe`.
+
+          language: The language of the input audio. Supplying the input language in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
+              format will improve accuracy and latency.
+
+          prompt: An optional text to guide the model's style or continue a previous audio
+              segment. The
+              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              should match the audio language.
+
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`. For `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`,
+              the only supported format is `json`.
+
+          temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
+              output more random, while lower values like 0.2 will make it more focused and
+              deterministic. If set to 0, the model will use
+              [log probability](https://en.wikipedia.org/wiki/Log_probability) to
+              automatically increase the temperature until certain thresholds are hit.
+
+          timestamp_granularities: The timestamp granularities to populate for this transcription.
+              `response_format` must be set `verbose_json` to use timestamp granularities.
+              Either or both of these options are supported: `word`, or `segment`. Note: There
+              is no additional latency for segment timestamps, but generating word timestamps
+              incurs additional latency.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["file", "model"], ["file", "model", "stream"])
+    def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
+        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> str | Transcription | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
                 "file": file,
                 "model": model,
+                "include": include,
                 "language": language,
                 "prompt": prompt,
                 "response_format": response_format,
+                "stream": stream,
                 "temperature": temperature,
                 "timestamp_granularities": timestamp_granularities,
             }
@@ -193,6 +327,8 @@ class Transcriptions(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=_get_response_format_type(response_format),
+            stream=stream or False,
+            stream_cls=Stream[TranscriptionStreamEvent],
         )
 
 
@@ -226,6 +362,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -241,6 +378,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         response_format: Literal["verbose_json"],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -260,6 +398,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         response_format: Literal["text", "srt", "vtt"],
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -273,11 +412,14 @@ class AsyncTranscriptions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> str: ...
 
+    @overload
     async def create(
         self,
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        stream: Literal[True],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
         response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
@@ -289,7 +431,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Transcription | TranscriptionVerbose | str:
+    ) -> AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
 
@@ -298,8 +440,24 @@ class AsyncTranscriptions(AsyncAPIResource):
               The audio file object (not file name) to transcribe, in one of these formats:
               flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
 
-          model: ID of the model to use. Only `whisper-1` (which is powered by our open source
-              Whisper V2 model) is currently available.
+          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+              `gpt-4o-mini-transcribe`, and `whisper-1` (which is powered by our open source
+              Whisper V2 model).
+
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              for more information.
+
+              Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          include: Additional information to include in the transcription response. `logprobs` will
+              return the log probabilities of the tokens in the response to understand the
+              model's confidence in the transcription. `logprobs` only works with
+              response_format set to `json` and only with the models `gpt-4o-transcribe` and
+              `gpt-4o-mini-transcribe`.
 
           language: The language of the input audio. Supplying the input language in
               [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
@@ -311,7 +469,8 @@ class AsyncTranscriptions(AsyncAPIResource):
               should match the audio language.
 
           response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
-              `verbose_json`, or `vtt`.
+              `verbose_json`, or `vtt`. For `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`,
+              the only supported format is `json`.
 
           temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
               output more random, while lower values like 0.2 will make it more focused and
@@ -333,13 +492,119 @@ class AsyncTranscriptions(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        stream: bool,
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
+        """
+        Transcribes audio into the input language.
+
+        Args:
+          file:
+              The audio file object (not file name) to transcribe, in one of these formats:
+              flac, mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
+
+          model: ID of the model to use. The options are `gpt-4o-transcribe`,
+              `gpt-4o-mini-transcribe`, and `whisper-1` (which is powered by our open source
+              Whisper V2 model).
+
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+              for more information.
+
+              Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          include: Additional information to include in the transcription response. `logprobs` will
+              return the log probabilities of the tokens in the response to understand the
+              model's confidence in the transcription. `logprobs` only works with
+              response_format set to `json` and only with the models `gpt-4o-transcribe` and
+              `gpt-4o-mini-transcribe`.
+
+          language: The language of the input audio. Supplying the input language in
+              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
+              format will improve accuracy and latency.
+
+          prompt: An optional text to guide the model's style or continue a previous audio
+              segment. The
+              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
+              should match the audio language.
+
+          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
+              `verbose_json`, or `vtt`. For `gpt-4o-transcribe` and `gpt-4o-mini-transcribe`,
+              the only supported format is `json`.
+
+          temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
+              output more random, while lower values like 0.2 will make it more focused and
+              deterministic. If set to 0, the model will use
+              [log probability](https://en.wikipedia.org/wiki/Log_probability) to
+              automatically increase the temperature until certain thresholds are hit.
+
+          timestamp_granularities: The timestamp granularities to populate for this transcription.
+              `response_format` must be set `verbose_json` to use timestamp granularities.
+              Either or both of these options are supported: `word`, or `segment`. Note: There
+              is no additional latency for segment timestamps, but generating word timestamps
+              incurs additional latency.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @required_args(["file", "model"], ["file", "model", "stream"])
+    async def create(
+        self,
+        *,
+        file: FileTypes,
+        model: Union[str, AudioModel],
+        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        language: str | NotGiven = NOT_GIVEN,
+        prompt: str | NotGiven = NOT_GIVEN,
+        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
+        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        temperature: float | NotGiven = NOT_GIVEN,
+        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Transcription | TranscriptionVerbose | str | AsyncStream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
                 "file": file,
                 "model": model,
+                "include": include,
                 "language": language,
                 "prompt": prompt,
                 "response_format": response_format,
+                "stream": stream,
                 "temperature": temperature,
                 "timestamp_granularities": timestamp_granularities,
             }
@@ -357,6 +622,8 @@ class AsyncTranscriptions(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=_get_response_format_type(response_format),
+            stream=stream or False,
+            stream_cls=AsyncStream[TranscriptionStreamEvent],
         )
 
 

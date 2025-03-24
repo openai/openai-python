@@ -11,11 +11,11 @@ from .response_status import ResponseStatus
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
 from .tool_choice_types import ToolChoiceTypes
-from ..shared.chat_model import ChatModel
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
+from ..shared.responses_model import ResponsesModel
 
 __all__ = ["Response", "IncompleteDetails", "ToolChoice"]
 
@@ -61,7 +61,7 @@ class Response(BaseModel):
     a maximum length of 512 characters.
     """
 
-    model: Union[str, ChatModel]
+    model: ResponsesModel
     """Model ID used to generate the response, like `gpt-4o` or `o1`.
 
     OpenAI offers a wide range of models with different capabilities, performance

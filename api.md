@@ -2,6 +2,7 @@
 
 ```python
 from openai.types import (
+    AllModels,
     ChatModel,
     ComparisonFilter,
     CompoundFilter,
@@ -14,6 +15,7 @@ from openai.types import (
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,
+    ResponsesModel,
 )
 ```
 
@@ -149,7 +151,11 @@ Types:
 ```python
 from openai.types.audio import (
     Transcription,
+    TranscriptionInclude,
     TranscriptionSegment,
+    TranscriptionStreamEvent,
+    TranscriptionTextDeltaEvent,
+    TranscriptionTextDoneEvent,
     TranscriptionVerbose,
     TranscriptionWord,
     TranscriptionCreateResponse,
@@ -336,7 +342,9 @@ from openai.types.beta.realtime import (
     ConversationItemDeleteEvent,
     ConversationItemDeletedEvent,
     ConversationItemInputAudioTranscriptionCompletedEvent,
+    ConversationItemInputAudioTranscriptionDeltaEvent,
     ConversationItemInputAudioTranscriptionFailedEvent,
+    ConversationItemRetrieveEvent,
     ConversationItemTruncateEvent,
     ConversationItemTruncatedEvent,
     ConversationItemWithReference,
@@ -373,6 +381,8 @@ from openai.types.beta.realtime import (
     SessionCreatedEvent,
     SessionUpdateEvent,
     SessionUpdatedEvent,
+    TranscriptionSessionUpdate,
+    TranscriptionSessionUpdatedEvent,
 )
 ```
 
@@ -387,6 +397,18 @@ from openai.types.beta.realtime import Session, SessionCreateResponse
 Methods:
 
 - <code title="post /realtime/sessions">client.beta.realtime.sessions.<a href="./src/openai/resources/beta/realtime/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/realtime/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/realtime/session_create_response.py">SessionCreateResponse</a></code>
+
+### TranscriptionSessions
+
+Types:
+
+```python
+from openai.types.beta.realtime import TranscriptionSession
+```
+
+Methods:
+
+- <code title="post /realtime/transcription_sessions">client.beta.realtime.transcription_sessions.<a href="./src/openai/resources/beta/realtime/transcription_sessions.py">create</a>(\*\*<a href="src/openai/types/beta/realtime/transcription_session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/realtime/transcription_session.py">TranscriptionSession</a></code>
 
 ## Assistants
 
@@ -605,6 +627,8 @@ from openai.types.responses import (
     ResponseCodeInterpreterToolCall,
     ResponseCompletedEvent,
     ResponseComputerToolCall,
+    ResponseComputerToolCallOutputItem,
+    ResponseComputerToolCallOutputScreenshot,
     ResponseContent,
     ResponseContentPartAddedEvent,
     ResponseContentPartDoneEvent,
@@ -621,6 +645,8 @@ from openai.types.responses import (
     ResponseFunctionCallArgumentsDeltaEvent,
     ResponseFunctionCallArgumentsDoneEvent,
     ResponseFunctionToolCall,
+    ResponseFunctionToolCallItem,
+    ResponseFunctionToolCallOutputItem,
     ResponseFunctionWebSearch,
     ResponseInProgressEvent,
     ResponseIncludable,
@@ -632,7 +658,9 @@ from openai.types.responses import (
     ResponseInputImage,
     ResponseInputItem,
     ResponseInputMessageContentList,
+    ResponseInputMessageItem,
     ResponseInputText,
+    ResponseItem,
     ResponseOutputAudio,
     ResponseOutputItem,
     ResponseOutputItemAddedEvent,
@@ -677,4 +705,4 @@ from openai.types.responses import ResponseItemList
 
 Methods:
 
-- <code title="get /responses/{response_id}/input_items">client.responses.input_items.<a href="./src/openai/resources/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/responses/input_item_list_params.py">params</a>) -> SyncCursorPage[Data]</code>
+- <code title="get /responses/{response_id}/input_items">client.responses.input_items.<a href="./src/openai/resources/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/responses/input_item_list_params.py">params</a>) -> <a href="./src/openai/types/responses/response_item.py">SyncCursorPage[ResponseItem]</a></code>

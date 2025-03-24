@@ -16,6 +16,14 @@ from .sessions import (
     SessionsWithStreamingResponse,
     AsyncSessionsWithStreamingResponse,
 )
+from .transcription_sessions import (
+    TranscriptionSessions,
+    AsyncTranscriptionSessions,
+    TranscriptionSessionsWithRawResponse,
+    AsyncTranscriptionSessionsWithRawResponse,
+    TranscriptionSessionsWithStreamingResponse,
+    AsyncTranscriptionSessionsWithStreamingResponse,
+)
 
 __all__ = [
     "Sessions",
@@ -24,6 +32,12 @@ __all__ = [
     "AsyncSessionsWithRawResponse",
     "SessionsWithStreamingResponse",
     "AsyncSessionsWithStreamingResponse",
+    "TranscriptionSessions",
+    "AsyncTranscriptionSessions",
+    "TranscriptionSessionsWithRawResponse",
+    "AsyncTranscriptionSessionsWithRawResponse",
+    "TranscriptionSessionsWithStreamingResponse",
+    "AsyncTranscriptionSessionsWithStreamingResponse",
     "Realtime",
     "AsyncRealtime",
     "RealtimeWithRawResponse",

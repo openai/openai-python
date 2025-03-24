@@ -18,6 +18,8 @@ anyio==4.1.0
 certifi==2023.7.22
     # via httpcore
     # via httpx
+cffi==1.17.1
+    # via sounddevice
 distro==1.8.0
     # via openai
 exceptiongroup==1.2.2
@@ -41,6 +43,8 @@ pandas==2.2.3
     # via openai
 pandas-stubs==2.2.2.240807
     # via openai
+pycparser==2.22
+    # via cffi
 pydantic==2.10.3
     # via openai
 pydantic-core==2.27.1
@@ -53,6 +57,8 @@ six==1.16.0
     # via python-dateutil
 sniffio==1.3.0
     # via anyio
+    # via openai
+sounddevice==0.5.1
     # via openai
 tqdm==4.66.5
     # via openai
