@@ -47,7 +47,7 @@ class TestCompletions:
             model="gpt-4o",
             audio={
                 "format": "wav",
-                "voice": "alloy",
+                "voice": "ash",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -174,7 +174,7 @@ class TestCompletions:
             stream=True,
             audio={
                 "format": "wav",
-                "voice": "alloy",
+                "voice": "ash",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -457,7 +457,7 @@ class TestAsyncCompletions:
             model="gpt-4o",
             audio={
                 "format": "wav",
-                "voice": "alloy",
+                "voice": "ash",
             },
             frequency_penalty=-2,
             function_call="none",
@@ -584,7 +584,7 @@ class TestAsyncCompletions:
             stream=True,
             audio={
                 "format": "wav",
-                "voice": "alloy",
+                "voice": "ash",
             },
             frequency_penalty=-2,
             function_call="none",

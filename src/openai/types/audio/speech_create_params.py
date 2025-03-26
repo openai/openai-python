@@ -20,11 +20,16 @@ class SpeechCreateParams(TypedDict, total=False):
     `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
     """
 
-    voice: Required[Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"]]
+    voice: Required[
+        Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ]
+    ]
     """The voice to use when generating the audio.
 
-    Supported voices are `alloy`, `ash`, `coral`, `echo`, `fable`, `onyx`, `nova`,
-    `sage` and `shimmer`. Previews of the voices are available in the
+    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,
+    `nova`, `sage`, `shimmer`, and `verse`. Previews of the voices are available in
+    the
     [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
     """
 

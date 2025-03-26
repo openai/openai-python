@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any, List, cast
 from typing_extensions import Literal
 
 import httpx
@@ -17,6 +17,7 @@ from ...pagination import SyncCursorPage, AsyncCursorPage
 from ..._base_client import AsyncPaginator, make_request_options
 from ...types.responses import input_item_list_params
 from ...types.responses.response_item import ResponseItem
+from ...types.responses.response_includable import ResponseIncludable
 
 __all__ = ["InputItems", "AsyncInputItems"]
 
@@ -47,6 +48,7 @@ class InputItems(SyncAPIResource):
         *,
         after: str | NotGiven = NOT_GIVEN,
         before: str | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
         order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -63,6 +65,9 @@ class InputItems(SyncAPIResource):
           after: An item ID to list items after, used in pagination.
 
           before: An item ID to list items before, used in pagination.
+
+          include: Additional fields to include in the response. See the `include` parameter for
+              Response creation above for more information.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -94,6 +99,7 @@ class InputItems(SyncAPIResource):
                     {
                         "after": after,
                         "before": before,
+                        "include": include,
                         "limit": limit,
                         "order": order,
                     },
@@ -130,6 +136,7 @@ class AsyncInputItems(AsyncAPIResource):
         *,
         after: str | NotGiven = NOT_GIVEN,
         before: str | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
         order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -146,6 +153,9 @@ class AsyncInputItems(AsyncAPIResource):
           after: An item ID to list items after, used in pagination.
 
           before: An item ID to list items before, used in pagination.
+
+          include: Additional fields to include in the response. See the `include` parameter for
+              Response creation above for more information.
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
@@ -177,6 +187,7 @@ class AsyncInputItems(AsyncAPIResource):
                     {
                         "after": after,
                         "before": before,
+                        "include": include,
                         "limit": limit,
                         "order": order,
                     },
