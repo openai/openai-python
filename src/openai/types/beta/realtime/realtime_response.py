@@ -80,8 +80,13 @@ class RealtimeResponse(BaseModel):
     will become the input for later turns.
     """
 
-    voice: Optional[Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]] = None
+    voice: Union[
+        str,
+        Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"],
+        None,
+    ] = None
     """
     The voice the model used to respond. Current voice options are `alloy`, `ash`,
-    `ballad`, `coral`, `echo` `sage`, `shimmer` and `verse`.
+    `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+    `verse`.
     """
