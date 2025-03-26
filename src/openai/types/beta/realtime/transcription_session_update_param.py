@@ -50,9 +50,10 @@ class SessionInputAudioTranscription(TypedDict, total=False):
 
 class SessionTurnDetection(TypedDict, total=False):
     create_response: bool
-    """
-    Whether or not to automatically generate a response when a VAD stop event
+    """Whether or not to automatically generate a response when a VAD stop event
     occurs.
+
+    Not available for transcription sessions.
     """
 
     eagerness: Literal["low", "medium", "high", "auto"]
@@ -67,7 +68,7 @@ class SessionTurnDetection(TypedDict, total=False):
     """
     Whether or not to automatically interrupt any ongoing response with output to
     the default conversation (i.e. `conversation` of `auto`) when a VAD start event
-    occurs.
+    occurs. Not available for transcription sessions.
     """
 
     prefix_padding_ms: int

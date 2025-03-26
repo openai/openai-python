@@ -138,8 +138,8 @@ class Responses(SyncAPIResource):
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -310,8 +310,8 @@ class Responses(SyncAPIResource):
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -475,8 +475,8 @@ class Responses(SyncAPIResource):
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -795,8 +795,8 @@ class AsyncResponses(AsyncAPIResource):
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -967,8 +967,8 @@ class AsyncResponses(AsyncAPIResource):
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -1132,8 +1132,8 @@ class AsyncResponses(AsyncAPIResource):
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
