@@ -681,7 +681,7 @@ def set_pydantic_config(typ: Any, config: pydantic.ConfigDict) -> None:
     setattr(typ, "__pydantic_config__", config)  # noqa: B010
 
 
-# our use of subclasssing here causes weirdness for type checkers,
+# our use of subclassing here causes weirdness for type checkers,
 # so we just pretend that we don't subclass
 if TYPE_CHECKING:
     GenericModel = BaseModel
