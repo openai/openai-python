@@ -53,7 +53,9 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ],
         instructions: str | NotGiven = NOT_GIVEN,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
@@ -75,8 +77,8 @@ class Speech(SyncAPIResource):
               `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
-              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
-              voices are available in the
+              `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+              `verse`. Previews of the voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
 
           instructions: Control the voice of your generated audio with additional instructions. Does not
@@ -142,7 +144,9 @@ class AsyncSpeech(AsyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ],
         instructions: str | NotGiven = NOT_GIVEN,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
@@ -164,8 +168,8 @@ class AsyncSpeech(AsyncAPIResource):
               `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
-              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
-              voices are available in the
+              `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+              `verse`. Previews of the voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
 
           instructions: Control the voice of your generated audio with additional instructions. Does not

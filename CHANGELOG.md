@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.69.0 (2025-03-27)
+
+Full Changelog: [v1.68.2...v1.69.0](https://github.com/openai/openai-python/compare/v1.68.2...v1.69.0)
+
+### Features
+
+* **api:** add `get /chat/completions` endpoint ([e6b8a42](https://github.com/openai/openai-python/commit/e6b8a42fc4286656cc86c2acd83692b170e77b68))
+
+
+### Bug Fixes
+
+* **audio:** correctly parse transcription stream events ([16a3a19](https://github.com/openai/openai-python/commit/16a3a195ff31f099fbe46043a12d2380c2c01f83))
+
+
+### Chores
+
+* add hash of OpenAPI spec/config inputs to .stats.yml ([515e1cd](https://github.com/openai/openai-python/commit/515e1cdd4a3109e5b29618df813656e17f22b52a))
+* **api:** updates to supported Voice IDs ([#2261](https://github.com/openai/openai-python/issues/2261)) ([64956f9](https://github.com/openai/openai-python/commit/64956f9d9889b04380c7f5eb926509d1efd523e6))
+* fix typos ([#2259](https://github.com/openai/openai-python/issues/2259)) ([6160de3](https://github.com/openai/openai-python/commit/6160de3e099f09c2d6ee5eeee4cbcc55b67a8f87))
+
 ## 1.68.2 (2025-03-21)
 
 Full Changelog: [v1.68.1...v1.68.2](https://github.com/openai/openai-python/compare/v1.68.1...v1.68.2)

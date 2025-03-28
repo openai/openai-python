@@ -721,7 +721,7 @@ def add_request_id(obj: BaseModel, request_id: str | None) -> None:
             cast(Any, obj).__exclude_fields__ = {*(exclude_fields or {}), "_request_id", "__exclude_fields__"}
 
 
-# our use of subclasssing here causes weirdness for type checkers,
+# our use of subclassing here causes weirdness for type checkers,
 # so we just pretend that we don't subclass
 if TYPE_CHECKING:
     GenericModel = BaseModel
