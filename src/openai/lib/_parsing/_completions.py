@@ -262,7 +262,7 @@ def type_to_response_format_param(
     else:
         raise TypeError(f"Unsupported response_format type - {response_format}")
 
-    schema_param = {
+    schema_param: ResponseFormatParam = {
         "type": "json_schema",
         "json_schema": {
             "schema": to_strict_json_schema(json_schema_type),
