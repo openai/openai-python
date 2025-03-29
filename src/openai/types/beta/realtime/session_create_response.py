@@ -141,7 +141,11 @@ class SessionCreateResponse(BaseModel):
     speech.
     """
 
-    voice: Optional[Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]] = None
+    voice: Union[
+        str,
+        Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"],
+        None,
+    ] = None
     """The voice the model uses to respond.
 
     Voice cannot be changed during the session once the model has responded with
