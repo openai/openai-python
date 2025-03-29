@@ -9,6 +9,13 @@ __all__ = ["ResponseFormatTextJSONSchemaConfigParam"]
 
 
 class ResponseFormatTextJSONSchemaConfigParam(TypedDict, total=False):
+    name: Required[str]
+    """The name of the response format.
+
+    Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length
+    of 64.
+    """
+
     schema: Required[Dict[str, object]]
     """
     The schema for the response format, described as a JSON Schema object. Learn how
@@ -22,13 +29,6 @@ class ResponseFormatTextJSONSchemaConfigParam(TypedDict, total=False):
     """
     A description of what the response format is for, used by the model to determine
     how to respond in the format.
-    """
-
-    name: str
-    """The name of the response format.
-
-    Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length
-    of 64.
     """
 
     strict: Optional[bool]
