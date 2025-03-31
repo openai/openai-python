@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.70.0 (2025-03-31)
+
+Full Changelog: [v1.69.0...v1.70.0](https://github.com/openai/openai-python/compare/v1.69.0...v1.70.0)
+
+### Features
+
+* **api:** add `get /responses/{response_id}/input_items` endpoint ([4c6a35d](https://github.com/openai/openai-python/commit/4c6a35dec65362a6a738c3387dae57bf8cbfcbb2))
+
 ## 1.69.0 (2025-03-27)
 
 Full Changelog: [v1.68.2...v1.69.0](https://github.com/openai/openai-python/compare/v1.68.2...v1.69.0)
