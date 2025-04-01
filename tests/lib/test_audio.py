@@ -26,7 +26,7 @@ def test_translation_create_overloads_in_sync(sync: bool, client: OpenAI, async_
         assert_signatures_in_sync(
             fn,
             overload,
-            exclude_params={"response_format"},
+            exclude_params={"response_format", "stream"},
             description=f" for overload {i}",
         )
 
@@ -60,7 +60,7 @@ def test_transcription_create_overloads_in_sync(sync: bool, client: OpenAI, asyn
         assert_signatures_in_sync(
             fn,
             overload,
-            exclude_params={"response_format"},
+            exclude_params={"response_format", "stream"},
             description=f" for overload {i}",
         )
 

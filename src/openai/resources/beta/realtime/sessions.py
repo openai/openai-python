@@ -47,6 +47,7 @@ class Sessions(SyncAPIResource):
         self,
         *,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        input_audio_noise_reduction: session_create_params.InputAudioNoiseReduction | NotGiven = NOT_GIVEN,
         input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
         instructions: str | NotGiven = NOT_GIVEN,
         max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
@@ -64,7 +65,10 @@ class Sessions(SyncAPIResource):
         tool_choice: str | NotGiven = NOT_GIVEN,
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
-        voice: Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"] | NotGiven = NOT_GIVEN,
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ]
+        | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -86,14 +90,20 @@ class Sessions(SyncAPIResource):
               `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
               (mono), and little-endian byte order.
 
+          input_audio_noise_reduction: Configuration for input audio noise reduction. This can be set to `null` to turn
+              off. Noise reduction filters audio added to the input audio buffer before it is
+              sent to VAD and the model. Filtering the audio can improve VAD and turn
+              detection accuracy (reducing false positives) and model performance by improving
+              perception of the input audio.
+
           input_audio_transcription: Configuration for input audio transcription, defaults to off and can be set to
               `null` to turn off once on. Input audio transcription is not native to the
               model, since the model consumes audio directly. Transcription runs
               asynchronously through
-              [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
-              and should be treated as rough guidance rather than the representation
-              understood by the model. The client can optionally set the language and prompt
-              for transcription, these fields will be passed to the Whisper API.
+              [the /audio/transcriptions endpoint](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+              and should be treated as guidance of input audio content rather than precisely
+              what the model heard. The client can optionally set the language and prompt for
+              transcription, these offer additional guidance to the transcription service.
 
           instructions: The default system instructions (i.e. system message) prepended to model calls.
               This field allows the client to guide the model on desired responses. The model
@@ -119,20 +129,29 @@ class Sessions(SyncAPIResource):
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
               For `pcm16`, output audio is sampled at a rate of 24kHz.
 
-          temperature: Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8.
+          temperature: Sampling temperature for the model, limited to [0.6, 1.2]. For audio models a
+              temperature of 0.8 is highly recommended for best performance.
 
           tool_choice: How the model chooses tools. Options are `auto`, `none`, `required`, or specify
               a function.
 
           tools: Tools (functions) available to the model.
 
-          turn_detection: Configuration for turn detection. Can be set to `null` to turn off. Server VAD
-              means that the model will detect the start and end of speech based on audio
-              volume and respond at the end of user speech.
+          turn_detection: Configuration for turn detection, ether Server VAD or Semantic VAD. This can be
+              set to `null` to turn off, in which case the client must manually trigger model
+              response. Server VAD means that the model will detect the start and end of
+              speech based on audio volume and respond at the end of user speech. Semantic VAD
+              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              semantically estimate whether the user has finished speaking, then dynamically
+              sets a timeout based on this probability. For example, if user audio trails off
+              with "uhhm", the model will score a low probability of turn end and wait longer
+              for the user to continue speaking. This can be useful for more natural
+              conversations, but may have a higher latency.
 
           voice: The voice the model uses to respond. Voice cannot be changed during the session
               once the model has responded with audio at least once. Current voice options are
-              `alloy`, `ash`, `ballad`, `coral`, `echo` `sage`, `shimmer` and `verse`.
+              `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
+              `shimmer`, and `verse`.
 
           extra_headers: Send extra headers
 
@@ -148,6 +167,7 @@ class Sessions(SyncAPIResource):
             body=maybe_transform(
                 {
                     "input_audio_format": input_audio_format,
+                    "input_audio_noise_reduction": input_audio_noise_reduction,
                     "input_audio_transcription": input_audio_transcription,
                     "instructions": instructions,
                     "max_response_output_tokens": max_response_output_tokens,
@@ -193,6 +213,7 @@ class AsyncSessions(AsyncAPIResource):
         self,
         *,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        input_audio_noise_reduction: session_create_params.InputAudioNoiseReduction | NotGiven = NOT_GIVEN,
         input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
         instructions: str | NotGiven = NOT_GIVEN,
         max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
@@ -210,7 +231,10 @@ class AsyncSessions(AsyncAPIResource):
         tool_choice: str | NotGiven = NOT_GIVEN,
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
-        voice: Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"] | NotGiven = NOT_GIVEN,
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ]
+        | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -232,14 +256,20 @@ class AsyncSessions(AsyncAPIResource):
               `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
               (mono), and little-endian byte order.
 
+          input_audio_noise_reduction: Configuration for input audio noise reduction. This can be set to `null` to turn
+              off. Noise reduction filters audio added to the input audio buffer before it is
+              sent to VAD and the model. Filtering the audio can improve VAD and turn
+              detection accuracy (reducing false positives) and model performance by improving
+              perception of the input audio.
+
           input_audio_transcription: Configuration for input audio transcription, defaults to off and can be set to
               `null` to turn off once on. Input audio transcription is not native to the
               model, since the model consumes audio directly. Transcription runs
               asynchronously through
-              [OpenAI Whisper transcription](https://platform.openai.com/docs/api-reference/audio/createTranscription)
-              and should be treated as rough guidance rather than the representation
-              understood by the model. The client can optionally set the language and prompt
-              for transcription, these fields will be passed to the Whisper API.
+              [the /audio/transcriptions endpoint](https://platform.openai.com/docs/api-reference/audio/createTranscription)
+              and should be treated as guidance of input audio content rather than precisely
+              what the model heard. The client can optionally set the language and prompt for
+              transcription, these offer additional guidance to the transcription service.
 
           instructions: The default system instructions (i.e. system message) prepended to model calls.
               This field allows the client to guide the model on desired responses. The model
@@ -265,20 +295,29 @@ class AsyncSessions(AsyncAPIResource):
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
               For `pcm16`, output audio is sampled at a rate of 24kHz.
 
-          temperature: Sampling temperature for the model, limited to [0.6, 1.2]. Defaults to 0.8.
+          temperature: Sampling temperature for the model, limited to [0.6, 1.2]. For audio models a
+              temperature of 0.8 is highly recommended for best performance.
 
           tool_choice: How the model chooses tools. Options are `auto`, `none`, `required`, or specify
               a function.
 
           tools: Tools (functions) available to the model.
 
-          turn_detection: Configuration for turn detection. Can be set to `null` to turn off. Server VAD
-              means that the model will detect the start and end of speech based on audio
-              volume and respond at the end of user speech.
+          turn_detection: Configuration for turn detection, ether Server VAD or Semantic VAD. This can be
+              set to `null` to turn off, in which case the client must manually trigger model
+              response. Server VAD means that the model will detect the start and end of
+              speech based on audio volume and respond at the end of user speech. Semantic VAD
+              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              semantically estimate whether the user has finished speaking, then dynamically
+              sets a timeout based on this probability. For example, if user audio trails off
+              with "uhhm", the model will score a low probability of turn end and wait longer
+              for the user to continue speaking. This can be useful for more natural
+              conversations, but may have a higher latency.
 
           voice: The voice the model uses to respond. Voice cannot be changed during the session
               once the model has responded with audio at least once. Current voice options are
-              `alloy`, `ash`, `ballad`, `coral`, `echo` `sage`, `shimmer` and `verse`.
+              `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
+              `shimmer`, and `verse`.
 
           extra_headers: Send extra headers
 
@@ -294,6 +333,7 @@ class AsyncSessions(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "input_audio_format": input_audio_format,
+                    "input_audio_noise_reduction": input_audio_noise_reduction,
                     "input_audio_transcription": input_audio_transcription,
                     "instructions": instructions,
                     "max_response_output_tokens": max_response_output_tokens,

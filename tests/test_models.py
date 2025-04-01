@@ -854,3 +854,35 @@ def test_field_named_cls() -> None:
     m = construct_type(value={"cls": "foo"}, type_=Model)
     assert isinstance(m, Model)
     assert isinstance(m.cls, str)
+
+
+def test_discriminated_union_case() -> None:
+    class A(BaseModel):
+        type: Literal["a"]
+
+        data: bool
+
+    class B(BaseModel):
+        type: Literal["b"]
+
+        data: List[Union[A, object]]
+
+    class ModelA(BaseModel):
+        type: Literal["modelA"]
+
+        data: int
+
+    class ModelB(BaseModel):
+        type: Literal["modelB"]
+
+        required: str
+
+        data: Union[A, B]
+
+    # when constructing ModelA | ModelB, value data doesn't match ModelB exactly - missing `required`
+    m = construct_type(
+        value={"type": "modelB", "data": {"type": "a", "data": True}},
+        type_=cast(Any, Annotated[Union[ModelA, ModelB], PropertyInfo(discriminator="type")]),
+    )
+
+    assert isinstance(m, ModelB)

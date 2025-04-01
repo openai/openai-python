@@ -1,5 +1,172 @@
 # Changelog
 
+## 1.70.0 (2025-03-31)
+
+Full Changelog: [v1.69.0...v1.70.0](https://github.com/openai/openai-python/compare/v1.69.0...v1.70.0)
+
+### Features
+
+* **api:** add `get /responses/{response_id}/input_items` endpoint ([4c6a35d](https://github.com/openai/openai-python/commit/4c6a35dec65362a6a738c3387dae57bf8cbfcbb2))
+
+## 1.69.0 (2025-03-27)
+
+Full Changelog: [v1.68.2...v1.69.0](https://github.com/openai/openai-python/compare/v1.68.2...v1.69.0)
+
+### Features
+
+* **api:** add `get /chat/completions` endpoint ([e6b8a42](https://github.com/openai/openai-python/commit/e6b8a42fc4286656cc86c2acd83692b170e77b68))
+
+
+### Bug Fixes
+
+* **audio:** correctly parse transcription stream events ([16a3a19](https://github.com/openai/openai-python/commit/16a3a195ff31f099fbe46043a12d2380c2c01f83))
+
+
+### Chores
+
+* add hash of OpenAPI spec/config inputs to .stats.yml ([515e1cd](https://github.com/openai/openai-python/commit/515e1cdd4a3109e5b29618df813656e17f22b52a))
+* **api:** updates to supported Voice IDs ([#2261](https://github.com/openai/openai-python/issues/2261)) ([64956f9](https://github.com/openai/openai-python/commit/64956f9d9889b04380c7f5eb926509d1efd523e6))
+* fix typos ([#2259](https://github.com/openai/openai-python/issues/2259)) ([6160de3](https://github.com/openai/openai-python/commit/6160de3e099f09c2d6ee5eeee4cbcc55b67a8f87))
+
+## 1.68.2 (2025-03-21)
+
+Full Changelog: [v1.68.1...v1.68.2](https://github.com/openai/openai-python/compare/v1.68.1...v1.68.2)
+
+### Refactors
+
+* **package:** rename audio extra to voice_helpers ([2dd6cb8](https://github.com/openai/openai-python/commit/2dd6cb87489fe12c5e45128f44d985c3f49aba1d))
+
+## 1.68.1 (2025-03-21)
+
+Full Changelog: [v1.68.0...v1.68.1](https://github.com/openai/openai-python/compare/v1.68.0...v1.68.1)
+
+### Bug Fixes
+
+* **client:** remove duplicate types ([#2235](https://github.com/openai/openai-python/issues/2235)) ([063f7d0](https://github.com/openai/openai-python/commit/063f7d0684c350ca9d766e2cb150233a22a623c8))
+* **helpers/audio:** remove duplicative module ([f253d04](https://github.com/openai/openai-python/commit/f253d0415145f2c4904ea2e7b389d31d94e45a54))
+* **package:** make sounddevice and numpy optional dependencies ([8b04453](https://github.com/openai/openai-python/commit/8b04453f0483736c13f0209a9f8f3618bc0e86c9))
+
+
+### Chores
+
+* **ci:** run workflows on next too ([67f89d4](https://github.com/openai/openai-python/commit/67f89d478aab780d1481c9bf6682c6633e431137))
+
+## 1.68.0 (2025-03-20)
+
+Full Changelog: [v1.67.0...v1.68.0](https://github.com/openai/openai-python/compare/v1.67.0...v1.68.0)
+
+### Features
+
+* add audio helpers ([423655c](https://github.com/openai/openai-python/commit/423655ca9077cfd258f1e52f6eb386fc8307fa5f))
+* **api:** new models for TTS, STT, + new audio features for Realtime ([#2232](https://github.com/openai/openai-python/issues/2232)) ([ab5192d](https://github.com/openai/openai-python/commit/ab5192d0a7b417ade622ec94dd48f86beb90692c))
+
+## 1.67.0 (2025-03-19)
+
+Full Changelog: [v1.66.5...v1.67.0](https://github.com/openai/openai-python/compare/v1.66.5...v1.67.0)
+
+### Features
+
+* **api:** o1-pro now available through the API ([#2228](https://github.com/openai/openai-python/issues/2228)) ([40a19d8](https://github.com/openai/openai-python/commit/40a19d8592c1767d6318230fc93e37c360d1bcd1))
+
+## 1.66.5 (2025-03-18)
+
+Full Changelog: [v1.66.4...v1.66.5](https://github.com/openai/openai-python/compare/v1.66.4...v1.66.5)
+
+### Bug Fixes
+
+* **types:** improve responses type names ([#2224](https://github.com/openai/openai-python/issues/2224)) ([5f7beb8](https://github.com/openai/openai-python/commit/5f7beb873af5ccef2551f34ab3ef098e099ce9c6))
+
+
+### Chores
+
+* **internal:** add back releases workflow ([c71d4c9](https://github.com/openai/openai-python/commit/c71d4c918eab3532b36ea944b0c4069db6ac2d38))
+* **internal:** codegen related update ([#2222](https://github.com/openai/openai-python/issues/2222)) ([f570d91](https://github.com/openai/openai-python/commit/f570d914a16cb5092533e32dfd863027d378c0b5))
+
+## 1.66.4 (2025-03-17)
+
+Full Changelog: [v1.66.3...v1.66.4](https://github.com/openai/openai-python/compare/v1.66.3...v1.66.4)
+
+### Bug Fixes
+
+* **ci:** ensure pip is always available ([#2207](https://github.com/openai/openai-python/issues/2207)) ([3f08e56](https://github.com/openai/openai-python/commit/3f08e56a48a04c2b7f03a4ad63f38228e25810e6))
+* **ci:** remove publishing patch ([#2208](https://github.com/openai/openai-python/issues/2208)) ([dd2dab7](https://github.com/openai/openai-python/commit/dd2dab7faf2a003da3e6af66780bd250be6e7f3f))
+* **types:** handle more discriminated union shapes ([#2206](https://github.com/openai/openai-python/issues/2206)) ([f85a9c6](https://github.com/openai/openai-python/commit/f85a9c633dcb9b64c0eb47d20151894742bbef22))
+
+
+### Chores
+
+* **internal:** bump rye to 0.44.0 ([#2200](https://github.com/openai/openai-python/issues/2200)) ([2dd3139](https://github.com/openai/openai-python/commit/2dd3139df6e7fe6307f9847e6527073e355e5047))
+* **internal:** remove CI condition ([#2203](https://github.com/openai/openai-python/issues/2203)) ([9620fdc](https://github.com/openai/openai-python/commit/9620fdcf4f2d01b6753ecc0abc16e5239c2b41e1))
+* **internal:** remove extra empty newlines ([#2195](https://github.com/openai/openai-python/issues/2195)) ([a1016a7](https://github.com/openai/openai-python/commit/a1016a78fe551e0f0e2562a0e81d1cb724d195da))
+* **internal:** update release workflows ([e2def44](https://github.com/openai/openai-python/commit/e2def4453323aa1cf8077df447fd55eb4c626393))
+
+## 1.66.3 (2025-03-12)
+
+Full Changelog: [v1.66.2...v1.66.3](https://github.com/openai/openai-python/compare/v1.66.2...v1.66.3)
+
+### Bug Fixes
+
+* update module level client ([#2185](https://github.com/openai/openai-python/issues/2185)) ([456f324](https://github.com/openai/openai-python/commit/456f3240a0c33e71521c6b73c32e8adc1b8cd3bc))
+
+## 1.66.2 (2025-03-11)
+
+Full Changelog: [v1.66.1...v1.66.2](https://github.com/openai/openai-python/compare/v1.66.1...v1.66.2)
+
+### Bug Fixes
+
+* **responses:** correct reasoning output type ([#2181](https://github.com/openai/openai-python/issues/2181)) ([8cb1129](https://github.com/openai/openai-python/commit/8cb11299acc40c80061af275691cd09a2bf30c65))
+
+## 1.66.1 (2025-03-11)
+
+Full Changelog: [v1.66.0...v1.66.1](https://github.com/openai/openai-python/compare/v1.66.0...v1.66.1)
+
+### Bug Fixes
+
+* **responses:** correct computer use enum value ([#2180](https://github.com/openai/openai-python/issues/2180)) ([48f4628](https://github.com/openai/openai-python/commit/48f4628c5fb18ddd7d71e8730184f3ac50c4ffea))
+
+
+### Chores
+
+* **internal:** temporary commit ([afabec1](https://github.com/openai/openai-python/commit/afabec1b5b18b41ac870970d06e6c2f152ef7bbe))
+
+## 1.66.0 (2025-03-11)
+
+Full Changelog: [v1.65.5...v1.66.0](https://github.com/openai/openai-python/compare/v1.65.5...v1.66.0)
+
+### Features
+
+* **api:** add /v1/responses and built-in tools ([854df97](https://github.com/openai/openai-python/commit/854df97884736244d46060fd3d5a92916826ec8f))
+
+
+### Chores
+
+* export more types ([#2176](https://github.com/openai/openai-python/issues/2176)) ([a730f0e](https://github.com/openai/openai-python/commit/a730f0efedd228f96a49467f17fb19b6a219246c))
+
+## 1.65.5 (2025-03-09)
+
+Full Changelog: [v1.65.4...v1.65.5](https://github.com/openai/openai-python/compare/v1.65.4...v1.65.5)
+
+### Chores
+
+* move ChatModel type to shared ([#2167](https://github.com/openai/openai-python/issues/2167)) ([104f02a](https://github.com/openai/openai-python/commit/104f02af371076d5d2498e48ae14d2eacc7df8bd))
+
+## 1.65.4 (2025-03-05)
+
+Full Changelog: [v1.65.3...v1.65.4](https://github.com/openai/openai-python/compare/v1.65.3...v1.65.4)
+
+### Bug Fixes
+
+* **api:** add missing file rank enum + more metadata ([#2164](https://github.com/openai/openai-python/issues/2164)) ([0387e48](https://github.com/openai/openai-python/commit/0387e48e0880e496eb74b60eec9ed76a3171f14d))
+
+## 1.65.3 (2025-03-04)
+
+Full Changelog: [v1.65.2...v1.65.3](https://github.com/openai/openai-python/compare/v1.65.2...v1.65.3)
+
+### Chores
+
+* **internal:** remove unused http client options forwarding ([#2158](https://github.com/openai/openai-python/issues/2158)) ([76ec464](https://github.com/openai/openai-python/commit/76ec464cfe3db3fa59a766259d6d6ee5bb889f86))
+* **internal:** run example files in CI ([#2160](https://github.com/openai/openai-python/issues/2160)) ([9979345](https://github.com/openai/openai-python/commit/9979345038594440eec2f500c0c7cc5417cc7c08))
+
 ## 1.65.2 (2025-03-01)
 
 Full Changelog: [v1.65.1...v1.65.2](https://github.com/openai/openai-python/compare/v1.65.1...v1.65.2)

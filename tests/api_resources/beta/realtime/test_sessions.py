@@ -26,6 +26,7 @@ class TestSessions:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         session = client.beta.realtime.sessions.create(
             input_audio_format="pcm16",
+            input_audio_noise_reduction={"type": "near_field"},
             input_audio_transcription={
                 "language": "language",
                 "model": "model",
@@ -48,13 +49,14 @@ class TestSessions:
             ],
             turn_detection={
                 "create_response": True,
+                "eagerness": "low",
                 "interrupt_response": True,
                 "prefix_padding_ms": 0,
                 "silence_duration_ms": 0,
                 "threshold": 0,
-                "type": "type",
+                "type": "server_vad",
             },
-            voice="alloy",
+            voice="ash",
         )
         assert_matches_type(SessionCreateResponse, session, path=["response"])
 
@@ -91,6 +93,7 @@ class TestAsyncSessions:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         session = await async_client.beta.realtime.sessions.create(
             input_audio_format="pcm16",
+            input_audio_noise_reduction={"type": "near_field"},
             input_audio_transcription={
                 "language": "language",
                 "model": "model",
@@ -113,13 +116,14 @@ class TestAsyncSessions:
             ],
             turn_detection={
                 "create_response": True,
+                "eagerness": "low",
                 "interrupt_response": True,
                 "prefix_padding_ms": 0,
                 "silence_duration_ms": 0,
                 "threshold": 0,
-                "type": "type",
+                "type": "server_vad",
             },
-            voice="alloy",
+            voice="ash",
         )
         assert_matches_type(SessionCreateResponse, session, path=["response"])
 
