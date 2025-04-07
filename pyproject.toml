@@ -38,7 +38,7 @@ Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
 
 [project.optional-dependencies]
-realtime = ["websockets >= 13, < 15"]
+realtime = ["websockets >= 13, < 16"]
 
 [tool.rye]
 managed = true
