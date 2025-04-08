@@ -432,3 +432,15 @@ async def test_base64_file_input(use_async: bool) -> None:
     assert await transform({"foo": io.BytesIO(b"Hello, world!")}, TypedDictBase64Input, use_async) == {
         "foo": "SGVsbG8sIHdvcmxkIQ=="
     }  # type: ignore[comparison-overlap]
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_transform_skipping(use_async: bool) -> None:
+    # lists of ints are left as-is
+    data = [1, 2, 3]
+    assert await transform(data, List[int], use_async) is data
+
+    # iterables of ints are converted to a list
+    data = iter([1, 2, 3])
+    assert await transform(data, Iterable[int], use_async) == [1, 2, 3]
