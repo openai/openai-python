@@ -142,6 +142,10 @@ def _maybe_transform_key(key: str, type_: type) -> str:
     return key
 
 
+def _no_transform_needed(annotation: type) -> bool:
+    return annotation == float or annotation == int
+
+
 def _transform_recursive(
     data: object,
     *,
@@ -184,6 +188,15 @@ def _transform_recursive(
             return cast(object, data)
 
         inner_type = extract_type_arg(stripped_type, 0)
+        if _no_transform_needed(inner_type):
+            # for some types there is no need to transform anything, so we can get a small
+            # perf boost from skipping that work.
+            #
+            # but we still need to convert to a list to ensure the data is json-serializable
+            if is_list(data):
+                return data
+            return list(data)
+
         return [_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
 
     if is_union_type(stripped_type):
@@ -332,6 +345,15 @@ async def _async_transform_recursive(
             return cast(object, data)
 
         inner_type = extract_type_arg(stripped_type, 0)
+        if _no_transform_needed(inner_type):
+            # for some types there is no need to transform anything, so we can get a small
+            # perf boost from skipping that work.
+            #
+            # but we still need to convert to a list to ensure the data is json-serializable
+            if is_list(data):
+                return data
+            return list(data)
+
         return [await _async_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
 
     if is_union_type(stripped_type):
