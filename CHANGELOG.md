@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.72.0 (2025-04-08)
+
+Full Changelog: [v1.71.0...v1.72.0](https://github.com/openai/openai-python/compare/v1.71.0...v1.72.0)
+
+### Features
+
+* **api:** Add evalapi to sdk ([#2287](https://github.com/openai/openai-python/issues/2287)) ([35262fc](https://github.com/openai/openai-python/commit/35262fcef6ccb7d1f75c9abdfdc68c3dcf87ef53))
+
+
+### Chores
+
+* **internal:** fix examples ([#2288](https://github.com/openai/openai-python/issues/2288)) ([39defd6](https://github.com/openai/openai-python/commit/39defd61e81ea0ec6b898be12e9fb7e621c0e532))
+* **internal:** skip broken test ([#2289](https://github.com/openai/openai-python/issues/2289)) ([e2c9bce](https://github.com/openai/openai-python/commit/e2c9bce1f59686ee053b495d06ea118b4a89e09e))
+* **internal:** slight transform perf improvement ([#2284](https://github.com/openai/openai-python/issues/2284)) ([746174f](https://github.com/openai/openai-python/commit/746174fae7a018ece5dab54fb0b5a15fcdd18f2f))
+* **tests:** improve enum examples ([#2286](https://github.com/openai/openai-python/issues/2286)) ([c9dd81c](https://github.com/openai/openai-python/commit/c9dd81ce0277e8b1f5db5e0a39c4c2bcd9004bcc))
+
 ## 1.71.0 (2025-04-07)
 
 Full Changelog: [v1.70.0...v1.71.0](https://github.com/openai/openai-python/compare/v1.70.0...v1.71.0)
