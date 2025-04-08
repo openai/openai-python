@@ -36,6 +36,7 @@ from ._base_client import (
 from .resources.beta import beta
 from .resources.chat import chat
 from .resources.audio import audio
+from .resources.evals import evals
 from .resources.uploads import uploads
 from .resources.responses import responses
 from .resources.fine_tuning import fine_tuning
@@ -59,6 +60,7 @@ class OpenAI(SyncAPIClient):
     batches: batches.Batches
     uploads: uploads.Uploads
     responses: responses.Responses
+    evals: evals.Evals
     with_raw_response: OpenAIWithRawResponse
     with_streaming_response: OpenAIWithStreamedResponse
 
@@ -158,6 +160,7 @@ class OpenAI(SyncAPIClient):
         self.batches = batches.Batches(self)
         self.uploads = uploads.Uploads(self)
         self.responses = responses.Responses(self)
+        self.evals = evals.Evals(self)
         self.with_raw_response = OpenAIWithRawResponse(self)
         self.with_streaming_response = OpenAIWithStreamedResponse(self)
 
@@ -290,6 +293,7 @@ class AsyncOpenAI(AsyncAPIClient):
     batches: batches.AsyncBatches
     uploads: uploads.AsyncUploads
     responses: responses.AsyncResponses
+    evals: evals.AsyncEvals
     with_raw_response: AsyncOpenAIWithRawResponse
     with_streaming_response: AsyncOpenAIWithStreamedResponse
 
@@ -389,6 +393,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self.batches = batches.AsyncBatches(self)
         self.uploads = uploads.AsyncUploads(self)
         self.responses = responses.AsyncResponses(self)
+        self.evals = evals.AsyncEvals(self)
         self.with_raw_response = AsyncOpenAIWithRawResponse(self)
         self.with_streaming_response = AsyncOpenAIWithStreamedResponse(self)
 
@@ -522,6 +527,7 @@ class OpenAIWithRawResponse:
         self.batches = batches.BatchesWithRawResponse(client.batches)
         self.uploads = uploads.UploadsWithRawResponse(client.uploads)
         self.responses = responses.ResponsesWithRawResponse(client.responses)
+        self.evals = evals.EvalsWithRawResponse(client.evals)
 
 
 class AsyncOpenAIWithRawResponse:
@@ -540,6 +546,7 @@ class AsyncOpenAIWithRawResponse:
         self.batches = batches.AsyncBatchesWithRawResponse(client.batches)
         self.uploads = uploads.AsyncUploadsWithRawResponse(client.uploads)
         self.responses = responses.AsyncResponsesWithRawResponse(client.responses)
+        self.evals = evals.AsyncEvalsWithRawResponse(client.evals)
 
 
 class OpenAIWithStreamedResponse:
@@ -558,6 +565,7 @@ class OpenAIWithStreamedResponse:
         self.batches = batches.BatchesWithStreamingResponse(client.batches)
         self.uploads = uploads.UploadsWithStreamingResponse(client.uploads)
         self.responses = responses.ResponsesWithStreamingResponse(client.responses)
+        self.evals = evals.EvalsWithStreamingResponse(client.evals)
 
 
 class AsyncOpenAIWithStreamedResponse:
@@ -576,6 +584,7 @@ class AsyncOpenAIWithStreamedResponse:
         self.batches = batches.AsyncBatchesWithStreamingResponse(client.batches)
         self.uploads = uploads.AsyncUploadsWithStreamingResponse(client.uploads)
         self.responses = responses.AsyncResponsesWithStreamingResponse(client.responses)
+        self.evals = evals.AsyncEvalsWithStreamingResponse(client.evals)
 
 
 Client = OpenAI

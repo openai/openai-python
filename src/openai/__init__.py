@@ -352,6 +352,7 @@ from ._module_client import (
     beta as beta,
     chat as chat,
     audio as audio,
+    evals as evals,
     files as files,
     images as images,
     models as models,

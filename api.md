@@ -259,6 +259,26 @@ Methods:
 
 - <code title="get /fine_tuning/jobs/{fine_tuning_job_id}/checkpoints">client.fine_tuning.jobs.checkpoints.<a href="./src/openai/resources/fine_tuning/jobs/checkpoints.py">list</a>(fine_tuning_job_id, \*\*<a href="src/openai/types/fine_tuning/jobs/checkpoint_list_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/jobs/fine_tuning_job_checkpoint.py">SyncCursorPage[FineTuningJobCheckpoint]</a></code>
 
+## Checkpoints
+
+### Permissions
+
+Types:
+
+```python
+from openai.types.fine_tuning.checkpoints import (
+    PermissionCreateResponse,
+    PermissionRetrieveResponse,
+    PermissionDeleteResponse,
+)
+```
+
+Methods:
+
+- <code title="post /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">create</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_create_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_create_response.py">SyncPage[PermissionCreateResponse]</a></code>
+- <code title="get /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">retrieve</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_retrieve_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_retrieve_response.py">PermissionRetrieveResponse</a></code>
+- <code title="delete /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">delete</a>(fine_tuned_model_checkpoint) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_delete_response.py">PermissionDeleteResponse</a></code>
+
 # VectorStores
 
 Types:
@@ -706,3 +726,68 @@ from openai.types.responses import ResponseItemList
 Methods:
 
 - <code title="get /responses/{response_id}/input_items">client.responses.input_items.<a href="./src/openai/resources/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/responses/input_item_list_params.py">params</a>) -> <a href="./src/openai/types/responses/response_item.py">SyncCursorPage[ResponseItem]</a></code>
+
+# Evals
+
+Types:
+
+```python
+from openai.types import (
+    EvalCustomDataSourceConfig,
+    EvalLabelModelGrader,
+    EvalStoredCompletionsDataSourceConfig,
+    EvalStringCheckGrader,
+    EvalTextSimilarityGrader,
+    EvalCreateResponse,
+    EvalRetrieveResponse,
+    EvalUpdateResponse,
+    EvalListResponse,
+    EvalDeleteResponse,
+)
+```
+
+Methods:
+
+- <code title="post /evals">client.evals.<a href="./src/openai/resources/evals/evals.py">create</a>(\*\*<a href="src/openai/types/eval_create_params.py">params</a>) -> <a href="./src/openai/types/eval_create_response.py">EvalCreateResponse</a></code>
+- <code title="get /evals/{eval_id}">client.evals.<a href="./src/openai/resources/evals/evals.py">retrieve</a>(eval_id) -> <a href="./src/openai/types/eval_retrieve_response.py">EvalRetrieveResponse</a></code>
+- <code title="post /evals/{eval_id}">client.evals.<a href="./src/openai/resources/evals/evals.py">update</a>(eval_id, \*\*<a href="src/openai/types/eval_update_params.py">params</a>) -> <a href="./src/openai/types/eval_update_response.py">EvalUpdateResponse</a></code>
+- <code title="get /evals">client.evals.<a href="./src/openai/resources/evals/evals.py">list</a>(\*\*<a href="src/openai/types/eval_list_params.py">params</a>) -> <a href="./src/openai/types/eval_list_response.py">SyncCursorPage[EvalListResponse]</a></code>
+- <code title="delete /evals/{eval_id}">client.evals.<a href="./src/openai/resources/evals/evals.py">delete</a>(eval_id) -> <a href="./src/openai/types/eval_delete_response.py">EvalDeleteResponse</a></code>
+
+## Runs
+
+Types:
+
+```python
+from openai.types.evals import (
+    CreateEvalCompletionsRunDataSource,
+    CreateEvalJSONLRunDataSource,
+    EvalAPIError,
+    RunCreateResponse,
+    RunRetrieveResponse,
+    RunListResponse,
+    RunDeleteResponse,
+    RunCancelResponse,
+)
+```
+
+Methods:
+
+- <code title="post /evals/{eval_id}/runs">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">create</a>(eval_id, \*\*<a href="src/openai/types/evals/run_create_params.py">params</a>) -> <a href="./src/openai/types/evals/run_create_response.py">RunCreateResponse</a></code>
+- <code title="get /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">retrieve</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_retrieve_response.py">RunRetrieveResponse</a></code>
+- <code title="get /evals/{eval_id}/runs">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">list</a>(eval_id, \*\*<a href="src/openai/types/evals/run_list_params.py">params</a>) -> <a href="./src/openai/types/evals/run_list_response.py">SyncCursorPage[RunListResponse]</a></code>
+- <code title="delete /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">delete</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_delete_response.py">RunDeleteResponse</a></code>
+- <code title="post /evals/{eval_id}/runs/{run_id}">client.evals.runs.<a href="./src/openai/resources/evals/runs/runs.py">cancel</a>(run_id, \*, eval_id) -> <a href="./src/openai/types/evals/run_cancel_response.py">RunCancelResponse</a></code>
+
+### OutputItems
+
+Types:
+
+```python
+from openai.types.evals.runs import OutputItemRetrieveResponse, OutputItemListResponse
+```
+
+Methods:
+
+- <code title="get /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}">client.evals.runs.output_items.<a href="./src/openai/resources/evals/runs/output_items.py">retrieve</a>(output_item_id, \*, eval_id, run_id) -> <a href="./src/openai/types/evals/runs/output_item_retrieve_response.py">OutputItemRetrieveResponse</a></code>
+- <code title="get /evals/{eval_id}/runs/{run_id}/output_items">client.evals.runs.output_items.<a href="./src/openai/resources/evals/runs/output_items.py">list</a>(run_id, \*, eval_id, \*\*<a href="src/openai/types/evals/runs/output_item_list_params.py">params</a>) -> <a href="./src/openai/types/evals/runs/output_item_list_response.py">SyncCursorPage[OutputItemListResponse]</a></code>
