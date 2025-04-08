@@ -277,10 +277,6 @@ class AsyncRealtimeConnection:
         """
         message = await self._connection.recv(decode=False)
         log.debug(f"Received websocket message: %s", message)
-        if not isinstance(message, bytes):
-            # passing `decode=False` should always result in us getting `bytes` back
-            raise TypeError(f"Expected `.recv(decode=False)` to return `bytes` but got {type(message)}")
-
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -461,10 +457,6 @@ class RealtimeConnection:
         """
         message = self._connection.recv(decode=False)
         log.debug(f"Received websocket message: %s", message)
-        if not isinstance(message, bytes):
-            # passing `decode=False` should always result in us getting `bytes` back
-            raise TypeError(f"Expected `.recv(decode=False)` to return `bytes` but got {type(message)}")
-
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.71.0 (2025-04-07)
+
+Full Changelog: [v1.70.0...v1.71.0](https://github.com/openai/openai-python/compare/v1.70.0...v1.71.0)
+
+### Features
+
+* **api:** manual updates ([bf8b4b6](https://github.com/openai/openai-python/commit/bf8b4b69906bfaea622c9c644270e985d92e2df2))
+* **api:** manual updates ([3e37aa3](https://github.com/openai/openai-python/commit/3e37aa3e151d9738625a1daf75d6243d6fdbe8f2))
+* **api:** manual updates ([dba9b65](https://github.com/openai/openai-python/commit/dba9b656fa5955b6eba8f6910da836a34de8d59d))
+* **api:** manual updates ([f0c463b](https://github.com/openai/openai-python/commit/f0c463b47836666d091b5f616871f1b94646d346))
+
+
+### Chores
+
+* **deps:** allow websockets v15 ([#2281](https://github.com/openai/openai-python/issues/2281)) ([19c619e](https://github.com/openai/openai-python/commit/19c619ea95839129a86c19d5b60133e1ed9f2746))
+* **internal:** only run examples workflow in main repo ([#2282](https://github.com/openai/openai-python/issues/2282)) ([c3e0927](https://github.com/openai/openai-python/commit/c3e0927d3fbbb9f753ba12adfa682a4235ba530a))
+* **internal:** remove trailing character ([#2277](https://github.com/openai/openai-python/issues/2277)) ([5a21a2d](https://github.com/openai/openai-python/commit/5a21a2d7994e39bb0c86271eeb807983a9ae874a))
+* Remove deprecated/unused remote spec feature ([23f76eb](https://github.com/openai/openai-python/commit/23f76eb0b9ddf12bcb04a6ad3f3ec5e956d2863f))
+
 ## 1.70.0 (2025-03-31)
 
 Full Changelog: [v1.69.0...v1.70.0](https://github.com/openai/openai-python/compare/v1.69.0...v1.70.0)
