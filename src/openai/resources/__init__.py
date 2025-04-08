@@ -24,6 +24,14 @@ from .audio import (
     AudioWithStreamingResponse,
     AsyncAudioWithStreamingResponse,
 )
+from .evals import (
+    Evals,
+    AsyncEvals,
+    EvalsWithRawResponse,
+    AsyncEvalsWithRawResponse,
+    EvalsWithStreamingResponse,
+    AsyncEvalsWithStreamingResponse,
+)
 from .files import (
     Files,
     AsyncFiles,
@@ -198,4 +206,10 @@ __all__ = [
     "AsyncResponsesWithRawResponse",
     "ResponsesWithStreamingResponse",
     "AsyncResponsesWithStreamingResponse",
+    "Evals",
+    "AsyncEvals",
+    "EvalsWithRawResponse",
+    "AsyncEvalsWithRawResponse",
+    "EvalsWithStreamingResponse",
+    "AsyncEvalsWithStreamingResponse",
 ]
