@@ -1,18 +1,18 @@
 name: CI
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-      - next
+    branches-ignore:
+      - 'generated'
+      - 'codegen/**'
+      - 'integrated/**'
+      - 'preview-head/**'
+      - 'preview-base/**'
+      - 'preview/**'
 
 jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +33,6 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
