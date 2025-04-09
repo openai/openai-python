@@ -1,13 +1,12 @@
 name: CI
 on:
   push:
-    branches-ignore:
-      - 'generated'
-      - 'codegen/**'
-      - 'integrated/**'
-      - 'preview-head/**'
-      - 'preview-base/**'
-      - 'preview/**'
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+      - next
 
 jobs:
   lint:
