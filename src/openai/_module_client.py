@@ -30,6 +30,12 @@ class AudioProxy(LazyProxy[resources.Audio]):
         return _load_client().audio
 
 
+class EvalsProxy(LazyProxy[resources.Evals]):
+    @override
+    def __load__(self) -> resources.Evals:
+        return _load_client().evals
+
+
 class ImagesProxy(LazyProxy[resources.Images]):
     @override
     def __load__(self) -> resources.Images:
@@ -94,6 +100,7 @@ chat: resources.Chat = ChatProxy().__as_proxied__()
 beta: resources.Beta = BetaProxy().__as_proxied__()
 files: resources.Files = FilesProxy().__as_proxied__()
 audio: resources.Audio = AudioProxy().__as_proxied__()
+evals: resources.Evals = EvalsProxy().__as_proxied__()
 images: resources.Images = ImagesProxy().__as_proxied__()
 models: resources.Models = ModelsProxy().__as_proxied__()
 batches: resources.Batches = BatchesProxy().__as_proxied__()
