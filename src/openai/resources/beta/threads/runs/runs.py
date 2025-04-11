@@ -576,7 +576,7 @@ class Runs(SyncAPIResource):
                     "top_p": top_p,
                     "truncation_strategy": truncation_strategy,
                 },
-                run_create_params.RunCreateParams,
+                run_create_params.RunCreateParamsStreaming if stream else run_create_params.RunCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -918,7 +918,9 @@ class Runs(SyncAPIResource):
                     "tool_outputs": tool_outputs,
                     "stream": stream,
                 },
-                run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
+                run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
+                if stream
+                else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -1458,7 +1460,7 @@ class AsyncRuns(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation_strategy": truncation_strategy,
                 },
-                run_create_params.RunCreateParams,
+                run_create_params.RunCreateParamsStreaming if stream else run_create_params.RunCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -1800,7 +1802,9 @@ class AsyncRuns(AsyncAPIResource):
                     "tool_outputs": tool_outputs,
                     "stream": stream,
                 },
-                run_submit_tool_outputs_params.RunSubmitToolOutputsParams,
+                run_submit_tool_outputs_params.RunSubmitToolOutputsParamsStreaming
+                if stream
+                else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

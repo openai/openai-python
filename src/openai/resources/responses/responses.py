@@ -612,7 +612,9 @@ class Responses(SyncAPIResource):
                     "truncation": truncation,
                     "user": user,
                 },
-                response_create_params.ResponseCreateParams,
+                response_create_params.ResponseCreateParamsStreaming
+                if stream
+                else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -1269,7 +1271,9 @@ class AsyncResponses(AsyncAPIResource):
                     "truncation": truncation,
                     "user": user,
                 },
-                response_create_params.ResponseCreateParams,
+                response_create_params.ResponseCreateParamsStreaming
+                if stream
+                else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
