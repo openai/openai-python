@@ -12,6 +12,7 @@ import pydantic
 
 from ._utils import (
     is_list,
+    is_given,
     is_mapping,
     is_iterable,
 )
@@ -258,6 +259,11 @@ def _transform_typeddict(
     result: dict[str, object] = {}
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
+        if not is_given(value):
+            # we don't need to include `NotGiven` values here as they'll
+            # be stripped out before the request is sent anyway
+            continue
+
         type_ = annotations.get(key)
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
@@ -415,6 +421,11 @@ async def _async_transform_typeddict(
     result: dict[str, object] = {}
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
+        if not is_given(value):
+            # we don't need to include `NotGiven` values here as they'll
+            # be stripped out before the request is sent anyway
+            continue
+
         type_ = annotations.get(key)
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
