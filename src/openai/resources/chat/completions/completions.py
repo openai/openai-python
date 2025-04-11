@@ -947,7 +947,9 @@ class Completions(SyncAPIResource):
                     "user": user,
                     "web_search_options": web_search_options,
                 },
-                completion_create_params.CompletionCreateParams,
+                completion_create_params.CompletionCreateParamsStreaming
+                if stream
+                else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -2033,7 +2035,9 @@ class AsyncCompletions(AsyncAPIResource):
                     "user": user,
                     "web_search_options": web_search_options,
                 },
-                completion_create_params.CompletionCreateParams,
+                completion_create_params.CompletionCreateParamsStreaming
+                if stream
+                else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
