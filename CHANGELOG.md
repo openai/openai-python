@@ -1,5 +1,48 @@
 # Changelog
 
+## 1.72.0 (2025-04-08)
+
+Full Changelog: [v1.71.0...v1.72.0](https://github.com/openai/openai-python/compare/v1.71.0...v1.72.0)
+
+### Features
+
+* **api:** Add evalapi to sdk ([#2287](https://github.com/openai/openai-python/issues/2287)) ([35262fc](https://github.com/openai/openai-python/commit/35262fcef6ccb7d1f75c9abdfdc68c3dcf87ef53))
+
+
+### Chores
+
+* **internal:** fix examples ([#2288](https://github.com/openai/openai-python/issues/2288)) ([39defd6](https://github.com/openai/openai-python/commit/39defd61e81ea0ec6b898be12e9fb7e621c0e532))
+* **internal:** skip broken test ([#2289](https://github.com/openai/openai-python/issues/2289)) ([e2c9bce](https://github.com/openai/openai-python/commit/e2c9bce1f59686ee053b495d06ea118b4a89e09e))
+* **internal:** slight transform perf improvement ([#2284](https://github.com/openai/openai-python/issues/2284)) ([746174f](https://github.com/openai/openai-python/commit/746174fae7a018ece5dab54fb0b5a15fcdd18f2f))
+* **tests:** improve enum examples ([#2286](https://github.com/openai/openai-python/issues/2286)) ([c9dd81c](https://github.com/openai/openai-python/commit/c9dd81ce0277e8b1f5db5e0a39c4c2bcd9004bcc))
+
+## 1.71.0 (2025-04-07)
+
+Full Changelog: [v1.70.0...v1.71.0](https://github.com/openai/openai-python/compare/v1.70.0...v1.71.0)
+
+### Features
+
+* **api:** manual updates ([bf8b4b6](https://github.com/openai/openai-python/commit/bf8b4b69906bfaea622c9c644270e985d92e2df2))
+* **api:** manual updates ([3e37aa3](https://github.com/openai/openai-python/commit/3e37aa3e151d9738625a1daf75d6243d6fdbe8f2))
+* **api:** manual updates ([dba9b65](https://github.com/openai/openai-python/commit/dba9b656fa5955b6eba8f6910da836a34de8d59d))
+* **api:** manual updates ([f0c463b](https://github.com/openai/openai-python/commit/f0c463b47836666d091b5f616871f1b94646d346))
+
+
+### Chores
+
+* **deps:** allow websockets v15 ([#2281](https://github.com/openai/openai-python/issues/2281)) ([19c619e](https://github.com/openai/openai-python/commit/19c619ea95839129a86c19d5b60133e1ed9f2746))
+* **internal:** only run examples workflow in main repo ([#2282](https://github.com/openai/openai-python/issues/2282)) ([c3e0927](https://github.com/openai/openai-python/commit/c3e0927d3fbbb9f753ba12adfa682a4235ba530a))
+* **internal:** remove trailing character ([#2277](https://github.com/openai/openai-python/issues/2277)) ([5a21a2d](https://github.com/openai/openai-python/commit/5a21a2d7994e39bb0c86271eeb807983a9ae874a))
+* Remove deprecated/unused remote spec feature ([23f76eb](https://github.com/openai/openai-python/commit/23f76eb0b9ddf12bcb04a6ad3f3ec5e956d2863f))
+
+## 1.70.0 (2025-03-31)
+
+Full Changelog: [v1.69.0...v1.70.0](https://github.com/openai/openai-python/compare/v1.69.0...v1.70.0)
+
+### Features
+
+* **api:** add `get /responses/{response_id}/input_items` endpoint ([4c6a35d](https://github.com/openai/openai-python/commit/4c6a35dec65362a6a738c3387dae57bf8cbfcbb2))
+
 ## 1.69.0 (2025-03-27)
 
 Full Changelog: [v1.68.2...v1.69.0](https://github.com/openai/openai-python/compare/v1.68.2...v1.69.0)
