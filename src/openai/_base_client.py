@@ -410,7 +410,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         idempotency_header = self._idempotency_header
         if idempotency_header and options.method.lower() != "get" and idempotency_header not in headers:
-            headers[idempotency_header] = options.idempotency_key or self._idempotency_key()
+            options.idempotency_key = options.idempotency_key or self._idempotency_key()
+            headers[idempotency_header] = options.idempotency_key
 
         # Don't set these headers if they were already set or removed by the caller. We check
         # `custom_headers`, which can contain `Omit()`, instead of `headers` to account for the removal case.
@@ -943,6 +944,10 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         remaining_retries = options.get_max_retries(self.max_retries) - retries_taken
         request = self._build_request(options, retries_taken=retries_taken)
         self._prepare_request(request)
+
+        if options.idempotency_key:
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = options.idempotency_key
 
         kwargs: HttpxSendArgs = {}
         if self.custom_auth is not None:
@@ -1490,6 +1495,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         remaining_retries = options.get_max_retries(self.max_retries) - retries_taken
         request = self._build_request(options, retries_taken=retries_taken)
         await self._prepare_request(request)
+
+        if options.idempotency_key:
+            # ensure the idempotency key is reused between requests
+            input_options.idempotency_key = options.idempotency_key
 
         kwargs: HttpxSendArgs = {}
         if self.custom_auth is not None:
