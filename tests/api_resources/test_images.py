@@ -28,10 +28,10 @@ class TestImages:
     def test_method_create_variation_with_all_params(self, client: OpenAI) -> None:
         image = client.images.create_variation(
             image=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -74,10 +74,10 @@ class TestImages:
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
             mask=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -119,11 +119,11 @@ class TestImages:
     def test_method_generate_with_all_params(self, client: OpenAI) -> None:
         image = client.images.generate(
             prompt="A cute baby sea otter",
-            model="dall-e-3",
+            model="string",
             n=1,
             quality="standard",
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             style="vivid",
             user="user-1234",
         )
@@ -168,10 +168,10 @@ class TestAsyncImages:
     async def test_method_create_variation_with_all_params(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.create_variation(
             image=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -214,10 +214,10 @@ class TestAsyncImages:
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
             mask=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             user="user-1234",
         )
         assert_matches_type(ImagesResponse, image, path=["response"])
@@ -259,11 +259,11 @@ class TestAsyncImages:
     async def test_method_generate_with_all_params(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.generate(
             prompt="A cute baby sea otter",
-            model="dall-e-3",
+            model="string",
             n=1,
             quality="standard",
             response_format="url",
-            size="256x256",
+            size="1024x1024",
             style="vivid",
             user="user-1234",
         )

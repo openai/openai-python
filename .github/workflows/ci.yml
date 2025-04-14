@@ -12,7 +12,6 @@ jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -33,7 +32,6 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
@@ -54,6 +52,7 @@ jobs:
   examples:
     name: examples
     runs-on: ubuntu-latest
+    if: github.repository == 'openai/openai-python'
 
     steps:
       - uses: actions/checkout@v4

@@ -50,9 +50,10 @@ class SessionInputAudioTranscription(BaseModel):
 
 class SessionTurnDetection(BaseModel):
     create_response: Optional[bool] = None
-    """
-    Whether or not to automatically generate a response when a VAD stop event
+    """Whether or not to automatically generate a response when a VAD stop event
     occurs.
+
+    Not available for transcription sessions.
     """
 
     eagerness: Optional[Literal["low", "medium", "high", "auto"]] = None
@@ -67,7 +68,7 @@ class SessionTurnDetection(BaseModel):
     """
     Whether or not to automatically interrupt any ongoing response with output to
     the default conversation (i.e. `conversation` of `auto`) when a VAD start event
-    occurs.
+    occurs. Not available for transcription sessions.
     """
 
     prefix_padding_ms: Optional[int] = None

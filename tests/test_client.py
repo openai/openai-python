@@ -1797,7 +1797,7 @@ class TestAsyncOpenAI:
         import threading
 
         from openai._utils import asyncify
-        from openai._base_client import get_platform 
+        from openai._base_client import get_platform
 
         async def test_main() -> None:
             result = await asyncify(get_platform)()

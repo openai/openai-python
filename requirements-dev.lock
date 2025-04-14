@@ -188,7 +188,7 @@ urllib3==2.2.1
     # via requests
 virtualenv==20.24.5
     # via nox
-websockets==14.2
+websockets==15.0.1
     # via openai
 zipp==3.17.0
     # via importlib-metadata

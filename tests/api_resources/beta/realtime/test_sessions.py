@@ -56,7 +56,7 @@ class TestSessions:
                 "threshold": 0,
                 "type": "server_vad",
             },
-            voice="alloy",
+            voice="ash",
         )
         assert_matches_type(SessionCreateResponse, session, path=["response"])
 
@@ -123,7 +123,7 @@ class TestAsyncSessions:
                 "threshold": 0,
                 "type": "server_vad",
             },
-            voice="alloy",
+            voice="ash",
         )
         assert_matches_type(SessionCreateResponse, session, path=["response"])
 

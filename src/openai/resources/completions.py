@@ -559,7 +559,9 @@ class Completions(SyncAPIResource):
                     "top_p": top_p,
                     "user": user,
                 },
-                completion_create_params.CompletionCreateParams,
+                completion_create_params.CompletionCreateParamsStreaming
+                if stream
+                else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -1101,7 +1103,9 @@ class AsyncCompletions(AsyncAPIResource):
                     "top_p": top_p,
                     "user": user,
                 },
-                completion_create_params.CompletionCreateParams,
+                completion_create_params.CompletionCreateParamsStreaming
+                if stream
+                else completion_create_params.CompletionCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
