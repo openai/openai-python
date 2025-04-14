@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.74.0 (2025-04-14)
+
+Full Changelog: [v1.73.0...v1.74.0](https://github.com/openai/openai-python/compare/v1.73.0...v1.74.0)
+
+### Features
+
+* **api:** adding gpt-4.1 family of model IDs ([d4dae55](https://github.com/openai/openai-python/commit/d4dae5553ff3a2879b9ab79a6423661b212421f9))
+
+
+### Bug Fixes
+
+* **chat:** skip azure async filter events ([#2255](https://github.com/openai/openai-python/issues/2255)) ([fd3a38b](https://github.com/openai/openai-python/commit/fd3a38b1ed30af0a9f3302c1cfc6be6b352e65de))
+
+
+### Chores
+
+* **client:** minor internal fixes ([6071ae5](https://github.com/openai/openai-python/commit/6071ae5e8b4faa465afc8d07370737e66901900a))
+* **internal:** update pyright settings ([c8f8beb](https://github.com/openai/openai-python/commit/c8f8bebf852380a224701bc36826291d6387c53d))
+
 ## 1.73.0 (2025-04-12)
 
 Full Changelog: [v1.72.0...v1.73.0](https://github.com/openai/openai-python/compare/v1.72.0...v1.73.0)
