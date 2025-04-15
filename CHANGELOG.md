@@ -1,5 +1,46 @@
 # Changelog
 
+## 1.74.0 (2025-04-14)
+
+Full Changelog: [v1.73.0...v1.74.0](https://github.com/openai/openai-python/compare/v1.73.0...v1.74.0)
+
+### Features
+
+* **api:** adding gpt-4.1 family of model IDs ([d4dae55](https://github.com/openai/openai-python/commit/d4dae5553ff3a2879b9ab79a6423661b212421f9))
+
+
+### Bug Fixes
+
+* **chat:** skip azure async filter events ([#2255](https://github.com/openai/openai-python/issues/2255)) ([fd3a38b](https://github.com/openai/openai-python/commit/fd3a38b1ed30af0a9f3302c1cfc6be6b352e65de))
+
+
+### Chores
+
+* **client:** minor internal fixes ([6071ae5](https://github.com/openai/openai-python/commit/6071ae5e8b4faa465afc8d07370737e66901900a))
+* **internal:** update pyright settings ([c8f8beb](https://github.com/openai/openai-python/commit/c8f8bebf852380a224701bc36826291d6387c53d))
+
+## 1.73.0 (2025-04-12)
+
+Full Changelog: [v1.72.0...v1.73.0](https://github.com/openai/openai-python/compare/v1.72.0...v1.73.0)
+
+### Features
+
+* **api:** manual updates ([a3253dd](https://github.com/openai/openai-python/commit/a3253dd798c1eccd9810d4fc593e8c2a568bcf4f))
+
+
+### Bug Fixes
+
+* **perf:** optimize some hot paths ([f79d39f](https://github.com/openai/openai-python/commit/f79d39fbcaea8f366a9e48c06fb1696bab3e607d))
+* **perf:** skip traversing types for NotGiven values ([28d220d](https://github.com/openai/openai-python/commit/28d220de3b4a09d80450d0bcc9b347bbf68f81ec))
+
+
+### Chores
+
+* **internal:** expand CI branch coverage ([#2295](https://github.com/openai/openai-python/issues/2295)) ([0ae783b](https://github.com/openai/openai-python/commit/0ae783b99122975be521365de0b6d2bce46056c9))
+* **internal:** reduce CI branch coverage ([2fb7d42](https://github.com/openai/openai-python/commit/2fb7d425cda679a54aa3262090479fd747363bb4))
+* slight wording improvement in README ([#2291](https://github.com/openai/openai-python/issues/2291)) ([e020759](https://github.com/openai/openai-python/commit/e0207598d16a2a9cb3cb3a8e8e97fa9cfdccd5e8))
+* workaround build errors ([4e10c96](https://github.com/openai/openai-python/commit/4e10c96a483db28dedc2d8c2908765fb7317e049))
+
 ## 1.72.0 (2025-04-08)
 
 Full Changelog: [v1.71.0...v1.72.0](https://github.com/openai/openai-python/compare/v1.71.0...v1.72.0)

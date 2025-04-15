@@ -5,13 +5,15 @@ import base64
 import pathlib
 from typing import Any, Mapping, TypeVar, cast
 from datetime import date, datetime
-from typing_extensions import Literal, get_args, override, get_type_hints
+from typing_extensions import Literal, get_args, override, get_type_hints as _get_type_hints
 
 import anyio
 import pydantic
 
 from ._utils import (
     is_list,
+    is_given,
+    lru_cache,
     is_mapping,
     is_iterable,
 )
@@ -108,6 +110,7 @@ def transform(
     return cast(_T, transformed)
 
 
+@lru_cache(maxsize=8096)
 def _get_annotated_type(type_: type) -> type | None:
     """If the given type is an `Annotated` type then it is returned, if not `None` is returned.
 
@@ -258,6 +261,11 @@ def _transform_typeddict(
     result: dict[str, object] = {}
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
+        if not is_given(value):
+            # we don't need to include `NotGiven` values here as they'll
+            # be stripped out before the request is sent anyway
+            continue
+
         type_ = annotations.get(key)
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
@@ -415,6 +423,11 @@ async def _async_transform_typeddict(
     result: dict[str, object] = {}
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
+        if not is_given(value):
+            # we don't need to include `NotGiven` values here as they'll
+            # be stripped out before the request is sent anyway
+            continue
+
         type_ = annotations.get(key)
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
@@ -422,3 +435,13 @@ async def _async_transform_typeddict(
         else:
             result[_maybe_transform_key(key, type_)] = await _async_transform_recursive(value, annotation=type_)
     return result
+
+
+@lru_cache(maxsize=8096)
+def get_type_hints(
+    obj: Any,
+    globalns: dict[str, Any] | None = None,
+    localns: Mapping[str, Any] | None = None,
+    include_extras: bool = False,
+) -> dict[str, Any]:
+    return _get_type_hints(obj, globalns=globalns, localns=localns, include_extras=include_extras)
