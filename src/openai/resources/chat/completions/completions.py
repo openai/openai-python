@@ -99,7 +99,7 @@ class Completions(SyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
@@ -145,7 +145,7 @@ class Completions(SyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -201,7 +201,7 @@ class Completions(SyncAPIResource):
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -270,12 +270,17 @@ class Completions(SyncAPIResource):
                 latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
               - When not set, the default behavior is 'auto'.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -364,7 +369,7 @@ class Completions(SyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -409,7 +414,7 @@ class Completions(SyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -474,7 +479,7 @@ class Completions(SyncAPIResource):
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -543,12 +548,17 @@ class Completions(SyncAPIResource):
                 latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
               - When not set, the default behavior is 'auto'.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -628,7 +638,7 @@ class Completions(SyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -673,7 +683,7 @@ class Completions(SyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -738,7 +748,7 @@ class Completions(SyncAPIResource):
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -807,12 +817,17 @@ class Completions(SyncAPIResource):
                 latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
               - When not set, the default behavior is 'auto'.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -891,7 +906,7 @@ class Completions(SyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
@@ -1187,7 +1202,7 @@ class AsyncCompletions(AsyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
@@ -1233,7 +1248,7 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1289,7 +1304,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -1358,12 +1373,17 @@ class AsyncCompletions(AsyncAPIResource):
                 latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
               - When not set, the default behavior is 'auto'.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -1452,7 +1472,7 @@ class AsyncCompletions(AsyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -1497,7 +1517,7 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1562,7 +1582,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -1631,12 +1651,17 @@ class AsyncCompletions(AsyncAPIResource):
                 latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
               - When not set, the default behavior is 'auto'.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -1716,7 +1741,7 @@ class AsyncCompletions(AsyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
@@ -1761,7 +1786,7 @@ class AsyncCompletions(AsyncAPIResource):
               [images](https://platform.openai.com/docs/guides/vision), and
               [audio](https://platform.openai.com/docs/guides/audio).
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1826,7 +1851,7 @@ class AsyncCompletions(AsyncAPIResource):
 
               This value is now deprecated in favor of `max_completion_tokens`, and is not
               compatible with
-              [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+              [o-series models](https://platform.openai.com/docs/guides/reasoning).
 
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
@@ -1895,12 +1920,17 @@ class AsyncCompletions(AsyncAPIResource):
                 latency guarentee.
               - If set to 'default', the request will be processed using the default service
                 tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
               - When not set, the default behavior is 'auto'.
 
               When this parameter is set, the response body will include the `service_tier`
               utilized.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           store: Whether or not to store the output of this chat completion request for use in
@@ -1979,7 +2009,7 @@ class AsyncCompletions(AsyncAPIResource):
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
