@@ -110,7 +110,7 @@ def extract_type_var_from_base(
     ```
     """
     cls = cast(object, get_origin(typ) or typ)
-    if cls in generic_bases:
+    if cls in generic_bases:  # pyright: ignore[reportUnnecessaryContains]
         # we're given the class directly
         return extract_type_arg(typ, index)
 
