@@ -832,7 +832,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
 
 @pytest.mark.skipif(not PYDANTIC_V2, reason="TypeAliasType is not supported in Pydantic v1")
 def test_type_alias_type() -> None:
-    Alias = TypeAliasType("Alias", str)
+    Alias = TypeAliasType("Alias", str)  # pyright: ignore
 
     class Model(BaseModel):
         alias: Alias

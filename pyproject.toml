@@ -44,7 +44,7 @@ realtime = ["websockets >= 13, < 16"]
 managed = true
 # version pins are in requirements-dev.lock
 dev-dependencies = [
-    "pyright>=1.1.359",
+    "pyright==1.1.399",
     "mypy",
     "respx",
     "pytest",
