@@ -62,7 +62,7 @@ class Response(BaseModel):
     """
 
     model: ResponsesModel
-    """Model ID used to generate the response, like `gpt-4o` or `o1`.
+    """Model ID used to generate the response, like `gpt-4o` or `o3`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -147,6 +147,27 @@ class Response(BaseModel):
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    service_tier: Optional[Literal["auto", "default", "flex"]] = None
+    """Specifies the latency tier to use for processing the request.
+
+    This parameter is relevant for customers subscribed to the scale tier service:
+
+    - If set to 'auto', and the Project is Scale tier enabled, the system will
+      utilize scale tier credits until they are exhausted.
+    - If set to 'auto', and the Project is not Scale tier enabled, the request will
+      be processed using the default service tier with a lower uptime SLA and no
+      latency guarentee.
+    - If set to 'default', the request will be processed using the default service
+      tier with a lower uptime SLA and no latency guarentee.
+    - If set to 'flex', the request will be processed with the Flex Processing
+      service tier.
+      [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+    - When not set, the default behavior is 'auto'.
+
+    When this parameter is set, the response body will include the `service_tier`
+    utilized.
     """
 
     status: Optional[ResponseStatus] = None

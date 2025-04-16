@@ -9,7 +9,7 @@ __all__ = ["ChatCompletionAudioParam"]
 
 
 class ChatCompletionAudioParam(TypedDict, total=False):
-    format: Required[Literal["wav", "mp3", "flac", "opus", "pcm16"]]
+    format: Required[Literal["wav", "aac", "mp3", "flac", "opus", "pcm16"]]
     """Specifies the output audio format.
 
     Must be one of `wav`, `mp3`, `flac`, `opus`, or `pcm16`.
@@ -22,6 +22,6 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     ]
     """The voice the model uses to respond.
 
-    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, and
-    `shimmer`.
+    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`,
+    `onyx`, `sage`, and `shimmer`.
     """

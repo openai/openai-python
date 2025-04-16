@@ -78,6 +78,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -119,7 +120,7 @@ class Responses(SyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -162,6 +163,24 @@ class Responses(SyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -244,6 +263,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -284,7 +304,7 @@ class Responses(SyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -334,6 +354,24 @@ class Responses(SyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -409,6 +447,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -449,7 +488,7 @@ class Responses(SyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -499,6 +538,24 @@ class Responses(SyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -573,6 +630,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -602,6 +660,7 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
+                    "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
                     "temperature": temperature,
@@ -737,6 +796,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -778,7 +838,7 @@ class AsyncResponses(AsyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -821,6 +881,24 @@ class AsyncResponses(AsyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -903,6 +981,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -943,7 +1022,7 @@ class AsyncResponses(AsyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -993,6 +1072,24 @@ class AsyncResponses(AsyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -1068,6 +1165,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -1108,7 +1206,7 @@ class AsyncResponses(AsyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1158,6 +1256,24 @@ class AsyncResponses(AsyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -1232,6 +1348,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1261,6 +1378,7 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
+                    "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
                     "temperature": temperature,

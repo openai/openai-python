@@ -157,7 +157,9 @@ class Completions(SyncAPIResource):
               Determinism is not guaranteed, and you should refer to the `system_fingerprint`
               response parameter to monitor changes in the backend.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           stream: Whether to stream back partial progress. If set, tokens will be sent as
@@ -317,7 +319,9 @@ class Completions(SyncAPIResource):
               Determinism is not guaranteed, and you should refer to the `system_fingerprint`
               response parameter to monitor changes in the backend.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
@@ -470,7 +474,9 @@ class Completions(SyncAPIResource):
               Determinism is not guaranteed, and you should refer to the `system_fingerprint`
               response parameter to monitor changes in the backend.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
@@ -701,7 +707,9 @@ class AsyncCompletions(AsyncAPIResource):
               Determinism is not guaranteed, and you should refer to the `system_fingerprint`
               response parameter to monitor changes in the backend.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           stream: Whether to stream back partial progress. If set, tokens will be sent as
@@ -861,7 +869,9 @@ class AsyncCompletions(AsyncAPIResource):
               Determinism is not guaranteed, and you should refer to the `system_fingerprint`
               response parameter to monitor changes in the backend.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
@@ -1014,7 +1024,9 @@ class AsyncCompletions(AsyncAPIResource):
               Determinism is not guaranteed, and you should refer to the `system_fingerprint`
               response parameter to monitor changes in the backend.
 
-          stop: Up to 4 sequences where the API will stop generating further tokens. The
+          stop: Not supported with latest reasoning models `o3` and `o4-mini`.
+
+              Up to 4 sequences where the API will stop generating further tokens. The
               returned text will not contain the stop sequence.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
