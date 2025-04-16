@@ -121,6 +121,7 @@ class PageInfo:
 
     url: URL | NotGiven
     params: Query | NotGiven
+    json: Body | NotGiven
 
     @overload
     def __init__(
@@ -136,19 +137,30 @@ class PageInfo:
         params: Query,
     ) -> None: ...
 
+    @overload
+    def __init__(
+        self,
+        *,
+        json: Body,
+    ) -> None: ...
+
     def __init__(
         self,
         *,
         url: URL | NotGiven = NOT_GIVEN,
+        json: Body | NotGiven = NOT_GIVEN,
         params: Query | NotGiven = NOT_GIVEN,
     ) -> None:
         self.url = url
+        self.json = json
         self.params = params
 
     @override
     def __repr__(self) -> str:
         if self.url:
             return f"{self.__class__.__name__}(url={self.url})"
+        if self.json:
+            return f"{self.__class__.__name__}(json={self.json})"
         return f"{self.__class__.__name__}(params={self.params})"
 
 
@@ -195,6 +207,19 @@ class BasePage(GenericModel, Generic[_T]):
             url = info.url.copy_with(params=params)
             options.params = dict(url.params)
             options.url = str(url)
+            return options
+
+        if not isinstance(info.json, NotGiven):
+            if not is_mapping(info.json):
+                raise TypeError("Pagination is only supported with mappings")
+
+            if not options.json_data:
+                options.json_data = {**info.json}
+            else:
+                if not is_mapping(options.json_data):
+                    raise TypeError("Pagination is only supported with mappings")
+
+                options.json_data = {**options.json_data, **info.json}
             return options
 
         raise ValueError("Unexpected PageInfo state")
