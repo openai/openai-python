@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.75.0 (2025-04-16)
+
+Full Changelog: [v1.74.1...v1.75.0](https://github.com/openai/openai-python/compare/v1.74.1...v1.75.0)
+
+### Features
+
+* **api:** add o3 and o4-mini model IDs ([4bacbd5](https://github.com/openai/openai-python/commit/4bacbd5503137e266c127dc643ebae496cb4f158))
+
 ## 1.74.1 (2025-04-16)
 
 Full Changelog: [v1.74.0...v1.74.1](https://github.com/openai/openai-python/compare/v1.74.0...v1.74.1)
