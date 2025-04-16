@@ -20,7 +20,6 @@ from typing_extensions import (
 )
 
 import pydantic
-import pydantic.generics
 from pydantic.fields import FieldInfo
 
 from ._types import (
