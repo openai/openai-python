@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.75.1 (2025-04-19)
+
+Full Changelog: [v1.75.0...v1.75.1](https://github.com/openai/openai-python/compare/v1.75.0...v1.75.1)
+
+### Chores
+
+* **internal:** update models test ([870ad4e](https://github.com/openai/openai-python/commit/870ad4ed3a284d75f44b825503750129284c7906))
+
 ## 1.75.0 (2025-04-16)
 
 Full Changelog: [v1.74.1...v1.75.0](https://github.com/openai/openai-python/compare/v1.74.1...v1.75.0)
