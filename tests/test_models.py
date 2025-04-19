@@ -492,12 +492,15 @@ def test_omitted_fields() -> None:
         resource_id: Optional[str] = None
 
     m = Model.construct()
+    assert m.resource_id is None
     assert "resource_id" not in m.model_fields_set
 
     m = Model.construct(resource_id=None)
+    assert m.resource_id is None
     assert "resource_id" in m.model_fields_set
 
     m = Model.construct(resource_id="foo")
+    assert m.resource_id == "foo"
     assert "resource_id" in m.model_fields_set
 
 
