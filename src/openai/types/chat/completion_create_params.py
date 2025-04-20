@@ -45,7 +45,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     model: Required[Union[str, ChatModel]]
-    """Model ID used to generate the response, like `gpt-4o` or `o1`.
+    """Model ID used to generate the response, like `gpt-4o` or `o3`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -123,7 +123,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     This value is now deprecated in favor of `max_completion_tokens`, and is not
     compatible with
-    [o1 series models](https://platform.openai.com/docs/guides/reasoning).
+    [o-series models](https://platform.openai.com/docs/guides/reasoning).
     """
 
     metadata: Optional[Metadata]
@@ -208,7 +208,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     in the backend.
     """
 
-    service_tier: Optional[Literal["auto", "default"]]
+    service_tier: Optional[Literal["auto", "default", "flex"]]
     """Specifies the latency tier to use for processing the request.
 
     This parameter is relevant for customers subscribed to the scale tier service:
@@ -220,6 +220,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
       latency guarentee.
     - If set to 'default', the request will be processed using the default service
       tier with a lower uptime SLA and no latency guarentee.
+    - If set to 'flex', the request will be processed with the Flex Processing
+      service tier.
+      [Learn more](https://platform.openai.com/docs/guides/flex-processing).
     - When not set, the default behavior is 'auto'.
 
     When this parameter is set, the response body will include the `service_tier`
@@ -227,9 +230,10 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     stop: Union[Optional[str], List[str], None]
-    """Up to 4 sequences where the API will stop generating further tokens.
+    """Not supported with latest reasoning models `o3` and `o4-mini`.
 
-    The returned text will not contain the stop sequence.
+    Up to 4 sequences where the API will stop generating further tokens. The
+    returned text will not contain the stop sequence.
     """
 
     store: Optional[bool]

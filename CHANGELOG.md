@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.75.0 (2025-04-16)
+
+Full Changelog: [v1.74.1...v1.75.0](https://github.com/openai/openai-python/compare/v1.74.1...v1.75.0)
+
+### Features
+
+* **api:** add o3 and o4-mini model IDs ([4bacbd5](https://github.com/openai/openai-python/commit/4bacbd5503137e266c127dc643ebae496cb4f158))
+
+## 1.74.1 (2025-04-16)
+
+Full Changelog: [v1.74.0...v1.74.1](https://github.com/openai/openai-python/compare/v1.74.0...v1.74.1)
+
+### Chores
+
+* **internal:** base client updates ([06303b5](https://github.com/openai/openai-python/commit/06303b501f8c17040c495971a4ee79ae340f6f4a))
+* **internal:** bump pyright version ([9fd1c77](https://github.com/openai/openai-python/commit/9fd1c778c3231616bf1331cb1daa86fdfca4cb7f))
+
 ## 1.74.0 (2025-04-14)
 
 Full Changelog: [v1.73.0...v1.74.0](https://github.com/openai/openai-python/compare/v1.73.0...v1.74.0)
