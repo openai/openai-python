@@ -20,11 +20,7 @@ from .sessions import (
     AsyncSessionsWithStreamingResponse,
 )
 from ...._types import NOT_GIVEN, Query, Headers, NotGiven
-from ...._utils import (
-    maybe_transform,
-    strip_not_given,
-    async_maybe_transform,
-)
+from ...._utils import maybe_transform, strip_not_given, async_maybe_transform
 from ...._compat import cached_property
 from ...._models import construct_type_unchecked
 from ...._resource import SyncAPIResource, AsyncAPIResource
