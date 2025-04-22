@@ -72,8 +72,16 @@ def _extract_items(
         from .._files import assert_is_file_content
 
         # We have exhausted the path, return the entry we found.
-        assert_is_file_content(obj, key=flattened_key)
         assert flattened_key is not None
+
+        if is_list(obj):
+            files: list[tuple[str, FileTypes]] = []
+            for entry in obj:
+                assert_is_file_content(entry, key=flattened_key + "[]" if flattened_key else "")
+                files.append((flattened_key + "[]", cast(FileTypes, entry)))
+            return files
+
+        assert_is_file_content(obj, key=flattened_key)
         return [(flattened_key, cast(FileTypes, obj))]
 
     index += 1
