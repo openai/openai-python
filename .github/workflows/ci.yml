@@ -6,13 +6,12 @@ on:
   pull_request:
     branches:
       - main
+      - next
 
 jobs:
   lint:
     name: lint
     runs-on: ubuntu-latest
-    if: github.repository == 'openai/openai-python'
-
     steps:
       - uses: actions/checkout@v4
 
@@ -21,7 +20,7 @@ jobs:
           curl -sSf https://rye.astral.sh/get | bash
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
-          RYE_VERSION: '0.35.0'
+          RYE_VERSION: '0.44.0'
           RYE_INSTALL_OPTION: '--yes'
 
       - name: Install dependencies
@@ -33,8 +32,6 @@ jobs:
   test:
     name: test
     runs-on: ubuntu-latest
-    if: github.repository == 'openai/openai-python'
-
     steps:
       - uses: actions/checkout@v4
 
@@ -43,7 +40,7 @@ jobs:
           curl -sSf https://rye.astral.sh/get | bash
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
-          RYE_VERSION: '0.35.0'
+          RYE_VERSION: '0.44.0'
           RYE_INSTALL_OPTION: '--yes'
 
       - name: Bootstrap
@@ -55,6 +52,7 @@ jobs:
   examples:
     name: examples
     runs-on: ubuntu-latest
+    if: github.repository == 'openai/openai-python'
 
     steps:
       - uses: actions/checkout@v4
@@ -64,7 +62,7 @@ jobs:
           curl -sSf https://rye.astral.sh/get | bash
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
-          RYE_VERSION: '0.35.0'
+          RYE_VERSION: '0.44.0'
           RYE_INSTALL_OPTION: '--yes'
       - name: Install dependencies
         run: |

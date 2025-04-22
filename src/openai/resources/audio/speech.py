@@ -53,7 +53,10 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ],
+        instructions: str | NotGiven = NOT_GIVEN,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -71,12 +74,15 @@ class Speech(SyncAPIResource):
 
           model:
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-              `tts-1` or `tts-1-hd`
+              `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
-              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
-              voices are available in the
+              `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+              `verse`. Previews of the voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+
+          instructions: Control the voice of your generated audio with additional instructions. Does not
+              work with `tts-1` or `tts-1-hd`.
 
           response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, `flac`,
               `wav`, and `pcm`.
@@ -100,6 +106,7 @@ class Speech(SyncAPIResource):
                     "input": input,
                     "model": model,
                     "voice": voice,
+                    "instructions": instructions,
                     "response_format": response_format,
                     "speed": speed,
                 },
@@ -137,7 +144,10 @@ class AsyncSpeech(AsyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
+        ],
+        instructions: str | NotGiven = NOT_GIVEN,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -155,12 +165,15 @@ class AsyncSpeech(AsyncAPIResource):
 
           model:
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-              `tts-1` or `tts-1-hd`
+              `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
-              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
-              voices are available in the
+              `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+              `verse`. Previews of the voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+
+          instructions: Control the voice of your generated audio with additional instructions. Does not
+              work with `tts-1` or `tts-1-hd`.
 
           response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, `flac`,
               `wav`, and `pcm`.
@@ -184,6 +197,7 @@ class AsyncSpeech(AsyncAPIResource):
                     "input": input,
                     "model": model,
                     "voice": voice,
+                    "instructions": instructions,
                     "response_format": response_format,
                     "speed": speed,
                 },

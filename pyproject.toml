@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.65.4"
+version = "1.75.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -43,14 +43,15 @@ Repository = "https://github.com/openai/openai-python"
 openai = "openai.cli:main"
 
 [project.optional-dependencies]
-realtime = ["websockets >= 13, < 15"]
+realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
 
 [tool.rye]
 managed = true
 # version pins are in requirements-dev.lock
 dev-dependencies = [
-    "pyright>=1.1.359",
+    "pyright==1.1.399",
     "mypy",
     "respx",
     "pytest",
@@ -99,7 +100,7 @@ typecheck = { chain = [
 "typecheck:mypy" = "mypy ."
 
 [build-system]
-requires = ["hatchling", "hatch-fancy-pypi-readme"]
+requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -165,10 +166,10 @@ exclude = [
 ]
 
 reportImplicitOverride = true
+reportOverlappingOverload = false
 
 reportImportCycles = false
 reportPrivateUsage = false
-
 
 [tool.ruff]
 line-length = 120

@@ -24,6 +24,14 @@ from .audio import (
     AudioWithStreamingResponse,
     AsyncAudioWithStreamingResponse,
 )
+from .evals import (
+    Evals,
+    AsyncEvals,
+    EvalsWithRawResponse,
+    AsyncEvalsWithRawResponse,
+    EvalsWithStreamingResponse,
+    AsyncEvalsWithStreamingResponse,
+)
 from .files import (
     Files,
     AsyncFiles,
@@ -64,6 +72,14 @@ from .uploads import (
     UploadsWithStreamingResponse,
     AsyncUploadsWithStreamingResponse,
 )
+from .responses import (
+    Responses,
+    AsyncResponses,
+    ResponsesWithRawResponse,
+    AsyncResponsesWithRawResponse,
+    ResponsesWithStreamingResponse,
+    AsyncResponsesWithStreamingResponse,
+)
 from .embeddings import (
     Embeddings,
     AsyncEmbeddings,
@@ -95,6 +111,14 @@ from .moderations import (
     AsyncModerationsWithRawResponse,
     ModerationsWithStreamingResponse,
     AsyncModerationsWithStreamingResponse,
+)
+from .vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
 )
 
 __all__ = [
@@ -152,6 +176,12 @@ __all__ = [
     "AsyncFineTuningWithRawResponse",
     "FineTuningWithStreamingResponse",
     "AsyncFineTuningWithStreamingResponse",
+    "VectorStores",
+    "AsyncVectorStores",
+    "VectorStoresWithRawResponse",
+    "AsyncVectorStoresWithRawResponse",
+    "VectorStoresWithStreamingResponse",
+    "AsyncVectorStoresWithStreamingResponse",
     "Beta",
     "AsyncBeta",
     "BetaWithRawResponse",
@@ -170,4 +200,16 @@ __all__ = [
     "AsyncUploadsWithRawResponse",
     "UploadsWithStreamingResponse",
     "AsyncUploadsWithStreamingResponse",
+    "Responses",
+    "AsyncResponses",
+    "ResponsesWithRawResponse",
+    "AsyncResponsesWithRawResponse",
+    "ResponsesWithStreamingResponse",
+    "AsyncResponsesWithStreamingResponse",
+    "Evals",
+    "AsyncEvals",
+    "EvalsWithRawResponse",
+    "AsyncEvalsWithRawResponse",
+    "EvalsWithStreamingResponse",
+    "AsyncEvalsWithStreamingResponse",
 ]

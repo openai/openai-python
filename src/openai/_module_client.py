@@ -30,6 +30,12 @@ class AudioProxy(LazyProxy[resources.Audio]):
         return _load_client().audio
 
 
+class EvalsProxy(LazyProxy[resources.Evals]):
+    @override
+    def __load__(self) -> resources.Evals:
+        return _load_client().evals
+
+
 class ImagesProxy(LazyProxy[resources.Images]):
     @override
     def __load__(self) -> resources.Images:
@@ -46,6 +52,18 @@ class BatchesProxy(LazyProxy[resources.Batches]):
     @override
     def __load__(self) -> resources.Batches:
         return _load_client().batches
+
+
+class UploadsProxy(LazyProxy[resources.Uploads]):
+    @override
+    def __load__(self) -> resources.Uploads:
+        return _load_client().uploads
+
+
+class ResponsesProxy(LazyProxy[resources.Responses]):
+    @override
+    def __load__(self) -> resources.Responses:
+        return _load_client().responses
 
 
 class EmbeddingsProxy(LazyProxy[resources.Embeddings]):
@@ -72,14 +90,24 @@ class FineTuningProxy(LazyProxy[resources.FineTuning]):
         return _load_client().fine_tuning
 
 
+class VectorStoresProxy(LazyProxy[resources.VectorStores]):
+    @override
+    def __load__(self) -> resources.VectorStores:
+        return _load_client().vector_stores
+
+
 chat: resources.Chat = ChatProxy().__as_proxied__()
 beta: resources.Beta = BetaProxy().__as_proxied__()
 files: resources.Files = FilesProxy().__as_proxied__()
 audio: resources.Audio = AudioProxy().__as_proxied__()
+evals: resources.Evals = EvalsProxy().__as_proxied__()
 images: resources.Images = ImagesProxy().__as_proxied__()
 models: resources.Models = ModelsProxy().__as_proxied__()
 batches: resources.Batches = BatchesProxy().__as_proxied__()
+uploads: resources.Uploads = UploadsProxy().__as_proxied__()
+responses: resources.Responses = ResponsesProxy().__as_proxied__()
 embeddings: resources.Embeddings = EmbeddingsProxy().__as_proxied__()
 completions: resources.Completions = CompletionsProxy().__as_proxied__()
 moderations: resources.Moderations = ModerationsProxy().__as_proxied__()
 fine_tuning: resources.FineTuning = FineTuningProxy().__as_proxied__()
+vector_stores: resources.VectorStores = VectorStoresProxy().__as_proxied__()

@@ -49,9 +49,9 @@ from ....lib.streaming import (
     AsyncAssistantEventHandlerT,
     AsyncAssistantStreamManager,
 )
-from ....types.chat_model import ChatModel
 from ....types.beta.thread import Thread
 from ....types.beta.threads.run import Run
+from ....types.shared.chat_model import ChatModel
 from ....types.beta.thread_deleted import ThreadDeleted
 from ....types.shared_params.metadata import Metadata
 from ....types.beta.assistant_stream_event import AssistantStreamEvent
@@ -717,7 +717,9 @@ class Threads(SyncAPIResource):
                     "top_p": top_p,
                     "truncation_strategy": truncation_strategy,
                 },
-                thread_create_and_run_params.ThreadCreateAndRunParams,
+                thread_create_and_run_params.ThreadCreateAndRunParamsStreaming
+                if stream
+                else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -1564,7 +1566,9 @@ class AsyncThreads(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation_strategy": truncation_strategy,
                 },
-                thread_create_and_run_params.ThreadCreateAndRunParams,
+                thread_create_and_run_params.ThreadCreateAndRunParamsStreaming
+                if stream
+                else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
