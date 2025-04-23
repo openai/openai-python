@@ -176,8 +176,8 @@ class Runs(SyncAPIResource):
           order: Sort order for runs by timestamp. Use `asc` for ascending order or `desc` for
               descending order. Defaults to `asc`.
 
-          status: Filter runs by status. Use "queued" | "in_progress" | "failed" | "completed" |
-              "canceled".
+          status: Filter runs by status. One of `queued` | `in_progress` | `failed` | `completed`
+              | `canceled`.
 
           extra_headers: Send extra headers
 
@@ -425,8 +425,8 @@ class AsyncRuns(AsyncAPIResource):
           order: Sort order for runs by timestamp. Use `asc` for ascending order or `desc` for
               descending order. Defaults to `asc`.
 
-          status: Filter runs by status. Use "queued" | "in_progress" | "failed" | "completed" |
-              "canceled".
+          status: Filter runs by status. One of `queued` | `in_progress` | `failed` | `completed`
+              | `canceled`.
 
           extra_headers: Send extra headers
 

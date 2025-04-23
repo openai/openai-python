@@ -6,98 +6,25 @@ from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared_params.metadata import Metadata
+from ..responses.easy_input_message_param import EasyInputMessageParam
+from ..responses.response_input_text_param import ResponseInputTextParam
 
 __all__ = [
     "CreateEvalCompletionsRunDataSourceParam",
-    "InputMessages",
-    "InputMessagesTemplate",
-    "InputMessagesTemplateTemplate",
-    "InputMessagesTemplateTemplateChatMessage",
-    "InputMessagesTemplateTemplateInputMessage",
-    "InputMessagesTemplateTemplateInputMessageContent",
-    "InputMessagesTemplateTemplateOutputMessage",
-    "InputMessagesTemplateTemplateOutputMessageContent",
-    "InputMessagesItemReference",
     "Source",
     "SourceFileContent",
     "SourceFileContentContent",
     "SourceFileID",
     "SourceStoredCompletions",
+    "InputMessages",
+    "InputMessagesTemplate",
+    "InputMessagesTemplateTemplate",
+    "InputMessagesTemplateTemplateMessage",
+    "InputMessagesTemplateTemplateMessageContent",
+    "InputMessagesTemplateTemplateMessageContentOutputText",
+    "InputMessagesItemReference",
     "SamplingParams",
 ]
-
-
-class InputMessagesTemplateTemplateChatMessage(TypedDict, total=False):
-    content: Required[str]
-    """The content of the message."""
-
-    role: Required[str]
-    """The role of the message (e.g. "system", "assistant", "user")."""
-
-
-class InputMessagesTemplateTemplateInputMessageContent(TypedDict, total=False):
-    text: Required[str]
-    """The text content."""
-
-    type: Required[Literal["input_text"]]
-    """The type of content, which is always `input_text`."""
-
-
-class InputMessagesTemplateTemplateInputMessage(TypedDict, total=False):
-    content: Required[InputMessagesTemplateTemplateInputMessageContent]
-
-    role: Required[Literal["user", "system", "developer"]]
-    """The role of the message. One of `user`, `system`, or `developer`."""
-
-    type: Required[Literal["message"]]
-    """The type of item, which is always `message`."""
-
-
-class InputMessagesTemplateTemplateOutputMessageContent(TypedDict, total=False):
-    text: Required[str]
-    """The text content."""
-
-    type: Required[Literal["output_text"]]
-    """The type of content, which is always `output_text`."""
-
-
-class InputMessagesTemplateTemplateOutputMessage(TypedDict, total=False):
-    content: Required[InputMessagesTemplateTemplateOutputMessageContent]
-
-    role: Required[Literal["assistant"]]
-    """The role of the message. Must be `assistant` for output."""
-
-    type: Required[Literal["message"]]
-    """The type of item, which is always `message`."""
-
-
-InputMessagesTemplateTemplate: TypeAlias = Union[
-    InputMessagesTemplateTemplateChatMessage,
-    InputMessagesTemplateTemplateInputMessage,
-    InputMessagesTemplateTemplateOutputMessage,
-]
-
-
-class InputMessagesTemplate(TypedDict, total=False):
-    template: Required[Iterable[InputMessagesTemplateTemplate]]
-    """A list of chat messages forming the prompt or context.
-
-    May include variable references to the "item" namespace, ie {{item.name}}.
-    """
-
-    type: Required[Literal["template"]]
-    """The type of input messages. Always `template`."""
-
-
-class InputMessagesItemReference(TypedDict, total=False):
-    item_reference: Required[str]
-    """A reference to a variable in the "item" namespace. Ie, "item.name" """
-
-    type: Required[Literal["item_reference"]]
-    """The type of input messages. Always `item_reference`."""
-
-
-InputMessages: TypeAlias = Union[InputMessagesTemplate, InputMessagesItemReference]
 
 
 class SourceFileContentContent(TypedDict, total=False):
@@ -123,16 +50,19 @@ class SourceFileID(TypedDict, total=False):
 
 
 class SourceStoredCompletions(TypedDict, total=False):
-    created_after: Required[Optional[int]]
+    type: Required[Literal["stored_completions"]]
+    """The type of source. Always `stored_completions`."""
+
+    created_after: Optional[int]
     """An optional Unix timestamp to filter items created after this time."""
 
-    created_before: Required[Optional[int]]
+    created_before: Optional[int]
     """An optional Unix timestamp to filter items created before this time."""
 
-    limit: Required[Optional[int]]
+    limit: Optional[int]
     """An optional maximum number of items to return."""
 
-    metadata: Required[Optional[Metadata]]
+    metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
@@ -142,14 +72,63 @@ class SourceStoredCompletions(TypedDict, total=False):
     a maximum length of 512 characters.
     """
 
-    model: Required[Optional[str]]
+    model: Optional[str]
     """An optional model to filter by (e.g., 'gpt-4o')."""
-
-    type: Required[Literal["stored_completions"]]
-    """The type of source. Always `stored_completions`."""
 
 
 Source: TypeAlias = Union[SourceFileContent, SourceFileID, SourceStoredCompletions]
+
+
+class InputMessagesTemplateTemplateMessageContentOutputText(TypedDict, total=False):
+    text: Required[str]
+    """The text output from the model."""
+
+    type: Required[Literal["output_text"]]
+    """The type of the output text. Always `output_text`."""
+
+
+InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
+    str, ResponseInputTextParam, InputMessagesTemplateTemplateMessageContentOutputText
+]
+
+
+class InputMessagesTemplateTemplateMessage(TypedDict, total=False):
+    content: Required[InputMessagesTemplateTemplateMessageContent]
+    """Text inputs to the model - can contain template strings."""
+
+    role: Required[Literal["user", "assistant", "system", "developer"]]
+    """The role of the message input.
+
+    One of `user`, `assistant`, `system`, or `developer`.
+    """
+
+    type: Literal["message"]
+    """The type of the message input. Always `message`."""
+
+
+InputMessagesTemplateTemplate: TypeAlias = Union[EasyInputMessageParam, InputMessagesTemplateTemplateMessage]
+
+
+class InputMessagesTemplate(TypedDict, total=False):
+    template: Required[Iterable[InputMessagesTemplateTemplate]]
+    """A list of chat messages forming the prompt or context.
+
+    May include variable references to the "item" namespace, ie {{item.name}}.
+    """
+
+    type: Required[Literal["template"]]
+    """The type of input messages. Always `template`."""
+
+
+class InputMessagesItemReference(TypedDict, total=False):
+    item_reference: Required[str]
+    """A reference to a variable in the "item" namespace. Ie, "item.name" """
+
+    type: Required[Literal["item_reference"]]
+    """The type of input messages. Always `item_reference`."""
+
+
+InputMessages: TypeAlias = Union[InputMessagesTemplate, InputMessagesItemReference]
 
 
 class SamplingParams(TypedDict, total=False):
@@ -167,15 +146,15 @@ class SamplingParams(TypedDict, total=False):
 
 
 class CreateEvalCompletionsRunDataSourceParam(TypedDict, total=False):
-    input_messages: Required[InputMessages]
-
-    model: Required[str]
-    """The name of the model to use for generating completions (e.g. "o3-mini")."""
-
     source: Required[Source]
     """A StoredCompletionsRunDataSource configuration describing a set of filters"""
 
     type: Required[Literal["completions"]]
     """The type of run data source. Always `completions`."""
+
+    input_messages: InputMessages
+
+    model: str
+    """The name of the model to use for generating completions (e.g. "o3-mini")."""
 
     sampling_params: SamplingParams
