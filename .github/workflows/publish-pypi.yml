@@ -7,7 +7,7 @@ on:
 jobs:
   publish:
     name: publish
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     environment: publish
 
     steps:

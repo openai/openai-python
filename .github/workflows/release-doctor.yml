@@ -8,7 +8,7 @@ on:
 jobs:
   release_doctor:
     name: release doctor
-    runs-on: depot-ubuntu-24.04
+    runs-on: ubuntu-latest
     environment: publish
     if: github.repository == 'openai/openai-python' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch' || startsWith(github.head_ref, 'release-please') || github.head_ref == 'next')
 
