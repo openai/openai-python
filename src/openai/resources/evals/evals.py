@@ -65,7 +65,6 @@ class Evals(SyncAPIResource):
         testing_criteria: Iterable[eval_create_params.TestingCriterion],
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
-        share_with_openai: bool | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -94,8 +93,6 @@ class Evals(SyncAPIResource):
 
           name: The name of the evaluation.
 
-          share_with_openai: Indicates whether the evaluation is shared with OpenAI.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -112,7 +109,6 @@ class Evals(SyncAPIResource):
                     "testing_criteria": testing_criteria,
                     "metadata": metadata,
                     "name": name,
-                    "share_with_openai": share_with_openai,
                 },
                 eval_create_params.EvalCreateParams,
             ),
@@ -328,7 +324,6 @@ class AsyncEvals(AsyncAPIResource):
         testing_criteria: Iterable[eval_create_params.TestingCriterion],
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
-        share_with_openai: bool | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -357,8 +352,6 @@ class AsyncEvals(AsyncAPIResource):
 
           name: The name of the evaluation.
 
-          share_with_openai: Indicates whether the evaluation is shared with OpenAI.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -375,7 +368,6 @@ class AsyncEvals(AsyncAPIResource):
                     "testing_criteria": testing_criteria,
                     "metadata": metadata,
                     "name": name,
-                    "share_with_openai": share_with_openai,
                 },
                 eval_create_params.EvalCreateParams,
             ),
