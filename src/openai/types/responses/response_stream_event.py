@@ -27,9 +27,13 @@ from .response_web_search_call_completed_event import ResponseWebSearchCallCompl
 from .response_web_search_call_searching_event import ResponseWebSearchCallSearchingEvent
 from .response_file_search_call_completed_event import ResponseFileSearchCallCompletedEvent
 from .response_file_search_call_searching_event import ResponseFileSearchCallSearchingEvent
+from .response_reasoning_summary_part_done_event import ResponseReasoningSummaryPartDoneEvent
+from .response_reasoning_summary_text_done_event import ResponseReasoningSummaryTextDoneEvent
 from .response_web_search_call_in_progress_event import ResponseWebSearchCallInProgressEvent
 from .response_file_search_call_in_progress_event import ResponseFileSearchCallInProgressEvent
 from .response_function_call_arguments_done_event import ResponseFunctionCallArgumentsDoneEvent
+from .response_reasoning_summary_part_added_event import ResponseReasoningSummaryPartAddedEvent
+from .response_reasoning_summary_text_delta_event import ResponseReasoningSummaryTextDeltaEvent
 from .response_function_call_arguments_delta_event import ResponseFunctionCallArgumentsDeltaEvent
 from .response_code_interpreter_call_code_done_event import ResponseCodeInterpreterCallCodeDoneEvent
 from .response_code_interpreter_call_completed_event import ResponseCodeInterpreterCallCompletedEvent
@@ -65,6 +69,10 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseIncompleteEvent,
         ResponseOutputItemAddedEvent,
         ResponseOutputItemDoneEvent,
+        ResponseReasoningSummaryPartAddedEvent,
+        ResponseReasoningSummaryPartDoneEvent,
+        ResponseReasoningSummaryTextDeltaEvent,
+        ResponseReasoningSummaryTextDoneEvent,
         ResponseRefusalDeltaEvent,
         ResponseRefusalDoneEvent,
         ResponseTextAnnotationDeltaEvent,

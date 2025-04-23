@@ -1,9 +1,10 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Union
-from typing_extensions import Annotated, TypeAlias
+from typing import Union, Optional
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from ...._utils import PropertyInfo
+from ...._models import BaseModel
 from .session_update_event import SessionUpdateEvent
 from .response_cancel_event import ResponseCancelEvent
 from .response_create_event import ResponseCreateEvent
@@ -16,7 +17,16 @@ from .input_audio_buffer_commit_event import InputAudioBufferCommitEvent
 from .conversation_item_retrieve_event import ConversationItemRetrieveEvent
 from .conversation_item_truncate_event import ConversationItemTruncateEvent
 
-__all__ = ["RealtimeClientEvent"]
+__all__ = ["RealtimeClientEvent", "OutputAudioBufferClear"]
+
+
+class OutputAudioBufferClear(BaseModel):
+    type: Literal["output_audio_buffer.clear"]
+    """The event type, must be `output_audio_buffer.clear`."""
+
+    event_id: Optional[str] = None
+    """The unique ID of the client event used for error handling."""
+
 
 RealtimeClientEvent: TypeAlias = Annotated[
     Union[
@@ -26,6 +36,7 @@ RealtimeClientEvent: TypeAlias = Annotated[
         ConversationItemTruncateEvent,
         InputAudioBufferAppendEvent,
         InputAudioBufferClearEvent,
+        OutputAudioBufferClear,
         InputAudioBufferCommitEvent,
         ResponseCancelEvent,
         ResponseCreateEvent,

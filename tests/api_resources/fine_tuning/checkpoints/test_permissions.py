@@ -117,19 +117,19 @@ class TestPermissions:
                 fine_tuned_model_checkpoint="",
             )
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
         permission = client.fine_tuning.checkpoints.permissions.delete(
-            "ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
+            permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+            fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         )
         assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     def test_raw_response_delete(self, client: OpenAI) -> None:
         response = client.fine_tuning.checkpoints.permissions.with_raw_response.delete(
-            "ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
+            permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+            fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         )
 
         assert response.is_closed is True
@@ -137,11 +137,11 @@ class TestPermissions:
         permission = response.parse()
         assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     def test_streaming_response_delete(self, client: OpenAI) -> None:
         with client.fine_tuning.checkpoints.permissions.with_streaming_response.delete(
-            "ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
+            permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+            fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -151,14 +151,20 @@ class TestPermissions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     def test_path_params_delete(self, client: OpenAI) -> None:
         with pytest.raises(
             ValueError, match=r"Expected a non-empty value for `fine_tuned_model_checkpoint` but received ''"
         ):
             client.fine_tuning.checkpoints.permissions.with_raw_response.delete(
-                "",
+                permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+                fine_tuned_model_checkpoint="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `permission_id` but received ''"):
+            client.fine_tuning.checkpoints.permissions.with_raw_response.delete(
+                permission_id="",
+                fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
             )
 
 
@@ -260,19 +266,19 @@ class TestAsyncPermissions:
                 fine_tuned_model_checkpoint="",
             )
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     async def test_method_delete(self, async_client: AsyncOpenAI) -> None:
         permission = await async_client.fine_tuning.checkpoints.permissions.delete(
-            "ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
+            permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+            fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         )
         assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     async def test_raw_response_delete(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.fine_tuning.checkpoints.permissions.with_raw_response.delete(
-            "ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
+            permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+            fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         )
 
         assert response.is_closed is True
@@ -280,11 +286,11 @@ class TestAsyncPermissions:
         permission = response.parse()
         assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     async def test_streaming_response_delete(self, async_client: AsyncOpenAI) -> None:
         async with async_client.fine_tuning.checkpoints.permissions.with_streaming_response.delete(
-            "ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
+            permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+            fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -294,12 +300,18 @@ class TestAsyncPermissions:
 
         assert cast(Any, response.is_closed) is True
 
-    @pytest.mark.skip(reason="OpenAPI spec is slightly incorrect")
     @parametrize
     async def test_path_params_delete(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(
             ValueError, match=r"Expected a non-empty value for `fine_tuned_model_checkpoint` but received ''"
         ):
             await async_client.fine_tuning.checkpoints.permissions.with_raw_response.delete(
-                "",
+                permission_id="cp_zc4Q7MP6XxulcVzj4MZdwsAB",
+                fine_tuned_model_checkpoint="",
+            )
+
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `permission_id` but received ''"):
+            await async_client.fine_tuning.checkpoints.permissions.with_raw_response.delete(
+                permission_id="",
+                fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
             )

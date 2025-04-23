@@ -39,7 +39,13 @@ from .conversation_item_input_audio_transcription_completed_event import (
     ConversationItemInputAudioTranscriptionCompletedEvent,
 )
 
-__all__ = ["RealtimeServerEvent", "ConversationItemRetrieved"]
+__all__ = [
+    "RealtimeServerEvent",
+    "ConversationItemRetrieved",
+    "OutputAudioBufferStarted",
+    "OutputAudioBufferStopped",
+    "OutputAudioBufferCleared",
+]
 
 
 class ConversationItemRetrieved(BaseModel):
@@ -51,6 +57,39 @@ class ConversationItemRetrieved(BaseModel):
 
     type: Literal["conversation.item.retrieved"]
     """The event type, must be `conversation.item.retrieved`."""
+
+
+class OutputAudioBufferStarted(BaseModel):
+    event_id: str
+    """The unique ID of the server event."""
+
+    response_id: str
+    """The unique ID of the response that produced the audio."""
+
+    type: Literal["output_audio_buffer.started"]
+    """The event type, must be `output_audio_buffer.started`."""
+
+
+class OutputAudioBufferStopped(BaseModel):
+    event_id: str
+    """The unique ID of the server event."""
+
+    response_id: str
+    """The unique ID of the response that produced the audio."""
+
+    type: Literal["output_audio_buffer.stopped"]
+    """The event type, must be `output_audio_buffer.stopped`."""
+
+
+class OutputAudioBufferCleared(BaseModel):
+    event_id: str
+    """The unique ID of the server event."""
+
+    response_id: str
+    """The unique ID of the response that produced the audio."""
+
+    type: Literal["output_audio_buffer.cleared"]
+    """The event type, must be `output_audio_buffer.cleared`."""
 
 
 RealtimeServerEvent: TypeAlias = Annotated[
@@ -86,6 +125,9 @@ RealtimeServerEvent: TypeAlias = Annotated[
         SessionCreatedEvent,
         SessionUpdatedEvent,
         TranscriptionSessionUpdatedEvent,
+        OutputAudioBufferStarted,
+        OutputAudioBufferStopped,
+        OutputAudioBufferCleared,
     ],
     PropertyInfo(discriminator="type"),
 ]

@@ -10,22 +10,12 @@ __all__ = ["EvalTextSimilarityGrader"]
 
 class EvalTextSimilarityGrader(BaseModel):
     evaluation_metric: Literal[
-        "fuzzy_match",
-        "bleu",
-        "gleu",
-        "meteor",
-        "rouge_1",
-        "rouge_2",
-        "rouge_3",
-        "rouge_4",
-        "rouge_5",
-        "rouge_l",
-        "cosine",
+        "fuzzy_match", "bleu", "gleu", "meteor", "rouge_1", "rouge_2", "rouge_3", "rouge_4", "rouge_5", "rouge_l"
     ]
     """The evaluation metric to use.
 
-    One of `cosine`, `fuzzy_match`, `bleu`, `gleu`, `meteor`, `rouge_1`, `rouge_2`,
-    `rouge_3`, `rouge_4`, `rouge_5`, or `rouge_l`.
+    One of `fuzzy_match`, `bleu`, `gleu`, `meteor`, `rouge_1`, `rouge_2`, `rouge_3`,
+    `rouge_4`, `rouge_5`, or `rouge_l`.
     """
 
     input: str

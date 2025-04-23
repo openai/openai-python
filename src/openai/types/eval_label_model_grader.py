@@ -1,58 +1,37 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
-from typing_extensions import Literal, Annotated, TypeAlias
+from typing import List, Union, Optional
+from typing_extensions import Literal, TypeAlias
 
-from .._utils import PropertyInfo
 from .._models import BaseModel
+from .responses.response_input_text import ResponseInputText
 
-__all__ = [
-    "EvalLabelModelGrader",
-    "Input",
-    "InputInputMessage",
-    "InputInputMessageContent",
-    "InputAssistant",
-    "InputAssistantContent",
-]
+__all__ = ["EvalLabelModelGrader", "Input", "InputContent", "InputContentOutputText"]
 
 
-class InputInputMessageContent(BaseModel):
+class InputContentOutputText(BaseModel):
     text: str
-    """The text content."""
-
-    type: Literal["input_text"]
-    """The type of content, which is always `input_text`."""
-
-
-class InputInputMessage(BaseModel):
-    content: InputInputMessageContent
-
-    role: Literal["user", "system", "developer"]
-    """The role of the message. One of `user`, `system`, or `developer`."""
-
-    type: Literal["message"]
-    """The type of item, which is always `message`."""
-
-
-class InputAssistantContent(BaseModel):
-    text: str
-    """The text content."""
+    """The text output from the model."""
 
     type: Literal["output_text"]
-    """The type of content, which is always `output_text`."""
+    """The type of the output text. Always `output_text`."""
 
 
-class InputAssistant(BaseModel):
-    content: InputAssistantContent
-
-    role: Literal["assistant"]
-    """The role of the message. Must be `assistant` for output."""
-
-    type: Literal["message"]
-    """The type of item, which is always `message`."""
+InputContent: TypeAlias = Union[str, ResponseInputText, InputContentOutputText]
 
 
-Input: TypeAlias = Annotated[Union[InputInputMessage, InputAssistant], PropertyInfo(discriminator="role")]
+class Input(BaseModel):
+    content: InputContent
+    """Text inputs to the model - can contain template strings."""
+
+    role: Literal["user", "assistant", "system", "developer"]
+    """The role of the message input.
+
+    One of `user`, `assistant`, `system`, or `developer`.
+    """
+
+    type: Optional[Literal["message"]] = None
+    """The type of the message input. Always `message`."""
 
 
 class EvalLabelModelGrader(BaseModel):

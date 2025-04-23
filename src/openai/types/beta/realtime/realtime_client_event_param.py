@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import TypeAlias
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .session_update_event_param import SessionUpdateEventParam
 from .response_cancel_event_param import ResponseCancelEventParam
@@ -17,7 +17,16 @@ from .input_audio_buffer_commit_event_param import InputAudioBufferCommitEventPa
 from .conversation_item_retrieve_event_param import ConversationItemRetrieveEventParam
 from .conversation_item_truncate_event_param import ConversationItemTruncateEventParam
 
-__all__ = ["RealtimeClientEventParam"]
+__all__ = ["RealtimeClientEventParam", "OutputAudioBufferClear"]
+
+
+class OutputAudioBufferClear(TypedDict, total=False):
+    type: Required[Literal["output_audio_buffer.clear"]]
+    """The event type, must be `output_audio_buffer.clear`."""
+
+    event_id: str
+    """The unique ID of the client event used for error handling."""
+
 
 RealtimeClientEventParam: TypeAlias = Union[
     ConversationItemCreateEventParam,
@@ -26,6 +35,7 @@ RealtimeClientEventParam: TypeAlias = Union[
     ConversationItemTruncateEventParam,
     InputAudioBufferAppendEventParam,
     InputAudioBufferClearEventParam,
+    OutputAudioBufferClear,
     InputAudioBufferCommitEventParam,
     ResponseCancelEventParam,
     ResponseCreateEventParam,
