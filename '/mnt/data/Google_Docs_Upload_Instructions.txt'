@@ -1,0 +1,35 @@
+# Re-creating the TXT file after reset
+guide_text = """
+🚀 Step-by-Step to Upload INTERLINK Proposal to Google Docs:
+
+1. Download the Word Document
+   - Download the Proposal (DOCX) if you haven’t already.
+
+2. Open Google Drive
+   - Visit https://drive.google.com.
+
+3. Upload the File
+   - Click the "+ New" button on the left sidebar.
+   - Select "File upload".
+   - Upload the INTERLINK_e-MESS_Proposal.docx file you downloaded.
+
+4. Open with Google Docs
+   - Once uploaded, right-click the file.
+   - Select "Open with" > "Google Docs".
+   - It will automatically convert it into an editable online document.
+
+5. (Optional) Save as Google Docs Format
+   - Go to File > Save as Google Docs if you want it fully converted (instead of staying in DOCX mode).
+
+✅ Outcome:
+- You will have a live, shareable online version of the INTERLINK e-MESS full proposal.
+- You can now edit, comment, collaborate, and share directly with your team, investors, or partners.
+
+"""
+
+# Save to a TXT file
+txt_path = "/mnt/data/Google_Docs_Upload_Instructions.txt"
+with open(txt_path, "w") as f:
+    f.write(guide_text)
+
+txt_path
