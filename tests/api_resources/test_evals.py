@@ -74,7 +74,6 @@ class TestEvals:
             ],
             metadata={"foo": "string"},
             name="name",
-            share_with_openai=True,
         )
         assert_matches_type(EvalCreateResponse, eval, path=["response"])
 
@@ -350,7 +349,6 @@ class TestAsyncEvals:
             ],
             metadata={"foo": "string"},
             name="name",
-            share_with_openai=True,
         )
         assert_matches_type(EvalCreateResponse, eval, path=["response"])
 

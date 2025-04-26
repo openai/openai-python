@@ -8,20 +8,25 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 from .shared_params.metadata import Metadata
 from .eval_string_check_grader_param import EvalStringCheckGraderParam
 from .eval_text_similarity_grader_param import EvalTextSimilarityGraderParam
+from .responses.response_input_text_param import ResponseInputTextParam
 
 __all__ = [
     "EvalCreateParams",
     "DataSourceConfig",
     "DataSourceConfigCustom",
-    "DataSourceConfigStoredCompletions",
+    "DataSourceConfigLogs",
     "TestingCriterion",
     "TestingCriterionLabelModel",
     "TestingCriterionLabelModelInput",
     "TestingCriterionLabelModelInputSimpleInputMessage",
-    "TestingCriterionLabelModelInputInputMessage",
-    "TestingCriterionLabelModelInputInputMessageContent",
-    "TestingCriterionLabelModelInputOutputMessage",
-    "TestingCriterionLabelModelInputOutputMessageContent",
+    "TestingCriterionLabelModelInputEvalItem",
+    "TestingCriterionLabelModelInputEvalItemContent",
+    "TestingCriterionLabelModelInputEvalItemContentOutputText",
+    "TestingCriterionPython",
+    "TestingCriterionScoreModel",
+    "TestingCriterionScoreModelInput",
+    "TestingCriterionScoreModelInputContent",
+    "TestingCriterionScoreModelInputContentOutputText",
 ]
 
 
@@ -45,37 +50,30 @@ class EvalCreateParams(TypedDict, total=False):
     name: str
     """The name of the evaluation."""
 
-    share_with_openai: bool
-    """Indicates whether the evaluation is shared with OpenAI."""
-
 
 class DataSourceConfigCustom(TypedDict, total=False):
     item_schema: Required[Dict[str, object]]
-    """The json schema for the run data source items."""
+    """The json schema for each row in the data source."""
 
     type: Required[Literal["custom"]]
     """The type of data source. Always `custom`."""
 
     include_sample_schema: bool
-    """Whether to include the sample schema in the data source."""
-
-
-class DataSourceConfigStoredCompletions(TypedDict, total=False):
-    type: Required[Literal["stored_completions"]]
-    """The type of data source. Always `stored_completions`."""
-
-    metadata: Optional[Metadata]
-    """Set of 16 key-value pairs that can be attached to an object.
-
-    This can be useful for storing additional information about the object in a
-    structured format, and querying for objects via API or the dashboard.
-
-    Keys are strings with a maximum length of 64 characters. Values are strings with
-    a maximum length of 512 characters.
+    """
+    Whether the eval should expect you to populate the sample namespace (ie, by
+    generating responses off of your data source)
     """
 
 
-DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigStoredCompletions]
+class DataSourceConfigLogs(TypedDict, total=False):
+    type: Required[Literal["logs"]]
+    """The type of data source. Always `logs`."""
+
+    metadata: Dict[str, object]
+    """Metadata filters for the logs data source."""
+
+
+DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigLogs]
 
 
 class TestingCriterionLabelModelInputSimpleInputMessage(TypedDict, total=False):
@@ -86,51 +84,44 @@ class TestingCriterionLabelModelInputSimpleInputMessage(TypedDict, total=False):
     """The role of the message (e.g. "system", "assistant", "user")."""
 
 
-class TestingCriterionLabelModelInputInputMessageContent(TypedDict, total=False):
+class TestingCriterionLabelModelInputEvalItemContentOutputText(TypedDict, total=False):
     text: Required[str]
-    """The text content."""
-
-    type: Required[Literal["input_text"]]
-    """The type of content, which is always `input_text`."""
-
-
-class TestingCriterionLabelModelInputInputMessage(TypedDict, total=False):
-    content: Required[TestingCriterionLabelModelInputInputMessageContent]
-
-    role: Required[Literal["user", "system", "developer"]]
-    """The role of the message. One of `user`, `system`, or `developer`."""
-
-    type: Required[Literal["message"]]
-    """The type of item, which is always `message`."""
-
-
-class TestingCriterionLabelModelInputOutputMessageContent(TypedDict, total=False):
-    text: Required[str]
-    """The text content."""
+    """The text output from the model."""
 
     type: Required[Literal["output_text"]]
-    """The type of content, which is always `output_text`."""
+    """The type of the output text. Always `output_text`."""
 
 
-class TestingCriterionLabelModelInputOutputMessage(TypedDict, total=False):
-    content: Required[TestingCriterionLabelModelInputOutputMessageContent]
+TestingCriterionLabelModelInputEvalItemContent: TypeAlias = Union[
+    str, ResponseInputTextParam, TestingCriterionLabelModelInputEvalItemContentOutputText
+]
 
-    role: Required[Literal["assistant"]]
-    """The role of the message. Must be `assistant` for output."""
 
-    type: Required[Literal["message"]]
-    """The type of item, which is always `message`."""
+class TestingCriterionLabelModelInputEvalItem(TypedDict, total=False):
+    content: Required[TestingCriterionLabelModelInputEvalItemContent]
+    """Text inputs to the model - can contain template strings."""
+
+    role: Required[Literal["user", "assistant", "system", "developer"]]
+    """The role of the message input.
+
+    One of `user`, `assistant`, `system`, or `developer`.
+    """
+
+    type: Literal["message"]
+    """The type of the message input. Always `message`."""
 
 
 TestingCriterionLabelModelInput: TypeAlias = Union[
-    TestingCriterionLabelModelInputSimpleInputMessage,
-    TestingCriterionLabelModelInputInputMessage,
-    TestingCriterionLabelModelInputOutputMessage,
+    TestingCriterionLabelModelInputSimpleInputMessage, TestingCriterionLabelModelInputEvalItem
 ]
 
 
 class TestingCriterionLabelModel(TypedDict, total=False):
     input: Required[Iterable[TestingCriterionLabelModelInput]]
+    """A list of chat messages forming the prompt or context.
+
+    May include variable references to the "item" namespace, ie {{item.name}}.
+    """
 
     labels: Required[List[str]]
     """The labels to classify to each item in the evaluation."""
@@ -148,6 +139,77 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     """The object type, which is always `label_model`."""
 
 
+class TestingCriterionPython(TypedDict, total=False):
+    name: Required[str]
+    """The name of the grader."""
+
+    source: Required[str]
+    """The source code of the python script."""
+
+    type: Required[Literal["python"]]
+    """The object type, which is always `python`."""
+
+    image_tag: str
+    """The image tag to use for the python script."""
+
+    pass_threshold: float
+    """The threshold for the score."""
+
+
+class TestingCriterionScoreModelInputContentOutputText(TypedDict, total=False):
+    text: Required[str]
+    """The text output from the model."""
+
+    type: Required[Literal["output_text"]]
+    """The type of the output text. Always `output_text`."""
+
+
+TestingCriterionScoreModelInputContent: TypeAlias = Union[
+    str, ResponseInputTextParam, TestingCriterionScoreModelInputContentOutputText
+]
+
+
+class TestingCriterionScoreModelInput(TypedDict, total=False):
+    content: Required[TestingCriterionScoreModelInputContent]
+    """Text inputs to the model - can contain template strings."""
+
+    role: Required[Literal["user", "assistant", "system", "developer"]]
+    """The role of the message input.
+
+    One of `user`, `assistant`, `system`, or `developer`.
+    """
+
+    type: Literal["message"]
+    """The type of the message input. Always `message`."""
+
+
+class TestingCriterionScoreModel(TypedDict, total=False):
+    input: Required[Iterable[TestingCriterionScoreModelInput]]
+    """The input text. This may include template strings."""
+
+    model: Required[str]
+    """The model to use for the evaluation."""
+
+    name: Required[str]
+    """The name of the grader."""
+
+    type: Required[Literal["score_model"]]
+    """The object type, which is always `score_model`."""
+
+    pass_threshold: float
+    """The threshold for the score."""
+
+    range: Iterable[float]
+    """The range of the score. Defaults to `[0, 1]`."""
+
+    sampling_params: object
+    """The sampling parameters for the model."""
+
+
 TestingCriterion: TypeAlias = Union[
-    TestingCriterionLabelModel, EvalStringCheckGraderParam, EvalTextSimilarityGraderParam
+    TestingCriterionLabelModel,
+    EvalStringCheckGraderParam,
+    EvalTextSimilarityGraderParam,
+    TestingCriterionPython,
+    TestingCriterionScoreModel,
 ]

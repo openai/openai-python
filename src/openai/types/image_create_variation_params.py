@@ -25,10 +25,7 @@ class ImageCreateVariationParams(TypedDict, total=False):
     """
 
     n: Optional[int]
-    """The number of images to generate.
-
-    Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
-    """
+    """The number of images to generate. Must be between 1 and 10."""
 
     response_format: Optional[Literal["url", "b64_json"]]
     """The format in which the generated images are returned.

@@ -23,5 +23,5 @@ class RunListParams(TypedDict, total=False):
     status: Literal["queued", "in_progress", "completed", "canceled", "failed"]
     """Filter runs by status.
 
-    Use "queued" | "in_progress" | "failed" | "completed" | "canceled".
+    One of `queued` | `in_progress` | `failed` | `completed` | `canceled`.
     """

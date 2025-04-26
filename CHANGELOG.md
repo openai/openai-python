@@ -1,5 +1,30 @@
 # Changelog
 
+## 1.76.0 (2025-04-23)
+
+Full Changelog: [v1.75.0...v1.76.0](https://github.com/openai/openai-python/compare/v1.75.0...v1.76.0)
+
+### Features
+
+* **api:** adding new image model support ([74d7692](https://github.com/openai/openai-python/commit/74d7692e94c9dca96db8793809d75631c22dbb87))
+
+
+### Bug Fixes
+
+* **pydantic v1:** more robust `ModelField.annotation` check ([#2163](https://github.com/openai/openai-python/issues/2163)) ([7351b12](https://github.com/openai/openai-python/commit/7351b12bc981f56632b92342d9ef26f6fb28d540))
+* **pydantic v1:** more robust ModelField.annotation check ([eba7856](https://github.com/openai/openai-python/commit/eba7856db55afb8cb44376a0248587549f7bc65f))
+
+
+### Chores
+
+* **ci:** add timeout thresholds for CI jobs ([0997211](https://github.com/openai/openai-python/commit/09972119df5dd4c7c8db137c721364787e22d4c6))
+* **internal:** fix list file params ([da2113c](https://github.com/openai/openai-python/commit/da2113c60b50b4438459325fcd38d55df3f63d8e))
+* **internal:** import reformatting ([b425fb9](https://github.com/openai/openai-python/commit/b425fb906f62550c3669b09b9d8575f3d4d8496b))
+* **internal:** minor formatting changes ([aed1d76](https://github.com/openai/openai-python/commit/aed1d767898324cf90328db329e04e89a77579c3))
+* **internal:** refactor retries to not use recursion ([8cb8cfa](https://github.com/openai/openai-python/commit/8cb8cfab48a4fed70a756ce50036e7e56e1f9f87))
+* **internal:** update models test ([870ad4e](https://github.com/openai/openai-python/commit/870ad4ed3a284d75f44b825503750129284c7906))
+* update completion parse signature ([a44016c](https://github.com/openai/openai-python/commit/a44016c64cdefe404e97592808ed3c25411ab27b))
+
 ## 1.75.0 (2025-04-16)
 
 Full Changelog: [v1.74.1...v1.75.0](https://github.com/openai/openai-python/compare/v1.74.1...v1.75.0)
