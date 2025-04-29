@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.76.1 (2025-04-29)
+
+Full Changelog: [v1.76.0...v1.76.1](https://github.com/openai/openai-python/compare/v1.76.0...v1.76.1)
+
+### Chores
+
+* broadly detect json family of content-type headers ([b4b1b08](https://github.com/openai/openai-python/commit/b4b1b086b512eecc0ada7fc1efa45eb506982f13))
+* **ci:** only use depot for staging repos ([35312d8](https://github.com/openai/openai-python/commit/35312d80e6bbc1a61d06ad253af9a713b5ef040c))
+* **ci:** run on more branches and use depot runners ([a6a45d4](https://github.com/openai/openai-python/commit/a6a45d4af8a4d904b37573a9b223d56106b4887d))
+
 ## 1.76.0 (2025-04-23)
 
 Full Changelog: [v1.75.0...v1.76.0](https://github.com/openai/openai-python/compare/v1.75.0...v1.76.0)
