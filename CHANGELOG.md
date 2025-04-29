@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.76.2 (2025-04-29)
+
+Full Changelog: [v1.76.1...v1.76.2](https://github.com/openai/openai-python/compare/v1.76.1...v1.76.2)
+
+### Chores
+
+* **api:** API spec cleanup ([0a4d3e2](https://github.com/openai/openai-python/commit/0a4d3e2b495d22dd42ce1773b870554c64f9b3b2))
+
 ## 1.76.1 (2025-04-29)
 
 Full Changelog: [v1.76.0...v1.76.1](https://github.com/openai/openai-python/compare/v1.76.0...v1.76.1)
