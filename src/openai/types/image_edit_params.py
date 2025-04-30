@@ -61,7 +61,7 @@ class ImageEditParams(TypedDict, total=False):
     `gpt-image-1` will always return base64-encoded images.
     """
 
-    size: Optional[Literal["256x256", "512x512", "1024x1024"]]
+    size: Optional[Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512"]]
     """The size of the generated images.
 
     Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or

@@ -124,7 +124,9 @@ class Images(SyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
+        size: Optional[
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512"]
+        ] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -434,7 +436,9 @@ class AsyncImages(AsyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
+        size: Optional[
+            Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512"]
+        ] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
