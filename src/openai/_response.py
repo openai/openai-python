@@ -237,7 +237,7 @@ class BaseAPIResponse(Generic[R]):
         # split is required to handle cases where additional information is included
         # in the response, e.g. application/json; charset=utf-8
         content_type, *_ = response.headers.get("content-type", "*").split(";")
-        if content_type != "application/json":
+        if not content_type.endswith("json"):
             if is_basemodel(cast_to):
                 try:
                     data = response.json()
