@@ -13,6 +13,6 @@ from ..chat.chat_completion_tool_param import ChatCompletionToolParam
 
 __all__ = ["ToolParam"]
 
-ToolParam: TypeAlias = Union[FileSearchToolParam, FunctionToolParam, ComputerToolParam, WebSearchToolParam]
+ToolParam: TypeAlias = Union[FileSearchToolParam, FunctionToolParam, WebSearchToolParam, ComputerToolParam]
 
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionToolParam]

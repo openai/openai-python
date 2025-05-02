@@ -9,7 +9,7 @@ __all__ = ["ResponseInputImage"]
 
 
 class ResponseInputImage(BaseModel):
-    detail: Literal["high", "low", "auto"]
+    detail: Literal["low", "high", "auto"]
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, or `auto`. Defaults to `auto`.
