@@ -28,6 +28,12 @@ class ResponseReasoningItem(BaseModel):
     type: Literal["reasoning"]
     """The type of the object. Always `reasoning`."""
 
+    encrypted_content: Optional[str] = None
+    """
+    The encrypted content of the reasoning item - populated when a response is
+    generated with `reasoning.encrypted_content` in the `include` parameter.
+    """
+
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the item.
 

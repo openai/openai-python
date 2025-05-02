@@ -119,12 +119,14 @@ class Images(SyncAPIResource):
         *,
         image: Union[FileTypes, List[FileTypes]],
         prompt: str,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
         mask: FileTypes | NotGiven = NOT_GIVEN,
         model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
+        | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -139,13 +141,24 @@ class Images(SyncAPIResource):
         This endpoint only supports `gpt-image-1` and `dall-e-2`.
 
         Args:
-          image: The image(s) to edit. Must be a supported image file or an array of images. For
-              `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              25MB. For `dall-e-2`, you can only provide one image, and it should be a square
-              `png` file less than 4MB.
+          image: The image(s) to edit. Must be a supported image file or an array of images.
+
+              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
+              25MB. You can provide up to 16 images.
+
+              For `dall-e-2`, you can only provide one image, and it should be a square `png`
+              file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
               characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+
+          background: Allows to set transparency for the background of the generated image(s). This
+              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
+              `opaque` or `auto` (default value). When `auto` is used, the model will
+              automatically determine the best background for the image.
+
+              If `transparent`, the output format needs to support transparency, so it should
+              be set to either `png` (default value) or `webp`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -187,6 +200,7 @@ class Images(SyncAPIResource):
             {
                 "image": image,
                 "prompt": prompt,
+                "background": background,
                 "mask": mask,
                 "model": model,
                 "n": n,
@@ -429,12 +443,14 @@ class AsyncImages(AsyncAPIResource):
         *,
         image: Union[FileTypes, List[FileTypes]],
         prompt: str,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
         mask: FileTypes | NotGiven = NOT_GIVEN,
         model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
+        | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -449,13 +465,24 @@ class AsyncImages(AsyncAPIResource):
         This endpoint only supports `gpt-image-1` and `dall-e-2`.
 
         Args:
-          image: The image(s) to edit. Must be a supported image file or an array of images. For
-              `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-              25MB. For `dall-e-2`, you can only provide one image, and it should be a square
-              `png` file less than 4MB.
+          image: The image(s) to edit. Must be a supported image file or an array of images.
+
+              For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
+              25MB. You can provide up to 16 images.
+
+              For `dall-e-2`, you can only provide one image, and it should be a square `png`
+              file less than 4MB.
 
           prompt: A text description of the desired image(s). The maximum length is 1000
               characters for `dall-e-2`, and 32000 characters for `gpt-image-1`.
+
+          background: Allows to set transparency for the background of the generated image(s). This
+              parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
+              `opaque` or `auto` (default value). When `auto` is used, the model will
+              automatically determine the best background for the image.
+
+              If `transparent`, the output format needs to support transparency, so it should
+              be set to either `png` (default value) or `webp`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -497,6 +524,7 @@ class AsyncImages(AsyncAPIResource):
             {
                 "image": image,
                 "prompt": prompt,
+                "background": background,
                 "mask": mask,
                 "model": model,
                 "n": n,

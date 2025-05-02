@@ -33,16 +33,17 @@ class UserLocation(BaseModel):
 
 class WebSearchTool(BaseModel):
     type: Literal["web_search_preview", "web_search_preview_2025_03_11"]
-    """The type of the web search tool. One of:
+    """The type of the web search tool.
 
-    - `web_search_preview`
-    - `web_search_preview_2025_03_11`
+    One of `web_search_preview` or `web_search_preview_2025_03_11`.
     """
 
     search_context_size: Optional[Literal["low", "medium", "high"]] = None
-    """
-    High level guidance for the amount of context window space to use for the
-    search. One of `low`, `medium`, or `high`. `medium` is the default.
+    """High level guidance for the amount of context window space to use for the
+    search.
+
+    One of `low`, `medium`, or `high`. `medium` is the default.
     """
 
     user_location: Optional[UserLocation] = None
+    """The user's location."""

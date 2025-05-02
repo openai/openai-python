@@ -12,10 +12,10 @@ class FunctionTool(BaseModel):
     name: str
     """The name of the function to call."""
 
-    parameters: Dict[str, object]
+    parameters: Optional[Dict[str, object]] = None
     """A JSON schema object describing the parameters of the function."""
 
-    strict: bool
+    strict: Optional[bool] = None
     """Whether to enforce strict parameter validation. Default `true`."""
 
     type: Literal["function"]

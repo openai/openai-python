@@ -12,4 +12,4 @@ from .file_search_tool_param import FileSearchToolParam
 
 __all__ = ["ToolParam"]
 
-ToolParam: TypeAlias = Union[FileSearchToolParam, FunctionToolParam, ComputerToolParam, WebSearchToolParam]
+ToolParam: TypeAlias = Union[FileSearchToolParam, FunctionToolParam, WebSearchToolParam, ComputerToolParam]

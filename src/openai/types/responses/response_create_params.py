@@ -56,6 +56,11 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     - `message.input_image.image_url`: Include image urls from the input message.
     - `computer_call_output.output.image_url`: Include image urls from the computer
       call output.
+    - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+      tokens in reasoning item outputs. This enables reasoning items to be used in
+      multi-turn conversations when using the Responses API statelessly (like when
+      the `store` parameter is set to `false`, or when an organization is enrolled
+      in the zero data retention program).
     """
 
     instructions: Optional[str]
