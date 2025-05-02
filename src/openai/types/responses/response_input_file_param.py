@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["ResponseInputFileParam"]
@@ -14,7 +15,7 @@ class ResponseInputFileParam(TypedDict, total=False):
     file_data: str
     """The content of the file to be sent to the model."""
 
-    file_id: str
+    file_id: Optional[str]
     """The ID of the file to be sent to the model."""
 
     filename: str

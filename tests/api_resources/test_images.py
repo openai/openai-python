@@ -73,6 +73,7 @@ class TestImages:
         image = client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
+            background="transparent",
             mask=b"raw file contents",
             model="string",
             n=1,
@@ -218,6 +219,7 @@ class TestAsyncImages:
         image = await async_client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
+            background="transparent",
             mask=b"raw file contents",
             model="string",
             n=1,

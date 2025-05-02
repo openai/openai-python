@@ -12,5 +12,5 @@ from .file_search_tool import FileSearchTool
 __all__ = ["Tool"]
 
 Tool: TypeAlias = Annotated[
-    Union[FileSearchTool, FunctionTool, ComputerTool, WebSearchTool], PropertyInfo(discriminator="type")
+    Union[FileSearchTool, FunctionTool, WebSearchTool, ComputerTool], PropertyInfo(discriminator="type")
 ]
