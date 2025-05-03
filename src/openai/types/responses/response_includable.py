@@ -5,5 +5,8 @@ from typing_extensions import Literal, TypeAlias
 __all__ = ["ResponseIncludable"]
 
 ResponseIncludable: TypeAlias = Literal[
-    "file_search_call.results", "message.input_image.image_url", "computer_call_output.output.image_url"
+    "file_search_call.results",
+    "message.input_image.image_url",
+    "computer_call_output.output.image_url",
+    "reasoning.encrypted_content",
 ]

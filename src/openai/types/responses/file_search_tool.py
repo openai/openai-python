@@ -9,7 +9,7 @@ from ..shared.comparison_filter import ComparisonFilter
 
 __all__ = ["FileSearchTool", "Filters", "RankingOptions"]
 
-Filters: TypeAlias = Union[ComparisonFilter, CompoundFilter]
+Filters: TypeAlias = Union[ComparisonFilter, CompoundFilter, None]
 
 
 class RankingOptions(BaseModel):
@@ -17,10 +17,10 @@ class RankingOptions(BaseModel):
     """The ranker to use for the file search."""
 
     score_threshold: Optional[float] = None
-    """
-    The score threshold for the file search, a number between 0 and 1. Numbers
-    closer to 1 will attempt to return only the most relevant results, but may
-    return fewer results.
+    """The score threshold for the file search, a number between 0 and 1.
+
+    Numbers closer to 1 will attempt to return only the most relevant results, but
+    may return fewer results.
     """
 
 
@@ -32,7 +32,7 @@ class FileSearchTool(BaseModel):
     """The IDs of the vector stores to search."""
 
     filters: Optional[Filters] = None
-    """A filter to apply based on file attributes."""
+    """A filter to apply."""
 
     max_num_results: Optional[int] = None
     """The maximum number of results to return.

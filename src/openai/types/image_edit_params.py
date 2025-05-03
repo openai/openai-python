@@ -13,12 +13,13 @@ __all__ = ["ImageEditParams"]
 
 class ImageEditParams(TypedDict, total=False):
     image: Required[Union[FileTypes, List[FileTypes]]]
-    """The image(s) to edit.
+    """The image(s) to edit. Must be a supported image file or an array of images.
 
-    Must be a supported image file or an array of images. For `gpt-image-1`, each
-    image should be a `png`, `webp`, or `jpg` file less than 25MB. For `dall-e-2`,
-    you can only provide one image, and it should be a square `png` file less than
-    4MB.
+    For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
+    25MB. You can provide up to 16 images.
+
+    For `dall-e-2`, you can only provide one image, and it should be a square `png`
+    file less than 4MB.
     """
 
     prompt: Required[str]
@@ -26,6 +27,17 @@ class ImageEditParams(TypedDict, total=False):
 
     The maximum length is 1000 characters for `dall-e-2`, and 32000 characters for
     `gpt-image-1`.
+    """
+
+    background: Optional[Literal["transparent", "opaque", "auto"]]
+    """Allows to set transparency for the background of the generated image(s).
+
+    This parameter is only supported for `gpt-image-1`. Must be one of
+    `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
+    model will automatically determine the best background for the image.
+
+    If `transparent`, the output format needs to support transparency, so it should
+    be set to either `png` (default value) or `webp`.
     """
 
     mask: FileTypes
@@ -61,7 +73,7 @@ class ImageEditParams(TypedDict, total=False):
     `gpt-image-1` will always return base64-encoded images.
     """
 
-    size: Optional[Literal["256x256", "512x512", "1024x1024"]]
+    size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
     """The size of the generated images.
 
     Must be one of `1024x1024`, `1536x1024` (landscape), `1024x1536` (portrait), or
