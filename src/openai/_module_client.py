@@ -1,113 +1,133 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
 from typing_extensions import override
 
-from . import resources, _load_client
+if TYPE_CHECKING:
+    from .resources.files import Files
+    from .resources.images import Images
+    from .resources.models import Models
+    from .resources.batches import Batches
+    from .resources.beta.beta import Beta
+    from .resources.chat.chat import Chat
+    from .resources.embeddings import Embeddings
+    from .resources.audio.audio import Audio
+    from .resources.completions import Completions
+    from .resources.evals.evals import Evals
+    from .resources.moderations import Moderations
+    from .resources.uploads.uploads import Uploads
+    from .resources.responses.responses import Responses
+    from .resources.fine_tuning.fine_tuning import FineTuning
+    from .resources.vector_stores.vector_stores import VectorStores
+
+from . import _load_client
 from ._utils import LazyProxy
 
 
-class ChatProxy(LazyProxy[resources.Chat]):
+class ChatProxy(LazyProxy["Chat"]):
     @override
-    def __load__(self) -> resources.Chat:
+    def __load__(self) -> Chat:
         return _load_client().chat
 
 
-class BetaProxy(LazyProxy[resources.Beta]):
+class BetaProxy(LazyProxy["Beta"]):
     @override
-    def __load__(self) -> resources.Beta:
+    def __load__(self) -> Beta:
         return _load_client().beta
 
 
-class FilesProxy(LazyProxy[resources.Files]):
+class FilesProxy(LazyProxy["Files"]):
     @override
-    def __load__(self) -> resources.Files:
+    def __load__(self) -> Files:
         return _load_client().files
 
 
-class AudioProxy(LazyProxy[resources.Audio]):
+class AudioProxy(LazyProxy["Audio"]):
     @override
-    def __load__(self) -> resources.Audio:
+    def __load__(self) -> Audio:
         return _load_client().audio
 
 
-class EvalsProxy(LazyProxy[resources.Evals]):
+class EvalsProxy(LazyProxy["Evals"]):
     @override
-    def __load__(self) -> resources.Evals:
+    def __load__(self) -> Evals:
         return _load_client().evals
 
 
-class ImagesProxy(LazyProxy[resources.Images]):
+class ImagesProxy(LazyProxy["Images"]):
     @override
-    def __load__(self) -> resources.Images:
+    def __load__(self) -> Images:
         return _load_client().images
 
 
-class ModelsProxy(LazyProxy[resources.Models]):
+class ModelsProxy(LazyProxy["Models"]):
     @override
-    def __load__(self) -> resources.Models:
+    def __load__(self) -> Models:
         return _load_client().models
 
 
-class BatchesProxy(LazyProxy[resources.Batches]):
+class BatchesProxy(LazyProxy["Batches"]):
     @override
-    def __load__(self) -> resources.Batches:
+    def __load__(self) -> Batches:
         return _load_client().batches
 
 
-class UploadsProxy(LazyProxy[resources.Uploads]):
+class UploadsProxy(LazyProxy["Uploads"]):
     @override
-    def __load__(self) -> resources.Uploads:
+    def __load__(self) -> Uploads:
         return _load_client().uploads
 
 
-class ResponsesProxy(LazyProxy[resources.Responses]):
+class ResponsesProxy(LazyProxy["Responses"]):
     @override
-    def __load__(self) -> resources.Responses:
+    def __load__(self) -> Responses:
         return _load_client().responses
 
 
-class EmbeddingsProxy(LazyProxy[resources.Embeddings]):
+class EmbeddingsProxy(LazyProxy["Embeddings"]):
     @override
-    def __load__(self) -> resources.Embeddings:
+    def __load__(self) -> Embeddings:
         return _load_client().embeddings
 
 
-class CompletionsProxy(LazyProxy[resources.Completions]):
+class CompletionsProxy(LazyProxy["Completions"]):
     @override
-    def __load__(self) -> resources.Completions:
+    def __load__(self) -> Completions:
         return _load_client().completions
 
 
-class ModerationsProxy(LazyProxy[resources.Moderations]):
+class ModerationsProxy(LazyProxy["Moderations"]):
     @override
-    def __load__(self) -> resources.Moderations:
+    def __load__(self) -> Moderations:
         return _load_client().moderations
 
 
-class FineTuningProxy(LazyProxy[resources.FineTuning]):
+class FineTuningProxy(LazyProxy["FineTuning"]):
     @override
-    def __load__(self) -> resources.FineTuning:
+    def __load__(self) -> FineTuning:
         return _load_client().fine_tuning
 
 
-class VectorStoresProxy(LazyProxy[resources.VectorStores]):
+class VectorStoresProxy(LazyProxy["VectorStores"]):
     @override
-    def __load__(self) -> resources.VectorStores:
+    def __load__(self) -> VectorStores:
         return _load_client().vector_stores
 
 
-chat: resources.Chat = ChatProxy().__as_proxied__()
-beta: resources.Beta = BetaProxy().__as_proxied__()
-files: resources.Files = FilesProxy().__as_proxied__()
-audio: resources.Audio = AudioProxy().__as_proxied__()
-evals: resources.Evals = EvalsProxy().__as_proxied__()
-images: resources.Images = ImagesProxy().__as_proxied__()
-models: resources.Models = ModelsProxy().__as_proxied__()
-batches: resources.Batches = BatchesProxy().__as_proxied__()
-uploads: resources.Uploads = UploadsProxy().__as_proxied__()
-responses: resources.Responses = ResponsesProxy().__as_proxied__()
-embeddings: resources.Embeddings = EmbeddingsProxy().__as_proxied__()
-completions: resources.Completions = CompletionsProxy().__as_proxied__()
-moderations: resources.Moderations = ModerationsProxy().__as_proxied__()
-fine_tuning: resources.FineTuning = FineTuningProxy().__as_proxied__()
-vector_stores: resources.VectorStores = VectorStoresProxy().__as_proxied__()
+chat: Chat = ChatProxy().__as_proxied__()
+beta: Beta = BetaProxy().__as_proxied__()
+files: Files = FilesProxy().__as_proxied__()
+audio: Audio = AudioProxy().__as_proxied__()
+evals: Evals = EvalsProxy().__as_proxied__()
+images: Images = ImagesProxy().__as_proxied__()
+models: Models = ModelsProxy().__as_proxied__()
+batches: Batches = BatchesProxy().__as_proxied__()
+uploads: Uploads = UploadsProxy().__as_proxied__()
+responses: Responses = ResponsesProxy().__as_proxied__()
+embeddings: Embeddings = EmbeddingsProxy().__as_proxied__()
+completions: Completions = CompletionsProxy().__as_proxied__()
+moderations: Moderations = ModerationsProxy().__as_proxied__()
+fine_tuning: FineTuning = FineTuningProxy().__as_proxied__()
+vector_stores: VectorStores = VectorStoresProxy().__as_proxied__()
