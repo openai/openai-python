@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Union, Mapping
+from typing import TYPE_CHECKING, Any, Union, Mapping
 from typing_extensions import Self, override
 
 import httpx
@@ -24,8 +24,8 @@ from ._utils import (
     is_mapping,
     get_async_library,
 )
+from ._compat import cached_property
 from ._version import __version__
-from .resources import files, images, models, batches, embeddings, completions, moderations
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
 from ._base_client import (
@@ -33,37 +33,45 @@ from ._base_client import (
     SyncAPIClient,
     AsyncAPIClient,
 )
-from .resources.beta import beta
-from .resources.chat import chat
-from .resources.audio import audio
-from .resources.evals import evals
-from .resources.uploads import uploads
-from .resources.responses import responses
-from .resources.fine_tuning import fine_tuning
-from .resources.vector_stores import vector_stores
+
+if TYPE_CHECKING:
+    from .resources import (
+        beta,
+        chat,
+        audio,
+        evals,
+        files,
+        images,
+        models,
+        batches,
+        uploads,
+        responses,
+        embeddings,
+        completions,
+        fine_tuning,
+        moderations,
+        vector_stores,
+    )
+    from .resources.files import Files, AsyncFiles
+    from .resources.images import Images, AsyncImages
+    from .resources.models import Models, AsyncModels
+    from .resources.batches import Batches, AsyncBatches
+    from .resources.beta.beta import Beta, AsyncBeta
+    from .resources.chat.chat import Chat, AsyncChat
+    from .resources.embeddings import Embeddings, AsyncEmbeddings
+    from .resources.audio.audio import Audio, AsyncAudio
+    from .resources.completions import Completions, AsyncCompletions
+    from .resources.evals.evals import Evals, AsyncEvals
+    from .resources.moderations import Moderations, AsyncModerations
+    from .resources.uploads.uploads import Uploads, AsyncUploads
+    from .resources.responses.responses import Responses, AsyncResponses
+    from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning
+    from .resources.vector_stores.vector_stores import VectorStores, AsyncVectorStores
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
 
 class OpenAI(SyncAPIClient):
-    completions: completions.Completions
-    chat: chat.Chat
-    embeddings: embeddings.Embeddings
-    files: files.Files
-    images: images.Images
-    audio: audio.Audio
-    moderations: moderations.Moderations
-    models: models.Models
-    fine_tuning: fine_tuning.FineTuning
-    vector_stores: vector_stores.VectorStores
-    beta: beta.Beta
-    batches: batches.Batches
-    uploads: uploads.Uploads
-    responses: responses.Responses
-    evals: evals.Evals
-    with_raw_response: OpenAIWithRawResponse
-    with_streaming_response: OpenAIWithStreamedResponse
-
     # client options
     api_key: str
     organization: str | None
@@ -146,23 +154,103 @@ class OpenAI(SyncAPIClient):
 
         self._default_stream_cls = Stream
 
-        self.completions = completions.Completions(self)
-        self.chat = chat.Chat(self)
-        self.embeddings = embeddings.Embeddings(self)
-        self.files = files.Files(self)
-        self.images = images.Images(self)
-        self.audio = audio.Audio(self)
-        self.moderations = moderations.Moderations(self)
-        self.models = models.Models(self)
-        self.fine_tuning = fine_tuning.FineTuning(self)
-        self.vector_stores = vector_stores.VectorStores(self)
-        self.beta = beta.Beta(self)
-        self.batches = batches.Batches(self)
-        self.uploads = uploads.Uploads(self)
-        self.responses = responses.Responses(self)
-        self.evals = evals.Evals(self)
-        self.with_raw_response = OpenAIWithRawResponse(self)
-        self.with_streaming_response = OpenAIWithStreamedResponse(self)
+    @cached_property
+    def completions(self) -> Completions:
+        from .resources.completions import Completions
+
+        return Completions(self)
+
+    @cached_property
+    def chat(self) -> Chat:
+        from .resources.chat import Chat
+
+        return Chat(self)
+
+    @cached_property
+    def embeddings(self) -> Embeddings:
+        from .resources.embeddings import Embeddings
+
+        return Embeddings(self)
+
+    @cached_property
+    def files(self) -> Files:
+        from .resources.files import Files
+
+        return Files(self)
+
+    @cached_property
+    def images(self) -> Images:
+        from .resources.images import Images
+
+        return Images(self)
+
+    @cached_property
+    def audio(self) -> Audio:
+        from .resources.audio import Audio
+
+        return Audio(self)
+
+    @cached_property
+    def moderations(self) -> Moderations:
+        from .resources.moderations import Moderations
+
+        return Moderations(self)
+
+    @cached_property
+    def models(self) -> Models:
+        from .resources.models import Models
+
+        return Models(self)
+
+    @cached_property
+    def fine_tuning(self) -> FineTuning:
+        from .resources.fine_tuning import FineTuning
+
+        return FineTuning(self)
+
+    @cached_property
+    def vector_stores(self) -> VectorStores:
+        from .resources.vector_stores import VectorStores
+
+        return VectorStores(self)
+
+    @cached_property
+    def beta(self) -> Beta:
+        from .resources.beta import Beta
+
+        return Beta(self)
+
+    @cached_property
+    def batches(self) -> Batches:
+        from .resources.batches import Batches
+
+        return Batches(self)
+
+    @cached_property
+    def uploads(self) -> Uploads:
+        from .resources.uploads import Uploads
+
+        return Uploads(self)
+
+    @cached_property
+    def responses(self) -> Responses:
+        from .resources.responses import Responses
+
+        return Responses(self)
+
+    @cached_property
+    def evals(self) -> Evals:
+        from .resources.evals import Evals
+
+        return Evals(self)
+
+    @cached_property
+    def with_raw_response(self) -> OpenAIWithRawResponse:
+        return OpenAIWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> OpenAIWithStreamedResponse:
+        return OpenAIWithStreamedResponse(self)
 
     @property
     @override
@@ -279,24 +367,6 @@ class OpenAI(SyncAPIClient):
 
 
 class AsyncOpenAI(AsyncAPIClient):
-    completions: completions.AsyncCompletions
-    chat: chat.AsyncChat
-    embeddings: embeddings.AsyncEmbeddings
-    files: files.AsyncFiles
-    images: images.AsyncImages
-    audio: audio.AsyncAudio
-    moderations: moderations.AsyncModerations
-    models: models.AsyncModels
-    fine_tuning: fine_tuning.AsyncFineTuning
-    vector_stores: vector_stores.AsyncVectorStores
-    beta: beta.AsyncBeta
-    batches: batches.AsyncBatches
-    uploads: uploads.AsyncUploads
-    responses: responses.AsyncResponses
-    evals: evals.AsyncEvals
-    with_raw_response: AsyncOpenAIWithRawResponse
-    with_streaming_response: AsyncOpenAIWithStreamedResponse
-
     # client options
     api_key: str
     organization: str | None
@@ -379,23 +449,103 @@ class AsyncOpenAI(AsyncAPIClient):
 
         self._default_stream_cls = AsyncStream
 
-        self.completions = completions.AsyncCompletions(self)
-        self.chat = chat.AsyncChat(self)
-        self.embeddings = embeddings.AsyncEmbeddings(self)
-        self.files = files.AsyncFiles(self)
-        self.images = images.AsyncImages(self)
-        self.audio = audio.AsyncAudio(self)
-        self.moderations = moderations.AsyncModerations(self)
-        self.models = models.AsyncModels(self)
-        self.fine_tuning = fine_tuning.AsyncFineTuning(self)
-        self.vector_stores = vector_stores.AsyncVectorStores(self)
-        self.beta = beta.AsyncBeta(self)
-        self.batches = batches.AsyncBatches(self)
-        self.uploads = uploads.AsyncUploads(self)
-        self.responses = responses.AsyncResponses(self)
-        self.evals = evals.AsyncEvals(self)
-        self.with_raw_response = AsyncOpenAIWithRawResponse(self)
-        self.with_streaming_response = AsyncOpenAIWithStreamedResponse(self)
+    @cached_property
+    def completions(self) -> AsyncCompletions:
+        from .resources.completions import AsyncCompletions
+
+        return AsyncCompletions(self)
+
+    @cached_property
+    def chat(self) -> AsyncChat:
+        from .resources.chat import AsyncChat
+
+        return AsyncChat(self)
+
+    @cached_property
+    def embeddings(self) -> AsyncEmbeddings:
+        from .resources.embeddings import AsyncEmbeddings
+
+        return AsyncEmbeddings(self)
+
+    @cached_property
+    def files(self) -> AsyncFiles:
+        from .resources.files import AsyncFiles
+
+        return AsyncFiles(self)
+
+    @cached_property
+    def images(self) -> AsyncImages:
+        from .resources.images import AsyncImages
+
+        return AsyncImages(self)
+
+    @cached_property
+    def audio(self) -> AsyncAudio:
+        from .resources.audio import AsyncAudio
+
+        return AsyncAudio(self)
+
+    @cached_property
+    def moderations(self) -> AsyncModerations:
+        from .resources.moderations import AsyncModerations
+
+        return AsyncModerations(self)
+
+    @cached_property
+    def models(self) -> AsyncModels:
+        from .resources.models import AsyncModels
+
+        return AsyncModels(self)
+
+    @cached_property
+    def fine_tuning(self) -> AsyncFineTuning:
+        from .resources.fine_tuning import AsyncFineTuning
+
+        return AsyncFineTuning(self)
+
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStores:
+        from .resources.vector_stores import AsyncVectorStores
+
+        return AsyncVectorStores(self)
+
+    @cached_property
+    def beta(self) -> AsyncBeta:
+        from .resources.beta import AsyncBeta
+
+        return AsyncBeta(self)
+
+    @cached_property
+    def batches(self) -> AsyncBatches:
+        from .resources.batches import AsyncBatches
+
+        return AsyncBatches(self)
+
+    @cached_property
+    def uploads(self) -> AsyncUploads:
+        from .resources.uploads import AsyncUploads
+
+        return AsyncUploads(self)
+
+    @cached_property
+    def responses(self) -> AsyncResponses:
+        from .resources.responses import AsyncResponses
+
+        return AsyncResponses(self)
+
+    @cached_property
+    def evals(self) -> AsyncEvals:
+        from .resources.evals import AsyncEvals
+
+        return AsyncEvals(self)
+
+    @cached_property
+    def with_raw_response(self) -> AsyncOpenAIWithRawResponse:
+        return AsyncOpenAIWithRawResponse(self)
+
+    @cached_property
+    def with_streaming_response(self) -> AsyncOpenAIWithStreamedResponse:
+        return AsyncOpenAIWithStreamedResponse(self)
 
     @property
     @override
@@ -512,79 +662,391 @@ class AsyncOpenAI(AsyncAPIClient):
 
 
 class OpenAIWithRawResponse:
+    _client: OpenAI
+
     def __init__(self, client: OpenAI) -> None:
-        self.completions = completions.CompletionsWithRawResponse(client.completions)
-        self.chat = chat.ChatWithRawResponse(client.chat)
-        self.embeddings = embeddings.EmbeddingsWithRawResponse(client.embeddings)
-        self.files = files.FilesWithRawResponse(client.files)
-        self.images = images.ImagesWithRawResponse(client.images)
-        self.audio = audio.AudioWithRawResponse(client.audio)
-        self.moderations = moderations.ModerationsWithRawResponse(client.moderations)
-        self.models = models.ModelsWithRawResponse(client.models)
-        self.fine_tuning = fine_tuning.FineTuningWithRawResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.VectorStoresWithRawResponse(client.vector_stores)
-        self.beta = beta.BetaWithRawResponse(client.beta)
-        self.batches = batches.BatchesWithRawResponse(client.batches)
-        self.uploads = uploads.UploadsWithRawResponse(client.uploads)
-        self.responses = responses.ResponsesWithRawResponse(client.responses)
-        self.evals = evals.EvalsWithRawResponse(client.evals)
+        self._client = client
+
+    @cached_property
+    def completions(self) -> completions.CompletionsWithRawResponse:
+        from .resources.completions import CompletionsWithRawResponse
+
+        return CompletionsWithRawResponse(self._client.completions)
+
+    @cached_property
+    def chat(self) -> chat.ChatWithRawResponse:
+        from .resources.chat import ChatWithRawResponse
+
+        return ChatWithRawResponse(self._client.chat)
+
+    @cached_property
+    def embeddings(self) -> embeddings.EmbeddingsWithRawResponse:
+        from .resources.embeddings import EmbeddingsWithRawResponse
+
+        return EmbeddingsWithRawResponse(self._client.embeddings)
+
+    @cached_property
+    def files(self) -> files.FilesWithRawResponse:
+        from .resources.files import FilesWithRawResponse
+
+        return FilesWithRawResponse(self._client.files)
+
+    @cached_property
+    def images(self) -> images.ImagesWithRawResponse:
+        from .resources.images import ImagesWithRawResponse
+
+        return ImagesWithRawResponse(self._client.images)
+
+    @cached_property
+    def audio(self) -> audio.AudioWithRawResponse:
+        from .resources.audio import AudioWithRawResponse
+
+        return AudioWithRawResponse(self._client.audio)
+
+    @cached_property
+    def moderations(self) -> moderations.ModerationsWithRawResponse:
+        from .resources.moderations import ModerationsWithRawResponse
+
+        return ModerationsWithRawResponse(self._client.moderations)
+
+    @cached_property
+    def models(self) -> models.ModelsWithRawResponse:
+        from .resources.models import ModelsWithRawResponse
+
+        return ModelsWithRawResponse(self._client.models)
+
+    @cached_property
+    def fine_tuning(self) -> fine_tuning.FineTuningWithRawResponse:
+        from .resources.fine_tuning import FineTuningWithRawResponse
+
+        return FineTuningWithRawResponse(self._client.fine_tuning)
+
+    @cached_property
+    def vector_stores(self) -> vector_stores.VectorStoresWithRawResponse:
+        from .resources.vector_stores import VectorStoresWithRawResponse
+
+        return VectorStoresWithRawResponse(self._client.vector_stores)
+
+    @cached_property
+    def beta(self) -> beta.BetaWithRawResponse:
+        from .resources.beta import BetaWithRawResponse
+
+        return BetaWithRawResponse(self._client.beta)
+
+    @cached_property
+    def batches(self) -> batches.BatchesWithRawResponse:
+        from .resources.batches import BatchesWithRawResponse
+
+        return BatchesWithRawResponse(self._client.batches)
+
+    @cached_property
+    def uploads(self) -> uploads.UploadsWithRawResponse:
+        from .resources.uploads import UploadsWithRawResponse
+
+        return UploadsWithRawResponse(self._client.uploads)
+
+    @cached_property
+    def responses(self) -> responses.ResponsesWithRawResponse:
+        from .resources.responses import ResponsesWithRawResponse
+
+        return ResponsesWithRawResponse(self._client.responses)
+
+    @cached_property
+    def evals(self) -> evals.EvalsWithRawResponse:
+        from .resources.evals import EvalsWithRawResponse
+
+        return EvalsWithRawResponse(self._client.evals)
 
 
 class AsyncOpenAIWithRawResponse:
+    _client: AsyncOpenAI
+
     def __init__(self, client: AsyncOpenAI) -> None:
-        self.completions = completions.AsyncCompletionsWithRawResponse(client.completions)
-        self.chat = chat.AsyncChatWithRawResponse(client.chat)
-        self.embeddings = embeddings.AsyncEmbeddingsWithRawResponse(client.embeddings)
-        self.files = files.AsyncFilesWithRawResponse(client.files)
-        self.images = images.AsyncImagesWithRawResponse(client.images)
-        self.audio = audio.AsyncAudioWithRawResponse(client.audio)
-        self.moderations = moderations.AsyncModerationsWithRawResponse(client.moderations)
-        self.models = models.AsyncModelsWithRawResponse(client.models)
-        self.fine_tuning = fine_tuning.AsyncFineTuningWithRawResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.AsyncVectorStoresWithRawResponse(client.vector_stores)
-        self.beta = beta.AsyncBetaWithRawResponse(client.beta)
-        self.batches = batches.AsyncBatchesWithRawResponse(client.batches)
-        self.uploads = uploads.AsyncUploadsWithRawResponse(client.uploads)
-        self.responses = responses.AsyncResponsesWithRawResponse(client.responses)
-        self.evals = evals.AsyncEvalsWithRawResponse(client.evals)
+        self._client = client
+
+    @cached_property
+    def completions(self) -> completions.AsyncCompletionsWithRawResponse:
+        from .resources.completions import AsyncCompletionsWithRawResponse
+
+        return AsyncCompletionsWithRawResponse(self._client.completions)
+
+    @cached_property
+    def chat(self) -> chat.AsyncChatWithRawResponse:
+        from .resources.chat import AsyncChatWithRawResponse
+
+        return AsyncChatWithRawResponse(self._client.chat)
+
+    @cached_property
+    def embeddings(self) -> embeddings.AsyncEmbeddingsWithRawResponse:
+        from .resources.embeddings import AsyncEmbeddingsWithRawResponse
+
+        return AsyncEmbeddingsWithRawResponse(self._client.embeddings)
+
+    @cached_property
+    def files(self) -> files.AsyncFilesWithRawResponse:
+        from .resources.files import AsyncFilesWithRawResponse
+
+        return AsyncFilesWithRawResponse(self._client.files)
+
+    @cached_property
+    def images(self) -> images.AsyncImagesWithRawResponse:
+        from .resources.images import AsyncImagesWithRawResponse
+
+        return AsyncImagesWithRawResponse(self._client.images)
+
+    @cached_property
+    def audio(self) -> audio.AsyncAudioWithRawResponse:
+        from .resources.audio import AsyncAudioWithRawResponse
+
+        return AsyncAudioWithRawResponse(self._client.audio)
+
+    @cached_property
+    def moderations(self) -> moderations.AsyncModerationsWithRawResponse:
+        from .resources.moderations import AsyncModerationsWithRawResponse
+
+        return AsyncModerationsWithRawResponse(self._client.moderations)
+
+    @cached_property
+    def models(self) -> models.AsyncModelsWithRawResponse:
+        from .resources.models import AsyncModelsWithRawResponse
+
+        return AsyncModelsWithRawResponse(self._client.models)
+
+    @cached_property
+    def fine_tuning(self) -> fine_tuning.AsyncFineTuningWithRawResponse:
+        from .resources.fine_tuning import AsyncFineTuningWithRawResponse
+
+        return AsyncFineTuningWithRawResponse(self._client.fine_tuning)
+
+    @cached_property
+    def vector_stores(self) -> vector_stores.AsyncVectorStoresWithRawResponse:
+        from .resources.vector_stores import AsyncVectorStoresWithRawResponse
+
+        return AsyncVectorStoresWithRawResponse(self._client.vector_stores)
+
+    @cached_property
+    def beta(self) -> beta.AsyncBetaWithRawResponse:
+        from .resources.beta import AsyncBetaWithRawResponse
+
+        return AsyncBetaWithRawResponse(self._client.beta)
+
+    @cached_property
+    def batches(self) -> batches.AsyncBatchesWithRawResponse:
+        from .resources.batches import AsyncBatchesWithRawResponse
+
+        return AsyncBatchesWithRawResponse(self._client.batches)
+
+    @cached_property
+    def uploads(self) -> uploads.AsyncUploadsWithRawResponse:
+        from .resources.uploads import AsyncUploadsWithRawResponse
+
+        return AsyncUploadsWithRawResponse(self._client.uploads)
+
+    @cached_property
+    def responses(self) -> responses.AsyncResponsesWithRawResponse:
+        from .resources.responses import AsyncResponsesWithRawResponse
+
+        return AsyncResponsesWithRawResponse(self._client.responses)
+
+    @cached_property
+    def evals(self) -> evals.AsyncEvalsWithRawResponse:
+        from .resources.evals import AsyncEvalsWithRawResponse
+
+        return AsyncEvalsWithRawResponse(self._client.evals)
 
 
 class OpenAIWithStreamedResponse:
+    _client: OpenAI
+
     def __init__(self, client: OpenAI) -> None:
-        self.completions = completions.CompletionsWithStreamingResponse(client.completions)
-        self.chat = chat.ChatWithStreamingResponse(client.chat)
-        self.embeddings = embeddings.EmbeddingsWithStreamingResponse(client.embeddings)
-        self.files = files.FilesWithStreamingResponse(client.files)
-        self.images = images.ImagesWithStreamingResponse(client.images)
-        self.audio = audio.AudioWithStreamingResponse(client.audio)
-        self.moderations = moderations.ModerationsWithStreamingResponse(client.moderations)
-        self.models = models.ModelsWithStreamingResponse(client.models)
-        self.fine_tuning = fine_tuning.FineTuningWithStreamingResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.VectorStoresWithStreamingResponse(client.vector_stores)
-        self.beta = beta.BetaWithStreamingResponse(client.beta)
-        self.batches = batches.BatchesWithStreamingResponse(client.batches)
-        self.uploads = uploads.UploadsWithStreamingResponse(client.uploads)
-        self.responses = responses.ResponsesWithStreamingResponse(client.responses)
-        self.evals = evals.EvalsWithStreamingResponse(client.evals)
+        self._client = client
+
+    @cached_property
+    def completions(self) -> completions.CompletionsWithStreamingResponse:
+        from .resources.completions import CompletionsWithStreamingResponse
+
+        return CompletionsWithStreamingResponse(self._client.completions)
+
+    @cached_property
+    def chat(self) -> chat.ChatWithStreamingResponse:
+        from .resources.chat import ChatWithStreamingResponse
+
+        return ChatWithStreamingResponse(self._client.chat)
+
+    @cached_property
+    def embeddings(self) -> embeddings.EmbeddingsWithStreamingResponse:
+        from .resources.embeddings import EmbeddingsWithStreamingResponse
+
+        return EmbeddingsWithStreamingResponse(self._client.embeddings)
+
+    @cached_property
+    def files(self) -> files.FilesWithStreamingResponse:
+        from .resources.files import FilesWithStreamingResponse
+
+        return FilesWithStreamingResponse(self._client.files)
+
+    @cached_property
+    def images(self) -> images.ImagesWithStreamingResponse:
+        from .resources.images import ImagesWithStreamingResponse
+
+        return ImagesWithStreamingResponse(self._client.images)
+
+    @cached_property
+    def audio(self) -> audio.AudioWithStreamingResponse:
+        from .resources.audio import AudioWithStreamingResponse
+
+        return AudioWithStreamingResponse(self._client.audio)
+
+    @cached_property
+    def moderations(self) -> moderations.ModerationsWithStreamingResponse:
+        from .resources.moderations import ModerationsWithStreamingResponse
+
+        return ModerationsWithStreamingResponse(self._client.moderations)
+
+    @cached_property
+    def models(self) -> models.ModelsWithStreamingResponse:
+        from .resources.models import ModelsWithStreamingResponse
+
+        return ModelsWithStreamingResponse(self._client.models)
+
+    @cached_property
+    def fine_tuning(self) -> fine_tuning.FineTuningWithStreamingResponse:
+        from .resources.fine_tuning import FineTuningWithStreamingResponse
+
+        return FineTuningWithStreamingResponse(self._client.fine_tuning)
+
+    @cached_property
+    def vector_stores(self) -> vector_stores.VectorStoresWithStreamingResponse:
+        from .resources.vector_stores import VectorStoresWithStreamingResponse
+
+        return VectorStoresWithStreamingResponse(self._client.vector_stores)
+
+    @cached_property
+    def beta(self) -> beta.BetaWithStreamingResponse:
+        from .resources.beta import BetaWithStreamingResponse
+
+        return BetaWithStreamingResponse(self._client.beta)
+
+    @cached_property
+    def batches(self) -> batches.BatchesWithStreamingResponse:
+        from .resources.batches import BatchesWithStreamingResponse
+
+        return BatchesWithStreamingResponse(self._client.batches)
+
+    @cached_property
+    def uploads(self) -> uploads.UploadsWithStreamingResponse:
+        from .resources.uploads import UploadsWithStreamingResponse
+
+        return UploadsWithStreamingResponse(self._client.uploads)
+
+    @cached_property
+    def responses(self) -> responses.ResponsesWithStreamingResponse:
+        from .resources.responses import ResponsesWithStreamingResponse
+
+        return ResponsesWithStreamingResponse(self._client.responses)
+
+    @cached_property
+    def evals(self) -> evals.EvalsWithStreamingResponse:
+        from .resources.evals import EvalsWithStreamingResponse
+
+        return EvalsWithStreamingResponse(self._client.evals)
 
 
 class AsyncOpenAIWithStreamedResponse:
+    _client: AsyncOpenAI
+
     def __init__(self, client: AsyncOpenAI) -> None:
-        self.completions = completions.AsyncCompletionsWithStreamingResponse(client.completions)
-        self.chat = chat.AsyncChatWithStreamingResponse(client.chat)
-        self.embeddings = embeddings.AsyncEmbeddingsWithStreamingResponse(client.embeddings)
-        self.files = files.AsyncFilesWithStreamingResponse(client.files)
-        self.images = images.AsyncImagesWithStreamingResponse(client.images)
-        self.audio = audio.AsyncAudioWithStreamingResponse(client.audio)
-        self.moderations = moderations.AsyncModerationsWithStreamingResponse(client.moderations)
-        self.models = models.AsyncModelsWithStreamingResponse(client.models)
-        self.fine_tuning = fine_tuning.AsyncFineTuningWithStreamingResponse(client.fine_tuning)
-        self.vector_stores = vector_stores.AsyncVectorStoresWithStreamingResponse(client.vector_stores)
-        self.beta = beta.AsyncBetaWithStreamingResponse(client.beta)
-        self.batches = batches.AsyncBatchesWithStreamingResponse(client.batches)
-        self.uploads = uploads.AsyncUploadsWithStreamingResponse(client.uploads)
-        self.responses = responses.AsyncResponsesWithStreamingResponse(client.responses)
-        self.evals = evals.AsyncEvalsWithStreamingResponse(client.evals)
+        self._client = client
+
+    @cached_property
+    def completions(self) -> completions.AsyncCompletionsWithStreamingResponse:
+        from .resources.completions import AsyncCompletionsWithStreamingResponse
+
+        return AsyncCompletionsWithStreamingResponse(self._client.completions)
+
+    @cached_property
+    def chat(self) -> chat.AsyncChatWithStreamingResponse:
+        from .resources.chat import AsyncChatWithStreamingResponse
+
+        return AsyncChatWithStreamingResponse(self._client.chat)
+
+    @cached_property
+    def embeddings(self) -> embeddings.AsyncEmbeddingsWithStreamingResponse:
+        from .resources.embeddings import AsyncEmbeddingsWithStreamingResponse
+
+        return AsyncEmbeddingsWithStreamingResponse(self._client.embeddings)
+
+    @cached_property
+    def files(self) -> files.AsyncFilesWithStreamingResponse:
+        from .resources.files import AsyncFilesWithStreamingResponse
+
+        return AsyncFilesWithStreamingResponse(self._client.files)
+
+    @cached_property
+    def images(self) -> images.AsyncImagesWithStreamingResponse:
+        from .resources.images import AsyncImagesWithStreamingResponse
+
+        return AsyncImagesWithStreamingResponse(self._client.images)
+
+    @cached_property
+    def audio(self) -> audio.AsyncAudioWithStreamingResponse:
+        from .resources.audio import AsyncAudioWithStreamingResponse
+
+        return AsyncAudioWithStreamingResponse(self._client.audio)
+
+    @cached_property
+    def moderations(self) -> moderations.AsyncModerationsWithStreamingResponse:
+        from .resources.moderations import AsyncModerationsWithStreamingResponse
+
+        return AsyncModerationsWithStreamingResponse(self._client.moderations)
+
+    @cached_property
+    def models(self) -> models.AsyncModelsWithStreamingResponse:
+        from .resources.models import AsyncModelsWithStreamingResponse
+
+        return AsyncModelsWithStreamingResponse(self._client.models)
+
+    @cached_property
+    def fine_tuning(self) -> fine_tuning.AsyncFineTuningWithStreamingResponse:
+        from .resources.fine_tuning import AsyncFineTuningWithStreamingResponse
+
+        return AsyncFineTuningWithStreamingResponse(self._client.fine_tuning)
+
+    @cached_property
+    def vector_stores(self) -> vector_stores.AsyncVectorStoresWithStreamingResponse:
+        from .resources.vector_stores import AsyncVectorStoresWithStreamingResponse
+
+        return AsyncVectorStoresWithStreamingResponse(self._client.vector_stores)
+
+    @cached_property
+    def beta(self) -> beta.AsyncBetaWithStreamingResponse:
+        from .resources.beta import AsyncBetaWithStreamingResponse
+
+        return AsyncBetaWithStreamingResponse(self._client.beta)
+
+    @cached_property
+    def batches(self) -> batches.AsyncBatchesWithStreamingResponse:
+        from .resources.batches import AsyncBatchesWithStreamingResponse
+
+        return AsyncBatchesWithStreamingResponse(self._client.batches)
+
+    @cached_property
+    def uploads(self) -> uploads.AsyncUploadsWithStreamingResponse:
+        from .resources.uploads import AsyncUploadsWithStreamingResponse
+
+        return AsyncUploadsWithStreamingResponse(self._client.uploads)
+
+    @cached_property
+    def responses(self) -> responses.AsyncResponsesWithStreamingResponse:
+        from .resources.responses import AsyncResponsesWithStreamingResponse
+
+        return AsyncResponsesWithStreamingResponse(self._client.responses)
+
+    @cached_property
+    def evals(self) -> evals.AsyncEvalsWithStreamingResponse:
+        from .resources.evals import AsyncEvalsWithStreamingResponse
+
+        return AsyncEvalsWithStreamingResponse(self._client.evals)
 
 
 Client = OpenAI
