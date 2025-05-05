@@ -72,14 +72,6 @@ from .uploads import (
     UploadsWithStreamingResponse,
     AsyncUploadsWithStreamingResponse,
 )
-from .responses import (
-    Responses,
-    AsyncResponses,
-    ResponsesWithRawResponse,
-    AsyncResponsesWithRawResponse,
-    ResponsesWithStreamingResponse,
-    AsyncResponsesWithStreamingResponse,
-)
 from .embeddings import (
     Embeddings,
     AsyncEmbeddings,
@@ -200,12 +192,6 @@ __all__ = [
     "AsyncUploadsWithRawResponse",
     "UploadsWithStreamingResponse",
     "AsyncUploadsWithStreamingResponse",
-    "Responses",
-    "AsyncResponses",
-    "ResponsesWithRawResponse",
-    "AsyncResponsesWithRawResponse",
-    "ResponsesWithStreamingResponse",
-    "AsyncResponsesWithStreamingResponse",
     "Evals",
     "AsyncEvals",
     "EvalsWithRawResponse",
