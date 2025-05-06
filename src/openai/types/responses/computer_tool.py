@@ -8,13 +8,13 @@ __all__ = ["ComputerTool"]
 
 
 class ComputerTool(BaseModel):
-    display_height: float
+    display_height: int
     """The height of the computer display."""
 
-    display_width: float
+    display_width: int
     """The width of the computer display."""
 
-    environment: Literal["mac", "windows", "ubuntu", "browser"]
+    environment: Literal["windows", "mac", "linux", "ubuntu", "browser"]
     """The type of computer environment to control."""
 
     type: Literal["computer_use_preview"]

@@ -11,13 +11,7 @@ import httpx
 from ... import _legacy_response
 from ...types import AudioResponseFormat
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
-from ..._utils import (
-    extract_files,
-    required_args,
-    maybe_transform,
-    deepcopy_minimal,
-    async_maybe_transform,
-)
+from ..._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -321,7 +315,12 @@ class Transcriptions(SyncAPIResource):
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(  # type: ignore[return-value]
             "/audio/transcriptions",
-            body=maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+            body=maybe_transform(
+                body,
+                transcription_create_params.TranscriptionCreateParamsStreaming
+                if stream
+                else transcription_create_params.TranscriptionCreateParamsNonStreaming,
+            ),
             files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -616,7 +615,12 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/audio/transcriptions",
-            body=await async_maybe_transform(body, transcription_create_params.TranscriptionCreateParams),
+            body=await async_maybe_transform(
+                body,
+                transcription_create_params.TranscriptionCreateParamsStreaming
+                if stream
+                else transcription_create_params.TranscriptionCreateParamsNonStreaming,
+            ),
             files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

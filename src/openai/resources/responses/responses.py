@@ -10,12 +10,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NoneType, NotGiven
-from ..._utils import (
-    is_given,
-    required_args,
-    maybe_transform,
-    async_maybe_transform,
-)
+from ..._utils import is_given, required_args, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -89,6 +84,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -130,7 +126,7 @@ class Responses(SyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -144,13 +140,18 @@ class Responses(SyncAPIResource):
               - `message.input_image.image_url`: Include image urls from the input message.
               - `computer_call_output.output.image_url`: Include image urls from the computer
                 call output.
+              - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+                tokens in reasoning item outputs. This enables reasoning items to be used in
+                multi-turn conversations when using the Responses API statelessly (like when
+                the `store` parameter is set to `false`, or when an organization is enrolled
+                in the zero data retention program).
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -173,6 +174,24 @@ class Responses(SyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -255,6 +274,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -295,7 +315,7 @@ class Responses(SyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -316,13 +336,18 @@ class Responses(SyncAPIResource):
               - `message.input_image.image_url`: Include image urls from the input message.
               - `computer_call_output.output.image_url`: Include image urls from the computer
                 call output.
+              - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+                tokens in reasoning item outputs. This enables reasoning items to be used in
+                multi-turn conversations when using the Responses API statelessly (like when
+                the `store` parameter is set to `false`, or when an organization is enrolled
+                in the zero data retention program).
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -345,6 +370,24 @@ class Responses(SyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -420,6 +463,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -460,7 +504,7 @@ class Responses(SyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -481,13 +525,18 @@ class Responses(SyncAPIResource):
               - `message.input_image.image_url`: Include image urls from the input message.
               - `computer_call_output.output.image_url`: Include image urls from the computer
                 call output.
+              - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+                tokens in reasoning item outputs. This enables reasoning items to be used in
+                multi-turn conversations when using the Responses API statelessly (like when
+                the `store` parameter is set to `false`, or when an organization is enrolled
+                in the zero data retention program).
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -510,6 +559,24 @@ class Responses(SyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -584,6 +651,7 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -613,6 +681,7 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
+                    "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
                     "temperature": temperature,
@@ -623,7 +692,9 @@ class Responses(SyncAPIResource):
                     "truncation": truncation,
                     "user": user,
                 },
-                response_create_params.ResponseCreateParams,
+                response_create_params.ResponseCreateParamsStreaming
+                if stream
+                else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -901,6 +972,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -942,7 +1014,7 @@ class AsyncResponses(AsyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -956,13 +1028,18 @@ class AsyncResponses(AsyncAPIResource):
               - `message.input_image.image_url`: Include image urls from the input message.
               - `computer_call_output.output.image_url`: Include image urls from the computer
                 call output.
+              - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+                tokens in reasoning item outputs. This enables reasoning items to be used in
+                multi-turn conversations when using the Responses API statelessly (like when
+                the `store` parameter is set to `false`, or when an organization is enrolled
+                in the zero data retention program).
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -985,6 +1062,24 @@ class AsyncResponses(AsyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -1067,6 +1162,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -1107,7 +1203,7 @@ class AsyncResponses(AsyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1128,13 +1224,18 @@ class AsyncResponses(AsyncAPIResource):
               - `message.input_image.image_url`: Include image urls from the input message.
               - `computer_call_output.output.image_url`: Include image urls from the computer
                 call output.
+              - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+                tokens in reasoning item outputs. This enables reasoning items to be used in
+                multi-turn conversations when using the Responses API statelessly (like when
+                the `store` parameter is set to `false`, or when an organization is enrolled
+                in the zero data retention program).
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -1157,6 +1258,24 @@ class AsyncResponses(AsyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -1232,6 +1351,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -1272,7 +1392,7 @@ class AsyncResponses(AsyncAPIResource):
               - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
               - [Function calling](https://platform.openai.com/docs/guides/function-calling)
 
-          model: Model ID used to generate the response, like `gpt-4o` or `o1`. OpenAI offers a
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
               wide range of models with different capabilities, performance characteristics,
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
@@ -1293,13 +1413,18 @@ class AsyncResponses(AsyncAPIResource):
               - `message.input_image.image_url`: Include image urls from the input message.
               - `computer_call_output.output.image_url`: Include image urls from the computer
                 call output.
+              - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+                tokens in reasoning item outputs. This enables reasoning items to be used in
+                multi-turn conversations when using the Responses API statelessly (like when
+                the `store` parameter is set to `false`, or when an organization is enrolled
+                in the zero data retention program).
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
 
               When using along with `previous_response_id`, the instructions from a previous
-              response will be not be carried over to the next response. This makes it simple
-              to swap out system (or developer) messages in new responses.
+              response will not be carried over to the next response. This makes it simple to
+              swap out system (or developer) messages in new responses.
 
           max_output_tokens: An upper bound for the number of tokens that can be generated for a response,
               including visible output tokens and
@@ -1322,6 +1447,24 @@ class AsyncResponses(AsyncAPIResource):
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          service_tier: Specifies the latency tier to use for processing the request. This parameter is
+              relevant for customers subscribed to the scale tier service:
+
+              - If set to 'auto', and the Project is Scale tier enabled, the system will
+                utilize scale tier credits until they are exhausted.
+              - If set to 'auto', and the Project is not Scale tier enabled, the request will
+                be processed using the default service tier with a lower uptime SLA and no
+                latency guarentee.
+              - If set to 'default', the request will be processed using the default service
+                tier with a lower uptime SLA and no latency guarentee.
+              - If set to 'flex', the request will be processed with the Flex Processing
+                service tier.
+                [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+              - When not set, the default behavior is 'auto'.
+
+              When this parameter is set, the response body will include the `service_tier`
+              utilized.
 
           store: Whether to store the generated model response for later retrieval via API.
 
@@ -1396,6 +1539,7 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1425,6 +1569,7 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "reasoning": reasoning,
+                    "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
                     "temperature": temperature,
@@ -1435,7 +1580,9 @@ class AsyncResponses(AsyncAPIResource):
                     "truncation": truncation,
                     "user": user,
                 },
-                response_create_params.ResponseCreateParams,
+                response_create_params.ResponseCreateParamsStreaming
+                if stream
+                else response_create_params.ResponseCreateParamsNonStreaming,
             ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

@@ -38,7 +38,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
     model: Required[ResponsesModel]
-    """Model ID used to generate the response, like `gpt-4o` or `o1`.
+    """Model ID used to generate the response, like `gpt-4o` or `o3`.
 
     OpenAI offers a wide range of models with different capabilities, performance
     characteristics, and price points. Refer to the
@@ -56,6 +56,11 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     - `message.input_image.image_url`: Include image urls from the input message.
     - `computer_call_output.output.image_url`: Include image urls from the computer
       call output.
+    - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
+      tokens in reasoning item outputs. This enables reasoning items to be used in
+      multi-turn conversations when using the Responses API statelessly (like when
+      the `store` parameter is set to `false`, or when an organization is enrolled
+      in the zero data retention program).
     """
 
     instructions: Optional[str]
@@ -64,8 +69,8 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     context.
 
     When using along with `previous_response_id`, the instructions from a previous
-    response will be not be carried over to the next response. This makes it simple
-    to swap out system (or developer) messages in new responses.
+    response will not be carried over to the next response. This makes it simple to
+    swap out system (or developer) messages in new responses.
     """
 
     max_output_tokens: Optional[int]
@@ -100,6 +105,27 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    service_tier: Optional[Literal["auto", "default", "flex"]]
+    """Specifies the latency tier to use for processing the request.
+
+    This parameter is relevant for customers subscribed to the scale tier service:
+
+    - If set to 'auto', and the Project is Scale tier enabled, the system will
+      utilize scale tier credits until they are exhausted.
+    - If set to 'auto', and the Project is not Scale tier enabled, the request will
+      be processed using the default service tier with a lower uptime SLA and no
+      latency guarentee.
+    - If set to 'default', the request will be processed using the default service
+      tier with a lower uptime SLA and no latency guarentee.
+    - If set to 'flex', the request will be processed with the Flex Processing
+      service tier.
+      [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+    - When not set, the default behavior is 'auto'.
+
+    When this parameter is set, the response body will include the `service_tier`
+    utilized.
     """
 
     store: Optional[bool]

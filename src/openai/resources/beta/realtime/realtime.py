@@ -233,6 +233,7 @@ class AsyncRealtimeConnection:
     response: AsyncRealtimeResponseResource
     input_audio_buffer: AsyncRealtimeInputAudioBufferResource
     conversation: AsyncRealtimeConversationResource
+    output_audio_buffer: AsyncRealtimeOutputAudioBufferResource
     transcription_session: AsyncRealtimeTranscriptionSessionResource
 
     _connection: AsyncWebsocketConnection
@@ -244,6 +245,7 @@ class AsyncRealtimeConnection:
         self.response = AsyncRealtimeResponseResource(self)
         self.input_audio_buffer = AsyncRealtimeInputAudioBufferResource(self)
         self.conversation = AsyncRealtimeConversationResource(self)
+        self.output_audio_buffer = AsyncRealtimeOutputAudioBufferResource(self)
         self.transcription_session = AsyncRealtimeTranscriptionSessionResource(self)
 
     async def __aiter__(self) -> AsyncIterator[RealtimeServerEvent]:
@@ -277,10 +279,6 @@ class AsyncRealtimeConnection:
         """
         message = await self._connection.recv(decode=False)
         log.debug(f"Received websocket message: %s", message)
-        if not isinstance(message, bytes):
-            # passing `decode=False` should always result in us getting `bytes` back
-            raise TypeError(f"Expected `.recv(decode=False)` to return `bytes` but got {type(message)}")
-
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -417,6 +415,7 @@ class RealtimeConnection:
     response: RealtimeResponseResource
     input_audio_buffer: RealtimeInputAudioBufferResource
     conversation: RealtimeConversationResource
+    output_audio_buffer: RealtimeOutputAudioBufferResource
     transcription_session: RealtimeTranscriptionSessionResource
 
     _connection: WebsocketConnection
@@ -428,6 +427,7 @@ class RealtimeConnection:
         self.response = RealtimeResponseResource(self)
         self.input_audio_buffer = RealtimeInputAudioBufferResource(self)
         self.conversation = RealtimeConversationResource(self)
+        self.output_audio_buffer = RealtimeOutputAudioBufferResource(self)
         self.transcription_session = RealtimeTranscriptionSessionResource(self)
 
     def __iter__(self) -> Iterator[RealtimeServerEvent]:
@@ -461,10 +461,6 @@ class RealtimeConnection:
         """
         message = self._connection.recv(decode=False)
         log.debug(f"Received websocket message: %s", message)
-        if not isinstance(message, bytes):
-            # passing `decode=False` should always result in us getting `bytes` back
-            raise TypeError(f"Expected `.recv(decode=False)` to return `bytes` but got {type(message)}")
-
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -816,6 +812,21 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
         )
 
 
+class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
+    def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """**WebRTC Only:** Emit to cut off the current audio response.
+
+        This will trigger the server to
+        stop generating audio and emit a `output_audio_buffer.cleared` event. This
+        event should be preceded by a `response.cancel` client event to stop the
+        generation of the current response.
+        [Learn more](https://platform.openai.com/docs/guides/realtime-model-capabilities#client-and-server-events-for-audio-in-webrtc).
+        """
+        self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
+        )
+
+
 class RealtimeTranscriptionSessionResource(BaseRealtimeConnectionResource):
     def update(
         self, *, session: transcription_session_update_param.Session, event_id: str | NotGiven = NOT_GIVEN
@@ -1050,6 +1061,21 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
                 RealtimeClientEventParam,
                 strip_not_given({"type": "conversation.item.retrieve", "item_id": item_id, "event_id": event_id}),
             )
+        )
+
+
+class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
+    async def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """**WebRTC Only:** Emit to cut off the current audio response.
+
+        This will trigger the server to
+        stop generating audio and emit a `output_audio_buffer.cleared` event. This
+        event should be preceded by a `response.cancel` client event to stop the
+        generation of the current response.
+        [Learn more](https://platform.openai.com/docs/guides/realtime-model-capabilities#client-and-server-events-for-audio-in-webrtc).
+        """
+        await self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
         )
 
 

@@ -11,6 +11,13 @@ __all__ = ["ResponseFormatTextJSONSchemaConfig"]
 
 
 class ResponseFormatTextJSONSchemaConfig(BaseModel):
+    name: str
+    """The name of the response format.
+
+    Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length
+    of 64.
+    """
+
     schema_: Dict[str, object] = FieldInfo(alias="schema")
     """
     The schema for the response format, described as a JSON Schema object. Learn how
@@ -24,13 +31,6 @@ class ResponseFormatTextJSONSchemaConfig(BaseModel):
     """
     A description of what the response format is for, used by the model to determine
     how to respond in the format.
-    """
-
-    name: Optional[str] = None
-    """The name of the response format.
-
-    Must be a-z, A-Z, 0-9, or contain underscores and dashes, with a maximum length
-    of 64.
     """
 
     strict: Optional[bool] = None

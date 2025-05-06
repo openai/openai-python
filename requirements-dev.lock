@@ -126,7 +126,7 @@ pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
-pyright==1.1.392.post0
+pyright==1.1.399
 pytest==8.3.3
     # via pytest-asyncio
 pytest-asyncio==0.24.0
@@ -188,7 +188,7 @@ urllib3==2.2.1
     # via requests
 virtualenv==20.24.5
     # via nox
-websockets==14.2
+websockets==15.0.1
     # via openai
 zipp==3.17.0
     # via importlib-metadata

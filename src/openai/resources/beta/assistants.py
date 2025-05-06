@@ -9,10 +9,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import (
-    maybe_transform,
-    async_maybe_transform,
-)
+from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -223,6 +220,12 @@ class Assistants(SyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
                 "o3-mini",
                 "o3-mini-2025-01-31",
                 "o1",
@@ -666,6 +669,12 @@ class AsyncAssistants(AsyncAPIResource):
         model: Union[
             str,
             Literal[
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
                 "o3-mini",
                 "o3-mini-2025-01-31",
                 "o1",
