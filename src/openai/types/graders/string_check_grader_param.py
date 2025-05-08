@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["EvalStringCheckGraderParam"]
+__all__ = ["StringCheckGraderParam"]
 
 
-class EvalStringCheckGraderParam(TypedDict, total=False):
+class StringCheckGraderParam(TypedDict, total=False):
     input: Required[str]
     """The input text. This may include template strings."""
 

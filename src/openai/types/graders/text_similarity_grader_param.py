@@ -4,10 +4,10 @@ from __future__ import annotations
 
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["EvalTextSimilarityGraderParam"]
+__all__ = ["TextSimilarityGraderParam"]
 
 
-class EvalTextSimilarityGraderParam(TypedDict, total=False):
+class TextSimilarityGraderParam(TypedDict, total=False):
     evaluation_metric: Required[
         Literal[
             "fuzzy_match", "bleu", "gleu", "meteor", "rouge_1", "rouge_2", "rouge_3", "rouge_4", "rouge_5", "rouge_l"
@@ -22,14 +22,11 @@ class EvalTextSimilarityGraderParam(TypedDict, total=False):
     input: Required[str]
     """The text being graded."""
 
-    pass_threshold: Required[float]
-    """A float score where a value greater than or equal indicates a passing grade."""
+    name: Required[str]
+    """The name of the grader."""
 
     reference: Required[str]
     """The text being graded against."""
 
     type: Required[Literal["text_similarity"]]
     """The type of grader."""
-
-    name: str
-    """The name of the grader."""
