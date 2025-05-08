@@ -6,22 +6,21 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from .._utils import PropertyInfo
 from .._models import BaseModel
 from .shared.metadata import Metadata
-from .eval_label_model_grader import EvalLabelModelGrader
-from .eval_string_check_grader import EvalStringCheckGrader
-from .eval_text_similarity_grader import EvalTextSimilarityGrader
-from .responses.response_input_text import ResponseInputText
+from .graders.python_grader import PythonGrader
+from .graders.label_model_grader import LabelModelGrader
+from .graders.score_model_grader import ScoreModelGrader
+from .graders.string_check_grader import StringCheckGrader
 from .eval_custom_data_source_config import EvalCustomDataSourceConfig
+from .graders.text_similarity_grader import TextSimilarityGrader
 from .eval_stored_completions_data_source_config import EvalStoredCompletionsDataSourceConfig
 
 __all__ = [
     "EvalCreateResponse",
     "DataSourceConfig",
     "TestingCriterion",
-    "TestingCriterionPython",
-    "TestingCriterionScoreModel",
-    "TestingCriterionScoreModelInput",
-    "TestingCriterionScoreModelInputContent",
-    "TestingCriterionScoreModelInputContentOutputText",
+    "TestingCriterionEvalGraderTextSimilarity",
+    "TestingCriterionEvalGraderPython",
+    "TestingCriterionEvalGraderScoreModel",
 ]
 
 DataSourceConfig: TypeAlias = Annotated[
@@ -29,86 +28,30 @@ DataSourceConfig: TypeAlias = Annotated[
 ]
 
 
-class TestingCriterionPython(BaseModel):
+class TestingCriterionEvalGraderTextSimilarity(TextSimilarityGrader):
     __test__ = False
-    name: str
-    """The name of the grader."""
+    pass_threshold: float
+    """The threshold for the score."""
 
-    source: str
-    """The source code of the python script."""
 
-    type: Literal["python"]
-    """The object type, which is always `python`."""
-
-    image_tag: Optional[str] = None
-    """The image tag to use for the python script."""
-
+class TestingCriterionEvalGraderPython(PythonGrader):
+    __test__ = False
     pass_threshold: Optional[float] = None
     """The threshold for the score."""
 
 
-class TestingCriterionScoreModelInputContentOutputText(BaseModel):
+class TestingCriterionEvalGraderScoreModel(ScoreModelGrader):
     __test__ = False
-    text: str
-    """The text output from the model."""
-
-    type: Literal["output_text"]
-    """The type of the output text. Always `output_text`."""
-
-
-TestingCriterionScoreModelInputContent: TypeAlias = Union[
-    str, ResponseInputText, TestingCriterionScoreModelInputContentOutputText
-]
-
-
-class TestingCriterionScoreModelInput(BaseModel):
-    __test__ = False
-    content: TestingCriterionScoreModelInputContent
-    """Text inputs to the model - can contain template strings."""
-
-    role: Literal["user", "assistant", "system", "developer"]
-    """The role of the message input.
-
-    One of `user`, `assistant`, `system`, or `developer`.
-    """
-
-    type: Optional[Literal["message"]] = None
-    """The type of the message input. Always `message`."""
-
-
-class TestingCriterionScoreModel(BaseModel):
-    __test__ = False
-    input: List[TestingCriterionScoreModelInput]
-    """The input text. This may include template strings."""
-
-    model: str
-    """The model to use for the evaluation."""
-
-    name: str
-    """The name of the grader."""
-
-    type: Literal["score_model"]
-    """The object type, which is always `score_model`."""
-
     pass_threshold: Optional[float] = None
     """The threshold for the score."""
 
-    range: Optional[List[float]] = None
-    """The range of the score. Defaults to `[0, 1]`."""
 
-    sampling_params: Optional[object] = None
-    """The sampling parameters for the model."""
-
-
-TestingCriterion: TypeAlias = Annotated[
-    Union[
-        EvalLabelModelGrader,
-        EvalStringCheckGrader,
-        EvalTextSimilarityGrader,
-        TestingCriterionPython,
-        TestingCriterionScoreModel,
-    ],
-    PropertyInfo(discriminator="type"),
+TestingCriterion: TypeAlias = Union[
+    LabelModelGrader,
+    StringCheckGrader,
+    TestingCriterionEvalGraderTextSimilarity,
+    TestingCriterionEvalGraderPython,
+    TestingCriterionEvalGraderScoreModel,
 ]
 
 

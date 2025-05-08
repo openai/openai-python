@@ -3,10 +3,10 @@
 from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
-from .._models import BaseModel
-from .responses.response_input_text import ResponseInputText
+from ..._models import BaseModel
+from ..responses.response_input_text import ResponseInputText
 
-__all__ = ["EvalLabelModelGrader", "Input", "InputContent", "InputContentOutputText"]
+__all__ = ["ScoreModelGrader", "Input", "InputContent", "InputContentOutputText"]
 
 
 class InputContentOutputText(BaseModel):
@@ -34,20 +34,21 @@ class Input(BaseModel):
     """The type of the message input. Always `message`."""
 
 
-class EvalLabelModelGrader(BaseModel):
+class ScoreModelGrader(BaseModel):
     input: List[Input]
-
-    labels: List[str]
-    """The labels to assign to each item in the evaluation."""
+    """The input text. This may include template strings."""
 
     model: str
-    """The model to use for the evaluation. Must support structured outputs."""
+    """The model to use for the evaluation."""
 
     name: str
     """The name of the grader."""
 
-    passing_labels: List[str]
-    """The labels that indicate a passing result. Must be a subset of labels."""
+    type: Literal["score_model"]
+    """The object type, which is always `score_model`."""
 
-    type: Literal["label_model"]
-    """The object type, which is always `label_model`."""
+    range: Optional[List[float]] = None
+    """The range of the score. Defaults to `[0, 1]`."""
+
+    sampling_params: Optional[object] = None
+    """The sampling parameters for the model."""
