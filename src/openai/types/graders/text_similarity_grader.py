@@ -1,14 +1,13 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
 from typing_extensions import Literal
 
-from .._models import BaseModel
+from ..._models import BaseModel
 
-__all__ = ["EvalTextSimilarityGrader"]
+__all__ = ["TextSimilarityGrader"]
 
 
-class EvalTextSimilarityGrader(BaseModel):
+class TextSimilarityGrader(BaseModel):
     evaluation_metric: Literal[
         "fuzzy_match", "bleu", "gleu", "meteor", "rouge_1", "rouge_2", "rouge_3", "rouge_4", "rouge_5", "rouge_l"
     ]
@@ -21,14 +20,11 @@ class EvalTextSimilarityGrader(BaseModel):
     input: str
     """The text being graded."""
 
-    pass_threshold: float
-    """A float score where a value greater than or equal indicates a passing grade."""
+    name: str
+    """The name of the grader."""
 
     reference: str
     """The text being graded against."""
 
     type: Literal["text_similarity"]
     """The type of grader."""
-
-    name: Optional[str] = None
-    """The name of the grader."""
