@@ -73,9 +73,11 @@ class TestImages:
         image = client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
+            background="transparent",
             mask=b"raw file contents",
             model="string",
             n=1,
+            quality="high",
             response_format="url",
             size="1024x1024",
             user="user-1234",
@@ -119,9 +121,13 @@ class TestImages:
     def test_method_generate_with_all_params(self, client: OpenAI) -> None:
         image = client.images.generate(
             prompt="A cute baby sea otter",
+            background="transparent",
             model="string",
+            moderation="low",
             n=1,
-            quality="standard",
+            output_compression=100,
+            output_format="png",
+            quality="medium",
             response_format="url",
             size="1024x1024",
             style="vivid",
@@ -213,9 +219,11 @@ class TestAsyncImages:
         image = await async_client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
+            background="transparent",
             mask=b"raw file contents",
             model="string",
             n=1,
+            quality="high",
             response_format="url",
             size="1024x1024",
             user="user-1234",
@@ -259,9 +267,13 @@ class TestAsyncImages:
     async def test_method_generate_with_all_params(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.generate(
             prompt="A cute baby sea otter",
+            background="transparent",
             model="string",
+            moderation="low",
             n=1,
-            quality="standard",
+            output_compression=100,
+            output_format="png",
+            quality="medium",
             response_format="url",
             size="1024x1024",
             style="vivid",

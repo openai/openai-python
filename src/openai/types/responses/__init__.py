@@ -22,6 +22,7 @@ from .response_status import ResponseStatus as ResponseStatus
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
+from .easy_input_message import EasyInputMessage as EasyInputMessage
 from .response_item_list import ResponseItemList as ResponseItemList
 from .computer_tool_param import ComputerToolParam as ComputerToolParam
 from .function_tool_param import FunctionToolParam as FunctionToolParam
@@ -117,6 +118,12 @@ from .response_file_search_call_searching_event import (
 from .response_input_message_content_list_param import (
     ResponseInputMessageContentListParam as ResponseInputMessageContentListParam,
 )
+from .response_reasoning_summary_part_done_event import (
+    ResponseReasoningSummaryPartDoneEvent as ResponseReasoningSummaryPartDoneEvent,
+)
+from .response_reasoning_summary_text_done_event import (
+    ResponseReasoningSummaryTextDoneEvent as ResponseReasoningSummaryTextDoneEvent,
+)
 from .response_web_search_call_in_progress_event import (
     ResponseWebSearchCallInProgressEvent as ResponseWebSearchCallInProgressEvent,
 )
@@ -125,6 +132,12 @@ from .response_file_search_call_in_progress_event import (
 )
 from .response_function_call_arguments_done_event import (
     ResponseFunctionCallArgumentsDoneEvent as ResponseFunctionCallArgumentsDoneEvent,
+)
+from .response_reasoning_summary_part_added_event import (
+    ResponseReasoningSummaryPartAddedEvent as ResponseReasoningSummaryPartAddedEvent,
+)
+from .response_reasoning_summary_text_delta_event import (
+    ResponseReasoningSummaryTextDeltaEvent as ResponseReasoningSummaryTextDeltaEvent,
 )
 from .response_function_call_arguments_delta_event import (
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,

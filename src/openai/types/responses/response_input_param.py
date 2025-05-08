@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .easy_input_message_param import EasyInputMessageParam
@@ -51,10 +51,10 @@ class ComputerCallOutputAcknowledgedSafetyCheck(TypedDict, total=False):
     id: Required[str]
     """The ID of the pending safety check."""
 
-    code: Required[str]
+    code: Optional[str]
     """The type of the pending safety check."""
 
-    message: Required[str]
+    message: Optional[str]
     """Details about the pending safety check."""
 
 
@@ -68,16 +68,16 @@ class ComputerCallOutput(TypedDict, total=False):
     type: Required[Literal["computer_call_output"]]
     """The type of the computer tool call output. Always `computer_call_output`."""
 
-    id: str
+    id: Optional[str]
     """The ID of the computer tool call output."""
 
-    acknowledged_safety_checks: Iterable[ComputerCallOutputAcknowledgedSafetyCheck]
+    acknowledged_safety_checks: Optional[Iterable[ComputerCallOutputAcknowledgedSafetyCheck]]
     """
     The safety checks reported by the API that have been acknowledged by the
     developer.
     """
 
-    status: Literal["in_progress", "completed", "incomplete"]
+    status: Optional[Literal["in_progress", "completed", "incomplete"]]
     """The status of the message input.
 
     One of `in_progress`, `completed`, or `incomplete`. Populated when input items
@@ -95,13 +95,13 @@ class FunctionCallOutput(TypedDict, total=False):
     type: Required[Literal["function_call_output"]]
     """The type of the function tool call output. Always `function_call_output`."""
 
-    id: str
+    id: Optional[str]
     """The unique ID of the function tool call output.
 
     Populated when this item is returned via API.
     """
 
-    status: Literal["in_progress", "completed", "incomplete"]
+    status: Optional[Literal["in_progress", "completed", "incomplete"]]
     """The status of the item.
 
     One of `in_progress`, `completed`, or `incomplete`. Populated when items are
@@ -113,7 +113,7 @@ class ItemReference(TypedDict, total=False):
     id: Required[str]
     """The ID of the item to reference."""
 
-    type: Required[Literal["item_reference"]]
+    type: Optional[Literal["item_reference"]]
     """The type of item to reference. Always `item_reference`."""
 
 

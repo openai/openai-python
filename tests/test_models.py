@@ -492,12 +492,15 @@ def test_omitted_fields() -> None:
         resource_id: Optional[str] = None
 
     m = Model.construct()
+    assert m.resource_id is None
     assert "resource_id" not in m.model_fields_set
 
     m = Model.construct(resource_id=None)
+    assert m.resource_id is None
     assert "resource_id" in m.model_fields_set
 
     m = Model.construct(resource_id="foo")
+    assert m.resource_id == "foo"
     assert "resource_id" in m.model_fields_set
 
 
@@ -832,7 +835,7 @@ def test_discriminated_unions_invalid_data_uses_cache() -> None:
 
 @pytest.mark.skipif(not PYDANTIC_V2, reason="TypeAliasType is not supported in Pydantic v1")
 def test_type_alias_type() -> None:
-    Alias = TypeAliasType("Alias", str)
+    Alias = TypeAliasType("Alias", str)  # pyright: ignore
 
     class Model(BaseModel):
         alias: Alias

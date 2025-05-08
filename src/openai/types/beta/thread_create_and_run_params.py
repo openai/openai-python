@@ -6,8 +6,7 @@ from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared.chat_model import ChatModel
-from .function_tool_param import FunctionToolParam
-from .file_search_tool_param import FileSearchToolParam
+from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
@@ -32,7 +31,6 @@ __all__ = [
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
-    "Tool",
     "TruncationStrategy",
     "ThreadCreateAndRunParamsNonStreaming",
     "ThreadCreateAndRunParamsStreaming",
@@ -153,7 +151,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     tool requires a list of vector store IDs.
     """
 
-    tools: Optional[Iterable[Tool]]
+    tools: Optional[Iterable[AssistantToolParam]]
     """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
@@ -358,9 +356,6 @@ class ToolResources(TypedDict, total=False):
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch
-
-
-Tool: TypeAlias = Union[CodeInterpreterToolParam, FileSearchToolParam, FunctionToolParam]
 
 
 class TruncationStrategy(TypedDict, total=False):

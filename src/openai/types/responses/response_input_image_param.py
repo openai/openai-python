@@ -9,7 +9,7 @@ __all__ = ["ResponseInputImageParam"]
 
 
 class ResponseInputImageParam(TypedDict, total=False):
-    detail: Required[Literal["high", "low", "auto"]]
+    detail: Required[Literal["low", "high", "auto"]]
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, or `auto`. Defaults to `auto`.

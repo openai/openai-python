@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared_params.compound_filter import CompoundFilter
@@ -18,10 +18,10 @@ class RankingOptions(TypedDict, total=False):
     """The ranker to use for the file search."""
 
     score_threshold: float
-    """
-    The score threshold for the file search, a number between 0 and 1. Numbers
-    closer to 1 will attempt to return only the most relevant results, but may
-    return fewer results.
+    """The score threshold for the file search, a number between 0 and 1.
+
+    Numbers closer to 1 will attempt to return only the most relevant results, but
+    may return fewer results.
     """
 
 
@@ -32,8 +32,8 @@ class FileSearchToolParam(TypedDict, total=False):
     vector_store_ids: Required[List[str]]
     """The IDs of the vector stores to search."""
 
-    filters: Filters
-    """A filter to apply based on file attributes."""
+    filters: Optional[Filters]
+    """A filter to apply."""
 
     max_num_results: int
     """The maximum number of results to return.

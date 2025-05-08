@@ -12,10 +12,10 @@ class FunctionToolParam(TypedDict, total=False):
     name: Required[str]
     """The name of the function to call."""
 
-    parameters: Required[Dict[str, object]]
+    parameters: Required[Optional[Dict[str, object]]]
     """A JSON schema object describing the parameters of the function."""
 
-    strict: Required[bool]
+    strict: Required[Optional[bool]]
     """Whether to enforce strict parameter validation. Default `true`."""
 
     type: Required[Literal["function"]]

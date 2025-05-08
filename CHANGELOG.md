@@ -1,5 +1,83 @@
 # Changelog
 
+## 1.77.0 (2025-05-02)
+
+Full Changelog: [v1.76.2...v1.77.0](https://github.com/openai/openai-python/compare/v1.76.2...v1.77.0)
+
+### Features
+
+* **api:** add image sizes, reasoning encryption ([473469a](https://github.com/openai/openai-python/commit/473469afa1a5f0a03f727bdcdadb9fd57872f9c5))
+
+
+### Bug Fixes
+
+* **parsing:** handle whitespace only strings ([#2007](https://github.com/openai/openai-python/issues/2007)) ([246bc5b](https://github.com/openai/openai-python/commit/246bc5b7559887840717667a0dad465caef66c3b))
+
+
+### Chores
+
+* only strip leading whitespace ([8467d66](https://github.com/openai/openai-python/commit/8467d666e0ddf1a9f81b8769a5c8a2fef1de20c1))
+
+## 1.76.2 (2025-04-29)
+
+Full Changelog: [v1.76.1...v1.76.2](https://github.com/openai/openai-python/compare/v1.76.1...v1.76.2)
+
+### Chores
+
+* **api:** API spec cleanup ([0a4d3e2](https://github.com/openai/openai-python/commit/0a4d3e2b495d22dd42ce1773b870554c64f9b3b2))
+
+## 1.76.1 (2025-04-29)
+
+Full Changelog: [v1.76.0...v1.76.1](https://github.com/openai/openai-python/compare/v1.76.0...v1.76.1)
+
+### Chores
+
+* broadly detect json family of content-type headers ([b4b1b08](https://github.com/openai/openai-python/commit/b4b1b086b512eecc0ada7fc1efa45eb506982f13))
+* **ci:** only use depot for staging repos ([35312d8](https://github.com/openai/openai-python/commit/35312d80e6bbc1a61d06ad253af9a713b5ef040c))
+* **ci:** run on more branches and use depot runners ([a6a45d4](https://github.com/openai/openai-python/commit/a6a45d4af8a4d904b37573a9b223d56106b4887d))
+
+## 1.76.0 (2025-04-23)
+
+Full Changelog: [v1.75.0...v1.76.0](https://github.com/openai/openai-python/compare/v1.75.0...v1.76.0)
+
+### Features
+
+* **api:** adding new image model support ([74d7692](https://github.com/openai/openai-python/commit/74d7692e94c9dca96db8793809d75631c22dbb87))
+
+
+### Bug Fixes
+
+* **pydantic v1:** more robust `ModelField.annotation` check ([#2163](https://github.com/openai/openai-python/issues/2163)) ([7351b12](https://github.com/openai/openai-python/commit/7351b12bc981f56632b92342d9ef26f6fb28d540))
+* **pydantic v1:** more robust ModelField.annotation check ([eba7856](https://github.com/openai/openai-python/commit/eba7856db55afb8cb44376a0248587549f7bc65f))
+
+
+### Chores
+
+* **ci:** add timeout thresholds for CI jobs ([0997211](https://github.com/openai/openai-python/commit/09972119df5dd4c7c8db137c721364787e22d4c6))
+* **internal:** fix list file params ([da2113c](https://github.com/openai/openai-python/commit/da2113c60b50b4438459325fcd38d55df3f63d8e))
+* **internal:** import reformatting ([b425fb9](https://github.com/openai/openai-python/commit/b425fb906f62550c3669b09b9d8575f3d4d8496b))
+* **internal:** minor formatting changes ([aed1d76](https://github.com/openai/openai-python/commit/aed1d767898324cf90328db329e04e89a77579c3))
+* **internal:** refactor retries to not use recursion ([8cb8cfa](https://github.com/openai/openai-python/commit/8cb8cfab48a4fed70a756ce50036e7e56e1f9f87))
+* **internal:** update models test ([870ad4e](https://github.com/openai/openai-python/commit/870ad4ed3a284d75f44b825503750129284c7906))
+* update completion parse signature ([a44016c](https://github.com/openai/openai-python/commit/a44016c64cdefe404e97592808ed3c25411ab27b))
+
+## 1.75.0 (2025-04-16)
+
+Full Changelog: [v1.74.1...v1.75.0](https://github.com/openai/openai-python/compare/v1.74.1...v1.75.0)
+
+### Features
+
+* **api:** add o3 and o4-mini model IDs ([4bacbd5](https://github.com/openai/openai-python/commit/4bacbd5503137e266c127dc643ebae496cb4f158))
+
+## 1.74.1 (2025-04-16)
+
+Full Changelog: [v1.74.0...v1.74.1](https://github.com/openai/openai-python/compare/v1.74.0...v1.74.1)
+
+### Chores
+
+* **internal:** base client updates ([06303b5](https://github.com/openai/openai-python/commit/06303b501f8c17040c495971a4ee79ae340f6f4a))
+* **internal:** bump pyright version ([9fd1c77](https://github.com/openai/openai-python/commit/9fd1c778c3231616bf1331cb1daa86fdfca4cb7f))
+
 ## 1.74.0 (2025-04-14)
 
 Full Changelog: [v1.73.0...v1.74.0](https://github.com/openai/openai-python/compare/v1.73.0...v1.74.0)

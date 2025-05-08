@@ -20,10 +20,17 @@ class Reasoning(TypedDict, total=False):
     result in faster responses and fewer tokens used on reasoning in a response.
     """
 
-    generate_summary: Optional[Literal["concise", "detailed"]]
-    """**computer_use_preview only**
+    generate_summary: Optional[Literal["auto", "concise", "detailed"]]
+    """**Deprecated:** use `summary` instead.
 
     A summary of the reasoning performed by the model. This can be useful for
-    debugging and understanding the model's reasoning process. One of `concise` or
-    `detailed`.
+    debugging and understanding the model's reasoning process. One of `auto`,
+    `concise`, or `detailed`.
+    """
+
+    summary: Optional[Literal["auto", "concise", "detailed"]]
+    """A summary of the reasoning performed by the model.
+
+    This can be useful for debugging and understanding the model's reasoning
+    process. One of `auto`, `concise`, or `detailed`.
     """

@@ -9,10 +9,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import (
-    maybe_transform,
-    async_maybe_transform,
-)
+from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import (
@@ -88,7 +85,7 @@ class Speech(SyncAPIResource):
               `wav`, and `pcm`.
 
           speed: The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is
-              the default.
+              the default. Does not work with `gpt-4o-mini-tts`.
 
           extra_headers: Send extra headers
 
@@ -179,7 +176,7 @@ class AsyncSpeech(AsyncAPIResource):
               `wav`, and `pcm`.
 
           speed: The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is
-              the default.
+              the default. Does not work with `gpt-4o-mini-tts`.
 
           extra_headers: Send extra headers
 

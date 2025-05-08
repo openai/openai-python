@@ -9,10 +9,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ...._utils import (
-    maybe_transform,
-    async_maybe_transform,
-)
+from ...._utils import maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -179,8 +176,8 @@ class Runs(SyncAPIResource):
           order: Sort order for runs by timestamp. Use `asc` for ascending order or `desc` for
               descending order. Defaults to `asc`.
 
-          status: Filter runs by status. Use "queued" | "in_progress" | "failed" | "completed" |
-              "canceled".
+          status: Filter runs by status. One of `queued` | `in_progress` | `failed` | `completed`
+              | `canceled`.
 
           extra_headers: Send extra headers
 
@@ -428,8 +425,8 @@ class AsyncRuns(AsyncAPIResource):
           order: Sort order for runs by timestamp. Use `asc` for ascending order or `desc` for
               descending order. Defaults to `asc`.
 
-          status: Filter runs by status. Use "queued" | "in_progress" | "failed" | "completed" |
-              "canceled".
+          status: Filter runs by status. One of `queued` | `in_progress` | `failed` | `completed`
+              | `canceled`.
 
           extra_headers: Send extra headers
 

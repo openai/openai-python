@@ -12,12 +12,7 @@ import httpx
 from .. import _legacy_response
 from ..types import FilePurpose, file_list_params, file_create_params
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
-from .._utils import (
-    extract_files,
-    maybe_transform,
-    deepcopy_minimal,
-    async_maybe_transform,
-)
+from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (

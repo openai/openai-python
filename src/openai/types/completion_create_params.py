@@ -120,9 +120,10 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     stop: Union[Optional[str], List[str], None]
-    """Up to 4 sequences where the API will stop generating further tokens.
+    """Not supported with latest reasoning models `o3` and `o4-mini`.
 
-    The returned text will not contain the stop sequence.
+    Up to 4 sequences where the API will stop generating further tokens. The
+    returned text will not contain the stop sequence.
     """
 
     stream_options: Optional[ChatCompletionStreamOptionsParam]
