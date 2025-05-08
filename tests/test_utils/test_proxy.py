@@ -24,7 +24,7 @@ def test_recursive_proxy() -> None:
     assert type(operator.attrgetter("name.foo.bar.baz")(proxy)).__name__ == "RecursiveLazyProxy"
 
 
-def test_is_instance_with_missing_dependency_error() -> None:
+def test_isinstance_does_not_error() -> None:
     class MissingDepsProxy(LazyProxy[Any]):
         @override
         def __load__(self) -> Any:
