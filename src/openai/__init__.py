@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os as _os
+import typing as _t
 from typing_extensions import override
 
 from . import types
@@ -34,6 +35,9 @@ from ._exceptions import (
 from ._base_client import DefaultHttpxClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
+
+if not _t.TYPE_CHECKING:
+    from ._resources_proxy import resources as resources
 
 __all__ = [
     "types",
@@ -103,7 +107,6 @@ for __name in __all__:
             pass
 
 # ------ Module level client ------
-import typing as _t
 import typing_extensions as _te
 
 import httpx as _httpx
