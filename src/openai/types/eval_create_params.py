@@ -140,19 +140,16 @@ class TestingCriterionLabelModel(TypedDict, total=False):
 
 
 class TestingCriterionTextSimilarity(TextSimilarityGraderParam, total=False):
-    __test__ = False
     pass_threshold: Required[float]
     """The threshold for the score."""
 
 
 class TestingCriterionPython(PythonGraderParam, total=False):
-    __test__ = False
     pass_threshold: float
     """The threshold for the score."""
 
 
 class TestingCriterionScoreModel(ScoreModelGraderParam, total=False):
-    __test__ = False
     pass_threshold: float
     """The threshold for the score."""
 
