@@ -30,6 +30,8 @@ from .realtime.realtime import (
     AsyncRealtimeWithStreamingResponse,
 )
 
+from ..vector_stores import VectorStores
+
 __all__ = ["Beta", "AsyncBeta"]
 
 
@@ -49,6 +51,11 @@ class Beta(SyncAPIResource):
     @cached_property
     def threads(self) -> Threads:
         return Threads(self._client)
+    
+    @cached_property
+    def vector_stores(self) -> VectorStores:
+        from ..vector_stores import VectorStores
+        return VectorStores(self._client)
 
     @cached_property
     def with_raw_response(self) -> BetaWithRawResponse:
