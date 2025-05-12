@@ -261,7 +261,8 @@ class OpenAI(SyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        return {"Authorization": f"Bearer {api_key}"}
+        headers = {} if api_key == "" else {"Authorization": f"Bearer {api_key}"}
+        return headers
 
     @property
     @override
@@ -556,7 +557,8 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        return {"Authorization": f"Bearer {api_key}"}
+        headers = {} if api_key == "" else {"Authorization": f"Bearer {api_key}"}
+        return headers
 
     @property
     @override
