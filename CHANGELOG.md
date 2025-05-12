@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.78.1 (2025-05-12)
+
+Full Changelog: [v1.78.0...v1.78.1](https://github.com/openai/openai-python/compare/v1.78.0...v1.78.1)
+
+### Bug Fixes
+
+* **internal:** fix linting due to broken __test__ annotation ([5a7d7a0](https://github.com/openai/openai-python/commit/5a7d7a081138c6473bff44e60d439812ecb85cdf))
+* **package:** support direct resource imports ([2293fc0](https://github.com/openai/openai-python/commit/2293fc0dd23a9c756067cdc22b39c18448f35feb))
+
 ## 1.78.0 (2025-05-08)
 
 Full Changelog: [v1.77.0...v1.78.0](https://github.com/openai/openai-python/compare/v1.77.0...v1.78.0)
