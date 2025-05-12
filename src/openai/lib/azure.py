@@ -216,11 +216,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 raise ValueError(
                     "Must provide one of the `base_url` or `azure_endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable"
                 )
-
-            if azure_deployment is not None:
-                base_url = f"{azure_endpoint.rstrip('/')}/openai/deployments/{azure_deployment}"
-            else:
-                base_url = f"{azure_endpoint.rstrip('/')}/openai"
+            base_url = f"{azure_endpoint.rstrip('/')}/openai"
         else:
             if azure_endpoint is not None:
                 raise ValueError("base_url and azure_endpoint are mutually exclusive")
@@ -229,6 +225,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             # define a sentinel value to avoid any typing issues
             api_key = API_KEY_SENTINEL
 
+        self._azure_deployment = azure_deployment
         super().__init__(
             api_key=api_key,
             organization=organization,
@@ -337,10 +334,14 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
+        if self._azure_deployment:
+            query["deployment"] = self._azure_deployment
+        else:
+            query["deployment"] = model
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
-            token = self._get_azure_ad_token()
+            token = await self._get_azure_ad_token()
             if token:
                 auth_headers = {"Authorization": f"Bearer {token}"}
 
@@ -491,10 +492,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                     "Must provide one of the `base_url` or `azure_endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable"
                 )
 
-            if azure_deployment is not None:
-                base_url = f"{azure_endpoint.rstrip('/')}/openai/deployments/{azure_deployment}"
-            else:
-                base_url = f"{azure_endpoint.rstrip('/')}/openai"
+            base_url = f"{azure_endpoint.rstrip('/')}/openai"
         else:
             if azure_endpoint is not None:
                 raise ValueError("base_url and azure_endpoint are mutually exclusive")
@@ -613,6 +611,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
+        if self._azure_deployment:
+            query["deployment"] = self._azure_deployment
+        else:
+            query["deployment"] = model
         if self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
