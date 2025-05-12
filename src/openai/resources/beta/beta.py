@@ -29,6 +29,14 @@ from .realtime.realtime import (
     RealtimeWithStreamingResponse,
     AsyncRealtimeWithStreamingResponse,
 )
+from ...resources.vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
+)
 
 __all__ = ["Beta", "AsyncBeta"]
 
@@ -49,6 +57,11 @@ class Beta(SyncAPIResource):
     @cached_property
     def threads(self) -> Threads:
         return Threads(self._client)
+        
+    @cached_property
+    def vector_stores(self) -> VectorStores:
+        from ...resources.vector_stores import VectorStores
+        return VectorStores(self._client)
 
     @cached_property
     def with_raw_response(self) -> BetaWithRawResponse:
@@ -86,6 +99,11 @@ class AsyncBeta(AsyncAPIResource):
     @cached_property
     def threads(self) -> AsyncThreads:
         return AsyncThreads(self._client)
+        
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStores:
+        from ...resources.vector_stores import AsyncVectorStores
+        return AsyncVectorStores(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncBetaWithRawResponse:
@@ -122,6 +140,10 @@ class BetaWithRawResponse:
     @cached_property
     def threads(self) -> ThreadsWithRawResponse:
         return ThreadsWithRawResponse(self._beta.threads)
+        
+    @cached_property
+    def vector_stores(self) -> VectorStoresWithRawResponse:
+        return VectorStoresWithRawResponse(self._beta.vector_stores)
 
 
 class AsyncBetaWithRawResponse:
@@ -139,6 +161,10 @@ class AsyncBetaWithRawResponse:
     @cached_property
     def threads(self) -> AsyncThreadsWithRawResponse:
         return AsyncThreadsWithRawResponse(self._beta.threads)
+        
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStoresWithRawResponse:
+        return AsyncVectorStoresWithRawResponse(self._beta.vector_stores)
 
 
 class BetaWithStreamingResponse:
@@ -156,6 +182,10 @@ class BetaWithStreamingResponse:
     @cached_property
     def threads(self) -> ThreadsWithStreamingResponse:
         return ThreadsWithStreamingResponse(self._beta.threads)
+        
+    @cached_property
+    def vector_stores(self) -> VectorStoresWithStreamingResponse:
+        return VectorStoresWithStreamingResponse(self._beta.vector_stores)
 
 
 class AsyncBetaWithStreamingResponse:
@@ -173,3 +203,7 @@ class AsyncBetaWithStreamingResponse:
     @cached_property
     def threads(self) -> AsyncThreadsWithStreamingResponse:
         return AsyncThreadsWithStreamingResponse(self._beta.threads)
+        
+    @cached_property
+    def vector_stores(self) -> AsyncVectorStoresWithStreamingResponse:
+        return AsyncVectorStoresWithStreamingResponse(self._beta.vector_stores)
