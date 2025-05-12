@@ -120,10 +120,7 @@ class OpenAI(SyncAPIClient):
         """
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
+
         self.api_key = api_key
 
         if organization is None:
@@ -261,7 +258,9 @@ class OpenAI(SyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        return {"Authorization": f"Bearer {api_key}"}
+        if api_key :
+            return {"Authorization": f"Bearer {api_key}"}
+        return {}
 
     @property
     @override
@@ -415,10 +414,7 @@ class AsyncOpenAI(AsyncAPIClient):
         """
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
-            raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
-            )
+
         self.api_key = api_key
 
         if organization is None:
@@ -556,7 +552,9 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
-        return {"Authorization": f"Bearer {api_key}"}
+        if api_key :
+            return {"Authorization": f"Bearer {api_key}"}
+        return {}
 
     @property
     @override
