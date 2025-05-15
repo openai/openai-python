@@ -5,19 +5,12 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .dpo_method_param import DpoMethodParam
 from ..shared_params.metadata import Metadata
+from .supervised_method_param import SupervisedMethodParam
+from .reinforcement_method_param import ReinforcementMethodParam
 
-__all__ = [
-    "JobCreateParams",
-    "Hyperparameters",
-    "Integration",
-    "IntegrationWandb",
-    "Method",
-    "MethodDpo",
-    "MethodDpoHyperparameters",
-    "MethodSupervised",
-    "MethodSupervisedHyperparameters",
-]
+__all__ = ["JobCreateParams", "Hyperparameters", "Integration", "IntegrationWandb", "Method"]
 
 
 class JobCreateParams(TypedDict, total=False):
@@ -166,71 +159,15 @@ class Integration(TypedDict, total=False):
     """
 
 
-class MethodDpoHyperparameters(TypedDict, total=False):
-    batch_size: Union[Literal["auto"], int]
-    """Number of examples in each batch.
-
-    A larger batch size means that model parameters are updated less frequently, but
-    with lower variance.
-    """
-
-    beta: Union[Literal["auto"], float]
-    """The beta value for the DPO method.
-
-    A higher beta value will increase the weight of the penalty between the policy
-    and reference model.
-    """
-
-    learning_rate_multiplier: Union[Literal["auto"], float]
-    """Scaling factor for the learning rate.
-
-    A smaller learning rate may be useful to avoid overfitting.
-    """
-
-    n_epochs: Union[Literal["auto"], int]
-    """The number of epochs to train the model for.
-
-    An epoch refers to one full cycle through the training dataset.
-    """
-
-
-class MethodDpo(TypedDict, total=False):
-    hyperparameters: MethodDpoHyperparameters
-    """The hyperparameters used for the fine-tuning job."""
-
-
-class MethodSupervisedHyperparameters(TypedDict, total=False):
-    batch_size: Union[Literal["auto"], int]
-    """Number of examples in each batch.
-
-    A larger batch size means that model parameters are updated less frequently, but
-    with lower variance.
-    """
-
-    learning_rate_multiplier: Union[Literal["auto"], float]
-    """Scaling factor for the learning rate.
-
-    A smaller learning rate may be useful to avoid overfitting.
-    """
-
-    n_epochs: Union[Literal["auto"], int]
-    """The number of epochs to train the model for.
-
-    An epoch refers to one full cycle through the training dataset.
-    """
-
-
-class MethodSupervised(TypedDict, total=False):
-    hyperparameters: MethodSupervisedHyperparameters
-    """The hyperparameters used for the fine-tuning job."""
-
-
 class Method(TypedDict, total=False):
-    dpo: MethodDpo
+    type: Required[Literal["supervised", "dpo", "reinforcement"]]
+    """The type of method. Is either `supervised`, `dpo`, or `reinforcement`."""
+
+    dpo: DpoMethodParam
     """Configuration for the DPO fine-tuning method."""
 
-    supervised: MethodSupervised
-    """Configuration for the supervised fine-tuning method."""
+    reinforcement: ReinforcementMethodParam
+    """Configuration for the reinforcement fine-tuning method."""
 
-    type: Literal["supervised", "dpo"]
-    """The type of method. Is either `supervised` or `dpo`."""
+    supervised: SupervisedMethodParam
+    """Configuration for the supervised fine-tuning method."""

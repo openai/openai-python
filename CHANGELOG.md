@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.78.1 (2025-05-12)
+
+Full Changelog: [v1.78.0...v1.78.1](https://github.com/openai/openai-python/compare/v1.78.0...v1.78.1)
+
+### Bug Fixes
+
+* **internal:** fix linting due to broken __test__ annotation ([5a7d7a0](https://github.com/openai/openai-python/commit/5a7d7a081138c6473bff44e60d439812ecb85cdf))
+* **package:** support direct resource imports ([2293fc0](https://github.com/openai/openai-python/commit/2293fc0dd23a9c756067cdc22b39c18448f35feb))
+
+## 1.78.0 (2025-05-08)
+
+Full Changelog: [v1.77.0...v1.78.0](https://github.com/openai/openai-python/compare/v1.77.0...v1.78.0)
+
+### Features
+
+* **api:** Add reinforcement fine-tuning api support ([bebe361](https://github.com/openai/openai-python/commit/bebe36104bd3062d09ab9bbfb4bacfc99e737cb2))
+
+
+### Bug Fixes
+
+* ignore errors in isinstance() calls on LazyProxy subclasses ([#2343](https://github.com/openai/openai-python/issues/2343)) ([52cbbdf](https://github.com/openai/openai-python/commit/52cbbdf2207567741f16d18f1ea1b0d13d667375)), closes [#2056](https://github.com/openai/openai-python/issues/2056)
+
+
+### Chores
+
+* **internal:** update proxy tests ([b8e848d](https://github.com/openai/openai-python/commit/b8e848d5fb58472cbfa27fb3ed01efc25a05d944))
+* use lazy imports for module level client ([4d0f409](https://github.com/openai/openai-python/commit/4d0f409e79a18cce9855fe076f5a50e52b8bafd8))
+* use lazy imports for resources ([834813c](https://github.com/openai/openai-python/commit/834813c5cb1a84effc34e5eabed760393e1de806))
+
 ## 1.77.0 (2025-05-02)
 
 Full Changelog: [v1.76.2...v1.77.0](https://github.com/openai/openai-python/compare/v1.76.2...v1.77.0)
