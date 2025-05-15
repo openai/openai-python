@@ -7,19 +7,12 @@ from ...._models import BaseModel
 from .run_status import RunStatus
 from ..assistant_tool import AssistantTool
 from ...shared.metadata import Metadata
+from ..truncation_object import TruncationObject
 from ..assistant_tool_choice_option import AssistantToolChoiceOption
 from ..assistant_response_format_option import AssistantResponseFormatOption
 from .required_action_function_tool_call import RequiredActionFunctionToolCall
 
-__all__ = [
-    "Run",
-    "IncompleteDetails",
-    "LastError",
-    "RequiredAction",
-    "RequiredActionSubmitToolOutputs",
-    "TruncationStrategy",
-    "Usage",
-]
+__all__ = ["Run", "IncompleteDetails", "LastError", "RequiredAction", "RequiredActionSubmitToolOutputs", "Usage"]
 
 
 class IncompleteDetails(BaseModel):
@@ -50,23 +43,6 @@ class RequiredAction(BaseModel):
 
     type: Literal["submit_tool_outputs"]
     """For now, this is always `submit_tool_outputs`."""
-
-
-class TruncationStrategy(BaseModel):
-    type: Literal["auto", "last_messages"]
-    """The truncation strategy to use for the thread.
-
-    The default is `auto`. If set to `last_messages`, the thread will be truncated
-    to the n most recent messages in the thread. When set to `auto`, messages in the
-    middle of the thread will be dropped to fit the context length of the model,
-    `max_prompt_tokens`.
-    """
-
-    last_messages: Optional[int] = None
-    """
-    The number of most recent messages from the thread when constructing the context
-    for the run.
-    """
 
 
 class Usage(BaseModel):
@@ -225,7 +201,7 @@ class Run(BaseModel):
     this run.
     """
 
-    truncation_strategy: Optional[TruncationStrategy] = None
+    truncation_strategy: Optional[TruncationObject] = None
     """Controls for how a thread will be truncated prior to the run.
 
     Use this to control the intial context window of the run.
