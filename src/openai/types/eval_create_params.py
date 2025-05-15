@@ -16,6 +16,7 @@ __all__ = [
     "EvalCreateParams",
     "DataSourceConfig",
     "DataSourceConfigCustom",
+    "DataSourceConfigLogs",
     "DataSourceConfigStoredCompletions",
     "TestingCriterion",
     "TestingCriterionLabelModel",
@@ -65,15 +66,23 @@ class DataSourceConfigCustom(TypedDict, total=False):
     """
 
 
+class DataSourceConfigLogs(TypedDict, total=False):
+    type: Required[Literal["logs"]]
+    """The type of data source. Always `logs`."""
+
+    metadata: Dict[str, object]
+    """Metadata filters for the logs data source."""
+
+
 class DataSourceConfigStoredCompletions(TypedDict, total=False):
-    type: Required[Literal["stored_completions"]]
-    """The type of data source. Always `stored_completions`."""
+    type: Required[Literal["stored-completions"]]
+    """The type of data source. Always `stored-completions`."""
 
     metadata: Dict[str, object]
     """Metadata filters for the stored completions data source."""
 
 
-DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigStoredCompletions]
+DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigLogs, DataSourceConfigStoredCompletions]
 
 
 class TestingCriterionLabelModelInputSimpleInputMessage(TypedDict, total=False):

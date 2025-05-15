@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from typing import List, Union, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import FileTypes
 from ..audio_model import AudioModel
@@ -12,6 +12,8 @@ from ..audio_response_format import AudioResponseFormat
 
 __all__ = [
     "TranscriptionCreateParamsBase",
+    "ChunkingStrategy",
+    "ChunkingStrategyVadConfig",
     "TranscriptionCreateParamsNonStreaming",
     "TranscriptionCreateParamsStreaming",
 ]
@@ -29,6 +31,15 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
 
     The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, and `whisper-1`
     (which is powered by our open source Whisper V2 model).
+    """
+
+    chunking_strategy: Optional[ChunkingStrategy]
+    """Controls how the audio is cut into chunks.
+
+    When set to `"auto"`, the server first normalizes loudness and then uses voice
+    activity detection (VAD) to choose boundaries. `server_vad` object can be
+    provided to tweak VAD detection parameters manually. If unset, the audio is
+    transcribed as a single block.
     """
 
     include: List[TranscriptionInclude]
@@ -80,6 +91,31 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     is no additional latency for segment timestamps, but generating word timestamps
     incurs additional latency.
     """
+
+
+class ChunkingStrategyVadConfig(TypedDict, total=False):
+    type: Required[Literal["server_vad"]]
+    """Must be set to `server_vad` to enable manual chunking using server side VAD."""
+
+    prefix_padding_ms: int
+    """Amount of audio to include before the VAD detected speech (in milliseconds)."""
+
+    silence_duration_ms: int
+    """
+    Duration of silence to detect speech stop (in milliseconds). With shorter values
+    the model will respond more quickly, but may jump in on short pauses from the
+    user.
+    """
+
+    threshold: float
+    """Sensitivity threshold (0.0 to 1.0) for voice activity detection.
+
+    A higher threshold will require louder audio to activate the model, and thus
+    might perform better in noisy environments.
+    """
+
+
+ChunkingStrategy: TypeAlias = Union[Literal["auto"], ChunkingStrategyVadConfig]
 
 
 class TranscriptionCreateParamsNonStreaming(TranscriptionCreateParamsBase, total=False):

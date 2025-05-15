@@ -8,18 +8,18 @@ from pydantic import Field as FieldInfo
 from .._models import BaseModel
 from .shared.metadata import Metadata
 
-__all__ = ["EvalStoredCompletionsDataSourceConfig"]
+__all__ = ["EvalLogsDataSourceConfig"]
 
 
-class EvalStoredCompletionsDataSourceConfig(BaseModel):
+class EvalLogsDataSourceConfig(BaseModel):
     schema_: Dict[str, object] = FieldInfo(alias="schema")
     """
     The json schema for the run data source items. Learn how to build JSON schemas
     [here](https://json-schema.org/).
     """
 
-    type: Literal["stored-completions"]
-    """The type of data source. Always `stored-completions`."""
+    type: Literal["logs"]
+    """The type of data source. Always `logs`."""
 
     metadata: Optional[Metadata] = None
     """Set of 16 key-value pairs that can be attached to an object.

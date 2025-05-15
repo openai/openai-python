@@ -11,11 +11,15 @@ from .run_create_response import RunCreateResponse as RunCreateResponse
 from .run_delete_response import RunDeleteResponse as RunDeleteResponse
 from .run_retrieve_response import RunRetrieveResponse as RunRetrieveResponse
 from .create_eval_jsonl_run_data_source import CreateEvalJSONLRunDataSource as CreateEvalJSONLRunDataSource
+from .create_eval_responses_run_data_source import CreateEvalResponsesRunDataSource as CreateEvalResponsesRunDataSource
 from .create_eval_completions_run_data_source import (
     CreateEvalCompletionsRunDataSource as CreateEvalCompletionsRunDataSource,
 )
 from .create_eval_jsonl_run_data_source_param import (
     CreateEvalJSONLRunDataSourceParam as CreateEvalJSONLRunDataSourceParam,
+)
+from .create_eval_responses_run_data_source_param import (
+    CreateEvalResponsesRunDataSourceParam as CreateEvalResponsesRunDataSourceParam,
 )
 from .create_eval_completions_run_data_source_param import (
     CreateEvalCompletionsRunDataSourceParam as CreateEvalCompletionsRunDataSourceParam,

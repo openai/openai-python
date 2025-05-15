@@ -787,6 +787,7 @@ Types:
 ```python
 from openai.types import (
     EvalCustomDataSourceConfig,
+    EvalLogsDataSourceConfig,
     EvalStoredCompletionsDataSourceConfig,
     EvalCreateResponse,
     EvalRetrieveResponse,
@@ -812,6 +813,7 @@ Types:
 from openai.types.evals import (
     CreateEvalCompletionsRunDataSource,
     CreateEvalJSONLRunDataSource,
+    CreateEvalResponsesRunDataSource,
     EvalAPIError,
     RunCreateResponse,
     RunRetrieveResponse,
