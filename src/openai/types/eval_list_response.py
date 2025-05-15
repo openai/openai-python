@@ -10,6 +10,7 @@ from .graders.python_grader import PythonGrader
 from .graders.label_model_grader import LabelModelGrader
 from .graders.score_model_grader import ScoreModelGrader
 from .graders.string_check_grader import StringCheckGrader
+from .eval_logs_data_source_config import EvalLogsDataSourceConfig
 from .eval_custom_data_source_config import EvalCustomDataSourceConfig
 from .graders.text_similarity_grader import TextSimilarityGrader
 from .eval_stored_completions_data_source_config import EvalStoredCompletionsDataSourceConfig
@@ -24,7 +25,8 @@ __all__ = [
 ]
 
 DataSourceConfig: TypeAlias = Annotated[
-    Union[EvalCustomDataSourceConfig, EvalStoredCompletionsDataSourceConfig], PropertyInfo(discriminator="type")
+    Union[EvalCustomDataSourceConfig, EvalLogsDataSourceConfig, EvalStoredCompletionsDataSourceConfig],
+    PropertyInfo(discriminator="type"),
 ]
 
 

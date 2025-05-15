@@ -30,6 +30,7 @@ class TestTranscriptions:
         transcription = client.audio.transcriptions.create(
             file=b"raw file contents",
             model="gpt-4o-transcribe",
+            chunking_strategy="auto",
             include=["logprobs"],
             language="language",
             prompt="prompt",
@@ -81,6 +82,7 @@ class TestTranscriptions:
             file=b"raw file contents",
             model="gpt-4o-transcribe",
             stream=True,
+            chunking_strategy="auto",
             include=["logprobs"],
             language="language",
             prompt="prompt",
@@ -134,6 +136,7 @@ class TestAsyncTranscriptions:
         transcription = await async_client.audio.transcriptions.create(
             file=b"raw file contents",
             model="gpt-4o-transcribe",
+            chunking_strategy="auto",
             include=["logprobs"],
             language="language",
             prompt="prompt",
@@ -185,6 +188,7 @@ class TestAsyncTranscriptions:
             file=b"raw file contents",
             model="gpt-4o-transcribe",
             stream=True,
+            chunking_strategy="auto",
             include=["logprobs"],
             language="language",
             prompt="prompt",

@@ -52,6 +52,7 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -77,6 +78,11 @@ class Transcriptions(SyncAPIResource):
           model: ID of the model to use. The options are `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, and `whisper-1` (which is powered by our open source
               Whisper V2 model).
+
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+              first normalizes loudness and then uses voice activity detection (VAD) to choose
+              boundaries. `server_vad` object can be provided to tweak VAD detection
+              parameters manually. If unset, the audio is transcribed as a single block.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -135,6 +141,7 @@ class Transcriptions(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: Literal[True],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -168,6 +175,11 @@ class Transcriptions(SyncAPIResource):
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+              first normalizes loudness and then uses voice activity detection (VAD) to choose
+              boundaries. `server_vad` object can be provided to tweak VAD detection
+              parameters manually. If unset, the audio is transcribed as a single block.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -217,6 +229,7 @@ class Transcriptions(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: bool,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -250,6 +263,11 @@ class Transcriptions(SyncAPIResource):
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+              first normalizes loudness and then uses voice activity detection (VAD) to choose
+              boundaries. `server_vad` object can be provided to tweak VAD detection
+              parameters manually. If unset, the audio is transcribed as a single block.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -298,6 +316,7 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -316,6 +335,7 @@ class Transcriptions(SyncAPIResource):
             {
                 "file": file,
                 "model": model,
+                "chunking_strategy": chunking_strategy,
                 "include": include,
                 "language": language,
                 "prompt": prompt,
@@ -376,6 +396,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -401,6 +422,11 @@ class AsyncTranscriptions(AsyncAPIResource):
           model: ID of the model to use. The options are `gpt-4o-transcribe`,
               `gpt-4o-mini-transcribe`, and `whisper-1` (which is powered by our open source
               Whisper V2 model).
+
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+              first normalizes loudness and then uses voice activity detection (VAD) to choose
+              boundaries. `server_vad` object can be provided to tweak VAD detection
+              parameters manually. If unset, the audio is transcribed as a single block.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -459,6 +485,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: Literal[True],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -492,6 +519,11 @@ class AsyncTranscriptions(AsyncAPIResource):
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+              first normalizes loudness and then uses voice activity detection (VAD) to choose
+              boundaries. `server_vad` object can be provided to tweak VAD detection
+              parameters manually. If unset, the audio is transcribed as a single block.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -541,6 +573,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: bool,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -574,6 +607,11 @@ class AsyncTranscriptions(AsyncAPIResource):
               for more information.
 
               Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+
+          chunking_strategy: Controls how the audio is cut into chunks. When set to `"auto"`, the server
+              first normalizes loudness and then uses voice activity detection (VAD) to choose
+              boundaries. `server_vad` object can be provided to tweak VAD detection
+              parameters manually. If unset, the audio is transcribed as a single block.
 
           include: Additional information to include in the transcription response. `logprobs` will
               return the log probabilities of the tokens in the response to understand the
@@ -622,6 +660,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
         include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
         language: str | NotGiven = NOT_GIVEN,
         prompt: str | NotGiven = NOT_GIVEN,
@@ -640,6 +679,7 @@ class AsyncTranscriptions(AsyncAPIResource):
             {
                 "file": file,
                 "model": model,
+                "chunking_strategy": chunking_strategy,
                 "include": include,
                 "language": language,
                 "prompt": prompt,
