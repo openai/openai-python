@@ -9,6 +9,7 @@ from ...shared.chat_model import ChatModel
 from ..assistant_tool_param import AssistantToolParam
 from .runs.run_step_include import RunStepInclude
 from ...shared_params.metadata import Metadata
+from ..truncation_object_param import TruncationObjectParam
 from ...shared.reasoning_effort import ReasoningEffort
 from .message_content_part_param import MessageContentPartParam
 from ..code_interpreter_tool_param import CodeInterpreterToolParam
@@ -21,7 +22,6 @@ __all__ = [
     "AdditionalMessageAttachment",
     "AdditionalMessageAttachmentTool",
     "AdditionalMessageAttachmentToolFileSearch",
-    "TruncationStrategy",
     "RunCreateParamsNonStreaming",
     "RunCreateParamsStreaming",
 ]
@@ -173,7 +173,7 @@ class RunCreateParamsBase(TypedDict, total=False):
     We generally recommend altering this or temperature but not both.
     """
 
-    truncation_strategy: Optional[TruncationStrategy]
+    truncation_strategy: Optional[TruncationObjectParam]
     """Controls for how a thread will be truncated prior to the run.
 
     Use this to control the intial context window of the run.
@@ -220,23 +220,6 @@ class AdditionalMessage(TypedDict, total=False):
 
     Keys are strings with a maximum length of 64 characters. Values are strings with
     a maximum length of 512 characters.
-    """
-
-
-class TruncationStrategy(TypedDict, total=False):
-    type: Required[Literal["auto", "last_messages"]]
-    """The truncation strategy to use for the thread.
-
-    The default is `auto`. If set to `last_messages`, the thread will be truncated
-    to the n most recent messages in the thread. When set to `auto`, messages in the
-    middle of the thread will be dropped to fit the context length of the model,
-    `max_prompt_tokens`.
-    """
-
-    last_messages: Optional[int]
-    """
-    The number of most recent messages from the thread when constructing the context
-    for the run.
     """
 
 

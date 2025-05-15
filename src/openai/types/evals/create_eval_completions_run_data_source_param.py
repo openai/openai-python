@@ -2,51 +2,25 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared_params.metadata import Metadata
+from ..shared_params.eval_item import EvalItem
+from .eval_jsonl_file_id_source_param import EvalJSONLFileIDSourceParam
 from ..responses.easy_input_message_param import EasyInputMessageParam
-from ..responses.response_input_text_param import ResponseInputTextParam
+from .eval_jsonl_file_content_source_param import EvalJSONLFileContentSourceParam
 
 __all__ = [
     "CreateEvalCompletionsRunDataSourceParam",
     "Source",
-    "SourceFileContent",
-    "SourceFileContentContent",
-    "SourceFileID",
     "SourceStoredCompletions",
     "InputMessages",
     "InputMessagesTemplate",
     "InputMessagesTemplateTemplate",
-    "InputMessagesTemplateTemplateMessage",
-    "InputMessagesTemplateTemplateMessageContent",
-    "InputMessagesTemplateTemplateMessageContentOutputText",
     "InputMessagesItemReference",
     "SamplingParams",
 ]
-
-
-class SourceFileContentContent(TypedDict, total=False):
-    item: Required[Dict[str, object]]
-
-    sample: Dict[str, object]
-
-
-class SourceFileContent(TypedDict, total=False):
-    content: Required[Iterable[SourceFileContentContent]]
-    """The content of the jsonl file."""
-
-    type: Required[Literal["file_content"]]
-    """The type of jsonl source. Always `file_content`."""
-
-
-class SourceFileID(TypedDict, total=False):
-    id: Required[str]
-    """The identifier of the file."""
-
-    type: Required[Literal["file_id"]]
-    """The type of jsonl source. Always `file_id`."""
 
 
 class SourceStoredCompletions(TypedDict, total=False):
@@ -76,37 +50,9 @@ class SourceStoredCompletions(TypedDict, total=False):
     """An optional model to filter by (e.g., 'gpt-4o')."""
 
 
-Source: TypeAlias = Union[SourceFileContent, SourceFileID, SourceStoredCompletions]
+Source: TypeAlias = Union[EvalJSONLFileContentSourceParam, EvalJSONLFileIDSourceParam, SourceStoredCompletions]
 
-
-class InputMessagesTemplateTemplateMessageContentOutputText(TypedDict, total=False):
-    text: Required[str]
-    """The text output from the model."""
-
-    type: Required[Literal["output_text"]]
-    """The type of the output text. Always `output_text`."""
-
-
-InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputTextParam, InputMessagesTemplateTemplateMessageContentOutputText
-]
-
-
-class InputMessagesTemplateTemplateMessage(TypedDict, total=False):
-    content: Required[InputMessagesTemplateTemplateMessageContent]
-    """Text inputs to the model - can contain template strings."""
-
-    role: Required[Literal["user", "assistant", "system", "developer"]]
-    """The role of the message input.
-
-    One of `user`, `assistant`, `system`, or `developer`.
-    """
-
-    type: Literal["message"]
-    """The type of the message input. Always `message`."""
-
-
-InputMessagesTemplateTemplate: TypeAlias = Union[EasyInputMessageParam, InputMessagesTemplateTemplateMessage]
+InputMessagesTemplateTemplate: TypeAlias = Union[EasyInputMessageParam, EvalItem]
 
 
 class InputMessagesTemplate(TypedDict, total=False):
