@@ -2,41 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Iterable
+from typing import Union
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = [
-    "CreateEvalJSONLRunDataSourceParam",
-    "Source",
-    "SourceFileContent",
-    "SourceFileContentContent",
-    "SourceFileID",
-]
+from .eval_jsonl_file_id_source_param import EvalJSONLFileIDSourceParam
+from .eval_jsonl_file_content_source_param import EvalJSONLFileContentSourceParam
 
+__all__ = ["CreateEvalJSONLRunDataSourceParam", "Source"]
 
-class SourceFileContentContent(TypedDict, total=False):
-    item: Required[Dict[str, object]]
-
-    sample: Dict[str, object]
-
-
-class SourceFileContent(TypedDict, total=False):
-    content: Required[Iterable[SourceFileContentContent]]
-    """The content of the jsonl file."""
-
-    type: Required[Literal["file_content"]]
-    """The type of jsonl source. Always `file_content`."""
-
-
-class SourceFileID(TypedDict, total=False):
-    id: Required[str]
-    """The identifier of the file."""
-
-    type: Required[Literal["file_id"]]
-    """The type of jsonl source. Always `file_id`."""
-
-
-Source: TypeAlias = Union[SourceFileContent, SourceFileID]
+Source: TypeAlias = Union[EvalJSONLFileContentSourceParam, EvalJSONLFileIDSourceParam]
 
 
 class CreateEvalJSONLRunDataSourceParam(TypedDict, total=False):

@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from typing import List, Optional
-from typing_extensions import Literal, Required, TypedDict
+from typing_extensions import TypedDict
 
 from .shared_params.metadata import Metadata
 from .file_chunking_strategy_param import FileChunkingStrategyParam
+from .vector_store_expiration_after_param import VectorStoreExpirationAfterParam
 
-__all__ = ["VectorStoreCreateParams", "ExpiresAfter"]
+__all__ = ["VectorStoreCreateParams"]
 
 
 class VectorStoreCreateParams(TypedDict, total=False):
@@ -19,7 +20,7 @@ class VectorStoreCreateParams(TypedDict, total=False):
     non-empty.
     """
 
-    expires_after: ExpiresAfter
+    expires_after: VectorStoreExpirationAfterParam
     """The expiration policy for a vector store."""
 
     file_ids: List[str]
@@ -41,14 +42,3 @@ class VectorStoreCreateParams(TypedDict, total=False):
 
     name: str
     """The name of the vector store."""
-
-
-class ExpiresAfter(TypedDict, total=False):
-    anchor: Required[Literal["last_active_at"]]
-    """Anchor timestamp after which the expiration policy applies.
-
-    Supported anchors: `last_active_at`.
-    """
-
-    days: Required[int]
-    """The number of days after the anchor time that the vector store will expire."""

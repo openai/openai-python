@@ -1,52 +1,26 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Dict, List, Union, Optional
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
+from ..shared.eval_item import EvalItem
+from .eval_jsonl_file_id_source import EvalJSONLFileIDSource
 from ..responses.easy_input_message import EasyInputMessage
-from ..responses.response_input_text import ResponseInputText
+from .eval_jsonl_file_content_source import EvalJSONLFileContentSource
 
 __all__ = [
     "CreateEvalCompletionsRunDataSource",
     "Source",
-    "SourceFileContent",
-    "SourceFileContentContent",
-    "SourceFileID",
     "SourceStoredCompletions",
     "InputMessages",
     "InputMessagesTemplate",
     "InputMessagesTemplateTemplate",
-    "InputMessagesTemplateTemplateMessage",
-    "InputMessagesTemplateTemplateMessageContent",
-    "InputMessagesTemplateTemplateMessageContentOutputText",
     "InputMessagesItemReference",
     "SamplingParams",
 ]
-
-
-class SourceFileContentContent(BaseModel):
-    item: Dict[str, object]
-
-    sample: Optional[Dict[str, object]] = None
-
-
-class SourceFileContent(BaseModel):
-    content: List[SourceFileContentContent]
-    """The content of the jsonl file."""
-
-    type: Literal["file_content"]
-    """The type of jsonl source. Always `file_content`."""
-
-
-class SourceFileID(BaseModel):
-    id: str
-    """The identifier of the file."""
-
-    type: Literal["file_id"]
-    """The type of jsonl source. Always `file_id`."""
 
 
 class SourceStoredCompletions(BaseModel):
@@ -77,39 +51,12 @@ class SourceStoredCompletions(BaseModel):
 
 
 Source: TypeAlias = Annotated[
-    Union[SourceFileContent, SourceFileID, SourceStoredCompletions], PropertyInfo(discriminator="type")
+    Union[EvalJSONLFileContentSource, EvalJSONLFileIDSource, SourceStoredCompletions],
+    PropertyInfo(discriminator="type"),
 ]
-
-
-class InputMessagesTemplateTemplateMessageContentOutputText(BaseModel):
-    text: str
-    """The text output from the model."""
-
-    type: Literal["output_text"]
-    """The type of the output text. Always `output_text`."""
-
-
-InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputText, InputMessagesTemplateTemplateMessageContentOutputText
-]
-
-
-class InputMessagesTemplateTemplateMessage(BaseModel):
-    content: InputMessagesTemplateTemplateMessageContent
-    """Text inputs to the model - can contain template strings."""
-
-    role: Literal["user", "assistant", "system", "developer"]
-    """The role of the message input.
-
-    One of `user`, `assistant`, `system`, or `developer`.
-    """
-
-    type: Optional[Literal["message"]] = None
-    """The type of the message input. Always `message`."""
-
 
 InputMessagesTemplateTemplate: TypeAlias = Annotated[
-    Union[EasyInputMessage, InputMessagesTemplateTemplateMessage], PropertyInfo(discriminator="type")
+    Union[EasyInputMessage, EvalItem], PropertyInfo(discriminator="type")
 ]
 
 
