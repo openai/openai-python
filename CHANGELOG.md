@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.79.0 (2025-05-16)
+
+Full Changelog: [v1.78.1...v1.79.0](https://github.com/openai/openai-python/compare/v1.78.1...v1.79.0)
+
+### Features
+
+* **api:** further updates for evals API ([32c99a6](https://github.com/openai/openai-python/commit/32c99a6f5885d4bf3511a7f06b70000edd274301))
+* **api:** manual updates ([25245e5](https://github.com/openai/openai-python/commit/25245e5e3d0713abfb65b760aee1f12bc61deb41))
+* **api:** responses x eval api ([fd586cb](https://github.com/openai/openai-python/commit/fd586cbdf889c9a5c6b9be177ff02fbfffa3eba5))
+* **api:** Updating Assistants and Evals API schemas ([98ba7d3](https://github.com/openai/openai-python/commit/98ba7d355551213a13803f68d5642eecbb4ffd39))
+
+
+### Bug Fixes
+
+* fix create audio transcription endpoint ([e9a89ab](https://github.com/openai/openai-python/commit/e9a89ab7b6387610e433550207a23973b7edda3a))
+
+
+### Chores
+
+* **ci:** fix installation instructions ([f26c5fc](https://github.com/openai/openai-python/commit/f26c5fc85d98d700b68cb55c8be5d15983a9aeaf))
+* **ci:** upload sdks to package manager ([861f105](https://github.com/openai/openai-python/commit/861f1055768168ab04987a42efcd32a07bc93542))
+
 ## 1.78.1 (2025-05-12)
 
 Full Changelog: [v1.78.0...v1.78.1](https://github.com/openai/openai-python/compare/v1.78.0...v1.78.1)
