@@ -76,12 +76,6 @@ class DataSourceResponsesSourceResponses(BaseModel):
     This is a query parameter used to select responses.
     """
 
-    has_tool_calls: Optional[bool] = None
-    """Whether the response has tool calls.
-
-    This is a query parameter used to select responses.
-    """
-
     instructions_search: Optional[str] = None
     """Optional string to search the 'instructions' field.
 
@@ -170,7 +164,7 @@ class DataSourceResponsesInputMessagesTemplate(BaseModel):
     template: List[DataSourceResponsesInputMessagesTemplateTemplate]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     type: Literal["template"]
@@ -179,7 +173,7 @@ class DataSourceResponsesInputMessagesTemplate(BaseModel):
 
 class DataSourceResponsesInputMessagesItemReference(BaseModel):
     item_reference: str
-    """A reference to a variable in the "item" namespace. Ie, "item.name" """
+    """A reference to a variable in the `item` namespace. Ie, "item.name" """
 
     type: Literal["item_reference"]
     """The type of input messages. Always `item_reference`."""
@@ -207,12 +201,18 @@ class DataSourceResponsesSamplingParams(BaseModel):
 
 class DataSourceResponses(BaseModel):
     source: DataSourceResponsesSource
-    """A EvalResponsesSource object describing a run data source configuration."""
+    """Determines what populates the `item` namespace in this run's data source."""
 
     type: Literal["responses"]
     """The type of run data source. Always `responses`."""
 
     input_messages: Optional[DataSourceResponsesInputMessages] = None
+    """Used when sampling from a model.
+
+    Dictates the structure of the messages passed into the model. Can either be a
+    reference to a prebuilt trajectory (ie, `item.input_trajectory`), or a template
+    with variable references to the `item` namespace.
+    """
 
     model: Optional[str] = None
     """The name of the model to use for generating completions (e.g. "o3-mini")."""

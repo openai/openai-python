@@ -18,8 +18,8 @@ class EvalStoredCompletionsDataSourceConfig(BaseModel):
     [here](https://json-schema.org/).
     """
 
-    type: Literal["stored-completions"]
-    """The type of data source. Always `stored-completions`."""
+    type: Literal["stored_completions"]
+    """The type of data source. Always `stored_completions`."""
 
     metadata: Optional[Metadata] = None
     """Set of 16 key-value pairs that can be attached to an object.
