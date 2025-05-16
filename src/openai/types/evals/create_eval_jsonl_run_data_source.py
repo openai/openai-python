@@ -36,6 +36,7 @@ Source: TypeAlias = Annotated[Union[SourceFileContent, SourceFileID], PropertyIn
 
 class CreateEvalJSONLRunDataSource(BaseModel):
     source: Source
+    """Determines what populates the `item` namespace in the data source."""
 
     type: Literal["jsonl"]
     """The type of data source. Always `jsonl`."""

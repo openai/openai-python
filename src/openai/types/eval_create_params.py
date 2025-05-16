@@ -33,10 +33,18 @@ __all__ = [
 
 class EvalCreateParams(TypedDict, total=False):
     data_source_config: Required[DataSourceConfig]
-    """The configuration for the data source used for the evaluation runs."""
+    """The configuration for the data source used for the evaluation runs.
+
+    Dictates the schema of the data used in the evaluation.
+    """
 
     testing_criteria: Required[Iterable[TestingCriterion]]
-    """A list of graders for all eval runs in this group."""
+    """A list of graders for all eval runs in this group.
+
+    Graders can reference variables in the data source using double curly braces
+    notation, like `{{item.variable_name}}`. To reference the model's output, use
+    the `sample` namespace (ie, `{{sample.output_text}}`).
+    """
 
     metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
@@ -75,8 +83,8 @@ class DataSourceConfigLogs(TypedDict, total=False):
 
 
 class DataSourceConfigStoredCompletions(TypedDict, total=False):
-    type: Required[Literal["stored-completions"]]
-    """The type of data source. Always `stored-completions`."""
+    type: Required[Literal["stored_completions"]]
+    """The type of data source. Always `stored_completions`."""
 
     metadata: Dict[str, object]
     """Metadata filters for the stored completions data source."""
@@ -129,7 +137,7 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     input: Required[Iterable[TestingCriterionLabelModelInput]]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     labels: Required[List[str]]
