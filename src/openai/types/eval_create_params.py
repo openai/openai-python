@@ -6,10 +6,10 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .shared_params.metadata import Metadata
-from .shared_params.eval_item import EvalItem
 from .graders.python_grader_param import PythonGraderParam
 from .graders.score_model_grader_param import ScoreModelGraderParam
 from .graders.string_check_grader_param import StringCheckGraderParam
+from .responses.response_input_text_param import ResponseInputTextParam
 from .graders.text_similarity_grader_param import TextSimilarityGraderParam
 
 __all__ = [
@@ -22,6 +22,9 @@ __all__ = [
     "TestingCriterionLabelModel",
     "TestingCriterionLabelModelInput",
     "TestingCriterionLabelModelInputSimpleInputMessage",
+    "TestingCriterionLabelModelInputEvalItem",
+    "TestingCriterionLabelModelInputEvalItemContent",
+    "TestingCriterionLabelModelInputEvalItemContentOutputText",
     "TestingCriterionTextSimilarity",
     "TestingCriterionPython",
     "TestingCriterionScoreModel",
@@ -90,7 +93,36 @@ class TestingCriterionLabelModelInputSimpleInputMessage(TypedDict, total=False):
     """The role of the message (e.g. "system", "assistant", "user")."""
 
 
-TestingCriterionLabelModelInput: TypeAlias = Union[TestingCriterionLabelModelInputSimpleInputMessage, EvalItem]
+class TestingCriterionLabelModelInputEvalItemContentOutputText(TypedDict, total=False):
+    text: Required[str]
+    """The text output from the model."""
+
+    type: Required[Literal["output_text"]]
+    """The type of the output text. Always `output_text`."""
+
+
+TestingCriterionLabelModelInputEvalItemContent: TypeAlias = Union[
+    str, ResponseInputTextParam, TestingCriterionLabelModelInputEvalItemContentOutputText
+]
+
+
+class TestingCriterionLabelModelInputEvalItem(TypedDict, total=False):
+    content: Required[TestingCriterionLabelModelInputEvalItemContent]
+    """Text inputs to the model - can contain template strings."""
+
+    role: Required[Literal["user", "assistant", "system", "developer"]]
+    """The role of the message input.
+
+    One of `user`, `assistant`, `system`, or `developer`.
+    """
+
+    type: Literal["message"]
+    """The type of the message input. Always `message`."""
+
+
+TestingCriterionLabelModelInput: TypeAlias = Union[
+    TestingCriterionLabelModelInputSimpleInputMessage, TestingCriterionLabelModelInputEvalItem
+]
 
 
 class TestingCriterionLabelModel(TypedDict, total=False):

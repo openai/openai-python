@@ -9,7 +9,6 @@ from .assistant_tool import AssistantTool as AssistantTool
 from .thread_deleted import ThreadDeleted as ThreadDeleted
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .assistant_deleted import AssistantDeleted as AssistantDeleted
-from .truncation_object import TruncationObject as TruncationObject
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .assistant_tool_param import AssistantToolParam as AssistantToolParam
 from .thread_create_params import ThreadCreateParams as ThreadCreateParams
@@ -21,7 +20,6 @@ from .assistant_stream_event import AssistantStreamEvent as AssistantStreamEvent
 from .file_search_tool_param import FileSearchToolParam as FileSearchToolParam
 from .assistant_create_params import AssistantCreateParams as AssistantCreateParams
 from .assistant_update_params import AssistantUpdateParams as AssistantUpdateParams
-from .truncation_object_param import TruncationObjectParam as TruncationObjectParam
 from .assistant_tool_choice_param import AssistantToolChoiceParam as AssistantToolChoiceParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam as CodeInterpreterToolParam
 from .assistant_tool_choice_option import AssistantToolChoiceOption as AssistantToolChoiceOption

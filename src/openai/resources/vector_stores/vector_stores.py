@@ -43,7 +43,6 @@ from ...types.vector_store_deleted import VectorStoreDeleted
 from ...types.shared_params.metadata import Metadata
 from ...types.file_chunking_strategy_param import FileChunkingStrategyParam
 from ...types.vector_store_search_response import VectorStoreSearchResponse
-from ...types.vector_store_expiration_after_param import VectorStoreExpirationAfterParam
 
 __all__ = ["VectorStores", "AsyncVectorStores"]
 
@@ -80,7 +79,7 @@ class VectorStores(SyncAPIResource):
         self,
         *,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
-        expires_after: VectorStoreExpirationAfterParam | NotGiven = NOT_GIVEN,
+        expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
@@ -178,7 +177,7 @@ class VectorStores(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        expires_after: Optional[VectorStoreExpirationAfterParam] | NotGiven = NOT_GIVEN,
+        expires_after: Optional[vector_store_update_params.ExpiresAfter] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -425,7 +424,7 @@ class AsyncVectorStores(AsyncAPIResource):
         self,
         *,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
-        expires_after: VectorStoreExpirationAfterParam | NotGiven = NOT_GIVEN,
+        expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         file_ids: List[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
@@ -523,7 +522,7 @@ class AsyncVectorStores(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        expires_after: Optional[VectorStoreExpirationAfterParam] | NotGiven = NOT_GIVEN,
+        expires_after: Optional[vector_store_update_params.ExpiresAfter] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: Optional[str] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.

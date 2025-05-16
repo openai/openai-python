@@ -8,7 +8,6 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 from ..shared.chat_model import ChatModel
 from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
-from .truncation_object_param import TruncationObjectParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from .threads.message_content_part_param import MessageContentPartParam
@@ -32,6 +31,7 @@ __all__ = [
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
+    "TruncationStrategy",
     "ThreadCreateAndRunParamsNonStreaming",
     "ThreadCreateAndRunParamsStreaming",
 ]
@@ -166,7 +166,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     We generally recommend altering this or temperature but not both.
     """
 
-    truncation_strategy: Optional[TruncationObjectParam]
+    truncation_strategy: Optional[TruncationStrategy]
     """Controls for how a thread will be truncated prior to the run.
 
     Use this to control the intial context window of the run.
@@ -356,6 +356,23 @@ class ToolResources(TypedDict, total=False):
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch
+
+
+class TruncationStrategy(TypedDict, total=False):
+    type: Required[Literal["auto", "last_messages"]]
+    """The truncation strategy to use for the thread.
+
+    The default is `auto`. If set to `last_messages`, the thread will be truncated
+    to the n most recent messages in the thread. When set to `auto`, messages in the
+    middle of the thread will be dropped to fit the context length of the model,
+    `max_prompt_tokens`.
+    """
+
+    last_messages: Optional[int]
+    """
+    The number of most recent messages from the thread when constructing the context
+    for the run.
+    """
 
 
 class ThreadCreateAndRunParamsNonStreaming(ThreadCreateAndRunParamsBase, total=False):

@@ -6,7 +6,6 @@ from .batch import Batch as Batch
 from .image import Image as Image
 from .model import Model as Model
 from .shared import (
-    EvalItem as EvalItem,
     Metadata as Metadata,
     AllModels as AllModels,
     ChatModel as ChatModel,
@@ -71,20 +70,17 @@ from .vector_store_create_params import VectorStoreCreateParams as VectorStoreCr
 from .vector_store_search_params import VectorStoreSearchParams as VectorStoreSearchParams
 from .vector_store_update_params import VectorStoreUpdateParams as VectorStoreUpdateParams
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
-from .eval_logs_data_source_config import EvalLogsDataSourceConfig as EvalLogsDataSourceConfig
 from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
 from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .websocket_connection_options import WebsocketConnectionOptions as WebsocketConnectionOptions
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .static_file_chunking_strategy import StaticFileChunkingStrategy as StaticFileChunkingStrategy
-from .vector_store_expiration_after import VectorStoreExpirationAfter as VectorStoreExpirationAfter
 from .eval_custom_data_source_config import EvalCustomDataSourceConfig as EvalCustomDataSourceConfig
 from .moderation_image_url_input_param import ModerationImageURLInputParam as ModerationImageURLInputParam
 from .auto_file_chunking_strategy_param import AutoFileChunkingStrategyParam as AutoFileChunkingStrategyParam
 from .moderation_multi_modal_input_param import ModerationMultiModalInputParam as ModerationMultiModalInputParam
 from .other_file_chunking_strategy_object import OtherFileChunkingStrategyObject as OtherFileChunkingStrategyObject
 from .static_file_chunking_strategy_param import StaticFileChunkingStrategyParam as StaticFileChunkingStrategyParam
-from .vector_store_expiration_after_param import VectorStoreExpirationAfterParam as VectorStoreExpirationAfterParam
 from .static_file_chunking_strategy_object import StaticFileChunkingStrategyObject as StaticFileChunkingStrategyObject
 from .eval_stored_completions_data_source_config import (
     EvalStoredCompletionsDataSourceConfig as EvalStoredCompletionsDataSourceConfig,
