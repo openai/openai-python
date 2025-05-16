@@ -1,7 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from .metadata import Metadata as Metadata
-from .eval_item import EvalItem as EvalItem
 from .reasoning import Reasoning as Reasoning
 from .chat_model import ChatModel as ChatModel
 from .compound_filter import CompoundFilter as CompoundFilter

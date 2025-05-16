@@ -7,7 +7,6 @@ from openai.types import (
     ComparisonFilter,
     CompoundFilter,
     ErrorObject,
-    EvalItem,
     FunctionDefinition,
     FunctionParameters,
     Metadata,
@@ -344,7 +343,6 @@ from openai.types import (
     StaticFileChunkingStrategyObjectParam,
     VectorStore,
     VectorStoreDeleted,
-    VectorStoreExpirationAfter,
     VectorStoreSearchResponse,
 )
 ```
@@ -521,7 +519,6 @@ from openai.types.beta import (
     AssistantToolChoiceOption,
     Thread,
     ThreadDeleted,
-    TruncationObject,
 )
 ```
 
@@ -790,7 +787,6 @@ Types:
 ```python
 from openai.types import (
     EvalCustomDataSourceConfig,
-    EvalLogsDataSourceConfig,
     EvalStoredCompletionsDataSourceConfig,
     EvalCreateResponse,
     EvalRetrieveResponse,
@@ -816,10 +812,7 @@ Types:
 from openai.types.evals import (
     CreateEvalCompletionsRunDataSource,
     CreateEvalJSONLRunDataSource,
-    CreateEvalResponsesRunDataSource,
     EvalAPIError,
-    EvalJSONLFileContentSource,
-    EvalJSONLFileIDSource,
     RunCreateResponse,
     RunRetrieveResponse,
     RunListResponse,

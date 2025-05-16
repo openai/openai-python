@@ -28,4 +28,4 @@ class MultiGraderParam(TypedDict, total=False):
     """The name of the grader."""
 
     type: Required[Literal["multi"]]
-    """The type of grader."""
+    """The object type, which is always `multi`."""
