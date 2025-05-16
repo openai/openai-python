@@ -25,4 +25,4 @@ class MultiGrader(BaseModel):
     """The name of the grader."""
 
     type: Literal["multi"]
-    """The type of grader."""
+    """The object type, which is always `multi`."""
