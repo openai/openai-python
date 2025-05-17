@@ -16,6 +16,7 @@ __all__ = [
     "EvalCreateParams",
     "DataSourceConfig",
     "DataSourceConfigCustom",
+    "DataSourceConfigLogs",
     "DataSourceConfigStoredCompletions",
     "TestingCriterion",
     "TestingCriterionLabelModel",
@@ -32,10 +33,18 @@ __all__ = [
 
 class EvalCreateParams(TypedDict, total=False):
     data_source_config: Required[DataSourceConfig]
-    """The configuration for the data source used for the evaluation runs."""
+    """The configuration for the data source used for the evaluation runs.
+
+    Dictates the schema of the data used in the evaluation.
+    """
 
     testing_criteria: Required[Iterable[TestingCriterion]]
-    """A list of graders for all eval runs in this group."""
+    """A list of graders for all eval runs in this group.
+
+    Graders can reference variables in the data source using double curly braces
+    notation, like `{{item.variable_name}}`. To reference the model's output, use
+    the `sample` namespace (ie, `{{sample.output_text}}`).
+    """
 
     metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
@@ -65,6 +74,14 @@ class DataSourceConfigCustom(TypedDict, total=False):
     """
 
 
+class DataSourceConfigLogs(TypedDict, total=False):
+    type: Required[Literal["logs"]]
+    """The type of data source. Always `logs`."""
+
+    metadata: Dict[str, object]
+    """Metadata filters for the logs data source."""
+
+
 class DataSourceConfigStoredCompletions(TypedDict, total=False):
     type: Required[Literal["stored_completions"]]
     """The type of data source. Always `stored_completions`."""
@@ -73,7 +90,7 @@ class DataSourceConfigStoredCompletions(TypedDict, total=False):
     """Metadata filters for the stored completions data source."""
 
 
-DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigStoredCompletions]
+DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigLogs, DataSourceConfigStoredCompletions]
 
 
 class TestingCriterionLabelModelInputSimpleInputMessage(TypedDict, total=False):
@@ -120,7 +137,7 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     input: Required[Iterable[TestingCriterionLabelModelInput]]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     labels: Required[List[str]]
@@ -140,19 +157,16 @@ class TestingCriterionLabelModel(TypedDict, total=False):
 
 
 class TestingCriterionTextSimilarity(TextSimilarityGraderParam, total=False):
-    __test__ = False
     pass_threshold: Required[float]
     """The threshold for the score."""
 
 
 class TestingCriterionPython(PythonGraderParam, total=False):
-    __test__ = False
     pass_threshold: float
     """The threshold for the score."""
 
 
 class TestingCriterionScoreModel(ScoreModelGraderParam, total=False):
-    __test__ = False
     pass_threshold: float
     """The threshold for the score."""
 

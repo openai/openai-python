@@ -76,12 +76,6 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
     type: Required[Literal["responses"]]
     """The type of run data source. Always `responses`."""
 
-    allow_parallel_tool_calls: Optional[bool]
-    """Whether to allow parallel tool calls.
-
-    This is a query parameter used to select responses.
-    """
-
     created_after: Optional[int]
     """Only include items created after this timestamp (inclusive).
 
@@ -94,14 +88,8 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
     This is a query parameter used to select responses.
     """
 
-    has_tool_calls: Optional[bool]
-    """Whether the response has tool calls.
-
-    This is a query parameter used to select responses.
-    """
-
     instructions_search: Optional[str]
-    """Optional search string for instructions.
+    """Optional string to search the 'instructions' field.
 
     This is a query parameter used to select responses.
     """
@@ -126,6 +114,9 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
 
     temperature: Optional[float]
     """Sampling temperature. This is a query parameter used to select responses."""
+
+    tools: Optional[List[str]]
+    """List of tool names. This is a query parameter used to select responses."""
 
     top_p: Optional[float]
     """Nucleus sampling parameter. This is a query parameter used to select responses."""
@@ -190,7 +181,7 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplate(TypedDict,
     template: Required[Iterable[DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplate]]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     type: Required[Literal["template"]]
@@ -199,7 +190,7 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplate(TypedDict,
 
 class DataSourceCreateEvalResponsesRunDataSourceInputMessagesItemReference(TypedDict, total=False):
     item_reference: Required[str]
-    """A reference to a variable in the "item" namespace. Ie, "item.name" """
+    """A reference to a variable in the `item` namespace. Ie, "item.name" """
 
     type: Required[Literal["item_reference"]]
     """The type of input messages. Always `item_reference`."""
@@ -227,12 +218,18 @@ class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=
 
 class DataSourceCreateEvalResponsesRunDataSource(TypedDict, total=False):
     source: Required[DataSourceCreateEvalResponsesRunDataSourceSource]
-    """A EvalResponsesSource object describing a run data source configuration."""
+    """Determines what populates the `item` namespace in this run's data source."""
 
-    type: Required[Literal["completions"]]
-    """The type of run data source. Always `completions`."""
+    type: Required[Literal["responses"]]
+    """The type of run data source. Always `responses`."""
 
     input_messages: DataSourceCreateEvalResponsesRunDataSourceInputMessages
+    """Used when sampling from a model.
+
+    Dictates the structure of the messages passed into the model. Can either be a
+    reference to a prebuilt trajectory (ie, `item.input_trajectory`), or a template
+    with variable references to the `item` namespace.
+    """
 
     model: str
     """The name of the model to use for generating completions (e.g. "o3-mini")."""

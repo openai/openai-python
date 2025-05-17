@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os as _os
+import typing as _t
 from typing_extensions import override
 
 from . import types
@@ -77,6 +78,9 @@ __all__ = [
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
 ]
+
+if not _t.TYPE_CHECKING:
+    from ._utils._resources_proxy import resources as resources
 
 from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
