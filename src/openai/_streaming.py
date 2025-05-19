@@ -59,7 +59,7 @@ class Stream(Generic[_T]):
             if sse.data.startswith("[DONE]"):
                 break
 
-            if sse.event is None or sse.event.startswith("response.") or sse.event.startswith('transcript.'):
+            if sse.event is None or sse.event.startswith("response") or sse.event.startswith('transcript'):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     message = None
@@ -161,7 +161,7 @@ class AsyncStream(Generic[_T]):
             if sse.data.startswith("[DONE]"):
                 break
 
-            if sse.event is None or sse.event.startswith("response.") or sse.event.startswith('transcript.'):
+            if sse.event is None or sse.event.startswith("response") or sse.event.startswith('transcript'):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     message = None
@@ -383,6 +383,15 @@ def is_stream_class_type(typ: type) -> TypeGuard[type[Stream[object]] | type[Asy
     """TypeGuard for determining whether or not the given type is a subclass of `Stream` / `AsyncStream`"""
     origin = get_origin(typ) or typ
     return inspect.isclass(origin) and issubclass(origin, (Stream, AsyncStream))
+
+
+def is_valid_event(event: str | None) -> bool:
+    """Given an event fieldname, checks if it is a response, transcript, or None"""
+    if event is None:
+        return True
+    if event in ("response", "transcript") or event.startswith("response.") or event.startswith("transcript."):
+        return True
+    return False
 
 
 def extract_stream_chunk_type(
