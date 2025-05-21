@@ -128,6 +128,12 @@ class Response(BaseModel):
     We generally recommend altering this or `temperature` but not both.
     """
 
+    background: Optional[bool] = None
+    """Whether to run the model response in the background.
+
+    [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
     max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
@@ -173,7 +179,8 @@ class Response(BaseModel):
     status: Optional[ResponseStatus] = None
     """The status of the response generation.
 
-    One of `completed`, `failed`, `in_progress`, or `incomplete`.
+    One of `completed`, `failed`, `in_progress`, `cancelled`, `queued`, or
+    `incomplete`.
     """
 
     text: Optional[ResponseTextConfig] = None
