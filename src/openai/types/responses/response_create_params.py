@@ -46,6 +46,12 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     available models.
     """
 
+    background: Optional[bool]
+    """Whether to run the model response in the background.
+
+    [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
     include: Optional[List[ResponseIncludable]]
     """Specify additional output data to include in the model response.
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.80.0 (2025-05-21)
+
+Full Changelog: [v1.79.0...v1.80.0](https://github.com/openai/openai-python/compare/v1.79.0...v1.80.0)
+
+### Features
+
+* **api:** new API tools ([d36ae52](https://github.com/openai/openai-python/commit/d36ae528d55fe87067c4b8c6b2c947cbad5e5002))
+
+
+### Chores
+
+* **docs:** grammar improvements ([e746145](https://github.com/openai/openai-python/commit/e746145a12b5335d8841aff95c91bbbde8bae8e3))
+
 ## 1.79.0 (2025-05-16)
 
 Full Changelog: [v1.78.1...v1.79.0](https://github.com/openai/openai-python/compare/v1.78.1...v1.79.0)

@@ -449,7 +449,7 @@ class AsyncTranscriptions(AsyncAPIResource):
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
-          """
+        """
 
     @overload
     async def create(

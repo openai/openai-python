@@ -30,6 +30,7 @@ class TestResponses:
         response = client.responses.create(
             input="string",
             model="gpt-4o",
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -49,18 +50,11 @@ class TestResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -110,6 +104,7 @@ class TestResponses:
             input="string",
             model="gpt-4o",
             stream=True,
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -128,18 +123,11 @@ class TestResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -276,6 +264,7 @@ class TestAsyncResponses:
         response = await async_client.responses.create(
             input="string",
             model="gpt-4o",
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -295,18 +284,11 @@ class TestAsyncResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -356,6 +338,7 @@ class TestAsyncResponses:
             input="string",
             model="gpt-4o",
             stream=True,
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -374,18 +357,11 @@ class TestAsyncResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
