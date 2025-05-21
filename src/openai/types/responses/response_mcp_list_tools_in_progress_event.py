@@ -8,5 +8,8 @@ __all__ = ["ResponseMcpListToolsInProgressEvent"]
 
 
 class ResponseMcpListToolsInProgressEvent(BaseModel):
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.mcp_list_tools.in_progress"]
     """The type of the event. Always 'response.mcp_list_tools.in_progress'."""

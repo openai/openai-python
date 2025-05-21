@@ -20,5 +20,8 @@ class ResponseTextDeltaEvent(BaseModel):
     output_index: int
     """The index of the output item that the text delta was added to."""
 
+    sequence_number: int
+    """The sequence number for this event."""
+
     type: Literal["response.output_text.delta"]
     """The type of the event. Always `response.output_text.delta`."""

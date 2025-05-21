@@ -14,5 +14,8 @@ class ResponseFileSearchCallInProgressEvent(BaseModel):
     output_index: int
     """The index of the output item that the file search call is initiated."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.file_search_call.in_progress"]
     """The type of the event. Always `response.file_search_call.in_progress`."""

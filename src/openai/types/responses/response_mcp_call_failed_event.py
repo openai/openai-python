@@ -8,5 +8,8 @@ __all__ = ["ResponseMcpCallFailedEvent"]
 
 
 class ResponseMcpCallFailedEvent(BaseModel):
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.mcp_call.failed"]
     """The type of the event. Always 'response.mcp_call.failed'."""

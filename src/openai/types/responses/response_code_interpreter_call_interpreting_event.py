@@ -15,5 +15,8 @@ class ResponseCodeInterpreterCallInterpretingEvent(BaseModel):
     output_index: int
     """The index of the output item that the code interpreter call is in progress."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.code_interpreter_call.interpreting"]
     """The type of the event. Always `response.code_interpreter_call.interpreting`."""
