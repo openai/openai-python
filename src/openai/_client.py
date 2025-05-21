@@ -46,6 +46,7 @@ if TYPE_CHECKING:
         batches,
         uploads,
         responses,
+        containers,
         embeddings,
         completions,
         fine_tuning,
@@ -65,6 +66,7 @@ if TYPE_CHECKING:
     from .resources.moderations import Moderations, AsyncModerations
     from .resources.uploads.uploads import Uploads, AsyncUploads
     from .resources.responses.responses import Responses, AsyncResponses
+    from .resources.containers.containers import Containers, AsyncContainers
     from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning
     from .resources.vector_stores.vector_stores import VectorStores, AsyncVectorStores
 
@@ -243,6 +245,12 @@ class OpenAI(SyncAPIClient):
         from .resources.evals import Evals
 
         return Evals(self)
+
+    @cached_property
+    def containers(self) -> Containers:
+        from .resources.containers import Containers
+
+        return Containers(self)
 
     @cached_property
     def with_raw_response(self) -> OpenAIWithRawResponse:
@@ -540,6 +548,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncEvals(self)
 
     @cached_property
+    def containers(self) -> AsyncContainers:
+        from .resources.containers import AsyncContainers
+
+        return AsyncContainers(self)
+
+    @cached_property
     def with_raw_response(self) -> AsyncOpenAIWithRawResponse:
         return AsyncOpenAIWithRawResponse(self)
 
@@ -757,6 +771,12 @@ class OpenAIWithRawResponse:
 
         return EvalsWithRawResponse(self._client.evals)
 
+    @cached_property
+    def containers(self) -> containers.ContainersWithRawResponse:
+        from .resources.containers import ContainersWithRawResponse
+
+        return ContainersWithRawResponse(self._client.containers)
+
 
 class AsyncOpenAIWithRawResponse:
     _client: AsyncOpenAI
@@ -853,6 +873,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.evals import AsyncEvalsWithRawResponse
 
         return AsyncEvalsWithRawResponse(self._client.evals)
+
+    @cached_property
+    def containers(self) -> containers.AsyncContainersWithRawResponse:
+        from .resources.containers import AsyncContainersWithRawResponse
+
+        return AsyncContainersWithRawResponse(self._client.containers)
 
 
 class OpenAIWithStreamedResponse:
@@ -951,6 +977,12 @@ class OpenAIWithStreamedResponse:
 
         return EvalsWithStreamingResponse(self._client.evals)
 
+    @cached_property
+    def containers(self) -> containers.ContainersWithStreamingResponse:
+        from .resources.containers import ContainersWithStreamingResponse
+
+        return ContainersWithStreamingResponse(self._client.containers)
+
 
 class AsyncOpenAIWithStreamedResponse:
     _client: AsyncOpenAI
@@ -1047,6 +1079,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.evals import AsyncEvalsWithStreamingResponse
 
         return AsyncEvalsWithStreamingResponse(self._client.evals)
+
+    @cached_property
+    def containers(self) -> containers.AsyncContainersWithStreamingResponse:
+        from .resources.containers import AsyncContainersWithStreamingResponse
+
+        return AsyncContainersWithStreamingResponse(self._client.containers)
 
 
 Client = OpenAI

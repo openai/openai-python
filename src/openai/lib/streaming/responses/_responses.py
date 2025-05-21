@@ -251,6 +251,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     delta=event.delta,
                     item_id=event.item_id,
                     output_index=event.output_index,
+                    sequence_number=event.sequence_number,
                     type="response.output_text.delta",
                     snapshot=content.text,
                 )
@@ -268,6 +269,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     content_index=event.content_index,
                     item_id=event.item_id,
                     output_index=event.output_index,
+                    sequence_number=event.sequence_number,
                     type="response.output_text.done",
                     text=event.text,
                     parsed=parse_text(event.text, text_format=self._text_format),
@@ -283,6 +285,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     delta=event.delta,
                     item_id=event.item_id,
                     output_index=event.output_index,
+                    sequence_number=event.sequence_number,
                     type="response.function_call_arguments.delta",
                     snapshot=output.arguments,
                 )
@@ -295,6 +298,7 @@ class ResponseStreamState(Generic[TextFormatT]):
             events.append(
                 build(
                     ResponseCompletedEvent,
+                    sequence_number=event.sequence_number,
                     type="response.completed",
                     response=response,
                 )

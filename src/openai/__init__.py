@@ -363,6 +363,7 @@ from ._module_client import (
     batches as batches,
     uploads as uploads,
     responses as responses,
+    containers as containers,
     embeddings as embeddings,
     completions as completions,
     fine_tuning as fine_tuning,
