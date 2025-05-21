@@ -870,19 +870,17 @@ class Responses(SyncAPIResource):
             if not is_given(response_id):
                 raise ValueError("id must be provided when streaming an existing response")
 
-            # TODO: get rid of the cast
-            r = self.retrieve(
-                response_id,
-                stream=True,
-                include=include or [],
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                starting_after=NOT_GIVEN,
-                timeout=timeout,
-            )
             return ResponseStreamManager(
-                lambda: cast(Stream[ResponseStreamEvent], r),
+                lambda: self.retrieve(
+                    response_id=response_id,
+                    stream=True,
+                    include=include or [],
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    starting_after=NOT_GIVEN,
+                    timeout=timeout,
+                ),
                 text_format=text_format,
                 input_tools=tools,
                 starting_after=starting_after if is_given(starting_after) else None,
@@ -1000,7 +998,7 @@ class Responses(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response | Stream[ResponseStreamEvent]: ...
+    ) -> Stream[ResponseStreamEvent]: ...
 
     @overload
     def retrieve(
@@ -1038,6 +1036,16 @@ class Responses(SyncAPIResource):
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          stream: If set to true, the model response data will be streamed to the client using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
+
+          starting_after: When retrieving a background response, this parameter can be used to start
+            replaying after an event with the given sequence number. Must be used in conjunction with
+            the `stream` parameter set to `true`.
 
           extra_headers: Send extra headers
 
@@ -1919,7 +1927,7 @@ class AsyncResponses(AsyncAPIResource):
 
         tools = _make_tools(tools)
         if len(new_response_args_names) > 0:
-            if not is_given(input):
+            if isinstance(input, NotGiven):
                 raise ValueError("input must be provided when creating a new response")
 
             if not is_given(model):
@@ -1966,7 +1974,7 @@ class AsyncResponses(AsyncAPIResource):
                 starting_after=None,
             )
         else:
-            if not is_given(response_id):
+            if isinstance(response_id, NotGiven):
                 raise ValueError("response_id must be provided when streaming an existing response")
 
             api_request = self.retrieve(
@@ -2097,7 +2105,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response | AsyncStream[ResponseStreamEvent]: ...
+    ) -> AsyncStream[ResponseStreamEvent]: ...
 
     @overload
     async def retrieve(
@@ -2135,6 +2143,10 @@ class AsyncResponses(AsyncAPIResource):
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          stream:
+          starting_after: When retrieving a background response, this parameter can be used to start
+          replaying after an event with the given sequence number. Must be used in
 
           extra_headers: Send extra headers
 

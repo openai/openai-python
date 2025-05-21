@@ -18,11 +18,12 @@ class MathResponse(BaseModel):
 
 client = OpenAI()
 id = None
-with client.responses.stream(
+
+with client.responses.create(
     input="solve 8x + 31 = 2",
     model="gpt-4o-2024-08-06",
-    text_format=MathResponse,
     background=True,
+    stream=True,
 ) as stream:
     for event in stream:
         if event.type == "response.created":
@@ -35,13 +36,11 @@ with client.responses.stream(
 print("Interrupted. Continuing...")
 
 assert id is not None
-with client.responses.stream(
+with client.responses.retrieve(
     response_id=id,
+    stream=True,
     starting_after=10,
-    text_format=MathResponse,
 ) as stream:
     for event in stream:
         if "output_text" in event.type:
             rich.print(event)
-
-    rich.print(stream.get_final_response())
