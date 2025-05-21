@@ -59,7 +59,7 @@ class Stream(Generic[_T]):
             if sse.data.startswith("[DONE]"):
                 break
 
-            if sse.event is None or sse.event.startswith("response.") or sse.event.startswith('transcript.'):
+            if sse.event is None or sse.event.startswith("response.") or sse.event.startswith("transcript."):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     message = None
@@ -161,7 +161,7 @@ class AsyncStream(Generic[_T]):
             if sse.data.startswith("[DONE]"):
                 break
 
-            if sse.event is None or sse.event.startswith("response.") or sse.event.startswith('transcript.'):
+            if sse.event is None or sse.event.startswith("response.") or sse.event.startswith("transcript."):
                 data = sse.json()
                 if is_mapping(data) and data.get("error"):
                     message = None

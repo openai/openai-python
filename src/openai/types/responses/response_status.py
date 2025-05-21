@@ -4,4 +4,4 @@ from typing_extensions import Literal, TypeAlias
 
 __all__ = ["ResponseStatus"]
 
-ResponseStatus: TypeAlias = Literal["completed", "failed", "in_progress", "incomplete"]
+ResponseStatus: TypeAlias = Literal["completed", "failed", "in_progress", "cancelled", "queued", "incomplete"]

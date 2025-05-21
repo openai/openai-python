@@ -77,6 +77,7 @@ class Responses(SyncAPIResource):
         *,
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -131,6 +132,9 @@ class Responses(SyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          background: Whether to run the model response in the background.
+              [Learn more](https://platform.openai.com/docs/guides/background).
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -267,6 +271,7 @@ class Responses(SyncAPIResource):
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
         stream: Literal[True],
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -327,6 +332,9 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          background: Whether to run the model response in the background.
+              [Learn more](https://platform.openai.com/docs/guides/background).
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -456,6 +464,7 @@ class Responses(SyncAPIResource):
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
         stream: bool,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -516,6 +525,9 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          background: Whether to run the model response in the background.
+              [Learn more](https://platform.openai.com/docs/guides/background).
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -644,6 +656,7 @@ class Responses(SyncAPIResource):
         *,
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -674,6 +687,7 @@ class Responses(SyncAPIResource):
                 {
                     "input": input,
                     "model": model,
+                    "background": background,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
@@ -965,6 +979,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1019,6 +1034,9 @@ class AsyncResponses(AsyncAPIResource):
               and price points. Refer to the
               [model guide](https://platform.openai.com/docs/models) to browse and compare
               available models.
+
+          background: Whether to run the model response in the background.
+              [Learn more](https://platform.openai.com/docs/guides/background).
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1155,6 +1173,7 @@ class AsyncResponses(AsyncAPIResource):
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
         stream: Literal[True],
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1215,6 +1234,9 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          background: Whether to run the model response in the background.
+              [Learn more](https://platform.openai.com/docs/guides/background).
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1344,6 +1366,7 @@ class AsyncResponses(AsyncAPIResource):
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
         stream: bool,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1404,6 +1427,9 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          background: Whether to run the model response in the background.
+              [Learn more](https://platform.openai.com/docs/guides/background).
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1532,6 +1558,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1562,6 +1589,7 @@ class AsyncResponses(AsyncAPIResource):
                 {
                     "input": input,
                     "model": model,
+                    "background": background,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
