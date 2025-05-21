@@ -19,6 +19,7 @@ if TYPE_CHECKING:
     from .resources.moderations import Moderations
     from .resources.uploads.uploads import Uploads
     from .resources.responses.responses import Responses
+    from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
     from .resources.vector_stores.vector_stores import VectorStores
 
@@ -92,6 +93,12 @@ class EmbeddingsProxy(LazyProxy["Embeddings"]):
         return _load_client().embeddings
 
 
+class ContainersProxy(LazyProxy["Containers"]):
+    @override
+    def __load__(self) -> Containers:
+        return _load_client().containers
+
+
 class CompletionsProxy(LazyProxy["Completions"]):
     @override
     def __load__(self) -> Completions:
@@ -127,6 +134,7 @@ batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
 responses: Responses = ResponsesProxy().__as_proxied__()
 embeddings: Embeddings = EmbeddingsProxy().__as_proxied__()
+containers: Containers = ContainersProxy().__as_proxied__()
 completions: Completions = CompletionsProxy().__as_proxied__()
 moderations: Moderations = ModerationsProxy().__as_proxied__()
 fine_tuning: FineTuning = FineTuningProxy().__as_proxied__()

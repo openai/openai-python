@@ -75,5 +75,8 @@ class ResponseTextAnnotationDeltaEvent(BaseModel):
     output_index: int
     """The index of the output item that the text annotation was added to."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.output_text.annotation.added"]
     """The type of the event. Always `response.output_text.annotation.added`."""

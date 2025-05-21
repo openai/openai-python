@@ -14,5 +14,8 @@ class ResponseImageGenCallCompletedEvent(BaseModel):
     output_index: int
     """The index of the output item in the response's output array."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.image_generation_call.completed"]
     """The type of the event. Always 'response.image_generation_call.completed'."""

@@ -14,6 +14,9 @@ class ResponseReasoningSummaryDoneEvent(BaseModel):
     output_index: int
     """The index of the output item in the response's output array."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     summary_index: int
     """The index of the summary part within the output item."""
 
