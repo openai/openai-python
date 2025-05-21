@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.81.0 (2025-05-21)
+
+Full Changelog: [v1.80.0...v1.81.0](https://github.com/openai/openai-python/compare/v1.80.0...v1.81.0)
+
+### Features
+
+* **api:** add container endpoint ([054a210](https://github.com/openai/openai-python/commit/054a210289d7e0db22d2d2a61bbe4d4d9cc0cb47))
+
 ## 1.80.0 (2025-05-21)
 
 Full Changelog: [v1.79.0...v1.80.0](https://github.com/openai/openai-python/compare/v1.79.0...v1.80.0)
