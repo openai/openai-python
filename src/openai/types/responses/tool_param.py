@@ -53,9 +53,6 @@ class McpRequireApprovalMcpToolApprovalFilter(TypedDict, total=False):
     never: McpRequireApprovalMcpToolApprovalFilterNever
     """A list of tools that never require approval."""
 
-    tool_names: List[str]
-    """List of allowed tool names."""
-
 
 McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, Literal["always", "never"]]
 

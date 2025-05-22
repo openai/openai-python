@@ -250,8 +250,8 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
@@ -443,8 +443,8 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
@@ -636,8 +636,8 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
@@ -718,11 +718,28 @@ class Responses(SyncAPIResource):
             stream_cls=Stream[ResponseStreamEvent],
         )
 
+    @overload
+    def stream(
+        self,
+        *,
+        response_id: str,
+        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ResponseStreamManager[TextFormatT]: ...
+
+    @overload
     def stream(
         self,
         *,
         input: Union[str, ResponseInputParam],
         model: Union[str, ChatModel],
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
@@ -745,49 +762,129 @@ class Responses(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> ResponseStreamManager[TextFormatT]: ...
+
+    def stream(
+        self,
+        *,
+        response_id: str | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
+        model: Union[str, ChatModel] | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
+        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
+        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        store: Optional[bool] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
+        user: str | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]:
-        if is_given(text_format):
-            if not text:
-                text = {}
+        new_response_args = {
+            "input": input,
+            "model": model,
+            "include": include,
+            "instructions": instructions,
+            "max_output_tokens": max_output_tokens,
+            "metadata": metadata,
+            "parallel_tool_calls": parallel_tool_calls,
+            "previous_response_id": previous_response_id,
+            "reasoning": reasoning,
+            "store": store,
+            "temperature": temperature,
+            "text": text,
+            "tool_choice": tool_choice,
+            "top_p": top_p,
+            "truncation": truncation,
+            "user": user,
+            "background": background,
+        }
+        new_response_args_names = [k for k, v in new_response_args.items() if is_given(v)]
 
-            if "format" in text:
-                raise TypeError("Cannot mix and match text.format with text_format")
-
-            text["format"] = _type_to_text_format_param(text_format)
-
+        if (is_given(response_id) or is_given(starting_after)) and len(new_response_args_names) > 0:
+            raise ValueError(
+                "Cannot provide both response_id/starting_after can't be provided together with "
+                + ", ".join(new_response_args_names)
+            )
         tools = _make_tools(tools)
+        if len(new_response_args_names) > 0:
+            if not is_given(input):
+                raise ValueError("input must be provided when creating a new response")
 
-        api_request: partial[Stream[ResponseStreamEvent]] = partial(
-            self.create,
-            input=input,
-            model=model,
-            tools=tools,
-            include=include,
-            instructions=instructions,
-            max_output_tokens=max_output_tokens,
-            metadata=metadata,
-            parallel_tool_calls=parallel_tool_calls,
-            previous_response_id=previous_response_id,
-            store=store,
-            stream=True,
-            temperature=temperature,
-            text=text,
-            tool_choice=tool_choice,
-            reasoning=reasoning,
-            top_p=top_p,
-            truncation=truncation,
-            user=user,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
+            if not is_given(model):
+                raise ValueError("model must be provided when creating a new response")
 
-        return ResponseStreamManager(
-            api_request,
-            text_format=text_format,
-            input_tools=tools,
-        )
+            if is_given(text_format):
+                if not text:
+                    text = {}
+
+                if "format" in text:
+                    raise TypeError("Cannot mix and match text.format with text_format")
+
+                text["format"] = _type_to_text_format_param(text_format)
+
+            api_request: partial[Stream[ResponseStreamEvent]] = partial(
+                self.create,
+                input=input,
+                model=model,
+                tools=tools,
+                include=include,
+                instructions=instructions,
+                max_output_tokens=max_output_tokens,
+                metadata=metadata,
+                parallel_tool_calls=parallel_tool_calls,
+                previous_response_id=previous_response_id,
+                store=store,
+                stream=True,
+                temperature=temperature,
+                text=text,
+                tool_choice=tool_choice,
+                reasoning=reasoning,
+                top_p=top_p,
+                truncation=truncation,
+                user=user,
+                background=background,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+            )
+
+            return ResponseStreamManager(api_request, text_format=text_format, input_tools=tools, starting_after=None)
+        else:
+            if not is_given(response_id):
+                raise ValueError("id must be provided when streaming an existing response")
+
+            return ResponseStreamManager(
+                lambda: self.retrieve(
+                    response_id=response_id,
+                    stream=True,
+                    include=include or [],
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    starting_after=NOT_GIVEN,
+                    timeout=timeout,
+                ),
+                text_format=text_format,
+                input_tools=tools,
+                starting_after=starting_after if is_given(starting_after) else None,
+            )
 
     def parse(
         self,
@@ -873,6 +970,7 @@ class Responses(SyncAPIResource):
             cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
         )
 
+    @overload
     def retrieve(
         self,
         response_id: str,
@@ -884,13 +982,70 @@ class Responses(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response:
+    ) -> Response: ...
+
+    @overload
+    def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: Literal[True],
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Stream[ResponseStreamEvent]: ...
+
+    @overload
+    def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: bool,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | Stream[ResponseStreamEvent]: ...
+
+    def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: bool = False,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | Stream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
 
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          stream: If set to true, the model response data will be streamed to the client using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
+
+          starting_after: When retrieving a background response, this parameter can be used to start
+            replaying after an event with the given sequence number. Must be used in conjunction with
+            the `stream` parameter set to `true`.
 
           extra_headers: Send extra headers
 
@@ -909,9 +1064,18 @@ class Responses(SyncAPIResource):
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                query=maybe_transform({"include": include}, response_retrieve_params.ResponseRetrieveParams),
+                query=maybe_transform(
+                    {
+                        "include": include,
+                        "stream": stream,
+                        "starting_after": starting_after,
+                    },
+                    response_retrieve_params.ResponseRetrieveParams,
+                ),
             ),
             cast_to=Response,
+            stream=stream or False,
+            stream_cls=Stream[ResponseStreamEvent],
         )
 
     def delete(
@@ -1189,8 +1353,8 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
@@ -1382,8 +1546,8 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
@@ -1575,8 +1739,8 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           extra_headers: Send extra headers
@@ -1657,11 +1821,28 @@ class AsyncResponses(AsyncAPIResource):
             stream_cls=AsyncStream[ResponseStreamEvent],
         )
 
+    @overload
+    def stream(
+        self,
+        *,
+        response_id: str,
+        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncResponseStreamManager[TextFormatT]: ...
+
+    @overload
     def stream(
         self,
         *,
         input: Union[str, ResponseInputParam],
         model: Union[str, ChatModel],
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
@@ -1684,48 +1865,133 @@ class AsyncResponses(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncResponseStreamManager[TextFormatT]: ...
+
+    def stream(
+        self,
+        *,
+        response_id: str | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
+        model: Union[str, ChatModel] | NotGiven = NOT_GIVEN,
+        background: Optional[bool] | NotGiven = NOT_GIVEN,
+        text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | NotGiven = NOT_GIVEN,
+        max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
+        previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        store: Optional[bool] | NotGiven = NOT_GIVEN,
+        temperature: Optional[float] | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
+        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
+        user: str | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]:
-        if is_given(text_format):
-            if not text:
-                text = {}
+        new_response_args = {
+            "input": input,
+            "model": model,
+            "include": include,
+            "instructions": instructions,
+            "max_output_tokens": max_output_tokens,
+            "metadata": metadata,
+            "parallel_tool_calls": parallel_tool_calls,
+            "previous_response_id": previous_response_id,
+            "reasoning": reasoning,
+            "store": store,
+            "temperature": temperature,
+            "text": text,
+            "tool_choice": tool_choice,
+            "top_p": top_p,
+            "truncation": truncation,
+            "user": user,
+            "background": background,
+        }
+        new_response_args_names = [k for k, v in new_response_args.items() if is_given(v)]
 
-            if "format" in text:
-                raise TypeError("Cannot mix and match text.format with text_format")
-
-            text["format"] = _type_to_text_format_param(text_format)
+        if (is_given(response_id) or is_given(starting_after)) and len(new_response_args_names) > 0:
+            raise ValueError(
+                "Cannot provide both response_id/starting_after can't be provided together with "
+                + ", ".join(new_response_args_names)
+            )
 
         tools = _make_tools(tools)
+        if len(new_response_args_names) > 0:
+            if isinstance(input, NotGiven):
+                raise ValueError("input must be provided when creating a new response")
 
-        api_request = self.create(
-            input=input,
-            model=model,
-            tools=tools,
-            include=include,
-            instructions=instructions,
-            max_output_tokens=max_output_tokens,
-            metadata=metadata,
-            parallel_tool_calls=parallel_tool_calls,
-            previous_response_id=previous_response_id,
-            store=store,
-            stream=True,
-            temperature=temperature,
-            text=text,
-            tool_choice=tool_choice,
-            reasoning=reasoning,
-            top_p=top_p,
-            truncation=truncation,
-            user=user,
-            extra_headers=extra_headers,
-            extra_query=extra_query,
-            extra_body=extra_body,
-            timeout=timeout,
-        )
+            if not is_given(model):
+                raise ValueError("model must be provided when creating a new response")
 
-        return AsyncResponseStreamManager(
-            api_request,
-            text_format=text_format,
-            input_tools=tools,
-        )
+            if is_given(text_format):
+                if not text:
+                    text = {}
+
+                if "format" in text:
+                    raise TypeError("Cannot mix and match text.format with text_format")
+
+                text["format"] = _type_to_text_format_param(text_format)
+
+            api_request = self.create(
+                input=input,
+                model=model,
+                stream=True,
+                tools=tools,
+                include=include,
+                instructions=instructions,
+                max_output_tokens=max_output_tokens,
+                metadata=metadata,
+                parallel_tool_calls=parallel_tool_calls,
+                previous_response_id=previous_response_id,
+                store=store,
+                temperature=temperature,
+                text=text,
+                tool_choice=tool_choice,
+                reasoning=reasoning,
+                top_p=top_p,
+                truncation=truncation,
+                user=user,
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+            )
+
+            return AsyncResponseStreamManager(
+                api_request,
+                text_format=text_format,
+                input_tools=tools,
+                starting_after=None,
+            )
+        else:
+            if isinstance(response_id, NotGiven):
+                raise ValueError("response_id must be provided when streaming an existing response")
+
+            api_request = self.retrieve(
+                response_id,
+                stream=True,
+                include=include or [],
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+            )
+            return AsyncResponseStreamManager(
+                api_request,
+                text_format=text_format,
+                input_tools=tools,
+                starting_after=starting_after if is_given(starting_after) else None,
+            )
 
     async def parse(
         self,
@@ -1811,6 +2077,7 @@ class AsyncResponses(AsyncAPIResource):
             cast_to=cast(Type[ParsedResponse[TextFormatT]], Response),
         )
 
+    @overload
     async def retrieve(
         self,
         response_id: str,
@@ -1822,13 +2089,64 @@ class AsyncResponses(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> Response:
+    ) -> Response: ...
+
+    @overload
+    async def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: Literal[True],
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncStream[ResponseStreamEvent]: ...
+
+    @overload
+    async def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: bool,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | AsyncStream[ResponseStreamEvent]: ...
+
+    async def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: bool = False,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | AsyncStream[ResponseStreamEvent]:
         """
         Retrieves a model response with the given ID.
 
         Args:
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
+
+          stream:
+          starting_after: When retrieving a background response, this parameter can be used to start
+          replaying after an event with the given sequence number. Must be used in
 
           extra_headers: Send extra headers
 
@@ -1848,10 +2166,17 @@ class AsyncResponses(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform(
-                    {"include": include}, response_retrieve_params.ResponseRetrieveParams
+                    {
+                        "include": include,
+                        "stream": stream,
+                        "starting_after": starting_after,
+                    },
+                    response_retrieve_params.ResponseRetrieveParams,
                 ),
             ),
             cast_to=Response,
+            stream=stream or False,
+            stream_cls=AsyncStream[ResponseStreamEvent],
         )
 
     async def delete(

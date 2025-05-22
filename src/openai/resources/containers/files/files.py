@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Mapping, cast
 from typing_extensions import Literal
 
 import httpx
@@ -16,7 +17,7 @@ from .content import (
     AsyncContentWithStreamingResponse,
 )
 from ...._types import NOT_GIVEN, Body, Query, Headers, NoneType, NotGiven, FileTypes
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -88,15 +89,21 @@ class Files(SyncAPIResource):
         """
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
+        body = deepcopy_minimal(
+            {
+                "file": file,
+                "file_id": file_id,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             f"/containers/{container_id}/files",
-            body=maybe_transform(
-                {
-                    "file": file,
-                    "file_id": file_id,
-                },
-                file_create_params.FileCreateParams,
-            ),
+            body=maybe_transform(body, file_create_params.FileCreateParams),
+            files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -295,15 +302,21 @@ class AsyncFiles(AsyncAPIResource):
         """
         if not container_id:
             raise ValueError(f"Expected a non-empty value for `container_id` but received {container_id!r}")
+        body = deepcopy_minimal(
+            {
+                "file": file,
+                "file_id": file_id,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             f"/containers/{container_id}/files",
-            body=await async_maybe_transform(
-                {
-                    "file": file,
-                    "file_id": file_id,
-                },
-                file_create_params.FileCreateParams,
-            ),
+            body=await async_maybe_transform(body, file_create_params.FileCreateParams),
+            files=files,
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

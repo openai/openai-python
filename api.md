@@ -764,7 +764,6 @@ from openai.types.responses import (
     ResponseRefusalDoneEvent,
     ResponseStatus,
     ResponseStreamEvent,
-    ResponseTextAnnotationDeltaEvent,
     ResponseTextConfig,
     ResponseTextDeltaEvent,
     ResponseTextDoneEvent,

@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.82.0 (2025-05-22)
+
+Full Changelog: [v1.81.0...v1.82.0](https://github.com/openai/openai-python/compare/v1.81.0...v1.82.0)
+
+### Features
+
+* **api:** new streaming helpers for background responses ([2a65d4d](https://github.com/openai/openai-python/commit/2a65d4de0aaba7801edd0df10f225530fd4969bd))
+
+
+### Bug Fixes
+
+* **azure:** mark images/edits as a deployment endpoint [#2371](https://github.com/openai/openai-python/issues/2371) ([5d1d5b4](https://github.com/openai/openai-python/commit/5d1d5b4b6072afe9fd7909b1a36014c8c11c1ad6))
+
+
+### Documentation
+
+* **readme:** another async example fix ([9ec8289](https://github.com/openai/openai-python/commit/9ec8289041f395805c67efd97847480f84eb9dac))
+* **readme:** fix async example ([37d0b25](https://github.com/openai/openai-python/commit/37d0b25b6e82cd381e5d1aa6e28f1a1311d02353))
+
 ## 1.81.0 (2025-05-21)
 
 Full Changelog: [v1.80.0...v1.81.0](https://github.com/openai/openai-python/compare/v1.80.0...v1.81.0)
