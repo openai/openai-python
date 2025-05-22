@@ -174,7 +174,7 @@ client = AsyncOpenAI()
 
 
 async def main():
-    stream = client.responses.create(
+    stream = await client.responses.create(
         model="gpt-4o",
         input="Write a one-sentence bedtime story about a unicorn.",
         stream=True,
