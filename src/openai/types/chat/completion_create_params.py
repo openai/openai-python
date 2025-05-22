@@ -292,9 +292,10 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     user: str
-    """
-    A unique identifier representing your end-user, which can help OpenAI to monitor
-    and detect abuse.
+    """A stable identifier for your end-users.
+
+    Used to boost cache hit rates by better bucketing similar requests and to help
+    OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """
 

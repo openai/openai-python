@@ -1,3 +1,4 @@
+#!/usr/bin/env -S rye run python
 from typing import List
 
 import rich
