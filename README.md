@@ -180,7 +180,7 @@ async def main():
         stream=True,
     )
 
-    for event in stream:
+    async for event in stream:
         print(event)
 
 
