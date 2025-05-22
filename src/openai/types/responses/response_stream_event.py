@@ -28,7 +28,6 @@ from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent
-from .response_text_annotation_delta_event import ResponseTextAnnotationDeltaEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
 from .response_reasoning_summary_done_event import ResponseReasoningSummaryDoneEvent
 from .response_mcp_call_arguments_done_event import ResponseMcpCallArgumentsDoneEvent
@@ -93,7 +92,6 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseReasoningSummaryTextDoneEvent,
         ResponseRefusalDeltaEvent,
         ResponseRefusalDoneEvent,
-        ResponseTextAnnotationDeltaEvent,
         ResponseTextDeltaEvent,
         ResponseTextDoneEvent,
         ResponseWebSearchCallCompletedEvent,

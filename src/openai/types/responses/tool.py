@@ -53,9 +53,6 @@ class McpRequireApprovalMcpToolApprovalFilter(BaseModel):
     never: Optional[McpRequireApprovalMcpToolApprovalFilterNever] = None
     """A list of tools that never require approval."""
 
-    tool_names: Optional[List[str]] = None
-    """List of allowed tool names."""
-
 
 McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, Literal["always", "never"], None]
 

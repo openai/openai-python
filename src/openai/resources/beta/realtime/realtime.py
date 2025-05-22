@@ -804,7 +804,7 @@ class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
         stop generating audio and emit a `output_audio_buffer.cleared` event. This
         event should be preceded by a `response.cancel` client event to stop the
         generation of the current response.
-        [Learn more](https://platform.openai.com/docs/guides/realtime-model-capabilities#client-and-server-events-for-audio-in-webrtc).
+        [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
         """
         self._connection.send(
             cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
@@ -1056,7 +1056,7 @@ class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource
         stop generating audio and emit a `output_audio_buffer.cleared` event. This
         event should be preceded by a `response.cancel` client event to stop the
         generation of the current response.
-        [Learn more](https://platform.openai.com/docs/guides/realtime-model-capabilities#client-and-server-events-for-audio-in-webrtc).
+        [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
         """
         await self._connection.send(
             cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
