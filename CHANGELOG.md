@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.82.1 (2025-05-24)
+
+Full Changelog: [v1.82.0...v1.82.1](https://github.com/openai/openai-python/compare/v1.82.0...v1.82.1)
+
+### Chores
+
+* **internal:** fix release workflows ([361a909](https://github.com/openai/openai-python/commit/361a909a0cc83e5029ea425fd72202ffa8d1a46a))
+
 ## 1.82.0 (2025-05-22)
 
 Full Changelog: [v1.81.0...v1.82.0](https://github.com/openai/openai-python/compare/v1.81.0...v1.82.0)
