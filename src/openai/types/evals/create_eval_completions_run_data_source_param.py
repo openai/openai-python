@@ -113,7 +113,7 @@ class InputMessagesTemplate(TypedDict, total=False):
     template: Required[Iterable[InputMessagesTemplateTemplate]]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     type: Required[Literal["template"]]
@@ -122,7 +122,7 @@ class InputMessagesTemplate(TypedDict, total=False):
 
 class InputMessagesItemReference(TypedDict, total=False):
     item_reference: Required[str]
-    """A reference to a variable in the "item" namespace. Ie, "item.name" """
+    """A reference to a variable in the `item` namespace. Ie, "item.input_trajectory" """
 
     type: Required[Literal["item_reference"]]
     """The type of input messages. Always `item_reference`."""
@@ -147,12 +147,18 @@ class SamplingParams(TypedDict, total=False):
 
 class CreateEvalCompletionsRunDataSourceParam(TypedDict, total=False):
     source: Required[Source]
-    """A StoredCompletionsRunDataSource configuration describing a set of filters"""
+    """Determines what populates the `item` namespace in this run's data source."""
 
     type: Required[Literal["completions"]]
     """The type of run data source. Always `completions`."""
 
     input_messages: InputMessages
+    """Used when sampling from a model.
+
+    Dictates the structure of the messages passed into the model. Can either be a
+    reference to a prebuilt trajectory (ie, `item.input_trajectory`), or a template
+    with variable references to the `item` namespace.
+    """
 
     model: str
     """The name of the model to use for generating completions (e.g. "o3-mini")."""

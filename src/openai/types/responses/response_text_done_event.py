@@ -17,6 +17,9 @@ class ResponseTextDoneEvent(BaseModel):
     output_index: int
     """The index of the output item that the text content is finalized."""
 
+    sequence_number: int
+    """The sequence number for this event."""
+
     text: str
     """The text content that is finalized."""
 

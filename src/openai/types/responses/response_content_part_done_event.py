@@ -26,5 +26,8 @@ class ResponseContentPartDoneEvent(BaseModel):
     part: Part
     """The content part that is done."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.content_part.done"]
     """The type of the event. Always `response.content_part.done`."""

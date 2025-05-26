@@ -30,6 +30,7 @@ class TestResponses:
         response = client.responses.create(
             input="string",
             model="gpt-4o",
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -49,18 +50,11 @@ class TestResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -110,6 +104,7 @@ class TestResponses:
             input="string",
             model="gpt-4o",
             stream=True,
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -128,18 +123,11 @@ class TestResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -259,6 +247,44 @@ class TestResponses:
                 "",
             )
 
+    @parametrize
+    def test_method_cancel(self, client: OpenAI) -> None:
+        response = client.responses.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+        assert response is None
+
+    @parametrize
+    def test_raw_response_cancel(self, client: OpenAI) -> None:
+        http_response = client.responses.with_raw_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+
+        assert http_response.is_closed is True
+        assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response = http_response.parse()
+        assert response is None
+
+    @parametrize
+    def test_streaming_response_cancel(self, client: OpenAI) -> None:
+        with client.responses.with_streaming_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        ) as http_response:
+            assert not http_response.is_closed
+            assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            response = http_response.parse()
+            assert response is None
+
+        assert cast(Any, http_response.is_closed) is True
+
+    @parametrize
+    def test_path_params_cancel(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            client.responses.with_raw_response.cancel(
+                "",
+            )
+
 
 class TestAsyncResponses:
     parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
@@ -276,6 +302,7 @@ class TestAsyncResponses:
         response = await async_client.responses.create(
             input="string",
             model="gpt-4o",
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -295,18 +322,11 @@ class TestAsyncResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -356,6 +376,7 @@ class TestAsyncResponses:
             input="string",
             model="gpt-4o",
             stream=True,
+            background=True,
             include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
@@ -374,18 +395,11 @@ class TestAsyncResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
             top_p=1,
@@ -502,5 +516,43 @@ class TestAsyncResponses:
     async def test_path_params_delete(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
             await async_client.responses.with_raw_response.delete(
+                "",
+            )
+
+    @parametrize
+    async def test_method_cancel(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.responses.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+        assert response is None
+
+    @parametrize
+    async def test_raw_response_cancel(self, async_client: AsyncOpenAI) -> None:
+        http_response = await async_client.responses.with_raw_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+
+        assert http_response.is_closed is True
+        assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response = http_response.parse()
+        assert response is None
+
+    @parametrize
+    async def test_streaming_response_cancel(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.responses.with_streaming_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        ) as http_response:
+            assert not http_response.is_closed
+            assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            response = await http_response.parse()
+            assert response is None
+
+        assert cast(Any, http_response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_cancel(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            await async_client.responses.with_raw_response.cancel(
                 "",
             )

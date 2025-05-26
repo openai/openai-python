@@ -25,6 +25,9 @@ class ResponseReasoningSummaryPartDoneEvent(BaseModel):
     part: Part
     """The completed summary part."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     summary_index: int
     """The index of the summary part within the reasoning summary."""
 

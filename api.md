@@ -717,6 +717,10 @@ from openai.types.responses import (
     ResponseFunctionToolCallItem,
     ResponseFunctionToolCallOutputItem,
     ResponseFunctionWebSearch,
+    ResponseImageGenCallCompletedEvent,
+    ResponseImageGenCallGeneratingEvent,
+    ResponseImageGenCallInProgressEvent,
+    ResponseImageGenCallPartialImageEvent,
     ResponseInProgressEvent,
     ResponseIncludable,
     ResponseIncompleteEvent,
@@ -730,6 +734,14 @@ from openai.types.responses import (
     ResponseInputMessageItem,
     ResponseInputText,
     ResponseItem,
+    ResponseMcpCallArgumentsDeltaEvent,
+    ResponseMcpCallArgumentsDoneEvent,
+    ResponseMcpCallCompletedEvent,
+    ResponseMcpCallFailedEvent,
+    ResponseMcpCallInProgressEvent,
+    ResponseMcpListToolsCompletedEvent,
+    ResponseMcpListToolsFailedEvent,
+    ResponseMcpListToolsInProgressEvent,
     ResponseOutputAudio,
     ResponseOutputItem,
     ResponseOutputItemAddedEvent,
@@ -737,7 +749,13 @@ from openai.types.responses import (
     ResponseOutputMessage,
     ResponseOutputRefusal,
     ResponseOutputText,
+    ResponseOutputTextAnnotationAddedEvent,
+    ResponseQueuedEvent,
+    ResponseReasoningDeltaEvent,
+    ResponseReasoningDoneEvent,
     ResponseReasoningItem,
+    ResponseReasoningSummaryDeltaEvent,
+    ResponseReasoningSummaryDoneEvent,
     ResponseReasoningSummaryPartAddedEvent,
     ResponseReasoningSummaryPartDoneEvent,
     ResponseReasoningSummaryTextDeltaEvent,
@@ -746,7 +764,6 @@ from openai.types.responses import (
     ResponseRefusalDoneEvent,
     ResponseStatus,
     ResponseStreamEvent,
-    ResponseTextAnnotationDeltaEvent,
     ResponseTextConfig,
     ResponseTextDeltaEvent,
     ResponseTextDoneEvent,
@@ -767,6 +784,7 @@ Methods:
 - <code title="post /responses">client.responses.<a href="./src/openai/resources/responses/responses.py">create</a>(\*\*<a href="src/openai/types/responses/response_create_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="get /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/responses/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="delete /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">delete</a>(response_id) -> None</code>
+- <code title="post /responses/{response_id}/cancel">client.responses.<a href="./src/openai/resources/responses/responses.py">cancel</a>(response_id) -> None</code>
 
 ## InputItems
 
@@ -841,3 +859,39 @@ Methods:
 
 - <code title="get /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}">client.evals.runs.output_items.<a href="./src/openai/resources/evals/runs/output_items.py">retrieve</a>(output_item_id, \*, eval_id, run_id) -> <a href="./src/openai/types/evals/runs/output_item_retrieve_response.py">OutputItemRetrieveResponse</a></code>
 - <code title="get /evals/{eval_id}/runs/{run_id}/output_items">client.evals.runs.output_items.<a href="./src/openai/resources/evals/runs/output_items.py">list</a>(run_id, \*, eval_id, \*\*<a href="src/openai/types/evals/runs/output_item_list_params.py">params</a>) -> <a href="./src/openai/types/evals/runs/output_item_list_response.py">SyncCursorPage[OutputItemListResponse]</a></code>
+
+# Containers
+
+Types:
+
+```python
+from openai.types import ContainerCreateResponse, ContainerRetrieveResponse, ContainerListResponse
+```
+
+Methods:
+
+- <code title="post /containers">client.containers.<a href="./src/openai/resources/containers/containers.py">create</a>(\*\*<a href="src/openai/types/container_create_params.py">params</a>) -> <a href="./src/openai/types/container_create_response.py">ContainerCreateResponse</a></code>
+- <code title="get /containers/{container_id}">client.containers.<a href="./src/openai/resources/containers/containers.py">retrieve</a>(container_id) -> <a href="./src/openai/types/container_retrieve_response.py">ContainerRetrieveResponse</a></code>
+- <code title="get /containers">client.containers.<a href="./src/openai/resources/containers/containers.py">list</a>(\*\*<a href="src/openai/types/container_list_params.py">params</a>) -> <a href="./src/openai/types/container_list_response.py">SyncCursorPage[ContainerListResponse]</a></code>
+- <code title="delete /containers/{container_id}">client.containers.<a href="./src/openai/resources/containers/containers.py">delete</a>(container_id) -> None</code>
+
+## Files
+
+Types:
+
+```python
+from openai.types.containers import FileCreateResponse, FileRetrieveResponse, FileListResponse
+```
+
+Methods:
+
+- <code title="post /containers/{container_id}/files">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">create</a>(container_id, \*\*<a href="src/openai/types/containers/file_create_params.py">params</a>) -> <a href="./src/openai/types/containers/file_create_response.py">FileCreateResponse</a></code>
+- <code title="get /containers/{container_id}/files/{file_id}">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">retrieve</a>(file_id, \*, container_id) -> <a href="./src/openai/types/containers/file_retrieve_response.py">FileRetrieveResponse</a></code>
+- <code title="get /containers/{container_id}/files">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">list</a>(container_id, \*\*<a href="src/openai/types/containers/file_list_params.py">params</a>) -> <a href="./src/openai/types/containers/file_list_response.py">SyncCursorPage[FileListResponse]</a></code>
+- <code title="delete /containers/{container_id}/files/{file_id}">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">delete</a>(file_id, \*, container_id) -> None</code>
+
+### Content
+
+Methods:
+
+- <code title="get /containers/{container_id}/files/{file_id}/content">client.containers.files.content.<a href="./src/openai/resources/containers/files/content.py">retrieve</a>(file_id, \*, container_id) -> None</code>

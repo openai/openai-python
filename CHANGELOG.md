@@ -1,5 +1,67 @@
 # Changelog
 
+## 1.82.0 (2025-05-22)
+
+Full Changelog: [v1.81.0...v1.82.0](https://github.com/openai/openai-python/compare/v1.81.0...v1.82.0)
+
+### Features
+
+* **api:** new streaming helpers for background responses ([2a65d4d](https://github.com/openai/openai-python/commit/2a65d4de0aaba7801edd0df10f225530fd4969bd))
+
+
+### Bug Fixes
+
+* **azure:** mark images/edits as a deployment endpoint [#2371](https://github.com/openai/openai-python/issues/2371) ([5d1d5b4](https://github.com/openai/openai-python/commit/5d1d5b4b6072afe9fd7909b1a36014c8c11c1ad6))
+
+
+### Documentation
+
+* **readme:** another async example fix ([9ec8289](https://github.com/openai/openai-python/commit/9ec8289041f395805c67efd97847480f84eb9dac))
+* **readme:** fix async example ([37d0b25](https://github.com/openai/openai-python/commit/37d0b25b6e82cd381e5d1aa6e28f1a1311d02353))
+
+## 1.81.0 (2025-05-21)
+
+Full Changelog: [v1.80.0...v1.81.0](https://github.com/openai/openai-python/compare/v1.80.0...v1.81.0)
+
+### Features
+
+* **api:** add container endpoint ([054a210](https://github.com/openai/openai-python/commit/054a210289d7e0db22d2d2a61bbe4d4d9cc0cb47))
+
+## 1.80.0 (2025-05-21)
+
+Full Changelog: [v1.79.0...v1.80.0](https://github.com/openai/openai-python/compare/v1.79.0...v1.80.0)
+
+### Features
+
+* **api:** new API tools ([d36ae52](https://github.com/openai/openai-python/commit/d36ae528d55fe87067c4b8c6b2c947cbad5e5002))
+
+
+### Chores
+
+* **docs:** grammar improvements ([e746145](https://github.com/openai/openai-python/commit/e746145a12b5335d8841aff95c91bbbde8bae8e3))
+
+## 1.79.0 (2025-05-16)
+
+Full Changelog: [v1.78.1...v1.79.0](https://github.com/openai/openai-python/compare/v1.78.1...v1.79.0)
+
+### Features
+
+* **api:** further updates for evals API ([32c99a6](https://github.com/openai/openai-python/commit/32c99a6f5885d4bf3511a7f06b70000edd274301))
+* **api:** manual updates ([25245e5](https://github.com/openai/openai-python/commit/25245e5e3d0713abfb65b760aee1f12bc61deb41))
+* **api:** responses x eval api ([fd586cb](https://github.com/openai/openai-python/commit/fd586cbdf889c9a5c6b9be177ff02fbfffa3eba5))
+* **api:** Updating Assistants and Evals API schemas ([98ba7d3](https://github.com/openai/openai-python/commit/98ba7d355551213a13803f68d5642eecbb4ffd39))
+
+
+### Bug Fixes
+
+* fix create audio transcription endpoint ([e9a89ab](https://github.com/openai/openai-python/commit/e9a89ab7b6387610e433550207a23973b7edda3a))
+
+
+### Chores
+
+* **ci:** fix installation instructions ([f26c5fc](https://github.com/openai/openai-python/commit/f26c5fc85d98d700b68cb55c8be5d15983a9aeaf))
+* **ci:** upload sdks to package manager ([861f105](https://github.com/openai/openai-python/commit/861f1055768168ab04987a42efcd32a07bc93542))
+
 ## 1.78.1 (2025-05-12)
 
 Full Changelog: [v1.78.0...v1.78.1](https://github.com/openai/openai-python/compare/v1.78.0...v1.78.1)

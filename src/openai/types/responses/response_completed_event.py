@@ -12,5 +12,8 @@ class ResponseCompletedEvent(BaseModel):
     response: Response
     """Properties of the completed response."""
 
+    sequence_number: int
+    """The sequence number for this event."""
+
     type: Literal["response.completed"]
     """The type of the event. Always `response.completed`."""

@@ -30,6 +30,30 @@ jobs:
       - name: Run lints
         run: ./scripts/lint
 
+  upload:
+    if: github.repository == 'stainless-sdks/openai-python'
+    timeout-minutes: 10
+    name: upload
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: depot-ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get GitHub OIDC Token
+        id: github-oidc
+        uses: actions/github-script@v6
+        with:
+          script: core.setOutput('github_token', await core.getIDToken());
+
+      - name: Upload tarball
+        env:
+          URL: https://pkg.stainless.com/s
+          AUTH: ${{ steps.github-oidc.outputs.github_token }}
+          SHA: ${{ github.sha }}
+        run: ./scripts/utils/upload-artifact.sh
+
   test:
     timeout-minutes: 10
     name: test

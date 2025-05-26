@@ -12,5 +12,8 @@ class ResponseIncompleteEvent(BaseModel):
     response: Response
     """The response that was incomplete."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.incomplete"]
     """The type of the event. Always `response.incomplete`."""

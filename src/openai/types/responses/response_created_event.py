@@ -12,5 +12,8 @@ class ResponseCreatedEvent(BaseModel):
     response: Response
     """The response that was created."""
 
+    sequence_number: int
+    """The sequence number for this event."""
+
     type: Literal["response.created"]
     """The type of the event. Always `response.created`."""

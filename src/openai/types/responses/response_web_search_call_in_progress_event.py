@@ -14,5 +14,8 @@ class ResponseWebSearchCallInProgressEvent(BaseModel):
     output_index: int
     """The index of the output item that the web search call is associated with."""
 
+    sequence_number: int
+    """The sequence number of the web search call being processed."""
+
     type: Literal["response.web_search_call.in_progress"]
     """The type of the event. Always `response.web_search_call.in_progress`."""

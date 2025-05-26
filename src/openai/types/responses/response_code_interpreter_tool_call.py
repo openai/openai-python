@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -50,3 +50,6 @@ class ResponseCodeInterpreterToolCall(BaseModel):
 
     type: Literal["code_interpreter_call"]
     """The type of the code interpreter tool call. Always `code_interpreter_call`."""
+
+    container_id: Optional[str] = None
+    """The ID of the container used to run the code."""
