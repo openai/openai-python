@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing_extensions
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal
 
@@ -44,6 +45,7 @@ class Messages(SyncAPIResource):
         """
         return MessagesWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def create(
         self,
         thread_id: str,
@@ -110,6 +112,7 @@ class Messages(SyncAPIResource):
             cast_to=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def retrieve(
         self,
         message_id: str,
@@ -147,6 +150,7 @@ class Messages(SyncAPIResource):
             cast_to=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def update(
         self,
         message_id: str,
@@ -193,6 +197,7 @@ class Messages(SyncAPIResource):
             cast_to=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def list(
         self,
         thread_id: str,
@@ -264,6 +269,7 @@ class Messages(SyncAPIResource):
             model=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def delete(
         self,
         message_id: str,
@@ -322,6 +328,7 @@ class AsyncMessages(AsyncAPIResource):
         """
         return AsyncMessagesWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def create(
         self,
         thread_id: str,
@@ -388,6 +395,7 @@ class AsyncMessages(AsyncAPIResource):
             cast_to=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def retrieve(
         self,
         message_id: str,
@@ -425,6 +433,7 @@ class AsyncMessages(AsyncAPIResource):
             cast_to=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def update(
         self,
         message_id: str,
@@ -471,6 +480,7 @@ class AsyncMessages(AsyncAPIResource):
             cast_to=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def list(
         self,
         thread_id: str,
@@ -542,6 +552,7 @@ class AsyncMessages(AsyncAPIResource):
             model=Message,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def delete(
         self,
         message_id: str,
@@ -584,20 +595,30 @@ class MessagesWithRawResponse:
     def __init__(self, messages: Messages) -> None:
         self._messages = messages
 
-        self.create = _legacy_response.to_raw_response_wrapper(
-            messages.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                messages.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.to_raw_response_wrapper(
-            messages.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                messages.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = _legacy_response.to_raw_response_wrapper(
-            messages.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                messages.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.to_raw_response_wrapper(
-            messages.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                messages.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = _legacy_response.to_raw_response_wrapper(
-            messages.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                messages.delete  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -605,20 +626,30 @@ class AsyncMessagesWithRawResponse:
     def __init__(self, messages: AsyncMessages) -> None:
         self._messages = messages
 
-        self.create = _legacy_response.async_to_raw_response_wrapper(
-            messages.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                messages.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            messages.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                messages.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = _legacy_response.async_to_raw_response_wrapper(
-            messages.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                messages.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.async_to_raw_response_wrapper(
-            messages.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                messages.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = _legacy_response.async_to_raw_response_wrapper(
-            messages.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                messages.delete  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -626,20 +657,30 @@ class MessagesWithStreamingResponse:
     def __init__(self, messages: Messages) -> None:
         self._messages = messages
 
-        self.create = to_streamed_response_wrapper(
-            messages.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                messages.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = to_streamed_response_wrapper(
-            messages.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                messages.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = to_streamed_response_wrapper(
-            messages.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                messages.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = to_streamed_response_wrapper(
-            messages.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                messages.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = to_streamed_response_wrapper(
-            messages.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                messages.delete  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -647,18 +688,28 @@ class AsyncMessagesWithStreamingResponse:
     def __init__(self, messages: AsyncMessages) -> None:
         self._messages = messages
 
-        self.create = async_to_streamed_response_wrapper(
-            messages.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                messages.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = async_to_streamed_response_wrapper(
-            messages.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                messages.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = async_to_streamed_response_wrapper(
-            messages.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                messages.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = async_to_streamed_response_wrapper(
-            messages.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                messages.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.delete = async_to_streamed_response_wrapper(
-            messages.delete,
+        self.delete = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                messages.delete  # pyright: ignore[reportDeprecated],
+            )
         )

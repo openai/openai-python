@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing_extensions
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, overload
 
@@ -67,6 +68,7 @@ class Runs(SyncAPIResource):
         """
         return RunsWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     def create(
         self,
@@ -217,6 +219,7 @@ class Runs(SyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     def create(
         self,
@@ -367,6 +370,7 @@ class Runs(SyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     def create(
         self,
@@ -586,6 +590,7 @@ class Runs(SyncAPIResource):
             stream_cls=Stream[AssistantStreamEvent],
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def retrieve(
         self,
         run_id: str,
@@ -623,6 +628,7 @@ class Runs(SyncAPIResource):
             cast_to=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def update(
         self,
         run_id: str,
@@ -669,6 +675,7 @@ class Runs(SyncAPIResource):
             cast_to=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def list(
         self,
         thread_id: str,
@@ -736,6 +743,7 @@ class Runs(SyncAPIResource):
             model=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def cancel(
         self,
         run_id: str,
@@ -773,6 +781,7 @@ class Runs(SyncAPIResource):
             cast_to=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     def submit_tool_outputs(
         self,
@@ -811,6 +820,7 @@ class Runs(SyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     def submit_tool_outputs(
         self,
@@ -849,6 +859,7 @@ class Runs(SyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     def submit_tool_outputs(
         self,
@@ -951,6 +962,7 @@ class AsyncRuns(AsyncAPIResource):
         """
         return AsyncRunsWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     async def create(
         self,
@@ -1101,6 +1113,7 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     async def create(
         self,
@@ -1251,6 +1264,7 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     async def create(
         self,
@@ -1470,6 +1484,7 @@ class AsyncRuns(AsyncAPIResource):
             stream_cls=AsyncStream[AssistantStreamEvent],
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def retrieve(
         self,
         run_id: str,
@@ -1507,6 +1522,7 @@ class AsyncRuns(AsyncAPIResource):
             cast_to=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def update(
         self,
         run_id: str,
@@ -1553,6 +1569,7 @@ class AsyncRuns(AsyncAPIResource):
             cast_to=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def list(
         self,
         thread_id: str,
@@ -1620,6 +1637,7 @@ class AsyncRuns(AsyncAPIResource):
             model=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def cancel(
         self,
         run_id: str,
@@ -1657,6 +1675,7 @@ class AsyncRuns(AsyncAPIResource):
             cast_to=Run,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     async def submit_tool_outputs(
         self,
@@ -1695,6 +1714,7 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     async def submit_tool_outputs(
         self,
@@ -1733,6 +1753,7 @@ class AsyncRuns(AsyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @overload
     async def submit_tool_outputs(
         self,
@@ -1815,23 +1836,35 @@ class RunsWithRawResponse:
     def __init__(self, runs: Runs) -> None:
         self._runs = runs
 
-        self.create = _legacy_response.to_raw_response_wrapper(
-            runs.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                runs.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.to_raw_response_wrapper(
-            runs.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                runs.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = _legacy_response.to_raw_response_wrapper(
-            runs.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                runs.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.to_raw_response_wrapper(
-            runs.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                runs.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.cancel = _legacy_response.to_raw_response_wrapper(
-            runs.cancel,
+        self.cancel = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                runs.cancel  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.submit_tool_outputs = _legacy_response.to_raw_response_wrapper(
-            runs.submit_tool_outputs,
+        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                runs.submit_tool_outputs  # pyright: ignore[reportDeprecated],
+            )
         )
 
     @cached_property
@@ -1843,23 +1876,35 @@ class AsyncRunsWithRawResponse:
     def __init__(self, runs: AsyncRuns) -> None:
         self._runs = runs
 
-        self.create = _legacy_response.async_to_raw_response_wrapper(
-            runs.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                runs.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            runs.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                runs.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = _legacy_response.async_to_raw_response_wrapper(
-            runs.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                runs.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.async_to_raw_response_wrapper(
-            runs.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                runs.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.cancel = _legacy_response.async_to_raw_response_wrapper(
-            runs.cancel,
+        self.cancel = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                runs.cancel  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.submit_tool_outputs = _legacy_response.async_to_raw_response_wrapper(
-            runs.submit_tool_outputs,
+        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                runs.submit_tool_outputs  # pyright: ignore[reportDeprecated],
+            )
         )
 
     @cached_property
@@ -1871,23 +1916,35 @@ class RunsWithStreamingResponse:
     def __init__(self, runs: Runs) -> None:
         self._runs = runs
 
-        self.create = to_streamed_response_wrapper(
-            runs.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                runs.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = to_streamed_response_wrapper(
-            runs.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                runs.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = to_streamed_response_wrapper(
-            runs.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                runs.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = to_streamed_response_wrapper(
-            runs.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                runs.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.cancel = to_streamed_response_wrapper(
-            runs.cancel,
+        self.cancel = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                runs.cancel  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.submit_tool_outputs = to_streamed_response_wrapper(
-            runs.submit_tool_outputs,
+        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                runs.submit_tool_outputs  # pyright: ignore[reportDeprecated],
+            )
         )
 
     @cached_property
@@ -1899,23 +1956,35 @@ class AsyncRunsWithStreamingResponse:
     def __init__(self, runs: AsyncRuns) -> None:
         self._runs = runs
 
-        self.create = async_to_streamed_response_wrapper(
-            runs.create,
+        self.create = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                runs.create  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.retrieve = async_to_streamed_response_wrapper(
-            runs.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                runs.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.update = async_to_streamed_response_wrapper(
-            runs.update,
+        self.update = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                runs.update  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = async_to_streamed_response_wrapper(
-            runs.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                runs.list  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.cancel = async_to_streamed_response_wrapper(
-            runs.cancel,
+        self.cancel = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                runs.cancel  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.submit_tool_outputs = async_to_streamed_response_wrapper(
-            runs.submit_tool_outputs,
+        self.submit_tool_outputs = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                runs.submit_tool_outputs  # pyright: ignore[reportDeprecated],
+            )
         )
 
     @cached_property
