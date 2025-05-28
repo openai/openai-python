@@ -664,6 +664,7 @@ class Threads(SyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @required_args(["assistant_id"], ["assistant_id", "stream"])
     def create_and_run(
         self,
@@ -1340,6 +1341,7 @@ class AsyncThreads(AsyncAPIResource):
         """
         ...
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     @required_args(["assistant_id"], ["assistant_id", "stream"])
     async def create_and_run(
         self,
