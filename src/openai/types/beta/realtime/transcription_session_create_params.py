@@ -5,10 +5,20 @@ from __future__ import annotations
 from typing import List
 from typing_extensions import Literal, TypedDict
 
-__all__ = ["TranscriptionSessionCreateParams", "InputAudioNoiseReduction", "InputAudioTranscription", "TurnDetection"]
+__all__ = [
+    "TranscriptionSessionCreateParams",
+    "ClientSecret",
+    "ClientSecretExpiresAt",
+    "InputAudioNoiseReduction",
+    "InputAudioTranscription",
+    "TurnDetection",
+]
 
 
 class TranscriptionSessionCreateParams(TypedDict, total=False):
+    client_secret: ClientSecret
+    """Configuration options for the generated client secret."""
+
     include: List[str]
     """The set of items to include in the transcription. Current available items are:
 
@@ -58,6 +68,25 @@ class TranscriptionSessionCreateParams(TypedDict, total=False):
     wait longer for the user to continue speaking. This can be useful for more
     natural conversations, but may have a higher latency.
     """
+
+
+class ClientSecretExpiresAt(TypedDict, total=False):
+    anchor: Literal["created_at"]
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: int
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class ClientSecret(TypedDict, total=False):
+    expires_at: ClientSecretExpiresAt
+    """Configuration for the ephemeral token expiration."""
 
 
 class InputAudioNoiseReduction(TypedDict, total=False):

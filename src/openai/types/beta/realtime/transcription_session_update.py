@@ -8,10 +8,31 @@ from ...._models import BaseModel
 __all__ = [
     "TranscriptionSessionUpdate",
     "Session",
+    "SessionClientSecret",
+    "SessionClientSecretExpiresAt",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTurnDetection",
 ]
+
+
+class SessionClientSecretExpiresAt(BaseModel):
+    anchor: Optional[Literal["created_at"]] = None
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: Optional[int] = None
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class SessionClientSecret(BaseModel):
+    expires_at: Optional[SessionClientSecretExpiresAt] = None
+    """Configuration for the ephemeral token expiration."""
 
 
 class SessionInputAudioNoiseReduction(BaseModel):
@@ -99,6 +120,9 @@ class SessionTurnDetection(BaseModel):
 
 
 class Session(BaseModel):
+    client_secret: Optional[SessionClientSecret] = None
+    """Configuration options for the generated client secret."""
+
     include: Optional[List[str]] = None
     """The set of items to include in the transcription. Current available items are:
 

@@ -43,6 +43,7 @@ class TranscriptionSessions(SyncAPIResource):
     def create(
         self,
         *,
+        client_secret: transcription_session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         include: List[str] | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: transcription_session_create_params.InputAudioNoiseReduction
@@ -67,6 +68,8 @@ class TranscriptionSessions(SyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           include:
               The set of items to include in the transcription. Current available items are:
 
@@ -113,6 +116,7 @@ class TranscriptionSessions(SyncAPIResource):
             "/realtime/transcription_sessions",
             body=maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "include": include,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
@@ -152,6 +156,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
     async def create(
         self,
         *,
+        client_secret: transcription_session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         include: List[str] | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: transcription_session_create_params.InputAudioNoiseReduction
@@ -176,6 +181,8 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           include:
               The set of items to include in the transcription. Current available items are:
 
@@ -222,6 +229,7 @@ class AsyncTranscriptionSessions(AsyncAPIResource):
             "/realtime/transcription_sessions",
             body=await async_maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "include": include,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,

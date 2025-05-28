@@ -11,6 +11,8 @@ __all__ = [
     "AnnotationFileCitation",
     "AnnotationURLCitation",
     "AnnotationFilePath",
+    "Logprob",
+    "LogprobTopLogprob",
 ]
 
 
@@ -56,6 +58,24 @@ class AnnotationFilePath(TypedDict, total=False):
 Annotation: TypeAlias = Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationFilePath]
 
 
+class LogprobTopLogprob(TypedDict, total=False):
+    token: Required[str]
+
+    bytes: Required[Iterable[int]]
+
+    logprob: Required[float]
+
+
+class Logprob(TypedDict, total=False):
+    token: Required[str]
+
+    bytes: Required[Iterable[int]]
+
+    logprob: Required[float]
+
+    top_logprobs: Required[Iterable[LogprobTopLogprob]]
+
+
 class ResponseOutputTextParam(TypedDict, total=False):
     annotations: Required[Iterable[Annotation]]
     """The annotations of the text output."""
@@ -65,3 +85,5 @@ class ResponseOutputTextParam(TypedDict, total=False):
 
     type: Required[Literal["output_text"]]
     """The type of the output text. Always `output_text`."""
+
+    logprobs: Iterable[Logprob]

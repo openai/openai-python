@@ -8,10 +8,31 @@ from typing_extensions import Literal, Required, TypedDict
 __all__ = [
     "TranscriptionSessionUpdateParam",
     "Session",
+    "SessionClientSecret",
+    "SessionClientSecretExpiresAt",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTurnDetection",
 ]
+
+
+class SessionClientSecretExpiresAt(TypedDict, total=False):
+    anchor: Literal["created_at"]
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: int
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class SessionClientSecret(TypedDict, total=False):
+    expires_at: SessionClientSecretExpiresAt
+    """Configuration for the ephemeral token expiration."""
 
 
 class SessionInputAudioNoiseReduction(TypedDict, total=False):
@@ -99,6 +120,9 @@ class SessionTurnDetection(TypedDict, total=False):
 
 
 class Session(TypedDict, total=False):
+    client_secret: SessionClientSecret
+    """Configuration options for the generated client secret."""
+
     include: List[str]
     """The set of items to include in the transcription. Current available items are:
 

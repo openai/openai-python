@@ -43,6 +43,7 @@ class Sessions(SyncAPIResource):
     def create(
         self,
         *,
+        client_secret: session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: session_create_params.InputAudioNoiseReduction | NotGiven = NOT_GIVEN,
         input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
@@ -83,6 +84,8 @@ class Sessions(SyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For
               `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
               (mono), and little-endian byte order.
@@ -163,6 +166,7 @@ class Sessions(SyncAPIResource):
             "/realtime/sessions",
             body=maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
                     "input_audio_transcription": input_audio_transcription,
@@ -209,6 +213,7 @@ class AsyncSessions(AsyncAPIResource):
     async def create(
         self,
         *,
+        client_secret: session_create_params.ClientSecret | NotGiven = NOT_GIVEN,
         input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
         input_audio_noise_reduction: session_create_params.InputAudioNoiseReduction | NotGiven = NOT_GIVEN,
         input_audio_transcription: session_create_params.InputAudioTranscription | NotGiven = NOT_GIVEN,
@@ -249,6 +254,8 @@ class AsyncSessions(AsyncAPIResource):
         the Realtime API.
 
         Args:
+          client_secret: Configuration options for the generated client secret.
+
           input_audio_format: The format of input audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For
               `pcm16`, input audio must be 16-bit PCM at a 24kHz sample rate, single channel
               (mono), and little-endian byte order.
@@ -329,6 +336,7 @@ class AsyncSessions(AsyncAPIResource):
             "/realtime/sessions",
             body=await async_maybe_transform(
                 {
+                    "client_secret": client_secret,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
                     "input_audio_transcription": input_audio_transcription,
