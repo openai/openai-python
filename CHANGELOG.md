@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.82.1 (2025-05-29)
+
+Full Changelog: [v1.82.0...v1.82.1](https://github.com/openai/openai-python/compare/v1.82.0...v1.82.1)
+
+### Bug Fixes
+
+* **responses:** don't include `parsed_arguments` when re-serialising ([6d04193](https://github.com/openai/openai-python/commit/6d041937963ce452affcfb3553146ee51acfeb7a))
+
+
+### Chores
+
+* **internal:** fix release workflows ([361a909](https://github.com/openai/openai-python/commit/361a909a0cc83e5029ea425fd72202ffa8d1a46a))
+
 ## 1.82.0 (2025-05-22)
 
 Full Changelog: [v1.81.0...v1.82.0](https://github.com/openai/openai-python/compare/v1.81.0...v1.82.0)
