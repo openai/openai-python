@@ -225,6 +225,21 @@ Methods:
 
 # FineTuning
 
+## Methods
+
+Types:
+
+```python
+from openai.types.fine_tuning import (
+    DpoHyperparameters,
+    DpoMethod,
+    ReinforcementHyperparameters,
+    ReinforcementMethod,
+    SupervisedHyperparameters,
+    SupervisedMethod,
+)
+```
+
 ## Jobs
 
 Types:
@@ -246,6 +261,8 @@ Methods:
 - <code title="get /fine_tuning/jobs">client.fine_tuning.jobs.<a href="./src/openai/resources/fine_tuning/jobs/jobs.py">list</a>(\*\*<a href="src/openai/types/fine_tuning/job_list_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/fine_tuning_job.py">SyncCursorPage[FineTuningJob]</a></code>
 - <code title="post /fine_tuning/jobs/{fine_tuning_job_id}/cancel">client.fine_tuning.jobs.<a href="./src/openai/resources/fine_tuning/jobs/jobs.py">cancel</a>(fine_tuning_job_id) -> <a href="./src/openai/types/fine_tuning/fine_tuning_job.py">FineTuningJob</a></code>
 - <code title="get /fine_tuning/jobs/{fine_tuning_job_id}/events">client.fine_tuning.jobs.<a href="./src/openai/resources/fine_tuning/jobs/jobs.py">list_events</a>(fine_tuning_job_id, \*\*<a href="src/openai/types/fine_tuning/job_list_events_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/fine_tuning_job_event.py">SyncCursorPage[FineTuningJobEvent]</a></code>
+- <code title="post /fine_tuning/jobs/{fine_tuning_job_id}/pause">client.fine_tuning.jobs.<a href="./src/openai/resources/fine_tuning/jobs/jobs.py">pause</a>(fine_tuning_job_id) -> <a href="./src/openai/types/fine_tuning/fine_tuning_job.py">FineTuningJob</a></code>
+- <code title="post /fine_tuning/jobs/{fine_tuning_job_id}/resume">client.fine_tuning.jobs.<a href="./src/openai/resources/fine_tuning/jobs/jobs.py">resume</a>(fine_tuning_job_id) -> <a href="./src/openai/types/fine_tuning/fine_tuning_job.py">FineTuningJob</a></code>
 
 ### Checkpoints
 
@@ -278,6 +295,38 @@ Methods:
 - <code title="post /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">create</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_create_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_create_response.py">SyncPage[PermissionCreateResponse]</a></code>
 - <code title="get /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">retrieve</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_retrieve_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_retrieve_response.py">PermissionRetrieveResponse</a></code>
 - <code title="delete /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">delete</a>(permission_id, \*, fine_tuned_model_checkpoint) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_delete_response.py">PermissionDeleteResponse</a></code>
+
+## Alpha
+
+### Graders
+
+Types:
+
+```python
+from openai.types.fine_tuning.alpha import GraderRunResponse, GraderValidateResponse
+```
+
+Methods:
+
+- <code title="post /fine_tuning/alpha/graders/run">client.fine_tuning.alpha.graders.<a href="./src/openai/resources/fine_tuning/alpha/graders.py">run</a>(\*\*<a href="src/openai/types/fine_tuning/alpha/grader_run_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/alpha/grader_run_response.py">GraderRunResponse</a></code>
+- <code title="post /fine_tuning/alpha/graders/validate">client.fine_tuning.alpha.graders.<a href="./src/openai/resources/fine_tuning/alpha/graders.py">validate</a>(\*\*<a href="src/openai/types/fine_tuning/alpha/grader_validate_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/alpha/grader_validate_response.py">GraderValidateResponse</a></code>
+
+# Graders
+
+## GraderModels
+
+Types:
+
+```python
+from openai.types.graders import (
+    LabelModelGrader,
+    MultiGrader,
+    PythonGrader,
+    ScoreModelGrader,
+    StringCheckGrader,
+    TextSimilarityGrader,
+)
+```
 
 # VectorStores
 
@@ -668,6 +717,10 @@ from openai.types.responses import (
     ResponseFunctionToolCallItem,
     ResponseFunctionToolCallOutputItem,
     ResponseFunctionWebSearch,
+    ResponseImageGenCallCompletedEvent,
+    ResponseImageGenCallGeneratingEvent,
+    ResponseImageGenCallInProgressEvent,
+    ResponseImageGenCallPartialImageEvent,
     ResponseInProgressEvent,
     ResponseIncludable,
     ResponseIncompleteEvent,
@@ -681,6 +734,14 @@ from openai.types.responses import (
     ResponseInputMessageItem,
     ResponseInputText,
     ResponseItem,
+    ResponseMcpCallArgumentsDeltaEvent,
+    ResponseMcpCallArgumentsDoneEvent,
+    ResponseMcpCallCompletedEvent,
+    ResponseMcpCallFailedEvent,
+    ResponseMcpCallInProgressEvent,
+    ResponseMcpListToolsCompletedEvent,
+    ResponseMcpListToolsFailedEvent,
+    ResponseMcpListToolsInProgressEvent,
     ResponseOutputAudio,
     ResponseOutputItem,
     ResponseOutputItemAddedEvent,
@@ -688,7 +749,13 @@ from openai.types.responses import (
     ResponseOutputMessage,
     ResponseOutputRefusal,
     ResponseOutputText,
+    ResponseOutputTextAnnotationAddedEvent,
+    ResponseQueuedEvent,
+    ResponseReasoningDeltaEvent,
+    ResponseReasoningDoneEvent,
     ResponseReasoningItem,
+    ResponseReasoningSummaryDeltaEvent,
+    ResponseReasoningSummaryDoneEvent,
     ResponseReasoningSummaryPartAddedEvent,
     ResponseReasoningSummaryPartDoneEvent,
     ResponseReasoningSummaryTextDeltaEvent,
@@ -697,7 +764,6 @@ from openai.types.responses import (
     ResponseRefusalDoneEvent,
     ResponseStatus,
     ResponseStreamEvent,
-    ResponseTextAnnotationDeltaEvent,
     ResponseTextConfig,
     ResponseTextDeltaEvent,
     ResponseTextDoneEvent,
@@ -718,6 +784,7 @@ Methods:
 - <code title="post /responses">client.responses.<a href="./src/openai/resources/responses/responses.py">create</a>(\*\*<a href="src/openai/types/responses/response_create_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="get /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/responses/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="delete /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">delete</a>(response_id) -> None</code>
+- <code title="post /responses/{response_id}/cancel">client.responses.<a href="./src/openai/resources/responses/responses.py">cancel</a>(response_id) -> None</code>
 
 ## InputItems
 
@@ -738,10 +805,7 @@ Types:
 ```python
 from openai.types import (
     EvalCustomDataSourceConfig,
-    EvalLabelModelGrader,
     EvalStoredCompletionsDataSourceConfig,
-    EvalStringCheckGrader,
-    EvalTextSimilarityGrader,
     EvalCreateResponse,
     EvalRetrieveResponse,
     EvalUpdateResponse,
@@ -795,3 +859,39 @@ Methods:
 
 - <code title="get /evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}">client.evals.runs.output_items.<a href="./src/openai/resources/evals/runs/output_items.py">retrieve</a>(output_item_id, \*, eval_id, run_id) -> <a href="./src/openai/types/evals/runs/output_item_retrieve_response.py">OutputItemRetrieveResponse</a></code>
 - <code title="get /evals/{eval_id}/runs/{run_id}/output_items">client.evals.runs.output_items.<a href="./src/openai/resources/evals/runs/output_items.py">list</a>(run_id, \*, eval_id, \*\*<a href="src/openai/types/evals/runs/output_item_list_params.py">params</a>) -> <a href="./src/openai/types/evals/runs/output_item_list_response.py">SyncCursorPage[OutputItemListResponse]</a></code>
+
+# Containers
+
+Types:
+
+```python
+from openai.types import ContainerCreateResponse, ContainerRetrieveResponse, ContainerListResponse
+```
+
+Methods:
+
+- <code title="post /containers">client.containers.<a href="./src/openai/resources/containers/containers.py">create</a>(\*\*<a href="src/openai/types/container_create_params.py">params</a>) -> <a href="./src/openai/types/container_create_response.py">ContainerCreateResponse</a></code>
+- <code title="get /containers/{container_id}">client.containers.<a href="./src/openai/resources/containers/containers.py">retrieve</a>(container_id) -> <a href="./src/openai/types/container_retrieve_response.py">ContainerRetrieveResponse</a></code>
+- <code title="get /containers">client.containers.<a href="./src/openai/resources/containers/containers.py">list</a>(\*\*<a href="src/openai/types/container_list_params.py">params</a>) -> <a href="./src/openai/types/container_list_response.py">SyncCursorPage[ContainerListResponse]</a></code>
+- <code title="delete /containers/{container_id}">client.containers.<a href="./src/openai/resources/containers/containers.py">delete</a>(container_id) -> None</code>
+
+## Files
+
+Types:
+
+```python
+from openai.types.containers import FileCreateResponse, FileRetrieveResponse, FileListResponse
+```
+
+Methods:
+
+- <code title="post /containers/{container_id}/files">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">create</a>(container_id, \*\*<a href="src/openai/types/containers/file_create_params.py">params</a>) -> <a href="./src/openai/types/containers/file_create_response.py">FileCreateResponse</a></code>
+- <code title="get /containers/{container_id}/files/{file_id}">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">retrieve</a>(file_id, \*, container_id) -> <a href="./src/openai/types/containers/file_retrieve_response.py">FileRetrieveResponse</a></code>
+- <code title="get /containers/{container_id}/files">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">list</a>(container_id, \*\*<a href="src/openai/types/containers/file_list_params.py">params</a>) -> <a href="./src/openai/types/containers/file_list_response.py">SyncCursorPage[FileListResponse]</a></code>
+- <code title="delete /containers/{container_id}/files/{file_id}">client.containers.files.<a href="./src/openai/resources/containers/files/files.py">delete</a>(file_id, \*, container_id) -> None</code>
+
+### Content
+
+Methods:
+
+- <code title="get /containers/{container_id}/files/{file_id}/content">client.containers.files.content.<a href="./src/openai/resources/containers/files/content.py">retrieve</a>(file_id, \*, container_id) -> None</code>

@@ -72,7 +72,7 @@ class InputItems(SyncAPIResource):
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
 
-          order: The order to return the input items in. Default is `asc`.
+          order: The order to return the input items in. Default is `desc`.
 
               - `asc`: Return the input items in ascending order.
               - `desc`: Return the input items in descending order.
@@ -160,7 +160,7 @@ class AsyncInputItems(AsyncAPIResource):
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
 
-          order: The order to return the input items in. Default is `asc`.
+          order: The order to return the input items in. Default is `desc`.
 
               - `asc`: Return the input items in ascending order.
               - `desc`: Return the input items in descending order.

@@ -30,7 +30,7 @@ class InputItemListParams(TypedDict, total=False):
     """
 
     order: Literal["asc", "desc"]
-    """The order to return the input items in. Default is `asc`.
+    """The order to return the input items in. Default is `desc`.
 
     - `asc`: Return the input items in ascending order.
     - `desc`: Return the input items in descending order.

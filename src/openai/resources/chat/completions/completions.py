@@ -323,8 +323,8 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
@@ -592,8 +592,8 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
@@ -861,8 +861,8 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
@@ -1426,8 +1426,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
@@ -1695,8 +1695,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
@@ -1964,8 +1964,8 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A unique identifier representing your end-user, which can help OpenAI to monitor
-              and detect abuse.
+          user: A stable identifier for your end-users. Used to boost cache hit rates by better
+              bucketing similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more

@@ -6,15 +6,18 @@ from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .shared_params.metadata import Metadata
-from .eval_string_check_grader_param import EvalStringCheckGraderParam
-from .eval_text_similarity_grader_param import EvalTextSimilarityGraderParam
+from .graders.python_grader_param import PythonGraderParam
+from .graders.score_model_grader_param import ScoreModelGraderParam
+from .graders.string_check_grader_param import StringCheckGraderParam
 from .responses.response_input_text_param import ResponseInputTextParam
+from .graders.text_similarity_grader_param import TextSimilarityGraderParam
 
 __all__ = [
     "EvalCreateParams",
     "DataSourceConfig",
     "DataSourceConfigCustom",
     "DataSourceConfigLogs",
+    "DataSourceConfigStoredCompletions",
     "TestingCriterion",
     "TestingCriterionLabelModel",
     "TestingCriterionLabelModelInput",
@@ -22,20 +25,26 @@ __all__ = [
     "TestingCriterionLabelModelInputEvalItem",
     "TestingCriterionLabelModelInputEvalItemContent",
     "TestingCriterionLabelModelInputEvalItemContentOutputText",
+    "TestingCriterionTextSimilarity",
     "TestingCriterionPython",
     "TestingCriterionScoreModel",
-    "TestingCriterionScoreModelInput",
-    "TestingCriterionScoreModelInputContent",
-    "TestingCriterionScoreModelInputContentOutputText",
 ]
 
 
 class EvalCreateParams(TypedDict, total=False):
     data_source_config: Required[DataSourceConfig]
-    """The configuration for the data source used for the evaluation runs."""
+    """The configuration for the data source used for the evaluation runs.
+
+    Dictates the schema of the data used in the evaluation.
+    """
 
     testing_criteria: Required[Iterable[TestingCriterion]]
-    """A list of graders for all eval runs in this group."""
+    """A list of graders for all eval runs in this group.
+
+    Graders can reference variables in the data source using double curly braces
+    notation, like `{{item.variable_name}}`. To reference the model's output, use
+    the `sample` namespace (ie, `{{sample.output_text}}`).
+    """
 
     metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
@@ -73,7 +82,15 @@ class DataSourceConfigLogs(TypedDict, total=False):
     """Metadata filters for the logs data source."""
 
 
-DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigLogs]
+class DataSourceConfigStoredCompletions(TypedDict, total=False):
+    type: Required[Literal["stored_completions"]]
+    """The type of data source. Always `stored_completions`."""
+
+    metadata: Dict[str, object]
+    """Metadata filters for the stored completions data source."""
+
+
+DataSourceConfig: TypeAlias = Union[DataSourceConfigCustom, DataSourceConfigLogs, DataSourceConfigStoredCompletions]
 
 
 class TestingCriterionLabelModelInputSimpleInputMessage(TypedDict, total=False):
@@ -120,7 +137,7 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     input: Required[Iterable[TestingCriterionLabelModelInput]]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     labels: Required[List[str]]
@@ -139,77 +156,25 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     """The object type, which is always `label_model`."""
 
 
-class TestingCriterionPython(TypedDict, total=False):
-    name: Required[str]
-    """The name of the grader."""
+class TestingCriterionTextSimilarity(TextSimilarityGraderParam, total=False):
+    pass_threshold: Required[float]
+    """The threshold for the score."""
 
-    source: Required[str]
-    """The source code of the python script."""
 
-    type: Required[Literal["python"]]
-    """The object type, which is always `python`."""
-
-    image_tag: str
-    """The image tag to use for the python script."""
-
+class TestingCriterionPython(PythonGraderParam, total=False):
     pass_threshold: float
     """The threshold for the score."""
 
 
-class TestingCriterionScoreModelInputContentOutputText(TypedDict, total=False):
-    text: Required[str]
-    """The text output from the model."""
-
-    type: Required[Literal["output_text"]]
-    """The type of the output text. Always `output_text`."""
-
-
-TestingCriterionScoreModelInputContent: TypeAlias = Union[
-    str, ResponseInputTextParam, TestingCriterionScoreModelInputContentOutputText
-]
-
-
-class TestingCriterionScoreModelInput(TypedDict, total=False):
-    content: Required[TestingCriterionScoreModelInputContent]
-    """Text inputs to the model - can contain template strings."""
-
-    role: Required[Literal["user", "assistant", "system", "developer"]]
-    """The role of the message input.
-
-    One of `user`, `assistant`, `system`, or `developer`.
-    """
-
-    type: Literal["message"]
-    """The type of the message input. Always `message`."""
-
-
-class TestingCriterionScoreModel(TypedDict, total=False):
-    input: Required[Iterable[TestingCriterionScoreModelInput]]
-    """The input text. This may include template strings."""
-
-    model: Required[str]
-    """The model to use for the evaluation."""
-
-    name: Required[str]
-    """The name of the grader."""
-
-    type: Required[Literal["score_model"]]
-    """The object type, which is always `score_model`."""
-
+class TestingCriterionScoreModel(ScoreModelGraderParam, total=False):
     pass_threshold: float
     """The threshold for the score."""
-
-    range: Iterable[float]
-    """The range of the score. Defaults to `[0, 1]`."""
-
-    sampling_params: object
-    """The sampling parameters for the model."""
 
 
 TestingCriterion: TypeAlias = Union[
     TestingCriterionLabelModel,
-    EvalStringCheckGraderParam,
-    EvalTextSimilarityGraderParam,
+    StringCheckGraderParam,
+    TestingCriterionTextSimilarity,
     TestingCriterionPython,
     TestingCriterionScoreModel,
 ]

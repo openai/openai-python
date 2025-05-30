@@ -2,12 +2,12 @@
 
 from typing_extensions import Literal
 
-from .._models import BaseModel
+from ..._models import BaseModel
 
-__all__ = ["EvalStringCheckGrader"]
+__all__ = ["StringCheckGrader"]
 
 
-class EvalStringCheckGrader(BaseModel):
+class StringCheckGrader(BaseModel):
     input: str
     """The input text. This may include template strings."""
 

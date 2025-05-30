@@ -19,5 +19,8 @@ class ResponseFunctionCallArgumentsDeltaEvent(BaseModel):
     The index of the output item that the function-call arguments delta is added to.
     """
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.function_call_arguments.delta"]
     """The type of the event. Always `response.function_call_arguments.delta`."""

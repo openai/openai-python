@@ -15,5 +15,8 @@ class ResponseOutputItemDoneEvent(BaseModel):
     output_index: int
     """The index of the output item that was marked done."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.output_item.done"]
     """The type of the event. Always `response.output_item.done`."""

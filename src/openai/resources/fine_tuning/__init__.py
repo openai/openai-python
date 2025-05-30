@@ -8,6 +8,14 @@ from .jobs import (
     JobsWithStreamingResponse,
     AsyncJobsWithStreamingResponse,
 )
+from .alpha import (
+    Alpha,
+    AsyncAlpha,
+    AlphaWithRawResponse,
+    AsyncAlphaWithRawResponse,
+    AlphaWithStreamingResponse,
+    AsyncAlphaWithStreamingResponse,
+)
 from .checkpoints import (
     Checkpoints,
     AsyncCheckpoints,
@@ -38,6 +46,12 @@ __all__ = [
     "AsyncCheckpointsWithRawResponse",
     "CheckpointsWithStreamingResponse",
     "AsyncCheckpointsWithStreamingResponse",
+    "Alpha",
+    "AsyncAlpha",
+    "AlphaWithRawResponse",
+    "AsyncAlphaWithRawResponse",
+    "AlphaWithStreamingResponse",
+    "AsyncAlphaWithStreamingResponse",
     "FineTuning",
     "AsyncFineTuning",
     "FineTuningWithRawResponse",

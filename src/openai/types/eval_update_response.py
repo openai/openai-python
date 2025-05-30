@@ -1,114 +1,83 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
+
+from pydantic import Field as FieldInfo
 
 from .._utils import PropertyInfo
 from .._models import BaseModel
 from .shared.metadata import Metadata
-from .eval_label_model_grader import EvalLabelModelGrader
-from .eval_string_check_grader import EvalStringCheckGrader
-from .eval_text_similarity_grader import EvalTextSimilarityGrader
-from .responses.response_input_text import ResponseInputText
+from .graders.python_grader import PythonGrader
+from .graders.label_model_grader import LabelModelGrader
+from .graders.score_model_grader import ScoreModelGrader
+from .graders.string_check_grader import StringCheckGrader
 from .eval_custom_data_source_config import EvalCustomDataSourceConfig
+from .graders.text_similarity_grader import TextSimilarityGrader
 from .eval_stored_completions_data_source_config import EvalStoredCompletionsDataSourceConfig
 
 __all__ = [
     "EvalUpdateResponse",
     "DataSourceConfig",
+    "DataSourceConfigLogs",
     "TestingCriterion",
-    "TestingCriterionPython",
-    "TestingCriterionScoreModel",
-    "TestingCriterionScoreModelInput",
-    "TestingCriterionScoreModelInputContent",
-    "TestingCriterionScoreModelInputContentOutputText",
-]
-
-DataSourceConfig: TypeAlias = Annotated[
-    Union[EvalCustomDataSourceConfig, EvalStoredCompletionsDataSourceConfig], PropertyInfo(discriminator="type")
+    "TestingCriterionEvalGraderTextSimilarity",
+    "TestingCriterionEvalGraderPython",
+    "TestingCriterionEvalGraderScoreModel",
 ]
 
 
-class TestingCriterionPython(BaseModel):
-    __test__ = False
-    name: str
-    """The name of the grader."""
-
-    source: str
-    """The source code of the python script."""
-
-    type: Literal["python"]
-    """The object type, which is always `python`."""
-
-    image_tag: Optional[str] = None
-    """The image tag to use for the python script."""
-
-    pass_threshold: Optional[float] = None
-    """The threshold for the score."""
-
-
-class TestingCriterionScoreModelInputContentOutputText(BaseModel):
-    __test__ = False
-    text: str
-    """The text output from the model."""
-
-    type: Literal["output_text"]
-    """The type of the output text. Always `output_text`."""
-
-
-TestingCriterionScoreModelInputContent: TypeAlias = Union[
-    str, ResponseInputText, TestingCriterionScoreModelInputContentOutputText
-]
-
-
-class TestingCriterionScoreModelInput(BaseModel):
-    __test__ = False
-    content: TestingCriterionScoreModelInputContent
-    """Text inputs to the model - can contain template strings."""
-
-    role: Literal["user", "assistant", "system", "developer"]
-    """The role of the message input.
-
-    One of `user`, `assistant`, `system`, or `developer`.
+class DataSourceConfigLogs(BaseModel):
+    schema_: Dict[str, object] = FieldInfo(alias="schema")
+    """
+    The json schema for the run data source items. Learn how to build JSON schemas
+    [here](https://json-schema.org/).
     """
 
-    type: Optional[Literal["message"]] = None
-    """The type of the message input. Always `message`."""
+    type: Literal["logs"]
+    """The type of data source. Always `logs`."""
+
+    metadata: Optional[Metadata] = None
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """
 
 
-class TestingCriterionScoreModel(BaseModel):
+DataSourceConfig: TypeAlias = Annotated[
+    Union[EvalCustomDataSourceConfig, DataSourceConfigLogs, EvalStoredCompletionsDataSourceConfig],
+    PropertyInfo(discriminator="type"),
+]
+
+
+class TestingCriterionEvalGraderTextSimilarity(TextSimilarityGrader):
     __test__ = False
-    input: List[TestingCriterionScoreModelInput]
-    """The input text. This may include template strings."""
+    pass_threshold: float
+    """The threshold for the score."""
 
-    model: str
-    """The model to use for the evaluation."""
 
-    name: str
-    """The name of the grader."""
-
-    type: Literal["score_model"]
-    """The object type, which is always `score_model`."""
-
+class TestingCriterionEvalGraderPython(PythonGrader):
+    __test__ = False
     pass_threshold: Optional[float] = None
     """The threshold for the score."""
 
-    range: Optional[List[float]] = None
-    """The range of the score. Defaults to `[0, 1]`."""
 
-    sampling_params: Optional[object] = None
-    """The sampling parameters for the model."""
+class TestingCriterionEvalGraderScoreModel(ScoreModelGrader):
+    __test__ = False
+    pass_threshold: Optional[float] = None
+    """The threshold for the score."""
 
 
-TestingCriterion: TypeAlias = Annotated[
-    Union[
-        EvalLabelModelGrader,
-        EvalStringCheckGrader,
-        EvalTextSimilarityGrader,
-        TestingCriterionPython,
-        TestingCriterionScoreModel,
-    ],
-    PropertyInfo(discriminator="type"),
+TestingCriterion: TypeAlias = Union[
+    LabelModelGrader,
+    StringCheckGrader,
+    TestingCriterionEvalGraderTextSimilarity,
+    TestingCriterionEvalGraderPython,
+    TestingCriterionEvalGraderScoreModel,
 ]
 
 

@@ -117,7 +117,7 @@ class InputMessagesTemplate(BaseModel):
     template: List[InputMessagesTemplateTemplate]
     """A list of chat messages forming the prompt or context.
 
-    May include variable references to the "item" namespace, ie {{item.name}}.
+    May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
     type: Literal["template"]
@@ -126,7 +126,7 @@ class InputMessagesTemplate(BaseModel):
 
 class InputMessagesItemReference(BaseModel):
     item_reference: str
-    """A reference to a variable in the "item" namespace. Ie, "item.name" """
+    """A reference to a variable in the `item` namespace. Ie, "item.input_trajectory" """
 
     type: Literal["item_reference"]
     """The type of input messages. Always `item_reference`."""
@@ -153,12 +153,18 @@ class SamplingParams(BaseModel):
 
 class CreateEvalCompletionsRunDataSource(BaseModel):
     source: Source
-    """A StoredCompletionsRunDataSource configuration describing a set of filters"""
+    """Determines what populates the `item` namespace in this run's data source."""
 
     type: Literal["completions"]
     """The type of run data source. Always `completions`."""
 
     input_messages: Optional[InputMessages] = None
+    """Used when sampling from a model.
+
+    Dictates the structure of the messages passed into the model. Can either be a
+    reference to a prebuilt trajectory (ie, `item.input_trajectory`), or a template
+    with variable references to the `item` namespace.
+    """
 
     model: Optional[str] = None
     """The name of the model to use for generating completions (e.g. "o3-mini")."""

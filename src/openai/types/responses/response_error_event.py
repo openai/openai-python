@@ -18,5 +18,8 @@ class ResponseErrorEvent(BaseModel):
     param: Optional[str] = None
     """The error parameter."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["error"]
     """The type of the event. Always `error`."""

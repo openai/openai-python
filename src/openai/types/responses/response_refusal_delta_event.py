@@ -20,5 +20,8 @@ class ResponseRefusalDeltaEvent(BaseModel):
     output_index: int
     """The index of the output item that the refusal text is added to."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.refusal.delta"]
     """The type of the event. Always `response.refusal.delta`."""
