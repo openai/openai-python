@@ -31,7 +31,6 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -46,7 +45,7 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
+            item={},
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -61,7 +60,6 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
 
         assert response.is_closed is True
@@ -80,7 +78,6 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -167,7 +164,6 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -182,7 +178,7 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
+            item={},
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -197,7 +193,6 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
 
         assert response.is_closed is True
@@ -216,7 +211,6 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

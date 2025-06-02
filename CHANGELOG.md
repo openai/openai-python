@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.83.0 (2025-06-02)
+
+Full Changelog: [v1.82.1...v1.83.0](https://github.com/openai/openai-python/compare/v1.82.1...v1.83.0)
+
+### Features
+
+* **api:** Config update for pakrym-stream-param ([88bcf3a](https://github.com/openai/openai-python/commit/88bcf3af9ce8ffa8347547d4d30aacac1ceba939))
+* **client:** add follow_redirects request option ([26d715f](https://github.com/openai/openai-python/commit/26d715f4e9b0f2b19e2ac16acc796a949338e1e1))
+
+
+### Bug Fixes
+
+* **api:** Fix evals and code interpreter interfaces ([2650159](https://github.com/openai/openai-python/commit/2650159f6d01f6eb481cf8c7942142e4fd21ce44))
+* **client:** return binary content from `get /containers/{container_id}/files/{file_id}/content` ([f7c80c4](https://github.com/openai/openai-python/commit/f7c80c4368434bd0be7436375076ba33a62f63b5))
+
+
+### Chores
+
+* **api:** mark some methods as deprecated ([3e2ca57](https://github.com/openai/openai-python/commit/3e2ca571cb6cdd9e15596590605b2f98a4c5a42e))
+* deprecate Assistants API ([9d166d7](https://github.com/openai/openai-python/commit/9d166d795e03dea49af680ec9597e9497522187c))
+* **docs:** remove reference to rye shell ([c7978e9](https://github.com/openai/openai-python/commit/c7978e9f1640c311022988fcd716cbb5c865daa8))
+
 ## 1.82.1 (2025-05-29)
 
 Full Changelog: [v1.82.0...v1.82.1](https://github.com/openai/openai-python/compare/v1.82.0...v1.82.1)

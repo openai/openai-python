@@ -28,7 +28,7 @@ class Error(BaseModel):
 
 
 class Hyperparameters(BaseModel):
-    batch_size: Union[Literal["auto"], int, Optional[object], None] = None
+    batch_size: Union[Literal["auto"], int, None] = None
     """Number of examples in each batch.
 
     A larger batch size means that model parameters are updated less frequently, but

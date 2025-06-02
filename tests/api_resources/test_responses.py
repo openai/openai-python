@@ -164,22 +164,24 @@ class TestResponses:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    def test_method_retrieve(self, client: OpenAI) -> None:
+    def test_method_retrieve_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    def test_method_retrieve_with_all_params(self, client: OpenAI) -> None:
+    def test_method_retrieve_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             include=["file_search_call.results"],
+            starting_after=0,
+            stream=False,
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    def test_raw_response_retrieve(self, client: OpenAI) -> None:
+    def test_raw_response_retrieve_overload_1(self, client: OpenAI) -> None:
         http_response = client.responses.with_raw_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
@@ -190,7 +192,7 @@ class TestResponses:
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+    def test_streaming_response_retrieve_overload_1(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         ) as http_response:
@@ -203,10 +205,61 @@ class TestResponses:
         assert cast(Any, http_response.is_closed) is True
 
     @parametrize
-    def test_path_params_retrieve(self, client: OpenAI) -> None:
+    def test_path_params_retrieve_overload_1(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
             client.responses.with_raw_response.retrieve(
                 response_id="",
+            )
+
+    @parametrize
+    def test_method_retrieve_overload_2(self, client: OpenAI) -> None:
+        response_stream = client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+        response_stream.response.close()
+
+    @parametrize
+    def test_method_retrieve_with_all_params_overload_2(self, client: OpenAI) -> None:
+        response_stream = client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+            include=["file_search_call.results"],
+            starting_after=0,
+        )
+        response_stream.response.close()
+
+    @parametrize
+    def test_raw_response_retrieve_overload_2(self, client: OpenAI) -> None:
+        response = client.responses.with_raw_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @parametrize
+    def test_streaming_response_retrieve_overload_2(self, client: OpenAI) -> None:
+        with client.responses.with_streaming_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve_overload_2(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            client.responses.with_raw_response.retrieve(
+                response_id="",
+                stream=True,
             )
 
     @parametrize
@@ -252,7 +305,7 @@ class TestResponses:
         response = client.responses.cancel(
             "resp_677efb5139a88190b512bc3fef8e535d",
         )
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     def test_raw_response_cancel(self, client: OpenAI) -> None:
@@ -263,7 +316,7 @@ class TestResponses:
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
         response = http_response.parse()
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     def test_streaming_response_cancel(self, client: OpenAI) -> None:
@@ -274,7 +327,7 @@ class TestResponses:
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             response = http_response.parse()
-            assert response is None
+            assert_matches_type(Response, response, path=["response"])
 
         assert cast(Any, http_response.is_closed) is True
 
@@ -436,22 +489,24 @@ class TestAsyncResponses:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_method_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    async def test_method_retrieve_with_all_params(self, async_client: AsyncOpenAI) -> None:
+    async def test_method_retrieve_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             include=["file_search_call.results"],
+            starting_after=0,
+            stream=False,
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_raw_response_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         http_response = await async_client.responses.with_raw_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
@@ -462,7 +517,7 @@ class TestAsyncResponses:
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_streaming_response_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         ) as http_response:
@@ -475,10 +530,61 @@ class TestAsyncResponses:
         assert cast(Any, http_response.is_closed) is True
 
     @parametrize
-    async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_path_params_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
             await async_client.responses.with_raw_response.retrieve(
                 response_id="",
+            )
+
+    @parametrize
+    async def test_method_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response_stream = await async_client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+        await response_stream.response.aclose()
+
+    @parametrize
+    async def test_method_retrieve_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response_stream = await async_client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+            include=["file_search_call.results"],
+            starting_after=0,
+        )
+        await response_stream.response.aclose()
+
+    @parametrize
+    async def test_raw_response_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.responses.with_raw_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        await stream.close()
+
+    @parametrize
+    async def test_streaming_response_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.responses.with_streaming_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            await async_client.responses.with_raw_response.retrieve(
+                response_id="",
+                stream=True,
             )
 
     @parametrize
@@ -524,7 +630,7 @@ class TestAsyncResponses:
         response = await async_client.responses.cancel(
             "resp_677efb5139a88190b512bc3fef8e535d",
         )
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     async def test_raw_response_cancel(self, async_client: AsyncOpenAI) -> None:
@@ -535,7 +641,7 @@ class TestAsyncResponses:
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
         response = http_response.parse()
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     async def test_streaming_response_cancel(self, async_client: AsyncOpenAI) -> None:
@@ -546,7 +652,7 @@ class TestAsyncResponses:
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             response = await http_response.parse()
-            assert response is None
+            assert_matches_type(Response, response, path=["response"])
 
         assert cast(Any, http_response.is_closed) is True
 

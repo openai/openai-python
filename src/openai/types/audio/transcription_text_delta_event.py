@@ -12,7 +12,7 @@ class Logprob(BaseModel):
     token: Optional[str] = None
     """The token that was used to generate the log probability."""
 
-    bytes: Optional[List[object]] = None
+    bytes: Optional[List[int]] = None
     """The bytes that were used to generate the log probability."""
 
     logprob: Optional[float] = None

@@ -8,11 +8,32 @@ from ...._models import BaseModel
 __all__ = [
     "SessionUpdateEvent",
     "Session",
+    "SessionClientSecret",
+    "SessionClientSecretExpiresAt",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTool",
     "SessionTurnDetection",
 ]
+
+
+class SessionClientSecretExpiresAt(BaseModel):
+    anchor: Optional[Literal["created_at"]] = None
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: Optional[int] = None
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class SessionClientSecret(BaseModel):
+    expires_at: Optional[SessionClientSecretExpiresAt] = None
+    """Configuration for the ephemeral token expiration."""
 
 
 class SessionInputAudioNoiseReduction(BaseModel):
@@ -116,6 +137,9 @@ class SessionTurnDetection(BaseModel):
 
 
 class Session(BaseModel):
+    client_secret: Optional[SessionClientSecret] = None
+    """Configuration options for the generated client secret."""
+
     input_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
     """The format of input audio.
 

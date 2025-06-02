@@ -17,5 +17,5 @@ class ResponseCodeInterpreterCallCodeDeltaEvent(BaseModel):
     sequence_number: int
     """The sequence number of this event."""
 
-    type: Literal["response.code_interpreter_call.code.delta"]
-    """The type of the event. Always `response.code_interpreter_call.code.delta`."""
+    type: Literal["response.code_interpreter_call_code.delta"]
+    """The type of the event. Always `response.code_interpreter_call_code.delta`."""
