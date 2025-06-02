@@ -976,6 +976,8 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        stream: Literal[False] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1016,6 +1018,7 @@ class Responses(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | Stream[ResponseStreamEvent]: ...
 
+    @overload
     def retrieve(
         self,
         response_id: str,
@@ -1037,15 +1040,14 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
-          stream: If set to true, the model response data will be streamed to the client using
+          starting_after: The sequence number of the event after which to start streaming.
+
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
-
-          starting_after: When retrieving a background response, this parameter can be used to start
-            replaying after an event with the given sequence number. Must be used in conjunction with
-            the `stream` parameter set to `true`.
 
           extra_headers: Send extra headers
 
@@ -1055,6 +1057,104 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: Literal[True],
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Stream[ResponseStreamEvent]:
+        """
+        Retrieves a model response with the given ID.
+
+        Args:
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
+
+          include: Additional fields to include in the response. See the `include` parameter for
+              Response creation above for more information.
+
+          starting_after: The sequence number of the event after which to start streaming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: bool,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | Stream[ResponseStreamEvent]:
+        """
+        Retrieves a model response with the given ID.
+
+        Args:
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
+
+          include: Additional fields to include in the response. See the `include` parameter for
+              Response creation above for more information.
+
+          starting_after: The sequence number of the event after which to start streaming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    def retrieve(
+        self,
+        response_id: str,
+        *,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | Stream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get(
@@ -1067,8 +1167,8 @@ class Responses(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "include": include,
-                        "stream": stream,
                         "starting_after": starting_after,
+                        "stream": stream,
                     },
                     response_retrieve_params.ResponseRetrieveParams,
                 ),
@@ -2083,6 +2183,8 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        stream: Literal[False] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2123,6 +2225,7 @@ class AsyncResponses(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | AsyncStream[ResponseStreamEvent]: ...
 
+    @overload
     async def retrieve(
         self,
         response_id: str,
@@ -2144,9 +2247,14 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
-          stream:
-          starting_after: When retrieving a background response, this parameter can be used to start
-          replaying after an event with the given sequence number. Must be used in
+          starting_after: The sequence number of the event after which to start streaming.
+
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
 
           extra_headers: Send extra headers
 
@@ -2156,6 +2264,104 @@ class AsyncResponses(AsyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        ...
+
+    @overload
+    async def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: Literal[True],
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> AsyncStream[ResponseStreamEvent]:
+        """
+        Retrieves a model response with the given ID.
+
+        Args:
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
+
+          include: Additional fields to include in the response. See the `include` parameter for
+              Response creation above for more information.
+
+          starting_after: The sequence number of the event after which to start streaming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    @overload
+    async def retrieve(
+        self,
+        response_id: str,
+        *,
+        stream: bool,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | AsyncStream[ResponseStreamEvent]:
+        """
+        Retrieves a model response with the given ID.
+
+        Args:
+          stream: If set to true, the model response data will be streamed to the client as it is
+              generated using
+              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+              See the
+              [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+              for more information.
+
+          include: Additional fields to include in the response. See the `include` parameter for
+              Response creation above for more information.
+
+          starting_after: The sequence number of the event after which to start streaming.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        ...
+
+    async def retrieve(
+        self,
+        response_id: str,
+        *,
+        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        starting_after: int | NotGiven = NOT_GIVEN,
+        stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+    ) -> Response | AsyncStream[ResponseStreamEvent]:
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._get(
@@ -2168,8 +2374,8 @@ class AsyncResponses(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {
                         "include": include,
-                        "stream": stream,
                         "starting_after": starting_after,
+                        "stream": stream,
                     },
                     response_retrieve_params.ResponseRetrieveParams,
                 ),

@@ -25,6 +25,12 @@ class TestTranscriptionSessions:
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         transcription_session = client.beta.realtime.transcription_sessions.create(
+            client_secret={
+                "expires_at": {
+                    "anchor": "created_at",
+                    "seconds": 0,
+                }
+            },
             include=["string"],
             input_audio_format="pcm16",
             input_audio_noise_reduction={"type": "near_field"},
@@ -78,6 +84,12 @@ class TestAsyncTranscriptionSessions:
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         transcription_session = await async_client.beta.realtime.transcription_sessions.create(
+            client_secret={
+                "expires_at": {
+                    "anchor": "created_at",
+                    "seconds": 0,
+                }
+            },
             include=["string"],
             input_audio_format="pcm16",
             input_audio_noise_reduction={"type": "near_field"},

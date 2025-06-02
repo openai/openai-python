@@ -1,12 +1,20 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseOutputText", "Annotation", "AnnotationFileCitation", "AnnotationURLCitation", "AnnotationFilePath"]
+__all__ = [
+    "ResponseOutputText",
+    "Annotation",
+    "AnnotationFileCitation",
+    "AnnotationURLCitation",
+    "AnnotationFilePath",
+    "Logprob",
+    "LogprobTopLogprob",
+]
 
 
 class AnnotationFileCitation(BaseModel):
@@ -53,6 +61,24 @@ Annotation: TypeAlias = Annotated[
 ]
 
 
+class LogprobTopLogprob(BaseModel):
+    token: str
+
+    bytes: List[int]
+
+    logprob: float
+
+
+class Logprob(BaseModel):
+    token: str
+
+    bytes: List[int]
+
+    logprob: float
+
+    top_logprobs: List[LogprobTopLogprob]
+
+
 class ResponseOutputText(BaseModel):
     annotations: List[Annotation]
     """The annotations of the text output."""
@@ -62,3 +88,5 @@ class ResponseOutputText(BaseModel):
 
     type: Literal["output_text"]
     """The type of the output text. Always `output_text`."""
+
+    logprobs: Optional[List[Logprob]] = None
