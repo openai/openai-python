@@ -101,6 +101,7 @@ class RequestOptions(TypedDict, total=False):
     params: Query
     extra_json: AnyMapping
     idempotency_key: str
+    follow_redirects: bool
 
 
 # Sentinel class used until PEP 0661 is accepted
@@ -217,3 +218,4 @@ class _GenericAlias(Protocol):
 
 class HttpxSendArgs(TypedDict, total=False):
     auth: httpx.Auth
+    follow_redirects: bool
