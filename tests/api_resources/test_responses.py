@@ -305,7 +305,7 @@ class TestResponses:
         response = client.responses.cancel(
             "resp_677efb5139a88190b512bc3fef8e535d",
         )
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     def test_raw_response_cancel(self, client: OpenAI) -> None:
@@ -316,7 +316,7 @@ class TestResponses:
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
         response = http_response.parse()
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     def test_streaming_response_cancel(self, client: OpenAI) -> None:
@@ -327,7 +327,7 @@ class TestResponses:
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             response = http_response.parse()
-            assert response is None
+            assert_matches_type(Response, response, path=["response"])
 
         assert cast(Any, http_response.is_closed) is True
 
@@ -630,7 +630,7 @@ class TestAsyncResponses:
         response = await async_client.responses.cancel(
             "resp_677efb5139a88190b512bc3fef8e535d",
         )
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     async def test_raw_response_cancel(self, async_client: AsyncOpenAI) -> None:
@@ -641,7 +641,7 @@ class TestAsyncResponses:
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
         response = http_response.parse()
-        assert response is None
+        assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     async def test_streaming_response_cancel(self, async_client: AsyncOpenAI) -> None:
@@ -652,7 +652,7 @@ class TestAsyncResponses:
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             response = await http_response.parse()
-            assert response is None
+            assert_matches_type(Response, response, path=["response"])
 
         assert cast(Any, http_response.is_closed) is True
 

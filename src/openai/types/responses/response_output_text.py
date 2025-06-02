@@ -11,6 +11,7 @@ __all__ = [
     "Annotation",
     "AnnotationFileCitation",
     "AnnotationURLCitation",
+    "AnnotationContainerFileCitation",
     "AnnotationFilePath",
     "Logprob",
     "LogprobTopLogprob",
@@ -45,6 +46,23 @@ class AnnotationURLCitation(BaseModel):
     """The URL of the web resource."""
 
 
+class AnnotationContainerFileCitation(BaseModel):
+    container_id: str
+    """The ID of the container file."""
+
+    end_index: int
+    """The index of the last character of the container file citation in the message."""
+
+    file_id: str
+    """The ID of the file."""
+
+    start_index: int
+    """The index of the first character of the container file citation in the message."""
+
+    type: Literal["container_file_citation"]
+    """The type of the container file citation. Always `container_file_citation`."""
+
+
 class AnnotationFilePath(BaseModel):
     file_id: str
     """The ID of the file."""
@@ -57,7 +75,8 @@ class AnnotationFilePath(BaseModel):
 
 
 Annotation: TypeAlias = Annotated[
-    Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationFilePath], PropertyInfo(discriminator="type")
+    Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationContainerFileCitation, AnnotationFilePath],
+    PropertyInfo(discriminator="type"),
 ]
 
 

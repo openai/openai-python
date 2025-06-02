@@ -139,6 +139,8 @@ class Responses(SyncAPIResource):
                 multi-turn conversations when using the Responses API statelessly (like when
                 the `store` parameter is set to `false`, or when an organization is enrolled
                 in the zero data retention program).
+              - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+                in code interpreter tool call items.
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
@@ -176,9 +178,9 @@ class Responses(SyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarentee.
+                latency guarantee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarentee.
+                tier with a lower uptime SLA and no latency guarantee.
               - If set to 'flex', the request will be processed with the Flex Processing
                 service tier.
                 [Learn more](https://platform.openai.com/docs/guides/flex-processing).
@@ -339,6 +341,8 @@ class Responses(SyncAPIResource):
                 multi-turn conversations when using the Responses API statelessly (like when
                 the `store` parameter is set to `false`, or when an organization is enrolled
                 in the zero data retention program).
+              - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+                in code interpreter tool call items.
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
@@ -376,9 +380,9 @@ class Responses(SyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarentee.
+                latency guarantee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarentee.
+                tier with a lower uptime SLA and no latency guarantee.
               - If set to 'flex', the request will be processed with the Flex Processing
                 service tier.
                 [Learn more](https://platform.openai.com/docs/guides/flex-processing).
@@ -532,6 +536,8 @@ class Responses(SyncAPIResource):
                 multi-turn conversations when using the Responses API statelessly (like when
                 the `store` parameter is set to `false`, or when an organization is enrolled
                 in the zero data retention program).
+              - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+                in code interpreter tool call items.
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
@@ -569,9 +575,9 @@ class Responses(SyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarentee.
+                latency guarantee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarentee.
+                tier with a lower uptime SLA and no latency guarantee.
               - If set to 'flex', the request will be processed with the Flex Processing
                 service tier.
                 [Learn more](https://platform.openai.com/docs/guides/flex-processing).
@@ -912,7 +918,7 @@ class Responses(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> None:
+    ) -> Response:
         """Cancels a model response with the given ID.
 
         Only responses created with the
@@ -930,13 +936,12 @@ class Responses(SyncAPIResource):
         """
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
-        extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
             f"/responses/{response_id}/cancel",
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=NoneType,
+            cast_to=Response,
         )
 
 
@@ -1042,6 +1047,8 @@ class AsyncResponses(AsyncAPIResource):
                 multi-turn conversations when using the Responses API statelessly (like when
                 the `store` parameter is set to `false`, or when an organization is enrolled
                 in the zero data retention program).
+              - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+                in code interpreter tool call items.
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
@@ -1079,9 +1086,9 @@ class AsyncResponses(AsyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarentee.
+                latency guarantee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarentee.
+                tier with a lower uptime SLA and no latency guarantee.
               - If set to 'flex', the request will be processed with the Flex Processing
                 service tier.
                 [Learn more](https://platform.openai.com/docs/guides/flex-processing).
@@ -1242,6 +1249,8 @@ class AsyncResponses(AsyncAPIResource):
                 multi-turn conversations when using the Responses API statelessly (like when
                 the `store` parameter is set to `false`, or when an organization is enrolled
                 in the zero data retention program).
+              - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+                in code interpreter tool call items.
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
@@ -1279,9 +1288,9 @@ class AsyncResponses(AsyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarentee.
+                latency guarantee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarentee.
+                tier with a lower uptime SLA and no latency guarantee.
               - If set to 'flex', the request will be processed with the Flex Processing
                 service tier.
                 [Learn more](https://platform.openai.com/docs/guides/flex-processing).
@@ -1435,6 +1444,8 @@ class AsyncResponses(AsyncAPIResource):
                 multi-turn conversations when using the Responses API statelessly (like when
                 the `store` parameter is set to `false`, or when an organization is enrolled
                 in the zero data retention program).
+              - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+                in code interpreter tool call items.
 
           instructions: Inserts a system (or developer) message as the first item in the model's
               context.
@@ -1472,9 +1483,9 @@ class AsyncResponses(AsyncAPIResource):
                 utilize scale tier credits until they are exhausted.
               - If set to 'auto', and the Project is not Scale tier enabled, the request will
                 be processed using the default service tier with a lower uptime SLA and no
-                latency guarentee.
+                latency guarantee.
               - If set to 'default', the request will be processed using the default service
-                tier with a lower uptime SLA and no latency guarentee.
+                tier with a lower uptime SLA and no latency guarantee.
               - If set to 'flex', the request will be processed with the Flex Processing
                 service tier.
                 [Learn more](https://platform.openai.com/docs/guides/flex-processing).
@@ -1815,7 +1826,7 @@ class AsyncResponses(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> None:
+    ) -> Response:
         """Cancels a model response with the given ID.
 
         Only responses created with the
@@ -1833,13 +1844,12 @@ class AsyncResponses(AsyncAPIResource):
         """
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
-        extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
             f"/responses/{response_id}/cancel",
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
-            cast_to=NoneType,
+            cast_to=Response,
         )
 
 

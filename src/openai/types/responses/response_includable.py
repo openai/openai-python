@@ -9,4 +9,5 @@ ResponseIncludable: TypeAlias = Literal[
     "message.input_image.image_url",
     "computer_call_output.output.image_url",
     "reasoning.encrypted_content",
+    "code_interpreter_call.outputs",
 ]

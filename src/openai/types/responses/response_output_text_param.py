@@ -10,6 +10,7 @@ __all__ = [
     "Annotation",
     "AnnotationFileCitation",
     "AnnotationURLCitation",
+    "AnnotationContainerFileCitation",
     "AnnotationFilePath",
     "Logprob",
     "LogprobTopLogprob",
@@ -44,6 +45,23 @@ class AnnotationURLCitation(TypedDict, total=False):
     """The URL of the web resource."""
 
 
+class AnnotationContainerFileCitation(TypedDict, total=False):
+    container_id: Required[str]
+    """The ID of the container file."""
+
+    end_index: Required[int]
+    """The index of the last character of the container file citation in the message."""
+
+    file_id: Required[str]
+    """The ID of the file."""
+
+    start_index: Required[int]
+    """The index of the first character of the container file citation in the message."""
+
+    type: Required[Literal["container_file_citation"]]
+    """The type of the container file citation. Always `container_file_citation`."""
+
+
 class AnnotationFilePath(TypedDict, total=False):
     file_id: Required[str]
     """The ID of the file."""
@@ -55,7 +73,9 @@ class AnnotationFilePath(TypedDict, total=False):
     """The type of the file path. Always `file_path`."""
 
 
-Annotation: TypeAlias = Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationFilePath]
+Annotation: TypeAlias = Union[
+    AnnotationFileCitation, AnnotationURLCitation, AnnotationContainerFileCitation, AnnotationFilePath
+]
 
 
 class LogprobTopLogprob(TypedDict, total=False):
