@@ -11,7 +11,7 @@ __all__ = [
     "InputAudioTranscription",
     "Tool",
     "Tracing",
-    "TracingUnionMember1",
+    "TracingTracingConfiguration",
     "TurnDetection",
 ]
 
@@ -67,7 +67,7 @@ class Tool(BaseModel):
     """The type of the tool, i.e. `function`."""
 
 
-class TracingUnionMember1(BaseModel):
+class TracingTracingConfiguration(BaseModel):
     group_id: Optional[str] = None
     """
     The group id to attach to this trace to enable filtering and grouping in the
@@ -87,7 +87,7 @@ class TracingUnionMember1(BaseModel):
     """
 
 
-Tracing: TypeAlias = Union[Literal["auto"], TracingUnionMember1]
+Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration]
 
 
 class TurnDetection(BaseModel):
