@@ -43,6 +43,7 @@ class TestSessions:
             modalities=["text"],
             model="gpt-4o-realtime-preview",
             output_audio_format="pcm16",
+            speed=0.25,
             temperature=0,
             tool_choice="tool_choice",
             tools=[
@@ -53,6 +54,7 @@ class TestSessions:
                     "type": "function",
                 }
             ],
+            tracing="auto",
             turn_detection={
                 "create_response": True,
                 "eagerness": "low",
@@ -116,6 +118,7 @@ class TestAsyncSessions:
             modalities=["text"],
             model="gpt-4o-realtime-preview",
             output_audio_format="pcm16",
+            speed=0.25,
             temperature=0,
             tool_choice="tool_choice",
             tools=[
@@ -126,6 +129,7 @@ class TestAsyncSessions:
                     "type": "function",
                 }
             ],
+            tracing="auto",
             turn_detection={
                 "create_response": True,
                 "eagerness": "low",

@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.84.0 (2025-06-03)
+
+Full Changelog: [v1.83.0...v1.84.0](https://github.com/openai/openai-python/compare/v1.83.0...v1.84.0)
+
+### Features
+
+* **api:** add new realtime and audio models, realtime session options ([0acd0da](https://github.com/openai/openai-python/commit/0acd0da6bc0468c6c857711bc5e77d0bc6d31be6))
+
+
+### Chores
+
+* **api:** update type names ([1924559](https://github.com/openai/openai-python/commit/192455913b38bf0323ddd0e2b1499b114e2111a1))
+
 ## 1.83.0 (2025-06-02)
 
 Full Changelog: [v1.82.1...v1.83.0](https://github.com/openai/openai-python/compare/v1.82.1...v1.83.0)
