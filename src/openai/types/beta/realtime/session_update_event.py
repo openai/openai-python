@@ -14,7 +14,7 @@ __all__ = [
     "SessionInputAudioTranscription",
     "SessionTool",
     "SessionTracing",
-    "SessionTracingUnionMember1",
+    "SessionTracingTracingConfiguration",
     "SessionTurnDetection",
 ]
 
@@ -89,7 +89,7 @@ class SessionTool(BaseModel):
     """The type of the tool, i.e. `function`."""
 
 
-class SessionTracingUnionMember1(BaseModel):
+class SessionTracingTracingConfiguration(BaseModel):
     group_id: Optional[str] = None
     """
     The group id to attach to this trace to enable filtering and grouping in the
@@ -109,7 +109,7 @@ class SessionTracingUnionMember1(BaseModel):
     """
 
 
-SessionTracing: TypeAlias = Union[Literal["auto"], SessionTracingUnionMember1]
+SessionTracing: TypeAlias = Union[Literal["auto"], SessionTracingTracingConfiguration]
 
 
 class SessionTurnDetection(BaseModel):
