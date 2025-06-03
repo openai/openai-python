@@ -54,14 +54,17 @@ class Sessions(SyncAPIResource):
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
         ]
         | NotGiven = NOT_GIVEN,
         output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        speed: float | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         tool_choice: str | NotGiven = NOT_GIVEN,
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tracing: session_create_params.Tracing | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
         voice: Union[
             str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
@@ -129,6 +132,10 @@ class Sessions(SyncAPIResource):
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
               For `pcm16`, output audio is sampled at a rate of 24kHz.
 
+          speed: The speed of the model's spoken response. 1.0 is the default speed. 0.25 is the
+              minimum speed. 1.5 is the maximum speed. This value can only be changed in
+              between model turns, not while a response is in progress.
+
           temperature: Sampling temperature for the model, limited to [0.6, 1.2]. For audio models a
               temperature of 0.8 is highly recommended for best performance.
 
@@ -136,6 +143,12 @@ class Sessions(SyncAPIResource):
               a function.
 
           tools: Tools (functions) available to the model.
+
+          tracing: Configuration options for tracing. Set to null to disable tracing. Once tracing
+              is enabled for a session, the configuration cannot be modified.
+
+              `auto` will create a trace for the session with default values for the workflow
+              name, group id, and metadata.
 
           turn_detection: Configuration for turn detection, ether Server VAD or Semantic VAD. This can be
               set to `null` to turn off, in which case the client must manually trigger model
@@ -175,9 +188,11 @@ class Sessions(SyncAPIResource):
                     "modalities": modalities,
                     "model": model,
                     "output_audio_format": output_audio_format,
+                    "speed": speed,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "tracing": tracing,
                     "turn_detection": turn_detection,
                     "voice": voice,
                 },
@@ -224,14 +239,17 @@ class AsyncSessions(AsyncAPIResource):
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
         ]
         | NotGiven = NOT_GIVEN,
         output_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"] | NotGiven = NOT_GIVEN,
+        speed: float | NotGiven = NOT_GIVEN,
         temperature: float | NotGiven = NOT_GIVEN,
         tool_choice: str | NotGiven = NOT_GIVEN,
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
+        tracing: session_create_params.Tracing | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
         voice: Union[
             str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
@@ -299,6 +317,10 @@ class AsyncSessions(AsyncAPIResource):
           output_audio_format: The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`.
               For `pcm16`, output audio is sampled at a rate of 24kHz.
 
+          speed: The speed of the model's spoken response. 1.0 is the default speed. 0.25 is the
+              minimum speed. 1.5 is the maximum speed. This value can only be changed in
+              between model turns, not while a response is in progress.
+
           temperature: Sampling temperature for the model, limited to [0.6, 1.2]. For audio models a
               temperature of 0.8 is highly recommended for best performance.
 
@@ -306,6 +328,12 @@ class AsyncSessions(AsyncAPIResource):
               a function.
 
           tools: Tools (functions) available to the model.
+
+          tracing: Configuration options for tracing. Set to null to disable tracing. Once tracing
+              is enabled for a session, the configuration cannot be modified.
+
+              `auto` will create a trace for the session with default values for the workflow
+              name, group id, and metadata.
 
           turn_detection: Configuration for turn detection, ether Server VAD or Semantic VAD. This can be
               set to `null` to turn off, in which case the client must manually trigger model
@@ -345,9 +373,11 @@ class AsyncSessions(AsyncAPIResource):
                     "modalities": modalities,
                     "model": model,
                     "output_audio_format": output_audio_format,
+                    "speed": speed,
                     "temperature": temperature,
                     "tool_choice": tool_choice,
                     "tools": tools,
+                    "tracing": tracing,
                     "turn_detection": turn_detection,
                     "voice": voice,
                 },
