@@ -1,18 +1,41 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeAlias
 
 from ...._models import BaseModel
 
 __all__ = [
     "SessionUpdateEvent",
     "Session",
+    "SessionClientSecret",
+    "SessionClientSecretExpiresAt",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTool",
+    "SessionTracing",
+    "SessionTracingTracingConfiguration",
     "SessionTurnDetection",
 ]
+
+
+class SessionClientSecretExpiresAt(BaseModel):
+    anchor: Optional[Literal["created_at"]] = None
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: Optional[int] = None
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class SessionClientSecret(BaseModel):
+    expires_at: Optional[SessionClientSecretExpiresAt] = None
+    """Configuration for the ephemeral token expiration."""
 
 
 class SessionInputAudioNoiseReduction(BaseModel):
@@ -66,6 +89,29 @@ class SessionTool(BaseModel):
     """The type of the tool, i.e. `function`."""
 
 
+class SessionTracingTracingConfiguration(BaseModel):
+    group_id: Optional[str] = None
+    """
+    The group id to attach to this trace to enable filtering and grouping in the
+    traces dashboard.
+    """
+
+    metadata: Optional[object] = None
+    """
+    The arbitrary metadata to attach to this trace to enable filtering in the traces
+    dashboard.
+    """
+
+    workflow_name: Optional[str] = None
+    """The name of the workflow to attach to this trace.
+
+    This is used to name the trace in the traces dashboard.
+    """
+
+
+SessionTracing: TypeAlias = Union[Literal["auto"], SessionTracingTracingConfiguration]
+
+
 class SessionTurnDetection(BaseModel):
     create_response: Optional[bool] = None
     """
@@ -116,6 +162,9 @@ class SessionTurnDetection(BaseModel):
 
 
 class Session(BaseModel):
+    client_secret: Optional[SessionClientSecret] = None
+    """Configuration options for the generated client secret."""
+
     input_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
     """The format of input audio.
 
@@ -179,6 +228,7 @@ class Session(BaseModel):
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
         ]
@@ -190,6 +240,14 @@ class Session(BaseModel):
 
     Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
     sampled at a rate of 24kHz.
+    """
+
+    speed: Optional[float] = None
+    """The speed of the model's spoken response.
+
+    1.0 is the default speed. 0.25 is the minimum speed. 1.5 is the maximum speed.
+    This value can only be changed in between model turns, not while a response is
+    in progress.
     """
 
     temperature: Optional[float] = None
@@ -207,6 +265,16 @@ class Session(BaseModel):
 
     tools: Optional[List[SessionTool]] = None
     """Tools (functions) available to the model."""
+
+    tracing: Optional[SessionTracing] = None
+    """Configuration options for tracing.
+
+    Set to null to disable tracing. Once tracing is enabled for a session, the
+    configuration cannot be modified.
+
+    `auto` will create a trace for the session with default values for the workflow
+    name, group id, and metadata.
+    """
 
     turn_detection: Optional[SessionTurnDetection] = None
     """Configuration for turn detection, ether Server VAD or Semantic VAD.

@@ -28,7 +28,7 @@ def print_obj(obj: object, monkeypatch: pytest.MonkeyPatch) -> str:
 
         string = rich_print_str(obj)
 
-        # we remove all `fn_name.<locals>.` occurences
+        # we remove all `fn_name.<locals>.` occurrences
         # so that we can share the same snapshots between
         # pydantic v1 and pydantic v2 as their output for
         # generic models differs, e.g.

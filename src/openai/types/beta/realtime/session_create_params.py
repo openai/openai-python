@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, TypeAlias, TypedDict
 
-__all__ = ["SessionCreateParams", "InputAudioNoiseReduction", "InputAudioTranscription", "Tool", "TurnDetection"]
+__all__ = [
+    "SessionCreateParams",
+    "ClientSecret",
+    "ClientSecretExpiresAt",
+    "InputAudioNoiseReduction",
+    "InputAudioTranscription",
+    "Tool",
+    "Tracing",
+    "TracingTracingConfiguration",
+    "TurnDetection",
+]
 
 
 class SessionCreateParams(TypedDict, total=False):
+    client_secret: ClientSecret
+    """Configuration options for the generated client secret."""
+
     input_audio_format: Literal["pcm16", "g711_ulaw", "g711_alaw"]
     """The format of input audio.
 
@@ -71,6 +84,7 @@ class SessionCreateParams(TypedDict, total=False):
         "gpt-4o-realtime-preview",
         "gpt-4o-realtime-preview-2024-10-01",
         "gpt-4o-realtime-preview-2024-12-17",
+        "gpt-4o-realtime-preview-2025-06-03",
         "gpt-4o-mini-realtime-preview",
         "gpt-4o-mini-realtime-preview-2024-12-17",
     ]
@@ -81,6 +95,14 @@ class SessionCreateParams(TypedDict, total=False):
 
     Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
     sampled at a rate of 24kHz.
+    """
+
+    speed: float
+    """The speed of the model's spoken response.
+
+    1.0 is the default speed. 0.25 is the minimum speed. 1.5 is the maximum speed.
+    This value can only be changed in between model turns, not while a response is
+    in progress.
     """
 
     temperature: float
@@ -98,6 +120,16 @@ class SessionCreateParams(TypedDict, total=False):
 
     tools: Iterable[Tool]
     """Tools (functions) available to the model."""
+
+    tracing: Tracing
+    """Configuration options for tracing.
+
+    Set to null to disable tracing. Once tracing is enabled for a session, the
+    configuration cannot be modified.
+
+    `auto` will create a trace for the session with default values for the workflow
+    name, group id, and metadata.
+    """
 
     turn_detection: TurnDetection
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
@@ -122,6 +154,25 @@ class SessionCreateParams(TypedDict, total=False):
     audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
     `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and `verse`.
     """
+
+
+class ClientSecretExpiresAt(TypedDict, total=False):
+    anchor: Literal["created_at"]
+    """The anchor point for the ephemeral token expiration.
+
+    Only `created_at` is currently supported.
+    """
+
+    seconds: int
+    """The number of seconds from the anchor point to the expiration.
+
+    Select a value between `10` and `7200`.
+    """
+
+
+class ClientSecret(TypedDict, total=False):
+    expires_at: ClientSecretExpiresAt
+    """Configuration for the ephemeral token expiration."""
 
 
 class InputAudioNoiseReduction(TypedDict, total=False):
@@ -173,6 +224,29 @@ class Tool(TypedDict, total=False):
 
     type: Literal["function"]
     """The type of the tool, i.e. `function`."""
+
+
+class TracingTracingConfiguration(TypedDict, total=False):
+    group_id: str
+    """
+    The group id to attach to this trace to enable filtering and grouping in the
+    traces dashboard.
+    """
+
+    metadata: object
+    """
+    The arbitrary metadata to attach to this trace to enable filtering in the traces
+    dashboard.
+    """
+
+    workflow_name: str
+    """The name of the workflow to attach to this trace.
+
+    This is used to name the trace in the traces dashboard.
+    """
+
+
+Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration]
 
 
 class TurnDetection(TypedDict, total=False):

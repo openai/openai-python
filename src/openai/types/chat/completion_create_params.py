@@ -217,9 +217,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
       utilize scale tier credits until they are exhausted.
     - If set to 'auto', and the Project is not Scale tier enabled, the request will
       be processed using the default service tier with a lower uptime SLA and no
-      latency guarentee.
+      latency guarantee.
     - If set to 'default', the request will be processed using the default service
-      tier with a lower uptime SLA and no latency guarentee.
+      tier with a lower uptime SLA and no latency guarantee.
     - If set to 'flex', the request will be processed with the Flex Processing
       service tier.
       [Learn more](https://platform.openai.com/docs/guides/flex-processing).

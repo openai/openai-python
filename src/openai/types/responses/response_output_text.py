@@ -1,12 +1,21 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseOutputText", "Annotation", "AnnotationFileCitation", "AnnotationURLCitation", "AnnotationFilePath"]
+__all__ = [
+    "ResponseOutputText",
+    "Annotation",
+    "AnnotationFileCitation",
+    "AnnotationURLCitation",
+    "AnnotationContainerFileCitation",
+    "AnnotationFilePath",
+    "Logprob",
+    "LogprobTopLogprob",
+]
 
 
 class AnnotationFileCitation(BaseModel):
@@ -37,6 +46,23 @@ class AnnotationURLCitation(BaseModel):
     """The URL of the web resource."""
 
 
+class AnnotationContainerFileCitation(BaseModel):
+    container_id: str
+    """The ID of the container file."""
+
+    end_index: int
+    """The index of the last character of the container file citation in the message."""
+
+    file_id: str
+    """The ID of the file."""
+
+    start_index: int
+    """The index of the first character of the container file citation in the message."""
+
+    type: Literal["container_file_citation"]
+    """The type of the container file citation. Always `container_file_citation`."""
+
+
 class AnnotationFilePath(BaseModel):
     file_id: str
     """The ID of the file."""
@@ -49,8 +75,27 @@ class AnnotationFilePath(BaseModel):
 
 
 Annotation: TypeAlias = Annotated[
-    Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationFilePath], PropertyInfo(discriminator="type")
+    Union[AnnotationFileCitation, AnnotationURLCitation, AnnotationContainerFileCitation, AnnotationFilePath],
+    PropertyInfo(discriminator="type"),
 ]
+
+
+class LogprobTopLogprob(BaseModel):
+    token: str
+
+    bytes: List[int]
+
+    logprob: float
+
+
+class Logprob(BaseModel):
+    token: str
+
+    bytes: List[int]
+
+    logprob: float
+
+    top_logprobs: List[LogprobTopLogprob]
 
 
 class ResponseOutputText(BaseModel):
@@ -62,3 +107,5 @@ class ResponseOutputText(BaseModel):
 
     type: Literal["output_text"]
     """The type of the output text. Always `output_text`."""
+
+    logprobs: Optional[List[Logprob]] = None

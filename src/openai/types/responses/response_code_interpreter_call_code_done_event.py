@@ -17,5 +17,5 @@ class ResponseCodeInterpreterCallCodeDoneEvent(BaseModel):
     sequence_number: int
     """The sequence number of this event."""
 
-    type: Literal["response.code_interpreter_call.code.done"]
-    """The type of the event. Always `response.code_interpreter_call.code.done`."""
+    type: Literal["response.code_interpreter_call_code.done"]
+    """The type of the event. Always `response.code_interpreter_call_code.done`."""
