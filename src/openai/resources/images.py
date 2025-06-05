@@ -91,8 +91,8 @@ class Images(SyncAPIResource):
         """
         body = deepcopy_minimal(
             {
+                "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                 "image": image,
-                "model": model,
                 "n": n,
                 "response_format": response_format,
                 "size": size,
@@ -198,11 +198,11 @@ class Images(SyncAPIResource):
         """
         body = deepcopy_minimal(
             {
+                "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                 "image": image,
                 "prompt": prompt,
                 "background": background,
                 "mask": mask,
-                "model": model,
                 "n": n,
                 "quality": quality,
                 "response_format": response_format,
@@ -323,9 +323,9 @@ class Images(SyncAPIResource):
             "/images/generations",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "prompt": prompt,
                     "background": background,
-                    "model": model,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,
@@ -415,8 +415,8 @@ class AsyncImages(AsyncAPIResource):
         """
         body = deepcopy_minimal(
             {
+                "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                 "image": image,
-                "model": model,
                 "n": n,
                 "response_format": response_format,
                 "size": size,
@@ -522,11 +522,11 @@ class AsyncImages(AsyncAPIResource):
         """
         body = deepcopy_minimal(
             {
+                "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                 "image": image,
                 "prompt": prompt,
                 "background": background,
                 "mask": mask,
-                "model": model,
                 "n": n,
                 "quality": quality,
                 "response_format": response_format,
@@ -647,9 +647,9 @@ class AsyncImages(AsyncAPIResource):
             "/images/generations",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "prompt": prompt,
                     "background": background,
-                    "model": model,
                     "moderation": moderation,
                     "n": n,
                     "output_compression": output_compression,

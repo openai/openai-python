@@ -313,8 +313,8 @@ class Transcriptions(SyncAPIResource):
     ) -> str | Transcription | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
+                "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                 "file": file,
-                "model": model,
                 "chunking_strategy": chunking_strategy,
                 "include": include,
                 "language": language,
@@ -692,8 +692,8 @@ class AsyncTranscriptions(AsyncAPIResource):
     ) -> Transcription | TranscriptionVerbose | str | AsyncStream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
+                "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                 "file": file,
-                "model": model,
                 "chunking_strategy": chunking_strategy,
                 "include": include,
                 "language": language,
