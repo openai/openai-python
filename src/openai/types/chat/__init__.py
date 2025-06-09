@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from .chat_completion import ChatCompletion as ChatCompletion
 from .chat_completion_role import ChatCompletionRole as ChatCompletionRole
+from .chat_completion_tool import ChatCompletionTool as ChatCompletionTool
 from .chat_completion_audio import ChatCompletionAudio as ChatCompletionAudio
 from .chat_completion_chunk import ChatCompletionChunk as ChatCompletionChunk
 from .completion_list_params import CompletionListParams as CompletionListParams
