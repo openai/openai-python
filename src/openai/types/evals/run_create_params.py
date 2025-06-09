@@ -5,10 +5,12 @@ from __future__ import annotations
 from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..responses.tool_param import ToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text_param import ResponseInputTextParam
 from .create_eval_jsonl_run_data_source_param import CreateEvalJSONLRunDataSourceParam
+from ..responses.response_format_text_config_param import ResponseFormatTextConfigParam
 from .create_eval_completions_run_data_source_param import CreateEvalCompletionsRunDataSourceParam
 
 __all__ = [
@@ -29,6 +31,7 @@ __all__ = [
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesItemReference",
     "DataSourceCreateEvalResponsesRunDataSourceSamplingParams",
+    "DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText",
 ]
 
 
@@ -202,6 +205,24 @@ DataSourceCreateEvalResponsesRunDataSourceInputMessages: TypeAlias = Union[
 ]
 
 
+class DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText(TypedDict, total=False):
+    format: ResponseFormatTextConfigParam
+    """An object specifying the format that the model must output.
+
+    Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
+    ensures the model will match your supplied JSON schema. Learn more in the
+    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
+    The default format is `{ "type": "text" }` with no additional options.
+
+    **Not recommended for gpt-4o and newer models:**
+
+    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+    ensures the message the model generates is valid JSON. Using `json_schema` is
+    preferred for models that support it.
+    """
+
+
 class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=False):
     max_completion_tokens: int
     """The maximum number of tokens in the generated output."""
@@ -211,6 +232,33 @@ class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=
 
     temperature: float
     """A higher temperature increases randomness in the outputs."""
+
+    text: DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText
+    """Configuration options for a text response from the model.
+
+    Can be plain text or structured JSON data. Learn more:
+
+    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    """
+
+    tools: Iterable[ToolParam]
+    """An array of tools the model may call while generating a response.
+
+    You can specify which tool to use by setting the `tool_choice` parameter.
+
+    The two categories of tools you can provide the model are:
+
+    - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
+      capabilities, like
+      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
+      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      Learn more about
+      [built-in tools](https://platform.openai.com/docs/guides/tools).
+    - **Function calls (custom tools)**: Functions that are defined by you, enabling
+      the model to call your own code. Learn more about
+      [function calling](https://platform.openai.com/docs/guides/function-calling).
+    """
 
     top_p: float
     """An alternative to temperature for nucleus sampling; 1.0 includes all tokens."""
