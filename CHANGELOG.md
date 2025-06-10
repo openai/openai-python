@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.85.0 (2025-06-09)
+
+Full Changelog: [v1.84.0...v1.85.0](https://github.com/openai/openai-python/compare/v1.84.0...v1.85.0)
+
+### Features
+
+* **api:** Add tools and structured outputs to evals ([002cc7b](https://github.com/openai/openai-python/commit/002cc7bb3c315d95b81c2e497f55d21be7fd26f8))
+
+
+### Bug Fixes
+
+* **responses:** support raw responses for `parse()` ([d459943](https://github.com/openai/openai-python/commit/d459943cc1c81cf9ce5c426edd3ef9112fdf6723))
+
 ## 1.84.0 (2025-06-03)
 
 Full Changelog: [v1.83.0...v1.84.0](https://github.com/openai/openai-python/compare/v1.83.0...v1.84.0)
