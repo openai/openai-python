@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.86.0 (2025-06-10)
+
+Full Changelog: [v1.85.0...v1.86.0](https://github.com/openai/openai-python/compare/v1.85.0...v1.86.0)
+
+### Features
+
+* **api:** Add o3-pro model IDs ([d8dd80b](https://github.com/openai/openai-python/commit/d8dd80b1b4e6c73687d7acb6c3f62f0bf4b8282c))
+
 ## 1.85.0 (2025-06-09)
 
 Full Changelog: [v1.84.0...v1.85.0](https://github.com/openai/openai-python/compare/v1.84.0...v1.85.0)
