@@ -6,6 +6,13 @@ from ...._models import BaseModel
 
 __all__ = ["RealtimeResponseUsage", "InputTokenDetails", "OutputTokenDetails"]
 
+class CachedTokenDetails(BaseModel):
+    """Details about the cached tokens used in the response."""
+    text_tokens: Optional[int] = None
+    """The number of cached text tokens."""
+
+    audio_tokens: Optional[int] = None
+    """The number of cached audio tokens."""
 
 class InputTokenDetails(BaseModel):
     audio_tokens: Optional[int] = None
@@ -16,6 +23,9 @@ class InputTokenDetails(BaseModel):
 
     text_tokens: Optional[int] = None
     """The number of text tokens used in the Response."""
+    
+    cached_tokens_details: Optional[CachedTokenDetails] = None
+    """A detailed breakdown of the cached tokens."""
 
 
 class OutputTokenDetails(BaseModel):
