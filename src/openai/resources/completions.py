@@ -542,7 +542,7 @@ class Completions(SyncAPIResource):
             "/completions",
             body=maybe_transform(
                 {
-                    "model": model,
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "prompt": prompt,
                     "best_of": best_of,
                     "echo": echo,
@@ -1092,7 +1092,7 @@ class AsyncCompletions(AsyncAPIResource):
             "/completions",
             body=await async_maybe_transform(
                 {
-                    "model": model,
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "prompt": prompt,
                     "best_of": best_of,
                     "echo": echo,

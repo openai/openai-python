@@ -156,7 +156,7 @@ class Assistants(SyncAPIResource):
             "/assistants",
             body=maybe_transform(
                 {
-                    "model": model,
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
@@ -360,10 +360,10 @@ class Assistants(SyncAPIResource):
             f"/assistants/{assistant_id}",
             body=maybe_transform(
                 {
+                    "model": model, # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
@@ -605,7 +605,7 @@ class AsyncAssistants(AsyncAPIResource):
             "/assistants",
             body=await async_maybe_transform(
                 {
-                    "model": model,
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
@@ -809,10 +809,10 @@ class AsyncAssistants(AsyncAPIResource):
             f"/assistants/{assistant_id}",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "description": description,
                     "instructions": instructions,
                     "metadata": metadata,
-                    "model": model,
                     "name": name,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,

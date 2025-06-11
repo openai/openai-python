@@ -179,6 +179,7 @@ class Sessions(SyncAPIResource):
             "/realtime/sessions",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "client_secret": client_secret,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
@@ -186,7 +187,6 @@ class Sessions(SyncAPIResource):
                     "instructions": instructions,
                     "max_response_output_tokens": max_response_output_tokens,
                     "modalities": modalities,
-                    "model": model,
                     "output_audio_format": output_audio_format,
                     "speed": speed,
                     "temperature": temperature,
@@ -364,6 +364,7 @@ class AsyncSessions(AsyncAPIResource):
             "/realtime/sessions",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "client_secret": client_secret,
                     "input_audio_format": input_audio_format,
                     "input_audio_noise_reduction": input_audio_noise_reduction,
@@ -371,7 +372,6 @@ class AsyncSessions(AsyncAPIResource):
                     "instructions": instructions,
                     "max_response_output_tokens": max_response_output_tokens,
                     "modalities": modalities,
-                    "model": model,
                     "output_audio_format": output_audio_format,
                     "speed": speed,
                     "temperature": temperature,

@@ -707,12 +707,12 @@ class Threads(SyncAPIResource):
             "/threads/runs",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "assistant_id": assistant_id,
                     "instructions": instructions,
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "stream": stream,
@@ -888,12 +888,12 @@ class Threads(SyncAPIResource):
             "/threads/runs",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "assistant_id": assistant_id,
                     "instructions": instructions,
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "temperature": temperature,
@@ -1565,12 +1565,12 @@ class AsyncThreads(AsyncAPIResource):
             "/threads/runs",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "assistant_id": assistant_id,
                     "instructions": instructions,
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "stream": stream,
@@ -1750,12 +1750,12 @@ class AsyncThreads(AsyncAPIResource):
             "/threads/runs",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "assistant_id": assistant_id,
                     "instructions": instructions,
                     "max_completion_tokens": max_completion_tokens,
                     "max_prompt_tokens": max_prompt_tokens,
                     "metadata": metadata,
-                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "response_format": response_format,
                     "temperature": temperature,

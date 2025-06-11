@@ -926,8 +926,8 @@ class Completions(SyncAPIResource):
             "/chat/completions",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "messages": messages,
-                    "model": model,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
@@ -2029,8 +2029,8 @@ class AsyncCompletions(AsyncAPIResource):
             "/chat/completions",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "messages": messages,
-                    "model": model,
                     "audio": audio,
                     "frequency_penalty": frequency_penalty,
                     "function_call": function_call,
