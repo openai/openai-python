@@ -30,6 +30,8 @@ distro==1.8.0
 exceptiongroup==1.2.2
     # via anyio
     # via pytest
+execnet==2.1.1
+    # via pytest-xdist
 filelock==3.12.4
     # via virtualenv
 h11==0.14.0
@@ -72,7 +74,9 @@ pygments==2.18.0
 pyright==1.1.399
 pytest==8.3.3
     # via pytest-asyncio
+    # via pytest-xdist
 pytest-asyncio==0.24.0
+pytest-xdist==3.7.0
 python-dateutil==2.8.2
     # via time-machine
 pytz==2023.3.post1
