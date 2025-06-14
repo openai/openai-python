@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.86.1 (2025-06-14)
+
+Full Changelog: [v1.86.0...v1.86.1](https://github.com/openai/openai-python/compare/v1.86.0...v1.86.1)
+
+### Chores
+
+* **internal:** codegen related update ([b1a31e5](https://github.com/openai/openai-python/commit/b1a31e5ef4387d9f82cf33f9461371651788d381))
+
 ## 1.86.0 (2025-06-10)
 
 Full Changelog: [v1.85.0...v1.86.0](https://github.com/openai/openai-python/compare/v1.85.0...v1.86.0)
