@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.86.0"
+version = "1.87.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -68,6 +68,7 @@ dev-dependencies = [
     "types-pyaudio > 0",
     "trio >=0.22.2",
     "nest_asyncio==1.6.0",
+    "pytest-xdist>=3.6.1",
 ]
 
 [tool.rye.scripts]
@@ -139,7 +140,7 @@ replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--tb=short"
+addopts = "--tb=short -n auto"
 xfail_strict = true
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"

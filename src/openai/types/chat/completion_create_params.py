@@ -208,7 +208,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     in the backend.
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "scale"]]
     """Specifies the latency tier to use for processing the request.
 
     This parameter is relevant for customers subscribed to the scale tier service:
