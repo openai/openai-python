@@ -9,7 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.pagination import SyncPage, AsyncPage
+from openai.pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from openai.types.fine_tuning.checkpoints import (
     PermissionCreateResponse,
     PermissionDeleteResponse,
@@ -71,7 +71,7 @@ class TestPermissions:
         permission = client.fine_tuning.checkpoints.permissions.retrieve(
             fine_tuned_model_checkpoint="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
-        assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+        assert_matches_type(SyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
     @parametrize
     def test_method_retrieve_with_all_params(self, client: OpenAI) -> None:
@@ -82,7 +82,7 @@ class TestPermissions:
             order="ascending",
             project_id="project_id",
         )
-        assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+        assert_matches_type(SyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
@@ -93,7 +93,7 @@ class TestPermissions:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         permission = response.parse()
-        assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+        assert_matches_type(SyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
@@ -104,7 +104,7 @@ class TestPermissions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             permission = response.parse()
-            assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+            assert_matches_type(SyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -220,7 +220,7 @@ class TestAsyncPermissions:
         permission = await async_client.fine_tuning.checkpoints.permissions.retrieve(
             fine_tuned_model_checkpoint="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         )
-        assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+        assert_matches_type(AsyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
     @parametrize
     async def test_method_retrieve_with_all_params(self, async_client: AsyncOpenAI) -> None:
@@ -231,7 +231,7 @@ class TestAsyncPermissions:
             order="ascending",
             project_id="project_id",
         )
-        assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+        assert_matches_type(AsyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
@@ -242,7 +242,7 @@ class TestAsyncPermissions:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         permission = response.parse()
-        assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+        assert_matches_type(AsyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
@@ -253,7 +253,7 @@ class TestAsyncPermissions:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             permission = await response.parse()
-            assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
+            assert_matches_type(AsyncCursorPage[PermissionRetrieveResponse], permission, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
