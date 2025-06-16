@@ -123,6 +123,8 @@ class Images(SyncAPIResource):
         mask: FileTypes | NotGiven = NOT_GIVEN,
         model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
+        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
         size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
@@ -171,6 +173,14 @@ class Images(SyncAPIResource):
 
           n: The number of images to generate. Must be between 1 and 10.
 
+          output_compression: The compression level (0-100%) for the generated images. This parameter is only
+              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              defaults to 100.
+
+          output_format: The format in which the generated images are returned. This parameter is only
+              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              default value is `png`.
+
           quality: The quality of the image that will be generated. `high`, `medium` and `low` are
               only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
               Defaults to `auto`.
@@ -204,6 +214,8 @@ class Images(SyncAPIResource):
                 "mask": mask,
                 "model": model,
                 "n": n,
+                "output_compression": output_compression,
+                "output_format": output_format,
                 "quality": quality,
                 "response_format": response_format,
                 "size": size,
@@ -447,6 +459,8 @@ class AsyncImages(AsyncAPIResource):
         mask: FileTypes | NotGiven = NOT_GIVEN,
         model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
         n: Optional[int] | NotGiven = NOT_GIVEN,
+        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
         quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
         response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
         size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
@@ -495,6 +509,14 @@ class AsyncImages(AsyncAPIResource):
 
           n: The number of images to generate. Must be between 1 and 10.
 
+          output_compression: The compression level (0-100%) for the generated images. This parameter is only
+              supported for `gpt-image-1` with the `webp` or `jpeg` output formats, and
+              defaults to 100.
+
+          output_format: The format in which the generated images are returned. This parameter is only
+              supported for `gpt-image-1`. Must be one of `png`, `jpeg`, or `webp`. The
+              default value is `png`.
+
           quality: The quality of the image that will be generated. `high`, `medium` and `low` are
               only supported for `gpt-image-1`. `dall-e-2` only supports `standard` quality.
               Defaults to `auto`.
@@ -528,6 +550,8 @@ class AsyncImages(AsyncAPIResource):
                 "mask": mask,
                 "model": model,
                 "n": n,
+                "output_compression": output_compression,
+                "output_format": output_format,
                 "quality": quality,
                 "response_format": response_format,
                 "size": size,

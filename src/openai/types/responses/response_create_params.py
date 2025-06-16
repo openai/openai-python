@@ -9,6 +9,7 @@ from .tool_param import ToolParam
 from .response_includable import ResponseIncludable
 from .tool_choice_options import ToolChoiceOptions
 from .response_input_param import ResponseInputParam
+from .response_prompt_param import ResponsePromptParam
 from ..shared_params.metadata import Metadata
 from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
@@ -72,9 +73,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
     instructions: Optional[str]
-    """
-    Inserts a system (or developer) message as the first item in the model's
-    context.
+    """A system (or developer) message inserted into the model's context.
 
     When using along with `previous_response_id`, the instructions from a previous
     response will not be carried over to the next response. This makes it simple to
@@ -108,6 +107,12 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
     """
 
+    prompt: Optional[ResponsePromptParam]
+    """Reference to a prompt template and its variables.
+
+    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    """
+
     reasoning: Optional[Reasoning]
     """**o-series models only**
 
@@ -115,7 +120,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "scale"]]
     """Specifies the latency tier to use for processing the request.
 
     This parameter is relevant for customers subscribed to the scale tier service:

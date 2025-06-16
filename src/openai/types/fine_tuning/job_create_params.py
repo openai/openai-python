@@ -37,7 +37,8 @@ class JobCreateParams(TypedDict, total=False):
     [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
     format.
 
-    See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
+    See the
+    [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
     for more details.
     """
 
@@ -91,7 +92,8 @@ class JobCreateParams(TypedDict, total=False):
     Your dataset must be formatted as a JSONL file. You must upload your file with
     the purpose `fine-tune`.
 
-    See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
+    See the
+    [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
     for more details.
     """
 
