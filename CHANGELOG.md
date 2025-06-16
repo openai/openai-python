@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.87.0 (2025-06-16)
+
+Full Changelog: [v1.86.0...v1.87.0](https://github.com/openai/openai-python/compare/v1.86.0...v1.87.0)
+
+### Features
+
+* **api:** add reusable prompt IDs ([36bfe6e](https://github.com/openai/openai-python/commit/36bfe6e8ae12a31624ba1a360d9260f0aeec448a))
+
+
+### Bug Fixes
+
+* **client:** update service_tier on `client.beta.chat.completions` ([aa488d5](https://github.com/openai/openai-python/commit/aa488d5cf210d8640f87216538d4ff79d7181f2a))
+
+
+### Chores
+
+* **internal:** codegen related update ([b1a31e5](https://github.com/openai/openai-python/commit/b1a31e5ef4387d9f82cf33f9461371651788d381))
+* **internal:** update conftest.py ([bba0213](https://github.com/openai/openai-python/commit/bba0213842a4c161f2235e526d50901a336eecef))
+* **tests:** add tests for httpx client instantiation & proxies ([bc93712](https://github.com/openai/openai-python/commit/bc9371204f457aee9ed9b6ec1b61c2084f32faf1))
+
 ## 1.86.0 (2025-06-10)
 
 Full Changelog: [v1.85.0...v1.86.0](https://github.com/openai/openai-python/compare/v1.85.0...v1.86.0)
