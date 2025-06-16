@@ -95,11 +95,11 @@ jobs:
         run: |
           rye sync --all-features
 
-      - env: 
+      - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
             rye run python examples/demo.py
-      - env: 
+      - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
             rye run python examples/async_demo.py
