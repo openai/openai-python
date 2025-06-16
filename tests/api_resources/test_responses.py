@@ -9,7 +9,9 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.responses import Response
+from openai.types.responses import (
+    Response,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -37,6 +39,11 @@ class TestResponses:
             metadata={"foo": "string"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -111,6 +118,11 @@ class TestResponses:
             metadata={"foo": "string"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -362,6 +374,11 @@ class TestAsyncResponses:
             metadata={"foo": "string"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -436,6 +453,11 @@ class TestAsyncResponses:
             metadata={"foo": "string"},
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",

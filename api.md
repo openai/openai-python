@@ -750,6 +750,7 @@ from openai.types.responses import (
     ResponseOutputRefusal,
     ResponseOutputText,
     ResponseOutputTextAnnotationAddedEvent,
+    ResponsePrompt,
     ResponseQueuedEvent,
     ResponseReasoningDeltaEvent,
     ResponseReasoningDoneEvent,

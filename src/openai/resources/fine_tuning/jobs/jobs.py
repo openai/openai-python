@@ -84,7 +84,7 @@ class Jobs(SyncAPIResource):
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
+        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
@@ -105,7 +105,8 @@ class Jobs(SyncAPIResource):
               [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
               format.
 
-              See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
+              See the
+              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
               for more details.
 
           hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
@@ -142,7 +143,8 @@ class Jobs(SyncAPIResource):
               Your dataset must be formatted as a JSONL file. You must upload your file with
               the purpose `fine-tune`.
 
-              See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
+              See the
+              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
               for more details.
 
           extra_headers: Send extra headers
@@ -189,7 +191,7 @@ class Jobs(SyncAPIResource):
         """
         Get info about a fine-tuning job.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
+        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
 
         Args:
           extra_headers: Send extra headers
@@ -462,7 +464,7 @@ class AsyncJobs(AsyncAPIResource):
         Response includes details of the enqueued job including job status and the name
         of the fine-tuned models once complete.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
+        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
 
         Args:
           model: The name of the model to fine-tune. You can select one of the
@@ -483,7 +485,8 @@ class AsyncJobs(AsyncAPIResource):
               [preference](https://platform.openai.com/docs/api-reference/fine-tuning/preference-input)
               format.
 
-              See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
+              See the
+              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
               for more details.
 
           hyperparameters: The hyperparameters used for the fine-tuning job. This value is now deprecated
@@ -520,7 +523,8 @@ class AsyncJobs(AsyncAPIResource):
               Your dataset must be formatted as a JSONL file. You must upload your file with
               the purpose `fine-tune`.
 
-              See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
+              See the
+              [fine-tuning guide](https://platform.openai.com/docs/guides/model-optimization)
               for more details.
 
           extra_headers: Send extra headers
@@ -567,7 +571,7 @@ class AsyncJobs(AsyncAPIResource):
         """
         Get info about a fine-tuning job.
 
-        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/fine-tuning)
+        [Learn more about fine-tuning](https://platform.openai.com/docs/guides/model-optimization)
 
         Args:
           extra_headers: Send extra headers

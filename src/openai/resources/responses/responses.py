@@ -41,6 +41,7 @@ from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncRe
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
+from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
 
@@ -84,8 +85,9 @@ class Responses(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -152,8 +154,7 @@ class Responses(SyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
-          instructions: Inserts a system (or developer) message as the first item in the model's
-              context.
+          instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
               response will not be carried over to the next response. This makes it simple to
@@ -175,6 +176,9 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+
+          prompt: Reference to a prompt template and its variables.
+              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
           reasoning: **o-series models only**
 
@@ -280,8 +284,9 @@ class Responses(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -354,8 +359,7 @@ class Responses(SyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
-          instructions: Inserts a system (or developer) message as the first item in the model's
-              context.
+          instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
               response will not be carried over to the next response. This makes it simple to
@@ -377,6 +381,9 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+
+          prompt: Reference to a prompt template and its variables.
+              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
           reasoning: **o-series models only**
 
@@ -475,8 +482,9 @@ class Responses(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -549,8 +557,7 @@ class Responses(SyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
-          instructions: Inserts a system (or developer) message as the first item in the model's
-              context.
+          instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
               response will not be carried over to the next response. This makes it simple to
@@ -572,6 +579,9 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+
+          prompt: Reference to a prompt template and its variables.
+              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
           reasoning: **o-series models only**
 
@@ -669,8 +679,9 @@ class Responses(SyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -700,6 +711,7 @@ class Responses(SyncAPIResource):
                     "metadata": metadata,
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
+                    "prompt": prompt,
                     "reasoning": reasoning,
                     "service_tier": service_tier,
                     "store": store,
@@ -1292,8 +1304,9 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1360,8 +1373,7 @@ class AsyncResponses(AsyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
-          instructions: Inserts a system (or developer) message as the first item in the model's
-              context.
+          instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
               response will not be carried over to the next response. This makes it simple to
@@ -1383,6 +1395,9 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+
+          prompt: Reference to a prompt template and its variables.
+              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
           reasoning: **o-series models only**
 
@@ -1488,8 +1503,9 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -1562,8 +1578,7 @@ class AsyncResponses(AsyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
-          instructions: Inserts a system (or developer) message as the first item in the model's
-              context.
+          instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
               response will not be carried over to the next response. This makes it simple to
@@ -1585,6 +1600,9 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+
+          prompt: Reference to a prompt template and its variables.
+              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
           reasoning: **o-series models only**
 
@@ -1683,8 +1701,9 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
@@ -1757,8 +1776,7 @@ class AsyncResponses(AsyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
-          instructions: Inserts a system (or developer) message as the first item in the model's
-              context.
+          instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
               response will not be carried over to the next response. This makes it simple to
@@ -1780,6 +1798,9 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+
+          prompt: Reference to a prompt template and its variables.
+              [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
           reasoning: **o-series models only**
 
@@ -1877,8 +1898,9 @@ class AsyncResponses(AsyncAPIResource):
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
-        service_tier: Optional[Literal["auto", "default", "flex"]] | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1908,6 +1930,7 @@ class AsyncResponses(AsyncAPIResource):
                     "metadata": metadata,
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
+                    "prompt": prompt,
                     "reasoning": reasoning,
                     "service_tier": service_tier,
                     "store": store,
