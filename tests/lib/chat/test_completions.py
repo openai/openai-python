@@ -33,7 +33,7 @@ _T = TypeVar("_T")
 @pytest.mark.respx(base_url=base_url)
 def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -101,7 +101,7 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
         units: Literal["c", "f"]
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -171,7 +171,7 @@ def test_parse_pydantic_model_optional_default(
         units: Optional[Literal["c", "f"]] = None
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -248,7 +248,7 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx_mock: MockRouter, monke
         ColorDetection.update_forward_refs(**locals())  # type: ignore
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "user", "content": "What color is a Coke can?"},
@@ -293,7 +293,7 @@ def test_parse_pydantic_model_multiple_choices(
         units: Literal["c", "f"]
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -376,7 +376,7 @@ def test_parse_pydantic_dataclass(client: OpenAI, respx_mock: MockRouter, monkey
         participants: List[str]
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "Extract the event information."},
@@ -437,7 +437,7 @@ ParsedChatCompletion[CalendarEvent](
 @pytest.mark.respx(base_url=base_url)
 def test_pydantic_tool_model_all_types(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -522,7 +522,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
 
     with pytest.raises(openai.LengthFinishReasonError):
         _make_snapshot_request(
-            lambda c: c.beta.chat.completions.parse(
+            lambda c: c.chat.completions.parse(
                 model="gpt-4o-2024-08-06",
                 messages=[
                     {
@@ -549,7 +549,7 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
         units: Literal["c", "f"]
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -597,7 +597,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
         units: Literal["c", "f"] = "c"
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -663,7 +663,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
         exchange: str
 
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -734,7 +734,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
 @pytest.mark.respx(base_url=base_url)
 def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     completion = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.parse(
+        lambda c: c.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -808,7 +808,7 @@ def test_parse_non_strict_tools(client: OpenAI) -> None:
     with pytest.raises(
         ValueError, match="`get_weather` is not strict. Only `strict` function tools can be auto-parsed"
     ):
-        client.beta.chat.completions.parse(
+        client.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[],
             tools=[
@@ -831,7 +831,7 @@ def test_parse_pydantic_raw_response(client: OpenAI, respx_mock: MockRouter, mon
         units: Literal["c", "f"]
 
     response = _make_snapshot_request(
-        lambda c: c.beta.chat.completions.with_raw_response.parse(
+        lambda c: c.chat.completions.with_raw_response.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -847,7 +847,7 @@ def test_parse_pydantic_raw_response(client: OpenAI, respx_mock: MockRouter, mon
         mock_client=client,
         respx_mock=respx_mock,
     )
-    assert response.http_request.headers.get("x-stainless-helper-method") == "beta.chat.completions.parse"
+    assert response.http_request.headers.get("x-stainless-helper-method") == "chat.completions.parse"
 
     completion = response.parse()
     message = completion.choices[0].message
@@ -907,7 +907,7 @@ async def test_async_parse_pydantic_raw_response(
         units: Literal["c", "f"]
 
     response = await _make_async_snapshot_request(
-        lambda c: c.beta.chat.completions.with_raw_response.parse(
+        lambda c: c.chat.completions.with_raw_response.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {
@@ -923,7 +923,7 @@ async def test_async_parse_pydantic_raw_response(
         mock_client=async_client,
         respx_mock=respx_mock,
     )
-    assert response.http_request.headers.get("x-stainless-helper-method") == "beta.chat.completions.parse"
+    assert response.http_request.headers.get("x-stainless-helper-method") == "chat.completions.parse"
 
     completion = response.parse()
     message = completion.choices[0].message
@@ -978,7 +978,7 @@ def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpe
 
     assert_signatures_in_sync(
         checking_client.chat.completions.create,
-        checking_client.beta.chat.completions.parse,
+        checking_client.chat.completions.parse,
         exclude_params={"response_format", "stream"},
     )
 

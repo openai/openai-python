@@ -2,32 +2,23 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Type, Union, Iterable, Optional, cast
-from functools import partial
+from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ...._utils import maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ...._streaming import Stream
 from ....types.chat import completion_create_params
-from ...._base_client import make_request_options
 from ....lib._parsing import (
     ResponseFormatT,
-    validate_input_tools as _validate_input_tools,
-    parse_chat_completion as _parse_chat_completion,
-    type_to_response_format_param as _type_to_response_format,
 )
 from ....types.chat_model import ChatModel
 from ....lib.streaming.chat import ChatCompletionStreamManager, AsyncChatCompletionStreamManager
 from ....types.shared_params import Metadata, ReasoningEffort
-from ....types.chat.chat_completion import ChatCompletion
-from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.parsed_chat_completion import ParsedChatCompletion
 from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
@@ -126,7 +117,7 @@ class Completions(SyncAPIResource):
 
 
         client = OpenAI()
-        completion = client.beta.chat.completions.parse(
+        completion = client.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "You are a helpful math tutor."},
@@ -141,69 +132,42 @@ class Completions(SyncAPIResource):
             print("answer: ", message.parsed.final_answer)
         ```
         """
-        _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "beta.chat.completions.parse",
-            **(extra_headers or {}),
-        }
-
-        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=tools,
-            )
-
-        return self._post(
-            "/chat/completions",
-            body=maybe_transform(
-                {
-                    "messages": messages,
-                    "model": model,
-                    "audio": audio,
-                    "frequency_penalty": frequency_penalty,
-                    "function_call": function_call,
-                    "functions": functions,
-                    "logit_bias": logit_bias,
-                    "logprobs": logprobs,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_tokens": max_tokens,
-                    "metadata": metadata,
-                    "modalities": modalities,
-                    "n": n,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "prediction": prediction,
-                    "presence_penalty": presence_penalty,
-                    "reasoning_effort": reasoning_effort,
-                    "response_format": _type_to_response_format(response_format),
-                    "seed": seed,
-                    "service_tier": service_tier,
-                    "stop": stop,
-                    "store": store,
-                    "stream": False,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "user": user,
-                    "web_search_options": web_search_options,
-                },
-                completion_create_params.CompletionCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-            ),
-            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
-            # in the `parser` function above
-            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
-            stream=False,
+        # Delegate to the regular chat.completions.parse method
+        return self._client.chat.completions.parse(
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            reasoning_effort=reasoning_effort,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     def stream(
@@ -254,7 +218,7 @@ class Completions(SyncAPIResource):
         Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
 
         ```py
-        with client.beta.chat.completions.stream(
+        with client.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[...],
         ) as stream:
@@ -268,18 +232,12 @@ class Completions(SyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        extra_headers = {
-            "X-Stainless-Helper-Method": "beta.chat.completions.stream",
-            **(extra_headers or {}),
-        }
-
-        api_request: partial[Stream[ChatCompletionChunk]] = partial(
-            self._client.chat.completions.create,
+        # Delegate to the regular chat.completions.stream method
+        return self._client.chat.completions.stream(
             messages=messages,
             model=model,
             audio=audio,
-            stream=True,
-            response_format=_type_to_response_format(response_format),
+            response_format=response_format,
             frequency_penalty=frequency_penalty,
             function_call=function_call,
             functions=functions,
@@ -296,8 +254,8 @@ class Completions(SyncAPIResource):
             reasoning_effort=reasoning_effort,
             seed=seed,
             service_tier=service_tier,
-            store=store,
             stop=stop,
+            store=store,
             stream_options=stream_options,
             temperature=temperature,
             tool_choice=tool_choice,
@@ -310,11 +268,6 @@ class Completions(SyncAPIResource):
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-        )
-        return ChatCompletionStreamManager(
-            api_request,
-            response_format=response_format,
-            input_tools=tools,
         )
 
 
@@ -405,7 +358,7 @@ class AsyncCompletions(AsyncAPIResource):
 
 
         client = AsyncOpenAI()
-        completion = await client.beta.chat.completions.parse(
+        completion = await client.chat.completions.parse(
             model="gpt-4o-2024-08-06",
             messages=[
                 {"role": "system", "content": "You are a helpful math tutor."},
@@ -420,69 +373,42 @@ class AsyncCompletions(AsyncAPIResource):
             print("answer: ", message.parsed.final_answer)
         ```
         """
-        _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "beta.chat.completions.parse",
-            **(extra_headers or {}),
-        }
-
-        def parser(raw_completion: ChatCompletion) -> ParsedChatCompletion[ResponseFormatT]:
-            return _parse_chat_completion(
-                response_format=response_format,
-                chat_completion=raw_completion,
-                input_tools=tools,
-            )
-
-        return await self._post(
-            "/chat/completions",
-            body=await async_maybe_transform(
-                {
-                    "messages": messages,
-                    "model": model,
-                    "audio": audio,
-                    "frequency_penalty": frequency_penalty,
-                    "function_call": function_call,
-                    "functions": functions,
-                    "logit_bias": logit_bias,
-                    "logprobs": logprobs,
-                    "max_completion_tokens": max_completion_tokens,
-                    "max_tokens": max_tokens,
-                    "metadata": metadata,
-                    "modalities": modalities,
-                    "n": n,
-                    "parallel_tool_calls": parallel_tool_calls,
-                    "prediction": prediction,
-                    "presence_penalty": presence_penalty,
-                    "reasoning_effort": reasoning_effort,
-                    "response_format": _type_to_response_format(response_format),
-                    "seed": seed,
-                    "service_tier": service_tier,
-                    "store": store,
-                    "stop": stop,
-                    "stream": False,
-                    "stream_options": stream_options,
-                    "temperature": temperature,
-                    "tool_choice": tool_choice,
-                    "tools": tools,
-                    "top_logprobs": top_logprobs,
-                    "top_p": top_p,
-                    "user": user,
-                    "web_search_options": web_search_options,
-                },
-                completion_create_params.CompletionCreateParams,
-            ),
-            options=make_request_options(
-                extra_headers=extra_headers,
-                extra_query=extra_query,
-                extra_body=extra_body,
-                timeout=timeout,
-                post_parser=parser,
-            ),
-            # we turn the `ChatCompletion` instance into a `ParsedChatCompletion`
-            # in the `parser` function above
-            cast_to=cast(Type[ParsedChatCompletion[ResponseFormatT]], ChatCompletion),
-            stream=False,
+        # Delegate to the regular chat.completions.parse method
+        return await self._client.chat.completions.parse(
+            messages=messages,
+            model=model,
+            audio=audio,
+            response_format=response_format,
+            frequency_penalty=frequency_penalty,
+            function_call=function_call,
+            functions=functions,
+            logit_bias=logit_bias,
+            logprobs=logprobs,
+            max_completion_tokens=max_completion_tokens,
+            max_tokens=max_tokens,
+            metadata=metadata,
+            modalities=modalities,
+            n=n,
+            parallel_tool_calls=parallel_tool_calls,
+            prediction=prediction,
+            presence_penalty=presence_penalty,
+            reasoning_effort=reasoning_effort,
+            seed=seed,
+            service_tier=service_tier,
+            stop=stop,
+            store=store,
+            stream_options=stream_options,
+            temperature=temperature,
+            tool_choice=tool_choice,
+            tools=tools,
+            top_logprobs=top_logprobs,
+            top_p=top_p,
+            user=user,
+            web_search_options=web_search_options,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
     def stream(
@@ -533,7 +459,7 @@ class AsyncCompletions(AsyncAPIResource):
         Unlike `.create(stream=True)`, the `.stream()` method requires usage within a context manager to prevent accidental leakage of the response:
 
         ```py
-        async with client.beta.chat.completions.stream(
+        async with client.chat.completions.stream(
             model="gpt-4o-2024-08-06",
             messages=[...],
         ) as stream:
@@ -547,19 +473,12 @@ class AsyncCompletions(AsyncAPIResource):
         When the context manager exits, the response will be closed, however the `stream` instance is still available outside
         the context manager.
         """
-        _validate_input_tools(tools)
-
-        extra_headers = {
-            "X-Stainless-Helper-Method": "beta.chat.completions.stream",
-            **(extra_headers or {}),
-        }
-
-        api_request = self._client.chat.completions.create(
+        # Delegate to the regular chat.completions.stream method
+        return self._client.chat.completions.stream(
             messages=messages,
             model=model,
             audio=audio,
-            stream=True,
-            response_format=_type_to_response_format(response_format),
+            response_format=response_format,
             frequency_penalty=frequency_penalty,
             function_call=function_call,
             functions=functions,
@@ -585,16 +504,11 @@ class AsyncCompletions(AsyncAPIResource):
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
+            web_search_options=web_search_options,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            web_search_options=web_search_options,
-        )
-        return AsyncChatCompletionStreamManager(
-            api_request,
-            response_format=response_format,
-            input_tools=tools,
         )
 
 
