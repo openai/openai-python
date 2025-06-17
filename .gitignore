@@ -1,5 +1,4 @@
 .prism.log
-.vscode
 _dev
 
 __pycache__
@@ -18,3 +17,7 @@ Brewfile.lock.json
 .DS_Store
 
 examples/*.mp3
+branch_structure.json
+temp_auto_push.bat
+temp_interactive_push.bat
+.gitignore
