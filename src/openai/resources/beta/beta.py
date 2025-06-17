@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+from openai.resources.chat.chat import Chat, AsyncChat
+
 from ..._compat import cached_property
-from .chat.chat import Chat, AsyncChat
 from .assistants import (
     Assistants,
     AsyncAssistants,
