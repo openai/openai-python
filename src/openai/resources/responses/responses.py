@@ -702,8 +702,8 @@ class Responses(SyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "input": input,
-                    "model": model,
                     "background": background,
                     "include": include,
                     "instructions": instructions,
@@ -814,8 +814,8 @@ class Responses(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ResponseStreamManager[TextFormatT]:
         new_response_args = {
+            "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
             "input": input,
-            "model": model,
             "include": include,
             "instructions": instructions,
             "max_output_tokens": max_output_tokens,
@@ -955,8 +955,8 @@ class Responses(SyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "input": input,
-                    "model": model,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
@@ -1921,8 +1921,8 @@ class AsyncResponses(AsyncAPIResource):
             "/responses",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "input": input,
-                    "model": model,
                     "background": background,
                     "include": include,
                     "instructions": instructions,
@@ -2033,8 +2033,8 @@ class AsyncResponses(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> AsyncResponseStreamManager[TextFormatT]:
         new_response_args = {
+            "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
             "input": input,
-            "model": model,
             "include": include,
             "instructions": instructions,
             "max_output_tokens": max_output_tokens,
@@ -2178,8 +2178,8 @@ class AsyncResponses(AsyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "input": input,
-                    "model": model,
                     "include": include,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,

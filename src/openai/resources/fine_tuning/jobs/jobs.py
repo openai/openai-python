@@ -159,7 +159,7 @@ class Jobs(SyncAPIResource):
             "/fine_tuning/jobs",
             body=maybe_transform(
                 {
-                    "model": model,
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
                     "integrations": integrations,
@@ -539,7 +539,7 @@ class AsyncJobs(AsyncAPIResource):
             "/fine_tuning/jobs",
             body=await async_maybe_transform(
                 {
-                    "model": model,
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "training_file": training_file,
                     "hyperparameters": hyperparameters,
                     "integrations": integrations,

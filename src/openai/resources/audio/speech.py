@@ -100,8 +100,8 @@ class Speech(SyncAPIResource):
             "/audio/speech",
             body=maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "input": input,
-                    "model": model,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,
@@ -191,8 +191,8 @@ class AsyncSpeech(AsyncAPIResource):
             "/audio/speech",
             body=await async_maybe_transform(
                 {
+                    "model": model,  # Always set model as the first field in the payload. In some proxies, this is used for routing. We don't want to read all messages specifically big ones for routing.
                     "input": input,
-                    "model": model,
                     "voice": voice,
                     "instructions": instructions,
                     "response_format": response_format,
