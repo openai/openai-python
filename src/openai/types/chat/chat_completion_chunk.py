@@ -128,7 +128,7 @@ class ChatCompletionChunk(BaseModel):
     object: Literal["chat.completion.chunk"]
     """The object type, which is always `chat.completion.chunk`."""
 
-    service_tier: Optional[Literal["auto", "default", "flex"]] = None
+    service_tier: Optional[Literal["auto", "default", "flex", "scale"]] = None
     """Specifies the latency tier to use for processing the request.
 
     This parameter is relevant for customers subscribed to the scale tier service:

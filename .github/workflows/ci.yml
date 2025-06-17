@@ -7,6 +7,10 @@ on:
       - 'integrated/**'
       - 'stl-preview-head/**'
       - 'stl-preview-base/**'
+  pull_request:
+    branches-ignore:
+      - 'stl-preview-head/**'
+      - 'stl-preview-base/**'
 
 jobs:
   lint:
@@ -95,11 +99,11 @@ jobs:
         run: |
           rye sync --all-features
 
-      - env: 
+      - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
             rye run python examples/demo.py
-      - env: 
+      - env:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
             rye run python examples/async_demo.py

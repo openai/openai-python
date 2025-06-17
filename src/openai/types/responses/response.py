@@ -7,10 +7,12 @@ from .tool import Tool
 from ..._models import BaseModel
 from .response_error import ResponseError
 from .response_usage import ResponseUsage
+from .response_prompt import ResponsePrompt
 from .response_status import ResponseStatus
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
 from .tool_choice_types import ToolChoiceTypes
+from .response_input_item import ResponseInputItem
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
@@ -41,10 +43,8 @@ class Response(BaseModel):
     incomplete_details: Optional[IncompleteDetails] = None
     """Details about why the response is incomplete."""
 
-    instructions: Optional[str] = None
-    """
-    Inserts a system (or developer) message as the first item in the model's
-    context.
+    instructions: Union[str, List[ResponseInputItem], None] = None
+    """A system (or developer) message inserted into the model's context.
 
     When using along with `previous_response_id`, the instructions from a previous
     response will not be carried over to the next response. This makes it simple to
@@ -148,6 +148,12 @@ class Response(BaseModel):
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
     """
 
+    prompt: Optional[ResponsePrompt] = None
+    """Reference to a prompt template and its variables.
+
+    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    """
+
     reasoning: Optional[Reasoning] = None
     """**o-series models only**
 
@@ -155,7 +161,7 @@ class Response(BaseModel):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex"]] = None
+    service_tier: Optional[Literal["auto", "default", "flex", "scale"]] = None
     """Specifies the latency tier to use for processing the request.
 
     This parameter is relevant for customers subscribed to the scale tier service:
