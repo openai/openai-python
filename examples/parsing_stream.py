@@ -18,7 +18,7 @@ class MathResponse(BaseModel):
 
 client = OpenAI()
 
-with client.beta.chat.completions.stream(
+with client.chat.completions.stream(
     model="gpt-4o-2024-08-06",
     messages=[
         {"role": "system", "content": "You are a helpful math tutor."},
