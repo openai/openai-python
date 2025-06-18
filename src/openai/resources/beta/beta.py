@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from openai.resources.chat.chat import Chat, AsyncChat
-
 from ..._compat import cached_property
 from .assistants import (
     Assistants,
@@ -22,6 +20,7 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
+from ...resources.chat import Chat, AsyncChat
 from .realtime.realtime import (
     Realtime,
     AsyncRealtime,
