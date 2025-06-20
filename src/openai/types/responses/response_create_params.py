@@ -26,27 +26,6 @@ __all__ = [
 
 
 class ResponseCreateParamsBase(TypedDict, total=False):
-    input: Required[Union[str, ResponseInputParam]]
-    """Text, image, or file inputs to the model, used to generate a response.
-
-    Learn more:
-
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Image inputs](https://platform.openai.com/docs/guides/images)
-    - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-    - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-    - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-    """
-
-    model: Required[ResponsesModel]
-    """Model ID used to generate the response, like `gpt-4o` or `o3`.
-
-    OpenAI offers a wide range of models with different capabilities, performance
-    characteristics, and price points. Refer to the
-    [model guide](https://platform.openai.com/docs/models) to browse and compare
-    available models.
-    """
-
     background: Optional[bool]
     """Whether to run the model response in the background.
 
@@ -72,6 +51,18 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       in code interpreter tool call items.
     """
 
+    input: Union[str, ResponseInputParam]
+    """Text, image, or file inputs to the model, used to generate a response.
+
+    Learn more:
+
+    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+    - [Image inputs](https://platform.openai.com/docs/guides/images)
+    - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+    - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+    - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+    """
+
     instructions: Optional[str]
     """A system (or developer) message inserted into the model's context.
 
@@ -95,6 +86,15 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     Keys are strings with a maximum length of 64 characters. Values are strings with
     a maximum length of 512 characters.
+    """
+
+    model: ResponsesModel
+    """Model ID used to generate the response, like `gpt-4o` or `o3`.
+
+    OpenAI offers a wide range of models with different capabilities, performance
+    characteristics, and price points. Refer to the
+    [model guide](https://platform.openai.com/docs/models) to browse and compare
+    available models.
     """
 
     parallel_tool_calls: Optional[bool]
