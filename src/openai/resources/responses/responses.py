@@ -9,7 +9,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Query, Headers, NoneType, NotGiven
-from ..._utils import required_args, maybe_transform, async_maybe_transform
+from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -66,13 +66,13 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -109,22 +109,6 @@ class Responses(SyncAPIResource):
         your own data as input for the model's response.
 
         Args:
-          input: Text, image, or file inputs to the model, used to generate a response.
-
-              Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
-
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
@@ -144,6 +128,16 @@ class Responses(SyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
+          input: Text, image, or file inputs to the model, used to generate a response.
+
+              Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Image inputs](https://platform.openai.com/docs/guides/images)
+              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+
           instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
@@ -160,6 +154,12 @@ class Responses(SyncAPIResource):
 
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -264,14 +264,14 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         stream: Literal[True],
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -307,22 +307,6 @@ class Responses(SyncAPIResource):
         your own data as input for the model's response.
 
         Args:
-          input: Text, image, or file inputs to the model, used to generate a response.
-
-              Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
-
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
@@ -349,6 +333,16 @@ class Responses(SyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
+          input: Text, image, or file inputs to the model, used to generate a response.
+
+              Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Image inputs](https://platform.openai.com/docs/guides/images)
+              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+
           instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
@@ -365,6 +359,12 @@ class Responses(SyncAPIResource):
 
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -462,14 +462,14 @@ class Responses(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         stream: bool,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -505,22 +505,6 @@ class Responses(SyncAPIResource):
         your own data as input for the model's response.
 
         Args:
-          input: Text, image, or file inputs to the model, used to generate a response.
-
-              Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
-
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
@@ -547,6 +531,16 @@ class Responses(SyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
+          input: Text, image, or file inputs to the model, used to generate a response.
+
+              Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Image inputs](https://platform.openai.com/docs/guides/images)
+              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+
           instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
@@ -563,6 +557,12 @@ class Responses(SyncAPIResource):
 
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -656,17 +656,16 @@ class Responses(SyncAPIResource):
         """
         ...
 
-    @required_args(["input", "model"], ["input", "model", "stream"])
     def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -692,13 +691,13 @@ class Responses(SyncAPIResource):
             "/responses",
             body=maybe_transform(
                 {
-                    "input": input,
-                    "model": model,
                     "background": background,
                     "include": include,
+                    "input": input,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
                     "metadata": metadata,
+                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
@@ -985,13 +984,13 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -1028,22 +1027,6 @@ class AsyncResponses(AsyncAPIResource):
         your own data as input for the model's response.
 
         Args:
-          input: Text, image, or file inputs to the model, used to generate a response.
-
-              Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
-
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
@@ -1063,6 +1046,16 @@ class AsyncResponses(AsyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
+          input: Text, image, or file inputs to the model, used to generate a response.
+
+              Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Image inputs](https://platform.openai.com/docs/guides/images)
+              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+
           instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
@@ -1079,6 +1072,12 @@ class AsyncResponses(AsyncAPIResource):
 
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -1183,14 +1182,14 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         stream: Literal[True],
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -1226,22 +1225,6 @@ class AsyncResponses(AsyncAPIResource):
         your own data as input for the model's response.
 
         Args:
-          input: Text, image, or file inputs to the model, used to generate a response.
-
-              Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
-
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
@@ -1268,6 +1251,16 @@ class AsyncResponses(AsyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
+          input: Text, image, or file inputs to the model, used to generate a response.
+
+              Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Image inputs](https://platform.openai.com/docs/guides/images)
+              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+
           instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
@@ -1284,6 +1277,12 @@ class AsyncResponses(AsyncAPIResource):
 
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -1381,14 +1380,14 @@ class AsyncResponses(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         stream: bool,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -1424,22 +1423,6 @@ class AsyncResponses(AsyncAPIResource):
         your own data as input for the model's response.
 
         Args:
-          input: Text, image, or file inputs to the model, used to generate a response.
-
-              Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Image inputs](https://platform.openai.com/docs/guides/images)
-              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
-              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
-              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
-
-          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
-
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
               [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
@@ -1466,6 +1449,16 @@ class AsyncResponses(AsyncAPIResource):
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
 
+          input: Text, image, or file inputs to the model, used to generate a response.
+
+              Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Image inputs](https://platform.openai.com/docs/guides/images)
+              - [File inputs](https://platform.openai.com/docs/guides/pdf-files)
+              - [Conversation state](https://platform.openai.com/docs/guides/conversation-state)
+              - [Function calling](https://platform.openai.com/docs/guides/function-calling)
+
           instructions: A system (or developer) message inserted into the model's context.
 
               When using along with `previous_response_id`, the instructions from a previous
@@ -1482,6 +1475,12 @@ class AsyncResponses(AsyncAPIResource):
 
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
+
+          model: Model ID used to generate the response, like `gpt-4o` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
 
           parallel_tool_calls: Whether to allow the model to run tool calls in parallel.
 
@@ -1575,17 +1574,16 @@ class AsyncResponses(AsyncAPIResource):
         """
         ...
 
-    @required_args(["input", "model"], ["input", "model", "stream"])
     async def create(
         self,
         *,
-        input: Union[str, ResponseInputParam],
-        model: ResponsesModel,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
+        input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
@@ -1611,13 +1609,13 @@ class AsyncResponses(AsyncAPIResource):
             "/responses",
             body=await async_maybe_transform(
                 {
-                    "input": input,
-                    "model": model,
                     "background": background,
                     "include": include,
+                    "input": input,
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
                     "metadata": metadata,
+                    "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
