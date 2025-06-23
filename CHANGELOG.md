@@ -1,5 +1,31 @@
 # Changelog
 
+## 1.90.0 (2025-06-20)
+
+Full Changelog: [v1.89.0...v1.90.0](https://github.com/openai/openai-python/compare/v1.89.0...v1.90.0)
+
+### Features
+
+* **api:** make model and inputs not required to create response ([11bd62e](https://github.com/openai/openai-python/commit/11bd62eb7e46eec748edaf2e0cecf253ffc1202c))
+
+## 1.89.0 (2025-06-20)
+
+Full Changelog: [v1.88.0...v1.89.0](https://github.com/openai/openai-python/compare/v1.88.0...v1.89.0)
+
+### Features
+
+* **client:** add support for aiohttp ([9218b07](https://github.com/openai/openai-python/commit/9218b07727bf6f6eb00953df66de6ab061fecddb))
+
+
+### Bug Fixes
+
+* **tests:** fix: tests which call HTTP endpoints directly with the example parameters ([35bcc4b](https://github.com/openai/openai-python/commit/35bcc4b80bdbaa31108650f2a515902e83794e5a))
+
+
+### Chores
+
+* **readme:** update badges ([68044ee](https://github.com/openai/openai-python/commit/68044ee85d1bf324b17d3f60c914df4725d47fc8))
+
 ## 1.88.0 (2025-06-17)
 
 Full Changelog: [v1.87.0...v1.88.0](https://github.com/openai/openai-python/compare/v1.87.0...v1.88.0)

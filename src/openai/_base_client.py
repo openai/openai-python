@@ -1306,6 +1306,24 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         super().__init__(**kwargs)
 
 
+try:
+    import httpx_aiohttp
+except ImportError:
+
+    class _DefaultAioHttpClient(httpx.AsyncClient):
+        def __init__(self, **_kwargs: Any) -> None:
+            raise RuntimeError("To use the aiohttp client you must have installed the package with the `aiohttp` extra")
+else:
+
+    class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
+        def __init__(self, **kwargs: Any) -> None:
+            kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+            kwargs.setdefault("follow_redirects", True)
+
+            super().__init__(**kwargs)
+
+
 if TYPE_CHECKING:
     DefaultAsyncHttpxClient = httpx.AsyncClient
     """An alias to `httpx.AsyncClient` that provides the same defaults that this SDK
@@ -1314,8 +1332,12 @@ if TYPE_CHECKING:
     This is useful because overriding the `http_client` with your own instance of
     `httpx.AsyncClient` will result in httpx's defaults being used, not ours.
     """
+
+    DefaultAioHttpClient = httpx.AsyncClient
+    """An alias to `httpx.AsyncClient` that changes the default HTTP transport to `aiohttp`."""
 else:
     DefaultAsyncHttpxClient = _DefaultAsyncHttpxClient
+    DefaultAioHttpClient = _DefaultAioHttpClient
 
 
 class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):

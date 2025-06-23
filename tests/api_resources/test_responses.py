@@ -21,22 +21,19 @@ class TestResponses:
 
     @parametrize
     def test_method_create_overload_1(self, client: OpenAI) -> None:
-        response = client.responses.create(
-            input="string",
-            model="gpt-4o",
-        )
+        response = client.responses.create()
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
-            input="string",
-            model="gpt-4o",
             background=True,
             include=["file_search_call.results"],
+            input="string",
             instructions="instructions",
             max_output_tokens=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -72,10 +69,7 @@ class TestResponses:
 
     @parametrize
     def test_raw_response_create_overload_1(self, client: OpenAI) -> None:
-        http_response = client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
-        )
+        http_response = client.responses.with_raw_response.create()
 
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -84,10 +78,7 @@ class TestResponses:
 
     @parametrize
     def test_streaming_response_create_overload_1(self, client: OpenAI) -> None:
-        with client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
-        ) as http_response:
+        with client.responses.with_streaming_response.create() as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
@@ -99,8 +90,6 @@ class TestResponses:
     @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
         response_stream = client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
         response_stream.response.close()
@@ -108,14 +97,14 @@ class TestResponses:
     @parametrize
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         response_stream = client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
             background=True,
             include=["file_search_call.results"],
+            input="string",
             instructions="instructions",
             max_output_tokens=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -151,8 +140,6 @@ class TestResponses:
     @parametrize
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
         response = client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
 
@@ -163,8 +150,6 @@ class TestResponses:
     @parametrize
     def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -352,26 +337,25 @@ class TestResponses:
 
 
 class TestAsyncResponses:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create_overload_1(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
-        )
+        response = await async_client.responses.create()
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
             background=True,
             include=["file_search_call.results"],
+            input="string",
             instructions="instructions",
             max_output_tokens=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -407,10 +391,7 @@ class TestAsyncResponses:
 
     @parametrize
     async def test_raw_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
-        http_response = await async_client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
-        )
+        http_response = await async_client.responses.with_raw_response.create()
 
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -419,10 +400,7 @@ class TestAsyncResponses:
 
     @parametrize
     async def test_streaming_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
-        ) as http_response:
+        async with async_client.responses.with_streaming_response.create() as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
@@ -434,8 +412,6 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response_stream = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
         await response_stream.response.aclose()
@@ -443,14 +419,14 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         response_stream = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
             background=True,
             include=["file_search_call.results"],
+            input="string",
             instructions="instructions",
             max_output_tokens=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
             prompt={
@@ -486,8 +462,6 @@ class TestAsyncResponses:
     @parametrize
     async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
 
@@ -498,8 +472,6 @@ class TestAsyncResponses:
     @parametrize
     async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         ) as response:
             assert not response.is_closed
