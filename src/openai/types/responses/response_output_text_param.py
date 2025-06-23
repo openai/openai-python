@@ -21,6 +21,9 @@ class AnnotationFileCitation(TypedDict, total=False):
     file_id: Required[str]
     """The ID of the file."""
 
+    filename: Required[str]
+    """The filename of the file cited."""
+
     index: Required[int]
     """The index of the file in the list of files."""
 
@@ -54,6 +57,9 @@ class AnnotationContainerFileCitation(TypedDict, total=False):
 
     file_id: Required[str]
     """The ID of the file."""
+
+    filename: Required[str]
+    """The filename of the container file cited."""
 
     start_index: Required[int]
     """The index of the first character of the container file citation in the message."""

@@ -1,13 +1,14 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
 
-__all__ = ["PermissionRetrieveResponse"]
+__all__ = ["PermissionRetrieveResponse", "Data"]
 
 
-class PermissionRetrieveResponse(BaseModel):
+class Data(BaseModel):
     id: str
     """The permission identifier, which can be referenced in the API endpoints."""
 
@@ -19,3 +20,15 @@ class PermissionRetrieveResponse(BaseModel):
 
     project_id: str
     """The project identifier that the permission is for."""
+
+
+class PermissionRetrieveResponse(BaseModel):
+    data: List[Data]
+
+    has_more: bool
+
+    object: Literal["list"]
+
+    first_id: Optional[str] = None
+
+    last_id: Optional[str] = None
