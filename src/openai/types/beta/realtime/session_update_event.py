@@ -9,7 +9,7 @@ __all__ = [
     "SessionUpdateEvent",
     "Session",
     "SessionClientSecret",
-    "SessionClientSecretExpiresAt",
+    "SessionClientSecretExpiresAfter",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTool",
@@ -19,8 +19,8 @@ __all__ = [
 ]
 
 
-class SessionClientSecretExpiresAt(BaseModel):
-    anchor: Optional[Literal["created_at"]] = None
+class SessionClientSecretExpiresAfter(BaseModel):
+    anchor: Literal["created_at"]
     """The anchor point for the ephemeral token expiration.
 
     Only `created_at` is currently supported.
@@ -34,7 +34,7 @@ class SessionClientSecretExpiresAt(BaseModel):
 
 
 class SessionClientSecret(BaseModel):
-    expires_at: Optional[SessionClientSecretExpiresAt] = None
+    expires_after: Optional[SessionClientSecretExpiresAfter] = None
     """Configuration for the ephemeral token expiration."""
 
 

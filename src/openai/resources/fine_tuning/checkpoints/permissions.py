@@ -9,11 +9,11 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ...._utils import maybe_transform
+from ...._utils import maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
-from ....pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
+from ....pagination import SyncPage, AsyncPage
 from ...._base_client import AsyncPaginator, make_request_options
 from ....types.fine_tuning.checkpoints import permission_create_params, permission_retrieve_params
 from ....types.fine_tuning.checkpoints.permission_create_response import PermissionCreateResponse
@@ -101,7 +101,7 @@ class Permissions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> SyncCursorPage[PermissionRetrieveResponse]:
+    ) -> PermissionRetrieveResponse:
         """
         **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
 
@@ -129,9 +129,8 @@ class Permissions(SyncAPIResource):
             raise ValueError(
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
-        return self._get_api_list(
+        return self._get(
             f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
-            page=SyncCursorPage[PermissionRetrieveResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -147,7 +146,7 @@ class Permissions(SyncAPIResource):
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
             ),
-            model=PermissionRetrieveResponse,
+            cast_to=PermissionRetrieveResponse,
         )
 
     def delete(
@@ -256,7 +255,7 @@ class AsyncPermissions(AsyncAPIResource):
             method="post",
         )
 
-    def retrieve(
+    async def retrieve(
         self,
         fine_tuned_model_checkpoint: str,
         *,
@@ -270,7 +269,7 @@ class AsyncPermissions(AsyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncPaginator[PermissionRetrieveResponse, AsyncCursorPage[PermissionRetrieveResponse]]:
+    ) -> PermissionRetrieveResponse:
         """
         **NOTE:** This endpoint requires an [admin API key](../admin-api-keys).
 
@@ -298,15 +297,14 @@ class AsyncPermissions(AsyncAPIResource):
             raise ValueError(
                 f"Expected a non-empty value for `fine_tuned_model_checkpoint` but received {fine_tuned_model_checkpoint!r}"
             )
-        return self._get_api_list(
+        return await self._get(
             f"/fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions",
-            page=AsyncCursorPage[PermissionRetrieveResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
                 timeout=timeout,
-                query=maybe_transform(
+                query=await async_maybe_transform(
                     {
                         "after": after,
                         "limit": limit,
@@ -316,7 +314,7 @@ class AsyncPermissions(AsyncAPIResource):
                     permission_retrieve_params.PermissionRetrieveParams,
                 ),
             ),
-            model=PermissionRetrieveResponse,
+            cast_to=PermissionRetrieveResponse,
         )
 
     async def delete(
