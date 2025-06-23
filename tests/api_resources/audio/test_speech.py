@@ -44,6 +44,7 @@ class TestSpeech:
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
+            stream_format="sse",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -110,6 +111,7 @@ class TestAsyncSpeech:
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
+            stream_format="sse",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
