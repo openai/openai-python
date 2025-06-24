@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.91.0 (2025-06-23)
+
+Full Changelog: [v1.90.0...v1.91.0](https://github.com/openai/openai-python/compare/v1.90.0...v1.91.0)
+
+### Features
+
+* **api:** update api shapes for usage and code interpreter ([060d566](https://github.com/openai/openai-python/commit/060d5661e4a1fcdb953c52facd3e668ee80f9295))
+
 ## 1.90.0 (2025-06-20)
 
 Full Changelog: [v1.89.0...v1.90.0](https://github.com/openai/openai-python/compare/v1.89.0...v1.90.0)

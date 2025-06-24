@@ -22,6 +22,9 @@ class AnnotationFileCitation(BaseModel):
     file_id: str
     """The ID of the file."""
 
+    filename: str
+    """The filename of the file cited."""
+
     index: int
     """The index of the file in the list of files."""
 
@@ -55,6 +58,9 @@ class AnnotationContainerFileCitation(BaseModel):
 
     file_id: str
     """The ID of the file."""
+
+    filename: str
+    """The filename of the container file cited."""
 
     start_index: int
     """The index of the first character of the container file citation in the message."""
