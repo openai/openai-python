@@ -128,7 +128,7 @@ class ChatCompletionStreamManager(Generic[ResponseFormatT]):
 
     Usage:
     ```py
-    with client.beta.chat.completions.stream(...) as stream:
+    with client.chat.completions.stream(...) as stream:
         for event in stream:
             ...
     ```
@@ -251,7 +251,7 @@ class AsyncChatCompletionStreamManager(Generic[ResponseFormatT]):
 
     Usage:
     ```py
-    async with client.beta.chat.completions.stream(...) as stream:
+    async with client.chat.completions.stream(...) as stream:
         for event in stream:
             ...
     ```
