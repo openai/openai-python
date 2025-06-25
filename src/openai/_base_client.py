@@ -819,6 +819,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.Client | None = None,
+        auth: httpx.Auth | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
@@ -856,6 +857,12 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
         )
+        self._custom_auth = auth
+
+    @property
+    @override
+    def custom_auth(self) -> httpx.Auth | None:
+        return self._custom_auth
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -1343,6 +1350,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         http_client: httpx.AsyncClient | None = None,
+        auth: httpx.Auth | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
@@ -1379,7 +1387,13 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
         )
+        self._custom_auth = auth
 
+    @property
+    @override
+    def custom_auth(self) -> httpx.Auth | None:
+        return self._custom_auth
+    
     def is_closed(self) -> bool:
         return self._client.is_closed
 

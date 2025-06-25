@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
+from typing import Any, Union, Mapping, TypeVar, Callable, Generator, Awaitable, cast, overload
 from typing_extensions import Self, override
 
 import httpx
@@ -85,6 +85,15 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
 
         return super()._prepare_url(url)
 
+class AzureAuth(httpx.Auth):
+    def __init__(self, credential: Any, *, scope: str = 'https://cognitiveservices.azure.com/.default'):
+        self.credential = credential
+        self.scope = scope
+
+    @override
+    def auth_flow(self, request: httpx.Request) -> Generator[httpx.Request, httpx.Response, None]:
+        request.headers['Authorization'] = 'Bearer ' + self.credential.get_token(self.scope).token
+        yield request
 
 class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
     @overload
@@ -254,6 +263,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self,
         *,
         api_key: str | None = None,
+        auth: httpx.Auth | None = None,
         organization: str | None = None,
         project: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
@@ -426,6 +436,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_deployment: str | None = None,
         api_version: str | None = None,
         api_key: str | None = None,
+        auth: httpx.Auth | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -528,6 +539,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self,
         *,
         api_key: str | None = None,
+        auth: httpx.Auth | None = None,
         organization: str | None = None,
         project: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
@@ -549,6 +561,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         """
         return super().copy(
             api_key=api_key,
+            auth=auth,
             organization=organization,
             project=project,
             websocket_base_url=websocket_base_url,
