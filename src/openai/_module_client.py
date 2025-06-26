@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from .resources.images import Images
     from .resources.models import Models
     from .resources.batches import Batches
+    from .resources.webhooks import Webhooks
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
@@ -81,6 +82,12 @@ class UploadsProxy(LazyProxy["Uploads"]):
         return _load_client().uploads
 
 
+class WebhooksProxy(LazyProxy["Webhooks"]):
+    @override
+    def __load__(self) -> Webhooks:
+        return _load_client().webhooks
+
+
 class ResponsesProxy(LazyProxy["Responses"]):
     @override
     def __load__(self) -> Responses:
@@ -132,6 +139,7 @@ images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
+webhooks: Webhooks = WebhooksProxy().__as_proxied__()
 responses: Responses = ResponsesProxy().__as_proxied__()
 embeddings: Embeddings = EmbeddingsProxy().__as_proxied__()
 containers: Containers = ContainersProxy().__as_proxied__()

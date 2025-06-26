@@ -406,6 +406,84 @@ client.files.create(
 
 The async client uses the exact same interface. If you pass a [`PathLike`](https://docs.python.org/3/library/os.html#os.PathLike) instance, the file contents will be read asynchronously automatically.
 
+## Webhook Verification
+
+Verifying webhook signatures is _optional but encouraged_.
+
+### Parsing webhook payloads
+
+For most use cases, you will likely want to verify the webhook and parse the payload at the same time. To achieve this, we provide the method `client.webhooks.unwrap()`, which parses a webhook request and verifies that it was sent by OpenAI. This method will raise an error if the signature is invalid.
+
+Note that the `body` parameter must be the raw JSON string sent from the server (do not parse it first). The `.unwrap()` method will parse this JSON for you into an event object after verifying the webhook was sent from OpenAI.
+
+```python
+from openai import OpenAI
+from flask import Flask, request
+
+app = Flask(__name__)
+client = OpenAI()  # OPENAI_WEBHOOK_SECRET environment variable is used by default
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    request_body = request.get_data(as_text=True)
+
+    try:
+        event = client.webhooks.unwrap(request_body, request.headers)
+
+        if event.type == "response.completed":
+            print("Response completed:", event.data)
+        elif event.type == "response.failed":
+            print("Response failed:", event.data)
+        else:
+            print("Unhandled event type:", event.type)
+
+        return "ok"
+    except Exception as e:
+        print("Invalid signature:", e)
+        return "Invalid signature", 400
+
+
+if __name__ == "__main__":
+    app.run(port=8000)
+```
+
+### Verifying webhook payloads directly
+
+In some cases, you may want to verify the webhook separately from parsing the payload. If you prefer to handle these steps separately, we provide the method `client.webhooks.verify_signature()` to _only verify_ the signature of a webhook request. Like `.unwrap()`, this method will raise an error if the signature is invalid.
+
+Note that the `body` parameter must be the raw JSON string sent from the server (do not parse it first). You will then need to parse the body after verifying the signature.
+
+```python
+import json
+from openai import OpenAI
+from flask import Flask, request
+
+app = Flask(__name__)
+client = OpenAI()  # OPENAI_WEBHOOK_SECRET environment variable is used by default
+
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    request_body = request.get_data(as_text=True)
+
+    try:
+        client.webhooks.verify_signature(request_body, request.headers)
+
+        # Parse the body after verification
+        event = json.loads(request_body)
+        print("Verified event:", event)
+
+        return "ok"
+    except Exception as e:
+        print("Invalid signature:", e)
+        return "Invalid signature", 400
+
+
+if __name__ == "__main__":
+    app.run(port=8000)
+```
+
 ## Handling errors
 
 When the library is unable to connect to the API (for example, due to network connection problems or a timeout), a subclass of `openai.APIConnectionError` is raised.
