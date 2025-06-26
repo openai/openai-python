@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.92.1 (2025-06-26)
+
+Full Changelog: [v1.92.0...v1.92.1](https://github.com/openai/openai-python/compare/v1.92.0...v1.92.1)
+
+### Chores
+
+* **client:** sync stream/parse methods over ([e2536cf](https://github.com/openai/openai-python/commit/e2536cfd74224047cece9c2ad86f0ffe51c0667c))
+* **docs:** update README to include links to docs on Webhooks ([ddbf9f1](https://github.com/openai/openai-python/commit/ddbf9f1dc47a32257716189f2056b45933328c9c))
+
 ## 1.92.0 (2025-06-26)
 
 Full Changelog: [v1.91.0...v1.92.0](https://github.com/openai/openai-python/compare/v1.91.0...v1.92.0)
