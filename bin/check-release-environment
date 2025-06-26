@@ -7,7 +7,7 @@ if [ -z "${STAINLESS_API_KEY}" ]; then
 fi
 
 if [ -z "${PYPI_TOKEN}" ]; then
-  errors+=("The OPENAI_PYPI_TOKEN secret has not been set. Please set it in either this repository's secrets or your organization secrets.")
+  errors+=("The PYPI_TOKEN secret has not been set. Please set it in either this repository's secrets or your organization secrets.")
 fi
 
 lenErrors=${#errors[@]}
