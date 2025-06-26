@@ -20,6 +20,7 @@ from .parsed_response import (
 )
 from .response_prompt import ResponsePrompt as ResponsePrompt
 from .response_status import ResponseStatus as ResponseStatus
+from .tool_choice_mcp import ToolChoiceMcp as ToolChoiceMcp
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
@@ -43,6 +44,7 @@ from .response_failed_event import ResponseFailedEvent as ResponseFailedEvent
 from .response_prompt_param import ResponsePromptParam as ResponsePromptParam
 from .response_queued_event import ResponseQueuedEvent as ResponseQueuedEvent
 from .response_stream_event import ResponseStreamEvent as ResponseStreamEvent
+from .tool_choice_mcp_param import ToolChoiceMcpParam as ToolChoiceMcpParam
 from .web_search_tool_param import WebSearchToolParam as WebSearchToolParam
 from .file_search_tool_param import FileSearchToolParam as FileSearchToolParam
 from .input_item_list_params import InputItemListParams as InputItemListParams

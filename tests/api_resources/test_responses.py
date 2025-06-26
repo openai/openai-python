@@ -28,10 +28,11 @@ class TestResponses:
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
             background=True,
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
@@ -61,6 +62,7 @@ class TestResponses:
                     "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -99,10 +101,11 @@ class TestResponses:
         response_stream = client.responses.create(
             stream=True,
             background=True,
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
@@ -131,6 +134,7 @@ class TestResponses:
                     "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -171,7 +175,7 @@ class TestResponses:
     def test_method_retrieve_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             starting_after=0,
             stream=False,
         )
@@ -221,7 +225,7 @@ class TestResponses:
         response_stream = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             stream=True,
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             starting_after=0,
         )
         response_stream.response.close()
@@ -350,10 +354,11 @@ class TestAsyncResponses:
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
             background=True,
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
@@ -383,6 +388,7 @@ class TestAsyncResponses:
                     "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -421,10 +427,11 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.create(
             stream=True,
             background=True,
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
             model="gpt-4o",
             parallel_tool_calls=True,
@@ -453,6 +460,7 @@ class TestAsyncResponses:
                     "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -493,7 +501,7 @@ class TestAsyncResponses:
     async def test_method_retrieve_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             starting_after=0,
             stream=False,
         )
@@ -543,7 +551,7 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             stream=True,
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             starting_after=0,
         )
         await response_stream.response.aclose()

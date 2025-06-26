@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.92.0 (2025-06-26)
+
+Full Changelog: [v1.91.0...v1.92.0](https://github.com/openai/openai-python/compare/v1.91.0...v1.92.0)
+
+### Features
+
+* **api:** webhook and deep research support ([d3bb116](https://github.com/openai/openai-python/commit/d3bb116f34f470502f902b88131deec43a953b12))
+* **client:** move stream and parse out of beta ([0e358ed](https://github.com/openai/openai-python/commit/0e358ed66b317038705fb38958a449d284f3cb88))
+
+
+### Bug Fixes
+
+* **ci:** release-doctor — report correct token name ([ff8c556](https://github.com/openai/openai-python/commit/ff8c5561e44e8a0902732b5934c97299d2c98d4e))
+
+
+### Chores
+
+* **internal:** add tests for breaking change detection ([710fe8f](https://github.com/openai/openai-python/commit/710fe8fd5f9e33730338341680152d3f2556dfa0))
+* **tests:** skip some failing tests on the latest python versions ([93ccc38](https://github.com/openai/openai-python/commit/93ccc38a8ef1575d77d33d031666d07d10e4af72))
+
 ## 1.91.0 (2025-06-23)
 
 Full Changelog: [v1.90.0...v1.91.0](https://github.com/openai/openai-python/compare/v1.90.0...v1.91.0)

@@ -31,7 +31,7 @@ class TestInputItems:
             response_id="response_id",
             after="after",
             before="before",
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             limit=0,
             order="asc",
         )
@@ -87,7 +87,7 @@ class TestAsyncInputItems:
             response_id="response_id",
             after="after",
             before="before",
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
             limit=0,
             order="asc",
         )

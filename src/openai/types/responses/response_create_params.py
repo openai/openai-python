@@ -10,6 +10,7 @@ from .response_includable import ResponseIncludable
 from .tool_choice_options import ToolChoiceOptions
 from .response_input_param import ResponseInputParam
 from .response_prompt_param import ResponsePromptParam
+from .tool_choice_mcp_param import ToolChoiceMcpParam
 from ..shared_params.metadata import Metadata
 from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
@@ -37,18 +38,19 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     Currently supported values are:
 
+    - `code_interpreter_call.outputs`: Includes the outputs of python code execution
+      in code interpreter tool call items.
+    - `computer_call_output.output.image_url`: Include image urls from the computer
+      call output.
     - `file_search_call.results`: Include the search results of the file search tool
       call.
     - `message.input_image.image_url`: Include image urls from the input message.
-    - `computer_call_output.output.image_url`: Include image urls from the computer
-      call output.
+    - `message.output_text.logprobs`: Include logprobs with assistant messages.
     - `reasoning.encrypted_content`: Includes an encrypted version of reasoning
       tokens in reasoning item outputs. This enables reasoning items to be used in
       multi-turn conversations when using the Responses API statelessly (like when
       the `store` parameter is set to `false`, or when an organization is enrolled
       in the zero data retention program).
-    - `code_interpreter_call.outputs`: Includes the outputs of python code execution
-      in code interpreter tool call items.
     """
 
     input: Union[str, ResponseInputParam]
@@ -76,6 +78,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
     [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    max_tool_calls: Optional[int]
+    """
+    The maximum number of total calls to built-in tools that can be processed in a
+    response. This maximum number applies across all built-in tool calls, not per
+    individual tool. Any further attempts to call a tool by the model will be
+    ignored.
     """
 
     metadata: Optional[Metadata]
@@ -120,25 +130,24 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale"]]
-    """Specifies the latency tier to use for processing the request.
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]]
+    """Specifies the processing type used for serving the request.
 
-    This parameter is relevant for customers subscribed to the scale tier service:
-
-    - If set to 'auto', and the Project is Scale tier enabled, the system will
-      utilize scale tier credits until they are exhausted.
-    - If set to 'auto', and the Project is not Scale tier enabled, the request will
-      be processed using the default service tier with a lower uptime SLA and no
-      latency guarantee.
-    - If set to 'default', the request will be processed using the default service
-      tier with a lower uptime SLA and no latency guarantee.
-    - If set to 'flex', the request will be processed with the Flex Processing
-      service tier.
-      [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'.
+    - If set to 'default', then the requset will be processed with the standard
+      pricing and performance for the selected model.
+    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
+      'priority', then the request will be processed with the corresponding service
+      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
+      Priority processing.
     - When not set, the default behavior is 'auto'.
 
-    When this parameter is set, the response body will include the `service_tier`
-    utilized.
+    When the `service_tier` parameter is set, the response body will include the
+    `service_tier` value based on the processing mode actually used to serve the
+    request. This response value may be different from the value set in the
+    parameter.
     """
 
     store: Optional[bool]
@@ -186,6 +195,12 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       [function calling](https://platform.openai.com/docs/guides/function-calling).
     """
 
+    top_logprobs: Optional[int]
+    """
+    An integer between 0 and 20 specifying the number of most likely tokens to
+    return at each token position, each with an associated log probability.
+    """
+
     top_p: Optional[float]
     """
     An alternative to sampling with temperature, called nucleus sampling, where the
@@ -214,7 +229,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypesParam, ToolChoiceFunctionParam]
+ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypesParam, ToolChoiceFunctionParam, ToolChoiceMcpParam]
 
 
 class ResponseCreateParamsNonStreaming(ResponseCreateParamsBase, total=False):
