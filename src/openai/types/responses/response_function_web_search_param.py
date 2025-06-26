@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+from typing import Union
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 __all__ = ["ResponseFunctionWebSearchParam", "Action", "ActionSearch", "ActionOpenPage", "ActionFind"]
@@ -14,9 +14,6 @@ class ActionSearch(TypedDict, total=False):
 
     type: Required[Literal["search"]]
     """The action type."""
-
-    domains: List[str]
-    """Domains to restrict the search or domains where results were found."""
 
 
 class ActionOpenPage(TypedDict, total=False):

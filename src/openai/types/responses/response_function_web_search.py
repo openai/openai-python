@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import Union
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -15,9 +15,6 @@ class ActionSearch(BaseModel):
 
     type: Literal["search"]
     """The action type."""
-
-    domains: Optional[List[str]] = None
-    """Domains to restrict the search or domains where results were found."""
 
 
 class ActionOpenPage(BaseModel):
