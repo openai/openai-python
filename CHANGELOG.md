@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.92.2 (2025-06-26)
+
+Full Changelog: [v1.92.1...v1.92.2](https://github.com/openai/openai-python/compare/v1.92.1...v1.92.2)
+
+### Chores
+
+* **api:** remove unsupported property ([ec24408](https://github.com/openai/openai-python/commit/ec2440864e03278144d7f58b97c31d87903e0843))
+
 ## 1.92.1 (2025-06-26)
 
 Full Changelog: [v1.92.0...v1.92.1](https://github.com/openai/openai-python/compare/v1.92.0...v1.92.1)
