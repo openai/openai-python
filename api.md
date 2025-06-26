@@ -387,6 +387,30 @@ Methods:
 - <code title="post /vector_stores/{vector_store_id}/file_batches/{batch_id}/cancel">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">cancel</a>(batch_id, \*, vector_store_id) -> <a href="./src/openai/types/vector_stores/vector_store_file_batch.py">VectorStoreFileBatch</a></code>
 - <code title="get /vector_stores/{vector_store_id}/file_batches/{batch_id}/files">client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">list_files</a>(batch_id, \*, vector_store_id, \*\*<a href="src/openai/types/vector_stores/file_batch_list_files_params.py">params</a>) -> <a href="./src/openai/types/vector_stores/vector_store_file.py">SyncCursorPage[VectorStoreFile]</a></code>
 
+# Webhooks
+
+Types:
+
+```python
+from openai.types.webhooks import (
+    BatchCancelledWebhookEvent,
+    BatchCompletedWebhookEvent,
+    BatchExpiredWebhookEvent,
+    BatchFailedWebhookEvent,
+    EvalRunCanceledWebhookEvent,
+    EvalRunFailedWebhookEvent,
+    EvalRunSucceededWebhookEvent,
+    FineTuningJobCancelledWebhookEvent,
+    FineTuningJobFailedWebhookEvent,
+    FineTuningJobSucceededWebhookEvent,
+    ResponseCancelledWebhookEvent,
+    ResponseCompletedWebhookEvent,
+    ResponseFailedWebhookEvent,
+    ResponseIncompleteWebhookEvent,
+    UnwrapWebhookEvent,
+)
+```
+
 # Beta
 
 ## Realtime
@@ -758,6 +782,7 @@ from openai.types.responses import (
     ResponseWebSearchCallSearchingEvent,
     Tool,
     ToolChoiceFunction,
+    ToolChoiceMcp,
     ToolChoiceOptions,
     ToolChoiceTypes,
     WebSearchTool,

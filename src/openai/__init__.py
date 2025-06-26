@@ -105,6 +105,8 @@ organization: str | None = None
 
 project: str | None = None
 
+webhook_secret: str | None = None
+
 base_url: str | _httpx.URL | None = None
 
 timeout: float | Timeout | None = DEFAULT_TIMEOUT
@@ -154,6 +156,17 @@ class _ModuleClient(OpenAI):
         global project
 
         project = value
+
+    @property  # type: ignore
+    @override
+    def webhook_secret(self) -> str | None:
+        return webhook_secret
+
+    @webhook_secret.setter  # type: ignore
+    def webhook_secret(self, value: str | None) -> None:  # type: ignore
+        global webhook_secret
+
+        webhook_secret = value
 
     @property
     @override
@@ -234,6 +247,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -262,6 +276,7 @@ from ._module_client import (
     models as models,
     batches as batches,
     uploads as uploads,
+    webhooks as webhooks,
     responses as responses,
     containers as containers,
     embeddings as embeddings,
