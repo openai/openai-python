@@ -8,17 +8,18 @@ jobs:
   publish:
     name: publish
     runs-on: ubuntu-latest
+    environment: publish
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Install Rye
         run: |
-          curl -sSf https://rye-up.com/get | bash
+          curl -sSf https://rye.astral.sh/get | bash
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
-          RYE_VERSION: 0.24.0
-          RYE_INSTALL_OPTION: "--yes"
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
 
       - name: Publish to PyPI
         run: |

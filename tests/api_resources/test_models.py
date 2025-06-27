@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -21,14 +21,14 @@ class TestModels:
     @parametrize
     def test_method_retrieve(self, client: OpenAI) -> None:
         model = client.models.retrieve(
-            "gpt-3.5-turbo",
+            "gpt-4o-mini",
         )
         assert_matches_type(Model, model, path=["response"])
 
     @parametrize
     def test_raw_response_retrieve(self, client: OpenAI) -> None:
         response = client.models.with_raw_response.retrieve(
-            "gpt-3.5-turbo",
+            "gpt-4o-mini",
         )
 
         assert response.is_closed is True
@@ -39,7 +39,7 @@ class TestModels:
     @parametrize
     def test_streaming_response_retrieve(self, client: OpenAI) -> None:
         with client.models.with_streaming_response.retrieve(
-            "gpt-3.5-turbo",
+            "gpt-4o-mini",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -84,14 +84,14 @@ class TestModels:
     @parametrize
     def test_method_delete(self, client: OpenAI) -> None:
         model = client.models.delete(
-            "ft:gpt-3.5-turbo:acemeco:suffix:abc123",
+            "ft:gpt-4o-mini:acemeco:suffix:abc123",
         )
         assert_matches_type(ModelDeleted, model, path=["response"])
 
     @parametrize
     def test_raw_response_delete(self, client: OpenAI) -> None:
         response = client.models.with_raw_response.delete(
-            "ft:gpt-3.5-turbo:acemeco:suffix:abc123",
+            "ft:gpt-4o-mini:acemeco:suffix:abc123",
         )
 
         assert response.is_closed is True
@@ -102,7 +102,7 @@ class TestModels:
     @parametrize
     def test_streaming_response_delete(self, client: OpenAI) -> None:
         with client.models.with_streaming_response.delete(
-            "ft:gpt-3.5-turbo:acemeco:suffix:abc123",
+            "ft:gpt-4o-mini:acemeco:suffix:abc123",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -121,19 +121,21 @@ class TestModels:
 
 
 class TestAsyncModels:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
         model = await async_client.models.retrieve(
-            "gpt-3.5-turbo",
+            "gpt-4o-mini",
         )
         assert_matches_type(Model, model, path=["response"])
 
     @parametrize
     async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.models.with_raw_response.retrieve(
-            "gpt-3.5-turbo",
+            "gpt-4o-mini",
         )
 
         assert response.is_closed is True
@@ -144,7 +146,7 @@ class TestAsyncModels:
     @parametrize
     async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
         async with async_client.models.with_streaming_response.retrieve(
-            "gpt-3.5-turbo",
+            "gpt-4o-mini",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -189,14 +191,14 @@ class TestAsyncModels:
     @parametrize
     async def test_method_delete(self, async_client: AsyncOpenAI) -> None:
         model = await async_client.models.delete(
-            "ft:gpt-3.5-turbo:acemeco:suffix:abc123",
+            "ft:gpt-4o-mini:acemeco:suffix:abc123",
         )
         assert_matches_type(ModelDeleted, model, path=["response"])
 
     @parametrize
     async def test_raw_response_delete(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.models.with_raw_response.delete(
-            "ft:gpt-3.5-turbo:acemeco:suffix:abc123",
+            "ft:gpt-4o-mini:acemeco:suffix:abc123",
         )
 
         assert response.is_closed is True
@@ -207,7 +209,7 @@ class TestAsyncModels:
     @parametrize
     async def test_streaming_response_delete(self, async_client: AsyncOpenAI) -> None:
         async with async_client.models.with_streaming_response.delete(
-            "ft:gpt-3.5-turbo:acemeco:suffix:abc123",
+            "ft:gpt-4o-mini:acemeco:suffix:abc123",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

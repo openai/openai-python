@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai.types import FileObject, FileDeleted
-from openai.pagination import SyncPage, AsyncPage
+from openai.pagination import SyncCursorPage, AsyncCursorPage
 
 # pyright: reportDeprecated=false
 
@@ -27,7 +27,7 @@ class TestFiles:
     def test_method_create(self, client: OpenAI) -> None:
         file = client.files.create(
             file=b"raw file contents",
-            purpose="fine-tune",
+            purpose="assistants",
         )
         assert_matches_type(FileObject, file, path=["response"])
 
@@ -35,7 +35,7 @@ class TestFiles:
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.files.with_raw_response.create(
             file=b"raw file contents",
-            purpose="fine-tune",
+            purpose="assistants",
         )
 
         assert response.is_closed is True
@@ -47,7 +47,7 @@ class TestFiles:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.files.with_streaming_response.create(
             file=b"raw file contents",
-            purpose="fine-tune",
+            purpose="assistants",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -98,14 +98,17 @@ class TestFiles:
     @parametrize
     def test_method_list(self, client: OpenAI) -> None:
         file = client.files.list()
-        assert_matches_type(SyncPage[FileObject], file, path=["response"])
+        assert_matches_type(SyncCursorPage[FileObject], file, path=["response"])
 
     @parametrize
     def test_method_list_with_all_params(self, client: OpenAI) -> None:
         file = client.files.list(
-            purpose="string",
+            after="after",
+            limit=0,
+            order="asc",
+            purpose="purpose",
         )
-        assert_matches_type(SyncPage[FileObject], file, path=["response"])
+        assert_matches_type(SyncCursorPage[FileObject], file, path=["response"])
 
     @parametrize
     def test_raw_response_list(self, client: OpenAI) -> None:
@@ -114,7 +117,7 @@ class TestFiles:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
-        assert_matches_type(SyncPage[FileObject], file, path=["response"])
+        assert_matches_type(SyncCursorPage[FileObject], file, path=["response"])
 
     @parametrize
     def test_streaming_response_list(self, client: OpenAI) -> None:
@@ -123,7 +126,7 @@ class TestFiles:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             file = response.parse()
-            assert_matches_type(SyncPage[FileObject], file, path=["response"])
+            assert_matches_type(SyncCursorPage[FileObject], file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 
@@ -257,13 +260,15 @@ class TestFiles:
 
 
 class TestAsyncFiles:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.files.create(
             file=b"raw file contents",
-            purpose="fine-tune",
+            purpose="assistants",
         )
         assert_matches_type(FileObject, file, path=["response"])
 
@@ -271,7 +276,7 @@ class TestAsyncFiles:
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.files.with_raw_response.create(
             file=b"raw file contents",
-            purpose="fine-tune",
+            purpose="assistants",
         )
 
         assert response.is_closed is True
@@ -283,7 +288,7 @@ class TestAsyncFiles:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.files.with_streaming_response.create(
             file=b"raw file contents",
-            purpose="fine-tune",
+            purpose="assistants",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -334,14 +339,17 @@ class TestAsyncFiles:
     @parametrize
     async def test_method_list(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.files.list()
-        assert_matches_type(AsyncPage[FileObject], file, path=["response"])
+        assert_matches_type(AsyncCursorPage[FileObject], file, path=["response"])
 
     @parametrize
     async def test_method_list_with_all_params(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.files.list(
-            purpose="string",
+            after="after",
+            limit=0,
+            order="asc",
+            purpose="purpose",
         )
-        assert_matches_type(AsyncPage[FileObject], file, path=["response"])
+        assert_matches_type(AsyncCursorPage[FileObject], file, path=["response"])
 
     @parametrize
     async def test_raw_response_list(self, async_client: AsyncOpenAI) -> None:
@@ -350,7 +358,7 @@ class TestAsyncFiles:
         assert response.is_closed is True
         assert response.http_request.headers.get("X-Stainless-Lang") == "python"
         file = response.parse()
-        assert_matches_type(AsyncPage[FileObject], file, path=["response"])
+        assert_matches_type(AsyncCursorPage[FileObject], file, path=["response"])
 
     @parametrize
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
@@ -359,7 +367,7 @@ class TestAsyncFiles:
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
 
             file = await response.parse()
-            assert_matches_type(AsyncPage[FileObject], file, path=["response"])
+            assert_matches_type(AsyncCursorPage[FileObject], file, path=["response"])
 
         assert cast(Any, response.is_closed) is True
 

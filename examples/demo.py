@@ -36,3 +36,18 @@ for chunk in stream:
 
     print(chunk.choices[0].delta.content, end="")
 print()
+
+# Response headers:
+print("----- custom response headers test -----")
+response = client.chat.completions.with_raw_response.create(
+    model="gpt-4",
+    messages=[
+        {
+            "role": "user",
+            "content": "Say this is a test",
+        }
+    ],
+)
+completion = response.parse()
+print(response.request_id)
+print(completion.choices[0].message.content)

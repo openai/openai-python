@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from typing import Union
 from typing_extensions import Literal, Required, TypedDict
 
 from ..._types import FileTypes
+from ..audio_model import AudioModel
 
 __all__ = ["TranslationCreateParams"]
 
@@ -17,7 +18,7 @@ class TranslationCreateParams(TypedDict, total=False):
     mp3, mp4, mpeg, mpga, m4a, ogg, wav, or webm.
     """
 
-    model: Required[Union[str, Literal["whisper-1"]]]
+    model: Required[Union[str, AudioModel]]
     """ID of the model to use.
 
     Only `whisper-1` (which is powered by our open source Whisper V2 model) is
@@ -28,14 +29,14 @@ class TranslationCreateParams(TypedDict, total=False):
     """An optional text to guide the model's style or continue a previous audio
     segment.
 
-    The [prompt](https://platform.openai.com/docs/guides/speech-to-text/prompting)
+    The [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
     should be in English.
     """
 
-    response_format: str
+    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"]
     """
-    The format of the transcript output, in one of these options: `json`, `text`,
-    `srt`, `verbose_json`, or `vtt`.
+    The format of the output, in one of these options: `json`, `text`, `srt`,
+    `verbose_json`, or `vtt`.
     """
 
     temperature: float

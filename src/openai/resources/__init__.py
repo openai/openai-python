@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from .beta import (
     Beta,
@@ -24,6 +24,14 @@ from .audio import (
     AudioWithStreamingResponse,
     AsyncAudioWithStreamingResponse,
 )
+from .evals import (
+    Evals,
+    AsyncEvals,
+    EvalsWithRawResponse,
+    AsyncEvalsWithRawResponse,
+    EvalsWithStreamingResponse,
+    AsyncEvalsWithStreamingResponse,
+)
 from .files import (
     Files,
     AsyncFiles,
@@ -47,6 +55,30 @@ from .models import (
     AsyncModelsWithRawResponse,
     ModelsWithStreamingResponse,
     AsyncModelsWithStreamingResponse,
+)
+from .batches import (
+    Batches,
+    AsyncBatches,
+    BatchesWithRawResponse,
+    AsyncBatchesWithRawResponse,
+    BatchesWithStreamingResponse,
+    AsyncBatchesWithStreamingResponse,
+)
+from .uploads import (
+    Uploads,
+    AsyncUploads,
+    UploadsWithRawResponse,
+    AsyncUploadsWithRawResponse,
+    UploadsWithStreamingResponse,
+    AsyncUploadsWithStreamingResponse,
+)
+from .containers import (
+    Containers,
+    AsyncContainers,
+    ContainersWithRawResponse,
+    AsyncContainersWithRawResponse,
+    ContainersWithStreamingResponse,
+    AsyncContainersWithStreamingResponse,
 )
 from .embeddings import (
     Embeddings,
@@ -79,6 +111,14 @@ from .moderations import (
     AsyncModerationsWithRawResponse,
     ModerationsWithStreamingResponse,
     AsyncModerationsWithStreamingResponse,
+)
+from .vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
 )
 
 __all__ = [
@@ -136,10 +176,40 @@ __all__ = [
     "AsyncFineTuningWithRawResponse",
     "FineTuningWithStreamingResponse",
     "AsyncFineTuningWithStreamingResponse",
+    "VectorStores",
+    "AsyncVectorStores",
+    "VectorStoresWithRawResponse",
+    "AsyncVectorStoresWithRawResponse",
+    "VectorStoresWithStreamingResponse",
+    "AsyncVectorStoresWithStreamingResponse",
     "Beta",
     "AsyncBeta",
     "BetaWithRawResponse",
     "AsyncBetaWithRawResponse",
     "BetaWithStreamingResponse",
     "AsyncBetaWithStreamingResponse",
+    "Batches",
+    "AsyncBatches",
+    "BatchesWithRawResponse",
+    "AsyncBatchesWithRawResponse",
+    "BatchesWithStreamingResponse",
+    "AsyncBatchesWithStreamingResponse",
+    "Uploads",
+    "AsyncUploads",
+    "UploadsWithRawResponse",
+    "AsyncUploadsWithRawResponse",
+    "UploadsWithStreamingResponse",
+    "AsyncUploadsWithStreamingResponse",
+    "Evals",
+    "AsyncEvals",
+    "EvalsWithRawResponse",
+    "AsyncEvalsWithRawResponse",
+    "EvalsWithStreamingResponse",
+    "AsyncEvalsWithStreamingResponse",
+    "Containers",
+    "AsyncContainers",
+    "ContainersWithRawResponse",
+    "AsyncContainersWithRawResponse",
+    "ContainersWithStreamingResponse",
+    "AsyncContainersWithStreamingResponse",
 ]

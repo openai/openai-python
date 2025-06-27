@@ -2,12 +2,12 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, cast, overload
 from datetime import date, datetime
-from typing_extensions import Self
+from typing_extensions import Self, Literal
 
 import pydantic
 from pydantic.fields import FieldInfo
 
-from ._types import StrBytesIntFloat
+from ._types import IncEx, StrBytesIntFloat
 
 _T = TypeVar("_T")
 _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
@@ -118,10 +118,10 @@ def get_model_fields(model: type[pydantic.BaseModel]) -> dict[str, FieldInfo]:
     return model.__fields__  # type: ignore
 
 
-def model_copy(model: _ModelT) -> _ModelT:
+def model_copy(model: _ModelT, *, deep: bool = False) -> _ModelT:
     if PYDANTIC_V2:
-        return model.model_copy()
-    return model.copy()  # type: ignore
+        return model.model_copy(deep=deep)
+    return model.copy(deep=deep)  # type: ignore
 
 
 def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
@@ -133,17 +133,25 @@ def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
 def model_dump(
     model: pydantic.BaseModel,
     *,
+    exclude: IncEx | None = None,
     exclude_unset: bool = False,
     exclude_defaults: bool = False,
+    warnings: bool = True,
+    mode: Literal["json", "python"] = "python",
 ) -> dict[str, Any]:
-    if PYDANTIC_V2:
+    if PYDANTIC_V2 or hasattr(model, "model_dump"):
         return model.model_dump(
+            mode=mode,
+            exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
+            # warnings are not supported in Pydantic v1
+            warnings=warnings if PYDANTIC_V2 else True,
         )
     return cast(
         "dict[str, Any]",
         model.dict(  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+            exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
         ),
@@ -156,25 +164,34 @@ def model_parse(model: type[_ModelT], data: Any) -> _ModelT:
     return model.parse_obj(data)  # pyright: ignore[reportDeprecated]
 
 
+def model_parse_json(model: type[_ModelT], data: str | bytes) -> _ModelT:
+    if PYDANTIC_V2:
+        return model.model_validate_json(data)
+    return model.parse_raw(data)  # pyright: ignore[reportDeprecated]
+
+
+def model_json_schema(model: type[_ModelT]) -> dict[str, Any]:
+    if PYDANTIC_V2:
+        return model.model_json_schema()
+    return model.schema()  # pyright: ignore[reportDeprecated]
+
+
 # generic models
 if TYPE_CHECKING:
 
-    class GenericModel(pydantic.BaseModel):
-        ...
+    class GenericModel(pydantic.BaseModel): ...
 
 else:
     if PYDANTIC_V2:
         # there no longer needs to be a distinction in v2 but
         # we still have to create our own subclass to avoid
         # inconsistent MRO ordering errors
-        class GenericModel(pydantic.BaseModel):
-            ...
+        class GenericModel(pydantic.BaseModel): ...
 
     else:
         import pydantic.generics
 
-        class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel):
-            ...
+        class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel): ...
 
 
 # cached properties
@@ -193,30 +210,22 @@ if TYPE_CHECKING:
         func: Callable[[Any], _T]
         attrname: str | None
 
-        def __init__(self, func: Callable[[Any], _T]) -> None:
-            ...
+        def __init__(self, func: Callable[[Any], _T]) -> None: ...
 
         @overload
-        def __get__(self, instance: None, owner: type[Any] | None = None) -> Self:
-            ...
+        def __get__(self, instance: None, owner: type[Any] | None = None) -> Self: ...
 
         @overload
-        def __get__(self, instance: object, owner: type[Any] | None = None) -> _T:
-            ...
+        def __get__(self, instance: object, owner: type[Any] | None = None) -> _T: ...
 
         def __get__(self, instance: object, owner: type[Any] | None = None) -> _T | Self:
             raise NotImplementedError()
 
-        def __set_name__(self, owner: type[Any], name: str) -> None:
-            ...
+        def __set_name__(self, owner: type[Any], name: str) -> None: ...
 
         # __set__ is not defined at runtime, but @cached_property is designed to be settable
-        def __set__(self, instance: object, value: _T) -> None:
-            ...
+        def __set__(self, instance: object, value: _T) -> None: ...
 else:
-    try:
-        from functools import cached_property as cached_property
-    except ImportError:
-        from cached_property import cached_property as cached_property
+    from functools import cached_property as cached_property
 
     typed_cached_property = cached_property

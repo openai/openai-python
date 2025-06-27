@@ -1,16 +1,88 @@
 name: CI
 on:
   push:
-    branches:
-      - main
+    branches-ignore:
+      - 'generated'
+      - 'codegen/**'
+      - 'integrated/**'
+      - 'stl-preview-head/**'
+      - 'stl-preview-base/**'
   pull_request:
-    branches:
-      - main
+    branches-ignore:
+      - 'stl-preview-head/**'
+      - 'stl-preview-base/**'
 
 jobs:
   lint:
+    timeout-minutes: 10
     name: lint
-    runs-on: ubuntu-latest
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Install dependencies
+        run: rye sync --all-features
+
+      - name: Run lints
+        run: ./scripts/lint
+
+  upload:
+    if: github.repository == 'stainless-sdks/openai-python'
+    timeout-minutes: 10
+    name: upload
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: depot-ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Get GitHub OIDC Token
+        id: github-oidc
+        uses: actions/github-script@v6
+        with:
+          script: core.setOutput('github_token', await core.getIDToken());
+
+      - name: Upload tarball
+        env:
+          URL: https://pkg.stainless.com/s
+          AUTH: ${{ steps.github-oidc.outputs.github_token }}
+          SHA: ${{ github.sha }}
+        run: ./scripts/utils/upload-artifact.sh
+
+  test:
+    timeout-minutes: 10
+    name: test
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Bootstrap
+        run: ./scripts/bootstrap
+
+      - name: Run tests
+        run: ./scripts/test
+
+  examples:
+    timeout-minutes: 10
+    name: examples
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.repository == 'openai/openai-python'
 
     steps:
@@ -18,24 +90,20 @@ jobs:
 
       - name: Install Rye
         run: |
-          curl -sSf https://rye-up.com/get | bash
+          curl -sSf https://rye.astral.sh/get | bash
           echo "$HOME/.rye/shims" >> $GITHUB_PATH
         env:
-          RYE_VERSION: 0.24.0
-          RYE_INSTALL_OPTION: "--yes"
-
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
       - name: Install dependencies
         run: |
           rye sync --all-features
 
-      - name: Run ruff
+      - env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          rye run check:ruff
-
-      - name: Run type checking
+            rye run python examples/demo.py
+      - env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
         run: |
-          rye run typecheck
-
-      - name: Ensure importable
-        run: |
-          rye run python -c 'import openai'
+            rye run python examples/async_demo.py

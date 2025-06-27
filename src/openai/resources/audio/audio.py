@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -47,10 +47,21 @@ class Audio(SyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> AudioWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AudioWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AudioWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AudioWithStreamingResponse(self)
 
 
@@ -69,10 +80,21 @@ class AsyncAudio(AsyncAPIResource):
 
     @cached_property
     def with_raw_response(self) -> AsyncAudioWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncAudioWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncAudioWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncAudioWithStreamingResponse(self)
 
 

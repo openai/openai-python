@@ -1,9 +1,11 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 from typing import Dict, List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from .chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 
 __all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "CompletionCreateParamsStreaming"]
 
@@ -15,8 +17,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     You can use the
     [List models](https://platform.openai.com/docs/api-reference/models/list) API to
     see all of your available models, or see our
-    [Model overview](https://platform.openai.com/docs/models/overview) for
-    descriptions of them.
+    [Model overview](https://platform.openai.com/docs/models) for descriptions of
+    them.
     """
 
     prompt: Required[Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None]]
@@ -51,7 +53,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Positive values penalize new tokens based on their existing frequency in the
     text so far, decreasing the model's likelihood to repeat the same line verbatim.
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
     """
 
     logit_bias: Optional[Dict[str, int]]
@@ -104,7 +106,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     Positive values penalize new tokens based on whether they appear in the text so
     far, increasing the model's likelihood to talk about new topics.
 
-    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation/parameter-details)
+    [See more information about frequency and presence penalties.](https://platform.openai.com/docs/guides/text-generation)
     """
 
     seed: Optional[int]
@@ -118,10 +120,14 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     stop: Union[Optional[str], List[str], None]
-    """Up to 4 sequences where the API will stop generating further tokens.
+    """Not supported with latest reasoning models `o3` and `o4-mini`.
 
-    The returned text will not contain the stop sequence.
+    Up to 4 sequences where the API will stop generating further tokens. The
+    returned text will not contain the stop sequence.
     """
+
+    stream_options: Optional[ChatCompletionStreamOptionsParam]
+    """Options for streaming response. Only set this when you set `stream: true`."""
 
     suffix: Optional[str]
     """The suffix that comes after a completion of inserted text.
@@ -151,11 +157,11 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """
 
 
-class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase):
+class CompletionCreateParamsNonStreaming(CompletionCreateParamsBase, total=False):
     stream: Optional[Literal[False]]
     """Whether to stream back partial progress.
 

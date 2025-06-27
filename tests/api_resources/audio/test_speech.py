@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ class TestSpeech:
         speech = client.audio.speech.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -40,9 +40,11 @@ class TestSpeech:
         speech = client.audio.speech.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
+            instructions="instructions",
             response_format="mp3",
             speed=0.25,
+            stream_format="sse",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -55,7 +57,7 @@ class TestSpeech:
         response = client.audio.speech.with_raw_response.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
         )
 
         assert response.is_closed is True
@@ -70,7 +72,7 @@ class TestSpeech:
         with client.audio.speech.with_streaming_response.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -82,7 +84,9 @@ class TestSpeech:
 
 
 class TestAsyncSpeech:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
@@ -91,7 +95,7 @@ class TestAsyncSpeech:
         speech = await async_client.audio.speech.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -103,9 +107,11 @@ class TestAsyncSpeech:
         speech = await async_client.audio.speech.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
+            instructions="instructions",
             response_format="mp3",
             speed=0.25,
+            stream_format="sse",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -118,7 +124,7 @@ class TestAsyncSpeech:
         response = await async_client.audio.speech.with_raw_response.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
         )
 
         assert response.is_closed is True
@@ -133,7 +139,7 @@ class TestAsyncSpeech:
         async with async_client.audio.speech.with_streaming_response.create(
             input="string",
             model="string",
-            voice="alloy",
+            voice="ash",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

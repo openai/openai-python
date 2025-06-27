@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Optional
 
@@ -25,11 +25,19 @@ class FunctionDefinition(BaseModel):
     parameters: Optional[FunctionParameters] = None
     """The parameters the functions accepts, described as a JSON Schema object.
 
-    See the
-    [guide](https://platform.openai.com/docs/guides/text-generation/function-calling)
-    for examples, and the
+    See the [guide](https://platform.openai.com/docs/guides/function-calling) for
+    examples, and the
     [JSON Schema reference](https://json-schema.org/understanding-json-schema/) for
     documentation about the format.
 
     Omitting `parameters` defines a function with an empty parameter list.
+    """
+
+    strict: Optional[bool] = None
+    """Whether to enable strict schema adherence when generating the function call.
+
+    If set to true, the model will follow the exact schema defined in the
+    `parameters` field. Only a subset of JSON Schema is supported when `strict` is
+    `true`. Learn more about Structured Outputs in the
+    [function calling guide](docs/guides/function-calling).
     """

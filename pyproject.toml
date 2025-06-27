@@ -1,8 +1,8 @@
 [project]
 name = "openai"
-version = "1.14.1"
+version = "1.92.2"
 description = "The official Python library for the openai API"
-readme = "README.md"
+dynamic = ["readme"]
 license = "Apache-2.0"
 authors = [
 { name = "OpenAI", email = "support@openai.com" },
@@ -10,18 +10,17 @@ authors = [
 dependencies = [
     "httpx>=0.23.0, <1",
     "pydantic>=1.9.0, <3",
-    "typing-extensions>=4.7, <5",
+    "typing-extensions>=4.11, <5",
     "anyio>=3.5.0, <5",
     "distro>=1.7.0, <2",
     "sniffio",
-    "cached-property; python_version < '3.8'",
-    "tqdm > 4"
+    "tqdm > 4",
+    "jiter>=0.4.0, <1",
 ]
-requires-python = ">= 3.7.1"
+requires-python = ">= 3.8"
 classifiers = [
   "Typing :: Typed",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -36,9 +35,6 @@ classifiers = [
   "License :: OSI Approved :: Apache Software License"
 ]
 
-[project.optional-dependencies]
-datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
-
 [project.urls]
 Homepage = "https://github.com/openai/openai-python"
 Repository = "https://github.com/openai/openai-python"
@@ -46,11 +42,17 @@ Repository = "https://github.com/openai/openai-python"
 [project.scripts]
 openai = "openai.cli:main"
 
+[project.optional-dependencies]
+aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.6"]
+realtime = ["websockets >= 13, < 16"]
+datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
+voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
+
 [tool.rye]
 managed = true
 # version pins are in requirements-dev.lock
 dev-dependencies = [
-    "pyright",
+    "pyright==1.1.399",
     "mypy",
     "respx",
     "pytest",
@@ -60,10 +62,14 @@ dev-dependencies = [
     "nox",
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
+    "rich>=13.7.1",
     "inline-snapshot >=0.7.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
-    "types-pyaudio > 0"
+    "types-pyaudio > 0",
+    "trio >=0.22.2",
+    "nest_asyncio==1.6.0",
+    "pytest-xdist>=3.6.1",
 ]
 
 [tool.rye.scripts]
@@ -71,18 +77,21 @@ format = { chain = [
   "format:ruff",
   "format:docs",
   "fix:ruff",
+  # run formatting again to fix any inconsistencies when imports are stripped
+  "format:ruff",
 ]}
-"format:black" = "black ."
-"format:docs" = "python bin/ruffen-docs.py README.md api.md"
+"format:docs" = "python scripts/utils/ruffen-docs.py README.md api.md"
 "format:ruff" = "ruff format"
-"format:isort" = "isort ."
 
 "lint" = { chain = [
   "check:ruff",
   "typecheck",
+  "check:importable",
 ]}
-"check:ruff" = "ruff ."
-"fix:ruff" = "ruff --fix ."
+"check:ruff" = "ruff check ."
+"fix:ruff" = "ruff check --fix ."
+
+"check:importable" = "python -c 'import openai'"
 
 typecheck = { chain = [
   "typecheck:pyright",
@@ -93,7 +102,7 @@ typecheck = { chain = [
 "typecheck:mypy" = "mypy ."
 
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
@@ -104,15 +113,38 @@ include = [
 [tool.hatch.build.targets.wheel]
 packages = ["src/openai"]
 
-[tool.black]
-line-length = 120
-target-version = ["py37"]
+[tool.hatch.build.targets.sdist]
+# Basically everything except hidden files/directories (such as .github, .devcontainers, .python-version, etc)
+include = [
+  "/*.toml",
+  "/*.json",
+  "/*.lock",
+  "/*.md",
+  "/mypy.ini",
+  "/noxfile.py",
+  "bin/*",
+  "examples/*",
+  "src/*",
+  "tests/*",
+]
+
+[tool.hatch.metadata.hooks.fancy-pypi-readme]
+content-type = "text/markdown"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.fragments]]
+path = "README.md"
+
+[[tool.hatch.metadata.hooks.fancy-pypi-readme.substitutions]]
+# replace relative links with absolute links
+pattern = '\[(.+?)\]\(((?!https?://)\S+?)\)'
+replacement = '[\1](https://github.com/openai/openai-python/tree/main/\g<2>)'
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "--tb=short"
+addopts = "--tb=short -n auto"
 xfail_strict = true
 asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
 ]
@@ -122,15 +154,21 @@ filterwarnings = [
 # there are a couple of flags that are still disabled by
 # default in strict mode as they are experimental and niche.
 typeCheckingMode = "strict"
-pythonVersion = "3.7"
+pythonVersion = "3.8"
 
 exclude = [
     "_dev",
     ".venv",
     ".nox",
+
+    # uses inline `uv` script dependencies
+    # which means it can't be type checked
+    "examples/realtime/audio_util.py",
+    "examples/realtime/push_to_talk_app.py"
 ]
 
 reportImplicitOverride = true
+reportOverlappingOverload = false
 
 reportImportCycles = false
 reportPrivateUsage = false
@@ -139,6 +177,11 @@ reportPrivateUsage = false
 line-length = 120
 output-format = "grouped"
 target-version = "py37"
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
 select = [
   # isort
   "I",
@@ -154,7 +197,9 @@ select = [
   "T201",
   "T203",
   # misuse of typing.TYPE_CHECKING
-  "TCH004"
+  "TC004",
+  # import rules
+  "TID251",
 ]
 ignore = [
   # mutable defaults
@@ -165,10 +210,9 @@ unfixable = [
   "T201",
   "T203",
 ]
-ignore-init-module-imports = true
 
-[tool.ruff.format]
-docstring-code-format = true
+[tool.ruff.lint.flake8-tidy-imports.banned-api]
+"functools.lru_cache".msg = "This function does not retain type information for the wrapped function's arguments; The `lru_cache` function from `_utils` should be used instead"
 
 [tool.ruff.lint.isort]
 length-sort = true
@@ -177,7 +221,8 @@ combine-as-imports = true
 extra-standard-library = ["typing_extensions"]
 known-first-party = ["openai", "tests"]
 
-[tool.ruff.per-file-ignores]
+[tool.ruff.lint.per-file-ignores]
 "bin/**.py" = ["T201", "T203"]
+"scripts/**.py" = ["T201", "T203"]
 "tests/**.py" = ["T201", "T203"]
 "examples/**.py" = ["T201", "T203"]

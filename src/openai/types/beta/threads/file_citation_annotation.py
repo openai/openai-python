@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing_extensions import Literal
 
@@ -10,9 +10,6 @@ __all__ = ["FileCitationAnnotation", "FileCitation"]
 class FileCitation(BaseModel):
     file_id: str
     """The ID of the specific File the citation is from."""
-
-    quote: str
-    """The specific quote in the file."""
 
 
 class FileCitationAnnotation(BaseModel):

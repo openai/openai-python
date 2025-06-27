@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -6,6 +6,7 @@ from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import FileTypes
+from .image_model import ImageModel
 
 __all__ = ["ImageCreateVariationParams"]
 
@@ -17,17 +18,14 @@ class ImageCreateVariationParams(TypedDict, total=False):
     Must be a valid PNG file, less than 4MB, and square.
     """
 
-    model: Union[str, Literal["dall-e-2"], None]
+    model: Union[str, ImageModel, None]
     """The model to use for image generation.
 
     Only `dall-e-2` is supported at this time.
     """
 
     n: Optional[int]
-    """The number of images to generate.
-
-    Must be between 1 and 10. For `dall-e-3`, only `n=1` is supported.
-    """
+    """The number of images to generate. Must be between 1 and 10."""
 
     response_format: Optional[Literal["url", "b64_json"]]
     """The format in which the generated images are returned.
@@ -46,5 +44,5 @@ class ImageCreateVariationParams(TypedDict, total=False):
     """
     A unique identifier representing your end-user, which can help OpenAI to monitor
     and detect abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices/end-user-ids).
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """

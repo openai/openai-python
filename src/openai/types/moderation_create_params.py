@@ -1,25 +1,29 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
-from typing import List, Union
-from typing_extensions import Literal, Required, TypedDict
+from typing import List, Union, Iterable
+from typing_extensions import Required, TypedDict
+
+from .moderation_model import ModerationModel
+from .moderation_multi_modal_input_param import ModerationMultiModalInputParam
 
 __all__ = ["ModerationCreateParams"]
 
 
 class ModerationCreateParams(TypedDict, total=False):
-    input: Required[Union[str, List[str]]]
-    """The input text to classify"""
+    input: Required[Union[str, List[str], Iterable[ModerationMultiModalInputParam]]]
+    """Input (or inputs) to classify.
 
-    model: Union[str, Literal["text-moderation-latest", "text-moderation-stable"]]
+    Can be a single string, an array of strings, or an array of multi-modal input
+    objects similar to other models.
     """
-    Two content moderations models are available: `text-moderation-stable` and
-    `text-moderation-latest`.
 
-    The default is `text-moderation-latest` which will be automatically upgraded
-    over time. This ensures you are always using our most accurate model. If you use
-    `text-moderation-stable`, we will provide advanced notice before updating the
-    model. Accuracy of `text-moderation-stable` may be slightly lower than for
-    `text-moderation-latest`.
+    model: Union[str, ModerationModel]
+    """The content moderation model you would like to use.
+
+    Learn more in
+    [the moderation guide](https://platform.openai.com/docs/guides/moderation), and
+    learn about available models
+    [here](https://platform.openai.com/docs/models#moderation).
     """

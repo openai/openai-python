@@ -16,7 +16,7 @@ from typing import (
     Optional,
     Sequence,
 )
-from typing_extensions import Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
+from typing_extensions import Set, Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
 
 import httpx
 import pydantic
@@ -101,6 +101,7 @@ class RequestOptions(TypedDict, total=False):
     params: Query
     extra_json: AnyMapping
     idempotency_key: str
+    follow_redirects: bool
 
 
 # Sentinel class used until PEP 0661 is accepted
@@ -112,8 +113,7 @@ class NotGiven:
     For example:
 
     ```py
-    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response:
-        ...
+    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
 
 
     get(timeout=1)  # 1s timeout
@@ -163,16 +163,14 @@ class ModelBuilderProtocol(Protocol):
         *,
         response: Response,
         data: object,
-    ) -> _T:
-        ...
+    ) -> _T: ...
 
 
 Headers = Mapping[str, Union[str, Omit]]
 
 
 class HeadersLikeProtocol(Protocol):
-    def get(self, __key: str) -> str | None:
-        ...
+    def get(self, __key: str) -> str | None: ...
 
 
 HeadersLike = Union[Headers, HeadersLikeProtocol]
@@ -197,8 +195,8 @@ ResponseT = TypeVar(
 StrBytesIntFloat = Union[str, bytes, int, float]
 
 # Note: copied from Pydantic
-# https://github.com/pydantic/pydantic/blob/32ea570bf96e84234d2992e1ddf40ab8a565925a/pydantic/main.py#L49
-IncEx: TypeAlias = "set[int] | set[str] | dict[int, Any] | dict[str, Any] | None"
+# https://github.com/pydantic/pydantic/blob/6f31f8f68ef011f84357330186f603ff295312fd/pydantic/main.py#L79
+IncEx: TypeAlias = Union[Set[int], Set[str], Mapping[int, Union["IncEx", bool]], Mapping[str, Union["IncEx", bool]]]
 
 PostParser = Callable[[Any], Any]
 
@@ -220,3 +218,4 @@ class _GenericAlias(Protocol):
 
 class HttpxSendArgs(TypedDict, total=False):
     auth: httpx.Auth
+    follow_redirects: bool

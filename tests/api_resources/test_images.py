@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ class TestImages:
     def test_method_create_variation_with_all_params(self, client: OpenAI) -> None:
         image = client.images.create_variation(
             image=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -73,9 +73,13 @@ class TestImages:
         image = client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
+            background="transparent",
             mask=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
+            output_compression=100,
+            output_format="png",
+            quality="high",
             response_format="url",
             size="1024x1024",
             user="user-1234",
@@ -119,9 +123,13 @@ class TestImages:
     def test_method_generate_with_all_params(self, client: OpenAI) -> None:
         image = client.images.generate(
             prompt="A cute baby sea otter",
-            model="dall-e-3",
+            background="transparent",
+            model="string",
+            moderation="low",
             n=1,
-            quality="standard",
+            output_compression=100,
+            output_format="png",
+            quality="medium",
             response_format="url",
             size="1024x1024",
             style="vivid",
@@ -155,7 +163,9 @@ class TestImages:
 
 
 class TestAsyncImages:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create_variation(self, async_client: AsyncOpenAI) -> None:
@@ -168,7 +178,7 @@ class TestAsyncImages:
     async def test_method_create_variation_with_all_params(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.create_variation(
             image=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
             response_format="url",
             size="1024x1024",
@@ -213,9 +223,13 @@ class TestAsyncImages:
         image = await async_client.images.edit(
             image=b"raw file contents",
             prompt="A cute baby sea otter wearing a beret",
+            background="transparent",
             mask=b"raw file contents",
-            model="dall-e-2",
+            model="string",
             n=1,
+            output_compression=100,
+            output_format="png",
+            quality="high",
             response_format="url",
             size="1024x1024",
             user="user-1234",
@@ -259,9 +273,13 @@ class TestAsyncImages:
     async def test_method_generate_with_all_params(self, async_client: AsyncOpenAI) -> None:
         image = await async_client.images.generate(
             prompt="A cute baby sea otter",
-            model="dall-e-3",
+            background="transparent",
+            model="string",
+            moderation="low",
             n=1,
-            quality="standard",
+            output_compression=100,
+            output_format="png",
+            quality="medium",
             response_format="url",
             size="1024x1024",
             style="vivid",

@@ -5,7 +5,18 @@ import inspect
 import logging
 import datetime
 import functools
-from typing import TYPE_CHECKING, Any, Union, Generic, TypeVar, Callable, Iterator, AsyncIterator, cast, overload
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Union,
+    Generic,
+    TypeVar,
+    Callable,
+    Iterator,
+    AsyncIterator,
+    cast,
+    overload,
+)
 from typing_extensions import Awaitable, ParamSpec, override, deprecated, get_origin
 
 import anyio
@@ -13,8 +24,8 @@ import httpx
 import pydantic
 
 from ._types import NoneType
-from ._utils import is_given, extract_type_arg, is_annotated_type
-from ._models import BaseModel, is_basemodel
+from ._utils import is_given, extract_type_arg, is_annotated_type, is_type_alias_type
+from ._models import BaseModel, is_basemodel, add_request_id
 from ._constants import RAW_RESPONSE_HEADER
 from ._streaming import Stream, AsyncStream, is_stream_class_type, extract_stream_chunk_type
 from ._exceptions import APIResponseValidationError
@@ -53,6 +64,9 @@ class LegacyAPIResponse(Generic[R]):
 
     http_response: httpx.Response
 
+    retries_taken: int
+    """The number of retries made. If no retries happened this will be `0`"""
+
     def __init__(
         self,
         *,
@@ -62,6 +76,7 @@ class LegacyAPIResponse(Generic[R]):
         stream: bool,
         stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
         options: FinalRequestOptions,
+        retries_taken: int = 0,
     ) -> None:
         self._cast_to = cast_to
         self._client = client
@@ -70,14 +85,17 @@ class LegacyAPIResponse(Generic[R]):
         self._stream_cls = stream_cls
         self._options = options
         self.http_response = raw
+        self.retries_taken = retries_taken
+
+    @property
+    def request_id(self) -> str | None:
+        return self.http_response.headers.get("x-request-id")  # type: ignore[no-any-return]
 
     @overload
-    def parse(self, *, to: type[_T]) -> _T:
-        ...
+    def parse(self, *, to: type[_T]) -> _T: ...
 
     @overload
-    def parse(self) -> R:
-        ...
+    def parse(self) -> R: ...
 
     def parse(self, *, to: type[_T] | None = None) -> R | _T:
         """Returns the rich python representation of this response's data.
@@ -120,8 +138,11 @@ class LegacyAPIResponse(Generic[R]):
         if is_given(self._options.post_parser):
             parsed = self._options.post_parser(parsed)
 
+        if isinstance(parsed, BaseModel):
+            add_request_id(parsed, self.request_id)
+
         self._parsed_by_type[cache_key] = parsed
-        return parsed
+        return cast(R, parsed)
 
     @property
     def headers(self) -> httpx.Headers:
@@ -174,9 +195,17 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.elapsed
 
     def _parse(self, *, to: type[_T] | None = None) -> R | _T:
+        cast_to = to if to is not None else self._cast_to
+
+        # unwrap `TypeAlias('Name', T)` -> `T`
+        if is_type_alias_type(cast_to):
+            cast_to = cast_to.__value__  # type: ignore[unreachable]
+
         # unwrap `Annotated[T, ...]` -> `T`
-        if to and is_annotated_type(to):
-            to = extract_type_arg(to, 0)
+        if cast_to and is_annotated_type(cast_to):
+            cast_to = extract_type_arg(cast_to, 0)
+
+        origin = get_origin(cast_to) or cast_to
 
         if self._stream:
             if to:
@@ -212,17 +241,11 @@ class LegacyAPIResponse(Generic[R]):
             return cast(
                 R,
                 stream_cls(
-                    cast_to=self._cast_to,
+                    cast_to=cast_to,
                     response=self.http_response,
                     client=cast(Any, self._client),
                 ),
             )
-
-        cast_to = to if to is not None else self._cast_to
-
-        # unwrap `Annotated[T, ...]` -> `T`
-        if is_annotated_type(cast_to):
-            cast_to = extract_type_arg(cast_to, 0)
 
         if cast_to is NoneType:
             return cast(R, None)
@@ -237,7 +260,8 @@ class LegacyAPIResponse(Generic[R]):
         if cast_to == float:
             return cast(R, float(response.text))
 
-        origin = get_origin(cast_to) or cast_to
+        if cast_to == bool:
+            return cast(R, response.text.lower() == "true")
 
         if inspect.isclass(origin) and issubclass(origin, HttpxBinaryResponseContent):
             return cast(R, cast_to(response))  # type: ignore
@@ -245,7 +269,9 @@ class LegacyAPIResponse(Generic[R]):
         if origin == LegacyAPIResponse:
             raise RuntimeError("Unexpected state - cast_to is `APIResponse`")
 
-        if inspect.isclass(origin) and issubclass(origin, httpx.Response):
+        if inspect.isclass(
+            origin  # pyright: ignore[reportUnknownArgumentType]
+        ) and issubclass(origin, httpx.Response):
             # Because of the invariance of our ResponseT TypeVar, users can subclass httpx.Response
             # and pass that class to our request functions. We cannot change the variance to be either
             # covariant or contravariant as that makes our usage of ResponseT illegal. We could construct
@@ -255,7 +281,13 @@ class LegacyAPIResponse(Generic[R]):
                 raise ValueError(f"Subclasses of httpx.Response cannot be passed to `cast_to`")
             return cast(R, response)
 
-        if inspect.isclass(origin) and not issubclass(origin, BaseModel) and issubclass(origin, pydantic.BaseModel):
+        if (
+            inspect.isclass(
+                origin  # pyright: ignore[reportUnknownArgumentType]
+            )
+            and not issubclass(origin, BaseModel)
+            and issubclass(origin, pydantic.BaseModel)
+        ):
             raise TypeError("Pydantic models must subclass our base model type, e.g. `from openai import BaseModel`")
 
         if (
@@ -272,7 +304,7 @@ class LegacyAPIResponse(Generic[R]):
         # split is required to handle cases where additional information is included
         # in the response, e.g. application/json; charset=utf-8
         content_type, *_ = response.headers.get("content-type", "*").split(";")
-        if content_type != "application/json":
+        if not content_type.endswith("json"):
             if is_basemodel(cast_to):
                 try:
                     data = response.json()

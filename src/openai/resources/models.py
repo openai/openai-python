@@ -1,20 +1,21 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
 import httpx
 
 from .. import _legacy_response
-from ..types import Model, ModelDeleted
 from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from ..pagination import SyncPage, AsyncPage
+from ..types.model import Model
 from .._base_client import (
     AsyncPaginator,
     make_request_options,
 )
+from ..types.model_deleted import ModelDeleted
 
 __all__ = ["Models", "AsyncModels"]
 
@@ -22,10 +23,21 @@ __all__ = ["Models", "AsyncModels"]
 class Models(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> ModelsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return ModelsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> ModelsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return ModelsWithStreamingResponse(self)
 
     def retrieve(
@@ -124,10 +136,21 @@ class Models(SyncAPIResource):
 class AsyncModels(AsyncAPIResource):
     @cached_property
     def with_raw_response(self) -> AsyncModelsWithRawResponse:
+        """
+        This property can be used as a prefix for any HTTP method call to return
+        the raw response object instead of the parsed content.
+
+        For more information, see https://www.github.com/openai/openai-python#accessing-raw-response-data-eg-headers
+        """
         return AsyncModelsWithRawResponse(self)
 
     @cached_property
     def with_streaming_response(self) -> AsyncModelsWithStreamingResponse:
+        """
+        An alternative to `.with_raw_response` that doesn't eagerly read the response body.
+
+        For more information, see https://www.github.com/openai/openai-python#with_streaming_response
+        """
         return AsyncModelsWithStreamingResponse(self)
 
     async def retrieve(

@@ -1,10 +1,11 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Union, Optional
-from typing_extensions import Literal, Annotated
+from typing_extensions import Literal, Annotated, TypeAlias
 
 from ....._utils import PropertyInfo
 from ....._models import BaseModel
+from ....shared.metadata import Metadata
 from .tool_calls_step_details import ToolCallsStepDetails
 from .message_creation_step_details import MessageCreationStepDetails
 
@@ -19,7 +20,9 @@ class LastError(BaseModel):
     """A human-readable description of the error."""
 
 
-StepDetails = Annotated[Union[MessageCreationStepDetails, ToolCallsStepDetails], PropertyInfo(discriminator="type")]
+StepDetails: TypeAlias = Annotated[
+    Union[MessageCreationStepDetails, ToolCallsStepDetails], PropertyInfo(discriminator="type")
+]
 
 
 class Usage(BaseModel):
@@ -68,12 +71,14 @@ class RunStep(BaseModel):
     Will be `null` if there are no errors.
     """
 
-    metadata: Optional[object] = None
+    metadata: Optional[Metadata] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
-    structured format. Keys can be a maximum of 64 characters long and values can be
-    a maxium of 512 characters long.
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     object: Literal["thread.run.step"]

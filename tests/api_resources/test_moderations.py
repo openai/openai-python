@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from __future__ import annotations
 
@@ -28,7 +28,7 @@ class TestModerations:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         moderation = client.moderations.create(
             input="I want to kill them.",
-            model="text-moderation-stable",
+            model="string",
         )
         assert_matches_type(ModerationCreateResponse, moderation, path=["response"])
 
@@ -58,7 +58,9 @@ class TestModerations:
 
 
 class TestAsyncModerations:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -71,7 +73,7 @@ class TestAsyncModerations:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         moderation = await async_client.moderations.create(
             input="I want to kill them.",
-            model="text-moderation-stable",
+            model="string",
         )
         assert_matches_type(ModerationCreateResponse, moderation, path=["response"])
 

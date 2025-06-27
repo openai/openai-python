@@ -1,4 +1,4 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Optional
 from typing_extensions import Literal
@@ -24,11 +24,13 @@ class FileObject(BaseModel):
     object: Literal["file"]
     """The object type, which is always `file`."""
 
-    purpose: Literal["fine-tune", "fine-tune-results", "assistants", "assistants_output"]
+    purpose: Literal[
+        "assistants", "assistants_output", "batch", "batch_output", "fine-tune", "fine-tune-results", "vision"
+    ]
     """The intended purpose of the file.
 
-    Supported values are `fine-tune`, `fine-tune-results`, `assistants`, and
-    `assistants_output`.
+    Supported values are `assistants`, `assistants_output`, `batch`, `batch_output`,
+    `fine-tune`, `fine-tune-results` and `vision`.
     """
 
     status: Literal["uploaded", "processed", "error"]
@@ -37,6 +39,9 @@ class FileObject(BaseModel):
     The current status of the file, which can be either `uploaded`, `processed`, or
     `error`.
     """
+
+    expires_at: Optional[int] = None
+    """The Unix timestamp (in seconds) for when the file will expire."""
 
     status_details: Optional[str] = None
     """Deprecated.

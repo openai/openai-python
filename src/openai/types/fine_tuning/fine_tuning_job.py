@@ -1,11 +1,16 @@
-# File generated from our OpenAPI spec by Stainless.
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
+from .dpo_method import DpoMethod
+from ..shared.metadata import Metadata
+from .supervised_method import SupervisedMethod
+from .reinforcement_method import ReinforcementMethod
+from .fine_tuning_job_wandb_integration_object import FineTuningJobWandbIntegrationObject
 
-__all__ = ["FineTuningJob", "Error", "Hyperparameters"]
+__all__ = ["FineTuningJob", "Error", "Hyperparameters", "Method"]
 
 
 class Error(BaseModel):
@@ -23,13 +28,38 @@ class Error(BaseModel):
 
 
 class Hyperparameters(BaseModel):
-    n_epochs: Union[Literal["auto"], int]
+    batch_size: Union[Literal["auto"], int, None] = None
+    """Number of examples in each batch.
+
+    A larger batch size means that model parameters are updated less frequently, but
+    with lower variance.
+    """
+
+    learning_rate_multiplier: Union[Literal["auto"], float, None] = None
+    """Scaling factor for the learning rate.
+
+    A smaller learning rate may be useful to avoid overfitting.
+    """
+
+    n_epochs: Union[Literal["auto"], int, None] = None
     """The number of epochs to train the model for.
 
-    An epoch refers to one full cycle through the training dataset. "auto" decides
-    the optimal number of epochs based on the size of the dataset. If setting the
-    number manually, we support any number between 1 and 50 epochs.
+    An epoch refers to one full cycle through the training dataset.
     """
+
+
+class Method(BaseModel):
+    type: Literal["supervised", "dpo", "reinforcement"]
+    """The type of method. Is either `supervised`, `dpo`, or `reinforcement`."""
+
+    dpo: Optional[DpoMethod] = None
+    """Configuration for the DPO fine-tuning method."""
+
+    reinforcement: Optional[ReinforcementMethod] = None
+    """Configuration for the reinforcement fine-tuning method."""
+
+    supervised: Optional[SupervisedMethod] = None
+    """Configuration for the supervised fine-tuning method."""
 
 
 class FineTuningJob(BaseModel):
@@ -60,8 +90,7 @@ class FineTuningJob(BaseModel):
     hyperparameters: Hyperparameters
     """The hyperparameters used for the fine-tuning job.
 
-    See the [fine-tuning guide](https://platform.openai.com/docs/guides/fine-tuning)
-    for more details.
+    This value will only be returned when running `supervised` jobs.
     """
 
     model: str
@@ -79,6 +108,9 @@ class FineTuningJob(BaseModel):
     You can retrieve the results with the
     [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
     """
+
+    seed: int
+    """The seed used for the fine-tuning job."""
 
     status: Literal["validating_files", "queued", "running", "succeeded", "failed", "cancelled"]
     """
@@ -105,3 +137,25 @@ class FineTuningJob(BaseModel):
     You can retrieve the validation results with the
     [Files API](https://platform.openai.com/docs/api-reference/files/retrieve-contents).
     """
+
+    estimated_finish: Optional[int] = None
+    """
+    The Unix timestamp (in seconds) for when the fine-tuning job is estimated to
+    finish. The value will be null if the fine-tuning job is not running.
+    """
+
+    integrations: Optional[List[FineTuningJobWandbIntegrationObject]] = None
+    """A list of integrations to enable for this fine-tuning job."""
+
+    metadata: Optional[Metadata] = None
+    """Set of 16 key-value pairs that can be attached to an object.
+
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
+    """
+
+    method: Optional[Method] = None
+    """The method used for fine-tuning."""
