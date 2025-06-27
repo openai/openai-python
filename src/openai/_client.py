@@ -283,6 +283,9 @@ class OpenAI(SyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
+        if not api_key:
+            # if the api key is an empty string, encoding the header will fail
+            return {}
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
@@ -599,6 +602,9 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     def auth_headers(self) -> dict[str, str]:
         api_key = self.api_key
+        if not api_key:
+            # if the api key is an empty string, encoding the header will fail
+            return {}
         return {"Authorization": f"Bearer {api_key}"}
 
     @property
