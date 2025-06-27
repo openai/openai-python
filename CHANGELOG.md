@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.93.0 (2025-06-27)
+
+Full Changelog: [v1.92.3...v1.93.0](https://github.com/openai/openai-python/compare/v1.92.3...v1.93.0)
+
+### Features
+
+* **cli:** add support for fine_tuning.jobs ([#1224](https://github.com/openai/openai-python/issues/1224)) ([e362bfd](https://github.com/openai/openai-python/commit/e362bfd10dfd04176560b964470ab0c517c601f3))
+
 ## 1.92.3 (2025-06-27)
 
 Full Changelog: [v1.92.2...v1.92.3](https://github.com/openai/openai-python/compare/v1.92.2...v1.92.3)
