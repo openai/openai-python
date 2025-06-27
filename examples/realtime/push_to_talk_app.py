@@ -6,7 +6,7 @@
 #                                                                  #
 # `./examples/realtime/push_to_talk_app.py`                        #
 #                                                                  #
-# On Mac, you'll also need `brew install portaud ffmpeg`           #
+# On Mac, you'll also need `brew install portaudio ffmpeg`           #
 ####################################################################
 #
 # /// script
