@@ -5,6 +5,8 @@
 # environment variable set, you can run this example with just     #
 #                                                                  #
 # `./examples/realtime/push_to_talk_app.py`                        #
+#                                                                  #
+# On Mac, you'll also need `brew install portaudio ffmpeg`           #
 ####################################################################
 #
 # /// script
