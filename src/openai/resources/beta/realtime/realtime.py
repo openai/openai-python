@@ -360,15 +360,14 @@ class AsyncRealtimeConnectionManager:
         extra_query = self.__extra_query
         auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
-            url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
-        else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
-            )
+            extra_query, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
+
+        url = self._prepare_url().copy_with(
+            params={
+                "model": self.__model,
+                **extra_query,
+            },
+        )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
@@ -542,15 +541,14 @@ class RealtimeConnectionManager:
         extra_query = self.__extra_query
         auth_headers = self.__client.auth_headers
         if is_azure_client(self.__client):
-            url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
-        else:
-            url = self._prepare_url().copy_with(
-                params={
-                    **self.__client.base_url.params,
-                    "model": self.__model,
-                    **extra_query,
-                },
-            )
+            extra_query, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
+
+        url = self._prepare_url().copy_with(
+            params={
+                "model": self.__model,
+                **extra_query,
+            },
+        )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
