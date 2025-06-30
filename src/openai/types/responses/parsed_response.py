@@ -55,6 +55,8 @@ class ParsedResponseOutputMessage(ResponseOutputMessage, GenericModel, Generic[C
 class ParsedResponseFunctionToolCall(ResponseFunctionToolCall):
     parsed_arguments: object = None
 
+    __api_exclude__ = {"parsed_arguments"}
+
 
 ParsedResponseOutputItem: TypeAlias = Annotated[
     Union[

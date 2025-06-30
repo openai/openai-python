@@ -1,11 +1,19 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import List, Union, Optional
-from typing_extensions import Literal
+from typing_extensions import Literal, TypeAlias
 
 from ...._models import BaseModel
 
-__all__ = ["Session", "InputAudioNoiseReduction", "InputAudioTranscription", "Tool", "TurnDetection"]
+__all__ = [
+    "Session",
+    "InputAudioNoiseReduction",
+    "InputAudioTranscription",
+    "Tool",
+    "Tracing",
+    "TracingTracingConfiguration",
+    "TurnDetection",
+]
 
 
 class InputAudioNoiseReduction(BaseModel):
@@ -57,6 +65,29 @@ class Tool(BaseModel):
 
     type: Optional[Literal["function"]] = None
     """The type of the tool, i.e. `function`."""
+
+
+class TracingTracingConfiguration(BaseModel):
+    group_id: Optional[str] = None
+    """
+    The group id to attach to this trace to enable filtering and grouping in the
+    traces dashboard.
+    """
+
+    metadata: Optional[object] = None
+    """
+    The arbitrary metadata to attach to this trace to enable filtering in the traces
+    dashboard.
+    """
+
+    workflow_name: Optional[str] = None
+    """The name of the workflow to attach to this trace.
+
+    This is used to name the trace in the traces dashboard.
+    """
+
+
+Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration]
 
 
 class TurnDetection(BaseModel):
@@ -175,6 +206,7 @@ class Session(BaseModel):
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
+            "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
         ]
@@ -186,6 +218,14 @@ class Session(BaseModel):
 
     Options are `pcm16`, `g711_ulaw`, or `g711_alaw`. For `pcm16`, output audio is
     sampled at a rate of 24kHz.
+    """
+
+    speed: Optional[float] = None
+    """The speed of the model's spoken response.
+
+    1.0 is the default speed. 0.25 is the minimum speed. 1.5 is the maximum speed.
+    This value can only be changed in between model turns, not while a response is
+    in progress.
     """
 
     temperature: Optional[float] = None
@@ -203,6 +243,16 @@ class Session(BaseModel):
 
     tools: Optional[List[Tool]] = None
     """Tools (functions) available to the model."""
+
+    tracing: Optional[Tracing] = None
+    """Configuration options for tracing.
+
+    Set to null to disable tracing. Once tracing is enabled for a session, the
+    configuration cannot be modified.
+
+    `auto` will create a trace for the session with default values for the workflow
+    name, group id, and metadata.
+    """
 
     turn_detection: Optional[TurnDetection] = None
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
@@ -227,5 +277,5 @@ class Session(BaseModel):
 
     Voice cannot be changed during the session once the model has responded with
     audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo` `sage`, `shimmer` and `verse`.
+    `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and `verse`.
     """

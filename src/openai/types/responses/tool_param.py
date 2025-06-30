@@ -28,6 +28,7 @@ __all__ = [
     "LocalShell",
 ]
 
+
 class McpAllowedToolsMcpAllowedToolsFilter(TypedDict, total=False):
     tool_names: List[str]
     """List of allowed tool names."""
@@ -177,5 +178,5 @@ ToolParam: TypeAlias = Union[
     LocalShell,
 ]
 
-  
+
 ParseableToolParam: TypeAlias = Union[ToolParam, ChatCompletionToolParam]

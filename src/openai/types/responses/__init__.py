@@ -18,7 +18,9 @@ from .parsed_response import (
     ParsedResponseOutputMessage as ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall as ParsedResponseFunctionToolCall,
 )
+from .response_prompt import ResponsePrompt as ResponsePrompt
 from .response_status import ResponseStatus as ResponseStatus
+from .tool_choice_mcp import ToolChoiceMcp as ToolChoiceMcp
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
@@ -28,6 +30,7 @@ from .computer_tool_param import ComputerToolParam as ComputerToolParam
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
+from .response_input_item import ResponseInputItem as ResponseInputItem
 from .response_input_text import ResponseInputText as ResponseInputText
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
@@ -38,8 +41,10 @@ from .response_output_text import ResponseOutputText as ResponseOutputText
 from .response_text_config import ResponseTextConfig as ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction as ToolChoiceFunction
 from .response_failed_event import ResponseFailedEvent as ResponseFailedEvent
+from .response_prompt_param import ResponsePromptParam as ResponsePromptParam
 from .response_queued_event import ResponseQueuedEvent as ResponseQueuedEvent
 from .response_stream_event import ResponseStreamEvent as ResponseStreamEvent
+from .tool_choice_mcp_param import ToolChoiceMcpParam as ToolChoiceMcpParam
 from .web_search_tool_param import WebSearchToolParam as WebSearchToolParam
 from .file_search_tool_param import FileSearchToolParam as FileSearchToolParam
 from .input_item_list_params import InputItemListParams as InputItemListParams

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
-
 import httpx
 
 from .... import _legacy_response
@@ -45,7 +43,7 @@ class Graders(SyncAPIResource):
         *,
         grader: grader_run_params.Grader,
         model_sample: str,
-        reference_answer: Union[str, Iterable[object], float, object],
+        item: object | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -59,9 +57,15 @@ class Graders(SyncAPIResource):
         Args:
           grader: The grader used for the fine-tuning job.
 
-          model_sample: The model sample to be evaluated.
+          model_sample: The model sample to be evaluated. This value will be used to populate the
+              `sample` namespace. See
+              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+              The `output_json` variable will be populated if the model sample is a valid JSON
+              string.
 
-          reference_answer: The reference answer for the evaluation.
+          item: The dataset item provided to the grader. This will be used to populate the
+              `item` namespace. See
+              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
 
           extra_headers: Send extra headers
 
@@ -77,7 +81,7 @@ class Graders(SyncAPIResource):
                 {
                     "grader": grader,
                     "model_sample": model_sample,
-                    "reference_answer": reference_answer,
+                    "item": item,
                 },
                 grader_run_params.GraderRunParams,
             ),
@@ -147,7 +151,7 @@ class AsyncGraders(AsyncAPIResource):
         *,
         grader: grader_run_params.Grader,
         model_sample: str,
-        reference_answer: Union[str, Iterable[object], float, object],
+        item: object | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -161,9 +165,15 @@ class AsyncGraders(AsyncAPIResource):
         Args:
           grader: The grader used for the fine-tuning job.
 
-          model_sample: The model sample to be evaluated.
+          model_sample: The model sample to be evaluated. This value will be used to populate the
+              `sample` namespace. See
+              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
+              The `output_json` variable will be populated if the model sample is a valid JSON
+              string.
 
-          reference_answer: The reference answer for the evaluation.
+          item: The dataset item provided to the grader. This will be used to populate the
+              `item` namespace. See
+              [the guide](https://platform.openai.com/docs/guides/graders) for more details.
 
           extra_headers: Send extra headers
 
@@ -179,7 +189,7 @@ class AsyncGraders(AsyncAPIResource):
                 {
                     "grader": grader,
                     "model_sample": model_sample,
-                    "reference_answer": reference_answer,
+                    "item": item,
                 },
                 grader_run_params.GraderRunParams,
             ),

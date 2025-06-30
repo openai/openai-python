@@ -30,9 +30,10 @@ from ._exceptions import (
     LengthFinishReasonError,
     UnprocessableEntityError,
     APIResponseValidationError,
+    InvalidWebhookSignatureError,
     ContentFilterFinishReasonError,
 )
-from ._base_client import DefaultHttpxClient, DefaultAsyncHttpxClient
+from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 
@@ -62,6 +63,7 @@ __all__ = [
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
+    "InvalidWebhookSignatureError",
     "Timeout",
     "RequestOptions",
     "Client",
@@ -77,6 +79,7 @@ __all__ = [
     "DEFAULT_CONNECTION_LIMITS",
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
+    "DefaultAioHttpClient",
 ]
 
 if not _t.TYPE_CHECKING:
@@ -119,6 +122,8 @@ api_key: str | None = None
 organization: str | None = None
 
 project: str | None = None
+
+webhook_secret: str | None = None
 
 base_url: str | _httpx.URL | None = None
 
@@ -181,6 +186,17 @@ class _ModuleClient(OpenAI):
         global project
 
         project = value
+
+    @property  # type: ignore
+    @override
+    def webhook_secret(self) -> str | None:
+        return webhook_secret
+
+    @webhook_secret.setter  # type: ignore
+    def webhook_secret(self, value: str | None) -> None:  # type: ignore
+        global webhook_secret
+
+        webhook_secret = value
 
     @property
     @override
@@ -334,6 +350,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -362,6 +379,7 @@ from ._module_client import (
     models as models,
     batches as batches,
     uploads as uploads,
+    webhooks as webhooks,
     responses as responses,
     containers as containers,
     embeddings as embeddings,

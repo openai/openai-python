@@ -77,6 +77,8 @@ class TestImages:
             mask=b"raw file contents",
             model="string",
             n=1,
+            output_compression=100,
+            output_format="png",
             quality="high",
             response_format="url",
             size="1024x1024",
@@ -161,7 +163,9 @@ class TestImages:
 
 
 class TestAsyncImages:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create_variation(self, async_client: AsyncOpenAI) -> None:
@@ -223,6 +227,8 @@ class TestAsyncImages:
             mask=b"raw file contents",
             model="string",
             n=1,
+            output_compression=100,
+            output_format="png",
             quality="high",
             response_format="url",
             size="1024x1024",

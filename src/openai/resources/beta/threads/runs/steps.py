@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typing_extensions
 from typing import List
 from typing_extensions import Literal
 
@@ -42,6 +43,7 @@ class Steps(SyncAPIResource):
         """
         return StepsWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def retrieve(
         self,
         step_id: str,
@@ -95,6 +97,7 @@ class Steps(SyncAPIResource):
             cast_to=RunStep,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def list(
         self,
         run_id: str,
@@ -196,6 +199,7 @@ class AsyncSteps(AsyncAPIResource):
         """
         return AsyncStepsWithStreamingResponse(self)
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     async def retrieve(
         self,
         step_id: str,
@@ -249,6 +253,7 @@ class AsyncSteps(AsyncAPIResource):
             cast_to=RunStep,
         )
 
+    @typing_extensions.deprecated("The Assistants API is deprecated in favor of the Responses API")
     def list(
         self,
         run_id: str,
@@ -334,11 +339,15 @@ class StepsWithRawResponse:
     def __init__(self, steps: Steps) -> None:
         self._steps = steps
 
-        self.retrieve = _legacy_response.to_raw_response_wrapper(
-            steps.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                steps.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.to_raw_response_wrapper(
-            steps.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.to_raw_response_wrapper(
+                steps.list  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -346,11 +355,15 @@ class AsyncStepsWithRawResponse:
     def __init__(self, steps: AsyncSteps) -> None:
         self._steps = steps
 
-        self.retrieve = _legacy_response.async_to_raw_response_wrapper(
-            steps.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                steps.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = _legacy_response.async_to_raw_response_wrapper(
-            steps.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            _legacy_response.async_to_raw_response_wrapper(
+                steps.list  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -358,11 +371,15 @@ class StepsWithStreamingResponse:
     def __init__(self, steps: Steps) -> None:
         self._steps = steps
 
-        self.retrieve = to_streamed_response_wrapper(
-            steps.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                steps.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = to_streamed_response_wrapper(
-            steps.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            to_streamed_response_wrapper(
+                steps.list  # pyright: ignore[reportDeprecated],
+            )
         )
 
 
@@ -370,9 +387,13 @@ class AsyncStepsWithStreamingResponse:
     def __init__(self, steps: AsyncSteps) -> None:
         self._steps = steps
 
-        self.retrieve = async_to_streamed_response_wrapper(
-            steps.retrieve,
+        self.retrieve = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                steps.retrieve  # pyright: ignore[reportDeprecated],
+            )
         )
-        self.list = async_to_streamed_response_wrapper(
-            steps.list,
+        self.list = (  # pyright: ignore[reportDeprecated]
+            async_to_streamed_response_wrapper(
+                steps.list  # pyright: ignore[reportDeprecated],
+            )
         )

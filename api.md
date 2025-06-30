@@ -395,6 +395,35 @@ Methods:
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
 
+# Webhooks
+
+Types:
+
+```python
+from openai.types.webhooks import (
+    BatchCancelledWebhookEvent,
+    BatchCompletedWebhookEvent,
+    BatchExpiredWebhookEvent,
+    BatchFailedWebhookEvent,
+    EvalRunCanceledWebhookEvent,
+    EvalRunFailedWebhookEvent,
+    EvalRunSucceededWebhookEvent,
+    FineTuningJobCancelledWebhookEvent,
+    FineTuningJobFailedWebhookEvent,
+    FineTuningJobSucceededWebhookEvent,
+    ResponseCancelledWebhookEvent,
+    ResponseCompletedWebhookEvent,
+    ResponseFailedWebhookEvent,
+    ResponseIncompleteWebhookEvent,
+    UnwrapWebhookEvent,
+)
+```
+
+Methods:
+
+- <code>client.webhooks.<a href="./src/openai/resources/webhooks.py">unwrap</a>(payload, headers, \*, secret) -> UnwrapWebhookEvent</code>
+- <code>client.webhooks.<a href="./src/openai/resources/webhooks.py">verify_signature</a>(payload, headers, \*, secret, tolerance) -> None</code>
+
 # Beta
 
 ## Realtime
@@ -750,6 +779,7 @@ from openai.types.responses import (
     ResponseOutputRefusal,
     ResponseOutputText,
     ResponseOutputTextAnnotationAddedEvent,
+    ResponsePrompt,
     ResponseQueuedEvent,
     ResponseReasoningDeltaEvent,
     ResponseReasoningDoneEvent,
@@ -773,6 +803,7 @@ from openai.types.responses import (
     ResponseWebSearchCallSearchingEvent,
     Tool,
     ToolChoiceFunction,
+    ToolChoiceMcp,
     ToolChoiceOptions,
     ToolChoiceTypes,
     WebSearchTool,
@@ -784,7 +815,7 @@ Methods:
 - <code title="post /responses">client.responses.<a href="./src/openai/resources/responses/responses.py">create</a>(\*\*<a href="src/openai/types/responses/response_create_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="get /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/responses/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="delete /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">delete</a>(response_id) -> None</code>
-- <code title="post /responses/{response_id}/cancel">client.responses.<a href="./src/openai/resources/responses/responses.py">cancel</a>(response_id) -> None</code>
+- <code title="post /responses/{response_id}/cancel">client.responses.<a href="./src/openai/resources/responses/responses.py">cancel</a>(response_id) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 
 ## InputItems
 
@@ -894,4 +925,4 @@ Methods:
 
 Methods:
 
-- <code title="get /containers/{container_id}/files/{file_id}/content">client.containers.files.content.<a href="./src/openai/resources/containers/files/content.py">retrieve</a>(file_id, \*, container_id) -> None</code>
+- <code title="get /containers/{container_id}/files/{file_id}/content">client.containers.files.content.<a href="./src/openai/resources/containers/files/content.py">retrieve</a>(file_id, \*, container_id) -> HttpxBinaryResponseContent</code>

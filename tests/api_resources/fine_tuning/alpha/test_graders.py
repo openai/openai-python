@@ -31,7 +31,6 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -46,7 +45,7 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
+            item={},
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -61,7 +60,6 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
 
         assert response.is_closed is True
@@ -80,7 +78,6 @@ class TestGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -154,7 +151,9 @@ class TestGraders:
 
 
 class TestAsyncGraders:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_run(self, async_client: AsyncOpenAI) -> None:
@@ -167,7 +166,6 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -182,7 +180,7 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
+            item={},
         )
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -197,7 +195,6 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         )
 
         assert response.is_closed is True
@@ -216,7 +213,6 @@ class TestAsyncGraders:
                 "type": "string_check",
             },
             model_sample="model_sample",
-            reference_answer="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

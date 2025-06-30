@@ -16,7 +16,6 @@ class ToolChoiceTypesParam(TypedDict, total=False):
             "web_search_preview_2025_03_11",
             "image_generation",
             "code_interpreter",
-            "mcp",
         ]
     ]
     """The type of hosted tool the model should to use.
@@ -30,6 +29,5 @@ class ToolChoiceTypesParam(TypedDict, total=False):
     - `web_search_preview`
     - `computer_use_preview`
     - `code_interpreter`
-    - `mcp`
     - `image_generation`
     """

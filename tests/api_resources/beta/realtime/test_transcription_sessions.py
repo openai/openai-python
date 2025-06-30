@@ -25,6 +25,12 @@ class TestTranscriptionSessions:
     @parametrize
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         transcription_session = client.beta.realtime.transcription_sessions.create(
+            client_secret={
+                "expires_at": {
+                    "anchor": "created_at",
+                    "seconds": 0,
+                }
+            },
             include=["string"],
             input_audio_format="pcm16",
             input_audio_noise_reduction={"type": "near_field"},
@@ -68,7 +74,9 @@ class TestTranscriptionSessions:
 
 
 class TestAsyncTranscriptionSessions:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -78,6 +86,12 @@ class TestAsyncTranscriptionSessions:
     @parametrize
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         transcription_session = await async_client.beta.realtime.transcription_sessions.create(
+            client_secret={
+                "expires_at": {
+                    "anchor": "created_at",
+                    "seconds": 0,
+                }
+            },
             include=["string"],
             input_audio_format="pcm16",
             input_audio_noise_reduction={"type": "near_field"},
