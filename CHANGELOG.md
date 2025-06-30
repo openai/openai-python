@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.93.1 (2025-06-30)
+
+Full Changelog: [v1.93.0...v1.93.1](https://github.com/openai/openai-python/compare/v1.93.0...v1.93.1)
+
+### Bug Fixes
+
+* **ci:** correct conditional ([de6a9ce](https://github.com/openai/openai-python/commit/de6a9ce078731d60b0bdc42a9322548c575f11a3))
+
+
+### Chores
+
+* **ci:** only run for pushes and fork pull requests ([f89c7eb](https://github.com/openai/openai-python/commit/f89c7eb46c6f081254715d75543cbee3ffa83822))
+
 ## 1.93.0 (2025-06-27)
 
 Full Changelog: [v1.92.3...v1.93.0](https://github.com/openai/openai-python/compare/v1.92.3...v1.93.0)
