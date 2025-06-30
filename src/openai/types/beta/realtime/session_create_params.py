@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 from typing import List, Union, Iterable
-from typing_extensions import Literal, TypeAlias, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 __all__ = [
     "SessionCreateParams",
     "ClientSecret",
-    "ClientSecretExpiresAt",
+    "ClientSecretExpiresAfter",
     "InputAudioNoiseReduction",
     "InputAudioTranscription",
     "Tool",
@@ -156,8 +156,8 @@ class SessionCreateParams(TypedDict, total=False):
     """
 
 
-class ClientSecretExpiresAt(TypedDict, total=False):
-    anchor: Literal["created_at"]
+class ClientSecretExpiresAfter(TypedDict, total=False):
+    anchor: Required[Literal["created_at"]]
     """The anchor point for the ephemeral token expiration.
 
     Only `created_at` is currently supported.
@@ -171,7 +171,7 @@ class ClientSecretExpiresAt(TypedDict, total=False):
 
 
 class ClientSecret(TypedDict, total=False):
-    expires_at: ClientSecretExpiresAt
+    expires_after: ClientSecretExpiresAfter
     """Configuration for the ephemeral token expiration."""
 
 

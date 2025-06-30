@@ -26,7 +26,7 @@ class TestSessions:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         session = client.beta.realtime.sessions.create(
             client_secret={
-                "expires_at": {
+                "expires_after": {
                     "anchor": "created_at",
                     "seconds": 0,
                 }
@@ -90,7 +90,9 @@ class TestSessions:
 
 
 class TestAsyncSessions:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -101,7 +103,7 @@ class TestAsyncSessions:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         session = await async_client.beta.realtime.sessions.create(
             client_secret={
-                "expires_at": {
+                "expires_after": {
                     "anchor": "created_at",
                     "seconds": 0,
                 }

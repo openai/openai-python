@@ -24,6 +24,7 @@ __all__ = [
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
+    "InvalidWebhookSignatureError",
 ]
 
 
@@ -154,3 +155,7 @@ class ContentFilterFinishReasonError(OpenAIError):
         super().__init__(
             f"Could not parse response content as the request was rejected by the content filter",
         )
+
+
+class InvalidWebhookSignatureError(ValueError):
+    """Raised when a webhook signature is invalid, meaning the computed signature does not match the expected signature."""
