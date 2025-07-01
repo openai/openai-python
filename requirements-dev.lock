@@ -40,12 +40,15 @@ black==24.10.0
 certifi==2023.7.22
     # via httpcore
     # via httpx
+    # via oci
     # via requests
 cffi==1.16.0
     # via cryptography
     # via sounddevice
 charset-normalizer==3.3.2
     # via requests
+circuitbreaker==2.1.3
+    # via oci
 click==8.1.7
     # via black
     # via inline-snapshot
@@ -54,7 +57,9 @@ colorlog==6.7.0
 cryptography==42.0.7
     # via azure-identity
     # via msal
+    # via oci
     # via pyjwt
+    # via pyopenssl
 dirty-equals==0.6.0
 distlib==0.3.7
     # via virtualenv
@@ -119,6 +124,7 @@ numpy==2.0.2
     # via openai
     # via pandas
     # via pandas-stubs
+oci==2.154.3
 outcome==1.3.0.post0
     # via trio
 packaging==23.2
@@ -151,6 +157,8 @@ pygments==2.18.0
     # via rich
 pyjwt==2.8.0
     # via msal
+pyopenssl==24.3.0
+    # via oci
 pyright==1.1.399
 pytest==8.3.3
     # via pytest-asyncio
@@ -158,10 +166,12 @@ pytest==8.3.3
 pytest-asyncio==0.24.0
 pytest-xdist==3.7.0
 python-dateutil==2.8.2
+    # via oci
     # via pandas
     # via time-machine
 pytz==2023.3.post1
     # via dirty-equals
+    # via oci
     # via pandas
 requests==2.31.0
     # via azure-core
