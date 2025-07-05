@@ -1,5 +1,21 @@
 # Changelog
 
+## 1.93.1 (2025-07-05)
+
+Full Changelog: [v1.93.0...v1.93.1](https://github.com/openai/openai-python/compare/v1.93.0...v1.93.1)
+
+### Bug Fixes
+
+* **ci:** correct conditional ([de6a9ce](https://github.com/openai/openai-python/commit/de6a9ce078731d60b0bdc42a9322548c575f11a3))
+* **responses:** add missing arguments to parse ([05590ec](https://github.com/openai/openai-python/commit/05590ec2a96399afd05baf5a3ee1d9a744f09c40))
+
+
+### Chores
+
+* **ci:** change upload type ([cd4aa88](https://github.com/openai/openai-python/commit/cd4aa889c50581d861728c9606327992485f0d0d))
+* **ci:** only run for pushes and fork pull requests ([f89c7eb](https://github.com/openai/openai-python/commit/f89c7eb46c6f081254715d75543cbee3ffa83822))
+* **tests:** ensure parse method is in sync with create ([4f58e18](https://github.com/openai/openai-python/commit/4f58e187c12dc8b2c33e9cca284b0429e5cc4de5))
+
 ## 1.93.0 (2025-06-27)
 
 Full Changelog: [v1.92.3...v1.93.0](https://github.com/openai/openai-python/compare/v1.92.3...v1.93.0)

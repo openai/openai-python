@@ -9,6 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai._utils import assert_signatures_in_sync
 from openai.types.responses import (
     Response,
 )
@@ -338,6 +339,17 @@ class TestResponses:
             client.responses.with_raw_response.cancel(
                 "",
             )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
+        exclude_params={"stream", "tools"},
+    )
 
 
 class TestAsyncResponses:
