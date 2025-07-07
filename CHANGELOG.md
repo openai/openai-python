@@ -1,5 +1,25 @@
 # Changelog
 
+## 1.93.1 (2025-07-07)
+
+Full Changelog: [v1.93.0...v1.93.1](https://github.com/openai/openai-python/compare/v1.93.0...v1.93.1)
+
+### Bug Fixes
+
+* **ci:** correct conditional ([de6a9ce](https://github.com/openai/openai-python/commit/de6a9ce078731d60b0bdc42a9322548c575f11a3))
+* **responses:** add missing arguments to parse ([05590ec](https://github.com/openai/openai-python/commit/05590ec2a96399afd05baf5a3ee1d9a744f09c40))
+* **vector stores:** add missing arguments to files.create_and_poll ([3152134](https://github.com/openai/openai-python/commit/3152134510532ec7c522d6b50a820deea205b602))
+* **vector stores:** add missing arguments to files.upload_and_poll ([9d4f425](https://github.com/openai/openai-python/commit/9d4f42569d5b59311453b1b11ee1dd2e8a271268))
+
+
+### Chores
+
+* **ci:** change upload type ([cd4aa88](https://github.com/openai/openai-python/commit/cd4aa889c50581d861728c9606327992485f0d0d))
+* **ci:** only run for pushes and fork pull requests ([f89c7eb](https://github.com/openai/openai-python/commit/f89c7eb46c6f081254715d75543cbee3ffa83822))
+* **internal:** codegen related update ([bddb8d2](https://github.com/openai/openai-python/commit/bddb8d2091455920e8526068d64f3f8a5cac7ae6))
+* **tests:** ensure parse method is in sync with create ([4f58e18](https://github.com/openai/openai-python/commit/4f58e187c12dc8b2c33e9cca284b0429e5cc4de5))
+* **tests:** ensure vector store files create and poll method is in sync ([0fe75a2](https://github.com/openai/openai-python/commit/0fe75a28f6109b2d25b015dc99472a06693e0e9f))
+
 ## 1.93.0 (2025-06-27)
 
 Full Changelog: [v1.92.3...v1.93.0](https://github.com/openai/openai-python/compare/v1.92.3...v1.93.0)
