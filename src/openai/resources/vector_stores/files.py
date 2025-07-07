@@ -380,6 +380,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
@@ -390,6 +391,7 @@ class Files(SyncAPIResource):
             file_id=file_obj.id,
             chunking_strategy=chunking_strategy,
             poll_interval_ms=poll_interval_ms,
+            attributes=attributes,
         )
 
     def content(
@@ -788,6 +790,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
@@ -798,6 +801,7 @@ class AsyncFiles(AsyncAPIResource):
             file_id=file_obj.id,
             poll_interval_ms=poll_interval_ms,
             chunking_strategy=chunking_strategy,
+            attributes=attributes,
         )
 
     def content(
