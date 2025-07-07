@@ -304,11 +304,14 @@ class Files(SyncAPIResource):
         file_id: str,
         *,
         vector_store_id: str,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
-        self.create(vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy)
+        self.create(
+            vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy, attributes=attributes
+        )
 
         return self.poll(
             file_id,
@@ -707,11 +710,14 @@ class AsyncFiles(AsyncAPIResource):
         file_id: str,
         *,
         vector_store_id: str,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
-        await self.create(vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy)
+        await self.create(
+            vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy, attributes=attributes
+        )
 
         return await self.poll(
             file_id,
