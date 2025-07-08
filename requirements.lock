@@ -36,9 +36,9 @@ exceptiongroup==1.2.2
 frozenlist==1.6.2
     # via aiohttp
     # via aiosignal
-h11==0.14.0
+h11==0.16.0
     # via httpcore
-httpcore==1.0.2
+httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via httpx-aiohttp
