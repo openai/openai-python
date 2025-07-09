@@ -5,6 +5,7 @@ import inspect
 from typing import TYPE_CHECKING, Any, Type, Tuple, Union, Generic, TypeVar, Callable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import (
+    List,
     Unpack,
     Literal,
     ClassVar,
@@ -391,7 +392,7 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
     if type_ is None:
         raise RuntimeError(f"Unexpected field type is None for {key}")
 
-    return construct_type(value=value, type_=type_)
+    return construct_type(value=value, type_=type_, metadata=getattr(field, "metadata", None))
 
 
 def is_basemodel(type_: type) -> bool:
@@ -445,7 +446,7 @@ def construct_type_unchecked(*, value: object, type_: type[_T]) -> _T:
     return cast(_T, construct_type(value=value, type_=type_))
 
 
-def construct_type(*, value: object, type_: object) -> object:
+def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]] = None) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
     If the given value does not match the expected type then it is returned as-is.
@@ -463,8 +464,10 @@ def construct_type(*, value: object, type_: object) -> object:
         type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
-    if is_annotated_type(type_):
-        meta: tuple[Any, ...] = get_args(type_)[1:]
+    if metadata is not None:
+        meta: tuple[Any, ...] = tuple(metadata)
+    elif is_annotated_type(type_):
+        meta = get_args(type_)[1:]
         type_ = extract_type_arg(type_, 0)
     else:
         meta = tuple()
