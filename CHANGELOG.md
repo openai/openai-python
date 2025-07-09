@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.93.3 (2025-07-09)
+
+Full Changelog: [v1.93.2...v1.93.3](https://github.com/openai/openai-python/compare/v1.93.2...v1.93.3)
+
+### Bug Fixes
+
+* **parsing:** correctly handle nested discriminated unions ([fc8a677](https://github.com/openai/openai-python/commit/fc8a67715d8f1b45d8639b8b6f9f6590fe358734))
+
 ## 1.93.2 (2025-07-08)
 
 Full Changelog: [v1.93.1...v1.93.2](https://github.com/openai/openai-python/compare/v1.93.1...v1.93.2)
