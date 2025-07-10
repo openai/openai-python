@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.94.0 (2025-07-10)
+
+Full Changelog: [v1.93.3...v1.94.0](https://github.com/openai/openai-python/compare/v1.93.3...v1.94.0)
+
+### Features
+
+* **api:** return better error message on missing embedding ([#2369](https://github.com/openai/openai-python/issues/2369)) ([e53464a](https://github.com/openai/openai-python/commit/e53464ae95f6a041f3267762834e6156c5ce1b57))
+
 ## 1.93.3 (2025-07-09)
 
 Full Changelog: [v1.93.2...v1.93.3](https://github.com/openai/openai-python/compare/v1.93.2...v1.93.3)
