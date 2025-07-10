@@ -26,5 +26,5 @@ class ResponseOutputTextAnnotationAddedEvent(BaseModel):
     sequence_number: int
     """The sequence number of this event."""
 
-    type: Literal["response.output_text_annotation.added"]
-    """The type of the event. Always 'response.output_text_annotation.added'."""
+    type: Literal["response.output_text.annotation.added"]
+    """The type of the event. Always 'response.output_text.annotation.added'."""

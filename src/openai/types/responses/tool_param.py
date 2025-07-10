@@ -80,6 +80,9 @@ class Mcp(TypedDict, total=False):
     require_approval: Optional[McpRequireApproval]
     """Specify which of the MCP server's tools require approval."""
 
+    server_description: str
+    """Optional description of the MCP server, used to provide more context."""
+
 
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     type: Required[Literal["auto"]]
