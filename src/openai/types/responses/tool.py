@@ -79,6 +79,9 @@ class Mcp(BaseModel):
     require_approval: Optional[McpRequireApproval] = None
     """Specify which of the MCP server's tools require approval."""
 
+    server_description: Optional[str] = None
+    """Optional description of the MCP server, used to provide more context."""
+
 
 class CodeInterpreterContainerCodeInterpreterToolAuto(BaseModel):
     type: Literal["auto"]

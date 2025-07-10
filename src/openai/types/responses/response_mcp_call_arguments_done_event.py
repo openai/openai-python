@@ -20,5 +20,5 @@ class ResponseMcpCallArgumentsDoneEvent(BaseModel):
     sequence_number: int
     """The sequence number of this event."""
 
-    type: Literal["response.mcp_call.arguments_done"]
-    """The type of the event. Always 'response.mcp_call.arguments_done'."""
+    type: Literal["response.mcp_call_arguments.done"]
+    """The type of the event. Always 'response.mcp_call_arguments.done'."""
