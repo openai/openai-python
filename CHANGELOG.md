@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.95.0 (2025-07-10)
+
+Full Changelog: [v1.94.0...v1.95.0](https://github.com/openai/openai-python/compare/v1.94.0...v1.95.0)
+
+### Features
+
+* **api:** add file_url, fix event ID ([265e216](https://github.com/openai/openai-python/commit/265e216396196d66cdfb5f92c5ef1a2a6ff27b5b))
+
+
+### Chores
+
+* **readme:** fix version rendering on pypi ([1eee5ca](https://github.com/openai/openai-python/commit/1eee5cabf2fd93877cd3ba85d0c6ed2ffd5f159f))
+
 ## 1.94.0 (2025-07-10)
 
 Full Changelog: [v1.93.3...v1.94.0](https://github.com/openai/openai-python/compare/v1.93.3...v1.94.0)
