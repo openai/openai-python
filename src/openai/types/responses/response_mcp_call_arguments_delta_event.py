@@ -20,5 +20,5 @@ class ResponseMcpCallArgumentsDeltaEvent(BaseModel):
     sequence_number: int
     """The sequence number of this event."""
 
-    type: Literal["response.mcp_call.arguments_delta"]
-    """The type of the event. Always 'response.mcp_call.arguments_delta'."""
+    type: Literal["response.mcp_call_arguments.delta"]
+    """The type of the event. Always 'response.mcp_call_arguments.delta'."""

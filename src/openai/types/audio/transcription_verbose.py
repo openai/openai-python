@@ -11,7 +11,7 @@ __all__ = ["TranscriptionVerbose", "Usage"]
 
 
 class Usage(BaseModel):
-    duration: float
+    seconds: float
     """Duration of the input audio in seconds."""
 
     type: Literal["duration"]
