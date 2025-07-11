@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.95.1 (2025-07-11)
+
+Full Changelog: [v1.95.0...v1.95.1](https://github.com/openai/openai-python/compare/v1.95.0...v1.95.1)
+
+### Bug Fixes
+
+* **client:** don't send Content-Type header on GET requests ([182b763](https://github.com/openai/openai-python/commit/182b763065fbaaf68491a7e4a15fcb23cac361de))
+
 ## 1.95.0 (2025-07-10)
 
 Full Changelog: [v1.94.0...v1.95.0](https://github.com/openai/openai-python/compare/v1.94.0...v1.95.0)
