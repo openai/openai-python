@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Union, Mapping
+from typing import TYPE_CHECKING, Any, Union, Mapping, Callable, Awaitable
 from typing_extensions import Self, override
 
 import httpx
+
+from openai._models import FinalRequestOptions
 
 from . import _exceptions
 from ._qs import Querystring
@@ -95,6 +97,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        bearer_token_provider: Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -128,11 +131,12 @@ class OpenAI(SyncAPIClient):
         """
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
+        if api_key is None and bearer_token_provider is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        self.bearer_token_provider = bearer_token_provider
+        self.api_key = api_key or ''
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -165,6 +169,7 @@ class OpenAI(SyncAPIClient):
         )
 
         self._default_stream_cls = Stream
+        self._auth_headers: dict[str, str] = {}
 
     @cached_property
     def completions(self) -> Completions:
@@ -281,21 +286,26 @@ class OpenAI(SyncAPIClient):
     @cached_property
     def with_streaming_response(self) -> OpenAIWithStreamedResponse:
         return OpenAIWithStreamedResponse(self)
-
     @property
     @override
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    def refresh_auth_headers(self):
+        bearer_token = self.bearer_token_provider() if self.bearer_token_provider else self.api_key 
+        self._auth_headers = {"Authorization": f"Bearer {bearer_token}"}
+
+
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        self.refresh_auth_headers()
+        return super()._prepare_options(options)
+    
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        api_key = self.api_key
-        if not api_key:
-            # if the api key is an empty string, encoding the header will fail
-            return {}
-        return {"Authorization": f"Bearer {api_key}"}
-
+        return self._auth_headers
+    
     @property
     @override
     def default_headers(self) -> dict[str, str | Omit]:
@@ -420,6 +430,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        bearer_token_provider: Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -453,11 +464,12 @@ class AsyncOpenAI(AsyncAPIClient):
         """
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
+        if api_key is None and bearer_token_provider is None:
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        self.bearer_token_provider = bearer_token_provider
+        self.api_key = api_key or ''
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -490,6 +502,7 @@ class AsyncOpenAI(AsyncAPIClient):
         )
 
         self._default_stream_cls = AsyncStream
+        self._auth_headers: dict[str, str] = {}
 
     @cached_property
     def completions(self) -> AsyncCompletions:
@@ -612,14 +625,22 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    async def refresh_auth_headers(self):
+        if self.bearer_token_provider:
+            bearer_token = await self.bearer_token_provider()
+        else:
+            bearer_token = self.api_key
+        self._auth_headers = {"Authorization": f"Bearer {bearer_token}"}
+    
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        await self.refresh_auth_headers()
+        return await super()._prepare_options(options)
+        
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        api_key = self.api_key
-        if not api_key:
-            # if the api key is an empty string, encoding the header will fail
-            return {}
-        return {"Authorization": f"Bearer {api_key}"}
+        return self._auth_headers
 
     @property
     @override
