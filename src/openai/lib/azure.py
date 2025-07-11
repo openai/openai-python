@@ -614,7 +614,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
-        if self.api_key != "<missing API key>":
+        if self.api_key and self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
             token = await self._get_azure_ad_token()
