@@ -30,39 +30,50 @@ The primary API for interacting with OpenAI models is the [Responses API](https:
 import os
 from openai import OpenAI
 
-client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
-)
+# Initialize the OpenAI client with API key from environment
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-response = client.responses.create(
-    model="gpt-4o",
-    instructions="You are a coding assistant that talks like a pirate.",
-    input="How do I check if a Python object is an instance of a class?",
-)
+def call_ai(user_input: str, model="gpt-4o") -> str:
+    response = client.responses.create(
+        model=model,
+        instructions="You are a coding assistant that talks like a pirate.",
+        input=user_input,
+    )
+    return response.output_text
 
-print(response.output_text)
+# Usage
+Prompt = "How do I check if a Python object is an instance of a class?"
+
+response = call_ai(Prompt)
+print(response)
 ```
 
 The previous standard (supported indefinitely) for generating text is the [Chat Completions API](https://platform.openai.com/docs/api-reference/chat). You can use that API to generate text from the model with the code below.
 
 ```python
+import os
 from openai import OpenAI
 
-client = OpenAI()
+# Load API key from environment variable
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
-completion = client.chat.completions.create(
-    model="gpt-4o",
-    messages=[
-        {"role": "developer", "content": "Talk like a pirate."},
-        {
-            "role": "user",
-            "content": "How do I check if a Python object is an instance of a class?",
-        },
-    ],
-)
+# Function that calls the OpenAI Chat API
+def call_ai(user_prompt: str, model="gpt-4o") -> str:
+    messages = [
+        {"role": "system", "content": "Talk like a pirate."},
+        {"role": "user", "content": user_prompt},
+    ]
+    completion = client.chat.completions.create(
+        model=model,
+        messages=messages,
+    )
+    return completion.choices[0].message.content
 
-print(completion.choices[0].message.content)
+# Usage
+Prompt = "How do I check if a Python object is an instance of a class?"
+
+response = call_ai(Prompt)
+print(response)
 ```
 
 While you can provide an `api_key` keyword argument,
@@ -76,47 +87,71 @@ so that your API key is not stored in source control.
 With an image URL:
 
 ```python
+import os
+from openai import OpenAI
+
+# Initialize OpenAI client with API key from environment variable
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+
+def call_ai(prompt: str, image_url: str, model="gpt-4o-mini") -> str:
+    response = client.responses.create(
+        model=model,
+        input=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": prompt},
+                    {"type": "input_image", "image_url": image_url},
+                ],
+            }
+        ],
+    )
+    return response.output_text
+
+# Example usage
 prompt = "What is in this image?"
 img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
 
-response = client.responses.create(
-    model="gpt-4o-mini",
-    input=[
-        {
-            "role": "user",
-            "content": [
-                {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": f"{img_url}"},
-            ],
-        }
-    ],
-)
+response = call_ai(prompt, img_url)
+print(response)
 ```
 
 With the image as a base64 encoded string:
 
 ```python
+import os
 import base64
 from openai import OpenAI
 
-client = OpenAI()
+# Initialize OpenAI client using environment variable for API key
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
+def call_ai(prompt: str, image_path: str, model="gpt-4o-mini") -> str:
+    # Read and encode the image to base64
+    with open(image_path, "rb") as image_file:
+        b64_image = base64.b64encode(image_file.read()).decode("utf-8")
+
+    # Send prompt and image to the model
+    response = client.responses.create(
+        model=model,
+        input=[
+            {
+                "role": "user",
+                "content": [
+                    {"type": "input_text", "text": prompt},
+                    {"type": "input_image", "image_url": f"data:image/png;base64,{b64_image}"},
+                ],
+            }
+        ],
+    )
+    return response.output_text
+
+# Example usage
 prompt = "What is in this image?"
-with open("path/to/image.png", "rb") as image_file:
-    b64_image = base64.b64encode(image_file.read()).decode("utf-8")
+image_path = "path/to/image.png"
 
-response = client.responses.create(
-    model="gpt-4o-mini",
-    input=[
-        {
-            "role": "user",
-            "content": [
-                {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": f"data:image/png;base64,{b64_image}"},
-            ],
-        }
-    ],
-)
+response = call_ai(prompt, image_path)
+print(response)
 ```
 
 ## Async usage
