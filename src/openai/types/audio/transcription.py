@@ -46,7 +46,7 @@ class UsageTokens(BaseModel):
 
 
 class UsageDuration(BaseModel):
-    duration: float
+    seconds: float
     """Duration of the input audio in seconds."""
 
     type: Literal["duration"]

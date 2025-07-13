@@ -73,15 +73,15 @@ filelock==3.12.4
 frozenlist==1.7.0
     # via aiohttp
     # via aiosignal
-h11==0.14.0
+h11==0.16.0
     # via httpcore
-httpcore==1.0.2
+httpcore==1.0.9
     # via httpx
 httpx==0.28.1
     # via httpx-aiohttp
     # via openai
     # via respx
-httpx-aiohttp==0.1.6
+httpx-aiohttp==0.1.8
     # via openai
 idna==3.4
     # via anyio
