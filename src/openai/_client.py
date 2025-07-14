@@ -123,6 +123,8 @@ class OpenAI(SyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         """
+        if api_key and bearer_token_provider:
+            raise ValueError("The `api_key` and `bearer_token_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
         if api_key is None and bearer_token_provider is None:
@@ -299,6 +301,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        bearer_token_provider: Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
@@ -336,6 +339,7 @@ class OpenAI(SyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self.api_key,
+            bearer_token_provider = bearer_token_provider or self.bearer_token_provider,
             organization=organization or self.organization,
             project=project or self.project,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
@@ -435,6 +439,8 @@ class AsyncOpenAI(AsyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         """
+        if api_key and bearer_token_provider:
+            raise ValueError("The `api_key` and `bearer_token_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
         if api_key is None and bearer_token_provider is None:
@@ -613,6 +619,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        bearer_token_provider: Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
@@ -650,6 +657,7 @@ class AsyncOpenAI(AsyncAPIClient):
         http_client = http_client or self._client
         return self.__class__(
             api_key=api_key or self.api_key,
+            bearer_token_provider = bearer_token_provider or self.bearer_token_provider,
             organization=organization or self.organization,
             project=project or self.project,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
