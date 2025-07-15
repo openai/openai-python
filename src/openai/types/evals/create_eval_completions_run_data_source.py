@@ -26,6 +26,7 @@ __all__ = [
     "InputMessagesTemplateTemplateMessage",
     "InputMessagesTemplateTemplateMessageContent",
     "InputMessagesTemplateTemplateMessageContentOutputText",
+    "InputMessagesTemplateTemplateMessageContentInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
     "SamplingParamsResponseFormat",
@@ -94,14 +95,32 @@ class InputMessagesTemplateTemplateMessageContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
+class InputMessagesTemplateTemplateMessageContentInputImage(BaseModel):
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputText, InputMessagesTemplateTemplateMessageContentOutputText
+    str,
+    ResponseInputText,
+    InputMessagesTemplateTemplateMessageContentOutputText,
+    InputMessagesTemplateTemplateMessageContentInputImage,
+    List[object],
 ]
 
 
 class InputMessagesTemplateTemplateMessage(BaseModel):
     content: InputMessagesTemplateTemplateMessageContent
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.

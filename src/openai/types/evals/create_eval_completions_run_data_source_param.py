@@ -26,6 +26,7 @@ __all__ = [
     "InputMessagesTemplateTemplateMessage",
     "InputMessagesTemplateTemplateMessageContent",
     "InputMessagesTemplateTemplateMessageContentOutputText",
+    "InputMessagesTemplateTemplateMessageContentInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
     "SamplingParamsResponseFormat",
@@ -92,14 +93,32 @@ class InputMessagesTemplateTemplateMessageContentOutputText(TypedDict, total=Fal
     """The type of the output text. Always `output_text`."""
 
 
+class InputMessagesTemplateTemplateMessageContentInputImage(TypedDict, total=False):
+    image_url: Required[str]
+    """The URL of the image input."""
+
+    type: Required[Literal["input_image"]]
+    """The type of the image input. Always `input_image`."""
+
+    detail: str
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputTextParam, InputMessagesTemplateTemplateMessageContentOutputText
+    str,
+    ResponseInputTextParam,
+    InputMessagesTemplateTemplateMessageContentOutputText,
+    InputMessagesTemplateTemplateMessageContentInputImage,
+    Iterable[object],
 ]
 
 
 class InputMessagesTemplateTemplateMessage(TypedDict, total=False):
     content: Required[InputMessagesTemplateTemplateMessageContent]
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.
