@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.96.1 (2025-07-15)
+
+Full Changelog: [v1.96.0...v1.96.1](https://github.com/openai/openai-python/compare/v1.96.0...v1.96.1)
+
+### Chores
+
+* **api:** update realtime specs ([b68b71b](https://github.com/openai/openai-python/commit/b68b71b178719e0b49ecfe34486b9d9ac0627924))
+
 ## 1.96.0 (2025-07-15)
 
 Full Changelog: [v1.95.1...v1.96.0](https://github.com/openai/openai-python/compare/v1.95.1...v1.96.0)
