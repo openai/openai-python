@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.96.0 (2025-07-15)
+
+Full Changelog: [v1.95.1...v1.96.0](https://github.com/openai/openai-python/compare/v1.95.1...v1.96.0)
+
+### Features
+
+* clean up environment call outs ([87c2e97](https://github.com/openai/openai-python/commit/87c2e979e0ec37347b7f595c2696408acd25fe20))
+
+
+### Chores
+
+* **api:** update realtime specs, build config ([bf06d88](https://github.com/openai/openai-python/commit/bf06d88b33f9af82a51d9a8af5b7a38925906f7a))
+
 ## 1.95.1 (2025-07-11)
 
 Full Changelog: [v1.95.0...v1.95.1](https://github.com/openai/openai-python/compare/v1.95.0...v1.95.1)
