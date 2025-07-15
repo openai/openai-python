@@ -53,8 +53,8 @@ class ConversationItemWithReference(BaseModel):
     for `message` items.
     """
 
-    status: Optional[Literal["completed", "incomplete"]] = None
-    """The status of the item (`completed`, `incomplete`).
+    status: Optional[Literal["completed", "incomplete", "in_progress"]] = None
+    """The status of the item (`completed`, `incomplete`, `in_progress`).
 
     These have no effect on the conversation, but are accepted for consistency with
     the `conversation.item.created` event.

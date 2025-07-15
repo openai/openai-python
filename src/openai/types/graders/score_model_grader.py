@@ -6,7 +6,7 @@ from typing_extensions import Literal, TypeAlias
 from ..._models import BaseModel
 from ..responses.response_input_text import ResponseInputText
 
-__all__ = ["ScoreModelGrader", "Input", "InputContent", "InputContentOutputText"]
+__all__ = ["ScoreModelGrader", "Input", "InputContent", "InputContentOutputText", "InputContentInputImage"]
 
 
 class InputContentOutputText(BaseModel):
@@ -17,12 +17,26 @@ class InputContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
-InputContent: TypeAlias = Union[str, ResponseInputText, InputContentOutputText]
+class InputContentInputImage(BaseModel):
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
+InputContent: TypeAlias = Union[str, ResponseInputText, InputContentOutputText, InputContentInputImage, List[object]]
 
 
 class Input(BaseModel):
     content: InputContent
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.
