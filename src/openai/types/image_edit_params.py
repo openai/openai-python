@@ -8,10 +8,10 @@ from typing_extensions import Literal, Required, TypedDict
 from .._types import FileTypes
 from .image_model import ImageModel
 
-__all__ = ["ImageEditParams"]
+__all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
 
 
-class ImageEditParams(TypedDict, total=False):
+class ImageEditParamsBase(TypedDict, total=False):
     image: Required[Union[FileTypes, List[FileTypes]]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
@@ -38,6 +38,13 @@ class ImageEditParams(TypedDict, total=False):
 
     If `transparent`, the output format needs to support transparency, so it should
     be set to either `png` (default value) or `webp`.
+    """
+
+    input_fidelity: Optional[Literal["high", "low"]]
+    """
+    Control how much effort the model will exert to match the style and features,
+    especially facial features, of input images. This parameter is only supported
+    for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
     """
 
     mask: FileTypes
@@ -72,6 +79,14 @@ class ImageEditParams(TypedDict, total=False):
     `jpeg`, or `webp`. The default value is `png`.
     """
 
+    partial_images: Optional[int]
+    """The number of partial images to generate.
+
+    This parameter is used for streaming responses that return partial images. Value
+    must be between 0 and 3. When set to 0, the response will be a single image sent
+    in one streaming event.
+    """
+
     quality: Optional[Literal["standard", "low", "medium", "high", "auto"]]
     """The quality of the image that will be generated.
 
@@ -101,3 +116,26 @@ class ImageEditParams(TypedDict, total=False):
     and detect abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """
+
+
+class ImageEditParamsNonStreaming(ImageEditParamsBase, total=False):
+    stream: Optional[Literal[False]]
+    """Edit the image in streaming mode.
+
+    Defaults to `false`. See the
+    [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
+    for more information.
+    """
+
+
+class ImageEditParamsStreaming(ImageEditParamsBase):
+    stream: Required[Literal[True]]
+    """Edit the image in streaming mode.
+
+    Defaults to `false`. See the
+    [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
+    for more information.
+    """
+
+
+ImageEditParams = Union[ImageEditParamsNonStreaming, ImageEditParamsStreaming]
