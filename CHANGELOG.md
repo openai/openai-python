@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.97.0 (2025-07-16)
+
+Full Changelog: [v1.96.1...v1.97.0](https://github.com/openai/openai-python/compare/v1.96.1...v1.97.0)
+
+### Features
+
+* **api:** manual updates ([ed8e899](https://github.com/openai/openai-python/commit/ed8e89953d11bd5f44fa531422bdbb7a577ab426))
+
 ## 1.96.1 (2025-07-15)
 
 Full Changelog: [v1.96.0...v1.96.1](https://github.com/openai/openai-python/compare/v1.96.0...v1.96.1)
