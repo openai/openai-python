@@ -20,5 +20,8 @@ class ResponseRefusalDoneEvent(BaseModel):
     refusal: str
     """The refusal text that is finalized."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.refusal.done"]
     """The type of the event. Always `response.refusal.done`."""

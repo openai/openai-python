@@ -9,7 +9,10 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
-from openai.types.responses import Response
+from openai._utils import assert_signatures_in_sync
+from openai.types.responses import (
+    Response,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -19,23 +22,27 @@ class TestResponses:
 
     @parametrize
     def test_method_create_overload_1(self, client: OpenAI) -> None:
-        response = client.responses.create(
-            input="string",
-            model="gpt-4o",
-        )
+        response = client.responses.create()
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
+            background=True,
+            include=["code_interpreter_call.outputs"],
             input="string",
-            model="gpt-4o",
-            include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -49,20 +56,14 @@ class TestResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -71,10 +72,7 @@ class TestResponses:
 
     @parametrize
     def test_raw_response_create_overload_1(self, client: OpenAI) -> None:
-        http_response = client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
-        )
+        http_response = client.responses.with_raw_response.create()
 
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -83,10 +81,7 @@ class TestResponses:
 
     @parametrize
     def test_streaming_response_create_overload_1(self, client: OpenAI) -> None:
-        with client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
-        ) as http_response:
+        with client.responses.with_streaming_response.create() as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
@@ -98,8 +93,6 @@ class TestResponses:
     @parametrize
     def test_method_create_overload_2(self, client: OpenAI) -> None:
         response_stream = client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
         response_stream.response.close()
@@ -107,15 +100,22 @@ class TestResponses:
     @parametrize
     def test_method_create_with_all_params_overload_2(self, client: OpenAI) -> None:
         response_stream = client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
-            include=["file_search_call.results"],
+            background=True,
+            include=["code_interpreter_call.outputs"],
+            input="string",
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -128,20 +128,14 @@ class TestResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -151,8 +145,6 @@ class TestResponses:
     @parametrize
     def test_raw_response_create_overload_2(self, client: OpenAI) -> None:
         response = client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
 
@@ -163,8 +155,6 @@ class TestResponses:
     @parametrize
     def test_streaming_response_create_overload_2(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -176,22 +166,24 @@ class TestResponses:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    def test_method_retrieve(self, client: OpenAI) -> None:
+    def test_method_retrieve_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    def test_method_retrieve_with_all_params(self, client: OpenAI) -> None:
+    def test_method_retrieve_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
+            starting_after=0,
+            stream=False,
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    def test_raw_response_retrieve(self, client: OpenAI) -> None:
+    def test_raw_response_retrieve_overload_1(self, client: OpenAI) -> None:
         http_response = client.responses.with_raw_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
@@ -202,7 +194,7 @@ class TestResponses:
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    def test_streaming_response_retrieve(self, client: OpenAI) -> None:
+    def test_streaming_response_retrieve_overload_1(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         ) as http_response:
@@ -215,10 +207,61 @@ class TestResponses:
         assert cast(Any, http_response.is_closed) is True
 
     @parametrize
-    def test_path_params_retrieve(self, client: OpenAI) -> None:
+    def test_path_params_retrieve_overload_1(self, client: OpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
             client.responses.with_raw_response.retrieve(
                 response_id="",
+            )
+
+    @parametrize
+    def test_method_retrieve_overload_2(self, client: OpenAI) -> None:
+        response_stream = client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+        response_stream.response.close()
+
+    @parametrize
+    def test_method_retrieve_with_all_params_overload_2(self, client: OpenAI) -> None:
+        response_stream = client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+            include=["code_interpreter_call.outputs"],
+            starting_after=0,
+        )
+        response_stream.response.close()
+
+    @parametrize
+    def test_raw_response_retrieve_overload_2(self, client: OpenAI) -> None:
+        response = client.responses.with_raw_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        stream.close()
+
+    @parametrize
+    def test_streaming_response_retrieve_overload_2(self, client: OpenAI) -> None:
+        with client.responses.with_streaming_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = response.parse()
+            stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_retrieve_overload_2(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            client.responses.with_raw_response.retrieve(
+                response_id="",
+                stream=True,
             )
 
     @parametrize
@@ -259,29 +302,84 @@ class TestResponses:
                 "",
             )
 
+    @parametrize
+    def test_method_cancel(self, client: OpenAI) -> None:
+        response = client.responses.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+        assert_matches_type(Response, response, path=["response"])
+
+    @parametrize
+    def test_raw_response_cancel(self, client: OpenAI) -> None:
+        http_response = client.responses.with_raw_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+
+        assert http_response.is_closed is True
+        assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response = http_response.parse()
+        assert_matches_type(Response, response, path=["response"])
+
+    @parametrize
+    def test_streaming_response_cancel(self, client: OpenAI) -> None:
+        with client.responses.with_streaming_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        ) as http_response:
+            assert not http_response.is_closed
+            assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            response = http_response.parse()
+            assert_matches_type(Response, response, path=["response"])
+
+        assert cast(Any, http_response.is_closed) is True
+
+    @parametrize
+    def test_path_params_cancel(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            client.responses.with_raw_response.cancel(
+                "",
+            )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
+        exclude_params={"stream", "tools"},
+    )
+
 
 class TestAsyncResponses:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create_overload_1(self, async_client: AsyncOpenAI) -> None:
-        response = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
-        )
+        response = await async_client.responses.create()
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
+            background=True,
+            include=["code_interpreter_call.outputs"],
             input="string",
-            model="gpt-4o",
-            include=["file_search_call.results"],
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -295,20 +393,14 @@ class TestAsyncResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -317,10 +409,7 @@ class TestAsyncResponses:
 
     @parametrize
     async def test_raw_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
-        http_response = await async_client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
-        )
+        http_response = await async_client.responses.with_raw_response.create()
 
         assert http_response.is_closed is True
         assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -329,10 +418,7 @@ class TestAsyncResponses:
 
     @parametrize
     async def test_streaming_response_create_overload_1(self, async_client: AsyncOpenAI) -> None:
-        async with async_client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
-        ) as http_response:
+        async with async_client.responses.with_streaming_response.create() as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
 
@@ -344,8 +430,6 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response_stream = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
         await response_stream.response.aclose()
@@ -353,15 +437,22 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_create_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
         response_stream = await async_client.responses.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
-            include=["file_search_call.results"],
+            background=True,
+            include=["code_interpreter_call.outputs"],
+            input="string",
             instructions="instructions",
             max_output_tokens=0,
+            max_tool_calls=0,
             metadata={"foo": "string"},
+            model="gpt-4o",
             parallel_tool_calls=True,
             previous_response_id="previous_response_id",
+            prompt={
+                "id": "id",
+                "variables": {"foo": "string"},
+                "version": "version",
+            },
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
@@ -374,20 +465,14 @@ class TestAsyncResponses:
             tool_choice="none",
             tools=[
                 {
-                    "type": "file_search",
-                    "vector_store_ids": ["string"],
-                    "filters": {
-                        "key": "key",
-                        "type": "eq",
-                        "value": "string",
-                    },
-                    "max_num_results": 0,
-                    "ranking_options": {
-                        "ranker": "auto",
-                        "score_threshold": 0,
-                    },
+                    "name": "name",
+                    "parameters": {"foo": "bar"},
+                    "strict": True,
+                    "type": "function",
+                    "description": "description",
                 }
             ],
+            top_logprobs=0,
             top_p=1,
             truncation="auto",
             user="user-1234",
@@ -397,8 +482,6 @@ class TestAsyncResponses:
     @parametrize
     async def test_raw_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.with_raw_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         )
 
@@ -409,8 +492,6 @@ class TestAsyncResponses:
     @parametrize
     async def test_streaming_response_create_overload_2(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.create(
-            input="string",
-            model="gpt-4o",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -422,22 +503,24 @@ class TestAsyncResponses:
         assert cast(Any, response.is_closed) is True
 
     @parametrize
-    async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_method_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    async def test_method_retrieve_with_all_params(self, async_client: AsyncOpenAI) -> None:
+    async def test_method_retrieve_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["file_search_call.results"],
+            include=["code_interpreter_call.outputs"],
+            starting_after=0,
+            stream=False,
         )
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_raw_response_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         http_response = await async_client.responses.with_raw_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         )
@@ -448,7 +531,7 @@ class TestAsyncResponses:
         assert_matches_type(Response, response, path=["response"])
 
     @parametrize
-    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_streaming_response_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
         ) as http_response:
@@ -461,10 +544,61 @@ class TestAsyncResponses:
         assert cast(Any, http_response.is_closed) is True
 
     @parametrize
-    async def test_path_params_retrieve(self, async_client: AsyncOpenAI) -> None:
+    async def test_path_params_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
             await async_client.responses.with_raw_response.retrieve(
                 response_id="",
+            )
+
+    @parametrize
+    async def test_method_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response_stream = await async_client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+        await response_stream.response.aclose()
+
+    @parametrize
+    async def test_method_retrieve_with_all_params_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response_stream = await async_client.responses.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+            include=["code_interpreter_call.outputs"],
+            starting_after=0,
+        )
+        await response_stream.response.aclose()
+
+    @parametrize
+    async def test_raw_response_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.responses.with_raw_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        )
+
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        stream = response.parse()
+        await stream.close()
+
+    @parametrize
+    async def test_streaming_response_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.responses.with_streaming_response.retrieve(
+            response_id="resp_677efb5139a88190b512bc3fef8e535d",
+            stream=True,
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            stream = await response.parse()
+            await stream.close()
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_retrieve_overload_2(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            await async_client.responses.with_raw_response.retrieve(
+                response_id="",
+                stream=True,
             )
 
     @parametrize
@@ -502,5 +636,43 @@ class TestAsyncResponses:
     async def test_path_params_delete(self, async_client: AsyncOpenAI) -> None:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
             await async_client.responses.with_raw_response.delete(
+                "",
+            )
+
+    @parametrize
+    async def test_method_cancel(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.responses.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+        assert_matches_type(Response, response, path=["response"])
+
+    @parametrize
+    async def test_raw_response_cancel(self, async_client: AsyncOpenAI) -> None:
+        http_response = await async_client.responses.with_raw_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        )
+
+        assert http_response.is_closed is True
+        assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+        response = http_response.parse()
+        assert_matches_type(Response, response, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_cancel(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.responses.with_streaming_response.cancel(
+            "resp_677efb5139a88190b512bc3fef8e535d",
+        ) as http_response:
+            assert not http_response.is_closed
+            assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            response = await http_response.parse()
+            assert_matches_type(Response, response, path=["response"])
+
+        assert cast(Any, http_response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_cancel(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `response_id` but received ''"):
+            await async_client.responses.with_raw_response.cancel(
                 "",
             )

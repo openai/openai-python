@@ -531,6 +531,15 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # work around https://github.com/encode/httpx/discussions/2880
             kwargs["extensions"] = {"sni_hostname": prepared_url.host.replace("_", "-")}
 
+        is_body_allowed = options.method.lower() != "get"
+
+        if is_body_allowed:
+            kwargs["json"] = json_data if is_given(json_data) else None
+            kwargs["files"] = files
+        else:
+            headers.pop("Content-Type", None)
+            kwargs.pop("data", None)
+
         # TODO: report this error to httpx
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
             headers=headers,
@@ -542,8 +551,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # so that passing a `TypedDict` doesn't cause an error.
             # https://github.com/microsoft/pyright/issues/3526#event-6715453066
             params=self.qs.stringify(cast(Mapping[str, Any], params)) if params else None,
-            json=json_data if is_given(json_data) else None,
-            files=files,
             **kwargs,
         )
 
@@ -962,6 +969,9 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             if self.custom_auth is not None:
                 kwargs["auth"] = self.custom_auth
 
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+
             log.debug("Sending HTTP Request: %s %s", request.method, request.url)
 
             response = None
@@ -1085,7 +1095,14 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
         origin = get_origin(cast_to) or cast_to
 
-        if inspect.isclass(origin) and issubclass(origin, BaseAPIResponse):
+        if (
+            inspect.isclass(origin)
+            and issubclass(origin, BaseAPIResponse)
+            # we only want to actually return the custom BaseAPIResponse class if we're
+            # returning the raw response, or if we're not streaming SSE, as if we're streaming
+            # SSE then `cast_to` doesn't actively reflect the type we need to parse into
+            and (not stream or bool(response.request.headers.get(RAW_RESPONSE_HEADER)))
+        ):
             if not issubclass(origin, APIResponse):
                 raise TypeError(f"API Response types must subclass {APIResponse}; Received {origin}")
 
@@ -1296,6 +1313,24 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         super().__init__(**kwargs)
 
 
+try:
+    import httpx_aiohttp
+except ImportError:
+
+    class _DefaultAioHttpClient(httpx.AsyncClient):
+        def __init__(self, **_kwargs: Any) -> None:
+            raise RuntimeError("To use the aiohttp client you must have installed the package with the `aiohttp` extra")
+else:
+
+    class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
+        def __init__(self, **kwargs: Any) -> None:
+            kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+            kwargs.setdefault("follow_redirects", True)
+
+            super().__init__(**kwargs)
+
+
 if TYPE_CHECKING:
     DefaultAsyncHttpxClient = httpx.AsyncClient
     """An alias to `httpx.AsyncClient` that provides the same defaults that this SDK
@@ -1304,8 +1339,12 @@ if TYPE_CHECKING:
     This is useful because overriding the `http_client` with your own instance of
     `httpx.AsyncClient` will result in httpx's defaults being used, not ours.
     """
+
+    DefaultAioHttpClient = httpx.AsyncClient
+    """An alias to `httpx.AsyncClient` that changes the default HTTP transport to `aiohttp`."""
 else:
     DefaultAsyncHttpxClient = _DefaultAsyncHttpxClient
+    DefaultAioHttpClient = _DefaultAioHttpClient
 
 
 class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
@@ -1477,6 +1516,9 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             if self.custom_auth is not None:
                 kwargs["auth"] = self.custom_auth
 
+            if options.follow_redirects is not None:
+                kwargs["follow_redirects"] = options.follow_redirects
+
             log.debug("Sending HTTP Request: %s %s", request.method, request.url)
 
             response = None
@@ -1600,7 +1642,14 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
         origin = get_origin(cast_to) or cast_to
 
-        if inspect.isclass(origin) and issubclass(origin, BaseAPIResponse):
+        if (
+            inspect.isclass(origin)
+            and issubclass(origin, BaseAPIResponse)
+            # we only want to actually return the custom BaseAPIResponse class if we're
+            # returning the raw response, or if we're not streaming SSE, as if we're streaming
+            # SSE then `cast_to` doesn't actively reflect the type we need to parse into
+            and (not stream or bool(response.request.headers.get(RAW_RESPONSE_HEADER)))
+        ):
             if not issubclass(origin, AsyncAPIResponse):
                 raise TypeError(f"API Response types must subclass {AsyncAPIResponse}; Received {origin}")
 

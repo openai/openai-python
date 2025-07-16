@@ -65,7 +65,7 @@ class LocalAudioPlayer:
             if input.dtype == np.int16 and self.dtype == np.float32:
                 audio_content = (input.astype(np.float32) / 32767.0).reshape(-1, self.channels)
             elif input.dtype == np.float32:
-                audio_content = cast('npt.NDArray[np.float32]', input)
+                audio_content = cast("npt.NDArray[np.float32]", input)
             else:
                 raise ValueError(f"Unsupported dtype: {input.dtype}")
         else:

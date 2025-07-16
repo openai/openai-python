@@ -7,10 +7,13 @@ from .tool import Tool
 from ..._models import BaseModel
 from .response_error import ResponseError
 from .response_usage import ResponseUsage
+from .response_prompt import ResponsePrompt
 from .response_status import ResponseStatus
+from .tool_choice_mcp import ToolChoiceMcp
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
 from .tool_choice_types import ToolChoiceTypes
+from .response_input_item import ResponseInputItem
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
@@ -25,7 +28,7 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction]
+ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp]
 
 
 class Response(BaseModel):
@@ -41,10 +44,8 @@ class Response(BaseModel):
     incomplete_details: Optional[IncompleteDetails] = None
     """Details about why the response is incomplete."""
 
-    instructions: Optional[str] = None
-    """
-    Inserts a system (or developer) message as the first item in the model's
-    context.
+    instructions: Union[str, List[ResponseInputItem], None] = None
+    """A system (or developer) message inserted into the model's context.
 
     When using along with `previous_response_id`, the instructions from a previous
     response will not be carried over to the next response. This makes it simple to
@@ -128,11 +129,25 @@ class Response(BaseModel):
     We generally recommend altering this or `temperature` but not both.
     """
 
+    background: Optional[bool] = None
+    """Whether to run the model response in the background.
+
+    [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
     max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
     [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    max_tool_calls: Optional[int] = None
+    """
+    The maximum number of total calls to built-in tools that can be processed in a
+    response. This maximum number applies across all built-in tool calls, not per
+    individual tool. Any further attempts to call a tool by the model will be
+    ignored.
     """
 
     previous_response_id: Optional[str] = None
@@ -142,6 +157,12 @@ class Response(BaseModel):
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
     """
 
+    prompt: Optional[ResponsePrompt] = None
+    """Reference to a prompt template and its variables.
+
+    [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
+    """
+
     reasoning: Optional[Reasoning] = None
     """**o-series models only**
 
@@ -149,31 +170,31 @@ class Response(BaseModel):
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex"]] = None
-    """Specifies the latency tier to use for processing the request.
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
+    """Specifies the processing type used for serving the request.
 
-    This parameter is relevant for customers subscribed to the scale tier service:
-
-    - If set to 'auto', and the Project is Scale tier enabled, the system will
-      utilize scale tier credits until they are exhausted.
-    - If set to 'auto', and the Project is not Scale tier enabled, the request will
-      be processed using the default service tier with a lower uptime SLA and no
-      latency guarentee.
-    - If set to 'default', the request will be processed using the default service
-      tier with a lower uptime SLA and no latency guarentee.
-    - If set to 'flex', the request will be processed with the Flex Processing
-      service tier.
-      [Learn more](https://platform.openai.com/docs/guides/flex-processing).
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'.
+    - If set to 'default', then the requset will be processed with the standard
+      pricing and performance for the selected model.
+    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
+      'priority', then the request will be processed with the corresponding service
+      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
+      Priority processing.
     - When not set, the default behavior is 'auto'.
 
-    When this parameter is set, the response body will include the `service_tier`
-    utilized.
+    When the `service_tier` parameter is set, the response body will include the
+    `service_tier` value based on the processing mode actually used to serve the
+    request. This response value may be different from the value set in the
+    parameter.
     """
 
     status: Optional[ResponseStatus] = None
     """The status of the response generation.
 
-    One of `completed`, `failed`, `in_progress`, or `incomplete`.
+    One of `completed`, `failed`, `in_progress`, `cancelled`, `queued`, or
+    `incomplete`.
     """
 
     text: Optional[ResponseTextConfig] = None
@@ -183,6 +204,12 @@ class Response(BaseModel):
 
     - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
     - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    """
+
+    top_logprobs: Optional[int] = None
+    """
+    An integer between 0 and 20 specifying the number of most likely tokens to
+    return at each token position, each with an associated log probability.
     """
 
     truncation: Optional[Literal["auto", "disabled"]] = None
@@ -202,9 +229,10 @@ class Response(BaseModel):
     """
 
     user: Optional[str] = None
-    """
-    A unique identifier representing your end-user, which can help OpenAI to monitor
-    and detect abuse.
+    """A stable identifier for your end-users.
+
+    Used to boost cache hit rates by better bucketing similar requests and to help
+    OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """
 

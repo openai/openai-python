@@ -18,7 +18,9 @@ from .parsed_response import (
     ParsedResponseOutputMessage as ParsedResponseOutputMessage,
     ParsedResponseFunctionToolCall as ParsedResponseFunctionToolCall,
 )
+from .response_prompt import ResponsePrompt as ResponsePrompt
 from .response_status import ResponseStatus as ResponseStatus
+from .tool_choice_mcp import ToolChoiceMcp as ToolChoiceMcp
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
@@ -28,6 +30,7 @@ from .computer_tool_param import ComputerToolParam as ComputerToolParam
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
+from .response_input_item import ResponseInputItem as ResponseInputItem
 from .response_input_text import ResponseInputText as ResponseInputText
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
@@ -38,7 +41,10 @@ from .response_output_text import ResponseOutputText as ResponseOutputText
 from .response_text_config import ResponseTextConfig as ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction as ToolChoiceFunction
 from .response_failed_event import ResponseFailedEvent as ResponseFailedEvent
+from .response_prompt_param import ResponsePromptParam as ResponsePromptParam
+from .response_queued_event import ResponseQueuedEvent as ResponseQueuedEvent
 from .response_stream_event import ResponseStreamEvent as ResponseStreamEvent
+from .tool_choice_mcp_param import ToolChoiceMcpParam as ToolChoiceMcpParam
 from .web_search_tool_param import WebSearchToolParam as WebSearchToolParam
 from .file_search_tool_param import FileSearchToolParam as FileSearchToolParam
 from .input_item_list_params import InputItemListParams as InputItemListParams
@@ -75,8 +81,11 @@ from .response_input_content_param import ResponseInputContentParam as ResponseI
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent as ResponseRefusalDeltaEvent
 from .response_output_message_param import ResponseOutputMessageParam as ResponseOutputMessageParam
 from .response_output_refusal_param import ResponseOutputRefusalParam as ResponseOutputRefusalParam
+from .response_reasoning_done_event import ResponseReasoningDoneEvent as ResponseReasoningDoneEvent
 from .response_reasoning_item_param import ResponseReasoningItemParam as ResponseReasoningItemParam
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
+from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
+from .response_reasoning_delta_event import ResponseReasoningDeltaEvent as ResponseReasoningDeltaEvent
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent as ResponseContentPartDoneEvent
 from .response_function_tool_call_item import ResponseFunctionToolCallItem as ResponseFunctionToolCallItem
@@ -85,14 +94,25 @@ from .response_computer_tool_call_param import ResponseComputerToolCallParam as 
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
 from .response_format_text_config_param import ResponseFormatTextConfigParam as ResponseFormatTextConfigParam
 from .response_function_tool_call_param import ResponseFunctionToolCallParam as ResponseFunctionToolCallParam
+from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent as ResponseMcpCallCompletedEvent
 from .response_function_web_search_param import ResponseFunctionWebSearchParam as ResponseFunctionWebSearchParam
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall as ResponseCodeInterpreterToolCall
 from .response_input_message_content_list import ResponseInputMessageContentList as ResponseInputMessageContentList
+from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent as ResponseMcpCallInProgressEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent as ResponseAudioTranscriptDoneEvent
 from .response_file_search_tool_call_param import ResponseFileSearchToolCallParam as ResponseFileSearchToolCallParam
-from .response_text_annotation_delta_event import ResponseTextAnnotationDeltaEvent as ResponseTextAnnotationDeltaEvent
+from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent as ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import (
     ResponseAudioTranscriptDeltaEvent as ResponseAudioTranscriptDeltaEvent,
+)
+from .response_reasoning_summary_done_event import (
+    ResponseReasoningSummaryDoneEvent as ResponseReasoningSummaryDoneEvent,
+)
+from .response_mcp_call_arguments_done_event import (
+    ResponseMcpCallArgumentsDoneEvent as ResponseMcpCallArgumentsDoneEvent,
+)
+from .response_reasoning_summary_delta_event import (
+    ResponseReasoningSummaryDeltaEvent as ResponseReasoningSummaryDeltaEvent,
 )
 from .response_computer_tool_call_output_item import (
     ResponseComputerToolCallOutputItem as ResponseComputerToolCallOutputItem,
@@ -103,11 +123,26 @@ from .response_format_text_json_schema_config import (
 from .response_function_tool_call_output_item import (
     ResponseFunctionToolCallOutputItem as ResponseFunctionToolCallOutputItem,
 )
+from .response_image_gen_call_completed_event import (
+    ResponseImageGenCallCompletedEvent as ResponseImageGenCallCompletedEvent,
+)
+from .response_mcp_call_arguments_delta_event import (
+    ResponseMcpCallArgumentsDeltaEvent as ResponseMcpCallArgumentsDeltaEvent,
+)
+from .response_mcp_list_tools_completed_event import (
+    ResponseMcpListToolsCompletedEvent as ResponseMcpListToolsCompletedEvent,
+)
+from .response_image_gen_call_generating_event import (
+    ResponseImageGenCallGeneratingEvent as ResponseImageGenCallGeneratingEvent,
+)
 from .response_web_search_call_completed_event import (
     ResponseWebSearchCallCompletedEvent as ResponseWebSearchCallCompletedEvent,
 )
 from .response_web_search_call_searching_event import (
     ResponseWebSearchCallSearchingEvent as ResponseWebSearchCallSearchingEvent,
+)
+from .response_code_interpreter_tool_call_param import (
+    ResponseCodeInterpreterToolCallParam as ResponseCodeInterpreterToolCallParam,
 )
 from .response_file_search_call_completed_event import (
     ResponseFileSearchCallCompletedEvent as ResponseFileSearchCallCompletedEvent,
@@ -115,8 +150,14 @@ from .response_file_search_call_completed_event import (
 from .response_file_search_call_searching_event import (
     ResponseFileSearchCallSearchingEvent as ResponseFileSearchCallSearchingEvent,
 )
+from .response_image_gen_call_in_progress_event import (
+    ResponseImageGenCallInProgressEvent as ResponseImageGenCallInProgressEvent,
+)
 from .response_input_message_content_list_param import (
     ResponseInputMessageContentListParam as ResponseInputMessageContentListParam,
+)
+from .response_mcp_list_tools_in_progress_event import (
+    ResponseMcpListToolsInProgressEvent as ResponseMcpListToolsInProgressEvent,
 )
 from .response_reasoning_summary_part_done_event import (
     ResponseReasoningSummaryPartDoneEvent as ResponseReasoningSummaryPartDoneEvent,
@@ -132,6 +173,12 @@ from .response_file_search_call_in_progress_event import (
 )
 from .response_function_call_arguments_done_event import (
     ResponseFunctionCallArgumentsDoneEvent as ResponseFunctionCallArgumentsDoneEvent,
+)
+from .response_image_gen_call_partial_image_event import (
+    ResponseImageGenCallPartialImageEvent as ResponseImageGenCallPartialImageEvent,
+)
+from .response_output_text_annotation_added_event import (
+    ResponseOutputTextAnnotationAddedEvent as ResponseOutputTextAnnotationAddedEvent,
 )
 from .response_reasoning_summary_part_added_event import (
     ResponseReasoningSummaryPartAddedEvent as ResponseReasoningSummaryPartAddedEvent,

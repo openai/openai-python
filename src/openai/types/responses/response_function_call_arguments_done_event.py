@@ -17,4 +17,7 @@ class ResponseFunctionCallArgumentsDoneEvent(BaseModel):
     output_index: int
     """The index of the output item."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     type: Literal["response.function_call_arguments.done"]

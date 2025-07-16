@@ -6,8 +6,12 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
+from ..chat.chat_completion_tool import ChatCompletionTool
+from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
 from ..responses.response_input_text import ResponseInputText
+from ..shared.response_format_json_object import ResponseFormatJSONObject
+from ..shared.response_format_json_schema import ResponseFormatJSONSchema
 
 __all__ = [
     "CreateEvalCompletionsRunDataSource",
@@ -22,8 +26,10 @@ __all__ = [
     "InputMessagesTemplateTemplateMessage",
     "InputMessagesTemplateTemplateMessageContent",
     "InputMessagesTemplateTemplateMessageContentOutputText",
+    "InputMessagesTemplateTemplateMessageContentInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
+    "SamplingParamsResponseFormat",
 ]
 
 
@@ -89,14 +95,32 @@ class InputMessagesTemplateTemplateMessageContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
+class InputMessagesTemplateTemplateMessageContentInputImage(BaseModel):
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputText, InputMessagesTemplateTemplateMessageContentOutputText
+    str,
+    ResponseInputText,
+    InputMessagesTemplateTemplateMessageContentOutputText,
+    InputMessagesTemplateTemplateMessageContentInputImage,
+    List[object],
 ]
 
 
 class InputMessagesTemplateTemplateMessage(BaseModel):
     content: InputMessagesTemplateTemplateMessageContent
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.
@@ -136,16 +160,39 @@ InputMessages: TypeAlias = Annotated[
     Union[InputMessagesTemplate, InputMessagesItemReference], PropertyInfo(discriminator="type")
 ]
 
+SamplingParamsResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, ResponseFormatJSONObject]
+
 
 class SamplingParams(BaseModel):
     max_completion_tokens: Optional[int] = None
     """The maximum number of tokens in the generated output."""
+
+    response_format: Optional[SamplingParamsResponseFormat] = None
+    """An object specifying the format that the model must output.
+
+    Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
+    Outputs which ensures the model will match your supplied JSON schema. Learn more
+    in the
+    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
+    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+    ensures the message the model generates is valid JSON. Using `json_schema` is
+    preferred for models that support it.
+    """
 
     seed: Optional[int] = None
     """A seed value to initialize the randomness, during sampling."""
 
     temperature: Optional[float] = None
     """A higher temperature increases randomness in the outputs."""
+
+    tools: Optional[List[ChatCompletionTool]] = None
+    """A list of tools the model may call.
+
+    Currently, only functions are supported as a tool. Use this to provide a list of
+    functions the model may generate JSON inputs for. A max of 128 functions are
+    supported.
+    """
 
     top_p: Optional[float] = None
     """An alternative to temperature for nucleus sampling; 1.0 includes all tokens."""

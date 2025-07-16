@@ -17,6 +17,9 @@ class ResponseReasoningSummaryTextDeltaEvent(BaseModel):
     output_index: int
     """The index of the output item this summary text delta is associated with."""
 
+    sequence_number: int
+    """The sequence number of this event."""
+
     summary_index: int
     """The index of the summary part within the reasoning summary."""
 

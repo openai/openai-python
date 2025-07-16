@@ -60,10 +60,10 @@ class RealtimeResponse(BaseModel):
     output_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
     """The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`."""
 
-    status: Optional[Literal["completed", "cancelled", "failed", "incomplete"]] = None
+    status: Optional[Literal["completed", "cancelled", "failed", "incomplete", "in_progress"]] = None
     """
     The final status of the response (`completed`, `cancelled`, `failed`, or
-    `incomplete`).
+    `incomplete`, `in_progress`).
     """
 
     status_details: Optional[RealtimeResponseStatus] = None

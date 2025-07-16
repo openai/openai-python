@@ -7,6 +7,14 @@ from ..._utils import PropertyInfo
 from .response import Response
 from ..._models import GenericModel
 from ..._utils._transform import PropertyInfo
+from .response_output_item import (
+    McpCall,
+    McpListTools,
+    LocalShellCall,
+    McpApprovalRequest,
+    ImageGenerationCall,
+    LocalShellCallAction,
+)
 from .response_output_text import ResponseOutputText
 from .response_output_message import ResponseOutputMessage
 from .response_output_refusal import ResponseOutputRefusal
@@ -15,6 +23,7 @@ from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
 from .response_function_web_search import ResponseFunctionWebSearch
 from .response_file_search_tool_call import ResponseFileSearchToolCall
+from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 
 __all__ = ["ParsedResponse", "ParsedResponseOutputMessage", "ParsedResponseOutputText"]
 
@@ -46,6 +55,8 @@ class ParsedResponseOutputMessage(ResponseOutputMessage, GenericModel, Generic[C
 class ParsedResponseFunctionToolCall(ResponseFunctionToolCall):
     parsed_arguments: object = None
 
+    __api_exclude__ = {"parsed_arguments"}
+
 
 ParsedResponseOutputItem: TypeAlias = Annotated[
     Union[
@@ -55,6 +66,13 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         ResponseFunctionWebSearch,
         ResponseComputerToolCall,
         ResponseReasoningItem,
+        McpCall,
+        McpApprovalRequest,
+        ImageGenerationCall,
+        LocalShellCall,
+        LocalShellCallAction,
+        McpListTools,
+        ResponseCodeInterpreterToolCall,
     ],
     PropertyInfo(discriminator="type"),
 ]

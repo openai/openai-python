@@ -8,10 +8,12 @@ from pydantic import Field as FieldInfo
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .eval_api_error import EvalAPIError
+from ..responses.tool import Tool
 from ..shared.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text import ResponseInputText
 from .create_eval_jsonl_run_data_source import CreateEvalJSONLRunDataSource
+from ..responses.response_format_text_config import ResponseFormatTextConfig
 from .create_eval_completions_run_data_source import CreateEvalCompletionsRunDataSource
 
 __all__ = [
@@ -30,8 +32,10 @@ __all__ = [
     "DataSourceResponsesInputMessagesTemplateTemplateEvalItem",
     "DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent",
     "DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText",
+    "DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage",
     "DataSourceResponsesInputMessagesItemReference",
     "DataSourceResponsesSamplingParams",
+    "DataSourceResponsesSamplingParamsText",
     "PerModelUsage",
     "PerTestingCriteriaResult",
     "ResultCounts",
@@ -135,14 +139,32 @@ class DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText(
     """The type of the output text. Always `output_text`."""
 
 
+class DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
-    str, ResponseInputText, DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText
+    str,
+    ResponseInputText,
+    DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText,
+    DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage,
+    List[object],
 ]
 
 
 class DataSourceResponsesInputMessagesTemplateTemplateEvalItem(BaseModel):
     content: DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.
@@ -185,6 +207,24 @@ DataSourceResponsesInputMessages: TypeAlias = Annotated[
 ]
 
 
+class DataSourceResponsesSamplingParamsText(BaseModel):
+    format: Optional[ResponseFormatTextConfig] = None
+    """An object specifying the format that the model must output.
+
+    Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
+    ensures the model will match your supplied JSON schema. Learn more in the
+    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
+    The default format is `{ "type": "text" }` with no additional options.
+
+    **Not recommended for gpt-4o and newer models:**
+
+    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+    ensures the message the model generates is valid JSON. Using `json_schema` is
+    preferred for models that support it.
+    """
+
+
 class DataSourceResponsesSamplingParams(BaseModel):
     max_completion_tokens: Optional[int] = None
     """The maximum number of tokens in the generated output."""
@@ -194,6 +234,33 @@ class DataSourceResponsesSamplingParams(BaseModel):
 
     temperature: Optional[float] = None
     """A higher temperature increases randomness in the outputs."""
+
+    text: Optional[DataSourceResponsesSamplingParamsText] = None
+    """Configuration options for a text response from the model.
+
+    Can be plain text or structured JSON data. Learn more:
+
+    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    """
+
+    tools: Optional[List[Tool]] = None
+    """An array of tools the model may call while generating a response.
+
+    You can specify which tool to use by setting the `tool_choice` parameter.
+
+    The two categories of tools you can provide the model are:
+
+    - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
+      capabilities, like
+      [web search](https://platform.openai.com/docs/guides/tools-web-search) or
+      [file search](https://platform.openai.com/docs/guides/tools-file-search).
+      Learn more about
+      [built-in tools](https://platform.openai.com/docs/guides/tools).
+    - **Function calls (custom tools)**: Functions that are defined by you, enabling
+      the model to call your own code. Learn more about
+      [function calling](https://platform.openai.com/docs/guides/function-calling).
+    """
 
     top_p: Optional[float] = None
     """An alternative to temperature for nucleus sampling; 1.0 includes all tokens."""

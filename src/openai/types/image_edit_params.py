@@ -16,7 +16,7 @@ class ImageEditParams(TypedDict, total=False):
     """The image(s) to edit. Must be a supported image file or an array of images.
 
     For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than
-    25MB. You can provide up to 16 images.
+    50MB. You can provide up to 16 images.
 
     For `dall-e-2`, you can only provide one image, and it should be a square `png`
     file less than 4MB.
@@ -57,6 +57,20 @@ class ImageEditParams(TypedDict, total=False):
 
     n: Optional[int]
     """The number of images to generate. Must be between 1 and 10."""
+
+    output_compression: Optional[int]
+    """The compression level (0-100%) for the generated images.
+
+    This parameter is only supported for `gpt-image-1` with the `webp` or `jpeg`
+    output formats, and defaults to 100.
+    """
+
+    output_format: Optional[Literal["png", "jpeg", "webp"]]
+    """The format in which the generated images are returned.
+
+    This parameter is only supported for `gpt-image-1`. Must be one of `png`,
+    `jpeg`, or `webp`. The default value is `png`.
+    """
 
     quality: Optional[Literal["standard", "low", "medium", "high", "auto"]]
     """The quality of the image that will be generated.

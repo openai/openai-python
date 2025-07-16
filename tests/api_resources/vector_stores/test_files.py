@@ -9,6 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncPage, AsyncPage, SyncCursorPage, AsyncCursorPage
 from openai.types.vector_stores import (
     VectorStoreFile,
@@ -323,7 +324,9 @@ class TestFiles:
 
 
 class TestAsyncFiles:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -623,3 +626,25 @@ class TestAsyncFiles:
                 file_id="",
                 vector_store_id="vs_abc123",
             )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_create_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.vector_stores.files.create,
+        checking_client.vector_stores.files.create_and_poll,
+        exclude_params={"extra_headers", "extra_query", "extra_body", "timeout"},
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_upload_and_poll_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.vector_stores.files.create,
+        checking_client.vector_stores.files.upload_and_poll,
+        exclude_params={"file_id", "extra_headers", "extra_query", "extra_body", "timeout"},
+    )

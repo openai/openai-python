@@ -34,11 +34,13 @@ class ResponseStream(Generic[TextFormatT]):
         raw_stream: Stream[RawResponseStreamEvent],
         text_format: type[TextFormatT] | NotGiven,
         input_tools: Iterable[ToolParam] | NotGiven,
+        starting_after: int | None,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
         self._iterator = self.__stream__()
         self._state = ResponseStreamState(text_format=text_format, input_tools=input_tools)
+        self._starting_after = starting_after
 
     def __next__(self) -> ResponseStreamEvent[TextFormatT]:
         return self._iterator.__next__()
@@ -54,7 +56,8 @@ class ResponseStream(Generic[TextFormatT]):
         for sse_event in self._raw_stream:
             events_to_fire = self._state.handle_event(sse_event)
             for event in events_to_fire:
-                yield event
+                if self._starting_after is None or event.sequence_number > self._starting_after:
+                    yield event
 
     def __exit__(
         self,
@@ -96,11 +99,13 @@ class ResponseStreamManager(Generic[TextFormatT]):
         *,
         text_format: type[TextFormatT] | NotGiven,
         input_tools: Iterable[ToolParam] | NotGiven,
+        starting_after: int | None,
     ) -> None:
         self.__stream: ResponseStream[TextFormatT] | None = None
         self.__api_request = api_request
         self.__text_format = text_format
         self.__input_tools = input_tools
+        self.__starting_after = starting_after
 
     def __enter__(self) -> ResponseStream[TextFormatT]:
         raw_stream = self.__api_request()
@@ -109,6 +114,7 @@ class ResponseStreamManager(Generic[TextFormatT]):
             raw_stream=raw_stream,
             text_format=self.__text_format,
             input_tools=self.__input_tools,
+            starting_after=self.__starting_after,
         )
 
         return self.__stream
@@ -130,11 +136,13 @@ class AsyncResponseStream(Generic[TextFormatT]):
         raw_stream: AsyncStream[RawResponseStreamEvent],
         text_format: type[TextFormatT] | NotGiven,
         input_tools: Iterable[ToolParam] | NotGiven,
+        starting_after: int | None,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
         self._iterator = self.__stream__()
         self._state = ResponseStreamState(text_format=text_format, input_tools=input_tools)
+        self._starting_after = starting_after
 
     async def __anext__(self) -> ResponseStreamEvent[TextFormatT]:
         return await self._iterator.__anext__()
@@ -147,7 +155,8 @@ class AsyncResponseStream(Generic[TextFormatT]):
         async for sse_event in self._raw_stream:
             events_to_fire = self._state.handle_event(sse_event)
             for event in events_to_fire:
-                yield event
+                if self._starting_after is None or event.sequence_number > self._starting_after:
+                    yield event
 
     async def __aenter__(self) -> Self:
         return self
@@ -192,11 +201,13 @@ class AsyncResponseStreamManager(Generic[TextFormatT]):
         *,
         text_format: type[TextFormatT] | NotGiven,
         input_tools: Iterable[ToolParam] | NotGiven,
+        starting_after: int | None,
     ) -> None:
         self.__stream: AsyncResponseStream[TextFormatT] | None = None
         self.__api_request = api_request
         self.__text_format = text_format
         self.__input_tools = input_tools
+        self.__starting_after = starting_after
 
     async def __aenter__(self) -> AsyncResponseStream[TextFormatT]:
         raw_stream = await self.__api_request
@@ -205,6 +216,7 @@ class AsyncResponseStreamManager(Generic[TextFormatT]):
             raw_stream=raw_stream,
             text_format=self.__text_format,
             input_tools=self.__input_tools,
+            starting_after=self.__starting_after,
         )
 
         return self.__stream
@@ -251,6 +263,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     delta=event.delta,
                     item_id=event.item_id,
                     output_index=event.output_index,
+                    sequence_number=event.sequence_number,
                     type="response.output_text.delta",
                     snapshot=content.text,
                 )
@@ -268,6 +281,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     content_index=event.content_index,
                     item_id=event.item_id,
                     output_index=event.output_index,
+                    sequence_number=event.sequence_number,
                     type="response.output_text.done",
                     text=event.text,
                     parsed=parse_text(event.text, text_format=self._text_format),
@@ -283,6 +297,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     delta=event.delta,
                     item_id=event.item_id,
                     output_index=event.output_index,
+                    sequence_number=event.sequence_number,
                     type="response.function_call_arguments.delta",
                     snapshot=output.arguments,
                 )
@@ -295,6 +310,7 @@ class ResponseStreamState(Generic[TextFormatT]):
             events.append(
                 build(
                     ResponseCompletedEvent,
+                    sequence_number=event.sequence_number,
                     type="response.completed",
                     response=response,
                 )

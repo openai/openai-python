@@ -5,9 +5,28 @@ from __future__ import annotations
 from typing import Iterable
 from typing_extensions import Literal, TypedDict
 
-from .conversation_item_content_param import ConversationItemContentParam
+__all__ = ["ConversationItemWithReferenceParam", "Content"]
 
-__all__ = ["ConversationItemWithReferenceParam"]
+
+class Content(TypedDict, total=False):
+    id: str
+    """
+    ID of a previous conversation item to reference (for `item_reference` content
+    types in `response.create` events). These can reference both client and server
+    created items.
+    """
+
+    audio: str
+    """Base64-encoded audio bytes, used for `input_audio` content type."""
+
+    text: str
+    """The text content, used for `input_text` and `text` content types."""
+
+    transcript: str
+    """The transcript of the audio, used for `input_audio` content type."""
+
+    type: Literal["input_text", "input_audio", "item_reference", "text"]
+    """The content type (`input_text`, `input_audio`, `item_reference`, `text`)."""
 
 
 class ConversationItemWithReferenceParam(TypedDict, total=False):
@@ -31,7 +50,7 @@ class ConversationItemWithReferenceParam(TypedDict, total=False):
     `function_call` item with the same ID exists in the conversation history.
     """
 
-    content: Iterable[ConversationItemContentParam]
+    content: Iterable[Content]
     """The content of the message, applicable for `message` items.
 
     - Message items of role `system` support only `input_text` content
@@ -54,8 +73,8 @@ class ConversationItemWithReferenceParam(TypedDict, total=False):
     for `message` items.
     """
 
-    status: Literal["completed", "incomplete"]
-    """The status of the item (`completed`, `incomplete`).
+    status: Literal["completed", "incomplete", "in_progress"]
+    """The status of the item (`completed`, `incomplete`, `in_progress`).
 
     These have no effect on the conversation, but are accepted for consistency with
     the `conversation.item.created` event.

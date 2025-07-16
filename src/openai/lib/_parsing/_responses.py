@@ -103,6 +103,13 @@ def parse_response(
             or output.type == "file_search_call"
             or output.type == "web_search_call"
             or output.type == "reasoning"
+            or output.type == "mcp_call"
+            or output.type == "mcp_approval_request"
+            or output.type == "image_generation_call"
+            or output.type == "code_interpreter_call"
+            or output.type == "local_shell_call"
+            or output.type == "mcp_list_tools"
+            or output.type == "exec"
         ):
             output_list.append(output)
         elif TYPE_CHECKING:  # type: ignore

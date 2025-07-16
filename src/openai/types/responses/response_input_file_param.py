@@ -18,5 +18,8 @@ class ResponseInputFileParam(TypedDict, total=False):
     file_id: Optional[str]
     """The ID of the file to be sent to the model."""
 
+    file_url: str
+    """The URL of the file to be sent to the model."""
+
     filename: str
     """The name of the file to be sent to the model."""
