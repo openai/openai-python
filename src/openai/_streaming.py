@@ -387,9 +387,10 @@ def is_stream_class_type(typ: type) -> TypeGuard[type[Stream[object]] | type[Asy
 
 def is_valid_event(event: str | None) -> bool:
     """Given an event fieldname, checks if it is a response, transcript, or None"""
+    VALID_EVENTS = ("response", "transcript", "image_edit", "image_generation")
     if event is None:
         return True
-    if event in ("response", "transcript") or event.startswith("response.") or event.startswith("transcript."):
+    if event in VALID_EVENTS or any(event.startswith(f"{e}.") for e in VALID_EVENTS):
         return True
     return False
 
