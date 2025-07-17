@@ -11,8 +11,8 @@ class InputAudio(TypedDict, total=False):
     data: Required[str]
     """Base64 encoded audio data."""
 
-    format: Required[Literal["wav", "mp3"]]
-    """The format of the encoded audio data. Currently supports "wav" and "mp3"."""
+    format: Required[Literal["amr", "wav", "mp3"]]
+    """The format of the encoded audio data. Currently supports "amr", "wav" and "mp3"."""
 
 
 class ChatCompletionContentPartInputAudioParam(TypedDict, total=False):
