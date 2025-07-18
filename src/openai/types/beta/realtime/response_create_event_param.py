@@ -24,7 +24,7 @@ class ResponseTool(TypedDict, total=False):
     parameters: object
     """Parameters of the function in JSON Schema."""
 
-    type: Literal["function"]
+    type: Literal["function"] = "function"
     """The type of the tool, i.e. `function`."""
 
 
