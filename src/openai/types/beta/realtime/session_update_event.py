@@ -223,7 +223,8 @@ class Session(BaseModel):
     To disable audio, set this to ["text"].
     """
 
-    model: Optional[
+    model: Union[
+        str,
         Literal[
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -231,7 +232,8 @@ class Session(BaseModel):
             "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
-        ]
+        ],
+        None
     ] = None
     """The Realtime model used for this session."""
 
