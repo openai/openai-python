@@ -35,5 +35,5 @@ class ConversationItemInputAudioTranscriptionFailedEvent(BaseModel):
     item_id: str
     """The ID of the user message item."""
 
-    type: Literal["conversation.item.input_audio_transcription.failed"]
+    type: Literal["conversation.item.input_audio_transcription.failed"] = "conversation.item.input_audio_transcription.failed"
     """The event type, must be `conversation.item.input_audio_transcription.failed`."""

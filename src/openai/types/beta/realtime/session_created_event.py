@@ -15,5 +15,5 @@ class SessionCreatedEvent(BaseModel):
     session: Session
     """Realtime session object configuration."""
 
-    type: Literal["session.created"]
+    type: Literal["session.created"] = "session.created"
     """The event type, must be `session.created`."""

@@ -12,7 +12,7 @@ class ConversationItemDeleteEvent(BaseModel):
     item_id: str
     """The ID of the item to delete."""
 
-    type: Literal["conversation.item.delete"]
+    type: Literal["conversation.item.delete"] = "conversation.item.delete"
     """The event type, must be `conversation.item.delete`."""
 
     event_id: Optional[str] = None

@@ -21,5 +21,5 @@ class InputAudioBufferSpeechStoppedEvent(BaseModel):
     item_id: str
     """The ID of the user message item that will be created."""
 
-    type: Literal["input_audio_buffer.speech_stopped"]
+    type: Literal["input_audio_buffer.speech_stopped"] = "input_audio_buffer.speech_stopped"
     """The event type, must be `input_audio_buffer.speech_stopped`."""

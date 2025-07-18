@@ -41,5 +41,5 @@ class ResponseContentPartAddedEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.content_part.added"]
+    type: Literal["response.content_part.added"] = "response.content_part.added"
     """The event type, must be `response.content_part.added`."""

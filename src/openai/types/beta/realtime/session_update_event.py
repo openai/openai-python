@@ -309,7 +309,7 @@ class SessionUpdateEvent(BaseModel):
     session: Session
     """Realtime session object configuration."""
 
-    type: Literal["session.update"]
+    type: Literal["session.update"] = "session.update"
     """The event type, must be `session.update`."""
 
     event_id: Optional[str] = None

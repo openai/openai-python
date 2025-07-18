@@ -41,5 +41,5 @@ class ResponseContentPartDoneEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.content_part.done"]
+    type: Literal["response.content_part.done"] = "response.content_part.done"
     """The event type, must be `response.content_part.done`."""

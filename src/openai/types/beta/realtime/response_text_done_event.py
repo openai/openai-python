@@ -26,5 +26,5 @@ class ResponseTextDoneEvent(BaseModel):
     text: str
     """The final text content."""
 
-    type: Literal["response.text.done"]
+    type: Literal["response.text.done"] = "response.text.done"
     """The event type, must be `response.text.done`."""
