@@ -439,7 +439,7 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
         type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
-    if metadata is not None:
+    if metadata is not None and len(metadata) > 0:
         meta: tuple[Any, ...] = tuple(metadata)
     elif is_annotated_type(type_):
         meta = get_args(type_)[1:]
