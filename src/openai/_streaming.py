@@ -76,8 +76,10 @@ class Stream(Generic[_T]):
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
+                
             else:
                 data = sse.json()
+
                 if sse.event == "error" and is_mapping(data) and data.get("error"):
                     message = None
                     error = data.get("error")
