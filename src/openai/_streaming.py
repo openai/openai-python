@@ -59,13 +59,25 @@ class Stream(Generic[_T]):
             if sse.data.startswith("[DONE]"):
                 break
 
-            if sse.event is None or (
-                sse.event.startswith("response.") or 
-                sse.event.startswith("transcript.") or 
-                sse.event.startswith("image_edit.") or 
-                sse.event.startswith("image_generation.")
-            ):
-                data = sse.json()
+            data = sse.json()
+            if sse.event is not None and sse.event == "error":
+                if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    message = None
+                    error = data.get("error")
+                    if is_mapping(error):
+                        message = error.get("message")
+                    if not message or not isinstance(message, str):
+                        message = "An error occurred during streaming"
+
+                    raise APIError(
+                        message=message,
+                        request=self.response.request,
+                        body=data["error"],
+                    )
+            elif sse.event is not None and sse.event.startswith("thread."):
+                # have to manually create part of the event since we don't have a full event
+                yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
+            else:
                 if is_mapping(data) and data.get("error"):
                     message = None
                     error = data.get("error")
@@ -81,25 +93,6 @@ class Stream(Generic[_T]):
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
-
-            else:
-                data = sse.json()
-
-                if sse.event == "error" and is_mapping(data) and data.get("error"):
-                    message = None
-                    error = data.get("error")
-                    if is_mapping(error):
-                        message = error.get("message")
-                    if not message or not isinstance(message, str):
-                        message = "An error occurred during streaming"
-
-                    raise APIError(
-                        message=message,
-                        request=self.response.request,
-                        body=data["error"],
-                    )
-
-                yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
 
         # Ensure the entire stream is consumed
         for _sse in iterator:
