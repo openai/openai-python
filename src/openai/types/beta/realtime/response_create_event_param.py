@@ -102,14 +102,12 @@ class Response(TypedDict, total=False):
     tools: Iterable[ResponseTool]
     """Tools (functions) available to the model."""
 
-    voice: Union[
-        str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-    ]
+    voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
     """The voice the model uses to respond.
 
     Voice cannot be changed during the session once the model has responded with
     audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and `verse`.
+    `coral`, `echo`, `sage`, `shimmer`, and `verse`.
     """
 
 

@@ -17,9 +17,7 @@ from .response_audio_delta_event import ResponseAudioDeltaEvent
 from .response_in_progress_event import ResponseInProgressEvent
 from .response_refusal_done_event import ResponseRefusalDoneEvent
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent
-from .response_reasoning_done_event import ResponseReasoningDoneEvent
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent
-from .response_reasoning_delta_event import ResponseReasoningDeltaEvent
 from .response_output_item_done_event import ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent
 from .response_output_item_added_event import ResponseOutputItemAddedEvent
@@ -111,8 +109,6 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseMcpListToolsInProgressEvent,
         ResponseOutputTextAnnotationAddedEvent,
         ResponseQueuedEvent,
-        ResponseReasoningDeltaEvent,
-        ResponseReasoningDoneEvent,
         ResponseReasoningSummaryDeltaEvent,
         ResponseReasoningSummaryDoneEvent,
     ],
