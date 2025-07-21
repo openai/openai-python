@@ -264,6 +264,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     item_id=event.item_id,
                     output_index=event.output_index,
                     sequence_number=event.sequence_number,
+                    logprobs=event.logprobs,
                     type="response.output_text.delta",
                     snapshot=content.text,
                 )
@@ -282,6 +283,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     item_id=event.item_id,
                     output_index=event.output_index,
                     sequence_number=event.sequence_number,
+                    logprobs=event.logprobs,
                     type="response.output_text.done",
                     text=event.text,
                     parsed=parse_text(event.text, text_format=self._text_format),

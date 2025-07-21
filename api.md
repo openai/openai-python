@@ -791,8 +791,6 @@ from openai.types.responses import (
     ResponseOutputTextAnnotationAddedEvent,
     ResponsePrompt,
     ResponseQueuedEvent,
-    ResponseReasoningDeltaEvent,
-    ResponseReasoningDoneEvent,
     ResponseReasoningItem,
     ResponseReasoningSummaryDeltaEvent,
     ResponseReasoningSummaryDoneEvent,

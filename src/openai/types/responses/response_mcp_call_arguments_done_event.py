@@ -8,8 +8,8 @@ __all__ = ["ResponseMcpCallArgumentsDoneEvent"]
 
 
 class ResponseMcpCallArgumentsDoneEvent(BaseModel):
-    arguments: object
-    """The finalized arguments for the MCP tool call."""
+    arguments: str
+    """A JSON string containing the finalized arguments for the MCP tool call."""
 
     item_id: str
     """The unique identifier of the MCP tool call item being processed."""
