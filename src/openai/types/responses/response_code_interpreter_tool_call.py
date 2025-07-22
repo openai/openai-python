@@ -45,7 +45,11 @@ class ResponseCodeInterpreterToolCall(BaseModel):
     """
 
     status: Literal["in_progress", "completed", "incomplete", "interpreting", "failed"]
-    """The status of the code interpreter tool call."""
+    """The status of the code interpreter tool call.
+
+    Valid values are `in_progress`, `completed`, `incomplete`, `interpreting`, and
+    `failed`.
+    """
 
     type: Literal["code_interpreter_call"]
     """The type of the code interpreter tool call. Always `code_interpreter_call`."""
