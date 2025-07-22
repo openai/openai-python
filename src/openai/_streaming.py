@@ -76,7 +76,7 @@ class Stream(Generic[_T]):
                     )
 
                 yield process_data(data=data, cast_to=cast_to, response=response)
-                
+
             else:
                 data = sse.json()
 
