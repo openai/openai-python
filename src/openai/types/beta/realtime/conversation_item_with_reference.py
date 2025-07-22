@@ -4,9 +4,29 @@ from typing import List, Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
-from .conversation_item_content import ConversationItemContent
 
-__all__ = ["ConversationItemWithReference"]
+__all__ = ["ConversationItemWithReference", "Content"]
+
+
+class Content(BaseModel):
+    id: Optional[str] = None
+    """
+    ID of a previous conversation item to reference (for `item_reference` content
+    types in `response.create` events). These can reference both client and server
+    created items.
+    """
+
+    audio: Optional[str] = None
+    """Base64-encoded audio bytes, used for `input_audio` content type."""
+
+    text: Optional[str] = None
+    """The text content, used for `input_text` and `text` content types."""
+
+    transcript: Optional[str] = None
+    """The transcript of the audio, used for `input_audio` content type."""
+
+    type: Optional[Literal["input_text", "input_audio", "item_reference", "text"]] = None
+    """The content type (`input_text`, `input_audio`, `item_reference`, `text`)."""
 
 
 class ConversationItemWithReference(BaseModel):
@@ -30,7 +50,7 @@ class ConversationItemWithReference(BaseModel):
     `function_call` item with the same ID exists in the conversation history.
     """
 
-    content: Optional[List[ConversationItemContent]] = None
+    content: Optional[List[Content]] = None
     """The content of the message, applicable for `message` items.
 
     - Message items of role `system` support only `input_text` content
@@ -53,8 +73,8 @@ class ConversationItemWithReference(BaseModel):
     for `message` items.
     """
 
-    status: Optional[Literal["completed", "incomplete"]] = None
-    """The status of the item (`completed`, `incomplete`).
+    status: Optional[Literal["completed", "incomplete", "in_progress"]] = None
+    """The status of the item (`completed`, `incomplete`, `in_progress`).
 
     These have no effect on the conversation, but are accepted for consistency with
     the `conversation.item.created` event.

@@ -80,6 +80,9 @@ class Mcp(TypedDict, total=False):
     require_approval: Optional[McpRequireApproval]
     """Specify which of the MCP server's tools require approval."""
 
+    server_description: str
+    """Optional description of the MCP server, used to provide more context."""
+
 
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     type: Required[Literal["auto"]]
@@ -120,6 +123,13 @@ class ImageGeneration(TypedDict, total=False):
     """Background type for the generated image.
 
     One of `transparent`, `opaque`, or `auto`. Default: `auto`.
+    """
+
+    input_fidelity: Optional[Literal["high", "low"]]
+    """
+    Control how much effort the model will exert to match the style and features,
+    especially facial features, of input images. This parameter is only supported
+    for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
     """
 
     input_image_mask: ImageGenerationInputImageMask

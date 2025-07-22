@@ -8,8 +8,11 @@ __all__ = ["ResponseMcpCallArgumentsDeltaEvent"]
 
 
 class ResponseMcpCallArgumentsDeltaEvent(BaseModel):
-    delta: object
-    """The partial update to the arguments for the MCP tool call."""
+    delta: str
+    """
+    A JSON string containing the partial update to the arguments for the MCP tool
+    call.
+    """
 
     item_id: str
     """The unique identifier of the MCP tool call item being processed."""
@@ -20,5 +23,5 @@ class ResponseMcpCallArgumentsDeltaEvent(BaseModel):
     sequence_number: int
     """The sequence number of this event."""
 
-    type: Literal["response.mcp_call.arguments_delta"]
-    """The type of the event. Always 'response.mcp_call.arguments_delta'."""
+    type: Literal["response.mcp_call_arguments.delta"]
+    """The type of the event. Always 'response.mcp_call_arguments.delta'."""

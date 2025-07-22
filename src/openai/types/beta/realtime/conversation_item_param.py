@@ -51,8 +51,8 @@ class ConversationItemParam(TypedDict, total=False):
     for `message` items.
     """
 
-    status: Literal["completed", "incomplete"]
-    """The status of the item (`completed`, `incomplete`).
+    status: Literal["completed", "incomplete", "in_progress"]
+    """The status of the item (`completed`, `incomplete`, `in_progress`).
 
     These have no effect on the conversation, but are accepted for consistency with
     the `conversation.item.created` event.
