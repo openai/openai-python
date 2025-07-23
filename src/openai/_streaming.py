@@ -93,7 +93,7 @@ class Stream(Generic[_T]):
                         request=self.response.request,
                         body=data["error"],
                     )
-                # have to manually create part of the event since we don't have a full event
+                # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
                 yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
 
         # Ensure the entire stream is consumed
