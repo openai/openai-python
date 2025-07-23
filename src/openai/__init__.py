@@ -116,6 +116,8 @@ from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
 
+bearer_token_provider: _t.Callable[[], str] | None = None
+
 organization: str | None = None
 
 project: str | None = None
@@ -159,6 +161,17 @@ class _ModuleClient(OpenAI):
         global api_key
 
         api_key = value
+
+    @property  # type: ignore
+    @override
+    def bearer_token_provider(self) -> _t.Callable[[], str] | None:
+        return bearer_token_provider
+
+    @bearer_token_provider.setter  # type: ignore
+    def bearer_token_provider(self, value: _t.Callable[[], str] | None) -> None:  # type: ignore
+        global bearer_token_provider
+
+        bearer_token_provider = value
 
     @property  # type: ignore
     @override
@@ -332,6 +345,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
 
         _client = _ModuleClient(
             api_key=api_key,
+            bearer_token_provider=bearer_token_provider,
             organization=organization,
             project=project,
             base_url=base_url,

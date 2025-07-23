@@ -15,6 +15,7 @@ from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 def reset_state() -> None:
     openai._reset_client()
     openai.api_key = None or "My API Key"
+    openai.bearer_token_provider = None
     openai.organization = None
     openai.project = None
     openai.base_url = None
@@ -96,6 +97,17 @@ def test_http_client_option() -> None:
     assert openai.completions._client._client is new_client
 
 
+def test_bearer_token_provider_option() -> None:
+    assert openai.bearer_token_provider is None
+    assert openai.completions._client.bearer_token_provider is None
+
+    openai.bearer_token_provider = lambda: "foo"
+
+    assert openai.bearer_token_provider() == "foo"
+    assert openai.completions._client.bearer_token_provider
+    assert openai.completions._client.bearer_token_provider() == "foo"
+
+
 import contextlib
 from typing import Iterator
 
@@ -120,6 +132,27 @@ def test_only_api_key_results_in_openai_api() -> None:
         openai.api_key = "example API key"
 
         assert type(openai.completions._client).__name__ == "_ModuleClient"
+
+
+def test_only_bearer_token_provider_in_openai_api() -> None:
+    with fresh_env():
+        openai.api_type = None
+        openai.api_key = None
+        openai.bearer_token_provider = lambda: "example bearer token"
+
+        assert type(openai.completions._client).__name__ == "_ModuleClient"
+
+
+def test_both_api_key_and_bearer_token_provider_in_openai_api() -> None:
+    with fresh_env():
+        openai.api_key = "example API key"
+        openai.bearer_token_provider = lambda: "example bearer token"
+
+        with pytest.raises(
+            ValueError,
+            match=r"The `api_key` and `bearer_token_provider` arguments are mutually exclusive",
+        ):
+            openai.completions._client  # noqa: B018
 
 
 def test_azure_api_key_env_without_api_version() -> None:
