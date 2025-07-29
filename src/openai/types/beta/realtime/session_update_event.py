@@ -9,7 +9,7 @@ __all__ = [
     "SessionUpdateEvent",
     "Session",
     "SessionClientSecret",
-    "SessionClientSecretExpiresAt",
+    "SessionClientSecretExpiresAfter",
     "SessionInputAudioNoiseReduction",
     "SessionInputAudioTranscription",
     "SessionTool",
@@ -19,8 +19,8 @@ __all__ = [
 ]
 
 
-class SessionClientSecretExpiresAt(BaseModel):
-    anchor: Optional[Literal["created_at"]] = None
+class SessionClientSecretExpiresAfter(BaseModel):
+    anchor: Literal["created_at"]
     """The anchor point for the ephemeral token expiration.
 
     Only `created_at` is currently supported.
@@ -34,7 +34,7 @@ class SessionClientSecretExpiresAt(BaseModel):
 
 
 class SessionClientSecret(BaseModel):
-    expires_at: Optional[SessionClientSecretExpiresAt] = None
+    expires_after: Optional[SessionClientSecretExpiresAfter] = None
     """Configuration for the ephemeral token expiration."""
 
 
@@ -290,16 +290,12 @@ class Session(BaseModel):
     natural conversations, but may have a higher latency.
     """
 
-    voice: Union[
-        str,
-        Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"],
-        None,
-    ] = None
+    voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"], None] = None
     """The voice the model uses to respond.
 
     Voice cannot be changed during the session once the model has responded with
     audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and `verse`.
+    `coral`, `echo`, `sage`, `shimmer`, and `verse`.
     """
 
 

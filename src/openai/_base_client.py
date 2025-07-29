@@ -531,6 +531,15 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # work around https://github.com/encode/httpx/discussions/2880
             kwargs["extensions"] = {"sni_hostname": prepared_url.host.replace("_", "-")}
 
+        is_body_allowed = options.method.lower() != "get"
+
+        if is_body_allowed:
+            kwargs["json"] = json_data if is_given(json_data) else None
+            kwargs["files"] = files
+        else:
+            headers.pop("Content-Type", None)
+            kwargs.pop("data", None)
+
         # TODO: report this error to httpx
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
             headers=headers,
@@ -542,8 +551,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # so that passing a `TypedDict` doesn't cause an error.
             # https://github.com/microsoft/pyright/issues/3526#event-6715453066
             params=self.qs.stringify(cast(Mapping[str, Any], params)) if params else None,
-            json=json_data if is_given(json_data) else None,
-            files=files,
             **kwargs,
         )
 
@@ -1306,6 +1313,24 @@ class _DefaultAsyncHttpxClient(httpx.AsyncClient):
         super().__init__(**kwargs)
 
 
+try:
+    import httpx_aiohttp
+except ImportError:
+
+    class _DefaultAioHttpClient(httpx.AsyncClient):
+        def __init__(self, **_kwargs: Any) -> None:
+            raise RuntimeError("To use the aiohttp client you must have installed the package with the `aiohttp` extra")
+else:
+
+    class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
+        def __init__(self, **kwargs: Any) -> None:
+            kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+            kwargs.setdefault("follow_redirects", True)
+
+            super().__init__(**kwargs)
+
+
 if TYPE_CHECKING:
     DefaultAsyncHttpxClient = httpx.AsyncClient
     """An alias to `httpx.AsyncClient` that provides the same defaults that this SDK
@@ -1314,8 +1339,12 @@ if TYPE_CHECKING:
     This is useful because overriding the `http_client` with your own instance of
     `httpx.AsyncClient` will result in httpx's defaults being used, not ours.
     """
+
+    DefaultAioHttpClient = httpx.AsyncClient
+    """An alias to `httpx.AsyncClient` that changes the default HTTP transport to `aiohttp`."""
 else:
     DefaultAsyncHttpxClient = _DefaultAsyncHttpxClient
+    DefaultAioHttpClient = _DefaultAioHttpClient
 
 
 class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):

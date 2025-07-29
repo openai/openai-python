@@ -44,6 +44,7 @@ class TestSpeech:
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
+            stream_format="sse",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -83,7 +84,9 @@ class TestSpeech:
 
 
 class TestAsyncSpeech:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
@@ -108,6 +111,7 @@ class TestAsyncSpeech:
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
+            stream_format="sse",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}

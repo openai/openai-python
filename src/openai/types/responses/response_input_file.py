@@ -18,5 +18,8 @@ class ResponseInputFile(BaseModel):
     file_id: Optional[str] = None
     """The ID of the file to be sent to the model."""
 
+    file_url: Optional[str] = None
+    """The URL of the file to be sent to the model."""
+
     filename: Optional[str] = None
     """The name of the file to be sent to the model."""

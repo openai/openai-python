@@ -5,6 +5,7 @@ import inspect
 from typing import TYPE_CHECKING, Any, Type, Tuple, Union, Generic, TypeVar, Callable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import (
+    List,
     Unpack,
     Literal,
     ClassVar,
@@ -232,14 +233,18 @@ class BaseModel(pydantic.BaseModel):
             else:
                 fields_values[name] = field_get_default(field)
 
+        extra_field_type = _get_extra_fields_type(__cls)
+
         _extra = {}
         for key, value in values.items():
             if key not in model_fields:
+                parsed = construct_type(value=value, type_=extra_field_type) if extra_field_type is not None else value
+
                 if PYDANTIC_V2:
-                    _extra[key] = value
+                    _extra[key] = parsed
                 else:
                     _fields_set.add(key)
-                    fields_values[key] = value
+                    fields_values[key] = parsed
 
         object.__setattr__(m, "__dict__", fields_values)
 
@@ -391,7 +396,24 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
     if type_ is None:
         raise RuntimeError(f"Unexpected field type is None for {key}")
 
-    return construct_type(value=value, type_=type_)
+    return construct_type(value=value, type_=type_, metadata=getattr(field, "metadata", None))
+
+
+def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
+    if not PYDANTIC_V2:
+        # TODO
+        return None
+
+    schema = cls.__pydantic_core_schema__
+    if schema["type"] == "model":
+        fields = schema["schema"]
+        if fields["type"] == "model-fields":
+            extras = fields.get("extras_schema")
+            if extras and "cls" in extras:
+                # mypy can't narrow the type
+                return extras["cls"]  # type: ignore[no-any-return]
+
+    return None
 
 
 def is_basemodel(type_: type) -> bool:
@@ -445,7 +467,7 @@ def construct_type_unchecked(*, value: object, type_: type[_T]) -> _T:
     return cast(_T, construct_type(value=value, type_=type_))
 
 
-def construct_type(*, value: object, type_: object) -> object:
+def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]] = None) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
     If the given value does not match the expected type then it is returned as-is.
@@ -463,8 +485,10 @@ def construct_type(*, value: object, type_: object) -> object:
         type_ = type_.__value__  # type: ignore[unreachable]
 
     # unwrap `Annotated[T, ...]` -> `T`
-    if is_annotated_type(type_):
-        meta: tuple[Any, ...] = get_args(type_)[1:]
+    if metadata is not None and len(metadata) > 0:
+        meta: tuple[Any, ...] = tuple(metadata)
+    elif is_annotated_type(type_):
+        meta = get_args(type_)[1:]
         type_ = extract_type_arg(type_, 0)
     else:
         meta = tuple()

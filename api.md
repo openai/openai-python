@@ -127,7 +127,17 @@ Methods:
 Types:
 
 ```python
-from openai.types import Image, ImageModel, ImagesResponse
+from openai.types import (
+    Image,
+    ImageEditCompletedEvent,
+    ImageEditPartialImageEvent,
+    ImageEditStreamEvent,
+    ImageGenCompletedEvent,
+    ImageGenPartialImageEvent,
+    ImageGenStreamEvent,
+    ImageModel,
+    ImagesResponse,
+)
 ```
 
 Methods:
@@ -293,7 +303,7 @@ from openai.types.fine_tuning.checkpoints import (
 Methods:
 
 - <code title="post /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">create</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_create_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_create_response.py">SyncPage[PermissionCreateResponse]</a></code>
-- <code title="get /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">retrieve</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_retrieve_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_retrieve_response.py">SyncCursorPage[PermissionRetrieveResponse]</a></code>
+- <code title="get /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">retrieve</a>(fine_tuned_model_checkpoint, \*\*<a href="src/openai/types/fine_tuning/checkpoints/permission_retrieve_params.py">params</a>) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_retrieve_response.py">PermissionRetrieveResponse</a></code>
 - <code title="delete /fine_tuning/checkpoints/{fine_tuned_model_checkpoint}/permissions/{permission_id}">client.fine_tuning.checkpoints.permissions.<a href="./src/openai/resources/fine_tuning/checkpoints/permissions.py">delete</a>(permission_id, \*, fine_tuned_model_checkpoint) -> <a href="./src/openai/types/fine_tuning/checkpoints/permission_delete_response.py">PermissionDeleteResponse</a></code>
 
 ## Alpha
@@ -394,6 +404,35 @@ Methods:
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">create_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">poll</a>(\*args) -> VectorStoreFileBatch</code>
 - <code>client.vector_stores.file_batches.<a href="./src/openai/resources/vector_stores/file_batches.py">upload_and_poll</a>(\*args) -> VectorStoreFileBatch</code>
+
+# Webhooks
+
+Types:
+
+```python
+from openai.types.webhooks import (
+    BatchCancelledWebhookEvent,
+    BatchCompletedWebhookEvent,
+    BatchExpiredWebhookEvent,
+    BatchFailedWebhookEvent,
+    EvalRunCanceledWebhookEvent,
+    EvalRunFailedWebhookEvent,
+    EvalRunSucceededWebhookEvent,
+    FineTuningJobCancelledWebhookEvent,
+    FineTuningJobFailedWebhookEvent,
+    FineTuningJobSucceededWebhookEvent,
+    ResponseCancelledWebhookEvent,
+    ResponseCompletedWebhookEvent,
+    ResponseFailedWebhookEvent,
+    ResponseIncompleteWebhookEvent,
+    UnwrapWebhookEvent,
+)
+```
+
+Methods:
+
+- <code>client.webhooks.<a href="./src/openai/resources/webhooks.py">unwrap</a>(payload, headers, \*, secret) -> UnwrapWebhookEvent</code>
+- <code>client.webhooks.<a href="./src/openai/resources/webhooks.py">verify_signature</a>(payload, headers, \*, secret, tolerance) -> None</code>
 
 # Beta
 
@@ -752,8 +791,6 @@ from openai.types.responses import (
     ResponseOutputTextAnnotationAddedEvent,
     ResponsePrompt,
     ResponseQueuedEvent,
-    ResponseReasoningDeltaEvent,
-    ResponseReasoningDoneEvent,
     ResponseReasoningItem,
     ResponseReasoningSummaryDeltaEvent,
     ResponseReasoningSummaryDoneEvent,
@@ -774,6 +811,7 @@ from openai.types.responses import (
     ResponseWebSearchCallSearchingEvent,
     Tool,
     ToolChoiceFunction,
+    ToolChoiceMcp,
     ToolChoiceOptions,
     ToolChoiceTypes,
     WebSearchTool,

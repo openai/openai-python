@@ -18,6 +18,7 @@ def reset_state() -> None:
     openai.bearer_token_provider = None
     openai.organization = None
     openai.project = None
+    openai.webhook_secret = None
     openai.base_url = None
     openai.timeout = DEFAULT_TIMEOUT
     openai.max_retries = DEFAULT_MAX_RETRIES

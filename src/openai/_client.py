@@ -59,6 +59,7 @@ if TYPE_CHECKING:
     from .resources.images import Images, AsyncImages
     from .resources.models import Models, AsyncModels
     from .resources.batches import Batches, AsyncBatches
+    from .resources.webhooks import Webhooks, AsyncWebhooks
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
@@ -80,6 +81,7 @@ class OpenAI(SyncAPIClient):
     api_key: str
     organization: str | None
     project: str | None
+    webhook_secret: str | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -96,6 +98,7 @@ class OpenAI(SyncAPIClient):
         bearer_token_provider: Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
@@ -122,6 +125,7 @@ class OpenAI(SyncAPIClient):
         - `api_key` from `OPENAI_API_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
+        - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
         if api_key and bearer_token_provider:
             raise ValueError("The `api_key` and `bearer_token_provider` arguments are mutually exclusive")
@@ -141,6 +145,10 @@ class OpenAI(SyncAPIClient):
         if project is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
+
+        if webhook_secret is None:
+            webhook_secret = os.environ.get("OPENAI_WEBHOOK_SECRET")
+        self.webhook_secret = webhook_secret
 
         self.websocket_base_url = websocket_base_url
 
@@ -222,6 +230,12 @@ class OpenAI(SyncAPIClient):
         from .resources.vector_stores import VectorStores
 
         return VectorStores(self)
+
+    @cached_property
+    def webhooks(self) -> Webhooks:
+        from .resources.webhooks import Webhooks
+
+        return Webhooks(self)
 
     @cached_property
     def beta(self) -> Beta:
@@ -310,6 +324,7 @@ class OpenAI(SyncAPIClient):
         bearer_token_provider: Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -351,6 +366,7 @@ class OpenAI(SyncAPIClient):
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
+            webhook_secret=webhook_secret or self.webhook_secret,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,
@@ -405,6 +421,7 @@ class AsyncOpenAI(AsyncAPIClient):
     api_key: str
     organization: str | None
     project: str | None
+    webhook_secret: str | None
 
     websocket_base_url: str | httpx.URL | None
     """Base URL for WebSocket connections.
@@ -421,6 +438,7 @@ class AsyncOpenAI(AsyncAPIClient):
         bearer_token_provider: Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
@@ -447,6 +465,7 @@ class AsyncOpenAI(AsyncAPIClient):
         - `api_key` from `OPENAI_API_KEY`
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
+        - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
         if api_key and bearer_token_provider:
             raise ValueError("The `api_key` and `bearer_token_provider` arguments are mutually exclusive")
@@ -466,6 +485,10 @@ class AsyncOpenAI(AsyncAPIClient):
         if project is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
+
+        if webhook_secret is None:
+            webhook_secret = os.environ.get("OPENAI_WEBHOOK_SECRET")
+        self.webhook_secret = webhook_secret
 
         self.websocket_base_url = websocket_base_url
 
@@ -547,6 +570,12 @@ class AsyncOpenAI(AsyncAPIClient):
         from .resources.vector_stores import AsyncVectorStores
 
         return AsyncVectorStores(self)
+
+    @cached_property
+    def webhooks(self) -> AsyncWebhooks:
+        from .resources.webhooks import AsyncWebhooks
+
+        return AsyncWebhooks(self)
 
     @cached_property
     def beta(self) -> AsyncBeta:
@@ -638,6 +667,7 @@ class AsyncOpenAI(AsyncAPIClient):
         bearer_token_provider: Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -679,6 +709,7 @@ class AsyncOpenAI(AsyncAPIClient):
             api_key=api_key or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
+            webhook_secret=webhook_secret or self.webhook_secret,
             websocket_base_url=websocket_base_url or self.websocket_base_url,
             base_url=base_url or self.base_url,
             timeout=self.timeout if isinstance(timeout, NotGiven) else timeout,

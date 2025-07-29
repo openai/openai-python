@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.88.0"
+version = "1.97.1"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -26,6 +26,7 @@ classifiers = [
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Operating System :: OS Independent",
   "Operating System :: POSIX",
   "Operating System :: MacOS",
@@ -43,6 +44,7 @@ Repository = "https://github.com/openai/openai-python"
 openai = "openai.cli:main"
 
 [project.optional-dependencies]
+aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.8"]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
