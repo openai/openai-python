@@ -163,11 +163,27 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
+    prompt_cache_key: Optional[str] = None
+    """
+    Used by OpenAI to cache responses for similar requests to optimize your cache
+    hit rates. Replaces the `user` field.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    """
+
     reasoning: Optional[Reasoning] = None
     """**o-series models only**
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    safety_identifier: Optional[str] = None
+    """
+    A stable identifier used to help detect users of your application that may be
+    violating OpenAI's usage policies. The IDs should be a string that uniquely
+    identifies each user. We recommend hashing their username or email address, in
+    order to avoid sending us any identifying information.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
     service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
@@ -229,11 +245,12 @@ class Response(BaseModel):
     """
 
     user: Optional[str] = None
-    """A stable identifier for your end-users.
+    """This field is being replaced by `safety_identifier` and `prompt_cache_key`.
 
-    Used to boost cache hit rates by better bucketing similar requests and to help
-    OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    Use `prompt_cache_key` instead to maintain caching optimizations. A stable
+    identifier for your end-users. Used to boost cache hit rates by better bucketing
+    similar requests and to help OpenAI detect and prevent abuse.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
     @property
