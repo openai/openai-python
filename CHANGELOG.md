@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.97.2 (2025-07-30)
+
+Full Changelog: [v1.97.1...v1.97.2](https://github.com/openai/openai-python/compare/v1.97.1...v1.97.2)
+
+### Chores
+
+* **client:** refactor streaming slightly to better future proof it ([71c0c74](https://github.com/openai/openai-python/commit/71c0c747132221b798e419bc5a37baf67173d34e))
+* **project:** add settings file for vscode ([29c22c9](https://github.com/openai/openai-python/commit/29c22c90fd229983355089f95d0bba9de15efedb))
+
 ## 1.97.1 (2025-07-22)
 
 Full Changelog: [v1.97.0...v1.97.1](https://github.com/openai/openai-python/compare/v1.97.0...v1.97.1)
