@@ -26,5 +26,5 @@ class ResponseFunctionCallArgumentsDoneEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.function_call_arguments.done"]
+    type: Literal["response.function_call_arguments.done"] = "response.function_call_arguments.done"
     """The event type, must be `response.function_call_arguments.done`."""
