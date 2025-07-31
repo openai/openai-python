@@ -1,5 +1,36 @@
 # Changelog
 
+## 1.98.0 (2025-07-30)
+
+Full Changelog: [v1.97.2...v1.98.0](https://github.com/openai/openai-python/compare/v1.97.2...v1.98.0)
+
+### Features
+
+* **api:** manual updates ([88a8036](https://github.com/openai/openai-python/commit/88a8036c5ea186f36c57029ef4501a0833596f56))
+
+## 1.97.2 (2025-07-30)
+
+Full Changelog: [v1.97.1...v1.97.2](https://github.com/openai/openai-python/compare/v1.97.1...v1.97.2)
+
+### Chores
+
+* **client:** refactor streaming slightly to better future proof it ([71c0c74](https://github.com/openai/openai-python/commit/71c0c747132221b798e419bc5a37baf67173d34e))
+* **project:** add settings file for vscode ([29c22c9](https://github.com/openai/openai-python/commit/29c22c90fd229983355089f95d0bba9de15efedb))
+
+## 1.97.1 (2025-07-22)
+
+Full Changelog: [v1.97.0...v1.97.1](https://github.com/openai/openai-python/compare/v1.97.0...v1.97.1)
+
+### Bug Fixes
+
+* **parsing:** ignore empty metadata ([58c359f](https://github.com/openai/openai-python/commit/58c359ff67fd6103268e4405600fd58844b6f27b))
+* **parsing:** parse extra field types ([d524b7e](https://github.com/openai/openai-python/commit/d524b7e201418ccc9b5c2206da06d1be011808e5))
+
+
+### Chores
+
+* **api:** event shapes more accurate ([f3a9a92](https://github.com/openai/openai-python/commit/f3a9a9229280ecb7e0b2779dd44290df6d9824ef))
+
 ## 1.97.0 (2025-07-16)
 
 Full Changelog: [v1.96.1...v1.97.0](https://github.com/openai/openai-python/compare/v1.96.1...v1.97.0)

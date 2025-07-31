@@ -177,6 +177,13 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     far, increasing the model's likelihood to talk about new topics.
     """
 
+    prompt_cache_key: str
+    """
+    Used by OpenAI to cache responses for similar requests to optimize your cache
+    hit rates. Replaces the `user` field.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    """
+
     reasoning_effort: Optional[ReasoningEffort]
     """**o-series models only**
 
@@ -199,6 +206,15 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     preferred for models that support it.
     """
 
+    safety_identifier: str
+    """
+    A stable identifier used to help detect users of your application that may be
+    violating OpenAI's usage policies. The IDs should be a string that uniquely
+    identifies each user. We recommend hashing their username or email address, in
+    order to avoid sending us any identifying information.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    """
+
     seed: Optional[int]
     """
     This feature is in Beta. If specified, our system will make a best effort to
@@ -214,7 +230,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     - If set to 'auto', then the request will be processed with the service tier
       configured in the Project settings. Unless otherwise configured, the Project
       will use 'default'.
-    - If set to 'default', then the requset will be processed with the standard
+    - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
       'priority', then the request will be processed with the corresponding service
@@ -293,11 +309,12 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
 
     user: str
-    """A stable identifier for your end-users.
+    """This field is being replaced by `safety_identifier` and `prompt_cache_key`.
 
-    Used to boost cache hit rates by better bucketing similar requests and to help
-    OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    Use `prompt_cache_key` instead to maintain caching optimizations. A stable
+    identifier for your end-users. Used to boost cache hit rates by better bucketing
+    similar requests and to help OpenAI detect and prevent abuse.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
     web_search_options: WebSearchOptions

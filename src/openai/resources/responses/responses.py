@@ -87,7 +87,9 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
@@ -188,17 +190,27 @@ class Responses(SyncAPIResource):
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning: **o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -267,9 +279,11 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -297,7 +311,9 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -404,17 +420,27 @@ class Responses(SyncAPIResource):
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning: **o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -476,9 +502,11 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -506,7 +534,9 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -613,17 +643,27 @@ class Responses(SyncAPIResource):
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning: **o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -685,9 +725,11 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -713,7 +755,9 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
@@ -747,7 +791,9 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
@@ -1352,7 +1398,9 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
@@ -1453,17 +1501,27 @@ class AsyncResponses(AsyncAPIResource):
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning: **o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -1532,9 +1590,11 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1562,7 +1622,9 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1669,17 +1731,27 @@ class AsyncResponses(AsyncAPIResource):
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning: **o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -1741,9 +1813,11 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1771,7 +1845,9 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1878,17 +1954,27 @@ class AsyncResponses(AsyncAPIResource):
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning: **o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -1950,9 +2036,11 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1978,7 +2066,9 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
@@ -2012,7 +2102,9 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,

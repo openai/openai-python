@@ -248,8 +248,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -388,6 +390,10 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
@@ -406,6 +412,12 @@ class Completions(SyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -417,7 +429,7 @@ class Completions(SyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -481,9 +493,11 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -520,8 +534,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -668,6 +684,10 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
@@ -686,6 +706,12 @@ class Completions(SyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -697,7 +723,7 @@ class Completions(SyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -752,9 +778,11 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -791,8 +819,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -939,6 +969,10 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
@@ -957,6 +991,12 @@ class Completions(SyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -968,7 +1008,7 @@ class Completions(SyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -1023,9 +1063,11 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -1061,8 +1103,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1104,8 +1148,10 @@ class Completions(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "seed": seed,
                     "service_tier": service_tier,
                     "stop": stop,
@@ -1615,8 +1661,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1755,6 +1803,10 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
@@ -1773,6 +1825,12 @@ class AsyncCompletions(AsyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -1784,7 +1842,7 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -1848,9 +1906,11 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -1887,8 +1947,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -2035,6 +2097,10 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
@@ -2053,6 +2119,12 @@ class AsyncCompletions(AsyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -2064,7 +2136,7 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -2119,9 +2191,11 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -2158,8 +2232,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -2306,6 +2382,10 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
           reasoning_effort: **o-series models only**
 
               Constrains effort on reasoning for
@@ -2324,6 +2404,12 @@ class AsyncCompletions(AsyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -2335,7 +2421,7 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
                 'priority', then the request will be processed with the corresponding service
@@ -2390,9 +2476,11 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -2428,8 +2516,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -2471,8 +2561,10 @@ class AsyncCompletions(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "seed": seed,
                     "service_tier": service_tier,
                     "stop": stop,
