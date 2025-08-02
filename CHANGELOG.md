@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.99.0 (2025-08-02)
+
+Full Changelog: [v1.98.0...v1.99.0](https://github.com/openai/openai-python/compare/v1.98.0...v1.99.0)
+
+### Features
+
+* **client:** support file upload requests ([0772e6e](https://github.com/openai/openai-python/commit/0772e6ed8310e15539610b003dd73f72f474ec0c))
+
+
+### Bug Fixes
+
+* add missing prompt_cache_key & prompt_cache_key params ([00b49ae](https://github.com/openai/openai-python/commit/00b49ae8d44ea396ac0536fc3ce4658fc669e2f5))
+
 ## 1.98.0 (2025-07-30)
 
 Full Changelog: [v1.97.2...v1.98.0](https://github.com/openai/openai-python/compare/v1.97.2...v1.98.0)
