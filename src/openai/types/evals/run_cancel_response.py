@@ -32,6 +32,7 @@ __all__ = [
     "DataSourceResponsesInputMessagesTemplateTemplateEvalItem",
     "DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent",
     "DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText",
+    "DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage",
     "DataSourceResponsesInputMessagesItemReference",
     "DataSourceResponsesSamplingParams",
     "DataSourceResponsesSamplingParamsText",
@@ -138,14 +139,32 @@ class DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText(
     """The type of the output text. Always `output_text`."""
 
 
+class DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
-    str, ResponseInputText, DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText
+    str,
+    ResponseInputText,
+    DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText,
+    DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage,
+    List[object],
 ]
 
 
 class DataSourceResponsesInputMessagesTemplateTemplateEvalItem(BaseModel):
     content: DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.

@@ -25,6 +25,7 @@ __all__ = [
     "TestingCriterionLabelModelInputEvalItem",
     "TestingCriterionLabelModelInputEvalItemContent",
     "TestingCriterionLabelModelInputEvalItemContentOutputText",
+    "TestingCriterionLabelModelInputEvalItemContentInputImage",
     "TestingCriterionTextSimilarity",
     "TestingCriterionPython",
     "TestingCriterionScoreModel",
@@ -109,14 +110,32 @@ class TestingCriterionLabelModelInputEvalItemContentOutputText(TypedDict, total=
     """The type of the output text. Always `output_text`."""
 
 
+class TestingCriterionLabelModelInputEvalItemContentInputImage(TypedDict, total=False):
+    image_url: Required[str]
+    """The URL of the image input."""
+
+    type: Required[Literal["input_image"]]
+    """The type of the image input. Always `input_image`."""
+
+    detail: str
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 TestingCriterionLabelModelInputEvalItemContent: TypeAlias = Union[
-    str, ResponseInputTextParam, TestingCriterionLabelModelInputEvalItemContentOutputText
+    str,
+    ResponseInputTextParam,
+    TestingCriterionLabelModelInputEvalItemContentOutputText,
+    TestingCriterionLabelModelInputEvalItemContentInputImage,
+    Iterable[object],
 ]
 
 
 class TestingCriterionLabelModelInputEvalItem(TypedDict, total=False):
     content: Required[TestingCriterionLabelModelInputEvalItemContent]
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.

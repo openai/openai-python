@@ -127,7 +127,17 @@ Methods:
 Types:
 
 ```python
-from openai.types import Image, ImageModel, ImagesResponse
+from openai.types import (
+    Image,
+    ImageEditCompletedEvent,
+    ImageEditPartialImageEvent,
+    ImageEditStreamEvent,
+    ImageGenCompletedEvent,
+    ImageGenPartialImageEvent,
+    ImageGenStreamEvent,
+    ImageModel,
+    ImagesResponse,
+)
 ```
 
 Methods:
@@ -781,8 +791,6 @@ from openai.types.responses import (
     ResponseOutputTextAnnotationAddedEvent,
     ResponsePrompt,
     ResponseQueuedEvent,
-    ResponseReasoningDeltaEvent,
-    ResponseReasoningDoneEvent,
     ResponseReasoningItem,
     ResponseReasoningSummaryDeltaEvent,
     ResponseReasoningSummaryDoneEvent,

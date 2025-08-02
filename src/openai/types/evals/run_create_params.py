@@ -29,6 +29,7 @@ __all__ = [
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItem",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText",
+    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesItemReference",
     "DataSourceCreateEvalResponsesRunDataSourceSamplingParams",
     "DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText",
@@ -153,16 +154,34 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
     """The type of the output text. Always `output_text`."""
 
 
+class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage(
+    TypedDict, total=False
+):
+    image_url: Required[str]
+    """The URL of the image input."""
+
+    type: Required[Literal["input_image"]]
+    """The type of the image input. Always `input_image`."""
+
+    detail: str
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
 DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     str,
     ResponseInputTextParam,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText,
+    DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage,
+    Iterable[object],
 ]
 
 
 class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItem(TypedDict, total=False):
     content: Required[DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent]
-    """Text inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings."""
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.

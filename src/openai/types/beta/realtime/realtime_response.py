@@ -60,10 +60,10 @@ class RealtimeResponse(BaseModel):
     output_audio_format: Optional[Literal["pcm16", "g711_ulaw", "g711_alaw"]] = None
     """The format of output audio. Options are `pcm16`, `g711_ulaw`, or `g711_alaw`."""
 
-    status: Optional[Literal["completed", "cancelled", "failed", "incomplete"]] = None
+    status: Optional[Literal["completed", "cancelled", "failed", "incomplete", "in_progress"]] = None
     """
     The final status of the response (`completed`, `cancelled`, `failed`, or
-    `incomplete`).
+    `incomplete`, `in_progress`).
     """
 
     status_details: Optional[RealtimeResponseStatus] = None
@@ -80,13 +80,8 @@ class RealtimeResponse(BaseModel):
     will become the input for later turns.
     """
 
-    voice: Union[
-        str,
-        Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"],
-        None,
-    ] = None
+    voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"], None] = None
     """
     The voice the model used to respond. Current voice options are `alloy`, `ash`,
-    `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
-    `verse`.
+    `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
     """

@@ -9,6 +9,7 @@ import pytest
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
+from openai._utils import assert_signatures_in_sync
 from openai.types.responses import (
     Response,
 )
@@ -42,11 +43,13 @@ class TestResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
             stream=False,
@@ -115,11 +118,13 @@ class TestResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
             temperature=1,
@@ -340,6 +345,17 @@ class TestResponses:
             )
 
 
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
+        exclude_params={"stream", "tools"},
+    )
+
+
 class TestAsyncResponses:
     parametrize = pytest.mark.parametrize(
         "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
@@ -368,11 +384,13 @@ class TestAsyncResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
             stream=False,
@@ -441,11 +459,13 @@ class TestAsyncResponses:
                 "variables": {"foo": "string"},
                 "version": "version",
             },
+            prompt_cache_key="prompt-cache-key-1234",
             reasoning={
                 "effort": "low",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
+            safety_identifier="safety-identifier-1234",
             service_tier="auto",
             store=True,
             temperature=1,

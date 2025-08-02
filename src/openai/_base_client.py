@@ -531,6 +531,15 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # work around https://github.com/encode/httpx/discussions/2880
             kwargs["extensions"] = {"sni_hostname": prepared_url.host.replace("_", "-")}
 
+        is_body_allowed = options.method.lower() != "get"
+
+        if is_body_allowed:
+            kwargs["json"] = json_data if is_given(json_data) else None
+            kwargs["files"] = files
+        else:
+            headers.pop("Content-Type", None)
+            kwargs.pop("data", None)
+
         # TODO: report this error to httpx
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
             headers=headers,
@@ -542,8 +551,6 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             # so that passing a `TypedDict` doesn't cause an error.
             # https://github.com/microsoft/pyright/issues/3526#event-6715453066
             params=self.qs.stringify(cast(Mapping[str, Any], params)) if params else None,
-            json=json_data if is_given(json_data) else None,
-            files=files,
             **kwargs,
         )
 
