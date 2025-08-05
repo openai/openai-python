@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.99.1 (2025-08-05)
+
+Full Changelog: [v1.99.0...v1.99.1](https://github.com/openai/openai-python/compare/v1.99.0...v1.99.1)
+
+### Bug Fixes
+
+* **internal:** correct event imports ([2a6d143](https://github.com/openai/openai-python/commit/2a6d1436288a07f67f6afefe5c0b5d6ae32d7e70))
+
 ## 1.99.0 (2025-08-05)
 
 Full Changelog: [v1.98.0...v1.99.0](https://github.com/openai/openai-python/compare/v1.98.0...v1.99.0)
