@@ -23,13 +23,13 @@ from .response_content_part_done_event import ResponseContentPartDoneEvent
 from .response_output_item_added_event import ResponseOutputItemAddedEvent
 from .response_content_part_added_event import ResponseContentPartAddedEvent
 from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent
+from .response_reasoning_text_done_event import ResponseReasoningTextDoneEvent
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent
+from .response_reasoning_text_delta_event import ResponseReasoningTextDeltaEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
-from .response_reasoning_summary_done_event import ResponseReasoningSummaryDoneEvent
 from .response_mcp_call_arguments_done_event import ResponseMcpCallArgumentsDoneEvent
-from .response_reasoning_summary_delta_event import ResponseReasoningSummaryDeltaEvent
 from .response_image_gen_call_completed_event import ResponseImageGenCallCompletedEvent
 from .response_mcp_call_arguments_delta_event import ResponseMcpCallArgumentsDeltaEvent
 from .response_mcp_list_tools_completed_event import ResponseMcpListToolsCompletedEvent
@@ -88,6 +88,8 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseReasoningSummaryPartDoneEvent,
         ResponseReasoningSummaryTextDeltaEvent,
         ResponseReasoningSummaryTextDoneEvent,
+        ResponseReasoningTextDeltaEvent,
+        ResponseReasoningTextDoneEvent,
         ResponseRefusalDeltaEvent,
         ResponseRefusalDoneEvent,
         ResponseTextDeltaEvent,
@@ -109,8 +111,6 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseMcpListToolsInProgressEvent,
         ResponseOutputTextAnnotationAddedEvent,
         ResponseQueuedEvent,
-        ResponseReasoningSummaryDeltaEvent,
-        ResponseReasoningSummaryDoneEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]
