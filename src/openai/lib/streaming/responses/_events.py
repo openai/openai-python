@@ -31,11 +31,9 @@ from ....types.responses import (
     ResponseAudioTranscriptDoneEvent,
     ResponseAudioTranscriptDeltaEvent,
     ResponseMcpCallArgumentsDoneEvent,
-    ResponseReasoningSummaryDoneEvent,
     ResponseImageGenCallCompletedEvent,
     ResponseMcpCallArgumentsDeltaEvent,
     ResponseMcpListToolsCompletedEvent,
-    ResponseReasoningSummaryDeltaEvent,
     ResponseImageGenCallGeneratingEvent,
     ResponseImageGenCallInProgressEvent,
     ResponseMcpListToolsInProgressEvent,
@@ -59,6 +57,8 @@ from ....types.responses import (
     ResponseCodeInterpreterCallInProgressEvent,
     ResponseCodeInterpreterCallInterpretingEvent,
 )
+from ....types.responses.response_reasoning_text_done_event import ResponseReasoningTextDoneEvent
+from ....types.responses.response_reasoning_text_delta_event import ResponseReasoningTextDeltaEvent
 
 TextFormatT = TypeVar(
     "TextFormatT",
@@ -137,8 +137,8 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseMcpListToolsInProgressEvent,
         ResponseOutputTextAnnotationAddedEvent,
         ResponseQueuedEvent,
-        ResponseReasoningSummaryDeltaEvent,
-        ResponseReasoningSummaryDoneEvent,
+        ResponseReasoningTextDeltaEvent,
+        ResponseReasoningTextDoneEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]
