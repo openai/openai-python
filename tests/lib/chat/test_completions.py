@@ -17,7 +17,7 @@ from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
 from openai._compat import PYDANTIC_V2
 
-from ._utils import print_obj
+from ._utils import print_obj, get_snapshot_value
 from ...conftest import base_url
 from ..schema_types.query import Query
 
@@ -1010,7 +1010,7 @@ def _make_snapshot_request(
         respx_mock.post("/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                content=content_snapshot._old_value,
+                content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "application/json"},
             )
         )
@@ -1052,7 +1052,7 @@ async def _make_async_snapshot_request(
         respx_mock.post("/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                content=content_snapshot._old_value,
+                content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "application/json"},
             )
         )
