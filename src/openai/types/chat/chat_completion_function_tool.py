@@ -5,10 +5,10 @@ from typing_extensions import Literal
 from ..._models import BaseModel
 from ..shared.function_definition import FunctionDefinition
 
-__all__ = ["ChatCompletionTool"]
+__all__ = ["ChatCompletionFunctionTool"]
 
 
-class ChatCompletionTool(BaseModel):
+class ChatCompletionFunctionTool(BaseModel):
     function: FunctionDefinition
 
     type: Literal["function"]

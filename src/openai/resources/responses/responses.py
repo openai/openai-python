@@ -93,6 +93,7 @@ class Responses(SyncAPIResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -101,6 +102,7 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -232,6 +234,8 @@ class Responses(SyncAPIResource):
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
 
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
@@ -259,8 +263,10 @@ class Responses(SyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -284,6 +290,10 @@ class Responses(SyncAPIResource):
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           extra_headers: Send extra headers
 
@@ -316,6 +326,7 @@ class Responses(SyncAPIResource):
         safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -324,6 +335,7 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -455,6 +467,8 @@ class Responses(SyncAPIResource):
 
           store: Whether to store the generated model response for later retrieval via API.
 
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
@@ -482,8 +496,10 @@ class Responses(SyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -507,6 +523,10 @@ class Responses(SyncAPIResource):
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           extra_headers: Send extra headers
 
@@ -539,6 +559,7 @@ class Responses(SyncAPIResource):
         safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -547,6 +568,7 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -678,6 +700,8 @@ class Responses(SyncAPIResource):
 
           store: Whether to store the generated model response for later retrieval via API.
 
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
@@ -705,8 +729,10 @@ class Responses(SyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -730,6 +756,10 @@ class Responses(SyncAPIResource):
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           extra_headers: Send extra headers
 
@@ -761,6 +791,7 @@ class Responses(SyncAPIResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -769,6 +800,7 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -797,6 +829,7 @@ class Responses(SyncAPIResource):
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -805,6 +838,7 @@ class Responses(SyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParamsStreaming
                 if stream
@@ -850,6 +884,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -881,6 +916,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -906,6 +942,7 @@ class Responses(SyncAPIResource):
             "previous_response_id": previous_response_id,
             "reasoning": reasoning,
             "store": store,
+            "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
@@ -950,6 +987,7 @@ class Responses(SyncAPIResource):
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
                 store=store,
+                stream_options=stream_options,
                 stream=True,
                 temperature=temperature,
                 text=text,
@@ -1007,6 +1045,7 @@ class Responses(SyncAPIResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1015,6 +1054,7 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1061,6 +1101,7 @@ class Responses(SyncAPIResource):
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -1069,6 +1110,7 @@ class Responses(SyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParams,
             ),
@@ -1090,6 +1132,7 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1154,6 +1197,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           stream: If set to true, the model response data will be streamed to the client as it is
@@ -1180,6 +1230,7 @@ class Responses(SyncAPIResource):
         *,
         stream: Literal[True],
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1202,6 +1253,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -1221,6 +1279,7 @@ class Responses(SyncAPIResource):
         *,
         stream: bool,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1243,6 +1302,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -1260,6 +1326,7 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1281,6 +1348,7 @@ class Responses(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "include": include,
+                        "include_obfuscation": include_obfuscation,
                         "starting_after": starting_after,
                         "stream": stream,
                     },
@@ -1408,6 +1476,7 @@ class AsyncResponses(AsyncAPIResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1416,6 +1485,7 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1547,6 +1617,8 @@ class AsyncResponses(AsyncAPIResource):
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
 
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
@@ -1574,8 +1646,10 @@ class AsyncResponses(AsyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1599,6 +1673,10 @@ class AsyncResponses(AsyncAPIResource):
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           extra_headers: Send extra headers
 
@@ -1631,6 +1709,7 @@ class AsyncResponses(AsyncAPIResource):
         safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1639,6 +1718,7 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1770,6 +1850,8 @@ class AsyncResponses(AsyncAPIResource):
 
           store: Whether to store the generated model response for later retrieval via API.
 
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
@@ -1797,8 +1879,10 @@ class AsyncResponses(AsyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1822,6 +1906,10 @@ class AsyncResponses(AsyncAPIResource):
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           extra_headers: Send extra headers
 
@@ -1854,6 +1942,7 @@ class AsyncResponses(AsyncAPIResource):
         safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1862,6 +1951,7 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1993,6 +2083,8 @@ class AsyncResponses(AsyncAPIResource):
 
           store: Whether to store the generated model response for later retrieval via API.
 
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
+
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
@@ -2020,8 +2112,10 @@ class AsyncResponses(AsyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -2045,6 +2139,10 @@ class AsyncResponses(AsyncAPIResource):
               identifier for your end-users. Used to boost cache hit rates by better bucketing
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           extra_headers: Send extra headers
 
@@ -2076,6 +2174,7 @@ class AsyncResponses(AsyncAPIResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -2084,6 +2183,7 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2112,6 +2212,7 @@ class AsyncResponses(AsyncAPIResource):
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -2120,6 +2221,7 @@ class AsyncResponses(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParamsStreaming
                 if stream
@@ -2165,6 +2267,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -2196,6 +2299,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -2221,6 +2325,7 @@ class AsyncResponses(AsyncAPIResource):
             "previous_response_id": previous_response_id,
             "reasoning": reasoning,
             "store": store,
+            "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
@@ -2266,6 +2371,7 @@ class AsyncResponses(AsyncAPIResource):
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
                 store=store,
+                stream_options=stream_options,
                 temperature=temperature,
                 text=text,
                 tool_choice=tool_choice,
@@ -2326,6 +2432,7 @@ class AsyncResponses(AsyncAPIResource):
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -2334,6 +2441,7 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2380,6 +2488,7 @@ class AsyncResponses(AsyncAPIResource):
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -2388,6 +2497,7 @@ class AsyncResponses(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParams,
             ),
@@ -2409,6 +2519,7 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2473,6 +2584,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           stream: If set to true, the model response data will be streamed to the client as it is
@@ -2499,6 +2617,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: Literal[True],
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2521,6 +2640,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -2540,6 +2666,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: bool,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2562,6 +2689,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -2579,6 +2713,7 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2600,6 +2735,7 @@ class AsyncResponses(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {
                         "include": include,
+                        "include_obfuscation": include_obfuscation,
                         "starting_after": starting_after,
                         "stream": stream,
                     },

@@ -8,10 +8,12 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 from .easy_input_message_param import EasyInputMessageParam
 from .response_output_message_param import ResponseOutputMessageParam
 from .response_reasoning_item_param import ResponseReasoningItemParam
+from .response_custom_tool_call_param import ResponseCustomToolCallParam
 from .response_computer_tool_call_param import ResponseComputerToolCallParam
 from .response_function_tool_call_param import ResponseFunctionToolCallParam
 from .response_function_web_search_param import ResponseFunctionWebSearchParam
 from .response_file_search_tool_call_param import ResponseFileSearchToolCallParam
+from .response_custom_tool_call_output_param import ResponseCustomToolCallOutputParam
 from .response_code_interpreter_tool_call_param import ResponseCodeInterpreterToolCallParam
 from .response_input_message_content_list_param import ResponseInputMessageContentListParam
 from .response_computer_tool_call_output_screenshot_param import ResponseComputerToolCallOutputScreenshotParam
@@ -298,5 +300,7 @@ ResponseInputItemParam: TypeAlias = Union[
     McpApprovalRequest,
     McpApprovalResponse,
     McpCall,
+    ResponseCustomToolCallOutputParam,
+    ResponseCustomToolCallParam,
     ItemReference,
 ]

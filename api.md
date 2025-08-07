@@ -6,6 +6,7 @@ from openai.types import (
     ChatModel,
     ComparisonFilter,
     CompoundFilter,
+    CustomToolInputFormat,
     ErrorObject,
     FunctionDefinition,
     FunctionParameters,
@@ -15,6 +16,8 @@ from openai.types import (
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,
+    ResponseFormatTextGrammar,
+    ResponseFormatTextPython,
     ResponsesModel,
 )
 ```
@@ -46,6 +49,7 @@ Types:
 ```python
 from openai.types.chat import (
     ChatCompletion,
+    ChatCompletionAllowedToolChoice,
     ChatCompletionAssistantMessageParam,
     ChatCompletionAudio,
     ChatCompletionAudioParam,
@@ -55,15 +59,20 @@ from openai.types.chat import (
     ChatCompletionContentPartInputAudio,
     ChatCompletionContentPartRefusal,
     ChatCompletionContentPartText,
+    ChatCompletionCustomTool,
     ChatCompletionDeleted,
     ChatCompletionDeveloperMessageParam,
     ChatCompletionFunctionCallOption,
     ChatCompletionFunctionMessageParam,
+    ChatCompletionFunctionTool,
     ChatCompletionMessage,
+    ChatCompletionMessageCustomToolCall,
+    ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
     ChatCompletionMessageToolCall,
     ChatCompletionModality,
     ChatCompletionNamedToolChoice,
+    ChatCompletionNamedToolChoiceCustom,
     ChatCompletionPredictionContent,
     ChatCompletionRole,
     ChatCompletionStoreMessage,
@@ -74,6 +83,7 @@ from openai.types.chat import (
     ChatCompletionToolChoiceOption,
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
+    ChatCompletionAllowedTools,
     ChatCompletionReasoningEffort,
 )
 ```
@@ -719,6 +729,7 @@ Types:
 ```python
 from openai.types.responses import (
     ComputerTool,
+    CustomTool,
     EasyInputMessage,
     FileSearchTool,
     FunctionTool,
@@ -741,6 +752,10 @@ from openai.types.responses import (
     ResponseContentPartAddedEvent,
     ResponseContentPartDoneEvent,
     ResponseCreatedEvent,
+    ResponseCustomToolCall,
+    ResponseCustomToolCallInputDeltaEvent,
+    ResponseCustomToolCallInputDoneEvent,
+    ResponseCustomToolCallOutput,
     ResponseError,
     ResponseErrorEvent,
     ResponseFailedEvent,
@@ -810,6 +825,8 @@ from openai.types.responses import (
     ResponseWebSearchCallInProgressEvent,
     ResponseWebSearchCallSearchingEvent,
     Tool,
+    ToolChoiceAllowed,
+    ToolChoiceCustom,
     ToolChoiceFunction,
     ToolChoiceMcp,
     ToolChoiceOptions,

@@ -8,10 +8,12 @@ from ..._models import BaseModel
 from .easy_input_message import EasyInputMessage
 from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
+from .response_custom_tool_call import ResponseCustomToolCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
 from .response_function_web_search import ResponseFunctionWebSearch
 from .response_file_search_tool_call import ResponseFileSearchToolCall
+from .response_custom_tool_call_output import ResponseCustomToolCallOutput
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from .response_input_message_content_list import ResponseInputMessageContentList
 from .response_computer_tool_call_output_screenshot import ResponseComputerToolCallOutputScreenshot
@@ -299,6 +301,8 @@ ResponseInputItem: TypeAlias = Annotated[
         McpApprovalRequest,
         McpApprovalResponse,
         McpCall,
+        ResponseCustomToolCallOutput,
+        ResponseCustomToolCall,
         ItemReference,
     ],
     PropertyInfo(discriminator="type"),
