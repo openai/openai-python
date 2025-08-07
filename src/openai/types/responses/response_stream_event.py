@@ -40,9 +40,11 @@ from .response_file_search_call_completed_event import ResponseFileSearchCallCom
 from .response_file_search_call_searching_event import ResponseFileSearchCallSearchingEvent
 from .response_image_gen_call_in_progress_event import ResponseImageGenCallInProgressEvent
 from .response_mcp_list_tools_in_progress_event import ResponseMcpListToolsInProgressEvent
+from .response_custom_tool_call_input_done_event import ResponseCustomToolCallInputDoneEvent
 from .response_reasoning_summary_part_done_event import ResponseReasoningSummaryPartDoneEvent
 from .response_reasoning_summary_text_done_event import ResponseReasoningSummaryTextDoneEvent
 from .response_web_search_call_in_progress_event import ResponseWebSearchCallInProgressEvent
+from .response_custom_tool_call_input_delta_event import ResponseCustomToolCallInputDeltaEvent
 from .response_file_search_call_in_progress_event import ResponseFileSearchCallInProgressEvent
 from .response_function_call_arguments_done_event import ResponseFunctionCallArgumentsDoneEvent
 from .response_image_gen_call_partial_image_event import ResponseImageGenCallPartialImageEvent
@@ -111,6 +113,8 @@ ResponseStreamEvent: TypeAlias = Annotated[
         ResponseMcpListToolsInProgressEvent,
         ResponseOutputTextAnnotationAddedEvent,
         ResponseQueuedEvent,
+        ResponseCustomToolCallInputDeltaEvent,
+        ResponseCustomToolCallInputDoneEvent,
     ],
     PropertyInfo(discriminator="type"),
 ]

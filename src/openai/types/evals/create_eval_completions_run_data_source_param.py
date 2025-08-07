@@ -6,10 +6,10 @@ from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared_params.metadata import Metadata
-from ..chat.chat_completion_tool_param import ChatCompletionToolParam
 from ..responses.easy_input_message_param import EasyInputMessageParam
 from ..shared_params.response_format_text import ResponseFormatText
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 from ..shared_params.response_format_json_object import ResponseFormatJSONObject
 from ..shared_params.response_format_json_schema import ResponseFormatJSONSchema
 
@@ -180,7 +180,7 @@ class SamplingParams(TypedDict, total=False):
     temperature: float
     """A higher temperature increases randomness in the outputs."""
 
-    tools: Iterable[ChatCompletionToolParam]
+    tools: Iterable[ChatCompletionFunctionToolParam]
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of

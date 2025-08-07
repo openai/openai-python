@@ -5,6 +5,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
 from .web_search_tool import WebSearchTool
@@ -177,6 +178,16 @@ class LocalShell(BaseModel):
 
 
 Tool: TypeAlias = Annotated[
-    Union[FunctionTool, FileSearchTool, WebSearchTool, ComputerTool, Mcp, CodeInterpreter, ImageGeneration, LocalShell],
+    Union[
+        FunctionTool,
+        FileSearchTool,
+        WebSearchTool,
+        ComputerTool,
+        Mcp,
+        CodeInterpreter,
+        ImageGeneration,
+        LocalShell,
+        CustomTool,
+    ],
     PropertyInfo(discriminator="type"),
 ]

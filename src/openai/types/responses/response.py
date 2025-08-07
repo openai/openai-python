@@ -13,7 +13,9 @@ from .tool_choice_mcp import ToolChoiceMcp
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
 from .tool_choice_types import ToolChoiceTypes
+from .tool_choice_custom import ToolChoiceCustom
 from .response_input_item import ResponseInputItem
+from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
@@ -28,7 +30,9 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp]
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions, ToolChoiceAllowed, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, ToolChoiceCustom
+]
 
 
 class Response(BaseModel):
@@ -116,8 +120,10 @@ class Response(BaseModel):
       Learn more about
       [built-in tools](https://platform.openai.com/docs/guides/tools).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
-      the model to call your own code. Learn more about
+      the model to call your own code with strongly typed arguments and outputs.
+      Learn more about
       [function calling](https://platform.openai.com/docs/guides/function-calling).
+      You can also use custom tools to call your own code.
     """
 
     top_p: Optional[float] = None
@@ -130,8 +136,8 @@ class Response(BaseModel):
     """
 
     background: Optional[bool] = None
-    """Whether to run the model response in the background.
-
+    """
+    Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
@@ -251,4 +257,12 @@ class Response(BaseModel):
     identifier for your end-users. Used to boost cache hit rates by better bucketing
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+    """
+
+    verbosity: Optional[Literal["low", "medium", "high"]] = None
+    """Constrains the verbosity of the model's response.
+
+    Lower values will result in more concise responses, while higher values will
+    result in more verbose responses. Currently supported values are `low`,
+    `medium`, and `high`.
     """

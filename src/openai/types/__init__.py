@@ -18,8 +18,11 @@ from .shared import (
     FunctionDefinition as FunctionDefinition,
     FunctionParameters as FunctionParameters,
     ResponseFormatText as ResponseFormatText,
+    CustomToolInputFormat as CustomToolInputFormat,
     ResponseFormatJSONObject as ResponseFormatJSONObject,
     ResponseFormatJSONSchema as ResponseFormatJSONSchema,
+    ResponseFormatTextPython as ResponseFormatTextPython,
+    ResponseFormatTextGrammar as ResponseFormatTextGrammar,
 )
 from .upload import Upload as Upload
 from .embedding import Embedding as Embedding

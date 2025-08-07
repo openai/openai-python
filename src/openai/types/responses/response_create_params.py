@@ -14,12 +14,15 @@ from .tool_choice_mcp_param import ToolChoiceMcpParam
 from ..shared_params.metadata import Metadata
 from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
+from .tool_choice_custom_param import ToolChoiceCustomParam
+from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
 from ..shared_params.responses_model import ResponsesModel
 
 __all__ = [
     "ResponseCreateParamsBase",
+    "StreamOptions",
     "ToolChoice",
     "ResponseCreateParamsNonStreaming",
     "ResponseCreateParamsStreaming",
@@ -28,8 +31,8 @@ __all__ = [
 
 class ResponseCreateParamsBase(TypedDict, total=False):
     background: Optional[bool]
-    """Whether to run the model response in the background.
-
+    """
+    Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
@@ -169,6 +172,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     store: Optional[bool]
     """Whether to store the generated model response for later retrieval via API."""
 
+    stream_options: Optional[StreamOptions]
+    """Options for streaming responses. Only set this when you set `stream: true`."""
+
     temperature: Optional[float]
     """What sampling temperature to use, between 0 and 2.
 
@@ -207,8 +213,10 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       Learn more about
       [built-in tools](https://platform.openai.com/docs/guides/tools).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
-      the model to call your own code. Learn more about
+      the model to call your own code with strongly typed arguments and outputs.
+      Learn more about
       [function calling](https://platform.openai.com/docs/guides/function-calling).
+      You can also use custom tools to call your own code.
     """
 
     top_logprobs: Optional[int]
@@ -245,8 +253,36 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
+    verbosity: Optional[Literal["low", "medium", "high"]]
+    """Constrains the verbosity of the model's response.
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypesParam, ToolChoiceFunctionParam, ToolChoiceMcpParam]
+    Lower values will result in more concise responses, while higher values will
+    result in more verbose responses. Currently supported values are `low`,
+    `medium`, and `high`.
+    """
+
+
+class StreamOptions(TypedDict, total=False):
+    include_obfuscation: bool
+    """When true, stream obfuscation will be enabled.
+
+    Stream obfuscation adds random characters to an `obfuscation` field on streaming
+    delta events to normalize payload sizes as a mitigation to certain side-channel
+    attacks. These obfuscation fields are included by default, but add a small
+    amount of overhead to the data stream. You can set `include_obfuscation` to
+    false to optimize for bandwidth if you trust the network links between your
+    application and the OpenAI API.
+    """
+
+
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions,
+    ToolChoiceAllowedParam,
+    ToolChoiceTypesParam,
+    ToolChoiceFunctionParam,
+    ToolChoiceMcpParam,
+    ToolChoiceCustomParam,
+]
 
 
 class ResponseCreateParamsNonStreaming(ResponseCreateParamsBase, total=False):

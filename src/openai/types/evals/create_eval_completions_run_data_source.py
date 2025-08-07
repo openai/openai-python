@@ -6,10 +6,10 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
-from ..chat.chat_completion_tool import ChatCompletionTool
 from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
 from ..responses.response_input_text import ResponseInputText
+from ..chat.chat_completion_function_tool import ChatCompletionFunctionTool
 from ..shared.response_format_json_object import ResponseFormatJSONObject
 from ..shared.response_format_json_schema import ResponseFormatJSONSchema
 
@@ -186,7 +186,7 @@ class SamplingParams(BaseModel):
     temperature: Optional[float] = None
     """A higher temperature increases randomness in the outputs."""
 
-    tools: Optional[List[ChatCompletionTool]] = None
+    tools: Optional[List[ChatCompletionFunctionTool]] = None
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of
