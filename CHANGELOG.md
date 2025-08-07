@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.99.3 (2025-08-07)
+
+Full Changelog: [v1.99.2...v1.99.3](https://github.com/openai/openai-python/compare/v1.99.2...v1.99.3)
+
+### Bug Fixes
+
+* **responses:** add output_text back ([585a4f1](https://github.com/openai/openai-python/commit/585a4f15e5a088bf8afee745bc4a7803775ac283))
+
 ## 1.99.2 (2025-08-07)
 
 Full Changelog: [v1.99.1...v1.99.2](https://github.com/openai/openai-python/compare/v1.99.1...v1.99.2)
