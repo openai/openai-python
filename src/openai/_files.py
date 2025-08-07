@@ -3,6 +3,7 @@ from __future__ import annotations
 import io
 import os
 import pathlib
+import mimetypes
 from typing import overload
 from typing_extensions import TypeGuard
 
@@ -38,6 +39,40 @@ def assert_is_file_content(obj: object, *, key: str | None = None) -> None:
         ) from None
 
 
+def _guess_content_type_from_filename(filename: str | None) -> str | None:
+    """Guess content type from filename using mimetypes module."""
+    if not filename:
+        return None
+    guessed, _ = mimetypes.guess_type(filename)
+    return guessed
+
+
+def _sniff_content_type_from_bytes(data: bytes) -> str | None:
+    """Minimal sniffing for common types we care about."""
+    # PDF
+    if data.startswith(b"%PDF-"):
+        return "application/pdf"
+    # PNG
+    if data.startswith(b"\x89PNG\r\n\x1a\n"):
+        return "image/png"
+    # JPEG
+    if data.startswith(b"\xff\xd8\xff"):
+        return "image/jpeg"
+    # GIF
+    if data.startswith(b"GIF87a") or data.startswith(b"GIF89a"):
+        return "image/gif"
+    return None
+
+
+def _ensure_tuple_with_content_type(
+    filename: str | None, content: HttpxFileContent, inferred: str | None
+) -> tuple[str | None, HttpxFileContent, str | None]:
+    """Ensure we return a 3-tuple with content type if we inferred one."""
+    if inferred:
+        return (filename, content, inferred)
+    return (filename, content, None)
+
+
 @overload
 def to_httpx_files(files: None) -> None: ...
 
@@ -64,7 +99,28 @@ def _transform_file(file: FileTypes) -> HttpxFileTypes:
     if is_file_content(file):
         if isinstance(file, os.PathLike):
             path = pathlib.Path(file)
-            return (path.name, path.read_bytes())
+            data = path.read_bytes()
+            filename = path.name
+            inferred = _guess_content_type_from_filename(filename)
+            return _ensure_tuple_with_content_type(filename, data, inferred)
+
+        if isinstance(file, bytes):
+            inferred = _sniff_content_type_from_bytes(file)
+            return _ensure_tuple_with_content_type(None, file, inferred)
+
+        if isinstance(file, io.IOBase):
+            # Attempt to use file name if available
+            filename = None
+            try:
+                name_attr = getattr(file, "name", None)
+                if isinstance(name_attr, str):
+                    filename = os.path.basename(name_attr)
+            except Exception:
+                pass
+            
+            data = file.read()
+            inferred = _guess_content_type_from_filename(filename) or _sniff_content_type_from_bytes(data)
+            return _ensure_tuple_with_content_type(filename, data, inferred)
 
         return file
 
@@ -106,7 +162,28 @@ async def _async_transform_file(file: FileTypes) -> HttpxFileTypes:
     if is_file_content(file):
         if isinstance(file, os.PathLike):
             path = anyio.Path(file)
-            return (path.name, await path.read_bytes())
+            data: bytes = await path.read_bytes()
+            filename = os.path.basename(str(file))
+            inferred = _guess_content_type_from_filename(filename)
+            return _ensure_tuple_with_content_type(filename, data, inferred)
+
+        if isinstance(file, bytes):
+            inferred = _sniff_content_type_from_bytes(file)
+            return _ensure_tuple_with_content_type(None, file, inferred)
+
+        if isinstance(file, io.IOBase):
+            # Attempt to use file name if available
+            filename = None
+            try:
+                name_attr = getattr(file, "name", None)
+                if isinstance(name_attr, str):
+                    filename = os.path.basename(name_attr)
+            except Exception:
+                pass
+            
+            data = file.read()
+            inferred = _guess_content_type_from_filename(filename) or _sniff_content_type_from_bytes(data)
+            return _ensure_tuple_with_content_type(filename, data, inferred)
 
         return file
 
