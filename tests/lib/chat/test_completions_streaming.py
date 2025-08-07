@@ -9,7 +9,11 @@ import httpx
 import pytest
 from respx import MockRouter
 from pydantic import BaseModel
-from inline_snapshot import external, snapshot, outsource
+from inline_snapshot import (
+    external,
+    snapshot,
+    outsource,  # pyright: ignore[reportUnknownVariableType]
+)
 
 import openai
 from openai import OpenAI, AsyncOpenAI
@@ -26,7 +30,7 @@ from openai.lib.streaming.chat import (
 )
 from openai.lib._parsing._completions import ResponseFormatT
 
-from ._utils import print_obj
+from ._utils import print_obj, get_snapshot_value
 from ...conftest import base_url
 
 _T = TypeVar("_T")
@@ -1123,7 +1127,7 @@ def _make_stream_snapshot_request(
         respx_mock.post("/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                content=content_snapshot._old_value._load_value(),
+                content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "text/event-stream"},
             )
         )
@@ -1170,7 +1174,7 @@ def _make_raw_stream_snapshot_request(
         respx_mock.post("/chat/completions").mock(
             return_value=httpx.Response(
                 200,
-                content=content_snapshot._old_value._load_value(),
+                content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "text/event-stream"},
             )
         )
