@@ -259,3 +259,17 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
+    @property
+    def output_text(self) -> str:
+        """Convenience property that aggregates all `output_text` items from the `output` list.
+
+        If no `output_text` content blocks exist, then an empty string is returned.
+        """
+        texts: List[str] = []
+        for output in self.output:
+            if output.type == "message":
+                for content in output.content:
+                    if content.type == "output_text":
+                        texts.append(content.text)
+
+        return "".join(texts)
