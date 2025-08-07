@@ -2,15 +2,12 @@
 
 from __future__ import annotations
 
-from typing_extensions import Literal, Required, TypedDict
+from typing import Union
+from typing_extensions import TypeAlias
 
-from ..shared_params.function_definition import FunctionDefinition
+from .chat_completion_custom_tool_param import ChatCompletionCustomToolParam
+from .chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 
 __all__ = ["ChatCompletionToolParam"]
 
-
-class ChatCompletionToolParam(TypedDict, total=False):
-    function: Required[FunctionDefinition]
-
-    type: Required[Literal["function"]]
-    """The type of the tool. Currently, only `function` is supported."""
+ChatCompletionToolParam: TypeAlias = Union[ChatCompletionFunctionToolParam, ChatCompletionCustomToolParam]

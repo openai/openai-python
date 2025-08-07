@@ -37,11 +37,12 @@ from ..._parsing import (
     parse_function_tool_arguments,
 )
 from ...._streaming import Stream, AsyncStream
-from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolParam
+from ....types.chat import ChatCompletionChunk, ParsedChatCompletion
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
 from ....types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
+from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
 
 
 class ChatCompletionStream(Generic[ResponseFormatT]):

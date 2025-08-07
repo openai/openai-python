@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .web_search_tool_param import WebSearchToolParam
@@ -186,6 +187,7 @@ ToolParam: TypeAlias = Union[
     CodeInterpreter,
     ImageGeneration,
     LocalShell,
+    CustomToolParam,
 ]
 
 
