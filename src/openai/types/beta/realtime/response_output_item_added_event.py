@@ -21,5 +21,5 @@ class ResponseOutputItemAddedEvent(BaseModel):
     response_id: str
     """The ID of the Response to which the item belongs."""
 
-    type: Literal["response.output_item.added"]
+    type: Literal["response.output_item.added"] = "response.output_item.added"
     """The event type, must be `response.output_item.added`."""
