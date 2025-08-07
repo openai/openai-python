@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+
 import inspect
 from types import TracebackType
 from typing import Any, List, Generic, Iterable, Awaitable, cast
@@ -126,7 +127,8 @@ class ResponseStreamManager(Generic[TextFormatT]):
         exc_tb: TracebackType | None,
     ) -> None:
         if self.__stream is not None:
-            self.__stream.close()
+            self.__
+            
 
 
 class AsyncResponseStream(Generic[TextFormatT]):
@@ -229,7 +231,7 @@ class AsyncResponseStreamManager(Generic[TextFormatT]):
     ) -> None:
         if self.__stream is not None:
             await self.__stream.close()
-
+            
 
 class ResponseStreamState(Generic[TextFormatT]):
     def __init__(
@@ -301,6 +303,7 @@ class ResponseStreamState(Generic[TextFormatT]):
                     output_index=event.output_index,
                     sequence_number=event.sequence_number,
                     type="response.function_call_arguments.delta",
+                    
                     snapshot=output.arguments,
                 )
             )
