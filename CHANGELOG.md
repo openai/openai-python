@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.99.2 (2025-08-07)
+
+Full Changelog: [v1.99.1...v1.99.2](https://github.com/openai/openai-python/compare/v1.99.1...v1.99.2)
+
+### Features
+
+* **api:** adds GPT-5 and new API features: platform.openai.com/docs/guides/gpt-5 ([ed370d8](https://github.com/openai/openai-python/commit/ed370d805e4d5d1ec14a136f5b2516751277059f))
+
+
+### Bug Fixes
+
+* **types:** correct tool types ([0c57bd7](https://github.com/openai/openai-python/commit/0c57bd7f2183a20b714d04edea380a4df0464a40))
+
+
+### Chores
+
+* **tests:** bump inline-snapshot dependency ([e236fde](https://github.com/openai/openai-python/commit/e236fde99a335fcaac9760f324e4807ce2cf7cba))
+
 ## 1.99.1 (2025-08-05)
 
 Full Changelog: [v1.99.0...v1.99.1](https://github.com/openai/openai-python/compare/v1.99.0...v1.99.1)
