@@ -102,7 +102,6 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -291,10 +290,6 @@ class Responses(SyncAPIResource):
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
-          verbosity: Constrains the verbosity of the model's response. Lower values will result in
-              more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -335,7 +330,6 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -524,10 +518,6 @@ class Responses(SyncAPIResource):
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
-          verbosity: Constrains the verbosity of the model's response. Lower values will result in
-              more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -568,7 +558,6 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -757,10 +746,6 @@ class Responses(SyncAPIResource):
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
-          verbosity: Constrains the verbosity of the model's response. Lower values will result in
-              more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -800,7 +785,6 @@ class Responses(SyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -838,7 +822,6 @@ class Responses(SyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
-                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParamsStreaming
                 if stream
@@ -1485,7 +1468,6 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1674,10 +1656,6 @@ class AsyncResponses(AsyncAPIResource):
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
-          verbosity: Constrains the verbosity of the model's response. Lower values will result in
-              more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1718,7 +1696,6 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1907,10 +1884,6 @@ class AsyncResponses(AsyncAPIResource):
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
-          verbosity: Constrains the verbosity of the model's response. Lower values will result in
-              more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1951,7 +1924,6 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2140,10 +2112,6 @@ class AsyncResponses(AsyncAPIResource):
               similar requests and to help OpenAI detect and prevent abuse.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
-          verbosity: Constrains the verbosity of the model's response. Lower values will result in
-              more concise responses, while higher values will result in more verbose
-              responses. Currently supported values are `low`, `medium`, and `high`.
-
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -2183,7 +2151,6 @@ class AsyncResponses(AsyncAPIResource):
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
-        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2221,7 +2188,6 @@ class AsyncResponses(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
-                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParamsStreaming
                 if stream
