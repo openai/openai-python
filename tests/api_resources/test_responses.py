@@ -54,7 +54,10 @@ class TestResponses:
             stream=False,
             stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -69,7 +72,6 @@ class TestResponses:
             top_p=1,
             truncation="auto",
             user="user-1234",
-            verbosity="low",
         )
         assert_matches_type(Response, response, path=["response"])
 
@@ -130,7 +132,10 @@ class TestResponses:
             store=True,
             stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -145,7 +150,6 @@ class TestResponses:
             top_p=1,
             truncation="auto",
             user="user-1234",
-            verbosity="low",
         )
         response_stream.response.close()
 
@@ -390,7 +394,10 @@ class TestAsyncResponses:
             stream=False,
             stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -405,7 +412,6 @@ class TestAsyncResponses:
             top_p=1,
             truncation="auto",
             user="user-1234",
-            verbosity="low",
         )
         assert_matches_type(Response, response, path=["response"])
 
@@ -466,7 +472,10 @@ class TestAsyncResponses:
             store=True,
             stream_options={"include_obfuscation": True},
             temperature=1,
-            text={"format": {"type": "text"}},
+            text={
+                "format": {"type": "text"},
+                "verbosity": "low",
+            },
             tool_choice="none",
             tools=[
                 {
@@ -481,7 +490,6 @@ class TestAsyncResponses:
             top_p=1,
             truncation="auto",
             user="user-1234",
-            verbosity="low",
         )
         await response_stream.response.aclose()
 
