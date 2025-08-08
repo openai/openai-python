@@ -21,6 +21,7 @@ from .parsed_function_tool_call import (
     ParsedFunction as ParsedFunction,
     ParsedFunctionToolCall as ParsedFunctionToolCall,
 )
+from .chat_completion_tool_param import ChatCompletionToolParam as ChatCompletionToolParam
 from .chat_completion_audio_param import ChatCompletionAudioParam as ChatCompletionAudioParam
 from .chat_completion_function_tool import ChatCompletionFunctionTool as ChatCompletionFunctionTool
 from .chat_completion_message_param import ChatCompletionMessageParam as ChatCompletionMessageParam
