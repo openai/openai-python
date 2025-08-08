@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.99.5 (2025-08-08)
+
+Full Changelog: [v1.99.4...v1.99.5](https://github.com/openai/openai-python/compare/v1.99.4...v1.99.5)
+
+### Bug Fixes
+
+* **client:** fix verbosity parameter location in Responses ([2764ff4](https://github.com/openai/openai-python/commit/2764ff459eb8b309d25b39b40e363b16a5b95019))
+
 ## 1.99.4 (2025-08-08)
 
 Full Changelog: [v1.99.3...v1.99.4](https://github.com/openai/openai-python/compare/v1.99.3...v1.99.4)
