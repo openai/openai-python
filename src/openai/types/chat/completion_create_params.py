@@ -8,9 +8,9 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 from ..shared.chat_model import ChatModel
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
-from .chat_completion_tool_param import ChatCompletionToolParam
 from .chat_completion_audio_param import ChatCompletionAudioParam
 from .chat_completion_message_param import ChatCompletionMessageParam
+from .chat_completion_tool_union_param import ChatCompletionToolUnionParam
 from ..shared_params.function_parameters import FunctionParameters
 from ..shared_params.response_format_text import ResponseFormatText
 from .chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
@@ -284,7 +284,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     are present.
     """
 
-    tools: Iterable[ChatCompletionToolParam]
+    tools: Iterable[ChatCompletionToolUnionParam]
     """A list of tools the model may call.
 
     You can provide either

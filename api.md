@@ -79,7 +79,7 @@ from openai.types.chat import (
     ChatCompletionStreamOptions,
     ChatCompletionSystemMessageParam,
     ChatCompletionTokenLogprob,
-    ChatCompletionTool,
+    ChatCompletionToolUnion,
     ChatCompletionToolChoiceOption,
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
