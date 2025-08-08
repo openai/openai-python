@@ -253,14 +253,6 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    verbosity: Optional[Literal["low", "medium", "high"]]
-    """Constrains the verbosity of the model's response.
-
-    Lower values will result in more concise responses, while higher values will
-    result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
-    """
-
 
 class StreamOptions(TypedDict, total=False):
     include_obfuscation: bool
