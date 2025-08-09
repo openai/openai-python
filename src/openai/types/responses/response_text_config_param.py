@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing_extensions import TypedDict
+from typing import Optional
+from typing_extensions import Literal, TypedDict
 
 from .response_format_text_config_param import ResponseFormatTextConfigParam
 
@@ -24,4 +25,12 @@ class ResponseTextConfigParam(TypedDict, total=False):
     Setting to `{ "type": "json_object" }` enables the older JSON mode, which
     ensures the message the model generates is valid JSON. Using `json_schema` is
     preferred for models that support it.
+    """
+
+    verbosity: Optional[Literal["low", "medium", "high"]]
+    """Constrains the verbosity of the model's response.
+
+    Lower values will result in more concise responses, while higher values will
+    result in more verbose responses. Currently supported values are `low`,
+    `medium`, and `high`.
     """
