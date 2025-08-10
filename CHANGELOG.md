@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.99.6 (2025-08-09)
+
+Full Changelog: [v1.99.5...v1.99.6](https://github.com/openai/openai-python/compare/v1.99.5...v1.99.6)
+
+### Bug Fixes
+
+* **types:** re-export more tool call types ([8fe5741](https://github.com/openai/openai-python/commit/8fe574131cfe8f0453788cc6105d22834e7c102f))
+
+
+### Chores
+
+* **internal:** update comment in script ([e407bb5](https://github.com/openai/openai-python/commit/e407bb52112ad73e5eedf929434ee4ff7ac5a5a8))
+* update @stainless-api/prism-cli to v5.15.0 ([a1883fc](https://github.com/openai/openai-python/commit/a1883fcdfa02b81e5129bdb43206597a51f885fa))
+
 ## 1.99.5 (2025-08-08)
 
 Full Changelog: [v1.99.4...v1.99.5](https://github.com/openai/openai-python/compare/v1.99.4...v1.99.5)
