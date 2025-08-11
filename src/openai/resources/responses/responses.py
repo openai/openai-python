@@ -48,6 +48,15 @@ from ...types.responses.response_text_config_param import ResponseTextConfigPara
 __all__ = ["Responses", "AsyncResponses"]
 
 
+def _ensure_text_config_for_gpt5_mini(
+    model: ResponsesModel | NotGiven, text: ResponseTextConfigParam | NotGiven
+) -> ResponseTextConfigParam | NotGiven:
+    """Ensure gpt-5-mini models have text configuration to avoid empty output_text."""
+    if is_given(model) and str(model).startswith("gpt-5-mini") and not is_given(text):
+        return {"format": {"type": "text"}}
+    return text
+
+
 class Responses(SyncAPIResource):
     @cached_property
     def input_items(self) -> InputItems:
@@ -815,7 +824,7 @@ class Responses(SyncAPIResource):
                     "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
-                    "text": text,
+                    "text": _ensure_text_config_for_gpt5_mini(model, text),
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "top_logprobs": top_logprobs,
