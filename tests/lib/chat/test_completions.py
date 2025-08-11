@@ -25,7 +25,7 @@ _T = TypeVar("_T")
 #
 # you can update them with
 #
-# `OPENAI_LIVE=1 pytest --inline-snapshot=fix`
+# `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
 @pytest.mark.respx(base_url=base_url)
