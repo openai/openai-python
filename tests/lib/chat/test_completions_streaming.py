@@ -30,7 +30,7 @@ from openai.lib.streaming.chat import (
 )
 from openai.lib._parsing._completions import ResponseFormatT
 
-from ._utils import print_obj, get_snapshot_value
+from ..utils import print_obj, get_snapshot_value
 from ...conftest import base_url
 
 _T = TypeVar("_T")
