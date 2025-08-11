@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.99.7 (2025-08-11)
+
+Full Changelog: [v1.99.6...v1.99.7](https://github.com/openai/openai-python/compare/v1.99.6...v1.99.7)
+
+### Bug Fixes
+
+* **types:** rename ChatCompletionMessageToolCallParam ([48085e2](https://github.com/openai/openai-python/commit/48085e2f473799d079e71d48d2f5612a6fbeb976))
+* **types:** revert ChatCompletionMessageToolCallParam to a TypedDict ([c8e9cec](https://github.com/openai/openai-python/commit/c8e9cec5c93cc022fff546f27161717f769d1f81))
+
 ## 1.99.6 (2025-08-09)
 
 Full Changelog: [v1.99.5...v1.99.6](https://github.com/openai/openai-python/compare/v1.99.5...v1.99.6)
