@@ -7,7 +7,7 @@ from typing_extensions import TypeAlias
 import pytest
 import pydantic
 
-from ...utils import rich_print_str
+from ..utils import rich_print_str
 
 ReprArgs: TypeAlias = "Iterable[tuple[str | None, Any]]"
 
