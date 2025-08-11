@@ -21,6 +21,7 @@ def make_snapshot_request(
     content_snapshot: Any,
     respx_mock: MockRouter,
     mock_client: OpenAI,
+    path: str,
 ) -> _T:
     live = os.environ.get("OPENAI_LIVE") == "1"
     if live:
@@ -39,7 +40,7 @@ def make_snapshot_request(
             )
         )
     else:
-        respx_mock.post("/chat/completions").mock(
+        respx_mock.post(path).mock(
             return_value=httpx.Response(
                 200,
                 content=get_snapshot_value(content_snapshot),
@@ -63,6 +64,7 @@ async def make_async_snapshot_request(
     content_snapshot: Any,
     respx_mock: MockRouter,
     mock_client: AsyncOpenAI,
+    path: str,
 ) -> _T:
     live = os.environ.get("OPENAI_LIVE") == "1"
     if live:
@@ -81,7 +83,7 @@ async def make_async_snapshot_request(
             )
         )
     else:
-        respx_mock.post("/chat/completions").mock(
+        respx_mock.post(path).mock(
             return_value=httpx.Response(
                 200,
                 content=get_snapshot_value(content_snapshot),
