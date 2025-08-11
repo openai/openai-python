@@ -8,8 +8,8 @@ from typing_extensions import TypeAlias
 from .chat_completion_message_custom_tool_call_param import ChatCompletionMessageCustomToolCallParam
 from .chat_completion_message_function_tool_call_param import ChatCompletionMessageFunctionToolCallParam
 
-__all__ = ["ChatCompletionMessageToolCallParam"]
+__all__ = ["ChatCompletionMessageToolCallUnionParam"]
 
-ChatCompletionMessageToolCallParam: TypeAlias = Union[
+ChatCompletionMessageToolCallUnionParam: TypeAlias = Union[
     ChatCompletionMessageFunctionToolCallParam, ChatCompletionMessageCustomToolCallParam
 ]

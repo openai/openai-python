@@ -69,7 +69,7 @@ from openai.types.chat import (
     ChatCompletionMessageCustomToolCall,
     ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
-    ChatCompletionMessageToolCall,
+    ChatCompletionMessageToolCallUnion,
     ChatCompletionModality,
     ChatCompletionNamedToolChoice,
     ChatCompletionNamedToolChoiceCustom,

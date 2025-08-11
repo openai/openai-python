@@ -7,9 +7,9 @@ from ..._utils import PropertyInfo
 from .chat_completion_message_custom_tool_call import ChatCompletionMessageCustomToolCall
 from .chat_completion_message_function_tool_call import ChatCompletionMessageFunctionToolCall
 
-__all__ = ["ChatCompletionMessageToolCall"]
+__all__ = ["ChatCompletionMessageToolCallUnion"]
 
-ChatCompletionMessageToolCall: TypeAlias = Annotated[
+ChatCompletionMessageToolCallUnion: TypeAlias = Annotated[
     Union[ChatCompletionMessageFunctionToolCall, ChatCompletionMessageCustomToolCall],
     PropertyInfo(discriminator="type"),
 ]
