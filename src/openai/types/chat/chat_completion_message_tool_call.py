@@ -13,3 +13,5 @@ ChatCompletionMessageToolCallUnion: TypeAlias = Annotated[
     Union[ChatCompletionMessageFunctionToolCall, ChatCompletionMessageCustomToolCall],
     PropertyInfo(discriminator="type"),
 ]
+
+ChatCompletionMessageToolCall: TypeAlias = ChatCompletionMessageToolCallUnion
