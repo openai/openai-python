@@ -52,6 +52,9 @@ from .chat_completion_content_part_text_param import (
 from .chat_completion_developer_message_param import (
     ChatCompletionDeveloperMessageParam as ChatCompletionDeveloperMessageParam,
 )
+from .chat_completion_message_tool_call_param import (
+    ChatCompletionMessageToolCallParam as ChatCompletionMessageToolCallParam,
+)
 from .chat_completion_named_tool_choice_param import (
     ChatCompletionNamedToolChoiceParam as ChatCompletionNamedToolChoiceParam,
 )
