@@ -792,6 +792,12 @@ class Responses(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Response | Stream[ResponseStreamEvent]:
+        try:
+            _model_str = str(model) if model is not NOT_GIVEN else ""
+        except Exception:
+            _model_str = ""
+        if _model_str.startswith("gpt-5-mini") and text is NOT_GIVEN:
+            text = {"format": {"type": "text"}}
         return self._post(
             "/responses",
             body=maybe_transform(
