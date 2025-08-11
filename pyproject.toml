@@ -150,6 +150,9 @@ filterwarnings = [
   "error"
 ]
 
+[tool.inline-snapshot]
+format-command="ruff format --stdin-filename {filename}"
+
 [tool.pyright]
 # this enables practically every flag given by pyright.
 # there are a couple of flags that are still disabled by
