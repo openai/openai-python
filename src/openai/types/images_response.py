@@ -2,6 +2,8 @@
 
 from typing import List, Optional
 from typing_extensions import Literal
+from typing import Optional
+
 
 from .image import Image
 from .._models import BaseModel
@@ -20,6 +22,9 @@ class UsageInputTokensDetails(BaseModel):
 class Usage(BaseModel):
     input_tokens: int
     """The number of tokens (images and text) in the input prompt."""
+    text_tokens: Optional[int] = None  # Number of text tokens in the response
+image_tokens: Optional[int] = None  # Number of image tokens in the response
+
 
     input_tokens_details: UsageInputTokensDetails
     """The input tokens detailed information for the image generation."""
