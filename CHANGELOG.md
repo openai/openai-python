@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.99.9 (2025-08-12)
+
+Full Changelog: [v1.99.8...v1.99.9](https://github.com/openai/openai-python/compare/v1.99.8...v1.99.9)
+
+### Bug Fixes
+
+* **types:** actually fix ChatCompletionMessageToolCall type ([20cb0c8](https://github.com/openai/openai-python/commit/20cb0c86d598e196386ff43db992f6497eb756d0))
+
 ## 1.99.8 (2025-08-11)
 
 Full Changelog: [v1.99.7...v1.99.8](https://github.com/openai/openai-python/compare/v1.99.7...v1.99.8)
