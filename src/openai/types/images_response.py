@@ -1,4 +1,26 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+from __future__ import annotations
+from typing import Optional, List
+from pydantic import BaseModel
+
+
+class ImagesResponseData(BaseModel):
+    url: Optional[str] = None
+    b64_json: Optional[str] = None
+    revised_prompt: Optional[str] = None
+
+
+class ImagesResponse(BaseModel):
+    created: int
+    data: List[ImagesResponseData]
+
+    def output_text(self) -> str:
+        """Returns the text-based output from the image response, if available."""
+        texts = []
+        for item in self.data:
+            if item.revised_prompt:
+                texts.append(item.revised_prompt)
+        return "\n".join(texts) if texts else ""
 
 from typing import List, Optional
 from typing_extensions import Literal
