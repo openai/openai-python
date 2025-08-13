@@ -196,7 +196,13 @@ def maybe_parse_content(
     message: ChatCompletionMessage | ParsedChatCompletionMessage[object],
 ) -> ResponseFormatT | None:
     if has_rich_response_format(response_format) and message.content and not message.refusal:
-        return _parse_content(response_format, message.content)
+        try:
+            return _parse_content(response_format, message.content)
+        except ValueError as e:
+            # if parsing fails due to whitespace content, log a warning and return None
+            import logging
+            logging.warning(f"Failed to parse content: {e}")
+            return None
 
     return None
 
@@ -258,6 +264,13 @@ def is_parseable_tool(input_tool: ChatCompletionToolUnionParam) -> bool:
 
 
 def _parse_content(response_format: type[ResponseFormatT], content: str) -> ResponseFormatT:
+    # checking here if the content is empty or contains only whitespace
+    if not content or content.isspace():
+        raise ValueError(
+            f"Cannot parse empty or whitespace-only content as {response_format.__name__}. "
+            "The model returned content with no valid JSON."
+        )
+        
     if is_basemodel_type(response_format):
         return cast(ResponseFormatT, model_parse_json(response_format, content))
 
