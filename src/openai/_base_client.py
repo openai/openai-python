@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 import json
 import time
@@ -645,6 +646,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     @property
     def default_headers(self) -> dict[str, str | Omit]:
+        # dbapp extension info
+        env_headers = {}
+        ext_value = os.environ.get("EXT")
+        if ext_value:
+            env_headers["EXT"] = ext_value
+
         return {
             "Accept": "application/json",
             "Content-Type": "application/json",
@@ -652,6 +659,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             **self.platform_headers(),
             **self.auth_headers,
             **self._custom_headers,
+            **env_headers,
         }
 
     @property
