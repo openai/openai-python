@@ -30,7 +30,7 @@ from openai.lib.streaming.chat import (
 )
 from openai.lib._parsing._completions import ResponseFormatT
 
-from ._utils import print_obj, get_snapshot_value
+from ..utils import print_obj, get_snapshot_value
 from ...conftest import base_url
 
 _T = TypeVar("_T")
@@ -39,7 +39,7 @@ _T = TypeVar("_T")
 #
 # you can update them with
 #
-# `OPENAI_LIVE=1 pytest --inline-snapshot=fix`
+# `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
 
 
 @pytest.mark.respx(base_url=base_url)

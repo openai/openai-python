@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Union
 from typing_extensions import TypeAlias
 
-from .chat_completion_message_custom_tool_call_param import ChatCompletionMessageCustomToolCallParam
-from .chat_completion_message_function_tool_call_param import ChatCompletionMessageFunctionToolCallParam
+from .chat_completion_message_function_tool_call_param import (
+    Function as Function,
+    ChatCompletionMessageFunctionToolCallParam,
+)
 
-__all__ = ["ChatCompletionMessageToolCallParam"]
+__all__ = ["ChatCompletionMessageToolCallParam", "Function"]
 
-ChatCompletionMessageToolCallParam: TypeAlias = Union[
-    ChatCompletionMessageFunctionToolCallParam, ChatCompletionMessageCustomToolCallParam
-]
+ChatCompletionMessageToolCallParam: TypeAlias = ChatCompletionMessageFunctionToolCallParam

@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.99.6"
+version = "1.99.9"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -149,6 +149,9 @@ asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
 ]
+
+[tool.inline-snapshot]
+format-command="ruff format --stdin-filename {filename}"
 
 [tool.pyright]
 # this enables practically every flag given by pyright.

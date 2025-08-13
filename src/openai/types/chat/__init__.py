@@ -31,7 +31,10 @@ from .chat_completion_reasoning_effort import ChatCompletionReasoningEffort as C
 from .chat_completion_tool_union_param import ChatCompletionToolUnionParam as ChatCompletionToolUnionParam
 from .chat_completion_content_part_text import ChatCompletionContentPartText as ChatCompletionContentPartText
 from .chat_completion_custom_tool_param import ChatCompletionCustomToolParam as ChatCompletionCustomToolParam
-from .chat_completion_message_tool_call import ChatCompletionMessageToolCall as ChatCompletionMessageToolCall
+from .chat_completion_message_tool_call import (
+    ChatCompletionMessageToolCall as ChatCompletionMessageToolCall,
+    ChatCompletionMessageToolCallUnion as ChatCompletionMessageToolCallUnion,
+)
 from .chat_completion_content_part_image import ChatCompletionContentPartImage as ChatCompletionContentPartImage
 from .chat_completion_content_part_param import ChatCompletionContentPartParam as ChatCompletionContentPartParam
 from .chat_completion_tool_message_param import ChatCompletionToolMessageParam as ChatCompletionToolMessageParam
@@ -81,6 +84,9 @@ from .chat_completion_function_call_option_param import (
 )
 from .chat_completion_message_function_tool_call import (
     ChatCompletionMessageFunctionToolCall as ChatCompletionMessageFunctionToolCall,
+)
+from .chat_completion_message_tool_call_union_param import (
+    ChatCompletionMessageToolCallUnionParam as ChatCompletionMessageToolCallUnionParam,
 )
 from .chat_completion_content_part_input_audio_param import (
     ChatCompletionContentPartInputAudioParam as ChatCompletionContentPartInputAudioParam,

@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.99.9 (2025-08-12)
+
+Full Changelog: [v1.99.8...v1.99.9](https://github.com/openai/openai-python/compare/v1.99.8...v1.99.9)
+
+### Bug Fixes
+
+* **types:** actually fix ChatCompletionMessageToolCall type ([20cb0c8](https://github.com/openai/openai-python/commit/20cb0c86d598e196386ff43db992f6497eb756d0))
+
+## 1.99.8 (2025-08-11)
+
+Full Changelog: [v1.99.7...v1.99.8](https://github.com/openai/openai-python/compare/v1.99.7...v1.99.8)
+
+### Bug Fixes
+
+* **internal/tests:** correct snapshot update comment ([2784a7a](https://github.com/openai/openai-python/commit/2784a7a7da24ddba74b5717f07d67546864472b9))
+* **types:** revert ChatCompletionMessageToolCallUnion breaking change ([ba54e03](https://github.com/openai/openai-python/commit/ba54e03bc2d21825d891685bf3bad4a9253cbeb0))
+
+
+### Chores
+
+* **internal/tests:** add inline snapshot format command ([8107db8](https://github.com/openai/openai-python/commit/8107db8ff738baa65fe4cf2f2d7f1acd29219c78))
+* **internal:** fix formatting ([f03a03d](https://github.com/openai/openai-python/commit/f03a03de8c84740209d021598ff8bf56b6d3c684))
+* **tests:** add responses output_text test ([971347b](https://github.com/openai/openai-python/commit/971347b3a05f79c51abd11c86b382ca73c28cefb))
+
+
+### Refactors
+
+* **tests:** share snapshot utils ([791c567](https://github.com/openai/openai-python/commit/791c567cd87fb8d587965773b1da0404c7848c68))
+
+## 1.99.7 (2025-08-11)
+
+Full Changelog: [v1.99.6...v1.99.7](https://github.com/openai/openai-python/compare/v1.99.6...v1.99.7)
+
+### Bug Fixes
+
+* **types:** rename ChatCompletionMessageToolCallParam ([48085e2](https://github.com/openai/openai-python/commit/48085e2f473799d079e71d48d2f5612a6fbeb976))
+* **types:** revert ChatCompletionMessageToolCallParam to a TypedDict ([c8e9cec](https://github.com/openai/openai-python/commit/c8e9cec5c93cc022fff546f27161717f769d1f81))
+
 ## 1.99.6 (2025-08-09)
 
 Full Changelog: [v1.99.5...v1.99.6](https://github.com/openai/openai-python/compare/v1.99.5...v1.99.6)
