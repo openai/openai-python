@@ -228,7 +228,7 @@ class Run(BaseModel):
     truncation_strategy: Optional[TruncationStrategy] = None
     """Controls for how a thread will be truncated prior to the run.
 
-    Use this to control the intial context window of the run.
+    Use this to control the initial context window of the run.
     """
 
     usage: Optional[Usage] = None

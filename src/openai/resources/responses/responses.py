@@ -33,7 +33,6 @@ from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
-from ...types.responses.response_text_config_param import ResponseTextConfigParam
 
 __all__ = ["Responses", "AsyncResponses"]
 
@@ -85,7 +84,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -185,7 +184,7 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          reasoning: **o-series models only**
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -204,9 +203,8 @@ class Responses(SyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -229,12 +227,6 @@ class Responses(SyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
-
-          text: Configuration options for a text response from the model. Can be plain text or
-              structured JSON data. Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -313,7 +305,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -420,7 +412,7 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          reasoning: **o-series models only**
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -439,9 +431,8 @@ class Responses(SyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -457,12 +448,6 @@ class Responses(SyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
-
-          text: Configuration options for a text response from the model. Can be plain text or
-              structured JSON data. Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -541,7 +526,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -648,7 +633,7 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          reasoning: **o-series models only**
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -667,9 +652,8 @@ class Responses(SyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -685,12 +669,6 @@ class Responses(SyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
-
-          text: Configuration options for a text response from the model. Can be plain text or
-              structured JSON data. Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -768,7 +746,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1129,7 +1107,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1229,7 +1207,7 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          reasoning: **o-series models only**
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -1248,9 +1226,8 @@ class AsyncResponses(AsyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1273,12 +1250,6 @@ class AsyncResponses(AsyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
-
-          text: Configuration options for a text response from the model. Can be plain text or
-              structured JSON data. Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -1357,7 +1328,7 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1464,7 +1435,7 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          reasoning: **o-series models only**
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -1483,9 +1454,8 @@ class AsyncResponses(AsyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1501,12 +1471,6 @@ class AsyncResponses(AsyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
-
-          text: Configuration options for a text response from the model. Can be plain text or
-              structured JSON data. Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -1585,7 +1549,7 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1692,7 +1656,7 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-          reasoning: **o-series models only**
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -1711,9 +1675,8 @@ class AsyncResponses(AsyncAPIResource):
               - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1729,12 +1692,6 @@ class AsyncResponses(AsyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
-
-          text: Configuration options for a text response from the model. Can be plain text or
-              structured JSON data. Learn more:
-
-              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -1812,7 +1769,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: response_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
