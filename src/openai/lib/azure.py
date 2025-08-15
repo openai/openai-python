@@ -255,7 +255,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
 
     @override
-    def copy(
+    def copy(  # type: ignore
         self,
         *,
         api_key: str | None = None,
@@ -301,7 +301,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             },
         )
 
-    with_options = copy
+    with_options = copy  # type: ignore
 
     def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
@@ -536,7 +536,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
 
     @override
-    def copy(
+    def copy(  # type: ignore
         self,
         *,
         api_key: str | None = None,
@@ -582,7 +582,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             },
         )
 
-    with_options = copy
+    with_options = copy  # type: ignore
 
     async def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:

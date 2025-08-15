@@ -9,7 +9,18 @@ from typing_extensions import override
 from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes
 from ._utils import file_from_path
-from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
+from ._client import (
+    Client,
+    OpenAI,
+    Stream,
+    Timeout,
+    Transport,
+    AsyncClient,
+    AsyncOpenAI,
+    AsyncStream,
+    TokenProvider,
+    RequestOptions,
+)
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
@@ -119,6 +130,8 @@ from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
 
+token_provider: TokenProvider | None = None
+
 organization: str | None = None
 
 project: str | None = None
@@ -164,6 +177,17 @@ class _ModuleClient(OpenAI):
         global api_key
 
         api_key = value
+
+    @property  # type: ignore
+    @override
+    def token_provider(self) -> TokenProvider | None:
+        return token_provider
+
+    @token_provider.setter  # type: ignore
+    def token_provider(self, value: TokenProvider | None) -> None:  # type: ignore
+        global token_provider
+
+        token_provider = value
 
     @property  # type: ignore
     @override
@@ -348,6 +372,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
 
         _client = _ModuleClient(
             api_key=api_key,
+            token_provider=token_provider,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
