@@ -86,6 +86,7 @@ class TestCompletions:
                 "include_usage": True,
             },
             temperature=1,
+            text={"verbosity": "low"},
             tool_choice="none",
             tools=[
                 {
@@ -218,6 +219,7 @@ class TestCompletions:
                 "include_usage": True,
             },
             temperature=1,
+            text={"verbosity": "low"},
             tool_choice="none",
             tools=[
                 {
@@ -527,6 +529,7 @@ class TestAsyncCompletions:
                 "include_usage": True,
             },
             temperature=1,
+            text={"verbosity": "low"},
             tool_choice="none",
             tools=[
                 {
@@ -659,6 +662,7 @@ class TestAsyncCompletions:
                 "include_usage": True,
             },
             temperature=1,
+            text={"verbosity": "low"},
             tool_choice="none",
             tools=[
                 {

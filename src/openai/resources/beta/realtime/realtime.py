@@ -652,8 +652,8 @@ class RealtimeResponseResource(BaseRealtimeConnectionResource):
         """Send this event to cancel an in-progress response.
 
         The server will respond
-        with a `response.cancelled` event or an error if there is no response to
-        cancel.
+        with a `response.done` event with a status of `response.status=cancelled`. If
+        there is no response to cancel, the server will respond with an error.
         """
         self._connection.send(
             cast(
@@ -904,8 +904,8 @@ class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
         """Send this event to cancel an in-progress response.
 
         The server will respond
-        with a `response.cancelled` event or an error if there is no response to
-        cancel.
+        with a `response.done` event with a status of `response.status=cancelled`. If
+        there is no response to cancel, the server will respond with an error.
         """
         await self._connection.send(
             cast(
