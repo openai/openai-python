@@ -176,7 +176,7 @@ class RunCreateParamsBase(TypedDict, total=False):
     truncation_strategy: Optional[TruncationStrategy]
     """Controls for how a thread will be truncated prior to the run.
 
-    Use this to control the intial context window of the run.
+    Use this to control the initial context window of the run.
     """
 
 
