@@ -946,12 +946,12 @@ class TestOpenAI:
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
     def test_refresh_auth_headers_str_token(self) -> None:
-        client = OpenAI(base_url=base_url, token_provider=lambda: "test_bearer_token")
+        client = OpenAI(base_url=base_url, auth_provider=lambda: "test_bearer_token")
         client.refresh_auth_headers()
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
 
     def test_refresh_auth_headers_dict(self) -> None:
-        client = OpenAI(base_url=base_url, token_provider=lambda: {"Authorization": "Bearer test_bearer_token"})
+        client = OpenAI(base_url=base_url, auth_provider=lambda: {"Authorization": "Bearer test_bearer_token"})
         client.refresh_auth_headers()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token"}
 
@@ -961,7 +961,7 @@ class TestOpenAI:
         assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
 
     @pytest.mark.respx()
-    def test_token_provider_refresh(self, respx_mock: MockRouter) -> None:
+    def test_auth_provider_refresh(self, respx_mock: MockRouter) -> None:
         respx_mock.post(base_url + "/chat/completions").mock(
             side_effect=[
                 httpx.Response(500, json={"error": "server error"}),
@@ -971,7 +971,7 @@ class TestOpenAI:
 
         counter = 0
 
-        def token_provider() -> str:
+        def auth_provider() -> str:
             nonlocal counter
 
             counter += 1
@@ -981,7 +981,7 @@ class TestOpenAI:
 
             return "second"
 
-        client = OpenAI(base_url=base_url, token_provider=token_provider)
+        client = OpenAI(base_url=base_url, auth_provider=auth_provider)
         client.chat.completions.create(messages=[], model="gpt-4")
 
         calls = cast("list[MockRequestCall]", respx_mock.calls)
@@ -992,20 +992,20 @@ class TestOpenAI:
 
     def test_auth_mutually_exclusive(self) -> None:
         with pytest.raises(ValueError) as exc_info:
-            OpenAI(base_url=base_url, api_key=api_key, token_provider=lambda: "test_bearer_token")
-        assert str(exc_info.value) == "The `api_key` and `token_provider` arguments are mutually exclusive"
+            OpenAI(base_url=base_url, api_key=api_key, auth_provider=lambda: "test_bearer_token")
+        assert str(exc_info.value) == "The `api_key` and `auth_provider` arguments are mutually exclusive"
 
     def test_copy_auth(self) -> None:
-        client = OpenAI(base_url=base_url, token_provider=lambda: "test_bearer_token_1").copy(
-            token_provider=lambda: "test_bearer_token_2"
+        client = OpenAI(base_url=base_url, auth_provider=lambda: "test_bearer_token_1").copy(
+            auth_provider=lambda: "test_bearer_token_2"
         )
         client.refresh_auth_headers()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
     def test_copy_auth_mutually_exclusive(self) -> None:
         with pytest.raises(ValueError) as exc_info:
-            OpenAI(base_url=base_url, api_key=api_key).copy(token_provider=lambda: "test_bearer_token")
-        assert str(exc_info.value) == "The `api_key` and `token_provider` arguments are mutually exclusive"
+            OpenAI(base_url=base_url, api_key=api_key).copy(auth_provider=lambda: "test_bearer_token")
+        assert str(exc_info.value) == "The `api_key` and `auth_provider` arguments are mutually exclusive"
 
 
 class TestAsyncOpenAI:
@@ -1959,19 +1959,19 @@ class TestAsyncOpenAI:
 
     @pytest.mark.asyncio
     async def test_refresh_auth_headers_str_token_async(self) -> None:
-        async def token_provider() -> str:
+        async def auth_provider() -> str:
             return "test_bearer_token"
 
-        client = AsyncOpenAI(base_url=base_url, token_provider=token_provider)
+        client = AsyncOpenAI(base_url=base_url, auth_provider=auth_provider)
         await client.refresh_auth_headers()
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
 
     @pytest.mark.asyncio
     async def test_refresh_auth_headers_dict_async(self) -> None:
-        async def token_provider() -> dict[str, str]:
+        async def auth_provider() -> dict[str, str]:
             return {"Authorization": "Bearer test_bearer_token"}
 
-        client = AsyncOpenAI(base_url=base_url, token_provider=token_provider)
+        client = AsyncOpenAI(base_url=base_url, auth_provider=auth_provider)
         await client.refresh_auth_headers()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token"}
 
@@ -1993,7 +1993,7 @@ class TestAsyncOpenAI:
 
         counter = 0
 
-        async def token_provider() -> str:
+        async def auth_provider() -> str:
             nonlocal counter
 
             counter += 1
@@ -2003,7 +2003,7 @@ class TestAsyncOpenAI:
 
             return "second"
 
-        client = AsyncOpenAI(base_url=base_url, token_provider=token_provider)
+        client = AsyncOpenAI(base_url=base_url, auth_provider=auth_provider)
         await client.chat.completions.create(messages=[], model="gpt-4")
 
         calls = cast("list[MockRequestCall]", respx_mock.calls)
@@ -2013,29 +2013,29 @@ class TestAsyncOpenAI:
         assert calls[1].request.headers.get("Authorization") == "Bearer second"
 
     def test_auth_mutually_exclusive_async(self) -> None:
-        async def token_provider() -> str:
+        async def auth_provider() -> str:
             return "test_bearer_token"
 
         with pytest.raises(ValueError) as exc_info:
-            AsyncOpenAI(base_url=base_url, api_key=api_key, token_provider=token_provider)
-        assert str(exc_info.value) == "The `api_key` and `token_provider` arguments are mutually exclusive"
+            AsyncOpenAI(base_url=base_url, api_key=api_key, auth_provider=auth_provider)
+        assert str(exc_info.value) == "The `api_key` and `auth_provider` arguments are mutually exclusive"
 
     @pytest.mark.asyncio
     async def test_copy_auth(self) -> None:
-        async def token_provider_1() -> str:
+        async def auth_provider_1() -> str:
             return "test_bearer_token_1"
 
-        async def token_provider_2() -> str:
+        async def auth_provider_2() -> str:
             return "test_bearer_token_2"
 
-        client = AsyncOpenAI(base_url=base_url, token_provider=token_provider_1).copy(token_provider=token_provider_2)
+        client = AsyncOpenAI(base_url=base_url, auth_provider=auth_provider_1).copy(auth_provider=auth_provider_2)
         await client.refresh_auth_headers()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
     def test_copy_auth_mutually_exclusive_async(self) -> None:
-        async def token_provider() -> str:
+        async def auth_provider() -> str:
             return "test_bearer_token"
 
         with pytest.raises(ValueError) as exc_info:
-            AsyncOpenAI(base_url=base_url, api_key=api_key).copy(token_provider=token_provider)
-        assert str(exc_info.value) == "The `api_key` and `token_provider` arguments are mutually exclusive"
+            AsyncOpenAI(base_url=base_url, api_key=api_key).copy(auth_provider=auth_provider)
+        assert str(exc_info.value) == "The `api_key` and `auth_provider` arguments are mutually exclusive"

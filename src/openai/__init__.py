@@ -18,7 +18,7 @@ from ._client import (
     AsyncClient,
     AsyncOpenAI,
     AsyncStream,
-    TokenProvider,
+    AuthProvider,
     RequestOptions,
 )
 from ._models import BaseModel
@@ -130,7 +130,7 @@ from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
 
-token_provider: TokenProvider | None = None
+auth_provider: AuthProvider | None = None
 
 organization: str | None = None
 
@@ -180,14 +180,14 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
-    def token_provider(self) -> TokenProvider | None:
-        return token_provider
+    def auth_provider(self) -> AuthProvider | None:
+        return auth_provider
 
-    @token_provider.setter  # type: ignore
-    def token_provider(self, value: TokenProvider | None) -> None:  # type: ignore
-        global token_provider
+    @auth_provider.setter  # type: ignore
+    def auth_provider(self, value: AuthProvider | None) -> None:  # type: ignore
+        global auth_provider
 
-        token_provider = value
+        auth_provider = value
 
     @property  # type: ignore
     @override
@@ -372,7 +372,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
 
         _client = _ModuleClient(
             api_key=api_key,
-            token_provider=token_provider,
+            auth_provider=auth_provider,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,

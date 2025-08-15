@@ -74,8 +74,8 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
-TokenProvider = Callable[[], "str | dict[str, str]"]
-AsyncTokenProvider = Callable[[], Awaitable["str | dict[str, str]"]]
+AuthProvider = Callable[[], "str | dict[str, str]"]
+AsyncAuthProvider = Callable[[], Awaitable["str | dict[str, str]"]]
 
 
 class OpenAI(SyncAPIClient):
@@ -97,7 +97,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
-        token_provider: TokenProvider | None = None,
+        auth_provider: AuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -129,15 +129,15 @@ class OpenAI(SyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key and token_provider:
-            raise ValueError("The `api_key` and `token_provider` arguments are mutually exclusive")
+        if api_key and auth_provider:
+            raise ValueError("The `api_key` and `auth_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None and token_provider is None:
+        if api_key is None and auth_provider is None:
             raise OpenAIError(
-                "The api_key or token_provider client option must be set either by passing api_key or token_provider to the client or by setting the OPENAI_API_KEY environment variable"
+                "The api_key or auth_provider client option must be set either by passing api_key or auth_provider to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.token_provider = token_provider
+        self.auth_provider = auth_provider
         self.api_key = api_key or ""
 
         if organization is None:
@@ -289,7 +289,7 @@ class OpenAI(SyncAPIClient):
         return Querystring(array_format="brackets")
 
     def refresh_auth_headers(self) -> None:
-        secret = self.token_provider() if self.token_provider else self.api_key
+        secret = self.auth_provider() if self.auth_provider else self.api_key
         if not secret:
             # if secret is an empty string, encoding the header will fail
             # so we set it to an empty dict
@@ -325,7 +325,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
-        token_provider: TokenProvider | None = None,
+        auth_provider: AuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -361,9 +361,9 @@ class OpenAI(SyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        token_provider = token_provider or self.token_provider
-        if token_provider is not None:
-            _extra_kwargs = {**_extra_kwargs, "token_provider": token_provider}
+        auth_provider = auth_provider or self.auth_provider
+        if auth_provider is not None:
+            _extra_kwargs = {**_extra_kwargs, "auth_provider": auth_provider}
 
         http_client = http_client or self._client
         return self.__class__(
@@ -439,7 +439,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
-        token_provider: AsyncTokenProvider | None = None,
+        auth_provider: AsyncAuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -471,15 +471,15 @@ class AsyncOpenAI(AsyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key and token_provider:
-            raise ValueError("The `api_key` and `token_provider` arguments are mutually exclusive")
+        if api_key and auth_provider:
+            raise ValueError("The `api_key` and `auth_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None and token_provider is None:
+        if api_key is None and auth_provider is None:
             raise OpenAIError(
-                "The api_key or token_provider client option must be set either by passing api_key or token_provider to the client or by setting the OPENAI_API_KEY environment variable"
+                "The api_key or auth_provider client option must be set either by passing api_key or auth_provider to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.token_provider = token_provider
+        self.auth_provider = auth_provider
         self.api_key = api_key or ""
 
         if organization is None:
@@ -631,8 +631,8 @@ class AsyncOpenAI(AsyncAPIClient):
         return Querystring(array_format="brackets")
 
     async def refresh_auth_headers(self) -> None:
-        if self.token_provider:
-            secret = await self.token_provider()
+        if self.auth_provider:
+            secret = await self.auth_provider()
         else:
             secret = self.api_key
         if not secret:
@@ -670,7 +670,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
-        token_provider: AsyncTokenProvider | None = None,
+        auth_provider: AsyncAuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -706,9 +706,9 @@ class AsyncOpenAI(AsyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        token_provider = token_provider or self.token_provider
-        if token_provider is not None:
-            _extra_kwargs = {**_extra_kwargs, "token_provider": token_provider}
+        auth_provider = auth_provider or self.auth_provider
+        if auth_provider is not None:
+            _extra_kwargs = {**_extra_kwargs, "auth_provider": auth_provider}
 
         http_client = http_client or self._client
         return self.__class__(
