@@ -18,11 +18,11 @@ from .response_input_item import ResponseInputItem
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
-from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
+from .response_format_text_config import ResponseFormatTextConfig
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice"]
+__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Text"]
 
 
 class IncompleteDetails(BaseModel):
@@ -33,6 +33,32 @@ class IncompleteDetails(BaseModel):
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions, ToolChoiceAllowed, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, ToolChoiceCustom
 ]
+
+
+class Text(BaseModel):
+    format: Optional[ResponseFormatTextConfig] = None
+    """An object specifying the format that the model must output.
+
+    Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
+    ensures the model will match your supplied JSON schema. Learn more in the
+    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
+
+    The default format is `{ "type": "text" }` with no additional options.
+
+    **Not recommended for gpt-4o and newer models:**
+
+    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
+    ensures the message the model generates is valid JSON. Using `json_schema` is
+    preferred for models that support it.
+    """
+
+    verbosity: Optional[Literal["low", "medium", "high"]] = None
+    """Constrains the verbosity of the model's response.
+
+    Lower values will result in more concise responses, while higher values will
+    result in more verbose responses. Currently supported values are `low`,
+    `medium`, and `high`.
+    """
 
 
 class Response(BaseModel):
@@ -177,7 +203,7 @@ class Response(BaseModel):
     """
 
     reasoning: Optional[Reasoning] = None
-    """**o-series models only**
+    """**gpt-5 and o-series models only**
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -201,9 +227,8 @@ class Response(BaseModel):
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      'priority', then the request will be processed with the corresponding service
-      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-      Priority processing.
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -219,14 +244,7 @@ class Response(BaseModel):
     `incomplete`.
     """
 
-    text: Optional[ResponseTextConfig] = None
-    """Configuration options for a text response from the model.
-
-    Can be plain text or structured JSON data. Learn more:
-
-    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
-    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
-    """
+    text: Optional[Text] = None
 
     top_logprobs: Optional[int] = None
     """

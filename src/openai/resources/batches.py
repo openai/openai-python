@@ -49,6 +49,7 @@ class Batches(SyncAPIResource):
         endpoint: Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        output_expires_after: batch_create_params.OutputExpiresAfter | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -85,6 +86,9 @@ class Batches(SyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
+          output_expires_after: The expiration policy for the output and/or error file that are generated for a
+              batch.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -101,6 +105,7 @@ class Batches(SyncAPIResource):
                     "endpoint": endpoint,
                     "input_file_id": input_file_id,
                     "metadata": metadata,
+                    "output_expires_after": output_expires_after,
                 },
                 batch_create_params.BatchCreateParams,
             ),
@@ -259,6 +264,7 @@ class AsyncBatches(AsyncAPIResource):
         endpoint: Literal["/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions"],
         input_file_id: str,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        output_expires_after: batch_create_params.OutputExpiresAfter | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -295,6 +301,9 @@ class AsyncBatches(AsyncAPIResource):
               Keys are strings with a maximum length of 64 characters. Values are strings with
               a maximum length of 512 characters.
 
+          output_expires_after: The expiration policy for the output and/or error file that are generated for a
+              batch.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -311,6 +320,7 @@ class AsyncBatches(AsyncAPIResource):
                     "endpoint": endpoint,
                     "input_file_id": input_file_id,
                     "metadata": metadata,
+                    "output_expires_after": output_expires_after,
                 },
                 batch_create_params.BatchCreateParams,
             ),

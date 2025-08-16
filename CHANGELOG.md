@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.100.0 (2025-08-16)
+
+Full Changelog: [v1.99.9...v1.100.0](https://github.com/openai/openai-python/compare/v1.99.9...v1.100.0)
+
+### Features
+
+* **api:** add new text parameters, expiration options ([e3dfa7c](https://github.com/openai/openai-python/commit/e3dfa7c417b8c750ff62d98650e75e72ad9b1477))
+
 ## 1.99.9 (2025-08-12)
 
 Full Changelog: [v1.99.8...v1.99.9](https://github.com/openai/openai-python/compare/v1.99.8...v1.99.9)

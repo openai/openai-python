@@ -57,6 +57,7 @@ class Files(SyncAPIResource):
         *,
         file: FileTypes,
         purpose: FilePurpose,
+        expires_after: file_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -68,7 +69,7 @@ class Files(SyncAPIResource):
 
         Individual files can be
         up to 512 MB, and the size of all files uploaded by one organization can be up
-        to 100 GB.
+        to 1 TB.
 
         The Assistants API supports files up to 2 million tokens and of specific file
         types. See the
@@ -96,6 +97,9 @@ class Files(SyncAPIResource):
               fine-tuning - `vision`: Images used for vision fine-tuning - `user_data`:
               Flexible file type for any purpose - `evals`: Used for eval data sets
 
+          expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
+              after 30 days and all other files are persisted until they are manually deleted.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -108,6 +112,7 @@ class Files(SyncAPIResource):
             {
                 "file": file,
                 "purpose": purpose,
+                "expires_after": expires_after,
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
@@ -369,6 +374,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         file: FileTypes,
         purpose: FilePurpose,
+        expires_after: file_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -380,7 +386,7 @@ class AsyncFiles(AsyncAPIResource):
 
         Individual files can be
         up to 512 MB, and the size of all files uploaded by one organization can be up
-        to 100 GB.
+        to 1 TB.
 
         The Assistants API supports files up to 2 million tokens and of specific file
         types. See the
@@ -408,6 +414,9 @@ class AsyncFiles(AsyncAPIResource):
               fine-tuning - `vision`: Images used for vision fine-tuning - `user_data`:
               Flexible file type for any purpose - `evals`: Used for eval data sets
 
+          expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
+              after 30 days and all other files are persisted until they are manually deleted.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -420,6 +429,7 @@ class AsyncFiles(AsyncAPIResource):
             {
                 "file": file,
                 "purpose": purpose,
+                "expires_after": expires_after,
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["file"]])
