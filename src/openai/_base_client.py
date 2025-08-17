@@ -833,6 +833,12 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
     ) -> None:
+        # First validate that the http_client is of the correct type
+        if http_client is not None and not isinstance(http_client, httpx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+            )
+            
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
@@ -859,10 +865,14 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             _strict_response_validation=_strict_response_validation,
         )
         self._client = http_client or SyncHttpxClientWrapper(
-            base_url=base_url,````
+            base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
         )
+        if http_client is not None and not isinstance(http_client, httpx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+            )
 
     def is_closed(self) -> bool:
         return self._client.is_closed
@@ -1375,6 +1385,12 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
+        # First validate that the http_client is of the correct type
+        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+            )
+            
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
             # timeout set then we use that timeout.
@@ -1388,8 +1404,6 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        # Removed isinstance check to allow custom http_client implementations
-
         super().__init__(
             version=version,
             base_url=base_url,
@@ -1400,6 +1414,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             custom_headers=custom_headers,
             _strict_response_validation=_strict_response_validation,
         )
+        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
+            raise TypeError(
+                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+            )
         self._client = http_client or AsyncHttpxClientWrapper(
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
