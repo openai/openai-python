@@ -360,22 +360,6 @@ _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStrea
 
 class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _client: _HttpxClientT
-    
-    def _validate_http_client(self, http_client: Any, is_async: bool) -> bool:
-        """Validate that the provided http_client has the required methods and attributes."""
-        # Check for required attributes
-        if not hasattr(http_client, 'is_closed'):
-            return False
-            
-        # Check for required methods
-        if is_async:
-            if not hasattr(http_client, 'send') or not hasattr(http_client, 'aclose'):
-                return False
-        else:
-            if not hasattr(http_client, 'send') or not hasattr(http_client, 'close'):
-                return False
-                
-        return True
     _version: str
     _base_url: URL
     max_retries: int
@@ -862,10 +846,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not self._validate_http_client(http_client, is_async=False):
-            raise TypeError(
-                f"Invalid `http_client` argument; Expected an httpx.Client instance or compatible object but got {type(http_client)}"
-            )
+        # Removed isinstance check to allow custom http_client implementations
 
         super().__init__(
             version=version,
@@ -1407,10 +1388,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not self._validate_http_client(http_client, is_async=True):
-            raise TypeError(
-                f"Invalid `http_client` argument; Expected an httpx.AsyncClient instance or compatible object but got {type(http_client)}"
-            )
+        # Removed isinstance check to allow custom http_client implementations
 
         super().__init__(
             version=version,
