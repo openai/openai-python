@@ -303,6 +303,33 @@ class TestOpenAI:
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
             timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
+            
+    def test_custom_sync_http_client(self) -> None:
+        class MyHttpClient(httpx.Client):
+            pass
+
+        with MyHttpClient() as http_client:
+            client = OpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+            # No TypeError should be raised
+            
+    def test_custom_sync_http_client_duck_typing(self) -> None:
+        class MyHttpClient:
+            def __init__(self) -> None:
+                self.is_closed = False
+                
+            def send(self, request: httpx.Request, *, stream: bool = False, **kwargs: Any) -> httpx.Response:
+                return httpx.Response(status_code=200, content=b"test", request=request)
+                
+            def close(self) -> None:
+                self.is_closed = True
+
+        http_client = MyHttpClient()
+        client = OpenAI(
+            base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+        )
+        # No TypeError should be raised
 
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
@@ -1188,6 +1215,39 @@ class TestAsyncOpenAI:
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
             timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
+            
+    def test_custom_async_http_client(self) -> None:
+        class MyAsyncHttpClient(httpx.AsyncClient):
+            pass
+
+        async def _test() -> None:
+            async with MyAsyncHttpClient() as http_client:
+                client = AsyncOpenAI(
+                    base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+                )
+                # No TypeError should be raised
+
+        asyncio.run(_test())
+        
+    def test_custom_async_http_client_duck_typing(self) -> None:
+        class MyAsyncHttpClient:
+            def __init__(self) -> None:
+                self.is_closed = False
+                
+            async def send(self, request: httpx.Request, *, stream: bool = False, **kwargs: Any) -> httpx.Response:
+                return httpx.Response(status_code=200, content=b"test", request=request)
+                
+            async def aclose(self) -> None:
+                self.is_closed = True
+
+        async def _test() -> None:
+            http_client = MyAsyncHttpClient()
+            client = AsyncOpenAI(
+                base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
+            )
+            # No TypeError should be raised
+
+        asyncio.run(_test())
 
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
