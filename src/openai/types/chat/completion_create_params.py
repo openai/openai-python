@@ -25,6 +25,7 @@ __all__ = [
     "FunctionCall",
     "Function",
     "ResponseFormat",
+    "Text",
     "WebSearchOptions",
     "WebSearchOptionsUserLocation",
     "WebSearchOptionsUserLocationApproximate",
@@ -233,9 +234,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      'priority', then the request will be processed with the corresponding service
-      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-      Priority processing.
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -270,6 +270,8 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     0.2 will make it more focused and deterministic. We generally recommend altering
     this or `top_p` but not both.
     """
+
+    text: Text
 
     tool_choice: ChatCompletionToolChoiceOptionParam
     """
@@ -363,6 +365,16 @@ class Function(TypedDict, total=False):
 
 
 ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, ResponseFormatJSONObject]
+
+
+class Text(TypedDict, total=False):
+    verbosity: Optional[Literal["low", "medium", "high"]]
+    """Constrains the verbosity of the model's response.
+
+    Lower values will result in more concise responses, while higher values will
+    result in more verbose responses. Currently supported values are `low`,
+    `medium`, and `high`.
+    """
 
 
 class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
