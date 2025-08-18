@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.100.1 (2025-08-18)
+
+Full Changelog: [v1.100.0...v1.100.1](https://github.com/openai/openai-python/compare/v1.100.0...v1.100.1)
+
+### Bug Fixes
+
+* **types:** revert response text config deletion ([ac4fb19](https://github.com/openai/openai-python/commit/ac4fb1922ae125c8310c30e402932e8bb2976f58))
+
 ## 1.100.0 (2025-08-18)
 
 Full Changelog: [v1.99.9...v1.100.0](https://github.com/openai/openai-python/compare/v1.99.9...v1.100.0)
