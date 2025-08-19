@@ -74,8 +74,8 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
-AuthProvider = Callable[[], "str | dict[str, str]"]
-AsyncAuthProvider = Callable[[], Awaitable["str | dict[str, str]"]]
+AuthProvider = Callable[[FinalRequestOptions], FinalRequestOptions]
+AsyncAuthProvider = Callable[[FinalRequestOptions], Awaitable[FinalRequestOptions]]
 
 
 class OpenAI(SyncAPIClient):
@@ -171,7 +171,6 @@ class OpenAI(SyncAPIClient):
         )
 
         self._default_stream_cls = Stream
-        self._auth_headers: dict[str, str] = {}
 
     @cached_property
     def completions(self) -> Completions:
@@ -288,27 +287,19 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    def refresh_auth_headers(self) -> None:
-        secret = self.auth_provider() if self.auth_provider else self.api_key
-        if not secret:
-            # if secret is an empty string, encoding the header will fail
-            # so we set it to an empty dict
-            # this is to avoid sending an invalid Authorization header
-            self._auth_headers = {}
-        elif isinstance(secret, str):
-            self._auth_headers = {"Authorization": f"Bearer {secret}"}
-        else:
-            self._auth_headers = secret
-
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        self.refresh_auth_headers()
-        return super()._prepare_options(options)
+        options = super()._prepare_options(options)
+        return self.auth_provider(options) if self.auth_provider else options
 
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        return self._auth_headers
+        if self.api_key:
+            return {
+                "Authorization": f"Bearer {self.api_key}"
+            }
+        return {}
 
     @property
     @override
@@ -513,7 +504,6 @@ class AsyncOpenAI(AsyncAPIClient):
         )
 
         self._default_stream_cls = AsyncStream
-        self._auth_headers: dict[str, str] = {}
 
     @cached_property
     def completions(self) -> AsyncCompletions:
@@ -630,30 +620,19 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
-    async def refresh_auth_headers(self) -> None:
-        if self.auth_provider:
-            secret = await self.auth_provider()
-        else:
-            secret = self.api_key
-        if not secret:
-            # if the secret is an empty string, encoding the header will fail
-            # so we set it to an empty dict
-            # this is to avoid sending an invalid Authorization header
-            self._auth_headers = {}
-        elif isinstance(secret, str):
-            self._auth_headers = {"Authorization": f"Bearer {secret}"}
-        else:
-            self._auth_headers = secret
-
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
-        await self.refresh_auth_headers()
-        return await super()._prepare_options(options)
+        options = await super()._prepare_options(options)
+        return await self.auth_provider(options) if self.auth_provider else options
 
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
-        return self._auth_headers
+        if self.api_key:
+            return {
+                "Authorization": f"Bearer {self.api_key}"
+            }
+        return {}
 
     @property
     @override
