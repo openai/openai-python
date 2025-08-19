@@ -71,6 +71,7 @@ dev-dependencies = [
     "trio >=0.22.2",
     "nest_asyncio==1.6.0",
     "pytest-xdist>=3.6.1",
+    "griffe>=1",
 ]
 
 [tool.rye.scripts]

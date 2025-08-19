@@ -44,6 +44,8 @@ cffi==1.16.0
     # via sounddevice
 charset-normalizer==3.3.2
     # via requests
+colorama==0.4.6
+    # via griffe
 colorlog==6.7.0
     # via nox
 cryptography==42.0.7
@@ -68,6 +70,7 @@ filelock==3.12.4
 frozenlist==1.7.0
     # via aiohttp
     # via aiosignal
+griffe==1.12.1
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
