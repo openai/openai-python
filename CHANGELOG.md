@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.100.2 (2025-08-19)
+
+Full Changelog: [v1.100.1...v1.100.2](https://github.com/openai/openai-python/compare/v1.100.1...v1.100.2)
+
+### Chores
+
+* **api:** accurately represent shape for verbosity on Chat Completions ([c39d5fd](https://github.com/openai/openai-python/commit/c39d5fd3f5429c6d41f257669a1dd4c67a477455))
+
 ## 1.100.1 (2025-08-18)
 
 Full Changelog: [v1.100.0...v1.100.1](https://github.com/openai/openai-python/compare/v1.100.0...v1.100.1)
