@@ -18,6 +18,7 @@ from .response_input_item import ResponseInputItem
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
+from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 from .response_format_text_config import ResponseFormatTextConfig
