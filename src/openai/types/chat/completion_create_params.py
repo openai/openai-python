@@ -25,7 +25,6 @@ __all__ = [
     "FunctionCall",
     "Function",
     "ResponseFormat",
-    "Text",
     "WebSearchOptions",
     "WebSearchOptionsUserLocation",
     "WebSearchOptionsUserLocationApproximate",
@@ -257,7 +256,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     our [model distillation](https://platform.openai.com/docs/guides/distillation)
     or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-    Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+    Supports text and image inputs. Note: image inputs over 8MB will be dropped.
     """
 
     stream_options: Optional[ChatCompletionStreamOptionsParam]
@@ -270,8 +269,6 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     0.2 will make it more focused and deterministic. We generally recommend altering
     this or `top_p` but not both.
     """
-
-    text: Text
 
     tool_choice: ChatCompletionToolChoiceOptionParam
     """
@@ -365,16 +362,6 @@ class Function(TypedDict, total=False):
 
 
 ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, ResponseFormatJSONObject]
-
-
-class Text(TypedDict, total=False):
-    verbosity: Optional[Literal["low", "medium", "high"]]
-    """Constrains the verbosity of the model's response.
-
-    Lower values will result in more concise responses, while higher values will
-    result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
-    """
 
 
 class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
