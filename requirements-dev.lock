@@ -31,6 +31,8 @@ attrs==25.3.0
 certifi==2023.7.22
     # via httpcore
     # via httpx
+colorama==0.4.6
+    # via griffe
 colorlog==6.7.0
     # via nox
 dirty-equals==0.6.0
@@ -48,6 +50,7 @@ filelock==3.12.4
 frozenlist==1.6.2
     # via aiohttp
     # via aiosignal
+griffe==1.12.1
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9

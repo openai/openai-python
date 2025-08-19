@@ -59,6 +59,7 @@ dev-dependencies = [
     "rich>=13.7.1",
     "nest_asyncio==1.6.0",
     "pytest-xdist>=3.6.1",
+    "griffe>=1",
 ]
 
 [tool.rye.scripts]
