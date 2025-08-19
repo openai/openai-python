@@ -101,7 +101,6 @@ class Completions(SyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -293,7 +292,7 @@ class Completions(SyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -390,7 +389,6 @@ class Completions(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -591,7 +589,7 @@ class Completions(SyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -679,7 +677,6 @@ class Completions(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -880,7 +877,7 @@ class Completions(SyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -968,7 +965,6 @@ class Completions(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1014,7 +1010,6 @@ class Completions(SyncAPIResource):
                     "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
-                    "text": text,
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "top_logprobs": top_logprobs,
@@ -1271,7 +1266,6 @@ class AsyncCompletions(AsyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1463,7 +1457,7 @@ class AsyncCompletions(AsyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -1560,7 +1554,6 @@ class AsyncCompletions(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1761,7 +1754,7 @@ class AsyncCompletions(AsyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -1849,7 +1842,6 @@ class AsyncCompletions(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -2050,7 +2042,7 @@ class AsyncCompletions(AsyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -2138,7 +2130,6 @@ class AsyncCompletions(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: completion_create_params.Text | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
         tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -2184,7 +2175,6 @@ class AsyncCompletions(AsyncAPIResource):
                     "stream": stream,
                     "stream_options": stream_options,
                     "temperature": temperature,
-                    "text": text,
                     "tool_choice": tool_choice,
                     "tools": tools,
                     "top_logprobs": top_logprobs,
