@@ -16,14 +16,13 @@ from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
 from .tool_choice_custom_param import ToolChoiceCustomParam
 from .tool_choice_allowed_param import ToolChoiceAllowedParam
+from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
 from ..shared_params.responses_model import ResponsesModel
-from .response_format_text_config_param import ResponseFormatTextConfigParam
 
 __all__ = [
     "ResponseCreateParamsBase",
     "StreamOptions",
-    "Text",
     "ToolChoice",
     "ResponseCreateParamsNonStreaming",
     "ResponseCreateParamsStreaming",
@@ -183,7 +182,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     this or `top_p` but not both.
     """
 
-    text: Text
+    text: ResponseTextConfigParam
+    """Configuration options for a text response from the model.
+
+    Can be plain text or structured JSON data. Learn more:
+
+    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    """
 
     tool_choice: ToolChoice
     """
@@ -257,32 +263,6 @@ class StreamOptions(TypedDict, total=False):
     amount of overhead to the data stream. You can set `include_obfuscation` to
     false to optimize for bandwidth if you trust the network links between your
     application and the OpenAI API.
-    """
-
-
-class Text(TypedDict, total=False):
-    format: ResponseFormatTextConfigParam
-    """An object specifying the format that the model must output.
-
-    Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
-    ensures the model will match your supplied JSON schema. Learn more in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
-
-    The default format is `{ "type": "text" }` with no additional options.
-
-    **Not recommended for gpt-4o and newer models:**
-
-    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
-    ensures the message the model generates is valid JSON. Using `json_schema` is
-    preferred for models that support it.
-    """
-
-    verbosity: Optional[Literal["low", "medium", "high"]]
-    """Constrains the verbosity of the model's response.
-
-    Lower values will result in more concise responses, while higher values will
-    result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
     """
 
 
