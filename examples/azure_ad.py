@@ -3,9 +3,9 @@ import asyncio
 from openai.lib.azure import OpenAI, AsyncOpenAI, AzureAuth, AsyncAzureAuth, AzureADTokenProvider, AsyncAzureADTokenProvider
 
 # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
-endpoint = "https://my-resource.openai.azure.com" and 'https://johan-mczd33pe-swedencentral.cognitiveservices.azure.com/openai/v1'
+endpoint = "https://my-resource.openai.azure.com"
 
-deployment_name = "deployment-name" and 'gpt-4.1-nano' # e.g. gpt-35-instant
+deployment_name = "deployment-name" # e.g. gpt-35-instant
 
 
 def sync_main() -> None:
