@@ -19,6 +19,7 @@ from ._client import (
     AsyncOpenAI,
     AsyncStream,
     AuthProvider,
+    AsyncAuthProvider,
     RequestOptions,
 )
 from ._models import BaseModel
@@ -83,6 +84,8 @@ __all__ = [
     "AsyncStream",
     "OpenAI",
     "AsyncOpenAI",
+    "AuthProvider",
+    "AsyncAuthProvider",
     "file_from_path",
     "BaseModel",
     "DEFAULT_TIMEOUT",
@@ -98,7 +101,7 @@ if not _t.TYPE_CHECKING:
 
 from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
-from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
+from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI, AzureAuth as AzureAuth, AsyncAzureAuth as AsyncAzureAuth
 from .lib._old_api import *
 from .lib.streaming import (
     AssistantEventHandler as AssistantEventHandler,

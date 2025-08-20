@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import os
 import inspect
-from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload
+from typing import Any, Union, Mapping, TypeVar, Callable, Awaitable, cast, overload, Protocol
 from typing_extensions import Self, override
 
 import httpx
 
-from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven
+from openai import AuthProvider, AsyncAuthProvider
+from .._types import NOT_GIVEN, Omit, Query, Timeout, NotGiven, NotGivenOr, Headers
 from .._utils import is_given, is_mapping
 from .._client import OpenAI, AsyncOpenAI
 from .._compat import model_copy
@@ -35,6 +36,44 @@ AsyncAzureADTokenProvider = Callable[[], "str | Awaitable[str]"]
 _HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx.Client, httpx.AsyncClient])
 _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStream[Any]])
 
+class TokenCredentialLike(Protocol):
+
+    def get_token(self) -> str | Awaitable[str]:
+        ...
+
+class AzureAuth(AuthProvider):
+
+    DEFAULT_SCOPE = "https://cognitiveservices.azure.com/.default"
+    
+    def __init__(self, azure_ad_token_provider: AzureADTokenProvider):
+        self.azure_ad_token_provider = azure_ad_token_provider
+
+    @override
+    def do_auth(self, *, url: httpx.URL, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN, response: httpx.Response | None = None) -> tuple[httpx.URL, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+        headers = { **headers } if is_given(headers) else {}
+        headers.setdefault('Authorization', f'Bearer {self.get_token()}')
+        return url, headers, params, cookies
+    
+    def get_token(self) -> str:
+        return self.azure_ad_token_provider()
+
+class AsyncAzureAuth(AsyncAuthProvider):
+
+    DEFAULT_SCOPE = "https://cognitiveservices.azure.com/.default"
+
+    def __init__(self, azure_ad_token_provider: AsyncAzureADTokenProvider):
+        self.azure_ad_token_provider = azure_ad_token_provider
+
+    @override
+    async def do_auth(self, *, url: httpx.URL, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN, response: httpx.Response | None = None) -> tuple[httpx.URL, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+        headers = { **headers } if is_given(headers) else {}
+        headers.setdefault('Authorization', f'Bearer {await self.get_token()}')
+        return url, headers, params, cookies
+    
+    async def get_token(self) -> str:
+        if isinstance(self.azure_ad_token_provider, str):
+            return self.azure_ad_token_provider
+        return await self.azure_ad_token_provider()
 
 # we need to use a sentinel API key value for Azure AD
 # as we don't want to make the `api_key` in the main client Optional

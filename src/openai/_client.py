@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Union, Mapping, Callable, Awaitable
+from typing import TYPE_CHECKING, Any, Union, Mapping, Protocol
 from typing_extensions import Self, override
 
 import httpx
@@ -14,7 +14,9 @@ from ._types import (
     NOT_GIVEN,
     Omit,
     Timeout,
+    Headers,
     NotGiven,
+    NotGivenOr,
     Transport,
     ProxiesTypes,
     RequestOptions,
@@ -74,8 +76,23 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
-AuthProvider = Callable[[FinalRequestOptions], FinalRequestOptions]
-AsyncAuthProvider = Callable[[FinalRequestOptions], Awaitable[FinalRequestOptions]]
+class AuthProvider(Protocol):
+
+    def do_auth(self, *, url: httpx.URL, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN, response: httpx.Response | None = None) -> tuple[httpx.URL, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+        """Perform authentication for the request.
+
+        This method should be overridden by subclasses to implement specific authentication logic.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+class AsyncAuthProvider(Protocol):
+
+    async def do_auth(self, *, url: httpx.URL, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN, response: httpx.Response | None = None) -> tuple[httpx.URL, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+        """Perform authentication for the request.
+
+        This method should be overridden by subclasses to implement specific authentication logic.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
 
 
 class OpenAI(SyncAPIClient):
@@ -290,7 +307,17 @@ class OpenAI(SyncAPIClient):
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
         options = super()._prepare_options(options)
-        return self.auth_provider(options) if self.auth_provider else options
+
+        if self.auth_provider:
+            url, headers, params, _ = self.auth_provider.do_auth(
+                url = options.url,
+                headers = options.headers,
+                params = options.params
+            )
+            options.url = url
+            options.headers = headers
+            options.params = params
+        return options
 
     @property
     @override
@@ -623,7 +650,16 @@ class AsyncOpenAI(AsyncAPIClient):
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
         options = await super()._prepare_options(options)
-        return await self.auth_provider(options) if self.auth_provider else options
+        if self.auth_provider:
+            url, headers, params, _ = await self.auth_provider.do_auth(
+                url = options.url,
+                headers = options.headers,
+                params = options.params
+            )
+            options.url = url
+            options.headers = headers
+            options.params = params
+        return options
 
     @property
     @override

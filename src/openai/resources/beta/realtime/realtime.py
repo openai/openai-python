@@ -22,6 +22,7 @@ from .sessions import (
 from ...._types import NOT_GIVEN, Query, Headers, NotGiven
 from ...._utils import (
     is_azure_client,
+    is_given,
     maybe_transform,
     strip_not_given,
     async_maybe_transform,
@@ -358,18 +359,32 @@ class AsyncRealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         extra_query = self.__extra_query
-        await self.__client.refresh_auth_headers()
-        auth_headers = self.__client.auth_headers
-        if is_async_azure_client(self.__client):
-            url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
-        else:
-            url = self._prepare_url().copy_with(
-                params={
+
+        url = self._prepare_url()
+        if self.__client.auth_provider:
+            url, headers, params, _ = await self.__client.auth_provider.do_auth(
+                url = url,
+                headers = self.__client.auth_headers,
+                params = {
                     **self.__client.base_url.params,
-                    "model": self.__model,
                     **extra_query,
                 },
             )
+        else:
+            headers, params, = (
+                self.__client.auth_headers,
+                {
+                    **self.__client.base_url.params,
+                    **extra_query,
+                }
+            )        
+        url = url.copy_with(
+            params={
+                "model": self.__model,
+                **(params if is_given(params) else {}),
+            },
+        )
+
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
@@ -380,7 +395,7 @@ class AsyncRealtimeConnectionManager:
                 user_agent_header=self.__client.user_agent,
                 additional_headers=_merge_mappings(
                     {
-                        **auth_headers,
+                        **headers,
                         "OpenAI-Beta": "realtime=v1",
                     },
                     self.__extra_headers,
@@ -541,8 +556,7 @@ class RealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         extra_query = self.__extra_query
-        self.__client.refresh_auth_headers()
-        auth_headers = self.__client.auth_headers
+        url = self._prepare_url()
         if is_azure_client(self.__client):
             url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
         else:

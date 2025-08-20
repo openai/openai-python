@@ -1,28 +1,24 @@
 import asyncio
 
-from openai.lib.azure import AzureOpenAI, AsyncAzureOpenAI, AzureADTokenProvider, AsyncAzureADTokenProvider
-
-scopes = "https://cognitiveservices.azure.com/.default"
-
-# May change in the future
-# https://learn.microsoft.com/en-us/azure/ai-services/openai/reference#rest-api-versioning
-api_version = "2023-07-01-preview"
+from openai.lib.azure import OpenAI, AsyncOpenAI, AzureAuth, AsyncAzureAuth, AzureADTokenProvider, AsyncAzureADTokenProvider
 
 # https://learn.microsoft.com/en-us/azure/cognitive-services/openai/how-to/create-resource?pivots=web-portal#create-a-resource
-endpoint = "https://my-resource.openai.azure.com"
+endpoint = "https://my-resource.openai.azure.com" and 'https://johan-mczd33pe-swedencentral.cognitiveservices.azure.com/openai/v1'
 
-deployment_name = "deployment-name"  # e.g. gpt-35-instant
+deployment_name = "deployment-name" and 'gpt-4.1-nano' # e.g. gpt-35-instant
 
 
 def sync_main() -> None:
     from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
-    token_provider: AzureADTokenProvider = get_bearer_token_provider(DefaultAzureCredential(), scopes)
+    token_provider: AzureADTokenProvider = get_bearer_token_provider(DefaultAzureCredential(), AzureAuth.DEFAULT_SCOPE)
 
-    client = AzureOpenAI(
-        api_version=api_version,
-        azure_endpoint=endpoint,
-        azure_ad_token_provider=token_provider,
+    client = OpenAI(
+        base_url=endpoint,
+        auth_provider=AzureAuth(token_provider),
+        default_query={ # Temporary requirement to specify api version - will be removed once v1 routes go GA
+            'api-version': 'preview'
+        }
     )
 
     completion = client.chat.completions.create(
@@ -41,12 +37,14 @@ def sync_main() -> None:
 async def async_main() -> None:
     from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 
-    token_provider: AsyncAzureADTokenProvider = get_bearer_token_provider(DefaultAzureCredential(), scopes)
+    token_provider: AsyncAzureADTokenProvider = get_bearer_token_provider(DefaultAzureCredential(), AsyncAzureAuth.DEFAULT_SCOPE)
 
-    client = AsyncAzureOpenAI(
-        api_version=api_version,
-        azure_endpoint=endpoint,
-        azure_ad_token_provider=token_provider,
+    client = AsyncOpenAI(
+        base_url=endpoint,
+        auth_provider=AsyncAzureAuth(token_provider),
+        default_query={ # Temporary requirement to specify api version - will be removed once v1 routes go GA
+            'api-version': 'preview'
+        }
     )
 
     completion = await client.chat.completions.create(

@@ -11,18 +11,18 @@ import asyncio
 import inspect
 import subprocess
 import tracemalloc
-from typing import Any, Union, Protocol, cast, Callable
+from typing import Any, Union, Protocol, cast, Mapping
 from textwrap import dedent
 from unittest import mock
-from typing_extensions import Literal
+from typing_extensions import Literal, override
 
 import httpx
 import pytest
 from respx import MockRouter
 from pydantic import ValidationError
 
-from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
-from openai._types import Omit
+from openai import OpenAI, AsyncOpenAI, APIResponseValidationError, AuthProvider, AsyncAuthProvider, NOT_GIVEN
+from openai._types import Omit, NotGivenOr, Headers
 from openai._models import BaseModel, FinalRequestOptions
 from openai._compat import model_copy
 from openai._streaming import Stream, AsyncStream
@@ -46,27 +46,31 @@ api_key = "My API Key"
 class MockRequestCall(Protocol):
     request: httpx.Request
 
-def mock_auth_provider(token: str = 'dummy', *, additional: dict[str, str] = {}) -> Callable[[FinalRequestOptions], FinalRequestOptions]:
+def mock_auth_provider(token: str = 'dummy', *, additional: dict[str, str] = {}) -> AuthProvider:
     """
     Mock auth provider that returns a FinalRequestOptions with the Authorization header set.
     """
-    def auth_provider(options: FinalRequestOptions) -> FinalRequestOptions:
-        """
-        Mock auth provider that returns a FinalRequestOptions with the Authorization header set.
-        """
-        updated = model_copy(options)
-        headers = { **updated.headers } if is_given(updated.headers) else {}
-        headers['Authorization'] = f"Bearer {token}"
-        updated.headers = { **additional, **headers }
-        return updated
+    class MockAuthProvider(AuthProvider):
+
+        @override
+        def do_auth(self, *, url: str, headers: Mapping[str, str], params: dict[str, str], cookies: Any = NOT_GIVEN) -> tuple[str, Mapping[str, str], dict[str, str], Any]:
+            headers = { **(headers if is_given(headers) else {}), **additional }
+            headers.setdefault('Authorization', f'Bearer {token}')
+            return url, headers, params, cookies
     
-    return auth_provider
+    return MockAuthProvider()
 
 def async_mock_auth_provider(token: str = 'dummy', *, additional: dict[str, str] = {}):
-    async def auth_provider(options: FinalRequestOptions) -> FinalRequestOptions:
-        sync_auth_provider = mock_auth_provider(token, additional=additional)
-        return sync_auth_provider(options)
-    return auth_provider
+    
+    class MockAuthProvider(AsyncAuthProvider):
+
+        @override
+        async def do_auth(self, *, url: str, headers: NotGivenOr[Headers] = NOT_GIVEN, params: dict[str, str], cookies: Any = NOT_GIVEN) -> tuple[str, NotGivenOr[Headers], NotGivenOr[dict[str, str]], Any]:
+            headers = { **(headers if is_given(headers) else {}), **additional }
+            headers.setdefault('Authorization', f'Bearer {token}')
+            return url, headers, params, cookies
+
+    return MockAuthProvider()
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
     request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
@@ -977,30 +981,26 @@ class TestOpenAI:
             ]
         )
 
-        counter = 0
+        class CountingAuthProvider(AuthProvider):
 
-        def auth_provider(options: FinalRequestOptions) -> FinalRequestOptions:
-            nonlocal counter
+            def __init__(self):
+                self.counter = 0
 
-            counter += 1
+            @override
+            def do_auth(self, *, url: str, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN) -> tuple[str, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+                self.counter += 1
+                headers = {**headers} if is_given(headers) else {}
+                headers.setdefault('Authorization', f'Bearer {self.counter}')
+                return url, headers, params, cookies
 
-            updated = model_copy(options)
-            updated_headers = { **options.headers} if is_given(options.headers) else {}
-            if counter == 1:
-                    updated_headers["Authorization"] = "Bearer first"
-            else:
-                    updated_headers["Authorization"] = "Bearer second"
-            updated.headers = updated_headers
-            return updated
-
-        client = OpenAI(base_url=base_url, auth_provider=auth_provider)
+        client = OpenAI(base_url=base_url, auth_provider=CountingAuthProvider())
         client.chat.completions.create(messages=[], model="gpt-4")
 
         calls = cast("list[MockRequestCall]", respx_mock.calls)
         assert len(calls) == 2
 
-        assert calls[0].request.headers.get("Authorization") == "Bearer first"
-        assert calls[1].request.headers.get("Authorization") == "Bearer second"
+        assert calls[0].request.headers.get("Authorization") == "Bearer 1"
+        assert calls[1].request.headers.get("Authorization") == "Bearer 2"
 
     def test_auth_mutually_exclusive(self) -> None:
         with pytest.raises(ValueError) as exc_info:
@@ -1986,30 +1986,27 @@ class TestAsyncOpenAI:
             ]
         )
 
-        counter = 0
+        class CountingAuthProvider(AsyncAuthProvider):
 
-        async def auth_provider(options: FinalRequestOptions) -> FinalRequestOptions:
-            nonlocal counter
+            def __init__(self):
+                self.counter = 0
 
-            counter += 1
+            @override
+            async def do_auth(self, *, url: str, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN) -> tuple[str, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+                self.counter += 1
+                headers = {**headers} if is_given(headers) else {}
+                headers.setdefault('Authorization', f'Bearer {self.counter}')
+                return url, headers, params, cookies
 
-            updated_headers = { **options.headers} if is_given(options.headers) else {}
-            updated = model_copy(options)
-            if counter == 1:
-                updated_headers["Authorization"] = "Bearer first"
-            else:
-                updated_headers["Authorization"] = "Bearer second"
-            updated.headers = updated_headers
-            return updated
 
-        client = AsyncOpenAI(base_url=base_url, auth_provider=auth_provider)
+        client = AsyncOpenAI(base_url=base_url, auth_provider=CountingAuthProvider())
         await client.chat.completions.create(messages=[], model="gpt-4")
 
         calls = cast("list[MockRequestCall]", respx_mock.calls)
         assert len(calls) == 2
 
-        assert calls[0].request.headers.get("Authorization") == "Bearer first"
-        assert calls[1].request.headers.get("Authorization") == "Bearer second"
+        assert calls[0].request.headers.get("Authorization") == "Bearer 1"
+        assert calls[1].request.headers.get("Authorization") == "Bearer 2"
 
     def test_auth_mutually_exclusive_async(self) -> None:
         async def auth_provider(options: FinalRequestOptions) -> FinalRequestOptions:
