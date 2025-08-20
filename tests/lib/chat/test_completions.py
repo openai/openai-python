@@ -541,7 +541,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
             content_snapshot=snapshot(
                 '{"id": "chatcmpl-ABfvvX7eB1KsfeZj8VcF3z7G7SbaA", "object": "chat.completion", "created": 1727346163, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"", "refusal": null}, "logprobs": null, "finish_reason": "length"}], "usage": {"prompt_tokens": 79, "completion_tokens": 1, "total_tokens": 80, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_7568d46099"}'
             ),
-        path="/chat/completions",
+            path="/chat/completions",
             mock_client=client,
             respx_mock=respx_mock,
         )
