@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.100.3 (2025-08-20)
+
+Full Changelog: [v1.100.2...v1.100.3](https://github.com/openai/openai-python/compare/v1.100.2...v1.100.3)
+
+### Chores
+
+* **internal/ci:** setup breaking change detection ([ca2f936](https://github.com/openai/openai-python/commit/ca2f93600238e875f26395faf6afbefaf15b7c97))
+
 ## 1.100.2 (2025-08-19)
 
 Full Changelog: [v1.100.1...v1.100.2](https://github.com/openai/openai-python/compare/v1.100.1...v1.100.2)
