@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.101.0 (2025-08-21)
+
+Full Changelog: [v1.100.3...v1.101.0](https://github.com/openai/openai-python/compare/v1.100.3...v1.101.0)
+
+### Features
+
+* **api:** Add connectors support for MCP tool ([a47f962](https://github.com/openai/openai-python/commit/a47f962daf579c142b8af5579be732772b688a29))
+* **api:** adding support for /v1/conversations to the API ([e30bcbc](https://github.com/openai/openai-python/commit/e30bcbc0cb7c827af779bee6971f976261abfb67))
+
+
+### Chores
+
+* update github action ([7333b28](https://github.com/openai/openai-python/commit/7333b282718a5f6977f30e1a2548207b3a089bd4))
+
 ## 1.100.3 (2025-08-20)
 
 Full Changelog: [v1.100.2...v1.100.3](https://github.com/openai/openai-python/compare/v1.100.2...v1.100.3)
