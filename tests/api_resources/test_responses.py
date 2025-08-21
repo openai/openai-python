@@ -28,6 +28,7 @@ class TestResponses:
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
@@ -107,6 +108,7 @@ class TestResponses:
         response_stream = client.responses.create(
             stream=True,
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
@@ -368,6 +370,7 @@ class TestAsyncResponses:
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
@@ -447,6 +450,7 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.create(
             stream=True,
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
