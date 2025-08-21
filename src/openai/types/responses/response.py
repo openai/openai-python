@@ -22,7 +22,7 @@ from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice"]
+__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
 
 class IncompleteDetails(BaseModel):
@@ -33,6 +33,11 @@ class IncompleteDetails(BaseModel):
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions, ToolChoiceAllowed, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, ToolChoiceCustom
 ]
+
+
+class Conversation(BaseModel):
+    id: str
+    """The unique ID of the conversation."""
 
 
 class Response(BaseModel):
@@ -141,6 +146,13 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
+    conversation: Optional[Conversation] = None
+    """The conversation that this response belongs to.
+
+    Input items and output items from this response are automatically added to this
+    conversation.
+    """
+
     max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
@@ -161,6 +173,7 @@ class Response(BaseModel):
 
     Use this to create multi-turn conversations. Learn more about
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePrompt] = None

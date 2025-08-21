@@ -18,10 +18,12 @@ from .tool_choice_custom_param import ToolChoiceCustomParam
 from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
+from .response_conversation_param import ResponseConversationParam
 from ..shared_params.responses_model import ResponsesModel
 
 __all__ = [
     "ResponseCreateParamsBase",
+    "Conversation",
     "StreamOptions",
     "ToolChoice",
     "ResponseCreateParamsNonStreaming",
@@ -34,6 +36,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
     Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
+    conversation: Optional[Conversation]
+    """The conversation that this response belongs to.
+
+    Items from this conversation are prepended to `input_items` for this response
+    request. Input items and output items from this response are automatically added
+    to this conversation after this response completes.
     """
 
     include: Optional[List[ResponseIncludable]]
@@ -118,6 +128,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     Use this to create multi-turn conversations. Learn more about
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePromptParam]
@@ -251,6 +262,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
+
+
+Conversation: TypeAlias = Union[str, ResponseConversationParam]
 
 
 class StreamOptions(TypedDict, total=False):

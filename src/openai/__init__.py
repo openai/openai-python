@@ -386,5 +386,6 @@ from ._module_client import (
     completions as completions,
     fine_tuning as fine_tuning,
     moderations as moderations,
+    conversations as conversations,
     vector_stores as vector_stores,
 )
