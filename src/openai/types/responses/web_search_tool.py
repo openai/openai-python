@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -47,3 +47,15 @@ class WebSearchTool(BaseModel):
 
     user_location: Optional[UserLocation] = None
     """The user's location."""
+
+    include_domains: Optional[List[str]] = None
+    """List of domains to limit search results to.
+
+    Example: ["arxiv.org", "openai.com", "nature.com"]
+    """
+
+    exclude_domains: Optional[List[str]] = None
+    """List of domains to exclude from search results.
+
+    Example: ["medium.com", "reddit.com"]
+    """
