@@ -18,11 +18,11 @@ from .response_input_item import ResponseInputItem
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
+from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
-from .response_format_text_config import ResponseFormatTextConfig
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Text"]
+__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
 
 class IncompleteDetails(BaseModel):
@@ -35,30 +35,9 @@ ToolChoice: TypeAlias = Union[
 ]
 
 
-class Text(BaseModel):
-    format: Optional[ResponseFormatTextConfig] = None
-    """An object specifying the format that the model must output.
-
-    Configuring `{ "type": "json_schema" }` enables Structured Outputs, which
-    ensures the model will match your supplied JSON schema. Learn more in the
-    [Structured Outputs guide](https://platform.openai.com/docs/guides/structured-outputs).
-
-    The default format is `{ "type": "text" }` with no additional options.
-
-    **Not recommended for gpt-4o and newer models:**
-
-    Setting to `{ "type": "json_object" }` enables the older JSON mode, which
-    ensures the message the model generates is valid JSON. Using `json_schema` is
-    preferred for models that support it.
-    """
-
-    verbosity: Optional[Literal["low", "medium", "high"]] = None
-    """Constrains the verbosity of the model's response.
-
-    Lower values will result in more concise responses, while higher values will
-    result in more verbose responses. Currently supported values are `low`,
-    `medium`, and `high`.
-    """
+class Conversation(BaseModel):
+    id: str
+    """The unique ID of the conversation."""
 
 
 class Response(BaseModel):
@@ -167,6 +146,13 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
+    conversation: Optional[Conversation] = None
+    """The conversation that this response belongs to.
+
+    Input items and output items from this response are automatically added to this
+    conversation.
+    """
+
     max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
@@ -187,6 +173,7 @@ class Response(BaseModel):
 
     Use this to create multi-turn conversations. Learn more about
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePrompt] = None
@@ -244,7 +231,14 @@ class Response(BaseModel):
     `incomplete`.
     """
 
-    text: Optional[Text] = None
+    text: Optional[ResponseTextConfig] = None
+    """Configuration options for a text response from the model.
+
+    Can be plain text or structured JSON data. Learn more:
+
+    - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+    - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
+    """
 
     top_logprobs: Optional[int] = None
     """

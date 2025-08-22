@@ -47,7 +47,6 @@ class InputItems(SyncAPIResource):
         response_id: str,
         *,
         after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
         order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
@@ -63,8 +62,6 @@ class InputItems(SyncAPIResource):
 
         Args:
           after: An item ID to list items after, used in pagination.
-
-          before: An item ID to list items before, used in pagination.
 
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
@@ -98,7 +95,6 @@ class InputItems(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "after": after,
-                        "before": before,
                         "include": include,
                         "limit": limit,
                         "order": order,
@@ -135,7 +131,6 @@ class AsyncInputItems(AsyncAPIResource):
         response_id: str,
         *,
         after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
         limit: int | NotGiven = NOT_GIVEN,
         order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
@@ -151,8 +146,6 @@ class AsyncInputItems(AsyncAPIResource):
 
         Args:
           after: An item ID to list items after, used in pagination.
-
-          before: An item ID to list items before, used in pagination.
 
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
@@ -186,7 +179,6 @@ class AsyncInputItems(AsyncAPIResource):
                 query=maybe_transform(
                     {
                         "after": after,
-                        "before": before,
                         "include": include,
                         "limit": limit,
                         "order": order,

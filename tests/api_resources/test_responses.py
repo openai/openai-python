@@ -10,7 +10,9 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
 from openai._utils import assert_signatures_in_sync
-from openai.types.responses import Response
+from openai.types.responses import (
+    Response,
+)
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -27,6 +29,7 @@ class TestResponses:
     def test_method_create_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.create(
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
@@ -106,6 +109,7 @@ class TestResponses:
         response_stream = client.responses.create(
             stream=True,
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
@@ -378,6 +382,7 @@ class TestAsyncResponses:
     async def test_method_create_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.create(
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",
@@ -457,6 +462,7 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.create(
             stream=True,
             background=True,
+            conversation="string",
             include=["code_interpreter_call.outputs"],
             input="string",
             instructions="instructions",

@@ -42,6 +42,7 @@ from .response_input_image import ResponseInputImage as ResponseInputImage
 from .response_input_param import ResponseInputParam as ResponseInputParam
 from .response_output_item import ResponseOutputItem as ResponseOutputItem
 from .response_output_text import ResponseOutputText as ResponseOutputText
+from .response_text_config import ResponseTextConfig as ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction as ToolChoiceFunction
 from .response_failed_event import ResponseFailedEvent as ResponseFailedEvent
 from .response_prompt_param import ResponsePromptParam as ResponsePromptParam
@@ -75,8 +76,10 @@ from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudio
 from .response_in_progress_event import ResponseInProgressEvent as ResponseInProgressEvent
 from .response_input_image_param import ResponseInputImageParam as ResponseInputImageParam
 from .response_output_text_param import ResponseOutputTextParam as ResponseOutputTextParam
+from .response_text_config_param import ResponseTextConfigParam as ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam as ToolChoiceFunctionParam
 from .response_computer_tool_call import ResponseComputerToolCall as ResponseComputerToolCall
+from .response_conversation_param import ResponseConversationParam as ResponseConversationParam
 from .response_format_text_config import ResponseFormatTextConfig as ResponseFormatTextConfig
 from .response_function_tool_call import ResponseFunctionToolCall as ResponseFunctionToolCall
 from .response_input_message_item import ResponseInputMessageItem as ResponseInputMessageItem

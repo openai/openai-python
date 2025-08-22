@@ -43,6 +43,7 @@ from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
+from ...types.responses.response_text_config_param import ResponseTextConfigParam
 
 __all__ = ["Responses", "AsyncResponses"]
 
@@ -76,6 +77,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -94,7 +96,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -125,6 +127,11 @@ class Responses(SyncAPIResource):
         Args:
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -186,6 +193,7 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
@@ -237,6 +245,12 @@ class Responses(SyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
+
+          text: Configuration options for a text response from the model. Can be plain text or
+              structured JSON data. Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -298,6 +312,7 @@ class Responses(SyncAPIResource):
         *,
         stream: Literal[True],
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -315,7 +330,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -353,6 +368,11 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -414,6 +434,7 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
@@ -458,6 +479,12 @@ class Responses(SyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
+
+          text: Configuration options for a text response from the model. Can be plain text or
+              structured JSON data. Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -519,6 +546,7 @@ class Responses(SyncAPIResource):
         *,
         stream: bool,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -536,7 +564,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -574,6 +602,11 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -635,6 +668,7 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
@@ -679,6 +713,12 @@ class Responses(SyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
+
+          text: Configuration options for a text response from the model. Can be plain text or
+              structured JSON data. Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -738,6 +778,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -756,7 +797,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -775,6 +816,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -847,7 +889,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -879,7 +921,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -990,6 +1032,7 @@ class Responses(SyncAPIResource):
         *,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1008,7 +1051,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1046,6 +1089,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -1421,6 +1465,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1439,7 +1484,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1470,6 +1515,11 @@ class AsyncResponses(AsyncAPIResource):
         Args:
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1531,6 +1581,7 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
@@ -1582,6 +1633,12 @@ class AsyncResponses(AsyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
+
+          text: Configuration options for a text response from the model. Can be plain text or
+              structured JSON data. Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -1643,6 +1700,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: Literal[True],
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1660,7 +1718,7 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1698,6 +1756,11 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1759,6 +1822,7 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
@@ -1803,6 +1867,12 @@ class AsyncResponses(AsyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
+
+          text: Configuration options for a text response from the model. Can be plain text or
+              structured JSON data. Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -1864,6 +1934,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: bool,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1881,7 +1952,7 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1919,6 +1990,11 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1980,6 +2056,7 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
@@ -2024,6 +2101,12 @@ class AsyncResponses(AsyncAPIResource):
               make the output more random, while lower values like 0.2 will make it more
               focused and deterministic. We generally recommend altering this or `top_p` but
               not both.
+
+          text: Configuration options for a text response from the model. Can be plain text or
+              structured JSON data. Learn more:
+
+              - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
+              - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
           tool_choice: How the model should select which tool (or tools) to use when generating a
               response. See the `tools` parameter to see how to specify which tools the model
@@ -2083,6 +2166,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -2101,7 +2185,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -2120,6 +2204,7 @@ class AsyncResponses(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -2192,7 +2277,7 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -2224,7 +2309,7 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -2339,6 +2424,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -2357,7 +2443,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: response_create_params.Text | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -2395,6 +2481,7 @@ class AsyncResponses(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,

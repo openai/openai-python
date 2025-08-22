@@ -30,7 +30,6 @@ class TestInputItems:
         input_item = client.responses.input_items.list(
             response_id="response_id",
             after="after",
-            before="before",
             include=["code_interpreter_call.outputs"],
             limit=0,
             order="asc",
@@ -86,7 +85,6 @@ class TestAsyncInputItems:
         input_item = await async_client.responses.input_items.list(
             response_id="response_id",
             after="after",
-            before="before",
             include=["code_interpreter_call.outputs"],
             limit=0,
             order="asc",

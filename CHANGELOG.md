@@ -1,5 +1,43 @@
 # Changelog
 
+## 1.101.0 (2025-08-21)
+
+Full Changelog: [v1.100.3...v1.101.0](https://github.com/openai/openai-python/compare/v1.100.3...v1.101.0)
+
+### Features
+
+* **api:** Add connectors support for MCP tool ([a47f962](https://github.com/openai/openai-python/commit/a47f962daf579c142b8af5579be732772b688a29))
+* **api:** adding support for /v1/conversations to the API ([e30bcbc](https://github.com/openai/openai-python/commit/e30bcbc0cb7c827af779bee6971f976261abfb67))
+
+
+### Chores
+
+* update github action ([7333b28](https://github.com/openai/openai-python/commit/7333b282718a5f6977f30e1a2548207b3a089bd4))
+
+## 1.100.3 (2025-08-20)
+
+Full Changelog: [v1.100.2...v1.100.3](https://github.com/openai/openai-python/compare/v1.100.2...v1.100.3)
+
+### Chores
+
+* **internal/ci:** setup breaking change detection ([ca2f936](https://github.com/openai/openai-python/commit/ca2f93600238e875f26395faf6afbefaf15b7c97))
+
+## 1.100.2 (2025-08-19)
+
+Full Changelog: [v1.100.1...v1.100.2](https://github.com/openai/openai-python/compare/v1.100.1...v1.100.2)
+
+### Chores
+
+* **api:** accurately represent shape for verbosity on Chat Completions ([c39d5fd](https://github.com/openai/openai-python/commit/c39d5fd3f5429c6d41f257669a1dd4c67a477455))
+
+## 1.100.1 (2025-08-18)
+
+Full Changelog: [v1.100.0...v1.100.1](https://github.com/openai/openai-python/compare/v1.100.0...v1.100.1)
+
+### Bug Fixes
+
+* **types:** revert response text config deletion ([ac4fb19](https://github.com/openai/openai-python/commit/ac4fb1922ae125c8310c30e402932e8bb2976f58))
+
 ## 1.100.0 (2025-08-18)
 
 Full Changelog: [v1.99.9...v1.100.0](https://github.com/openai/openai-python/compare/v1.99.9...v1.100.0)
