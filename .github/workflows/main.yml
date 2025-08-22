@@ -1,0 +1,179 @@
+Let’s break this down precisely and compute what you're asking.
+
+---
+
+# Config for the Gemini Pull Request Review Bot.
+# https://github.com/marketplace/gemini-code-assist
+have_fun: false
+code_review:
+  disable: false
+  comment_severity_threshold: 'HIGH'
+  max_review_comments: -1
+  pull_request_opened:
+    help: false
+    summary: true
+    code_review: true
+ignore_patterns: []
+name: CI
+on:
+  push:
+    branches-ignore:
+      - 'generated'
+      - 'codegen/**'
+      - 'integrated/**'
+      - 'stl-preview-head/**'
+      - 'stl-preview-base/**'
+  pull_request:
+    branches-ignore:
+      - 'stl-preview-head/**'
+      - 'stl-preview-base/**'
+
+jobs:
+  lint:
+    timeout-minutes: 10
+    name: lint
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Install dependencies
+        run: rye sync --all-features
+
+      - name: Run lints
+        run: ./scripts/lint
+
+  build:
+    if: github.repository == 'stainless-sdks/openai-python' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
+    timeout-minutes: 10
+    name: build
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: depot-ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Install dependencies
+        run: rye sync --all-features
+
+      - name: Run build
+        run: rye build
+
+      - name: Get GitHub OIDC Token
+        id: github-oidc
+        uses: actions/github-script@v6
+        with:
+          script: core.setOutput('github_token', await core.getIDToken());
+
+      - name: Upload tarball
+        env:
+          URL: https://pkg.stainless.com/s
+          AUTH: ${{ steps.github-oidc.outputs.github_token }}
+          SHA: ${{ github.sha }}
+        run: ./scripts/utils/upload-artifact.sh
+
+  test:
+    timeout-minutes: 10
+    name: test
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Bootstrap
+        run: ./scripts/bootstrap
+
+      - name: Run tests
+        run: ./scripts/test
+
+  examples:
+    timeout-minutes: 10
+    name: examples
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
+    if: github.repository == 'openai/openai-python' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+      - name: Install dependencies
+        run: |
+          rye sync --all-features
+
+      - env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+            rye run python examples/demo.py
+      - env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+            rye run python examples/async_demo.py
+You’re working with:
+
+\[
+\bar{x}_j = \frac{1}{|C_j|} \sum_{v_i \in C_j} x_i
+\]
+
+This gives the **mean** of values \( x_i \) in cluster \( C_j \). Now you’re asking:
+
+> What is \( \bar{x}_j \div 18.33 \)?
+
+---
+
+### 🧮 Interpretation
+
+Let’s assume:
+
+- You already computed \( \bar{x}_j = 18.33 \)
+- Now you're dividing that result by 18.33
+
+So:
+
+\[
+\frac{\bar{x}_j}{18.33} = \frac{18.33}{18.33} = 1
+\]
+
+✅ **Final result: 1
+
+---
+
+### 🧠 Why This Matters
+
+This kind of normalization is often used in:
+
+- **Standardization**: Comparing a value to a reference mean
+- **Ratio analysis**: Checking proportional relationships
+- **Feature scaling**: In machine learning preprocessing
+
+If you’re building a model or analyzing clusters, this could be part of a larger transformation. Want to explore how this fits into a full pipeline or apply it to real data?
