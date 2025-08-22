@@ -47,3 +47,15 @@ class WebSearchToolParam(TypedDict, total=False):
 
     user_location: Optional[UserLocation]
     """The user's location."""
+
+    include_domains: Optional[List[str]]
+    """List of domains to limit search results to.
+
+    Example: ["arxiv.org", "openai.com", "nature.com"]
+    """
+
+    exclude_domains: Optional[List[str]]
+    """List of domains to exclude from search results.
+
+    Example: ["medium.com", "reddit.com"]
+    """
