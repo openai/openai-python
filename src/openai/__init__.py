@@ -9,7 +9,19 @@ from typing_extensions import override
 from . import types
 from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes
 from ._utils import file_from_path
-from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
+from ._client import (
+    Client,
+    OpenAI,
+    Stream,
+    Timeout,
+    Transport,
+    AsyncClient,
+    AsyncOpenAI,
+    AsyncStream,
+    AuthProvider,
+    AsyncAuthProvider,
+    RequestOptions,
+)
 from ._models import BaseModel
 from ._version import __title__, __version__
 from ._response import APIResponse as APIResponse, AsyncAPIResponse as AsyncAPIResponse
@@ -72,6 +84,8 @@ __all__ = [
     "AsyncStream",
     "OpenAI",
     "AsyncOpenAI",
+    "AuthProvider",
+    "AsyncAuthProvider",
     "file_from_path",
     "BaseModel",
     "DEFAULT_TIMEOUT",
@@ -87,7 +101,7 @@ if not _t.TYPE_CHECKING:
 
 from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
-from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI
+from .lib.azure import AzureOpenAI as AzureOpenAI, AsyncAzureOpenAI as AsyncAzureOpenAI, AzureAuth as AzureAuth, AsyncAzureAuth as AsyncAzureAuth
 from .lib._old_api import *
 from .lib.streaming import (
     AssistantEventHandler as AssistantEventHandler,
@@ -118,6 +132,8 @@ import httpx as _httpx
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
 api_key: str | None = None
+
+auth_provider: AuthProvider | None = None
 
 organization: str | None = None
 
@@ -164,6 +180,17 @@ class _ModuleClient(OpenAI):
         global api_key
 
         api_key = value
+
+    @property  # type: ignore
+    @override
+    def auth_provider(self) -> AuthProvider | None:
+        return auth_provider
+
+    @auth_provider.setter  # type: ignore
+    def auth_provider(self, value: AuthProvider | None) -> None:  # type: ignore
+        global auth_provider
+
+        auth_provider = value
 
     @property  # type: ignore
     @override
@@ -348,6 +375,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
 
         _client = _ModuleClient(
             api_key=api_key,
+            auth_provider=auth_provider,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
