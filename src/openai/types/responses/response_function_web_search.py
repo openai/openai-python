@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Union
+from typing import Optional, Union
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -43,7 +43,7 @@ class ResponseFunctionWebSearch(BaseModel):
     id: str
     """The unique ID of the web search tool call."""
 
-    action: Action
+    action: Optional[Action] = None
     """
     An object describing the specific action taken in this web search call. Includes
     details on how the model used the web (search, open_page, find).
