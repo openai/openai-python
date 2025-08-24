@@ -9,7 +9,7 @@ __all__ = ["ResponseOutputRefusalParam"]
 
 class ResponseOutputRefusalParam(TypedDict, total=False):
     refusal: Required[str]
-    """The refusal explanationfrom the model."""
+    """The refusal explanation from the model."""
 
     type: Required[Literal["refusal"]]
     """The type of the refusal. Always `refusal`."""

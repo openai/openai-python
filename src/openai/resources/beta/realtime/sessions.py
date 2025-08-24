@@ -66,9 +66,7 @@ class Sessions(SyncAPIResource):
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
         tracing: session_create_params.Tracing | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
-        voice: Union[
-            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-        ]
+        voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
         | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -154,7 +152,7 @@ class Sessions(SyncAPIResource):
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -163,8 +161,7 @@ class Sessions(SyncAPIResource):
 
           voice: The voice the model uses to respond. Voice cannot be changed during the session
               once the model has responded with audio at least once. Current voice options are
-              `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
-              `shimmer`, and `verse`.
+              `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
 
           extra_headers: Send extra headers
 
@@ -251,9 +248,7 @@ class AsyncSessions(AsyncAPIResource):
         tools: Iterable[session_create_params.Tool] | NotGiven = NOT_GIVEN,
         tracing: session_create_params.Tracing | NotGiven = NOT_GIVEN,
         turn_detection: session_create_params.TurnDetection | NotGiven = NOT_GIVEN,
-        voice: Union[
-            str, Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"]
-        ]
+        voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]
         | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -339,7 +334,7 @@ class AsyncSessions(AsyncAPIResource):
               set to `null` to turn off, in which case the client must manually trigger model
               response. Server VAD means that the model will detect the start and end of
               speech based on audio volume and respond at the end of user speech. Semantic VAD
-              is more advanced and uses a turn detection model (in conjuction with VAD) to
+              is more advanced and uses a turn detection model (in conjunction with VAD) to
               semantically estimate whether the user has finished speaking, then dynamically
               sets a timeout based on this probability. For example, if user audio trails off
               with "uhhm", the model will score a low probability of turn end and wait longer
@@ -348,8 +343,7 @@ class AsyncSessions(AsyncAPIResource):
 
           voice: The voice the model uses to respond. Voice cannot be changed during the session
               once the model has responded with audio at least once. Current voice options are
-              `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`,
-              `shimmer`, and `verse`.
+              `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`, `shimmer`, and `verse`.
 
           extra_headers: Send extra headers
 

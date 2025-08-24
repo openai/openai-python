@@ -243,7 +243,7 @@ class TestVectorStores:
             },
             max_num_results=1,
             ranking_options={
-                "ranker": "auto",
+                "ranker": "none",
                 "score_threshold": 0,
             },
             rewrite_query=True,
@@ -511,7 +511,7 @@ class TestAsyncVectorStores:
             },
             max_num_results=1,
             ranking_options={
-                "ranker": "auto",
+                "ranker": "none",
                 "score_threshold": 0,
             },
             rewrite_query=True,

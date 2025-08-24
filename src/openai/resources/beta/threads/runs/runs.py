@@ -167,12 +167,11 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -221,7 +220,7 @@ class Runs(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -322,12 +321,11 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -372,7 +370,7 @@ class Runs(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -473,12 +471,11 @@ class Runs(SyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -523,7 +520,7 @@ class Runs(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1600,12 +1597,11 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1654,7 +1650,7 @@ class AsyncRuns(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1755,12 +1751,11 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1805,7 +1800,7 @@ class AsyncRuns(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1906,12 +1901,11 @@ class AsyncRuns(AsyncAPIResource):
               [parallel function calling](https://platform.openai.com/docs/guides/function-calling#configuring-parallel-function-calling)
               during tool use.
 
-          reasoning_effort: **o-series models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1956,7 +1950,7 @@ class AsyncRuns(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 

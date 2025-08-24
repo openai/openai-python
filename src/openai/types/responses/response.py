@@ -13,14 +13,16 @@ from .tool_choice_mcp import ToolChoiceMcp
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
 from .tool_choice_types import ToolChoiceTypes
+from .tool_choice_custom import ToolChoiceCustom
 from .response_input_item import ResponseInputItem
+from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice"]
+__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
 
 class IncompleteDetails(BaseModel):
@@ -28,7 +30,14 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp]
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions, ToolChoiceAllowed, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, ToolChoiceCustom
+]
+
+
+class Conversation(BaseModel):
+    id: str
+    """The unique ID of the conversation."""
 
 
 class Response(BaseModel):
@@ -116,8 +125,10 @@ class Response(BaseModel):
       Learn more about
       [built-in tools](https://platform.openai.com/docs/guides/tools).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
-      the model to call your own code. Learn more about
+      the model to call your own code with strongly typed arguments and outputs.
+      Learn more about
       [function calling](https://platform.openai.com/docs/guides/function-calling).
+      You can also use custom tools to call your own code.
     """
 
     top_p: Optional[float] = None
@@ -130,9 +141,16 @@ class Response(BaseModel):
     """
 
     background: Optional[bool] = None
-    """Whether to run the model response in the background.
-
+    """
+    Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
+    conversation: Optional[Conversation] = None
+    """The conversation that this response belongs to.
+
+    Input items and output items from this response are automatically added to this
+    conversation.
     """
 
     max_output_tokens: Optional[int] = None
@@ -155,6 +173,7 @@ class Response(BaseModel):
 
     Use this to create multi-turn conversations. Learn more about
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePrompt] = None
@@ -163,11 +182,27 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
+    prompt_cache_key: Optional[str] = None
+    """
+    Used by OpenAI to cache responses for similar requests to optimize your cache
+    hit rates. Replaces the `user` field.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    """
+
     reasoning: Optional[Reasoning] = None
-    """**o-series models only**
+    """**gpt-5 and o-series models only**
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    """
+
+    safety_identifier: Optional[str] = None
+    """
+    A stable identifier used to help detect users of your application that may be
+    violating OpenAI's usage policies. The IDs should be a string that uniquely
+    identifies each user. We recommend hashing their username or email address, in
+    order to avoid sending us any identifying information.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
     service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
@@ -176,12 +211,11 @@ class Response(BaseModel):
     - If set to 'auto', then the request will be processed with the service tier
       configured in the Project settings. Unless otherwise configured, the Project
       will use 'default'.
-    - If set to 'default', then the requset will be processed with the standard
+    - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      'priority', then the request will be processed with the corresponding service
-      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-      Priority processing.
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -229,17 +263,17 @@ class Response(BaseModel):
     """
 
     user: Optional[str] = None
-    """A stable identifier for your end-users.
+    """This field is being replaced by `safety_identifier` and `prompt_cache_key`.
 
-    Used to boost cache hit rates by better bucketing similar requests and to help
-    OpenAI detect and prevent abuse.
-    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+    Use `prompt_cache_key` instead to maintain caching optimizations. A stable
+    identifier for your end-users. Used to boost cache hit rates by better bucketing
+    similar requests and to help OpenAI detect and prevent abuse.
+    [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
     @property
     def output_text(self) -> str:
-        """Convenience property that aggregates all `output_text` items from the `output`
-        list.
+        """Convenience property that aggregates all `output_text` items from the `output` list.
 
         If no `output_text` content blocks exist, then an empty string is returned.
         """

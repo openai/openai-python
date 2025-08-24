@@ -19,6 +19,7 @@ from .response_output_text import ResponseOutputText
 from .response_output_message import ResponseOutputMessage
 from .response_output_refusal import ResponseOutputRefusal
 from .response_reasoning_item import ResponseReasoningItem
+from .response_custom_tool_call import ResponseCustomToolCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
 from .response_function_web_search import ResponseFunctionWebSearch
@@ -73,6 +74,7 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         LocalShellCallAction,
         McpListTools,
         ResponseCodeInterpreterToolCall,
+        ResponseCustomToolCall,
     ],
     PropertyInfo(discriminator="type"),
 ]

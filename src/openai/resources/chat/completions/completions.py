@@ -47,9 +47,9 @@ from ....types.shared.reasoning_effort import ReasoningEffort
 from ....types.chat.chat_completion_chunk import ChatCompletionChunk
 from ....types.chat.parsed_chat_completion import ParsedChatCompletion
 from ....types.chat.chat_completion_deleted import ChatCompletionDeleted
-from ....types.chat.chat_completion_tool_param import ChatCompletionToolParam
 from ....types.chat.chat_completion_audio_param import ChatCompletionAudioParam
 from ....types.chat.chat_completion_message_param import ChatCompletionMessageParam
+from ....types.chat.chat_completion_tool_union_param import ChatCompletionToolUnionParam
 from ....types.chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 from ....types.chat.chat_completion_prediction_content_param import ChatCompletionPredictionContentParam
 from ....types.chat.chat_completion_tool_choice_option_param import ChatCompletionToolChoiceOptionParam
@@ -101,7 +101,9 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -109,10 +111,11 @@ class Completions(SyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -163,7 +166,7 @@ class Completions(SyncAPIResource):
             print("answer: ", message.parsed.final_answer)
         ```
         """
-        _validate_input_tools(tools)
+        chat_completion_tools = _validate_input_tools(tools)
 
         extra_headers = {
             "X-Stainless-Helper-Method": "chat.completions.parse",
@@ -174,7 +177,7 @@ class Completions(SyncAPIResource):
             return _parse_chat_completion(
                 response_format=response_format,
                 chat_completion=raw_completion,
-                input_tools=tools,
+                input_tools=chat_completion_tools,
             )
 
         return self._post(
@@ -197,8 +200,10 @@ class Completions(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning_effort": reasoning_effort,
                     "response_format": _type_to_response_format(response_format),
+                    "safety_identifier": safety_identifier,
                     "seed": seed,
                     "service_tier": service_tier,
                     "stop": stop,
@@ -211,6 +216,7 @@ class Completions(SyncAPIResource):
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
+                    "verbosity": verbosity,
                     "web_search_options": web_search_options,
                 },
                 completion_create_params.CompletionCreateParams,
@@ -248,8 +254,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -258,10 +266,11 @@ class Completions(SyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -388,12 +397,15 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: An object specifying the format that the model must output.
 
@@ -406,6 +418,12 @@ class Completions(SyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -417,12 +435,11 @@ class Completions(SyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -439,7 +456,7 @@ class Completions(SyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -467,9 +484,9 @@ class Completions(SyncAPIResource):
               `none` is the default when no tools are present. `auto` is the default if tools
               are present.
 
-          tools: A list of tools the model may call. Currently, only functions are supported as a
-              tool. Use this to provide a list of functions the model may generate JSON inputs
-              for. A max of 128 functions are supported.
+          tools: A list of tools the model may call. You can provide either
+              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+              or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -481,9 +498,15 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -520,8 +543,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -529,10 +554,11 @@ class Completions(SyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -668,12 +694,15 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: An object specifying the format that the model must output.
 
@@ -686,6 +715,12 @@ class Completions(SyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -697,12 +732,11 @@ class Completions(SyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -719,7 +753,7 @@ class Completions(SyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -738,9 +772,9 @@ class Completions(SyncAPIResource):
               `none` is the default when no tools are present. `auto` is the default if tools
               are present.
 
-          tools: A list of tools the model may call. Currently, only functions are supported as a
-              tool. Use this to provide a list of functions the model may generate JSON inputs
-              for. A max of 128 functions are supported.
+          tools: A list of tools the model may call. You can provide either
+              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+              or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -752,9 +786,15 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -791,8 +831,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -800,10 +842,11 @@ class Completions(SyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -939,12 +982,15 @@ class Completions(SyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: An object specifying the format that the model must output.
 
@@ -957,6 +1003,12 @@ class Completions(SyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -968,12 +1020,11 @@ class Completions(SyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -990,7 +1041,7 @@ class Completions(SyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -1009,9 +1060,9 @@ class Completions(SyncAPIResource):
               `none` is the default when no tools are present. `auto` is the default if tools
               are present.
 
-          tools: A list of tools the model may call. Currently, only functions are supported as a
-              tool. Use this to provide a list of functions the model may generate JSON inputs
-              for. A max of 128 functions are supported.
+          tools: A list of tools the model may call. You can provide either
+              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+              or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1023,9 +1074,15 @@ class Completions(SyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -1061,8 +1118,10 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1071,10 +1130,11 @@ class Completions(SyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1104,8 +1164,10 @@ class Completions(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "seed": seed,
                     "service_tier": service_tier,
                     "stop": stop,
@@ -1118,6 +1180,7 @@ class Completions(SyncAPIResource):
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
+                    "verbosity": verbosity,
                     "web_search_options": web_search_options,
                 },
                 completion_create_params.CompletionCreateParamsStreaming
@@ -1332,7 +1395,9 @@ class Completions(SyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1340,10 +1405,11 @@ class Completions(SyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1399,7 +1465,9 @@ class Completions(SyncAPIResource):
             parallel_tool_calls=parallel_tool_calls,
             prediction=prediction,
             presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
             reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
             seed=seed,
             service_tier=service_tier,
             store=store,
@@ -1411,6 +1479,7 @@ class Completions(SyncAPIResource):
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
+            verbosity=verbosity,
             web_search_options=web_search_options,
             extra_headers=extra_headers,
             extra_query=extra_query,
@@ -1468,7 +1537,9 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1476,10 +1547,11 @@ class AsyncCompletions(AsyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1564,8 +1636,10 @@ class AsyncCompletions(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning_effort": reasoning_effort,
                     "response_format": _type_to_response_format(response_format),
+                    "safety_identifier": safety_identifier,
                     "seed": seed,
                     "service_tier": service_tier,
                     "store": store,
@@ -1578,6 +1652,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
+                    "verbosity": verbosity,
                     "web_search_options": web_search_options,
                 },
                 completion_create_params.CompletionCreateParams,
@@ -1615,8 +1690,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1625,10 +1702,11 @@ class AsyncCompletions(AsyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1755,12 +1833,15 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: An object specifying the format that the model must output.
 
@@ -1773,6 +1854,12 @@ class AsyncCompletions(AsyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -1784,12 +1871,11 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1806,7 +1892,7 @@ class AsyncCompletions(AsyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream: If set to true, the model response data will be streamed to the client as it is
               generated using
@@ -1834,9 +1920,9 @@ class AsyncCompletions(AsyncAPIResource):
               `none` is the default when no tools are present. `auto` is the default if tools
               are present.
 
-          tools: A list of tools the model may call. Currently, only functions are supported as a
-              tool. Use this to provide a list of functions the model may generate JSON inputs
-              for. A max of 128 functions are supported.
+          tools: A list of tools the model may call. You can provide either
+              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+              or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1848,9 +1934,15 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -1887,8 +1979,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -1896,10 +1990,11 @@ class AsyncCompletions(AsyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2035,12 +2130,15 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: An object specifying the format that the model must output.
 
@@ -2053,6 +2151,12 @@ class AsyncCompletions(AsyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -2064,12 +2168,11 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2086,7 +2189,7 @@ class AsyncCompletions(AsyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -2105,9 +2208,9 @@ class AsyncCompletions(AsyncAPIResource):
               `none` is the default when no tools are present. `auto` is the default if tools
               are present.
 
-          tools: A list of tools the model may call. Currently, only functions are supported as a
-              tool. Use this to provide a list of functions the model may generate JSON inputs
-              for. A max of 128 functions are supported.
+          tools: A list of tools the model may call. You can provide either
+              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+              or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -2119,9 +2222,15 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -2158,8 +2267,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -2167,10 +2278,11 @@ class AsyncCompletions(AsyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2306,12 +2418,15 @@ class AsyncCompletions(AsyncAPIResource):
               whether they appear in the text so far, increasing the model's likelihood to
               talk about new topics.
 
-          reasoning_effort: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
 
           response_format: An object specifying the format that the model must output.
 
@@ -2324,6 +2439,12 @@ class AsyncCompletions(AsyncAPIResource):
               ensures the message the model generates is valid JSON. Using `json_schema` is
               preferred for models that support it.
 
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
           seed: This feature is in Beta. If specified, our system will make a best effort to
               sample deterministically, such that repeated requests with the same `seed` and
               parameters should return the same result. Determinism is not guaranteed, and you
@@ -2335,12 +2456,11 @@ class AsyncCompletions(AsyncAPIResource):
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -2357,7 +2477,7 @@ class AsyncCompletions(AsyncAPIResource):
               our [model distillation](https://platform.openai.com/docs/guides/distillation)
               or [evals](https://platform.openai.com/docs/guides/evals) products.
 
-              Supports text and image inputs. Note: image inputs over 10MB will be dropped.
+              Supports text and image inputs. Note: image inputs over 8MB will be dropped.
 
           stream_options: Options for streaming response. Only set this when you set `stream: true`.
 
@@ -2376,9 +2496,9 @@ class AsyncCompletions(AsyncAPIResource):
               `none` is the default when no tools are present. `auto` is the default if tools
               are present.
 
-          tools: A list of tools the model may call. Currently, only functions are supported as a
-              tool. Use this to provide a list of functions the model may generate JSON inputs
-              for. A max of 128 functions are supported.
+          tools: A list of tools the model may call. You can provide either
+              [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+              or [function tools](https://platform.openai.com/docs/guides/function-calling).
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -2390,9 +2510,15 @@ class AsyncCompletions(AsyncAPIResource):
 
               We generally recommend altering this or `temperature` but not both.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
+
+          verbosity: Constrains the verbosity of the model's response. Lower values will result in
+              more concise responses, while higher values will result in more verbose
+              responses. Currently supported values are `low`, `medium`, and `high`.
 
           web_search_options: This tool searches the web for relevant results to use in a response. Learn more
               about the
@@ -2428,8 +2554,10 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
         response_format: completion_create_params.ResponseFormat | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -2438,10 +2566,11 @@ class AsyncCompletions(AsyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2471,8 +2600,10 @@ class AsyncCompletions(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
+                    "safety_identifier": safety_identifier,
                     "seed": seed,
                     "service_tier": service_tier,
                     "stop": stop,
@@ -2485,6 +2616,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "top_logprobs": top_logprobs,
                     "top_p": top_p,
                     "user": user,
+                    "verbosity": verbosity,
                     "web_search_options": web_search_options,
                 },
                 completion_create_params.CompletionCreateParamsStreaming
@@ -2699,7 +2831,9 @@ class AsyncCompletions(AsyncAPIResource):
         parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
         prediction: Optional[ChatCompletionPredictionContentParam] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning_effort: Optional[ReasoningEffort] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
@@ -2707,10 +2841,11 @@ class AsyncCompletions(AsyncAPIResource):
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         tool_choice: ChatCompletionToolChoiceOptionParam | NotGiven = NOT_GIVEN,
-        tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2767,7 +2902,9 @@ class AsyncCompletions(AsyncAPIResource):
             parallel_tool_calls=parallel_tool_calls,
             prediction=prediction,
             presence_penalty=presence_penalty,
+            prompt_cache_key=prompt_cache_key,
             reasoning_effort=reasoning_effort,
+            safety_identifier=safety_identifier,
             seed=seed,
             service_tier=service_tier,
             stop=stop,
@@ -2779,11 +2916,12 @@ class AsyncCompletions(AsyncAPIResource):
             top_logprobs=top_logprobs,
             top_p=top_p,
             user=user,
+            verbosity=verbosity,
+            web_search_options=web_search_options,
             extra_headers=extra_headers,
             extra_query=extra_query,
             extra_body=extra_body,
             timeout=timeout,
-            web_search_options=web_search_options,
         )
         return AsyncChatCompletionStreamManager(
             api_request,

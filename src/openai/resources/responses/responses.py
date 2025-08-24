@@ -77,6 +77,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -87,10 +88,13 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -123,6 +127,11 @@ class Responses(SyncAPIResource):
         Args:
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -184,26 +193,36 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -219,6 +238,8 @@ class Responses(SyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -247,8 +268,10 @@ class Responses(SyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -267,9 +290,11 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -287,6 +312,7 @@ class Responses(SyncAPIResource):
         *,
         stream: Literal[True],
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -297,9 +323,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -340,6 +369,11 @@ class Responses(SyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
@@ -400,26 +434,36 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -428,6 +472,8 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -456,8 +502,10 @@ class Responses(SyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -476,9 +524,11 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -496,6 +546,7 @@ class Responses(SyncAPIResource):
         *,
         stream: bool,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -506,9 +557,12 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -549,6 +603,11 @@ class Responses(SyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
@@ -609,26 +668,36 @@ class Responses(SyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -637,6 +706,8 @@ class Responses(SyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -665,8 +736,10 @@ class Responses(SyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -685,9 +758,11 @@ class Responses(SyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -703,6 +778,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -713,10 +789,13 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -737,6 +816,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -747,10 +827,13 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -804,8 +887,9 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -835,6 +919,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -860,6 +945,7 @@ class Responses(SyncAPIResource):
             "previous_response_id": previous_response_id,
             "reasoning": reasoning,
             "store": store,
+            "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
@@ -904,6 +990,7 @@ class Responses(SyncAPIResource):
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
                 store=store,
+                stream_options=stream_options,
                 stream=True,
                 temperature=temperature,
                 text=text,
@@ -945,6 +1032,7 @@ class Responses(SyncAPIResource):
         *,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -955,18 +1043,22 @@ class Responses(SyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -997,6 +1089,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -1007,10 +1100,13 @@ class Responses(SyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -1019,6 +1115,7 @@ class Responses(SyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParams,
             ),
@@ -1040,6 +1137,7 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1104,6 +1202,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           stream: If set to true, the model response data will be streamed to the client as it is
@@ -1130,6 +1235,7 @@ class Responses(SyncAPIResource):
         *,
         stream: Literal[True],
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1152,6 +1258,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -1171,6 +1284,7 @@ class Responses(SyncAPIResource):
         *,
         stream: bool,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1193,6 +1307,13 @@ class Responses(SyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -1210,6 +1331,7 @@ class Responses(SyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -1231,6 +1353,7 @@ class Responses(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "include": include,
+                        "include_obfuscation": include_obfuscation,
                         "starting_after": starting_after,
                         "stream": stream,
                     },
@@ -1342,6 +1465,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1352,10 +1476,13 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1388,6 +1515,11 @@ class AsyncResponses(AsyncAPIResource):
         Args:
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
 
           include: Specify additional output data to include in the model response. Currently
               supported values are:
@@ -1449,26 +1581,36 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1484,6 +1626,8 @@ class AsyncResponses(AsyncAPIResource):
               See the
               [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
               for more information.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -1512,8 +1656,10 @@ class AsyncResponses(AsyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1532,9 +1678,11 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1552,6 +1700,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: Literal[True],
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1562,9 +1711,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1605,6 +1757,11 @@ class AsyncResponses(AsyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
@@ -1665,26 +1822,36 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1693,6 +1860,8 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -1721,8 +1890,10 @@ class AsyncResponses(AsyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1741,9 +1912,11 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1761,6 +1934,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: bool,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1771,9 +1945,12 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -1814,6 +1991,11 @@ class AsyncResponses(AsyncAPIResource):
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
 
+          conversation: The conversation that this response belongs to. Items from this conversation are
+              prepended to `input_items` for this response request. Input items and output
+              items from this response are automatically added to this conversation after this
+              response completes.
+
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
@@ -1874,26 +2056,36 @@ class AsyncResponses(AsyncAPIResource):
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
 
           prompt: Reference to a prompt template and its variables.
               [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
 
-          reasoning: **o-series models only**
+          prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
+              hit rates. Replaces the `user` field.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+
+          safety_identifier: A stable identifier used to help detect users of your application that may be
+              violating OpenAI's usage policies. The IDs should be a string that uniquely
+              identifies each user. We recommend hashing their username or email address, in
+              order to avoid sending us any identifying information.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
 
               - If set to 'auto', then the request will be processed with the service tier
                 configured in the Project settings. Unless otherwise configured, the Project
                 will use 'default'.
-              - If set to 'default', then the requset will be processed with the standard
+              - If set to 'default', then the request will be processed with the standard
                 pricing and performance for the selected model.
               - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-                'priority', then the request will be processed with the corresponding service
-                tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-                Priority processing.
+                '[priority](https://openai.com/api-priority-processing/)', then the request
+                will be processed with the corresponding service tier.
               - When not set, the default behavior is 'auto'.
 
               When the `service_tier` parameter is set, the response body will include the
@@ -1902,6 +2094,8 @@ class AsyncResponses(AsyncAPIResource):
               parameter.
 
           store: Whether to store the generated model response for later retrieval via API.
+
+          stream_options: Options for streaming responses. Only set this when you set `stream: true`.
 
           temperature: What sampling temperature to use, between 0 and 2. Higher values like 0.8 will
               make the output more random, while lower values like 0.2 will make it more
@@ -1930,8 +2124,10 @@ class AsyncResponses(AsyncAPIResource):
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
-                the model to call your own code. Learn more about
+                the model to call your own code with strongly typed arguments and outputs.
+                Learn more about
                 [function calling](https://platform.openai.com/docs/guides/function-calling).
+                You can also use custom tools to call your own code.
 
           top_logprobs: An integer between 0 and 20 specifying the number of most likely tokens to
               return at each token position, each with an associated log probability.
@@ -1950,9 +2146,11 @@ class AsyncResponses(AsyncAPIResource):
               - `disabled` (default): If a model response will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
-          user: A stable identifier for your end-users. Used to boost cache hit rates by better
-              bucketing similar requests and to help OpenAI detect and prevent abuse.
-              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
+          user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
+              `prompt_cache_key` instead to maintain caching optimizations. A stable
+              identifier for your end-users. Used to boost cache hit rates by better bucketing
+              similar requests and to help OpenAI detect and prevent abuse.
+              [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           extra_headers: Send extra headers
 
@@ -1968,6 +2166,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -1978,10 +2177,13 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
@@ -2002,6 +2204,7 @@ class AsyncResponses(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -2012,10 +2215,13 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -2069,8 +2275,9 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -2100,8 +2307,9 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -2125,6 +2333,7 @@ class AsyncResponses(AsyncAPIResource):
             "previous_response_id": previous_response_id,
             "reasoning": reasoning,
             "store": store,
+            "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
@@ -2170,6 +2379,7 @@ class AsyncResponses(AsyncAPIResource):
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
                 store=store,
+                stream_options=stream_options,
                 temperature=temperature,
                 text=text,
                 tool_choice=tool_choice,
@@ -2214,6 +2424,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
@@ -2224,18 +2435,22 @@ class AsyncResponses(AsyncAPIResource):
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
         prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
+        stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -2266,6 +2481,7 @@ class AsyncResponses(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "conversation": conversation,
                     "include": include,
                     "input": input,
                     "instructions": instructions,
@@ -2276,10 +2492,13 @@ class AsyncResponses(AsyncAPIResource):
                     "parallel_tool_calls": parallel_tool_calls,
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
+                    "prompt_cache_key": prompt_cache_key,
                     "reasoning": reasoning,
+                    "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
                     "store": store,
                     "stream": stream,
+                    "stream_options": stream_options,
                     "temperature": temperature,
                     "text": text,
                     "tool_choice": tool_choice,
@@ -2288,6 +2507,7 @@ class AsyncResponses(AsyncAPIResource):
                     "top_p": top_p,
                     "truncation": truncation,
                     "user": user,
+                    "verbosity": verbosity,
                 },
                 response_create_params.ResponseCreateParams,
             ),
@@ -2309,6 +2529,7 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2373,6 +2594,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           stream: If set to true, the model response data will be streamed to the client as it is
@@ -2399,6 +2627,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: Literal[True],
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2421,6 +2650,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -2440,6 +2676,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: bool,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -2462,6 +2699,13 @@ class AsyncResponses(AsyncAPIResource):
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
 
+          include_obfuscation: When true, stream obfuscation will be enabled. Stream obfuscation adds random
+              characters to an `obfuscation` field on streaming delta events to normalize
+              payload sizes as a mitigation to certain side-channel attacks. These obfuscation
+              fields are included by default, but add a small amount of overhead to the data
+              stream. You can set `include_obfuscation` to false to optimize for bandwidth if
+              you trust the network links between your application and the OpenAI API.
+
           starting_after: The sequence number of the event after which to start streaming.
 
           extra_headers: Send extra headers
@@ -2479,6 +2723,7 @@ class AsyncResponses(AsyncAPIResource):
         response_id: str,
         *,
         include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include_obfuscation: bool | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         stream: Literal[False] | Literal[True] | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -2500,6 +2745,7 @@ class AsyncResponses(AsyncAPIResource):
                 query=await async_maybe_transform(
                     {
                         "include": include,
+                        "include_obfuscation": include_obfuscation,
                         "starting_after": starting_after,
                         "stream": stream,
                     },

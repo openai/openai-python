@@ -110,6 +110,7 @@ def parse_response(
             or output.type == "local_shell_call"
             or output.type == "mcp_list_tools"
             or output.type == "exec"
+            or output.type == "custom_tool_call"
         ):
             output_list.append(output)
         elif TYPE_CHECKING:  # type: ignore

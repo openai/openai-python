@@ -170,6 +170,7 @@ class Uploads(SyncAPIResource):
         filename: str,
         mime_type: str,
         purpose: FilePurpose,
+        expires_after: upload_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -213,6 +214,9 @@ class Uploads(SyncAPIResource):
               See the
               [documentation on File purposes](https://platform.openai.com/docs/api-reference/files/create#files-create-purpose).
 
+          expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
+              after 30 days and all other files are persisted until they are manually deleted.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -229,6 +233,7 @@ class Uploads(SyncAPIResource):
                     "filename": filename,
                     "mime_type": mime_type,
                     "purpose": purpose,
+                    "expires_after": expires_after,
                 },
                 upload_create_params.UploadCreateParams,
             ),
@@ -473,6 +478,7 @@ class AsyncUploads(AsyncAPIResource):
         filename: str,
         mime_type: str,
         purpose: FilePurpose,
+        expires_after: upload_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -516,6 +522,9 @@ class AsyncUploads(AsyncAPIResource):
               See the
               [documentation on File purposes](https://platform.openai.com/docs/api-reference/files/create#files-create-purpose).
 
+          expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
+              after 30 days and all other files are persisted until they are manually deleted.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -532,6 +541,7 @@ class AsyncUploads(AsyncAPIResource):
                     "filename": filename,
                     "mime_type": mime_type,
                     "purpose": purpose,
+                    "expires_after": expires_after,
                 },
                 upload_create_params.UploadCreateParams,
             ),

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from typing import TYPE_CHECKING, Any, Iterable, cast
 from typing_extensions import TypeVar, TypeGuard, assert_never
 
@@ -19,14 +20,15 @@ from ...types.chat import (
     ParsedChatCompletion,
     ChatCompletionMessage,
     ParsedFunctionToolCall,
-    ChatCompletionToolParam,
     ParsedChatCompletionMessage,
+    ChatCompletionToolUnionParam,
+    ChatCompletionFunctionToolParam,
     completion_create_params,
 )
 from ..._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ...types.shared_params import FunctionDefinition
 from ...types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
-from ...types.chat.chat_completion_message_tool_call import Function
+from ...types.chat.chat_completion_message_function_tool_call import Function
 
 ResponseFormatT = TypeVar(
     "ResponseFormatT",
@@ -35,12 +37,36 @@ ResponseFormatT = TypeVar(
 )
 _default_response_format: None = None
 
+log: logging.Logger = logging.getLogger("openai.lib.parsing")
+
+
+def is_strict_chat_completion_tool_param(
+    tool: ChatCompletionToolUnionParam,
+) -> TypeGuard[ChatCompletionFunctionToolParam]:
+    """Check if the given tool is a strict ChatCompletionFunctionToolParam."""
+    if not tool["type"] == "function":
+        return False
+    if tool["function"].get("strict") is not True:
+        return False
+
+    return True
+
+
+def select_strict_chat_completion_tools(
+    tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
+) -> Iterable[ChatCompletionFunctionToolParam] | NotGiven:
+    """Select only the strict ChatCompletionFunctionToolParams from the given tools."""
+    if not is_given(tools):
+        return NOT_GIVEN
+
+    return [t for t in tools if is_strict_chat_completion_tool_param(t)]
+
 
 def validate_input_tools(
-    tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
-) -> None:
+    tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
+) -> Iterable[ChatCompletionFunctionToolParam] | NotGiven:
     if not is_given(tools):
-        return
+        return NOT_GIVEN
 
     for tool in tools:
         if tool["type"] != "function":
@@ -54,11 +80,13 @@ def validate_input_tools(
                 f"`{tool['function']['name']}` is not strict. Only `strict` function tools can be auto-parsed"
             )
 
+    return cast(Iterable[ChatCompletionFunctionToolParam], tools)
+
 
 def parse_chat_completion(
     *,
     response_format: type[ResponseFormatT] | completion_create_params.ResponseFormat | NotGiven,
-    input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+    input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven,
     chat_completion: ChatCompletion | ParsedChatCompletion[object],
 ) -> ParsedChatCompletion[ResponseFormatT]:
     if is_given(input_tools):
@@ -95,6 +123,14 @@ def parse_chat_completion(
                             type_=ParsedFunctionToolCall,
                         )
                     )
+                elif tool_call.type == "custom":
+                    # warn user that custom tool calls are not callable here
+                    log.warning(
+                        "Custom tool calls are not callable. Ignoring tool call: %s - %s",
+                        tool_call.id,
+                        tool_call.custom.name,
+                        stacklevel=2,
+                    )
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call)
                 else:
@@ -129,13 +165,15 @@ def parse_chat_completion(
     )
 
 
-def get_input_tool_by_name(*, input_tools: list[ChatCompletionToolParam], name: str) -> ChatCompletionToolParam | None:
-    return next((t for t in input_tools if t.get("function", {}).get("name") == name), None)
+def get_input_tool_by_name(
+    *, input_tools: list[ChatCompletionToolUnionParam], name: str
+) -> ChatCompletionFunctionToolParam | None:
+    return next((t for t in input_tools if t["type"] == "function" and t.get("function", {}).get("name") == name), None)
 
 
 def parse_function_tool_arguments(
-    *, input_tools: list[ChatCompletionToolParam], function: Function | ParsedFunction
-) -> object:
+    *, input_tools: list[ChatCompletionToolUnionParam], function: Function | ParsedFunction
+) -> object | None:
     input_tool = get_input_tool_by_name(input_tools=input_tools, name=function.name)
     if not input_tool:
         return None
@@ -149,7 +187,7 @@ def parse_function_tool_arguments(
     if not input_fn.get("strict"):
         return None
 
-    return json.loads(function.arguments)
+    return json.loads(function.arguments)  # type: ignore[no-any-return]
 
 
 def maybe_parse_content(
@@ -180,7 +218,7 @@ def solve_response_format_t(
 def has_parseable_input(
     *,
     response_format: type | ResponseFormatParam | NotGiven,
-    input_tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+    input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
 ) -> bool:
     if has_rich_response_format(response_format):
         return True
@@ -208,7 +246,10 @@ def is_response_format_param(response_format: object) -> TypeGuard[ResponseForma
     return is_dict(response_format)
 
 
-def is_parseable_tool(input_tool: ChatCompletionToolParam) -> bool:
+def is_parseable_tool(input_tool: ChatCompletionToolUnionParam) -> bool:
+    if input_tool["type"] != "function":
+        return False
+
     input_fn = cast(object, input_tool.get("function"))
     if isinstance(input_fn, PydanticFunctionTool):
         return True

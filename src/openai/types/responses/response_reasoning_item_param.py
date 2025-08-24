@@ -5,17 +5,23 @@ from __future__ import annotations
 from typing import Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["ResponseReasoningItemParam", "Summary"]
+__all__ = ["ResponseReasoningItemParam", "Summary", "Content"]
 
 
 class Summary(TypedDict, total=False):
     text: Required[str]
-    """
-    A short summary of the reasoning used by the model when generating the response.
-    """
+    """A summary of the reasoning output from the model so far."""
 
     type: Required[Literal["summary_text"]]
     """The type of the object. Always `summary_text`."""
+
+
+class Content(TypedDict, total=False):
+    text: Required[str]
+    """Reasoning text output from the model."""
+
+    type: Required[Literal["reasoning_text"]]
+    """The type of the object. Always `reasoning_text`."""
 
 
 class ResponseReasoningItemParam(TypedDict, total=False):
@@ -23,10 +29,13 @@ class ResponseReasoningItemParam(TypedDict, total=False):
     """The unique identifier of the reasoning content."""
 
     summary: Required[Iterable[Summary]]
-    """Reasoning text contents."""
+    """Reasoning summary content."""
 
     type: Required[Literal["reasoning"]]
     """The type of the object. Always `reasoning`."""
+
+    content: Iterable[Content]
+    """Reasoning text content."""
 
     encrypted_content: Optional[str]
     """

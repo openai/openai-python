@@ -6,10 +6,10 @@ from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared_params.metadata import Metadata
-from ..chat.chat_completion_tool_param import ChatCompletionToolParam
 from ..responses.easy_input_message_param import EasyInputMessageParam
 from ..shared_params.response_format_text import ResponseFormatText
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 from ..shared_params.response_format_json_object import ResponseFormatJSONObject
 from ..shared_params.response_format_json_schema import ResponseFormatJSONSchema
 
@@ -23,9 +23,10 @@ __all__ = [
     "InputMessages",
     "InputMessagesTemplate",
     "InputMessagesTemplateTemplate",
-    "InputMessagesTemplateTemplateMessage",
-    "InputMessagesTemplateTemplateMessageContent",
-    "InputMessagesTemplateTemplateMessageContentOutputText",
+    "InputMessagesTemplateTemplateEvalItem",
+    "InputMessagesTemplateTemplateEvalItemContent",
+    "InputMessagesTemplateTemplateEvalItemContentOutputText",
+    "InputMessagesTemplateTemplateEvalItemContentInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
     "SamplingParamsResponseFormat",
@@ -84,7 +85,7 @@ class SourceStoredCompletions(TypedDict, total=False):
 Source: TypeAlias = Union[SourceFileContent, SourceFileID, SourceStoredCompletions]
 
 
-class InputMessagesTemplateTemplateMessageContentOutputText(TypedDict, total=False):
+class InputMessagesTemplateTemplateEvalItemContentOutputText(TypedDict, total=False):
     text: Required[str]
     """The text output from the model."""
 
@@ -92,14 +93,32 @@ class InputMessagesTemplateTemplateMessageContentOutputText(TypedDict, total=Fal
     """The type of the output text. Always `output_text`."""
 
 
-InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputTextParam, InputMessagesTemplateTemplateMessageContentOutputText
+class InputMessagesTemplateTemplateEvalItemContentInputImage(TypedDict, total=False):
+    image_url: Required[str]
+    """The URL of the image input."""
+
+    type: Required[Literal["input_image"]]
+    """The type of the image input. Always `input_image`."""
+
+    detail: str
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
+InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
+    str,
+    ResponseInputTextParam,
+    InputMessagesTemplateTemplateEvalItemContentOutputText,
+    InputMessagesTemplateTemplateEvalItemContentInputImage,
+    Iterable[object],
 ]
 
 
-class InputMessagesTemplateTemplateMessage(TypedDict, total=False):
-    content: Required[InputMessagesTemplateTemplateMessageContent]
-    """Text inputs to the model - can contain template strings."""
+class InputMessagesTemplateTemplateEvalItem(TypedDict, total=False):
+    content: Required[InputMessagesTemplateTemplateEvalItemContent]
+    """Inputs to the model - can contain template strings."""
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.
@@ -111,7 +130,7 @@ class InputMessagesTemplateTemplateMessage(TypedDict, total=False):
     """The type of the message input. Always `message`."""
 
 
-InputMessagesTemplateTemplate: TypeAlias = Union[EasyInputMessageParam, InputMessagesTemplateTemplateMessage]
+InputMessagesTemplateTemplate: TypeAlias = Union[EasyInputMessageParam, InputMessagesTemplateTemplateEvalItem]
 
 
 class InputMessagesTemplate(TypedDict, total=False):
@@ -161,7 +180,7 @@ class SamplingParams(TypedDict, total=False):
     temperature: float
     """A higher temperature increases randomness in the outputs."""
 
-    tools: Iterable[ChatCompletionToolParam]
+    tools: Iterable[ChatCompletionFunctionToolParam]
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of

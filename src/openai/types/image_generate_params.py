@@ -7,10 +7,10 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .image_model import ImageModel
 
-__all__ = ["ImageGenerateParams"]
+__all__ = ["ImageGenerateParamsBase", "ImageGenerateParamsNonStreaming", "ImageGenerateParamsStreaming"]
 
 
-class ImageGenerateParams(TypedDict, total=False):
+class ImageGenerateParamsBase(TypedDict, total=False):
     prompt: Required[str]
     """A text description of the desired image(s).
 
@@ -62,6 +62,17 @@ class ImageGenerateParams(TypedDict, total=False):
     `jpeg`, or `webp`.
     """
 
+    partial_images: Optional[int]
+    """The number of partial images to generate.
+
+    This parameter is used for streaming responses that return partial images. Value
+    must be between 0 and 3. When set to 0, the response will be a single image sent
+    in one streaming event.
+
+    Note that the final image may be sent before the full number of partial images
+    are generated if the full image is generated more quickly.
+    """
+
     quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]]
     """The quality of the image that will be generated.
 
@@ -107,3 +118,26 @@ class ImageGenerateParams(TypedDict, total=False):
     and detect abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#end-user-ids).
     """
+
+
+class ImageGenerateParamsNonStreaming(ImageGenerateParamsBase, total=False):
+    stream: Optional[Literal[False]]
+    """Generate the image in streaming mode.
+
+    Defaults to `false`. See the
+    [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
+    for more information. This parameter is only supported for `gpt-image-1`.
+    """
+
+
+class ImageGenerateParamsStreaming(ImageGenerateParamsBase):
+    stream: Required[Literal[True]]
+    """Generate the image in streaming mode.
+
+    Defaults to `false`. See the
+    [Image generation guide](https://platform.openai.com/docs/guides/image-generation)
+    for more information. This parameter is only supported for `gpt-image-1`.
+    """
+
+
+ImageGenerateParams = Union[ImageGenerateParamsNonStreaming, ImageGenerateParamsStreaming]

@@ -37,7 +37,7 @@ from ..._parsing import (
     parse_function_tool_arguments,
 )
 from ...._streaming import Stream, AsyncStream
-from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolParam
+from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
@@ -58,7 +58,7 @@ class ChatCompletionStream(Generic[ResponseFormatT]):
         *,
         raw_stream: Stream[ChatCompletionChunk],
         response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
@@ -139,7 +139,7 @@ class ChatCompletionStreamManager(Generic[ResponseFormatT]):
         api_request: Callable[[], Stream[ChatCompletionChunk]],
         *,
         response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven,
     ) -> None:
         self.__stream: ChatCompletionStream[ResponseFormatT] | None = None
         self.__api_request = api_request
@@ -181,7 +181,7 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
         *,
         raw_stream: AsyncStream[ChatCompletionChunk],
         response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
@@ -262,7 +262,7 @@ class AsyncChatCompletionStreamManager(Generic[ResponseFormatT]):
         api_request: Awaitable[AsyncStream[ChatCompletionChunk]],
         *,
         response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven,
     ) -> None:
         self.__stream: AsyncChatCompletionStream[ResponseFormatT] | None = None
         self.__api_request = api_request
@@ -314,7 +314,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
     def __init__(
         self,
         *,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | NotGiven = NOT_GIVEN,
         response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven = NOT_GIVEN,
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
@@ -584,7 +584,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
 
 class ChoiceEventState:
-    def __init__(self, *, input_tools: list[ChatCompletionToolParam]) -> None:
+    def __init__(self, *, input_tools: list[ChatCompletionToolUnionParam]) -> None:
         self._input_tools = input_tools
 
         self._content_done = False

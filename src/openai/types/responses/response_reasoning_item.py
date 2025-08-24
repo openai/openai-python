@@ -5,17 +5,23 @@ from typing_extensions import Literal
 
 from ..._models import BaseModel
 
-__all__ = ["ResponseReasoningItem", "Summary"]
+__all__ = ["ResponseReasoningItem", "Summary", "Content"]
 
 
 class Summary(BaseModel):
     text: str
-    """
-    A short summary of the reasoning used by the model when generating the response.
-    """
+    """A summary of the reasoning output from the model so far."""
 
     type: Literal["summary_text"]
     """The type of the object. Always `summary_text`."""
+
+
+class Content(BaseModel):
+    text: str
+    """Reasoning text output from the model."""
+
+    type: Literal["reasoning_text"]
+    """The type of the object. Always `reasoning_text`."""
 
 
 class ResponseReasoningItem(BaseModel):
@@ -23,10 +29,13 @@ class ResponseReasoningItem(BaseModel):
     """The unique identifier of the reasoning content."""
 
     summary: List[Summary]
-    """Reasoning text contents."""
+    """Reasoning summary content."""
 
     type: Literal["reasoning"]
     """The type of the object. Always `reasoning`."""
+
+    content: Optional[List[Content]] = None
+    """Reasoning text content."""
 
     encrypted_content: Optional[str] = None
     """

@@ -260,7 +260,7 @@ class Session(BaseModel):
     This can be set to `null` to turn off, in which case the client must manually
     trigger model response. Server VAD means that the model will detect the start
     and end of speech based on audio volume and respond at the end of user speech.
-    Semantic VAD is more advanced and uses a turn detection model (in conjuction
+    Semantic VAD is more advanced and uses a turn detection model (in conjunction
     with VAD) to semantically estimate whether the user has finished speaking, then
     dynamically sets a timeout based on this probability. For example, if user audio
     trails off with "uhhm", the model will score a low probability of turn end and
@@ -268,14 +268,10 @@ class Session(BaseModel):
     natural conversations, but may have a higher latency.
     """
 
-    voice: Union[
-        str,
-        Literal["alloy", "ash", "ballad", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer", "verse"],
-        None,
-    ] = None
+    voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"], None] = None
     """The voice the model uses to respond.
 
     Voice cannot be changed during the session once the model has responded with
     audio at least once. Current voice options are `alloy`, `ash`, `ballad`,
-    `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and `verse`.
+    `coral`, `echo`, `sage`, `shimmer`, and `verse`.
     """

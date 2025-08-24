@@ -7,6 +7,7 @@ from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
+from .response_custom_tool_call import ResponseCustomToolCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
 from .response_function_web_search import ResponseFunctionWebSearch
@@ -161,6 +162,7 @@ ResponseOutputItem: TypeAlias = Annotated[
         McpCall,
         McpListTools,
         McpApprovalRequest,
+        ResponseCustomToolCall,
     ],
     PropertyInfo(discriminator="type"),
 ]

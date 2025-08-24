@@ -6,10 +6,10 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
-from ..chat.chat_completion_tool import ChatCompletionTool
 from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
 from ..responses.response_input_text import ResponseInputText
+from ..chat.chat_completion_function_tool import ChatCompletionFunctionTool
 from ..shared.response_format_json_object import ResponseFormatJSONObject
 from ..shared.response_format_json_schema import ResponseFormatJSONSchema
 
@@ -23,9 +23,10 @@ __all__ = [
     "InputMessages",
     "InputMessagesTemplate",
     "InputMessagesTemplateTemplate",
-    "InputMessagesTemplateTemplateMessage",
-    "InputMessagesTemplateTemplateMessageContent",
-    "InputMessagesTemplateTemplateMessageContentOutputText",
+    "InputMessagesTemplateTemplateEvalItem",
+    "InputMessagesTemplateTemplateEvalItemContent",
+    "InputMessagesTemplateTemplateEvalItemContentOutputText",
+    "InputMessagesTemplateTemplateEvalItemContentInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
     "SamplingParamsResponseFormat",
@@ -86,7 +87,7 @@ Source: TypeAlias = Annotated[
 ]
 
 
-class InputMessagesTemplateTemplateMessageContentOutputText(BaseModel):
+class InputMessagesTemplateTemplateEvalItemContentOutputText(BaseModel):
     text: str
     """The text output from the model."""
 
@@ -94,14 +95,32 @@ class InputMessagesTemplateTemplateMessageContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
-InputMessagesTemplateTemplateMessageContent: TypeAlias = Union[
-    str, ResponseInputText, InputMessagesTemplateTemplateMessageContentOutputText
+class InputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
+InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
+    str,
+    ResponseInputText,
+    InputMessagesTemplateTemplateEvalItemContentOutputText,
+    InputMessagesTemplateTemplateEvalItemContentInputImage,
+    List[object],
 ]
 
 
-class InputMessagesTemplateTemplateMessage(BaseModel):
-    content: InputMessagesTemplateTemplateMessageContent
-    """Text inputs to the model - can contain template strings."""
+class InputMessagesTemplateTemplateEvalItem(BaseModel):
+    content: InputMessagesTemplateTemplateEvalItemContent
+    """Inputs to the model - can contain template strings."""
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.
@@ -113,9 +132,7 @@ class InputMessagesTemplateTemplateMessage(BaseModel):
     """The type of the message input. Always `message`."""
 
 
-InputMessagesTemplateTemplate: TypeAlias = Annotated[
-    Union[EasyInputMessage, InputMessagesTemplateTemplateMessage], PropertyInfo(discriminator="type")
-]
+InputMessagesTemplateTemplate: TypeAlias = Union[EasyInputMessage, InputMessagesTemplateTemplateEvalItem]
 
 
 class InputMessagesTemplate(BaseModel):
@@ -167,7 +184,7 @@ class SamplingParams(BaseModel):
     temperature: Optional[float] = None
     """A higher temperature increases randomness in the outputs."""
 
-    tools: Optional[List[ChatCompletionTool]] = None
+    tools: Optional[List[ChatCompletionFunctionTool]] = None
     """A list of tools the model may call.
 
     Currently, only functions are supported as a tool. Use this to provide a list of

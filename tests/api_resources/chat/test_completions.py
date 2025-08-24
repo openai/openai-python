@@ -72,14 +72,19 @@ class TestCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            reasoning_effort="minimal",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
             stream=False,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -96,6 +101,7 @@ class TestCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -199,13 +205,18 @@ class TestCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            reasoning_effort="minimal",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -222,6 +233,7 @@ class TestCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -501,14 +513,19 @@ class TestAsyncCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            reasoning_effort="minimal",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
             stream=False,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -525,6 +542,7 @@ class TestAsyncCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {
@@ -628,13 +646,18 @@ class TestAsyncCompletions:
                 "type": "content",
             },
             presence_penalty=-2,
-            reasoning_effort="low",
+            prompt_cache_key="prompt-cache-key-1234",
+            reasoning_effort="minimal",
             response_format={"type": "text"},
+            safety_identifier="safety-identifier-1234",
             seed=-9007199254740991,
             service_tier="auto",
             stop="\n",
             store=True,
-            stream_options={"include_usage": True},
+            stream_options={
+                "include_obfuscation": True,
+                "include_usage": True,
+            },
             temperature=1,
             tool_choice="none",
             tools=[
@@ -651,6 +674,7 @@ class TestAsyncCompletions:
             top_logprobs=0,
             top_p=1,
             user="user-1234",
+            verbosity="low",
             web_search_options={
                 "search_context_size": "low",
                 "user_location": {

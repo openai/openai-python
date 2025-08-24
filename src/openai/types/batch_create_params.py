@@ -7,7 +7,7 @@ from typing_extensions import Literal, Required, TypedDict
 
 from .shared_params.metadata import Metadata
 
-__all__ = ["BatchCreateParams"]
+__all__ = ["BatchCreateParams", "OutputExpiresAfter"]
 
 
 class BatchCreateParams(TypedDict, total=False):
@@ -46,4 +46,25 @@ class BatchCreateParams(TypedDict, total=False):
 
     Keys are strings with a maximum length of 64 characters. Values are strings with
     a maximum length of 512 characters.
+    """
+
+    output_expires_after: OutputExpiresAfter
+    """
+    The expiration policy for the output and/or error file that are generated for a
+    batch.
+    """
+
+
+class OutputExpiresAfter(TypedDict, total=False):
+    anchor: Required[Literal["created_at"]]
+    """Anchor timestamp after which the expiration policy applies.
+
+    Supported anchors: `created_at`. Note that the anchor is the file creation time,
+    not the time the batch is created.
+    """
+
+    seconds: Required[int]
+    """The number of seconds after the anchor time that the file will expire.
+
+    Must be between 3600 (1 hour) and 2592000 (30 days).
     """
