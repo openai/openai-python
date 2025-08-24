@@ -1,5 +1,375 @@
 name: Release Doctor
 on:
+#!/usr/bin/env python3
+
+# Buildtools and buildtools extended installer helper script
+#
+# Copyright (C) 2017-2020 Intel Corporation
+#
+# SPDX-License-Identifier: GPL-2.0-only
+#
+#  NOTE: --with-extended-buildtools is on by default
+#
+#  Example usage (extended buildtools from milestone):
+#    (1) using --url and --filename
+#        $ install-buildtools \
+#          --url http://downloads.yoctoproject.org/releases/yocto/milestones/yocto-3.1_M3/buildtools \
+#          --filename x86_64-buildtools-extended-nativesdk-standalone-3.0+snapshot-20200315.sh
+#    (2) using --base-url, --release, --installer-version and --build-date
+#        $ install-buildtools \
+#          --base-url http://downloads.yoctoproject.org/releases/yocto \
+#          --release yocto-3.1_M3 \
+#          --installer-version 3.0+snapshot
+#          --build-date 202000315
+#
+#  Example usage (standard buildtools from release):
+#    (3) using --url and --filename
+#        $ install-buildtools --without-extended-buildtools \
+#          --url http://downloads.yoctoproject.org/releases/yocto/yocto-3.0.2/buildtools \
+#          --filename x86_64-buildtools-nativesdk-standalone-3.0.2.sh
+#    (4) using --base-url, --release and --installer-version
+#        $ install-buildtools --without-extended-buildtools \
+#          --base-url http://downloads.yoctoproject.org/releases/yocto \
+#          --release yocto-3.0.2 \
+#          --installer-version 3.0.2
+#
+
+import argparse
+import logging
+import os
+import platform
+import re
+import shutil
+import shlex
+import stat
+import subprocess
+import sys
+import tempfile
+from urllib.parse import quote
+
+scripts_path = os.path.dirname(os.path.realpath(__file__))
+lib_path = scripts_path + '/lib'
+sys.path = sys.path + [lib_path]
+import scriptutils
+import scriptpath
+
+
+PROGNAME = 'install-buildtools'
+logger = scriptutils.logger_create(PROGNAME, stream=sys.stdout)
+
+DEFAULT_INSTALL_DIR = os.path.join(os.path.split(scripts_path)[0],'buildtools')
+DEFAULT_BASE_URL = 'https://downloads.yoctoproject.org/releases/yocto'
+DEFAULT_RELEASE = 'yocto-5.2.2'
+DEFAULT_INSTALLER_VERSION = '5.2.2'
+DEFAULT_BUILDDATE = '202110XX'
+
+# Python version sanity check
+if not (sys.version_info.major == 3 and sys.version_info.minor >= 4):
+    logger.error("This script requires Python 3.4 or greater")
+    logger.error("You have Python %s.%s" %
+	  (sys.version_info.major, sys.version_info.minor))
+    sys.exit(1)
+
+# The following three functions are copied directly from
+# bitbake/lib/bb/utils.py, in order to allow this script
+# to run on versions of python earlier than what bitbake
+# supports (e.g. less than Python 3.5 for YP 3.1 release)
+
+def _hasher(method, filename):
+    import mmap
+
+    with open(filename, "rb") as f:
+        try:
+            with mmap.mmap(f.fileno(), 0, access=mmap.ACCESS_READ) as mm:
+                for chunk in iter(lambda: mm.read(8192), b''):
+                    method.update(chunk)
+        except ValueError:
+            # You can't mmap() an empty file so silence this exception
+            pass
+    return method.hexdigest()
+
+
+def md5_file(filename):
+    """
+    Return the hex string representation of the MD5 checksum of filename.
+    """
+    import hashlib
+    return _hasher(hashlib.md5(), filename)
+
+def sha256_file(filename):
+    """
+    Return the hex string representation of the 256-bit SHA checksum of
+    filename.
+    """
+    import hashlib
+    return _hasher(hashlib.sha256(), filename)
+
+def remove_quotes(var):
+    """
+    If a variable starts and ends with double quotes, remove them.
+    Assumption: if a variable starts with double quotes, it must also
+    end with them.
+    """
+    if var[0] == '"':
+        var = var[1:-1]
+    return var
+
+
+def main():
+    global DEFAULT_INSTALL_DIR
+    global DEFAULT_BASE_URL
+    global DEFAULT_RELEASE
+    global DEFAULT_INSTALLER_VERSION
+    global DEFAULT_BUILDDATE
+    filename = ""
+    release = ""
+    buildtools_url = ""
+    install_dir = ""
+    arch = platform.machine()
+
+    parser = argparse.ArgumentParser(
+        description="Buildtools installation helper",
+        add_help=False,
+        formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('-u', '--url',
+                        help='URL from where to fetch buildtools SDK installer, not '
+                             'including filename (optional)\n'
+                             'Requires --filename.',
+                        action='store')
+    parser.add_argument('-f', '--filename',
+                        help='filename for the buildtools SDK installer to be installed '
+                             '(optional)\nRequires --url',
+                        action='store')
+    parser.add_argument('-d', '--directory',
+                        default=DEFAULT_INSTALL_DIR,
+                        help='directory where buildtools SDK will be installed (optional)',
+                        action='store')
+    parser.add_argument('--downloads-directory',
+                        help='use this directory for tarball/checksum downloads and do not erase them (default is a temporary directory which is deleted after unpacking and installing the buildtools)',
+                        action='store')
+    parser.add_argument('-r', '--release',
+                        default=DEFAULT_RELEASE,
+                        help='Yocto Project release string for SDK which will be '
+                             'installed (optional)',
+                        action='store')
+    parser.add_argument('-V', '--installer-version',
+                        default=DEFAULT_INSTALLER_VERSION,
+                        help='version string for the SDK to be installed (optional)',
+                        action='store')
+    parser.add_argument('-b', '--base-url',
+                        default=DEFAULT_BASE_URL,
+                        help='base URL from which to fetch SDK (optional)', action='store')
+    parser.add_argument('-t', '--build-date',
+                        default=DEFAULT_BUILDDATE,
+                        help='Build date of pre-release SDK (optional)', action='store')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('--with-extended-buildtools', action='store_true',
+                       dest='with_extended_buildtools',
+                       default=True,
+                       help='enable extended buildtools tarball (on by default)')
+    group.add_argument('--without-extended-buildtools', action='store_false',
+                       dest='with_extended_buildtools',
+                       help='disable extended buildtools (traditional buildtools tarball)')
+    group.add_argument('--make-only', action='store_true',
+                       help='only install make tarball')
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument('-c', '--check', help='enable checksum validation',
+                        default=True, action='store_true')
+    group.add_argument('-n', '--no-check', help='disable checksum validation',
+                        dest="check", action='store_false')
+    parser.add_argument('-D', '--debug', help='enable debug output',
+                        action='store_true')
+    parser.add_argument('-q', '--quiet', help='print only errors',
+                        action='store_true')
+
+    parser.add_argument('-h', '--help', action='help',
+                        default=argparse.SUPPRESS,
+                        help='show this help message and exit')
+
+    args = parser.parse_args()
+
+    if args.make_only:
+        args.with_extended_buildtools = False
+
+    if args.debug:
+        logger.setLevel(logging.DEBUG)
+    elif args.quiet:
+        logger.setLevel(logging.ERROR)
+
+    if args.url and args.filename:
+        logger.debug("--url and --filename detected. Ignoring --base-url "
+                     "--release --installer-version  arguments.")
+        filename = args.filename
+        buildtools_url = "%s/%s" % (args.url, filename)
+    else:
+        if args.base_url:
+            base_url = args.base_url
+        else:
+            base_url = DEFAULT_BASE_URL
+        if args.release:
+            # check if this is a pre-release "milestone" SDK
+            m = re.search(r"^(?P<distro>[a-zA-Z\-]+)(?P<version>[0-9.]+)(?P<milestone>_M[1-9])$",
+                          args.release)
+            logger.debug("milestone regex: %s" % m)
+            if m and m.group('milestone'):
+                logger.debug("release[distro]: %s" % m.group('distro'))
+                logger.debug("release[version]: %s" % m.group('version'))
+                logger.debug("release[milestone]: %s" % m.group('milestone'))
+                if not args.build_date:
+                    logger.error("Milestone installers require --build-date")
+                else:
+                    if args.make_only:
+                        filename = "%s-buildtools-make-nativesdk-standalone-%s-%s.sh" % (
+                            arch, args.installer_version, args.build_date)
+                    elif args.with_extended_buildtools:
+                        filename = "%s-buildtools-extended-nativesdk-standalone-%s-%s.sh" % (
+                            arch, args.installer_version, args.build_date)
+                    else:
+                        filename = "%s-buildtools-nativesdk-standalone-%s-%s.sh" % (
+                            arch, args.installer_version, args.build_date)
+                    safe_filename = quote(filename)
+                    buildtools_url = "%s/milestones/%s/buildtools/%s" % (base_url, args.release, safe_filename)
+            # regular release SDK
+            else:
+                if args.make_only:
+                    filename = "%s-buildtools-make-nativesdk-standalone-%s.sh" % (arch, args.installer_version)
+                if args.with_extended_buildtools:
+                    filename = "%s-buildtools-extended-nativesdk-standalone-%s.sh" % (arch, args.installer_version)
+                else:
+                    filename = "%s-buildtools-nativesdk-standalone-%s.sh" % (arch, args.installer_version)
+                safe_filename = quote(filename)
+                buildtools_url = "%s/%s/buildtools/%s" % (base_url, args.release, safe_filename)
+
+    sdk_dir = args.downloads_directory or tempfile.mkdtemp()
+    os.makedirs(sdk_dir, exist_ok=True)
+    try:
+        # Fetch installer
+        logger.info("Fetching buildtools installer")
+        tmpbuildtools = os.path.join(sdk_dir, filename)
+        with open(os.path.join(sdk_dir, 'buildtools_url'), 'w') as f:
+            f.write(buildtools_url)
+        ret = subprocess.call("wget -q -O %s %s" %
+                              (tmpbuildtools, buildtools_url), shell=True)
+        if ret != 0:
+            logger.error("Could not download file from %s" % buildtools_url)
+            return ret
+
+        # Verify checksum
+        if args.check:
+            logger.info("Fetching buildtools installer checksum")
+            checksum_type = "sha256sum"
+            checksum_url = "{}.{}".format(buildtools_url, checksum_type)
+            checksum_filename = "{}.{}".format(filename, checksum_type)
+            tmpbuildtools_checksum = os.path.join(sdk_dir, checksum_filename)
+            with open(os.path.join(sdk_dir, 'checksum_url'), 'w') as f:
+                f.write(checksum_url)
+            ret = subprocess.call("wget -q -O %s %s" %
+                                    (tmpbuildtools_checksum, checksum_url), shell=True)
+            if ret != 0:
+                logger.error("Could not download file from %s" % checksum_url)
+                return ret
+            regex = re.compile(r"^(?P<checksum>[0-9a-f]+)\s+(?P<path>.*/)?(?P<filename>.*)$")
+            with open(tmpbuildtools_checksum, 'rb') as f:
+                original = f.read()
+                m = re.search(regex, original.decode("utf-8"))
+                logger.debug("checksum regex match: %s" % m)
+                logger.debug("checksum: %s" % m.group('checksum'))
+                logger.debug("path: %s" % m.group('path'))
+                logger.debug("filename: %s" % m.group('filename'))
+                if filename != m.group('filename'):
+                    logger.error("Filename does not match name in checksum")
+                    return 1
+                checksum = m.group('checksum')
+            checksum_value = sha256_file(tmpbuildtools)
+            if checksum == checksum_value:
+                    logger.info("Checksum success")
+            else:
+                logger.error("Checksum %s expected. Actual checksum is %s." %
+                             (checksum, checksum_value))
+                return 1
+
+        # Make installer executable
+        logger.info("Making installer executable")
+        st = os.stat(tmpbuildtools)
+        os.chmod(tmpbuildtools, st.st_mode | stat.S_IEXEC)
+        logger.debug(os.stat(tmpbuildtools))
+        if args.directory:
+            install_dir = os.path.abspath(args.directory)
+            ret = subprocess.call("%s -d %s -y" %
+                                  (tmpbuildtools, install_dir), shell=True)
+        else:
+            install_dir = "/opt/poky/%s" % args.installer_version
+            ret = subprocess.call("%s -y" % tmpbuildtools, shell=True)
+        if ret != 0:
+            logger.error("Could not run buildtools installer")
+            return ret
+
+        # Setup the environment
+        logger.info("Setting up the environment")
+        regex = re.compile(r'^(?P<export>export )?(?P<env_var>[A-Z_]+)=(?P<env_val>.+)$')
+        with open("%s/environment-setup-%s-pokysdk-linux" %
+                  (install_dir, arch), 'rb') as f:
+            for line in f:
+                match = regex.search(line.decode('utf-8'))
+                logger.debug("export regex: %s" % match)
+                if match:
+                    env_var = match.group('env_var')
+                    logger.debug("env_var: %s" % env_var)
+                    env_val = remove_quotes(match.group('env_val'))
+                    logger.debug("env_val: %s" % env_val)
+                    os.environ[env_var] = env_val
+
+        # Test installation
+        logger.info("Testing installation")
+        tool = ""
+        m = re.search("extended", tmpbuildtools)
+        logger.debug("extended regex: %s" % m)
+        if args.with_extended_buildtools and not m:
+            logger.info("Ignoring --with-extended-buildtools as filename "
+                        "does not contain 'extended'")
+        if args.make_only:
+            tool = 'make'
+        elif args.with_extended_buildtools and m:
+            tool = 'gcc'
+        else:
+            tool = 'tar'
+        logger.debug("install_dir: %s" % install_dir)
+        cmd = shlex.split("/usr/bin/which %s" % tool)
+        logger.debug("cmd: %s" % cmd)
+        logger.debug("tool: %s" % tool)
+        proc = subprocess.Popen(cmd, stdout=subprocess.PIPE)
+        output, errors = proc.communicate()
+        logger.debug("proc.args: %s" % proc.args)
+        logger.debug("proc.communicate(): output %s" % output)
+        logger.debug("proc.communicate(): errors %s" % errors)
+        which_tool = output.decode('utf-8')
+        logger.debug("which %s: %s" % (tool, which_tool))
+        ret = proc.returncode
+        if not which_tool.startswith(install_dir):
+            logger.error("Something went wrong: %s not found in %s" %
+                         (tool, install_dir))
+        if ret != 0:
+            logger.error("Something went wrong: installation failed")
+        else:
+            logger.info("Installation successful. Remember to source the "
+                        "environment setup script now and in any new session.")
+        return ret
+
+    finally:
+        # cleanup tmp directory
+        if not args.downloads_directory:
+            shutil.rmtree(sdk_dir)
+
+
+if __name__ == '__main__':
+    try:
+        ret = main()
+    except Exception:
+        ret = 1
+        import traceback
+
+        traceback.print_exc()
+    sys.exit(ret)
   push:
     branches:
       - main
