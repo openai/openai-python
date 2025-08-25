@@ -42,7 +42,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    runs-on: depot-ubuntu-24.04
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
