@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.101.1 (2025-08-25)
+
+Full Changelog: [v1.101.0...v1.101.1](https://github.com/openai/openai-python/compare/v1.101.0...v1.101.1)
+
+### Chores
+
+* **internal:** change ci workflow machines ([3e129d5](https://github.com/openai/openai-python/commit/3e129d5e49f6391dea7497132cb3cfed8e5dd8ee))
+
 ## 1.101.0 (2025-08-21)
 
 Full Changelog: [v1.100.3...v1.101.0](https://github.com/openai/openai-python/compare/v1.100.3...v1.101.0)
