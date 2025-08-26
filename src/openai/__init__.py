@@ -333,7 +333,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             _client = _AzureModuleClient(  # type: ignore
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
-                api_key=bearer_token_provider or api_key,
+                api_key=api_key,
                 azure_ad_token=azure_ad_token,
                 azure_ad_token_provider=azure_ad_token_provider,
                 organization=organization,
@@ -347,7 +347,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             return _client
 
         _client = _ModuleClient(
-            api_key=api_key or bearer_token_provider,
+            api_key=api_key,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,

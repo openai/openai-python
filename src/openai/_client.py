@@ -136,10 +136,11 @@ class OpenAI(SyncAPIClient):
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         if callable(api_key):
-            self.bearer_token_provider = api_key
             self.api_key = ""
+            self.bearer_token_provider = api_key
         else:
             self.api_key = api_key or ""
+            self.bearer_token_provider = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -296,7 +297,10 @@ class OpenAI(SyncAPIClient):
         return Querystring(array_format="brackets")
 
     def refresh_auth_headers(self) -> None:
-        secret = self.bearer_token_provider() if self.bearer_token_provider else self.api_key
+        if self.bearer_token_provider:
+            secret = self.bearer_token_provider()
+        else:
+            secret = self.api_key
         if not secret:
             # if the api key is an empty string, encoding the header will fail
             # so we set it to an empty dict
@@ -367,7 +371,7 @@ class OpenAI(SyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key or self.bearer_token_provider,
+            api_key=api_key or self.bearer_token_provider or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -478,11 +482,11 @@ class AsyncOpenAI(AsyncAPIClient):
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         if callable(api_key):
-            self.bearer_token_provider = api_key
             self.api_key = ""
+            self.bearer_token_provider = api_key
         else:
-            self.bearer_token_provider = None
             self.api_key = api_key or ""
+            self.bearer_token_provider = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -713,7 +717,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key or self.bearer_token_provider,
+            api_key=api_key or self.bearer_token_provider or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,

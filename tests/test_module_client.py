@@ -15,7 +15,6 @@ from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 def reset_state() -> None:
     openai._reset_client()
     openai.api_key = None or "My API Key"
-    openai.bearer_token_provider = None
     openai.organization = None
     openai.project = None
     openai.webhook_secret = None
