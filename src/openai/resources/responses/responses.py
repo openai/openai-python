@@ -136,6 +136,8 @@ class Responses(SyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -377,6 +379,8 @@ class Responses(SyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -611,6 +615,8 @@ class Responses(SyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1524,6 +1530,8 @@ class AsyncResponses(AsyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1765,6 +1773,8 @@ class AsyncResponses(AsyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1999,6 +2009,8 @@ class AsyncResponses(AsyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer

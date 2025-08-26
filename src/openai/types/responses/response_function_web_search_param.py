@@ -2,10 +2,25 @@
 
 from __future__ import annotations
 
-from typing import Union
+from typing import Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-__all__ = ["ResponseFunctionWebSearchParam", "Action", "ActionSearch", "ActionOpenPage", "ActionFind"]
+__all__ = [
+    "ResponseFunctionWebSearchParam",
+    "Action",
+    "ActionSearch",
+    "ActionSearchSource",
+    "ActionOpenPage",
+    "ActionFind",
+]
+
+
+class ActionSearchSource(TypedDict, total=False):
+    type: Required[Literal["url"]]
+    """The type of source. Always `url`."""
+
+    url: Required[str]
+    """The URL of the source."""
 
 
 class ActionSearch(TypedDict, total=False):
@@ -14,6 +29,9 @@ class ActionSearch(TypedDict, total=False):
 
     type: Required[Literal["search"]]
     """The action type."""
+
+    sources: Iterable[ActionSearchSource]
+    """The sources used in the search."""
 
 
 class ActionOpenPage(TypedDict, total=False):
