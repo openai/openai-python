@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.102.0 (2025-08-26)
+
+Full Changelog: [v1.101.0...v1.102.0](https://github.com/openai/openai-python/compare/v1.101.0...v1.102.0)
+
+### Features
+
+* **api:** add web search filters ([1c199a8](https://github.com/openai/openai-python/commit/1c199a8dc85f773ae656fe850fdfb80b91f8f6b1))
+
+
+### Bug Fixes
+
+* avoid newer type syntax ([bd0c668](https://github.com/openai/openai-python/commit/bd0c668d754b89c78c2c9ad2e081258c04aaece6))
+
+
+### Chores
+
+* **internal:** change ci workflow machines ([3e129d5](https://github.com/openai/openai-python/commit/3e129d5e49f6391dea7497132cb3cfed8e5dd8ee))
+* **internal:** codegen related update ([b6dc170](https://github.com/openai/openai-python/commit/b6dc170832d719fc5028cfe234748c22e6e168aa))
+
 ## 1.101.0 (2025-08-21)
 
 Full Changelog: [v1.100.3...v1.101.0](https://github.com/openai/openai-python/compare/v1.100.3...v1.101.0)
