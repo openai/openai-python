@@ -1,12 +1,20 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionOpenPage", "ActionFind"]
+__all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchSource", "ActionOpenPage", "ActionFind"]
+
+
+class ActionSearchSource(BaseModel):
+    type: Literal["url"]
+    """The type of source. Always `url`."""
+
+    url: str
+    """The URL of the source."""
 
 
 class ActionSearch(BaseModel):
@@ -15,6 +23,9 @@ class ActionSearch(BaseModel):
 
     type: Literal["search"]
     """The action type."""
+
+    sources: Optional[List[ActionSearchSource]] = None
+    """The sources used in the search."""
 
 
 class ActionOpenPage(BaseModel):
