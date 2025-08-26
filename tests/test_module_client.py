@@ -99,12 +99,8 @@ def test_http_client_option() -> None:
 
 
 def test_bearer_token_provider_option() -> None:
-    assert openai.bearer_token_provider is None
-    assert openai.completions._client.bearer_token_provider is None
+    openai.api_key = lambda: "foo"
 
-    openai.bearer_token_provider = lambda: "foo"
-
-    assert openai.bearer_token_provider() == "foo"
     assert openai.completions._client.bearer_token_provider
     assert openai.completions._client.bearer_token_provider() == "foo"
 
@@ -138,23 +134,19 @@ def test_only_api_key_results_in_openai_api() -> None:
 def test_only_bearer_token_provider_in_openai_api() -> None:
     with fresh_env():
         openai.api_type = None
-        openai.api_key = None
-        openai.bearer_token_provider = lambda: "example bearer token"
+        openai.api_key = lambda: "example bearer token"
 
         assert type(openai.completions._client).__name__ == "_ModuleClient"
 
 
 def test_both_api_key_and_bearer_token_provider_in_openai_api() -> None:
     with fresh_env():
+        openai.api_key = lambda: "example bearer token"
+
+        assert(openai.api_key() == "example bearer token")
+
         openai.api_key = "example API key"
-        openai.bearer_token_provider = lambda: "example bearer token"
-
-        with pytest.raises(
-            ValueError,
-            match=r"The `api_key` and `bearer_token_provider` arguments are mutually exclusive",
-        ):
-            openai.completions._client  # noqa: B018
-
+        assert(openai.api_key == "example API key")
 
 def test_azure_api_key_env_without_api_version() -> None:
     with fresh_env():

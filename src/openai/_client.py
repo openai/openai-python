@@ -81,6 +81,7 @@ __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "
 class OpenAI(SyncAPIClient):
     # client options
     api_key: str
+    bearer_token_provider: Callable[[], str] | None = None
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -96,8 +97,7 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
-        bearer_token_provider: Callable[[], str] | None = None,
+        api_key: str | None | Callable[[], str] = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -129,16 +129,17 @@ class OpenAI(SyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key and bearer_token_provider:
-            raise ValueError("The `api_key` and `bearer_token_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None and bearer_token_provider is None:
+        if api_key is None:
             raise OpenAIError(
-                "The api_key or bearer_token_provider client option must be set either by passing api_key or bearer_token_provider to the client or by setting the OPENAI_API_KEY environment variable"
+                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.bearer_token_provider = bearer_token_provider
-        self.api_key = api_key or ""
+        if callable(api_key):
+            self.bearer_token_provider = api_key
+            self.api_key = ""
+        else:
+            self.api_key = api_key or ""
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -328,8 +329,7 @@ class OpenAI(SyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
-        bearer_token_provider: Callable[[], str] | None = None,
+        api_key: str | Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -365,13 +365,9 @@ class OpenAI(SyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        bearer_token_provider = bearer_token_provider or self.bearer_token_provider
-        if bearer_token_provider is not None:
-            _extra_kwargs = {**_extra_kwargs, "bearer_token_provider": bearer_token_provider}
-
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            api_key=api_key or self.api_key or self.bearer_token_provider,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -427,6 +423,7 @@ class OpenAI(SyncAPIClient):
 class AsyncOpenAI(AsyncAPIClient):
     # client options
     api_key: str
+    bearer_token_provider: Callable[[], Awaitable[str]] | None = None
     organization: str | None
     project: str | None
     webhook_secret: str | None
@@ -442,8 +439,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
-        bearer_token_provider: Callable[[], Awaitable[str]] | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -475,16 +471,18 @@ class AsyncOpenAI(AsyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
-        if api_key and bearer_token_provider:
-            raise ValueError("The `api_key` and `bearer_token_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None and bearer_token_provider is None:
+        if api_key is None:
             raise OpenAIError(
-                "The api_key or bearer_token_provider client option must be set either by passing api_key or bearer_token_provider to the client or by setting the OPENAI_API_KEY environment variable"
+                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.bearer_token_provider = bearer_token_provider
-        self.api_key = api_key or ""
+        if callable(api_key):
+            self.bearer_token_provider = api_key
+            self.api_key = ""
+        else:
+            self.bearer_token_provider = None
+            self.api_key = api_key or ""
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -677,8 +675,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
-        bearer_token_provider: Callable[[], Awaitable[str]] | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -714,13 +711,9 @@ class AsyncOpenAI(AsyncAPIClient):
         elif set_default_query is not None:
             params = set_default_query
 
-        bearer_token_provider = bearer_token_provider or self.bearer_token_provider
-        if bearer_token_provider is not None:
-            _extra_kwargs = {**_extra_kwargs, "bearer_token_provider": bearer_token_provider}
-
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            api_key=api_key or self.api_key or self.bearer_token_provider,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,

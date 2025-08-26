@@ -117,9 +117,7 @@ import httpx as _httpx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
-api_key: str | None = None
-
-bearer_token_provider: _t.Callable[[], str] | None = None
+api_key: str | _t.Callable[[], str] | None = None
 
 organization: str | None = None
 
@@ -158,25 +156,14 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
-    def api_key(self) -> str | None:
+    def api_key(self) -> str | _t.Callable[[], str] | None:
         return api_key
 
     @api_key.setter  # type: ignore
-    def api_key(self, value: str | None) -> None:  # type: ignore
+    def api_key(self, value: str | _t.Callable[[], str] | None) -> None:  # type: ignore
         global api_key
-
         api_key = value
 
-    @property  # type: ignore
-    @override
-    def bearer_token_provider(self) -> _t.Callable[[], str] | None:
-        return bearer_token_provider
-
-    @bearer_token_provider.setter  # type: ignore
-    def bearer_token_provider(self, value: _t.Callable[[], str] | None) -> None:  # type: ignore
-        global bearer_token_provider
-
-        bearer_token_provider = value
 
     @property  # type: ignore
     @override
@@ -346,7 +333,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             _client = _AzureModuleClient(  # type: ignore
                 api_version=api_version,
                 azure_endpoint=azure_endpoint,
-                api_key=api_key,
+                api_key=bearer_token_provider or api_key,
                 azure_ad_token=azure_ad_token,
                 azure_ad_token_provider=azure_ad_token_provider,
                 organization=organization,
@@ -360,8 +347,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             return _client
 
         _client = _ModuleClient(
-            api_key=api_key,
-            bearer_token_provider=bearer_token_provider,
+            api_key=api_key or bearer_token_provider,
             organization=organization,
             project=project,
             webhook_secret=webhook_secret,
