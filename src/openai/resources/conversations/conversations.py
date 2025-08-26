@@ -67,7 +67,7 @@ class Conversations(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Conversation:
         """
-        Create a conversation with the given ID.
+        Create a conversation.
 
         Args:
           items: Initial items to include in the conversation context. You may add up to 20 items
@@ -244,7 +244,7 @@ class AsyncConversations(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> Conversation:
         """
-        Create a conversation with the given ID.
+        Create a conversation.
 
         Args:
           items: Initial items to include in the conversation context. You may add up to 20 items
