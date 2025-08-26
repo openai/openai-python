@@ -165,6 +165,7 @@ exclude = [
     "_dev",
     ".venv",
     ".nox",
+    ".git",
 
     # uses inline `uv` script dependencies
     # which means it can't be type checked
