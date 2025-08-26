@@ -304,6 +304,31 @@ class Responses(SyncAPIResource):
 
           timeout: Override the client-level default timeout for this request, in seconds
         """
+        # Client-side validation to prevent API 400 for isolated reasoning items
+        #       The error:
+        #           "Item 'rs_...' of type 'reasoning' was provided without its required following item."
+        #           occurs if the last element in the input list is of type 'reasoning' or if a 'reasoning' item
+        #           is not followed by the required subsequent item (usually a message/output message from the same pair).
+        #       To catch this early and provide a clearer message to the user, we validate here.
+        if is_given(input) and isinstance(input, list):  # ResponseInputParam = List[ResponseInputItemParam]
+            for idx, item in enumerate(input):
+                if item.get("type") == "reasoning":
+                    # reasoning should not be the last item
+                    if idx == len(input) - 1:
+                        raise ValueError(
+                            "`input` contains a reasoning item (id='{}') as the last element. Please add a subsequent "
+                            "related item (e.g., a corresponding message/output) or remove the reasoning item.".format(
+                                item.get("id", "<unknown>")
+                            )
+                        )
+                    nxt = input[idx + 1]
+                    if nxt.get("type") not in {"message", "item_reference", "function_call", "function_call_output"}:
+                        raise ValueError(
+                            "`input` contains a reasoning item (id='{}') without a valid following item. "
+                            "A related message / item_reference must follow reasoning. Found type='{}'".format(
+                                item.get("id", "<unknown>"), nxt.get("type")
+                            )
+                        )
         ...
 
     @overload
@@ -978,6 +1003,24 @@ class Responses(SyncAPIResource):
 
                 text["format"] = _type_to_text_format_param(text_format)
 
+            # Repeat reasoning sequence validation for streaming creation
+            if isinstance(input, list):
+                for idx, item in enumerate(input):
+                    if item.get("type") == "reasoning":
+                        if idx == len(input) - 1:
+                            raise ValueError(
+                                "`input` contains a reasoning item (id='{}') as the last element. Add a related message after it.".format(
+                                    item.get("id", "<unknown>")
+                                )
+                            )
+                        nxt = input[idx + 1]
+                        if nxt.get("type") not in {"message", "item_reference", "function_call", "function_call_output"}:
+                            raise ValueError(
+                                "`input` contains a reasoning item (id='{}') without a valid following element (expected message / item_reference).".format(
+                                    item.get("id", "<unknown>")
+                                )
+                            )
+
             api_request: partial[Stream[ResponseStreamEvent]] = partial(
                 self.create,
                 input=input,
@@ -1076,6 +1119,24 @@ class Responses(SyncAPIResource):
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
+
+        # Validate reasoning sequence here as well (parse is a convenient helper)
+        if is_given(input) and isinstance(input, list):
+            for idx, item in enumerate(input):
+                if item.get("type") == "reasoning":
+                    if idx == len(input) - 1:
+                        raise ValueError(
+                            "`input` contains a reasoning item (id='{}') as the last element. Add a related subsequent message.".format(
+                                item.get("id", "<unknown>")
+                            )
+                        )
+                    nxt = input[idx + 1]
+                    if nxt.get("type") not in {"message", "item_reference", "function_call", "function_call_output"}:
+                        raise ValueError(
+                            "`input` contains a reasoning item (id='{}') without a valid following element (expected message / item_reference).".format(
+                                item.get("id", "<unknown>")
+                            )
+                        )
 
         def parser(raw_response: Response) -> ParsedResponse[TextFormatT]:
             return parse_response(
