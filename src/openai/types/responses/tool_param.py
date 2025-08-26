@@ -14,6 +14,9 @@ from .file_search_tool_param import FileSearchToolParam
 
 __all__ = [
     "ToolParam",
+    "WebSearchTool",
+    "WebSearchToolFilters",
+    "WebSearchToolUserLocation",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -28,6 +31,61 @@ __all__ = [
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
+
+
+class WebSearchToolFilters(TypedDict, total=False):
+    allowed_domains: Optional[List[str]]
+    """Allowed domains for the search.
+
+    If not provided, all domains are allowed. Subdomains of the provided domains are
+    allowed as well.
+
+    Example: `["pubmed.ncbi.nlm.nih.gov"]`
+    """
+
+
+class WebSearchToolUserLocation(TypedDict, total=False):
+    city: Optional[str]
+    """Free text input for the city of the user, e.g. `San Francisco`."""
+
+    country: Optional[str]
+    """
+    The two-letter [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1) of
+    the user, e.g. `US`.
+    """
+
+    region: Optional[str]
+    """Free text input for the region of the user, e.g. `California`."""
+
+    timezone: Optional[str]
+    """
+    The [IANA timezone](https://timeapi.io/documentation/iana-timezones) of the
+    user, e.g. `America/Los_Angeles`.
+    """
+
+    type: Literal["approximate"]
+    """The type of location approximation. Always `approximate`."""
+
+
+class WebSearchTool(TypedDict, total=False):
+    type: Required[Literal["web_search", "web_search_2025_08_26"]]
+    """The type of the web search tool.
+
+    One of `web_search` or `web_search_2025_08_26`.
+    """
+
+    filters: Optional[WebSearchToolFilters]
+    """Filters for the search."""
+
+    search_context_size: Literal["low", "medium", "high"]
+    """High level guidance for the amount of context window space to use for the
+    search.
+
+    One of `low`, `medium`, or `high`. `medium` is the default.
+    """
+
+    user_location: Optional[WebSearchToolUserLocation]
+    """The approximate location of the user."""
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
@@ -243,13 +301,14 @@ class LocalShell(TypedDict, total=False):
 ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
-    WebSearchToolParam,
     ComputerToolParam,
+    WebSearchTool,
     Mcp,
     CodeInterpreter,
     ImageGeneration,
     LocalShell,
     CustomToolParam,
+    WebSearchToolParam,
 ]
 
 
