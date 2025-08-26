@@ -304,7 +304,7 @@ class BaseModel(pydantic.BaseModel):
                 exclude_none=exclude_none,
             )
 
-            return cast(dict[str, Any], json_safe(dumped)) if mode == "json" else dumped
+            return cast("dict[str, Any]", json_safe(dumped)) if mode == "json" else dumped
 
         @override
         def model_dump_json(
