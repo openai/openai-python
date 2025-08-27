@@ -1,6 +1,7 @@
 from ._logs import SensitiveHeadersFilter as SensitiveHeadersFilter
 from ._sync import asyncify as asyncify
 from ._proxy import LazyProxy as LazyProxy
+from ._domain_validator import DomainValidator as DomainValidator
 from ._utils import (
     flatten as flatten,
     is_dict as is_dict,
