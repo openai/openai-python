@@ -52,15 +52,3 @@ def get_caller_name(*, stacklevel: int = 1) -> str:
 def clear_locals(string: str, *, stacklevel: int) -> str:
     caller = get_caller_name(stacklevel=stacklevel + 1)
     return string.replace(f"{caller}.<locals>.", "")
-
-
-def get_snapshot_value(snapshot: Any) -> Any:
-    if not hasattr(snapshot, "_old_value"):
-        return snapshot
-
-    old = snapshot._old_value
-    if not hasattr(old, "value"):
-        return old
-
-    loader = getattr(old.value, "_load_value", None)
-    return loader() if loader else old.value
