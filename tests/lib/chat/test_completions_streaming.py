@@ -13,6 +13,7 @@ from inline_snapshot import (
     external,
     snapshot,
     outsource,  # pyright: ignore[reportUnknownVariableType]
+    get_snapshot_value,
 )
 
 import openai
@@ -30,7 +31,7 @@ from openai.lib.streaming.chat import (
 )
 from openai.lib._parsing._completions import ResponseFormatT
 
-from ..utils import print_obj, get_snapshot_value
+from ..utils import print_obj
 from ...conftest import base_url
 
 _T = TypeVar("_T")

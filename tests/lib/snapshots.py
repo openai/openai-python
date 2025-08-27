@@ -7,10 +7,9 @@ from typing_extensions import TypeVar
 
 import httpx
 from respx import MockRouter
+from inline_snapshot import get_snapshot_value
 
 from openai import OpenAI, AsyncOpenAI
-
-from .utils import get_snapshot_value
 
 _T = TypeVar("_T")
 
