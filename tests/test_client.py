@@ -956,7 +956,7 @@ class TestOpenAI:
         assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
 
     @pytest.mark.respx()
-    def test_bearer_token_refresh(self, respx_mock: MockRouter) -> None:
+    def test_api_key_refresh_on_retry(self, respx_mock: MockRouter) -> None:
         respx_mock.post(base_url + "/chat/completions").mock(
             side_effect=[
                 httpx.Response(500, json={"error": "server error"}),
