@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Union, Mapping
+from typing import TYPE_CHECKING, Any, Union, Mapping, Protocol
 from typing_extensions import Self, override
 
 import httpx
@@ -14,7 +14,9 @@ from ._types import (
     NOT_GIVEN,
     Omit,
     Timeout,
+    Headers,
     NotGiven,
+    NotGivenOr,
     Transport,
     ProxiesTypes,
     RequestOptions,
@@ -25,6 +27,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._models import FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
@@ -75,6 +78,24 @@ if TYPE_CHECKING:
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
 
+class AuthProvider(Protocol):
+
+    def do_auth(self, *, url: httpx.URL, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN, response: httpx.Response | None = None) -> tuple[httpx.URL, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+        """Perform authentication for the request.
+
+        This method should be overridden by subclasses to implement specific authentication logic.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
+class AsyncAuthProvider(Protocol):
+
+    async def do_auth(self, *, url: httpx.URL, headers: NotGivenOr[Headers] = NOT_GIVEN, params: NotGivenOr[dict[str, object]] = NOT_GIVEN, cookies: Any = NOT_GIVEN, response: httpx.Response | None = None) -> tuple[httpx.URL, NotGivenOr[Headers], NotGivenOr[dict[str, object]], Any]:
+        """Perform authentication for the request.
+
+        This method should be overridden by subclasses to implement specific authentication logic.
+        """
+        raise NotImplementedError("Subclasses must implement this method.")
+
 
 class OpenAI(SyncAPIClient):
     # client options
@@ -95,6 +116,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        auth_provider: AuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -126,13 +148,16 @@ class OpenAI(SyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
+        if api_key and auth_provider:
+            raise ValueError("The `api_key` and `auth_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
+        if api_key is None and auth_provider is None:
             raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+                "The api_key or auth_provider client option must be set either by passing api_key or auth_provider to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        self.auth_provider = auth_provider
+        self.api_key = api_key or ""
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -287,6 +312,21 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        options = super()._prepare_options(options)
+
+        if self.auth_provider:
+            url, headers, params, _ = self.auth_provider.do_auth(
+                url = options.url,
+                headers = options.headers,
+                params = options.params
+            )
+            options.url = url
+            options.headers = headers
+            options.params = params
+        return options
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
@@ -295,7 +335,7 @@ class OpenAI(SyncAPIClient):
             # if the api key is an empty string, encoding the header will fail
             return {}
         return {"Authorization": f"Bearer {api_key}"}
-
+    
     @property
     @override
     def default_headers(self) -> dict[str, str | Omit]:
@@ -311,6 +351,7 @@ class OpenAI(SyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        auth_provider: AuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -345,6 +386,10 @@ class OpenAI(SyncAPIClient):
             params = {**params, **default_query}
         elif set_default_query is not None:
             params = set_default_query
+
+        auth_provider = auth_provider or self.auth_provider
+        if auth_provider is not None:
+            _extra_kwargs = {**_extra_kwargs, "auth_provider": auth_provider}
 
         http_client = http_client or self._client
         return self.__class__(
@@ -420,6 +465,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        auth_provider: AsyncAuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -451,13 +497,16 @@ class AsyncOpenAI(AsyncAPIClient):
         - `project` from `OPENAI_PROJECT_ID`
         - `webhook_secret` from `OPENAI_WEBHOOK_SECRET`
         """
+        if api_key and auth_provider:
+            raise ValueError("The `api_key` and `auth_provider` arguments are mutually exclusive")
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
-        if api_key is None:
+        if api_key is None and auth_provider is None:
             raise OpenAIError(
-                "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
+                "The api_key or auth_provider client option must be set either by passing api_key or auth_provider to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        self.auth_provider = auth_provider
+        self.api_key = api_key or ""
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -612,6 +661,20 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        options = await super()._prepare_options(options)
+        if self.auth_provider:
+            url, headers, params, _ = await self.auth_provider.do_auth(
+                url = options.url,
+                headers = options.headers,
+                params = options.params
+            )
+            options.url = url
+            options.headers = headers
+            options.params = params
+        return options
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
@@ -636,6 +699,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self,
         *,
         api_key: str | None = None,
+        auth_provider: AsyncAuthProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -670,6 +734,10 @@ class AsyncOpenAI(AsyncAPIClient):
             params = {**params, **default_query}
         elif set_default_query is not None:
             params = set_default_query
+
+        auth_provider = auth_provider or self.auth_provider
+        if auth_provider is not None:
+            _extra_kwargs = {**_extra_kwargs, "auth_provider": auth_provider}
 
         http_client = http_client or self._client
         return self.__class__(
