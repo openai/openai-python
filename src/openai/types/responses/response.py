@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional , Dict, Any
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -30,6 +30,7 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
+<<<<<<< Updated upstream
 ToolChoice: TypeAlias = Union[
     ToolChoiceOptions, ToolChoiceAllowed, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, ToolChoiceCustom
 ]
@@ -38,6 +39,11 @@ ToolChoice: TypeAlias = Union[
 class Conversation(BaseModel):
     id: str
     """The unique ID of the conversation."""
+=======
+ToolChoice: TypeAlias = Optional[Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, Dict[str, Any]]]
+
+
+>>>>>>> Stashed changes
 
 
 class Response(BaseModel):
