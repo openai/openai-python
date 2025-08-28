@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Union, Mapping
+from typing import TYPE_CHECKING, Any, Union, Mapping, Callable, Awaitable
 from typing_extensions import Self, override
 
 import httpx
+
+from openai._models import FinalRequestOptions
 
 from . import _exceptions
 from ._qs import Querystring
@@ -94,7 +96,7 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | None | Callable[[], str] = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -132,7 +134,12 @@ class OpenAI(SyncAPIClient):
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        if callable(api_key):
+            self.api_key = ""
+            self._api_key_provider: Callable[[], str] | None = api_key
+        else:
+            self.api_key = api_key or ""
+            self._api_key_provider = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -287,6 +294,15 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    def _refresh_api_key(self) -> None:
+        if self._api_key_provider:
+            self.api_key = self._api_key_provider()
+
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        self._refresh_api_key()
+        return super()._prepare_options(options)
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
@@ -310,7 +326,7 @@ class OpenAI(SyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -348,7 +364,7 @@ class OpenAI(SyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            api_key=api_key or self._api_key_provider or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -419,7 +435,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -457,7 +473,12 @@ class AsyncOpenAI(AsyncAPIClient):
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        if callable(api_key):
+            self.api_key = ""
+            self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key
+        else:
+            self.api_key = api_key or ""
+            self._api_key_provider = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -612,6 +633,15 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    async def _refresh_api_key(self) -> None:
+        if self._api_key_provider:
+            self.api_key = await self._api_key_provider()
+
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        await self._refresh_api_key()
+        return await super()._prepare_options(options)
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
@@ -635,7 +665,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -673,7 +703,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            api_key=api_key or self._api_key_provider or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,

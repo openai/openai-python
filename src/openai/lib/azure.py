@@ -258,7 +258,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -435,7 +435,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -539,7 +539,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -628,7 +628,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             "api-version": self._api_version,
             "deployment": self._azure_deployment or model,
         }
-        if self.api_key != "<missing API key>":
+        if self.api_key and self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
             token = await self._get_azure_ad_token()
