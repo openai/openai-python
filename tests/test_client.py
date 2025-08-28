@@ -945,14 +945,24 @@ class TestOpenAI:
         assert exc_info.value.response.status_code == 302
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
-    def test_refresh_auth_headers_token(self) -> None:
+    def test_api_key_before_after_refresh_provider(self) -> None:
         client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token")
-        client.refresh_auth_headers()
+
+        assert client.api_key == ""
+        assert 'Authorization' not in client.auth_headers
+
+        client._refresh_api_key()
+
+        assert client.api_key == "test_bearer_token"
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
 
-    def test_refresh_auth_headers_key(self) -> None:
+
+    def test_api_key_before_after_refresh_str(self) -> None:
         client = OpenAI(base_url=base_url, api_key="test_api_key")
-        client.refresh_auth_headers()
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+        client._refresh_api_key()
+
         assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
 
     @pytest.mark.respx()
@@ -985,12 +995,11 @@ class TestOpenAI:
         assert calls[0].request.headers.get("Authorization") == "Bearer first"
         assert calls[1].request.headers.get("Authorization") == "Bearer second"
 
-
     def test_copy_auth(self) -> None:
         client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token_1").copy(
             api_key=lambda: "test_bearer_token_2"
         )
-        client.refresh_auth_headers()
+        client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
 
@@ -1944,18 +1953,28 @@ class TestAsyncOpenAI:
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
 
     @pytest.mark.asyncio
-    async def test_refresh_auth_headers_token_async(self) -> None:
-        async def token_provider() -> str:
+    async def test_api_key_before_after_refresh_provider(self) -> None:
+        async def mock_api_key_provider():
             return "test_bearer_token"
+        
+        client = AsyncOpenAI(base_url=base_url, api_key=mock_api_key_provider)
 
-        client = AsyncOpenAI(base_url=base_url, api_key=token_provider)
-        await client.refresh_auth_headers()
+        assert client.api_key == ""
+        assert 'Authorization' not in client.auth_headers
+
+        await client._refresh_api_key()
+
+        assert client.api_key == "test_bearer_token"
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
 
+
     @pytest.mark.asyncio
-    async def test_refresh_auth_headers_key_async(self) -> None:
+    async def test_api_key_before_after_refresh_str(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key="test_api_key")
-        await client.refresh_auth_headers()
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+        await client._refresh_api_key()
+
         assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
 
     @pytest.mark.asyncio
@@ -1997,8 +2016,6 @@ class TestAsyncOpenAI:
         async def token_provider_2() -> str:
             return "test_bearer_token_2"
 
-        client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(
-            api_key=token_provider_2
-        )
-        await client.refresh_auth_headers()
+        client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
+        await client._refresh_api_key()
         assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}

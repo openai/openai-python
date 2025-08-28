@@ -97,12 +97,22 @@ def test_http_client_option() -> None:
     assert openai.completions._client._client is new_client
 
 
-def test_bearer_token_provider_option() -> None:
-    openai.api_key = lambda: "foo"
+def test_api_key_callable() -> None:
+    openai.api_key = lambda: "1"
+    assert openai.completions._client.api_key == "1"
 
-    assert openai.completions._client.bearer_token_provider
-    assert openai.completions._client.bearer_token_provider() == "foo"
+def test_api_key_overridable() -> None:
+    openai.api_key = lambda: "1"
+    assert openai.completions._client.api_key == "1"
+    assert openai.completions._client._api_key_provider is None
 
+    openai.api_key = "2"
+    assert openai.completions._client.api_key == "2"
+    assert openai.completions._client._api_key_provider is None
+
+    openai.api_key = lambda: "3"
+    assert openai.completions._client.api_key == "3"
+    assert openai.completions._client._api_key_provider is None
 
 import contextlib
 from typing import Iterator
@@ -130,7 +140,7 @@ def test_only_api_key_results_in_openai_api() -> None:
         assert type(openai.completions._client).__name__ == "_ModuleClient"
 
 
-def test_only_bearer_token_provider_in_openai_api() -> None:
+def test_only_api_key_in_openai_api() -> None:
     with fresh_env():
         openai.api_type = None
         openai.api_key = lambda: "example bearer token"
@@ -138,14 +148,15 @@ def test_only_bearer_token_provider_in_openai_api() -> None:
         assert type(openai.completions._client).__name__ == "_ModuleClient"
 
 
-def test_both_api_key_and_bearer_token_provider_in_openai_api() -> None:
+def test_both_api_key_and_api_key_provider_in_openai_api() -> None:
     with fresh_env():
         openai.api_key = lambda: "example bearer token"
 
-        assert(openai.api_key() == "example bearer token")
+        assert openai.api_key() == "example bearer token"
 
         openai.api_key = "example API key"
-        assert(openai.api_key == "example API key")
+        assert openai.api_key == "example API key"
+
 
 def test_azure_api_key_env_without_api_version() -> None:
     with fresh_env():

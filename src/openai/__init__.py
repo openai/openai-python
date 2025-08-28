@@ -157,15 +157,26 @@ class _ModuleClient(OpenAI):
     @property  # type: ignore
     @override
     def api_key(self) -> str | _t.Callable[[], str] | None:
-        return api_key
+        return api_key() if callable(api_key) else api_key
 
     @api_key.setter  # type: ignore
     def api_key(self, value: str | _t.Callable[[], str] | None) -> None:  # type: ignore
         global api_key
         api_key = value
 
+    @property
+    def _api_key_provider(self) -> _t.Callable[[], str] | None: # type: ignore
+        return None
 
-    @property  # type: ignore
+    @_api_key_provider.setter
+    def _api_key_provider(self, value: _t.Callable[[], str] | None) -> None: # type: ignore
+        global api_key
+        # Yes, setting the api_key is intentional. The module level client accepts callables
+        # for the module level api_key and will call it to retrieve the value
+        # if it is a callable.
+        api_key = value
+
+    @property
     @override
     def organization(self) -> str | None:
         return organization

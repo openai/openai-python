@@ -255,10 +255,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
 
     @override
-    def copy(  # type: ignore
+    def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -301,7 +301,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             },
         )
 
-    with_options = copy  # type: ignore
+    with_options = copy
 
     def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
@@ -435,7 +435,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
@@ -536,10 +536,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
 
     @override
-    def copy(  # type: ignore
+    def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
@@ -582,7 +582,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             },
         )
 
-    with_options = copy  # type: ignore
+    with_options = copy
 
     async def _get_azure_ad_token(self) -> str | None:
         if self._azure_ad_token is not None:
