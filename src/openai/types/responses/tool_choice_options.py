@@ -4,4 +4,6 @@ from typing_extensions import Literal, TypeAlias
 
 __all__ = ["ToolChoiceOptions"]
 
-ToolChoiceOptions: TypeAlias = Literal["none", "auto", "required"]
+# ToolChoiceOptions: TypeAlias = Literal["none", "auto", "required"]
+ToolChoiceOptions: TypeAlias = Literal["none", "auto", "required", "allowed_tools"]
+
