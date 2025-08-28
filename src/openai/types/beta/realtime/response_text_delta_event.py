@@ -26,5 +26,5 @@ class ResponseTextDeltaEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.text.delta"]
+    type: Literal["response.text.delta"] = "response.text.delta"
     """The event type, must be `response.text.delta`."""
