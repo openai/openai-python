@@ -38,6 +38,7 @@ from ._typing import (
     extract_type_arg as extract_type_arg,
     is_iterable_type as is_iterable_type,
     is_required_type as is_required_type,
+    is_sequence_type as is_sequence_type,
     is_annotated_type as is_annotated_type,
     is_type_alias_type as is_type_alias_type,
     strip_annotated_type as strip_annotated_type,
