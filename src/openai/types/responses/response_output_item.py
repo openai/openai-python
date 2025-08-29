@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Dict, List, Union, Optional
+from typing import Any, Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -38,6 +38,21 @@ class ImageGenerationCall(BaseModel):
 
     type: Literal["image_generation_call"]
     """The type of the image generation call. Always `image_generation_call`."""
+
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+
+    def __getattr__(self, name: str) -> Any:
+        """Allow access to dynamic fields for extensibility."""
+        # Try to get from extra fields in Pydantic v2
+        if hasattr(self, '__pydantic_extra__'):
+            extra = getattr(self, '__pydantic_extra__')
+            if extra is not None and name in extra:
+                return extra[name]
+        # Try to get from regular dict for Pydantic v1 or other cases
+        if name in self.__dict__:
+            return self.__dict__[name]
+        raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
 
 
 class LocalShellCallAction(BaseModel):
