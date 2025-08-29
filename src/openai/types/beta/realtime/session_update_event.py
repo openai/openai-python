@@ -224,13 +224,16 @@ class Session(BaseModel):
     """
 
     model: Optional[
-        Literal[
-            "gpt-4o-realtime-preview",
-            "gpt-4o-realtime-preview-2024-10-01",
-            "gpt-4o-realtime-preview-2024-12-17",
-            "gpt-4o-realtime-preview-2025-06-03",
-            "gpt-4o-mini-realtime-preview",
-            "gpt-4o-mini-realtime-preview-2024-12-17",
+        Union[
+            Literal[
+                "gpt-4o-realtime-preview",
+                "gpt-4o-realtime-preview-2024-10-01",
+                "gpt-4o-realtime-preview-2024-12-17",
+                "gpt-4o-realtime-preview-2025-06-03",
+                "gpt-4o-mini-realtime-preview",
+                "gpt-4o-mini-realtime-preview-2024-12-17",
+            ],
+            str,
         ]
     ] = None
     """The Realtime model used for this session."""
