@@ -74,7 +74,7 @@ class AnnotationFilePath(BaseModel):
     """The ID of the file."""
 
     index: int
-    """The index of the file in the list of files."""
+    """The index at which to insert the file path annotation in the message text (zero-based character index)."""
 
     type: Literal["file_path"]
     """The type of the file path. Always `file_path`."""
