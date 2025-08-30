@@ -90,7 +90,7 @@ idna==3.4
 importlib-metadata==7.0.0
 iniconfig==2.0.0
     # via pytest
-inline-snapshot==0.27.0
+inline-snapshot==0.28.0
 jiter==0.5.0
     # via openai
 markdown-it-py==3.0.0

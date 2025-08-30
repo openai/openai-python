@@ -687,7 +687,7 @@ class FilesWithRawResponse:
         )
         self.retrieve_content = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                files.retrieve_content  # pyright: ignore[reportDeprecated],
+                files.retrieve_content,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -713,7 +713,7 @@ class AsyncFilesWithRawResponse:
         )
         self.retrieve_content = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                files.retrieve_content  # pyright: ignore[reportDeprecated],
+                files.retrieve_content,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -740,7 +740,7 @@ class FilesWithStreamingResponse:
         )
         self.retrieve_content = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                files.retrieve_content  # pyright: ignore[reportDeprecated],
+                files.retrieve_content,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -767,6 +767,6 @@ class AsyncFilesWithStreamingResponse:
         )
         self.retrieve_content = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                files.retrieve_content  # pyright: ignore[reportDeprecated],
+                files.retrieve_content,  # pyright: ignore[reportDeprecated],
             )
         )

@@ -6,7 +6,8 @@ import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
 
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
+from openai._utils import assert_signatures_in_sync
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -37,4 +38,26 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
 
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_stream_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.stream,
+        exclude_params={"stream", "tools"},
+    )
+
+
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    checking_client: OpenAI | AsyncOpenAI = client if sync else async_client
+
+    assert_signatures_in_sync(
+        checking_client.responses.create,
+        checking_client.responses.parse,
+        exclude_params={"tools"},
     )

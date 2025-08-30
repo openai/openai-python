@@ -341,12 +341,12 @@ class StepsWithRawResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -357,12 +357,12 @@ class AsyncStepsWithRawResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -373,12 +373,12 @@ class StepsWithStreamingResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -389,11 +389,11 @@ class AsyncStepsWithStreamingResponse:
 
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                steps.retrieve  # pyright: ignore[reportDeprecated],
+                steps.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.list = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                steps.list  # pyright: ignore[reportDeprecated],
+                steps.list,  # pyright: ignore[reportDeprecated],
             )
         )
