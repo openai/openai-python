@@ -26,7 +26,7 @@ class AnnotationFileCitation(BaseModel):
     """The filename of the file cited."""
 
     index: int
-    """The index at which to insert the file path annotation in the message text (zero-based character index)."""
+    """The index at which to insert the file citation in the message text (zero-based character index)."""
 
     type: Literal["file_citation"]
     """The type of the file citation. Always `file_citation`."""
