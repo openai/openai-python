@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from .._types import SequenceNotStr
 from .shared_params.metadata import Metadata
 from .graders.python_grader_param import PythonGraderParam
 from .graders.score_model_grader_param import ScoreModelGraderParam
@@ -159,7 +160,7 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     May include variable references to the `item` namespace, ie {{item.name}}.
     """
 
-    labels: Required[List[str]]
+    labels: Required[SequenceNotStr[str]]
     """The labels to classify to each item in the evaluation."""
 
     model: Required[str]
@@ -168,7 +169,7 @@ class TestingCriterionLabelModel(TypedDict, total=False):
     name: Required[str]
     """The name of the grader."""
 
-    passing_labels: Required[List[str]]
+    passing_labels: Required[SequenceNotStr[str]]
     """The labels that indicate a passing result. Must be a subset of labels."""
 
     type: Required[Literal["label_model"]]

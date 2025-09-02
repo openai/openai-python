@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import Union, Iterable
 from typing_extensions import Literal
 
 import httpx
 
 from .. import _legacy_response
 from ..types import embedding_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, SequenceNotStr
 from .._utils import maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -44,7 +44,7 @@ class Embeddings(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
@@ -136,7 +136,7 @@ class AsyncEmbeddings(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
         dimensions: int | NotGiven = NOT_GIVEN,
         encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,

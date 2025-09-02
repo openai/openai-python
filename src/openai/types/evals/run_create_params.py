@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..responses.tool_param import ToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
@@ -119,13 +120,13 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
     temperature: Optional[float]
     """Sampling temperature. This is a query parameter used to select responses."""
 
-    tools: Optional[List[str]]
+    tools: Optional[SequenceNotStr[str]]
     """List of tool names. This is a query parameter used to select responses."""
 
     top_p: Optional[float]
     """Nucleus sampling parameter. This is a query parameter used to select responses."""
 
-    users: Optional[List[str]]
+    users: Optional[SequenceNotStr[str]]
     """List of user identifiers. This is a query parameter used to select responses."""
 
 

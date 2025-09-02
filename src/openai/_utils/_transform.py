@@ -16,6 +16,7 @@ from ._utils import (
     lru_cache,
     is_mapping,
     is_iterable,
+    is_sequence,
 )
 from .._files import is_base64_file_input
 from ._typing import (
@@ -24,6 +25,7 @@ from ._typing import (
     extract_type_arg,
     is_iterable_type,
     is_required_type,
+    is_sequence_type,
     is_annotated_type,
     strip_annotated_type,
 )
@@ -184,6 +186,8 @@ def _transform_recursive(
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        # Sequence[T]
+        or (is_sequence_type(stripped_type) and is_sequence(data) and not isinstance(data, str))
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
@@ -346,6 +350,8 @@ async def _async_transform_recursive(
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        # Sequence[T]
+        or (is_sequence_type(stripped_type) and is_sequence(data) and not isinstance(data, str))
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.

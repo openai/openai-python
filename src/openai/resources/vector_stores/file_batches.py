@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal
 
 import httpx
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, SequenceNotStr
 from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -48,7 +48,7 @@ class FileBatches(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: List[str],
+        file_ids: SequenceNotStr[str],
         attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -277,7 +277,7 @@ class AsyncFileBatches(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: List[str],
+        file_ids: SequenceNotStr[str],
         attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
