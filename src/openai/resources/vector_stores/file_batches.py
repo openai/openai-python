@@ -186,7 +186,7 @@ class FileBatches(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: List[str],
+        file_ids: SequenceNotStr[str],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
@@ -320,7 +320,7 @@ class FileBatches(SyncAPIResource):
         *,
         files: Iterable[FileTypes],
         max_concurrency: int = 5,
-        file_ids: List[str] = [],
+        file_ids: SequenceNotStr[str] = [],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
@@ -523,7 +523,7 @@ class AsyncFileBatches(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: List[str],
+        file_ids: SequenceNotStr[str],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
@@ -657,7 +657,7 @@ class AsyncFileBatches(AsyncAPIResource):
         *,
         files: Iterable[FileTypes],
         max_concurrency: int = 5,
-        file_ids: List[str] = [],
+        file_ids: SequenceNotStr[str] = [],
         poll_interval_ms: int | NotGiven = NOT_GIVEN,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
     ) -> VectorStoreFileBatch:
