@@ -276,6 +276,7 @@ from ._module_client import (
     models as models,
     batches as batches,
     uploads as uploads,
+    realtime as realtime,
     webhooks as webhooks,
     responses as responses,
     containers as containers,

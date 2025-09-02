@@ -20,23 +20,11 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
-from .realtime.realtime import (
-    Realtime,
-    AsyncRealtime,
-    RealtimeWithRawResponse,
-    AsyncRealtimeWithRawResponse,
-    RealtimeWithStreamingResponse,
-    AsyncRealtimeWithStreamingResponse,
-)
 
 __all__ = ["Beta", "AsyncBeta"]
 
 
 class Beta(SyncAPIResource):
-    @cached_property
-    def realtime(self) -> Realtime:
-        return Realtime(self._client)
-
     @cached_property
     def assistants(self) -> Assistants:
         return Assistants(self._client)
@@ -66,10 +54,6 @@ class Beta(SyncAPIResource):
 
 
 class AsyncBeta(AsyncAPIResource):
-    @cached_property
-    def realtime(self) -> AsyncRealtime:
-        return AsyncRealtime(self._client)
-
     @cached_property
     def assistants(self) -> AsyncAssistants:
         return AsyncAssistants(self._client)
@@ -103,10 +87,6 @@ class BetaWithRawResponse:
         self._beta = beta
 
     @cached_property
-    def realtime(self) -> RealtimeWithRawResponse:
-        return RealtimeWithRawResponse(self._beta.realtime)
-
-    @cached_property
     def assistants(self) -> AssistantsWithRawResponse:
         return AssistantsWithRawResponse(self._beta.assistants)
 
@@ -118,10 +98,6 @@ class BetaWithRawResponse:
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
-
-    @cached_property
-    def realtime(self) -> AsyncRealtimeWithRawResponse:
-        return AsyncRealtimeWithRawResponse(self._beta.realtime)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithRawResponse:
@@ -137,10 +113,6 @@ class BetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
-    def realtime(self) -> RealtimeWithStreamingResponse:
-        return RealtimeWithStreamingResponse(self._beta.realtime)
-
-    @cached_property
     def assistants(self) -> AssistantsWithStreamingResponse:
         return AssistantsWithStreamingResponse(self._beta.assistants)
 
@@ -152,10 +124,6 @@ class BetaWithStreamingResponse:
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
-
-    @cached_property
-    def realtime(self) -> AsyncRealtimeWithStreamingResponse:
-        return AsyncRealtimeWithStreamingResponse(self._beta.realtime)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithStreamingResponse:

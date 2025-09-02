@@ -251,7 +251,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -259,6 +259,9 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and Notion. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -487,7 +490,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -495,6 +498,9 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and Notion. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -723,7 +729,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -731,6 +737,9 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and Notion. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -1321,7 +1330,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1329,6 +1338,9 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and Notion. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -1557,7 +1569,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1565,6 +1577,9 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and Notion. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -1793,7 +1808,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1801,6 +1816,9 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and Notion. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
