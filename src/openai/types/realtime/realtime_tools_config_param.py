@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
+
 __all__ = [
     "RealtimeToolsConfigParam",
     "RealtimeToolsConfigUnionParam",
@@ -45,11 +47,11 @@ class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
-McpAllowedTools: TypeAlias = Union[List[str], McpAllowedToolsMcpToolFilter]
+McpAllowedTools: TypeAlias = Union[SequenceNotStr[str], McpAllowedToolsMcpToolFilter]
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
@@ -61,7 +63,7 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
@@ -74,7 +76,7 @@ class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..chat import ChatCompletionFunctionToolParam
+from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
@@ -40,11 +41,11 @@ class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
-McpAllowedTools: TypeAlias = Union[List[str], McpAllowedToolsMcpToolFilter]
+McpAllowedTools: TypeAlias = Union[SequenceNotStr[str], McpAllowedToolsMcpToolFilter]
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
@@ -56,7 +57,7 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
@@ -69,7 +70,7 @@ class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
@@ -152,7 +153,7 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """An optional list of uploaded files to make available to your code."""
 
 

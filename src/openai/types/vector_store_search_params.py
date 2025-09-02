@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Union
+from typing import Union
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from .._types import SequenceNotStr
 from .shared_params.compound_filter import CompoundFilter
 from .shared_params.comparison_filter import ComparisonFilter
 
@@ -12,7 +13,7 @@ __all__ = ["VectorStoreSearchParams", "Filters", "RankingOptions"]
 
 
 class VectorStoreSearchParams(TypedDict, total=False):
-    query: Required[Union[str, List[str]]]
+    query: Required[Union[str, SequenceNotStr[str]]]
     """A query string for a search"""
 
     filters: Filters
