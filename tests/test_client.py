@@ -949,13 +949,12 @@ class TestOpenAI:
         client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token")
 
         assert client.api_key == ""
-        assert 'Authorization' not in client.auth_headers
+        assert "Authorization" not in client.auth_headers
 
         client._refresh_api_key()
 
         assert client.api_key == "test_bearer_token"
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
-
 
     def test_api_key_before_after_refresh_str(self) -> None:
         client = OpenAI(base_url=base_url, api_key="test_api_key")
@@ -1956,17 +1955,16 @@ class TestAsyncOpenAI:
     async def test_api_key_before_after_refresh_provider(self) -> None:
         async def mock_api_key_provider():
             return "test_bearer_token"
-        
+
         client = AsyncOpenAI(base_url=base_url, api_key=mock_api_key_provider)
 
         assert client.api_key == ""
-        assert 'Authorization' not in client.auth_headers
+        assert "Authorization" not in client.auth_headers
 
         await client._refresh_api_key()
 
         assert client.api_key == "test_bearer_token"
         assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
-
 
     @pytest.mark.asyncio
     async def test_api_key_before_after_refresh_str(self) -> None:

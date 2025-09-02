@@ -8,8 +8,6 @@ from typing_extensions import Self, override
 
 import httpx
 
-from openai._models import FinalRequestOptions
-
 from . import _exceptions
 from ._qs import Querystring
 from ._types import (
@@ -27,6 +25,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._models import FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
@@ -138,7 +137,7 @@ class OpenAI(SyncAPIClient):
             self.api_key = ""
             self._api_key_provider: Callable[[], str] | None = api_key
         else:
-            self.api_key = api_key or ""
+            self.api_key = api_key
             self._api_key_provider = None
 
         if organization is None:
@@ -477,7 +476,7 @@ class AsyncOpenAI(AsyncAPIClient):
             self.api_key = ""
             self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key
         else:
-            self.api_key = api_key or ""
+            self.api_key = api_key
             self._api_key_provider = None
 
         if organization is None:
