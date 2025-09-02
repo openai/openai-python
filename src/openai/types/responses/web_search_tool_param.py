@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from ..._types import SequenceNotStr
 
 __all__ = ["WebSearchToolParam", "Filters", "UserLocation"]
 
 
 class Filters(TypedDict, total=False):
-    allowed_domains: Optional[List[str]]
+    allowed_domains: Optional[SequenceNotStr[str]]
     """Allowed domains for the search.
 
     If not provided, all domains are allowed. Subdomains of the provided domains are

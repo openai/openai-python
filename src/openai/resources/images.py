@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Mapping, Optional, cast
+from typing import Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload
 
 import httpx
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes, SequenceNotStr
 from .._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -121,7 +121,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
         input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
@@ -234,7 +234,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
@@ -347,7 +347,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
@@ -460,7 +460,7 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
         input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
@@ -1009,7 +1009,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
         input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
@@ -1122,7 +1122,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: Literal[True],
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
@@ -1235,7 +1235,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: bool,
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
@@ -1348,7 +1348,7 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
         input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
