@@ -12,6 +12,7 @@ from .graders.score_model_grader_param import ScoreModelGraderParam
 from .graders.string_check_grader_param import StringCheckGraderParam
 from .responses.response_input_text_param import ResponseInputTextParam
 from .graders.text_similarity_grader_param import TextSimilarityGraderParam
+from .responses.response_input_audio_param import ResponseInputAudioParam
 
 __all__ = [
     "EvalCreateParams",
@@ -130,6 +131,7 @@ TestingCriterionLabelModelInputEvalItemContent: TypeAlias = Union[
     ResponseInputTextParam,
     TestingCriterionLabelModelInputEvalItemContentOutputText,
     TestingCriterionLabelModelInputEvalItemContentInputImage,
+    ResponseInputAudioParam,
     Iterable[object],
 ]
 

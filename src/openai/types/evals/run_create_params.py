@@ -10,6 +10,7 @@ from ..responses.tool_param import ToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..responses.response_input_audio_param import ResponseInputAudioParam
 from .create_eval_jsonl_run_data_source_param import CreateEvalJSONLRunDataSourceParam
 from ..responses.response_format_text_config_param import ResponseFormatTextConfigParam
 from .create_eval_completions_run_data_source_param import CreateEvalCompletionsRunDataSourceParam
@@ -176,6 +177,7 @@ DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemC
     ResponseInputTextParam,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudioParam,
     Iterable[object],
 ]
 
