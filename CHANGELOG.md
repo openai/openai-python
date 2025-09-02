@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.103.0 (2025-09-02)
+
+Full Changelog: [v1.102.0...v1.103.0](https://github.com/openai/openai-python/compare/v1.102.0...v1.103.0)
+
+### Features
+
+* **api:** realtime API updates ([b7c2ddc](https://github.com/openai/openai-python/commit/b7c2ddc5e5dedda01015b3d0e14ea6eb68c282d3))
+
+
+### Bug Fixes
+
+* **responses:** add missing params to stream() method ([bfc0673](https://github.com/openai/openai-python/commit/bfc06732ffe3764cb95cef9f23b4b5c0d312826a))
+
+
+### Chores
+
+* bump `inline-snapshot` version to 0.28.0 ([#2590](https://github.com/openai/openai-python/issues/2590)) ([a6b0872](https://github.com/openai/openai-python/commit/a6b087226587d4cc4f59f1f09a595921b2823ef2))
+* **client:** format imports ([7ae3020](https://github.com/openai/openai-python/commit/7ae3020b3ca7de21e6e9a0a1c40908e655f6cad5))
+* **internal:** add Sequence related utils ([d3d72b9](https://github.com/openai/openai-python/commit/d3d72b9ce3c0885bf2b6934ac57d9e84f8653208))
+* **internal:** fix formatting ([3ab273f](https://github.com/openai/openai-python/commit/3ab273f21e601f088be7502b7bb5d249fc386d6a))
+* **internal:** minor formatting change ([478a348](https://github.com/openai/openai-python/commit/478a34881c968e9cab9d93ac2cf8da2fcb37c46c))
+* **internal:** update pyright exclude list ([66e440f](https://github.com/openai/openai-python/commit/66e440fac3ca388400392c64211450dedc491c11))
+
 ## 1.102.0 (2025-08-26)
 
 Full Changelog: [v1.101.0...v1.102.0](https://github.com/openai/openai-python/compare/v1.101.0...v1.102.0)
