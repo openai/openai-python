@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.104.2 (2025-09-02)
+
+Full Changelog: [v1.104.1...v1.104.2](https://github.com/openai/openai-python/compare/v1.104.1...v1.104.2)
+
+### Bug Fixes
+
+* **types:** add aliases back for web search tool types ([2521cd8](https://github.com/openai/openai-python/commit/2521cd8445906e418dbae783b0d7c375ad91d49d))
+
 ## 1.104.1 (2025-09-02)
 
 Full Changelog: [v1.104.0...v1.104.1](https://github.com/openai/openai-python/compare/v1.104.0...v1.104.1)
