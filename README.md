@@ -226,7 +226,7 @@ async def main():
 asyncio.run(main())
 ```
 
-## Realtime API beta
+## Realtime API
 
 The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as [function calling](https://platform.openai.com/docs/guides/function-calling) through a WebSocket connection.
 
@@ -243,7 +243,7 @@ from openai import AsyncOpenAI
 async def main():
     client = AsyncOpenAI()
 
-    async with client.beta.realtime.connect(model="gpt-4o-realtime-preview") as connection:
+    async with client.realtime.connect(model="gpt-realtime") as connection:
         await connection.session.update(session={'modalities': ['text']})
 
         await connection.conversation.item.create(
@@ -277,7 +277,7 @@ Whenever an error occurs, the Realtime API will send an [`error` event](https://
 ```py
 client = AsyncOpenAI()
 
-async with client.beta.realtime.connect(model="gpt-4o-realtime-preview") as connection:
+async with client.realtime.connect(model="gpt-realtime") as connection:
     ...
     async for event in connection:
         if event.type == 'error':

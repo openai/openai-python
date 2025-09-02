@@ -5,7 +5,7 @@ import os
 import inspect
 import traceback
 import contextlib
-from typing import Any, TypeVar, Iterator, ForwardRef, cast
+from typing import Any, TypeVar, Iterator, Sequence, ForwardRef, cast
 from datetime import date, datetime
 from typing_extensions import Literal, get_args, get_origin, assert_type
 
@@ -18,6 +18,7 @@ from openai._utils import (
     is_list_type,
     is_union_type,
     extract_type_arg,
+    is_sequence_type,
     is_annotated_type,
     is_type_alias_type,
 )
@@ -77,6 +78,13 @@ def assert_matches_type(
 
     if is_list_type(type_):
         return _assert_list_type(type_, value)
+
+    if is_sequence_type(type_):
+        assert isinstance(value, Sequence)
+        inner_type = get_args(type_)[0]
+        for entry in value:  # type: ignore
+            assert_type(inner_type, entry)  # type: ignore
+        return
 
     if origin == str:
         assert isinstance(value, str)

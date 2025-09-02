@@ -5,6 +5,7 @@ from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
 from ..responses.response_input_text import ResponseInputText
+from ..responses.response_input_audio import ResponseInputAudio
 
 __all__ = ["ScoreModelGrader", "Input", "InputContent", "InputContentOutputText", "InputContentInputImage"]
 
@@ -31,7 +32,9 @@ class InputContentInputImage(BaseModel):
     """
 
 
-InputContent: TypeAlias = Union[str, ResponseInputText, InputContentOutputText, InputContentInputImage, List[object]]
+InputContent: TypeAlias = Union[
+    str, ResponseInputText, InputContentOutputText, InputContentInputImage, ResponseInputAudio, List[object]
+]
 
 
 class Input(BaseModel):

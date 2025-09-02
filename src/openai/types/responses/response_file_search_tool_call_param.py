@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
+
+from ..._types import SequenceNotStr
 
 __all__ = ["ResponseFileSearchToolCallParam", "Result"]
 
@@ -35,7 +37,7 @@ class ResponseFileSearchToolCallParam(TypedDict, total=False):
     id: Required[str]
     """The unique ID of the file search tool call."""
 
-    queries: Required[List[str]]
+    queries: Required[SequenceNotStr[str]]
     """The queries used to search for files."""
 
     status: Required[Literal["in_progress", "searching", "completed", "incomplete", "failed"]]

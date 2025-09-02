@@ -38,6 +38,7 @@ from .response_input_text import ResponseInputText as ResponseInputText
 from .tool_choice_allowed import ToolChoiceAllowed as ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
+from .response_input_audio import ResponseInputAudio as ResponseInputAudio
 from .response_input_image import ResponseInputImage as ResponseInputImage
 from .response_input_param import ResponseInputParam as ResponseInputParam
 from .response_output_item import ResponseOutputItem as ResponseOutputItem
@@ -59,6 +60,7 @@ from .response_output_message import ResponseOutputMessage as ResponseOutputMess
 from .response_output_refusal import ResponseOutputRefusal as ResponseOutputRefusal
 from .response_reasoning_item import ResponseReasoningItem as ResponseReasoningItem
 from .tool_choice_types_param import ToolChoiceTypesParam as ToolChoiceTypesParam
+from .web_search_preview_tool import WebSearchPreviewTool as WebSearchPreviewTool
 from .easy_input_message_param import EasyInputMessageParam as EasyInputMessageParam
 from .response_completed_event import ResponseCompletedEvent as ResponseCompletedEvent
 from .response_retrieve_params import ResponseRetrieveParams as ResponseRetrieveParams
@@ -74,6 +76,7 @@ from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDel
 from .tool_choice_allowed_param import ToolChoiceAllowedParam as ToolChoiceAllowedParam
 from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudioDeltaEvent
 from .response_in_progress_event import ResponseInProgressEvent as ResponseInProgressEvent
+from .response_input_audio_param import ResponseInputAudioParam as ResponseInputAudioParam
 from .response_input_image_param import ResponseInputImageParam as ResponseInputImageParam
 from .response_output_text_param import ResponseOutputTextParam as ResponseOutputTextParam
 from .response_text_config_param import ResponseTextConfigParam as ResponseTextConfigParam
@@ -90,6 +93,7 @@ from .response_refusal_delta_event import ResponseRefusalDeltaEvent as ResponseR
 from .response_output_message_param import ResponseOutputMessageParam as ResponseOutputMessageParam
 from .response_output_refusal_param import ResponseOutputRefusalParam as ResponseOutputRefusalParam
 from .response_reasoning_item_param import ResponseReasoningItemParam as ResponseReasoningItemParam
+from .web_search_preview_tool_param import WebSearchPreviewToolParam as WebSearchPreviewToolParam
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
 from .response_custom_tool_call_param import ResponseCustomToolCallParam as ResponseCustomToolCallParam

@@ -20,7 +20,9 @@ class SpeechCreateParams(TypedDict, total=False):
     `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
     """
 
-    voice: Required[Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]]
+    voice: Required[
+        Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]]
+    ]
     """The voice to use when generating the audio.
 
     Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `onyx`,

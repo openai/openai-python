@@ -9,6 +9,7 @@ from ..shared_params.metadata import Metadata
 from ..responses.easy_input_message_param import EasyInputMessageParam
 from ..shared_params.response_format_text import ResponseFormatText
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..responses.response_input_audio_param import ResponseInputAudioParam
 from ..chat.chat_completion_function_tool_param import ChatCompletionFunctionToolParam
 from ..shared_params.response_format_json_object import ResponseFormatJSONObject
 from ..shared_params.response_format_json_schema import ResponseFormatJSONSchema
@@ -112,6 +113,7 @@ InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     ResponseInputTextParam,
     InputMessagesTemplateTemplateEvalItemContentOutputText,
     InputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudioParam,
     Iterable[object],
 ]
 

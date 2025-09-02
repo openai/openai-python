@@ -2,21 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Optional
+from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from . import web_search_tool_param
 from ..chat import ChatCompletionFunctionToolParam
+from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .web_search_tool_param import WebSearchToolParam
 from .file_search_tool_param import FileSearchToolParam
+from .web_search_preview_tool_param import WebSearchPreviewToolParam
 
 __all__ = [
     "ToolParam",
-    "WebSearchTool",
-    "WebSearchToolFilters",
-    "WebSearchToolUserLocation",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -32,61 +32,9 @@ __all__ = [
     "LocalShell",
 ]
 
-
-class WebSearchToolFilters(TypedDict, total=False):
-    allowed_domains: Optional[List[str]]
-    """Allowed domains for the search.
-
-    If not provided, all domains are allowed. Subdomains of the provided domains are
-    allowed as well.
-
-    Example: `["pubmed.ncbi.nlm.nih.gov"]`
-    """
-
-
-class WebSearchToolUserLocation(TypedDict, total=False):
-    city: Optional[str]
-    """Free text input for the city of the user, e.g. `San Francisco`."""
-
-    country: Optional[str]
-    """
-    The two-letter [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1) of
-    the user, e.g. `US`.
-    """
-
-    region: Optional[str]
-    """Free text input for the region of the user, e.g. `California`."""
-
-    timezone: Optional[str]
-    """
-    The [IANA timezone](https://timeapi.io/documentation/iana-timezones) of the
-    user, e.g. `America/Los_Angeles`.
-    """
-
-    type: Literal["approximate"]
-    """The type of location approximation. Always `approximate`."""
-
-
-class WebSearchTool(TypedDict, total=False):
-    type: Required[Literal["web_search", "web_search_2025_08_26"]]
-    """The type of the web search tool.
-
-    One of `web_search` or `web_search_2025_08_26`.
-    """
-
-    filters: Optional[WebSearchToolFilters]
-    """Filters for the search."""
-
-    search_context_size: Literal["low", "medium", "high"]
-    """High level guidance for the amount of context window space to use for the
-    search.
-
-    One of `low`, `medium`, or `high`. `medium` is the default.
-    """
-
-    user_location: Optional[WebSearchToolUserLocation]
-    """The approximate location of the user."""
-
+WebSearchTool = web_search_tool_param.WebSearchToolParam
+WebSearchToolFilters = web_search_tool_param.Filters
+WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     read_only: bool
@@ -97,11 +45,11 @@ class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
-McpAllowedTools: TypeAlias = Union[List[str], McpAllowedToolsMcpToolFilter]
+McpAllowedTools: TypeAlias = Union[SequenceNotStr[str], McpAllowedToolsMcpToolFilter]
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
@@ -113,7 +61,7 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
@@ -126,7 +74,7 @@ class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
     it will match this filter.
     """
 
-    tool_names: List[str]
+    tool_names: SequenceNotStr[str]
     """List of allowed tool names."""
 
 
@@ -209,7 +157,7 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """An optional list of uploaded files to make available to your code."""
 
 
@@ -302,13 +250,13 @@ ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
     ComputerToolParam,
-    WebSearchTool,
+    WebSearchToolParam,
     Mcp,
     CodeInterpreter,
     ImageGeneration,
     LocalShell,
     CustomToolParam,
-    WebSearchToolParam,
+    WebSearchPreviewToolParam,
 ]
 
 

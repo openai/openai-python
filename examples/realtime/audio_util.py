@@ -11,7 +11,7 @@ import pyaudio
 import sounddevice as sd
 from pydub import AudioSegment
 
-from openai.resources.beta.realtime.realtime import AsyncRealtimeConnection
+from openai.resources.realtime.realtime import AsyncRealtimeConnection
 
 CHUNK_LENGTH_S = 0.05  # 100ms
 SAMPLE_RATE = 24000

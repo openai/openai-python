@@ -1785,27 +1785,27 @@ class ThreadsWithRawResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -1824,27 +1824,27 @@ class AsyncThreadsWithRawResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -1863,27 +1863,27 @@ class ThreadsWithStreamingResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -1902,27 +1902,27 @@ class AsyncThreadsWithStreamingResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 

@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "1.102.0"
+version = "1.104.2"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -64,7 +64,7 @@ dev-dependencies = [
     "dirty-equals>=0.6.0",
     "importlib-metadata>=6.7.0",
     "rich>=13.7.1",
-    "inline-snapshot >=0.7.0",
+    "inline-snapshot>=0.28.0",
     "azure-identity >=1.14.1",
     "types-tqdm > 4",
     "types-pyaudio > 0",
@@ -165,6 +165,7 @@ exclude = [
     "_dev",
     ".venv",
     ".nox",
+    ".git",
 
     # uses inline `uv` script dependencies
     # which means it can't be type checked

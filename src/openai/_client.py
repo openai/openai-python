@@ -46,6 +46,7 @@ if TYPE_CHECKING:
         models,
         batches,
         uploads,
+        realtime,
         responses,
         containers,
         embeddings,
@@ -68,6 +69,7 @@ if TYPE_CHECKING:
     from .resources.evals.evals import Evals, AsyncEvals
     from .resources.moderations import Moderations, AsyncModerations
     from .resources.uploads.uploads import Uploads, AsyncUploads
+    from .resources.realtime.realtime import Realtime, AsyncRealtime
     from .resources.responses.responses import Responses, AsyncResponses
     from .resources.containers.containers import Containers, AsyncContainers
     from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning
@@ -261,6 +263,12 @@ class OpenAI(SyncAPIClient):
         from .resources.responses import Responses
 
         return Responses(self)
+
+    @cached_property
+    def realtime(self) -> Realtime:
+        from .resources.realtime import Realtime
+
+        return Realtime(self)
 
     @cached_property
     def conversations(self) -> Conversations:
@@ -602,6 +610,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncResponses(self)
 
     @cached_property
+    def realtime(self) -> AsyncRealtime:
+        from .resources.realtime import AsyncRealtime
+
+        return AsyncRealtime(self)
+
+    @cached_property
     def conversations(self) -> AsyncConversations:
         from .resources.conversations import AsyncConversations
 
@@ -846,6 +860,12 @@ class OpenAIWithRawResponse:
         return ResponsesWithRawResponse(self._client.responses)
 
     @cached_property
+    def realtime(self) -> realtime.RealtimeWithRawResponse:
+        from .resources.realtime import RealtimeWithRawResponse
+
+        return RealtimeWithRawResponse(self._client.realtime)
+
+    @cached_property
     def conversations(self) -> conversations.ConversationsWithRawResponse:
         from .resources.conversations import ConversationsWithRawResponse
 
@@ -953,6 +973,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.responses import AsyncResponsesWithRawResponse
 
         return AsyncResponsesWithRawResponse(self._client.responses)
+
+    @cached_property
+    def realtime(self) -> realtime.AsyncRealtimeWithRawResponse:
+        from .resources.realtime import AsyncRealtimeWithRawResponse
+
+        return AsyncRealtimeWithRawResponse(self._client.realtime)
 
     @cached_property
     def conversations(self) -> conversations.AsyncConversationsWithRawResponse:
@@ -1064,6 +1090,12 @@ class OpenAIWithStreamedResponse:
         return ResponsesWithStreamingResponse(self._client.responses)
 
     @cached_property
+    def realtime(self) -> realtime.RealtimeWithStreamingResponse:
+        from .resources.realtime import RealtimeWithStreamingResponse
+
+        return RealtimeWithStreamingResponse(self._client.realtime)
+
+    @cached_property
     def conversations(self) -> conversations.ConversationsWithStreamingResponse:
         from .resources.conversations import ConversationsWithStreamingResponse
 
@@ -1171,6 +1203,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.responses import AsyncResponsesWithStreamingResponse
 
         return AsyncResponsesWithStreamingResponse(self._client.responses)
+
+    @cached_property
+    def realtime(self) -> realtime.AsyncRealtimeWithStreamingResponse:
+        from .resources.realtime import AsyncRealtimeWithStreamingResponse
+
+        return AsyncRealtimeWithStreamingResponse(self._client.realtime)
 
     @cached_property
     def conversations(self) -> conversations.AsyncConversationsWithStreamingResponse:

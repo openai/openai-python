@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
+
+from ..._types import SequenceNotStr
 
 __all__ = [
     "ResponseComputerToolCallParam",
@@ -86,7 +88,7 @@ class ActionDrag(TypedDict, total=False):
 
 
 class ActionKeypress(TypedDict, total=False):
-    keys: Required[List[str]]
+    keys: Required[SequenceNotStr[str]]
     """The combination of keys the model is requesting to be pressed.
 
     This is an array of strings, each representing a key.

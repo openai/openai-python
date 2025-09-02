@@ -431,6 +431,7 @@ from openai.types.webhooks import (
     FineTuningJobCancelledWebhookEvent,
     FineTuningJobFailedWebhookEvent,
     FineTuningJobSucceededWebhookEvent,
+    RealtimeCallIncomingWebhookEvent,
     ResponseCancelledWebhookEvent,
     ResponseCompletedWebhookEvent,
     ResponseFailedWebhookEvent,
@@ -832,6 +833,7 @@ from openai.types.responses import (
     ToolChoiceMcp,
     ToolChoiceOptions,
     ToolChoiceTypes,
+    WebSearchPreviewTool,
     WebSearchTool,
 )
 ```
@@ -854,6 +856,115 @@ from openai.types.responses import ResponseItemList
 Methods:
 
 - <code title="get /responses/{response_id}/input_items">client.responses.input_items.<a href="./src/openai/resources/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/responses/input_item_list_params.py">params</a>) -> <a href="./src/openai/types/responses/response_item.py">SyncCursorPage[ResponseItem]</a></code>
+
+# Realtime
+
+Types:
+
+```python
+from openai.types.realtime import (
+    ConversationCreatedEvent,
+    ConversationItem,
+    ConversationItemAdded,
+    ConversationItemCreateEvent,
+    ConversationItemCreatedEvent,
+    ConversationItemDeleteEvent,
+    ConversationItemDeletedEvent,
+    ConversationItemDone,
+    ConversationItemInputAudioTranscriptionCompletedEvent,
+    ConversationItemInputAudioTranscriptionDeltaEvent,
+    ConversationItemInputAudioTranscriptionFailedEvent,
+    ConversationItemInputAudioTranscriptionSegment,
+    ConversationItemRetrieveEvent,
+    ConversationItemTruncateEvent,
+    ConversationItemTruncatedEvent,
+    ConversationItemWithReference,
+    InputAudioBufferAppendEvent,
+    InputAudioBufferClearEvent,
+    InputAudioBufferClearedEvent,
+    InputAudioBufferCommitEvent,
+    InputAudioBufferCommittedEvent,
+    InputAudioBufferSpeechStartedEvent,
+    InputAudioBufferSpeechStoppedEvent,
+    InputAudioBufferTimeoutTriggered,
+    LogProbProperties,
+    McpListToolsCompleted,
+    McpListToolsFailed,
+    McpListToolsInProgress,
+    OutputAudioBufferClearEvent,
+    RateLimitsUpdatedEvent,
+    RealtimeAudioConfig,
+    RealtimeClientEvent,
+    RealtimeClientSecretConfig,
+    RealtimeConversationItemAssistantMessage,
+    RealtimeConversationItemFunctionCall,
+    RealtimeConversationItemFunctionCallOutput,
+    RealtimeConversationItemSystemMessage,
+    RealtimeConversationItemUserMessage,
+    RealtimeError,
+    RealtimeErrorEvent,
+    RealtimeMcpApprovalRequest,
+    RealtimeMcpApprovalResponse,
+    RealtimeMcpListTools,
+    RealtimeMcpProtocolError,
+    RealtimeMcpToolCall,
+    RealtimeMcpToolExecutionError,
+    RealtimeMcphttpError,
+    RealtimeResponse,
+    RealtimeResponseStatus,
+    RealtimeResponseUsage,
+    RealtimeResponseUsageInputTokenDetails,
+    RealtimeResponseUsageOutputTokenDetails,
+    RealtimeServerEvent,
+    RealtimeSession,
+    RealtimeSessionCreateRequest,
+    RealtimeToolChoiceConfig,
+    RealtimeToolsConfig,
+    RealtimeToolsConfigUnion,
+    RealtimeTracingConfig,
+    RealtimeTranscriptionSessionCreateRequest,
+    RealtimeTruncation,
+    ResponseAudioDeltaEvent,
+    ResponseAudioDoneEvent,
+    ResponseAudioTranscriptDeltaEvent,
+    ResponseAudioTranscriptDoneEvent,
+    ResponseCancelEvent,
+    ResponseContentPartAddedEvent,
+    ResponseContentPartDoneEvent,
+    ResponseCreateEvent,
+    ResponseCreatedEvent,
+    ResponseDoneEvent,
+    ResponseFunctionCallArgumentsDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent,
+    ResponseMcpCallArgumentsDelta,
+    ResponseMcpCallArgumentsDone,
+    ResponseMcpCallCompleted,
+    ResponseMcpCallFailed,
+    ResponseMcpCallInProgress,
+    ResponseOutputItemAddedEvent,
+    ResponseOutputItemDoneEvent,
+    ResponseTextDeltaEvent,
+    ResponseTextDoneEvent,
+    SessionCreatedEvent,
+    SessionUpdateEvent,
+    SessionUpdatedEvent,
+    TranscriptionSessionCreated,
+    TranscriptionSessionUpdate,
+    TranscriptionSessionUpdatedEvent,
+)
+```
+
+## ClientSecrets
+
+Types:
+
+```python
+from openai.types.realtime import RealtimeSessionCreateResponse, ClientSecretCreateResponse
+```
+
+Methods:
+
+- <code title="post /realtime/client_secrets">client.realtime.client_secrets.<a href="./src/openai/resources/realtime/client_secrets.py">create</a>(\*\*<a href="src/openai/types/realtime/client_secret_create_params.py">params</a>) -> <a href="./src/openai/types/realtime/client_secret_create_response.py">ClientSecretCreateResponse</a></code>
 
 # Conversations
 

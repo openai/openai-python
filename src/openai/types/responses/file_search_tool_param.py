@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared_params.compound_filter import CompoundFilter
 from ..shared_params.comparison_filter import ComparisonFilter
 
@@ -29,7 +30,7 @@ class FileSearchToolParam(TypedDict, total=False):
     type: Required[Literal["file_search"]]
     """The type of the file search tool. Always `file_search`."""
 
-    vector_store_ids: Required[List[str]]
+    vector_store_ids: Required[SequenceNotStr[str]]
     """The IDs of the vector stores to search."""
 
     filters: Optional[Filters]
