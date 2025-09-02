@@ -38,6 +38,7 @@ from .response_input_text import ResponseInputText as ResponseInputText
 from .tool_choice_allowed import ToolChoiceAllowed as ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
+from .response_input_audio import ResponseInputAudio as ResponseInputAudio
 from .response_input_image import ResponseInputImage as ResponseInputImage
 from .response_input_param import ResponseInputParam as ResponseInputParam
 from .response_output_item import ResponseOutputItem as ResponseOutputItem
@@ -75,6 +76,7 @@ from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDel
 from .tool_choice_allowed_param import ToolChoiceAllowedParam as ToolChoiceAllowedParam
 from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudioDeltaEvent
 from .response_in_progress_event import ResponseInProgressEvent as ResponseInProgressEvent
+from .response_input_audio_param import ResponseInputAudioParam as ResponseInputAudioParam
 from .response_input_image_param import ResponseInputImageParam as ResponseInputImageParam
 from .response_output_text_param import ResponseOutputTextParam as ResponseOutputTextParam
 from .response_text_config_param import ResponseTextConfigParam as ResponseTextConfigParam

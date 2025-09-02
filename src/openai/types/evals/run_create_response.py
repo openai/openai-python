@@ -12,6 +12,7 @@ from ..responses.tool import Tool
 from ..shared.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text import ResponseInputText
+from ..responses.response_input_audio import ResponseInputAudio
 from .create_eval_jsonl_run_data_source import CreateEvalJSONLRunDataSource
 from ..responses.response_format_text_config import ResponseFormatTextConfig
 from .create_eval_completions_run_data_source import CreateEvalCompletionsRunDataSource
@@ -158,6 +159,7 @@ DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Uni
     ResponseInputText,
     DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText,
     DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudio,
     List[object],
 ]
 
