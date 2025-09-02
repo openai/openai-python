@@ -162,6 +162,7 @@ class _ModuleClient(OpenAI):
     @api_key.setter  # type: ignore
     def api_key(self, value: str | None) -> None:  # type: ignore
         global api_key
+
         api_key = value
 
     @property  # type: ignore
