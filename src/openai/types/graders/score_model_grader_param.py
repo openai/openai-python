@@ -6,6 +6,7 @@ from typing import Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..responses.response_input_audio_param import ResponseInputAudioParam
 
 __all__ = ["ScoreModelGraderParam", "Input", "InputContent", "InputContentOutputText", "InputContentInputImage"]
 
@@ -33,7 +34,12 @@ class InputContentInputImage(TypedDict, total=False):
 
 
 InputContent: TypeAlias = Union[
-    str, ResponseInputTextParam, InputContentOutputText, InputContentInputImage, Iterable[object]
+    str,
+    ResponseInputTextParam,
+    InputContentOutputText,
+    InputContentInputImage,
+    ResponseInputAudioParam,
+    Iterable[object],
 ]
 
 
