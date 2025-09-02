@@ -50,7 +50,9 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]],
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]
+        ],
         instructions: str | NotGiven = NOT_GIVEN,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,
@@ -144,7 +146,9 @@ class AsyncSpeech(AsyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]],
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]
+        ],
         instructions: str | NotGiven = NOT_GIVEN,
         response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
         speed: float | NotGiven = NOT_GIVEN,

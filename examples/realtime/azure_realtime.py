@@ -26,10 +26,16 @@ async def main() -> None:
         azure_ad_token_provider=get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default"),
         api_version="2024-10-01-preview",
     )
-    async with client.beta.realtime.connect(
-        model="gpt-4o-realtime-preview",  # deployment name for your model
+    async with client.realtime.connect(
+        model="gpt-realtime",  # deployment name for your model
     ) as connection:
-        await connection.session.update(session={"modalities": ["text"]})  # type: ignore
+        await connection.session.update(
+            session={
+                "output_modalities": ["text"],
+                "model": "gpt-realtime",
+                "type": "realtime",
+            }
+        )
         while True:
             user_input = input("Enter a message: ")
             if user_input == "q":
@@ -44,9 +50,9 @@ async def main() -> None:
             )
             await connection.response.create()
             async for event in connection:
-                if event.type == "response.text.delta":
+                if event.type == "response.output_text.delta":
                     print(event.delta, flush=True, end="")
-                elif event.type == "response.text.done":
+                elif event.type == "response.output_text.done":
                     print()
                 elif event.type == "response.done":
                     break

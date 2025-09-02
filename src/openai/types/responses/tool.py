@@ -3,19 +3,18 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
-from . import web_search_tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
+from .web_search_tool import WebSearchTool
 from .file_search_tool import FileSearchTool
+from .web_search_preview_tool import WebSearchPreviewTool
 
 __all__ = [
     "Tool",
     "WebSearchTool",
-    "WebSearchToolFilters",
-    "WebSearchToolUserLocation",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -30,61 +29,6 @@ __all__ = [
     "ImageGenerationInputImageMask",
     "LocalShell",
 ]
-
-
-class WebSearchToolFilters(BaseModel):
-    allowed_domains: Optional[List[str]] = None
-    """Allowed domains for the search.
-
-    If not provided, all domains are allowed. Subdomains of the provided domains are
-    allowed as well.
-
-    Example: `["pubmed.ncbi.nlm.nih.gov"]`
-    """
-
-
-class WebSearchToolUserLocation(BaseModel):
-    city: Optional[str] = None
-    """Free text input for the city of the user, e.g. `San Francisco`."""
-
-    country: Optional[str] = None
-    """
-    The two-letter [ISO country code](https://en.wikipedia.org/wiki/ISO_3166-1) of
-    the user, e.g. `US`.
-    """
-
-    region: Optional[str] = None
-    """Free text input for the region of the user, e.g. `California`."""
-
-    timezone: Optional[str] = None
-    """
-    The [IANA timezone](https://timeapi.io/documentation/iana-timezones) of the
-    user, e.g. `America/Los_Angeles`.
-    """
-
-    type: Optional[Literal["approximate"]] = None
-    """The type of location approximation. Always `approximate`."""
-
-
-class WebSearchTool(BaseModel):
-    type: Literal["web_search", "web_search_2025_08_26"]
-    """The type of the web search tool.
-
-    One of `web_search` or `web_search_2025_08_26`.
-    """
-
-    filters: Optional[WebSearchToolFilters] = None
-    """Filters for the search."""
-
-    search_context_size: Optional[Literal["low", "medium", "high"]] = None
-    """High level guidance for the amount of context window space to use for the
-    search.
-
-    One of `low`, `medium`, or `high`. `medium` is the default.
-    """
-
-    user_location: Optional[WebSearchToolUserLocation] = None
-    """The approximate location of the user."""
 
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
@@ -310,7 +254,7 @@ Tool: TypeAlias = Annotated[
         ImageGeneration,
         LocalShell,
         CustomTool,
-        web_search_tool.WebSearchTool,
+        WebSearchPreviewTool,
     ],
     PropertyInfo(discriminator="type"),
 ]
