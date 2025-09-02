@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from . import web_search_tool_param
 from ..chat import ChatCompletionFunctionToolParam
 from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
@@ -31,6 +32,9 @@ __all__ = [
     "LocalShell",
 ]
 
+WebSearchTool = web_search_tool_param.WebSearchToolParam
+WebSearchToolFilters = web_search_tool_param.Filters
+WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     read_only: bool
