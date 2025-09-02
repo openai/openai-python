@@ -3,6 +3,7 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from . import web_search_tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .custom_tool import CustomTool
@@ -30,6 +31,8 @@ __all__ = [
     "LocalShell",
 ]
 
+WebSearchToolFilters = web_search_tool.Filters
+WebSearchToolUserLocation = web_search_tool.UserLocation
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
     read_only: Optional[bool] = None
