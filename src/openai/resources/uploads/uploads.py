@@ -6,8 +6,9 @@ import io
 import os
 import logging
 import builtins
-from typing import List, overload
+from typing import overload
 from pathlib import Path
+
 import anyio
 import httpx
 
