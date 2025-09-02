@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.104.0 (2025-09-02)
+
+Full Changelog: [v1.103.0...v1.104.0](https://github.com/openai/openai-python/compare/v1.103.0...v1.104.0)
+
+### Features
+
+* **types:** replace List[str] with SequenceNotStr in params ([bc00bda](https://github.com/openai/openai-python/commit/bc00bda880a80089be8a1758c016266ca72dab2c))
+
+
+### Bug Fixes
+
+* **types:** update more types to use SequenceNotStr ([cff135c](https://github.com/openai/openai-python/commit/cff135cb7059ef1bf8f9b101a83529fc0cee37c4))
+* **types:** update some types to SequenceNotStr ([03f8b88](https://github.com/openai/openai-python/commit/03f8b88a0d428b74a7822e678a60d0ef106ea961))
+
+
+### Chores
+
+* remove unused import ([ac7795b](https://github.com/openai/openai-python/commit/ac7795b50d956ec5dc468302e8e3579a0467edcb))
+
 ## 1.103.0 (2025-09-02)
 
 Full Changelog: [v1.102.0...v1.103.0](https://github.com/openai/openai-python/compare/v1.102.0...v1.103.0)
