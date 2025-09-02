@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.104.1 (2025-09-02)
+
+Full Changelog: [v1.104.0...v1.104.1](https://github.com/openai/openai-python/compare/v1.104.0...v1.104.1)
+
+### Chores
+
+* **api:** manual updates for ResponseInputAudio ([0db5061](https://github.com/openai/openai-python/commit/0db50619663656ba97bba30ab640bbb33683d196))
+
 ## 1.104.0 (2025-09-02)
 
 Full Changelog: [v1.103.0...v1.104.0](https://github.com/openai/openai-python/compare/v1.103.0...v1.104.0)
