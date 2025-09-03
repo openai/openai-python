@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.105.0 (2025-09-03)
+
+Full Changelog: [v1.104.2...v1.105.0](https://github.com/openai/openai-python/compare/v1.104.2...v1.105.0)
+
+### Features
+
+* **api:** Add gpt-realtime models ([8502041](https://github.com/openai/openai-python/commit/85020414808314df9cb42e020b11baff12f18f16))
+
 ## 1.104.2 (2025-09-02)
 
 Full Changelog: [v1.104.1...v1.104.2](https://github.com/openai/openai-python/compare/v1.104.1...v1.104.2)
