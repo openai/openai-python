@@ -6,14 +6,14 @@ from pydantic import Field, BaseModel
 from inline_snapshot import snapshot
 
 import openai
-from openai._compat import PYDANTIC_V2
+from openai._compat import PYDANTIC_V1
 from openai.lib._pydantic import to_strict_json_schema
 
 from .schema_types.query import Query
 
 
 def test_most_types() -> None:
-    if PYDANTIC_V2:
+    if not PYDANTIC_V1:
         assert openai.pydantic_function_tool(Query)["function"] == snapshot(
             {
                 "name": "Query",
@@ -181,7 +181,7 @@ class ColorDetection(BaseModel):
 
 
 def test_enums() -> None:
-    if PYDANTIC_V2:
+    if not PYDANTIC_V1:
         assert openai.pydantic_function_tool(ColorDetection)["function"] == snapshot(
             {
                 "name": "ColorDetection",
@@ -253,7 +253,7 @@ class Universe(BaseModel):
 
 
 def test_nested_inline_ref_expansion() -> None:
-    if PYDANTIC_V2:
+    if not PYDANTIC_V1:
         assert to_strict_json_schema(Universe) == snapshot(
             {
                 "title": "Universe",

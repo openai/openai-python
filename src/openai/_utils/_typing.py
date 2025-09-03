@@ -15,7 +15,7 @@ from typing_extensions import (
 
 from ._utils import lru_cache
 from .._types import InheritsGeneric
-from .._compat import is_union as _is_union
+from ._compat import is_union as _is_union
 
 
 def is_annotated_type(typ: type) -> bool:
