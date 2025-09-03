@@ -59,7 +59,7 @@ from ._types import (
     ModelBuilderProtocol,
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
-from ._compat import PYDANTIC_V2, model_copy, model_dump
+from ._compat import PYDANTIC_V1, model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
     APIResponse,
@@ -234,7 +234,7 @@ class BaseSyncPage(BasePage[_T], Generic[_T]):
         model: Type[_T],
         options: FinalRequestOptions,
     ) -> None:
-        if PYDANTIC_V2 and getattr(self, "__pydantic_private__", None) is None:
+        if (not PYDANTIC_V1) and getattr(self, "__pydantic_private__", None) is None:
             self.__pydantic_private__ = {}
 
         self._model = model
@@ -322,7 +322,7 @@ class BaseAsyncPage(BasePage[_T], Generic[_T]):
         client: AsyncAPIClient,
         options: FinalRequestOptions,
     ) -> None:
-        if PYDANTIC_V2 and getattr(self, "__pydantic_private__", None) is None:
+        if (not PYDANTIC_V1) and getattr(self, "__pydantic_private__", None) is None:
             self.__pydantic_private__ = {}
 
         self._model = model
