@@ -19,7 +19,7 @@ from openai._utils import (
     is_annotated_type,
     is_type_alias_type,
 )
-from openai._compat import PYDANTIC_V2, field_outer_type, get_model_fields
+from openai._compat import PYDANTIC_V1, field_outer_type, get_model_fields
 from openai._models import BaseModel
 
 BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
@@ -28,12 +28,12 @@ BaseModelT = TypeVar("BaseModelT", bound=BaseModel)
 def assert_matches_model(model: type[BaseModelT], value: BaseModelT, *, path: list[str]) -> bool:
     for name, field in get_model_fields(model).items():
         field_value = getattr(value, name)
-        if PYDANTIC_V2:
-            allow_none = False
-        else:
+        if PYDANTIC_V1:
             # in v1 nullability was structured differently
             # https://docs.pydantic.dev/2.0/migration/#required-optional-and-nullable-fields
             allow_none = getattr(field, "allow_none", False)
+        else:
+            allow_none = False
 
         assert_matches_type(
             field_outer_type(field),
