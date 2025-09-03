@@ -19,6 +19,8 @@ class RealtimeSessionCreateRequest(BaseModel):
     model: Union[
         str,
         Literal[
+            "gpt-realtime",
+            "gpt-realtime-2025-08-28",
             "gpt-4o-realtime",
             "gpt-4o-mini-realtime",
             "gpt-4o-realtime-preview",
