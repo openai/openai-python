@@ -159,6 +159,58 @@ reportOverlappingOverload = false
 reportImportCycles = false
 reportPrivateUsage = false
 
+[tool.mypy]
+pretty = true
+show_error_codes = true
+
+# Exclude _files.py because mypy isn't smart enough to apply
+# the correct type narrowing and as this is an internal module
+# it's fine to just use Pyright.
+#
+# We also exclude our `tests` as mypy doesn't always infer
+# types correctly and Pyright will still catch any type errors.
+exclude = ['src/openai/_files.py', '_dev/.*.py', 'tests/.*']
+
+strict_equality = true
+implicit_reexport = true
+check_untyped_defs = true
+no_implicit_optional = true
+
+warn_return_any = true
+warn_unreachable = true
+warn_unused_configs = true
+
+# Turn these options off as it could cause conflicts
+# with the Pyright options.
+warn_unused_ignores = false
+warn_redundant_casts = false
+
+disallow_any_generics = true
+disallow_untyped_defs = true
+disallow_untyped_calls = true
+disallow_subclassing_any = true
+disallow_incomplete_defs = true
+disallow_untyped_decorators = true
+cache_fine_grained = true
+
+# By default, mypy reports an error if you assign a value to the result
+# of a function call that doesn't return anything. We do this in our test
+# cases:
+# ```
+# result = ...
+# assert result is None
+# ```
+# Changing this codegen to make mypy happy would increase complexity
+# and would not be worth it.
+disable_error_code = "func-returns-value,overload-cannot-match"
+
+# https://github.com/python/mypy/issues/12162
+[[tool.mypy.overrides]]
+module = "black.files.*"
+ignore_errors = true
+ignore_missing_imports = true
+
+
 [tool.ruff]
 line-length = 120
 output-format = "grouped"
