@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.106.1 (2025-09-04)
+
+Full Changelog: [v1.106.0...v1.106.1](https://github.com/openai/openai-python/compare/v1.106.0...v1.106.1)
+
+### Chores
+
+* **internal:** move mypy configurations to `pyproject.toml` file ([ca413a2](https://github.com/openai/openai-python/commit/ca413a277496c3b883b103ad1138a886e89ae15e))
+
 ## 1.106.0 (2025-09-04)
 
 Full Changelog: [v1.105.0...v1.106.0](https://github.com/openai/openai-python/compare/v1.105.0...v1.106.0)
