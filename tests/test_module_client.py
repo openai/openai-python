@@ -15,6 +15,7 @@ from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 def reset_state() -> None:
     openai._reset_client()
     openai.api_key = None or "My API Key"
+    openai.auth_provider = None
     openai.organization = None
     openai.project = None
     openai.webhook_secret = None
@@ -97,6 +98,28 @@ def test_http_client_option() -> None:
     assert openai.completions._client._client is new_client
 
 
+def test_auth_provider_str_option() -> None:
+    assert openai.auth_provider is None
+    assert openai.completions._client.auth_provider is None
+
+    openai.auth_provider = lambda: "foo"
+
+    assert openai.auth_provider() == "foo"
+    assert openai.completions._client.auth_provider
+    assert openai.completions._client.auth_provider() == "foo"
+
+
+def test_auth_provider_dict_option() -> None:
+    assert openai.auth_provider is None
+    assert openai.completions._client.auth_provider is None
+
+    openai.auth_provider = lambda: {"foo": "bar"}
+
+    assert openai.auth_provider() == {"foo": "bar"}
+    assert openai.completions._client.auth_provider
+    assert openai.completions._client.auth_provider() == {"foo": "bar"}
+
+
 import contextlib
 from typing import Iterator
 
@@ -121,6 +144,27 @@ def test_only_api_key_results_in_openai_api() -> None:
         openai.api_key = "example API key"
 
         assert type(openai.completions._client).__name__ == "_ModuleClient"
+
+
+def test_only_auth_provider_in_openai_api() -> None:
+    with fresh_env():
+        openai.api_type = None
+        openai.api_key = None
+        openai.auth_provider = lambda: "example bearer token"
+
+        assert type(openai.completions._client).__name__ == "_ModuleClient"
+
+
+def test_both_api_key_and_auth_provider_in_openai_api() -> None:
+    with fresh_env():
+        openai.api_key = "example API key"
+        openai.auth_provider = lambda: "example bearer token"
+
+        with pytest.raises(
+            ValueError,
+            match=r"The `api_key` and `auth_provider` arguments are mutually exclusive",
+        ):
+            openai.completions._client  # noqa: B018
 
 
 def test_azure_api_key_env_without_api_version() -> None:
