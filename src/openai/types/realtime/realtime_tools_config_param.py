@@ -6,11 +6,11 @@ from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
+from .models_param import ModelsParam
 
 __all__ = [
     "RealtimeToolsConfigParam",
     "RealtimeToolsConfigUnionParam",
-    "Function",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -19,23 +19,6 @@ __all__ = [
     "McpRequireApprovalMcpToolApprovalFilterAlways",
     "McpRequireApprovalMcpToolApprovalFilterNever",
 ]
-
-
-class Function(TypedDict, total=False):
-    description: str
-    """
-    The description of the function, including guidance on when and how to call it,
-    and guidance about what to tell the user when calling (if anything).
-    """
-
-    name: str
-    """The name of the function."""
-
-    parameters: object
-    """Parameters of the function in JSON Schema."""
-
-    type: Literal["function"]
-    """The type of the tool, i.e. `function`."""
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
@@ -155,6 +138,6 @@ class Mcp(TypedDict, total=False):
     """
 
 
-RealtimeToolsConfigUnionParam: TypeAlias = Union[Function, Mcp]
+RealtimeToolsConfigUnionParam: TypeAlias = Union[ModelsParam, Mcp]
 
 RealtimeToolsConfigParam: TypeAlias = List[RealtimeToolsConfigUnionParam]

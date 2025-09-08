@@ -3,12 +3,12 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from .models import Models
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
 __all__ = [
     "RealtimeToolsConfigUnion",
-    "Function",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -17,23 +17,6 @@ __all__ = [
     "McpRequireApprovalMcpToolApprovalFilterAlways",
     "McpRequireApprovalMcpToolApprovalFilterNever",
 ]
-
-
-class Function(BaseModel):
-    description: Optional[str] = None
-    """
-    The description of the function, including guidance on when and how to call it,
-    and guidance about what to tell the user when calling (if anything).
-    """
-
-    name: Optional[str] = None
-    """The name of the function."""
-
-    parameters: Optional[object] = None
-    """Parameters of the function in JSON Schema."""
-
-    type: Optional[Literal["function"]] = None
-    """The type of the tool, i.e. `function`."""
 
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
@@ -155,4 +138,4 @@ class Mcp(BaseModel):
     """
 
 
-RealtimeToolsConfigUnion: TypeAlias = Annotated[Union[Function, Mcp], PropertyInfo(discriminator="type")]
+RealtimeToolsConfigUnion: TypeAlias = Annotated[Union[Models, Mcp], PropertyInfo(discriminator="type")]

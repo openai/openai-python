@@ -30,11 +30,13 @@ class TestClientSecrets:
                 "seconds": 10,
             },
             session={
-                "model": "string",
                 "type": "realtime",
                 "audio": {
                     "input": {
-                        "format": "pcm16",
+                        "format": {
+                            "rate": 24000,
+                            "type": "audio/pcm",
+                        },
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
@@ -53,27 +55,24 @@ class TestClientSecrets:
                         },
                     },
                     "output": {
-                        "format": "pcm16",
+                        "format": {
+                            "rate": 24000,
+                            "type": "audio/pcm",
+                        },
                         "speed": 0.25,
                         "voice": "ash",
                     },
                 },
-                "client_secret": {
-                    "expires_after": {
-                        "anchor": "created_at",
-                        "seconds": 0,
-                    }
-                },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
                 "max_output_tokens": 0,
+                "model": "string",
                 "output_modalities": ["text"],
                 "prompt": {
                     "id": "id",
                     "variables": {"foo": "string"},
                     "version": "version",
                 },
-                "temperature": 0,
                 "tool_choice": "none",
                 "tools": [
                     {
@@ -128,11 +127,13 @@ class TestAsyncClientSecrets:
                 "seconds": 10,
             },
             session={
-                "model": "string",
                 "type": "realtime",
                 "audio": {
                     "input": {
-                        "format": "pcm16",
+                        "format": {
+                            "rate": 24000,
+                            "type": "audio/pcm",
+                        },
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
@@ -151,27 +152,24 @@ class TestAsyncClientSecrets:
                         },
                     },
                     "output": {
-                        "format": "pcm16",
+                        "format": {
+                            "rate": 24000,
+                            "type": "audio/pcm",
+                        },
                         "speed": 0.25,
                         "voice": "ash",
                     },
                 },
-                "client_secret": {
-                    "expires_after": {
-                        "anchor": "created_at",
-                        "seconds": 0,
-                    }
-                },
                 "include": ["item.input_audio_transcription.logprobs"],
                 "instructions": "instructions",
                 "max_output_tokens": 0,
+                "model": "string",
                 "output_modalities": ["text"],
                 "prompt": {
                     "id": "id",
                     "variables": {"foo": "string"},
                     "version": "version",
                 },
-                "temperature": 0,
                 "tool_choice": "none",
                 "tools": [
                     {

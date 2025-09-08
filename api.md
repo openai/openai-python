@@ -760,6 +760,7 @@ Types:
 
 ```python
 from openai.types.realtime import (
+    AudioTranscription,
     ConversationCreatedEvent,
     ConversationItem,
     ConversationItemAdded,
@@ -788,11 +789,16 @@ from openai.types.realtime import (
     McpListToolsCompleted,
     McpListToolsFailed,
     McpListToolsInProgress,
+    Models,
+    NoiseReductionType,
     OutputAudioBufferClearEvent,
     RateLimitsUpdatedEvent,
     RealtimeAudioConfig,
+    RealtimeAudioConfigInput,
+    RealtimeAudioConfigOutput,
+    RealtimeAudioFormats,
+    RealtimeAudioInputTurnDetection,
     RealtimeClientEvent,
-    RealtimeClientSecretConfig,
     RealtimeConversationItemAssistantMessage,
     RealtimeConversationItemFunctionCall,
     RealtimeConversationItemFunctionCallOutput,
@@ -808,6 +814,9 @@ from openai.types.realtime import (
     RealtimeMcpToolExecutionError,
     RealtimeMcphttpError,
     RealtimeResponse,
+    RealtimeResponseCreateAudioOutput,
+    RealtimeResponseCreateMcpTool,
+    RealtimeResponseCreateParams,
     RealtimeResponseStatus,
     RealtimeResponseUsage,
     RealtimeResponseUsageInputTokenDetails,
@@ -819,8 +828,12 @@ from openai.types.realtime import (
     RealtimeToolsConfig,
     RealtimeToolsConfigUnion,
     RealtimeTracingConfig,
+    RealtimeTranscriptionSessionAudio,
+    RealtimeTranscriptionSessionAudioInput,
+    RealtimeTranscriptionSessionAudioInputTurnDetection,
     RealtimeTranscriptionSessionCreateRequest,
     RealtimeTruncation,
+    RealtimeTruncationRetentionRatio,
     ResponseAudioDeltaEvent,
     ResponseAudioDoneEvent,
     ResponseAudioTranscriptDeltaEvent,
@@ -856,7 +869,15 @@ from openai.types.realtime import (
 Types:
 
 ```python
-from openai.types.realtime import RealtimeSessionCreateResponse, ClientSecretCreateResponse
+from openai.types.realtime import (
+    RealtimeSessionClientSecret,
+    RealtimeSessionCreateResponse,
+    RealtimeTranscriptionSessionClientSecret,
+    RealtimeTranscriptionSessionCreateResponse,
+    RealtimeTranscriptionSessionInputAudioTranscription,
+    RealtimeTranscriptionSessionTurnDetection,
+    ClientSecretCreateResponse,
+)
 ```
 
 Methods:

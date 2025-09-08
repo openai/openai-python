@@ -12,19 +12,19 @@ class TracingConfiguration(TypedDict, total=False):
     group_id: str
     """
     The group id to attach to this trace to enable filtering and grouping in the
-    traces dashboard.
+    Traces Dashboard.
     """
 
     metadata: object
     """
-    The arbitrary metadata to attach to this trace to enable filtering in the traces
-    dashboard.
+    The arbitrary metadata to attach to this trace to enable filtering in the Traces
+    Dashboard.
     """
 
     workflow_name: str
     """The name of the workflow to attach to this trace.
 
-    This is used to name the trace in the traces dashboard.
+    This is used to name the trace in the Traces Dashboard.
     """
 
 
