@@ -17,7 +17,7 @@ class ConversationItemTruncateEvent(BaseModel):
     """
 
     content_index: int
-    """The index of the content part to truncate. Set this to 0."""
+    """The index of the content part to truncate. Set this to `0`."""
 
     item_id: str
     """The ID of the assistant message item to truncate.

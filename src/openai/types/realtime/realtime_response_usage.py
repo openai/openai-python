@@ -11,7 +11,13 @@ __all__ = ["RealtimeResponseUsage"]
 
 class RealtimeResponseUsage(BaseModel):
     input_token_details: Optional[RealtimeResponseUsageInputTokenDetails] = None
-    """Details about the input tokens used in the Response."""
+    """Details about the input tokens used in the Response.
+
+    Cached tokens are tokens from previous turns in the conversation that are
+    included as context for the current response. Cached tokens here are counted as
+    a subset of input tokens, meaning input tokens will include cached and uncached
+    tokens.
+    """
 
     input_tokens: Optional[int] = None
     """

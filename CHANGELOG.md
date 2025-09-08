@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.107.0 (2025-09-08)
+
+Full Changelog: [v1.106.1...v1.107.0](https://github.com/openai/openai-python/compare/v1.106.1...v1.107.0)
+
+### Features
+
+* **api:** ship the RealtimeGA API shape ([dc319d8](https://github.com/openai/openai-python/commit/dc319d8bbb3a20108399c1d15f98e63bdd84eb5c))
+
+
+### Chores
+
+* **internal:** codegen related update ([b79b7ca](https://github.com/openai/openai-python/commit/b79b7ca3a72009a036db0a344b500f616ca0443f))
+
 ## 1.106.1 (2025-09-04)
 
 Full Changelog: [v1.106.0...v1.106.1](https://github.com/openai/openai-python/compare/v1.106.0...v1.106.1)

@@ -50,11 +50,13 @@ class ClientSecrets(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ClientSecretCreateResponse:
         """
-        Create a Realtime session and client secret for either realtime or
-        transcription.
+        Create a Realtime client secret with an associated session configuration.
 
         Args:
-          expires_after: Configuration for the ephemeral token expiration.
+          expires_after: Configuration for the client secret expiration. Expiration refers to the time
+              after which a client secret will no longer be valid for creating sessions. The
+              session itself may continue after that time once started. A secret can be used
+              to create multiple sessions until it expires.
 
           session: Session configuration to use for the client secret. Choose either a realtime
               session or a transcription session.
@@ -116,11 +118,13 @@ class AsyncClientSecrets(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> ClientSecretCreateResponse:
         """
-        Create a Realtime session and client secret for either realtime or
-        transcription.
+        Create a Realtime client secret with an associated session configuration.
 
         Args:
-          expires_after: Configuration for the ephemeral token expiration.
+          expires_after: Configuration for the client secret expiration. Expiration refers to the time
+              after which a client secret will no longer be valid for creating sessions. The
+              session itself may continue after that time once started. A secret can be used
+              to create multiple sessions until it expires.
 
           session: Session configuration to use for the client secret. Choose either a realtime
               session or a transcription session.
