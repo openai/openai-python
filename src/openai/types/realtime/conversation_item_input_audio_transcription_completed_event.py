@@ -59,7 +59,7 @@ class ConversationItemInputAudioTranscriptionCompletedEvent(BaseModel):
     """The unique ID of the server event."""
 
     item_id: str
-    """The ID of the user message item containing the audio."""
+    """The ID of the item containing the audio that is being transcribed."""
 
     transcript: str
     """The transcribed text."""
@@ -70,7 +70,10 @@ class ConversationItemInputAudioTranscriptionCompletedEvent(BaseModel):
     """
 
     usage: Usage
-    """Usage statistics for the transcription."""
+    """
+    Usage statistics for the transcription, this is billed according to the ASR
+    model's pricing rather than the realtime model's pricing.
+    """
 
     logprobs: Optional[List[LogProbProperties]] = None
     """The log probabilities of the transcription."""

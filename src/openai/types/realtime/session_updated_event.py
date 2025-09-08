@@ -1,19 +1,23 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing_extensions import Literal
+from typing import Union
+from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
-from .realtime_session import RealtimeSession
+from .realtime_session_create_request import RealtimeSessionCreateRequest
+from .realtime_transcription_session_create_request import RealtimeTranscriptionSessionCreateRequest
 
-__all__ = ["SessionUpdatedEvent"]
+__all__ = ["SessionUpdatedEvent", "Session"]
+
+Session: TypeAlias = Union[RealtimeSessionCreateRequest, RealtimeTranscriptionSessionCreateRequest]
 
 
 class SessionUpdatedEvent(BaseModel):
     event_id: str
     """The unique ID of the server event."""
 
-    session: RealtimeSession
-    """Realtime session object."""
+    session: Session
+    """The session configuration."""
 
     type: Literal["session.updated"]
     """The event type, must be `session.updated`."""

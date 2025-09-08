@@ -12,19 +12,19 @@ class TracingConfiguration(BaseModel):
     group_id: Optional[str] = None
     """
     The group id to attach to this trace to enable filtering and grouping in the
-    traces dashboard.
+    Traces Dashboard.
     """
 
     metadata: Optional[object] = None
     """
-    The arbitrary metadata to attach to this trace to enable filtering in the traces
-    dashboard.
+    The arbitrary metadata to attach to this trace to enable filtering in the Traces
+    Dashboard.
     """
 
     workflow_name: Optional[str] = None
     """The name of the workflow to attach to this trace.
 
-    This is used to name the trace in the traces dashboard.
+    This is used to name the trace in the Traces Dashboard.
     """
 
 
