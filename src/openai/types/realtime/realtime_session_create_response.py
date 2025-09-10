@@ -3,12 +3,12 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
-from .models import Models
 from ..._models import BaseModel
 from .audio_transcription import AudioTranscription
 from .realtime_truncation import RealtimeTruncation
 from .noise_reduction_type import NoiseReductionType
 from .realtime_audio_formats import RealtimeAudioFormats
+from .realtime_function_tool import RealtimeFunctionTool
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
 from ..responses.tool_choice_options import ToolChoiceOptions
@@ -64,7 +64,7 @@ class AudioInputTurnDetection(BaseModel):
     idle_timeout_ms: Optional[int] = None
     """
     Optional idle timeout after which turn detection will auto-timeout when no
-    additional audio is received.
+    additional audio is received and emits a `timeout_triggered` event.
     """
 
     interrupt_response: Optional[bool] = None
@@ -298,7 +298,7 @@ class ToolMcpTool(BaseModel):
     """
 
 
-Tool: TypeAlias = Union[Models, ToolMcpTool]
+Tool: TypeAlias = Union[RealtimeFunctionTool, ToolMcpTool]
 
 
 class TracingTracingConfiguration(BaseModel):
@@ -325,11 +325,14 @@ Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration, None]
 
 
 class RealtimeSessionCreateResponse(BaseModel):
+    client_secret: RealtimeSessionClientSecret
+    """Ephemeral key returned by the API."""
+
+    type: Literal["realtime"]
+    """The type of session to create. Always `realtime` for the Realtime API."""
+
     audio: Optional[Audio] = None
     """Configuration for input and output audio."""
-
-    client_secret: Optional[RealtimeSessionClientSecret] = None
-    """Ephemeral key returned by the API."""
 
     include: Optional[List[Literal["item.input_audio_transcription.logprobs"]]] = None
     """Additional fields to include in server outputs.
@@ -415,6 +418,3 @@ class RealtimeSessionCreateResponse(BaseModel):
     Controls how the realtime conversation is truncated prior to model inference.
     The default is `auto`.
     """
-
-    type: Optional[Literal["realtime"]] = None
-    """The type of session to create. Always `realtime` for the Realtime API."""

@@ -6,7 +6,7 @@ from typing import Dict, Union, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
-from .models_param import ModelsParam
+from .realtime_function_tool_param import RealtimeFunctionToolParam
 
 __all__ = [
     "RealtimeToolsConfigUnionParam",
@@ -137,4 +137,4 @@ class Mcp(TypedDict, total=False):
     """
 
 
-RealtimeToolsConfigUnionParam: TypeAlias = Union[ModelsParam, Mcp]
+RealtimeToolsConfigUnionParam: TypeAlias = Union[RealtimeFunctionToolParam, Mcp]

@@ -8,7 +8,6 @@ from typing_extensions import TypeAlias
 from .session_update_event_param import SessionUpdateEventParam
 from .response_cancel_event_param import ResponseCancelEventParam
 from .response_create_event_param import ResponseCreateEventParam
-from .transcription_session_update_param import TranscriptionSessionUpdateParam
 from .conversation_item_create_event_param import ConversationItemCreateEventParam
 from .conversation_item_delete_event_param import ConversationItemDeleteEventParam
 from .input_audio_buffer_clear_event_param import InputAudioBufferClearEventParam
@@ -32,5 +31,4 @@ RealtimeClientEventParam: TypeAlias = Union[
     ResponseCancelEventParam,
     ResponseCreateEventParam,
     SessionUpdateEventParam,
-    TranscriptionSessionUpdateParam,
 ]

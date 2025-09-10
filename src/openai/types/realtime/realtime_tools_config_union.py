@@ -3,9 +3,9 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
-from .models import Models
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .realtime_function_tool import RealtimeFunctionTool
 
 __all__ = [
     "RealtimeToolsConfigUnion",
@@ -138,4 +138,4 @@ class Mcp(BaseModel):
     """
 
 
-RealtimeToolsConfigUnion: TypeAlias = Annotated[Union[Models, Mcp], PropertyInfo(discriminator="type")]
+RealtimeToolsConfigUnion: TypeAlias = Annotated[Union[RealtimeFunctionTool, Mcp], PropertyInfo(discriminator="type")]

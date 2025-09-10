@@ -5,9 +5,9 @@ from __future__ import annotations
 from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, TypeAlias, TypedDict
 
-from .models_param import ModelsParam
 from ..shared_params.metadata import Metadata
 from .conversation_item_param import ConversationItemParam
+from .realtime_function_tool_param import RealtimeFunctionToolParam
 from ..responses.tool_choice_options import ToolChoiceOptions
 from ..responses.response_prompt_param import ResponsePromptParam
 from ..responses.tool_choice_mcp_param import ToolChoiceMcpParam
@@ -19,7 +19,7 @@ __all__ = ["RealtimeResponseCreateParamsParam", "ToolChoice", "Tool"]
 
 ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceFunctionParam, ToolChoiceMcpParam]
 
-Tool: TypeAlias = Union[ModelsParam, RealtimeResponseCreateMcpToolParam]
+Tool: TypeAlias = Union[RealtimeFunctionToolParam, RealtimeResponseCreateMcpToolParam]
 
 
 class RealtimeResponseCreateParamsParam(TypedDict, total=False):

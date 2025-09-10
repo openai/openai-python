@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.107.1 (2025-09-10)
+
+Full Changelog: [v1.107.0...v1.107.1](https://github.com/openai/openai-python/compare/v1.107.0...v1.107.1)
+
+### Chores
+
+* **api:** fix realtime GA types ([570fc5a](https://github.com/openai/openai-python/commit/570fc5a28ada665fd658b24675361680cfeb086f))
+
 ## 1.107.0 (2025-09-08)
 
 Full Changelog: [v1.106.1...v1.107.0](https://github.com/openai/openai-python/compare/v1.106.1...v1.107.0)
