@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Union, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -23,7 +23,7 @@ from ...types import (
     vector_store_search_params,
     vector_store_update_params,
 )
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, SequenceNotStr
 from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -80,7 +80,7 @@ class VectorStores(SyncAPIResource):
         *,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
-        file_ids: List[str] | NotGiven = NOT_GIVEN,
+        file_ids: SequenceNotStr[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -332,7 +332,7 @@ class VectorStores(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        query: Union[str, List[str]],
+        query: Union[str, SequenceNotStr[str]],
         filters: vector_store_search_params.Filters | NotGiven = NOT_GIVEN,
         max_num_results: int | NotGiven = NOT_GIVEN,
         ranking_options: vector_store_search_params.RankingOptions | NotGiven = NOT_GIVEN,
@@ -425,7 +425,7 @@ class AsyncVectorStores(AsyncAPIResource):
         *,
         chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
         expires_after: vector_store_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
-        file_ids: List[str] | NotGiven = NOT_GIVEN,
+        file_ids: SequenceNotStr[str] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         name: str | NotGiven = NOT_GIVEN,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -677,7 +677,7 @@ class AsyncVectorStores(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        query: Union[str, List[str]],
+        query: Union[str, SequenceNotStr[str]],
         filters: vector_store_search_params.Filters | NotGiven = NOT_GIVEN,
         max_num_results: int | NotGiven = NOT_GIVEN,
         ranking_options: vector_store_search_params.RankingOptions | NotGiven = NOT_GIVEN,

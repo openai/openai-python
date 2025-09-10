@@ -9,6 +9,7 @@ from ..shared.metadata import Metadata
 from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
 from ..responses.response_input_text import ResponseInputText
+from ..responses.response_input_audio import ResponseInputAudio
 from ..chat.chat_completion_function_tool import ChatCompletionFunctionTool
 from ..shared.response_format_json_object import ResponseFormatJSONObject
 from ..shared.response_format_json_schema import ResponseFormatJSONSchema
@@ -114,6 +115,7 @@ InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     ResponseInputText,
     InputMessagesTemplateTemplateEvalItemContentOutputText,
     InputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudio,
     List[object],
 ]
 

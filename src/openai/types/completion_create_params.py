@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .._types import SequenceNotStr
 from .chat.chat_completion_stream_options_param import ChatCompletionStreamOptionsParam
 
 __all__ = ["CompletionCreateParamsBase", "CompletionCreateParamsNonStreaming", "CompletionCreateParamsStreaming"]
@@ -21,7 +22,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     them.
     """
 
-    prompt: Required[Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None]]
+    prompt: Required[Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None]]
     """
     The prompt(s) to generate completions for, encoded as a string, array of
     strings, array of tokens, or array of token arrays.
@@ -119,7 +120,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     response parameter to monitor changes in the backend.
     """
 
-    stop: Union[Optional[str], List[str], None]
+    stop: Union[Optional[str], SequenceNotStr[str], None]
     """Not supported with latest reasoning models `o3` and `o4-mini`.
 
     Up to 4 sequences where the API will stop generating further tokens. The

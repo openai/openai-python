@@ -12,7 +12,7 @@ from inline_snapshot import snapshot
 import openai
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
-from openai._compat import PYDANTIC_V2
+from openai._compat import PYDANTIC_V1
 
 from ..utils import print_obj
 from ...conftest import base_url
@@ -245,7 +245,7 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx_mock: MockRouter, monke
         color: Color
         hex_color_code: str = Field(description="The hex color code of the detected color")
 
-    if not PYDANTIC_V2:
+    if PYDANTIC_V1:
         ColorDetection.update_forward_refs(**locals())  # type: ignore
 
     completion = make_snapshot_request(
@@ -368,7 +368,7 @@ def test_parse_pydantic_model_multiple_choices(
 
 
 @pytest.mark.respx(base_url=base_url)
-@pytest.mark.skipif(not PYDANTIC_V2, reason="dataclasses only supported in v2")
+@pytest.mark.skipif(PYDANTIC_V1, reason="dataclasses only supported in v2")
 def test_parse_pydantic_dataclass(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     from pydantic.dataclasses import dataclass
 

@@ -15,6 +15,7 @@ from .response_cancelled_webhook_event import ResponseCancelledWebhookEvent as R
 from .response_completed_webhook_event import ResponseCompletedWebhookEvent as ResponseCompletedWebhookEvent
 from .response_incomplete_webhook_event import ResponseIncompleteWebhookEvent as ResponseIncompleteWebhookEvent
 from .fine_tuning_job_failed_webhook_event import FineTuningJobFailedWebhookEvent as FineTuningJobFailedWebhookEvent
+from .realtime_call_incoming_webhook_event import RealtimeCallIncomingWebhookEvent as RealtimeCallIncomingWebhookEvent
 from .fine_tuning_job_cancelled_webhook_event import (
     FineTuningJobCancelledWebhookEvent as FineTuningJobCancelledWebhookEvent,
 )

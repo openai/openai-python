@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
 from .threads.message_content_part_param import MessageContentPartParam
@@ -96,7 +97,7 @@ class Message(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
     available to the `code_interpreter` tool. There can be a maximum of 20 files
@@ -143,7 +144,7 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
     If not set, will use the `auto` strategy.
     """
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
     add to the vector store. There can be a maximum of 10000 files in a vector
@@ -162,7 +163,7 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The
     [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
