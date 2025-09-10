@@ -25,7 +25,6 @@ from .mcp_list_tools_in_progress import McpListToolsInProgress
 from .response_audio_delta_event import ResponseAudioDeltaEvent
 from .response_mcp_call_completed import ResponseMcpCallCompleted
 from .response_mcp_call_in_progress import ResponseMcpCallInProgress
-from .transcription_session_created import TranscriptionSessionCreated
 from .conversation_item_created_event import ConversationItemCreatedEvent
 from .conversation_item_deleted_event import ConversationItemDeletedEvent
 from .response_output_item_done_event import ResponseOutputItemDoneEvent
@@ -37,7 +36,6 @@ from .conversation_item_truncated_event import ConversationItemTruncatedEvent
 from .response_content_part_added_event import ResponseContentPartAddedEvent
 from .response_mcp_call_arguments_delta import ResponseMcpCallArgumentsDelta
 from .input_audio_buffer_committed_event import InputAudioBufferCommittedEvent
-from .transcription_session_updated_event import TranscriptionSessionUpdatedEvent
 from .input_audio_buffer_timeout_triggered import InputAudioBufferTimeoutTriggered
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent
 from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaEvent
@@ -137,8 +135,6 @@ RealtimeServerEvent: TypeAlias = Annotated[
         ResponseTextDoneEvent,
         SessionCreatedEvent,
         SessionUpdatedEvent,
-        TranscriptionSessionUpdatedEvent,
-        TranscriptionSessionCreated,
         OutputAudioBufferStarted,
         OutputAudioBufferStopped,
         OutputAudioBufferCleared,

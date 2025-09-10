@@ -32,7 +32,7 @@ from .client_secrets import (
     ClientSecretsWithStreamingResponse,
     AsyncClientSecretsWithStreamingResponse,
 )
-from ...types.realtime import session_update_event_param, transcription_session_update_param
+from ...types.realtime import session_update_event_param
 from ...types.websocket_connection_options import WebsocketConnectionOptions
 from ...types.realtime.realtime_client_event import RealtimeClientEvent
 from ...types.realtime.realtime_server_event import RealtimeServerEvent
@@ -199,7 +199,6 @@ class AsyncRealtimeConnection:
     input_audio_buffer: AsyncRealtimeInputAudioBufferResource
     conversation: AsyncRealtimeConversationResource
     output_audio_buffer: AsyncRealtimeOutputAudioBufferResource
-    transcription_session: AsyncRealtimeTranscriptionSessionResource
 
     _connection: AsyncWebsocketConnection
 
@@ -211,7 +210,6 @@ class AsyncRealtimeConnection:
         self.input_audio_buffer = AsyncRealtimeInputAudioBufferResource(self)
         self.conversation = AsyncRealtimeConversationResource(self)
         self.output_audio_buffer = AsyncRealtimeOutputAudioBufferResource(self)
-        self.transcription_session = AsyncRealtimeTranscriptionSessionResource(self)
 
     async def __aiter__(self) -> AsyncIterator[RealtimeServerEvent]:
         """
@@ -381,7 +379,6 @@ class RealtimeConnection:
     input_audio_buffer: RealtimeInputAudioBufferResource
     conversation: RealtimeConversationResource
     output_audio_buffer: RealtimeOutputAudioBufferResource
-    transcription_session: RealtimeTranscriptionSessionResource
 
     _connection: WebsocketConnection
 
@@ -393,7 +390,6 @@ class RealtimeConnection:
         self.input_audio_buffer = RealtimeInputAudioBufferResource(self)
         self.conversation = RealtimeConversationResource(self)
         self.output_audio_buffer = RealtimeOutputAudioBufferResource(self)
-        self.transcription_session = RealtimeTranscriptionSessionResource(self)
 
     def __iter__(self) -> Iterator[RealtimeServerEvent]:
         """
@@ -565,8 +561,7 @@ class RealtimeSessionResource(BaseRealtimeConnectionResource):
         """
         Send this event to update the session’s configuration.
         The client may send this event at any time to update any field
-        except for `voice` and `model`. `voice` can be updated only if there have been no other
-        audio outputs yet.
+        except for `voice` and `model`. `voice` can be updated only if there have been no other audio outputs yet.
 
         When the server receives a `session.update`, it will respond
         with a `session.updated` event showing the full, effective configuration.
@@ -800,19 +795,6 @@ class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
         )
 
 
-class RealtimeTranscriptionSessionResource(BaseRealtimeConnectionResource):
-    def update(
-        self, *, session: transcription_session_update_param.Session, event_id: str | NotGiven = NOT_GIVEN
-    ) -> None:
-        """Send this event to update a transcription session."""
-        self._connection.send(
-            cast(
-                RealtimeClientEventParam,
-                strip_not_given({"type": "transcription_session.update", "session": session, "event_id": event_id}),
-            )
-        )
-
-
 class BaseAsyncRealtimeConnectionResource:
     def __init__(self, connection: AsyncRealtimeConnection) -> None:
         self._connection = connection
@@ -825,8 +807,7 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
         """
         Send this event to update the session’s configuration.
         The client may send this event at any time to update any field
-        except for `voice` and `model`. `voice` can be updated only if there have been no other
-        audio outputs yet.
+        except for `voice` and `model`. `voice` can be updated only if there have been no other audio outputs yet.
 
         When the server receives a `session.update`, it will respond
         with a `session.updated` event showing the full, effective configuration.
@@ -1057,17 +1038,4 @@ class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource
         """
         await self._connection.send(
             cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
-        )
-
-
-class AsyncRealtimeTranscriptionSessionResource(BaseAsyncRealtimeConnectionResource):
-    async def update(
-        self, *, session: transcription_session_update_param.Session, event_id: str | NotGiven = NOT_GIVEN
-    ) -> None:
-        """Send this event to update a transcription session."""
-        await self._connection.send(
-            cast(
-                RealtimeClientEventParam,
-                strip_not_given({"type": "transcription_session.update", "session": session, "event_id": event_id}),
-            )
         )
