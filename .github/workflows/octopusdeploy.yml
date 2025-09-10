@@ -1,0 +1,166 @@
+name: Python Package using Conda
+
+on: [push]
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    strategy:
+      max-parallel: 5
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: '3.10'
+    - name: Add conda to system path
+      run: |
+        # $CONDA is an environment variable pointing to the root of the miniconda directory
+        echo $CONDA/bin >> $GITHUB_PATH
+    - name: Install dependencies
+      run: |
+        conda env update --file environment.yml --name base
+    - name: Lint with flake8
+      run: |
+        conda install flake8
+        # stop the build if there are Python syntax errors or undefined names
+        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+        # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
+        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+    - name: Test with pytest
+      run: |
+        conda install pytest
+        pytest
+name: Ui icons
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
++FT+AOAcAAAAABAAgBwAAAAAAAAAAAAAHgDgB4AGAYAefgHgPgP4H8AwAYAcA/g/gfwP4AcD8D8B8A/ABgPgP3wB4DYD+B/A/g/wHAP4P4H8D+APA/A/AfAbwA4H4D84ASA2A/gfwHwHYBwD+D+B/A/gfgHgPwHwGEAOB3A/EAFgPwO4D4B8A8A+A/g/gfwP4HwD8DcB+BjAPgPgPxAHYB+D+A8AfAPAfwP4P4H8D+B4A/AfgPgNwH4D4D98B2ADg/gGAEwGYH8D+D+B/A/gMAMgAYAcD4B+AYA/AAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOAfAHwHwBgB8B8A+AfAfgPwP4HwDkB8AAAAABAfwf3wHwD8B8AYA7AbgIgOwH4DcCCB8A/A7AEAHADwH8H/+B+A7gfgGAPYN4GMD2DuBuA/gfgPwMYH4H4D+B/B//gfgLYP4DwC2D6BjAvgwgYwP4H4D8CGB+B+A/gfwf3wH4DOD+B+A/g/gdwPYOYDMDeB+A/A7gfgfgP4H8H9sB+A/A/wfgPwH4H8D8B+A+A/gfgIAO4BAAwA8B/B/bAfgHgP8H4B4A8B/AOAPAPAP4H4CABsAAAAAAAfwPwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPAH4D+B8AeAAAGAPADgP8D8DwA8AfA/gfgHAMgAAH/8B/A/gfAPgP4BwDQA4DtArA8APADwP4H4BwDIB9BR/gf4P4HwH8D+A8A8AMAzACAPwH4H8D+B+A/A/Afwf34D+D+B8B/A/gfAPgDAMwAgD4A8AfA/gfgfgO4H8F8+Afg/gfAfwP4GYD4AwDMAcA+APAHwP4H4B4DoB9B/GADwP4EQH8D+D+A+AcAzAfwP4H4H8D+B+AfA+AAAfwAAAAAAAAAAAAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAYBwB4A4ADAAAAACAAAAAAAAAAAAAAAAAAAAAAAAAAOA+A/AOAfwPwP4BwBYDeAbAcAPAPwNgH4B4A4AcAcPANgN4HwGYDeDOBrAeA/gPwHgDwD8D8B+AeAfAPAHjwD4CeB8BuAvA/AfwHgP4D8B8A8A/A/AfgHgH4HgA94A+A3gfAfgIwN4CoB4D+A/AfAPAPwPwH4B4AAB4AP8AHgPwHwH4DcDuA+AeA/gHwHgDwD8D4B+AaAfgPAHuABwB4B8B+A/A/gHAEgNoA8BgA8A/AsAWgEgAABwByAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA8AcAeAPAHAHgBgBwB4A8AAAAAGAGAAAAYAMAAAAAAfgfgPwH4D4D8B8A+A/AfgGABgBwBgAYAOAPAMAAAP+4H8D+D+B/A/gfAfwN4P4DgAcA+AYAfgDgDgDAAAD/GBjAzg/gfwP4P4H8D+D+B/A/gPgPgP4DwD4D8A+A/7gfwP4P4H8D+B8B/A9g/gfwP4BgD4D8BwA4A/APgP34D4D8B+A+A/AfAPgPwH4BgAYAYAcAmAcAeADAAAD84AcAeAPAHAHgBgBwB4A8AAAAAGAGAAAGACAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfgfgD4DgBwB4AYAcA/AAwfwOwAAAAAAAGA8AcAGAAP4H8B+A8B/A/gPADAPwP8H8DsA4A3B/gfgfwP4DwDL+A+Afgfgfwf4HwB4D8A/B/A7AfAfweYH4H8D/AYB//gfgP4H4H8H+D+A/A/APwfwOwP4B4DGB8B/A/wGAf/4H4D4B+A2A/A/wPwPwP8H8D8BuAMA/wBAfwH8DwBJ8B+AkAbAHAHgf8BwD8ADAwAfAAAAAP4HwH8D+AYAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAfgAADADgAwAAAAAAAOAPAHAHgDwB4A4AOAAAfAGAc34A8B4B+AcA/AHAHADwDwD8D8B+A/A/AHAfwHwH8F9+D/AeA/gfwN4P8H8D8B8B/A/gfgdwP4B4H8B8B/B//g/wHgH4HMDODhBHA5AZAYwMYGYHcDeAeB/AOAfwDP4P8D8D+B3A/g7wdwGQPwH8D+B+B3A/gOAfwDgH8D7+B/A/gfgfgDAPwD8B8D8B/A/gfgfwPYHAH8AQB/B//gcQDAHoA4AwA8AcAPAMAPgHwDwD4B8BgB/AEAfwYwAAAAAAAAAAAAAAAAAADAAAAAAAAAAAAAAAAAAAAAA=
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the site in the jekyll/builder container
+      run: |
+        docker run \
+        -v ${{ github.workspace }}:/srv/jekyll -v ${{ github.workspace }}/_site:/srv/jekyll/_site \
+        jekyll/builder:latest /bin/bash -c "chmod -R 777 /srv/jekyll && jekyll build --future"
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by separate terms of service,
+# privacy policy, and support documentation.
+#
+# This workflow will build and publish a Docker container which is then deployed through Octopus Deploy.
+#
+# The build job in this workflow currently assumes that there is a Dockerfile that generates the relevant application image.
+# If required, this job can be modified to generate whatever alternative build artifact is required for your deployment.
+#
+# This workflow assumes you have already created a Project in Octopus Deploy.
+# For instructions see https://octopus.com/docs/projects/setting-up-projects
+#
+# To configure this workflow:
+#
+# 1. Decide where you are going to host your image.
+#    This template uses the GitHub Registry for simplicity but if required you can update the relevant DOCKER_REGISTRY variables below.
+#
+# 2. Create and configure an OIDC credential for a service account in Octopus.
+#    This allows for passwordless authentication to your Octopus instance through a trust relationship configured between Octopus, GitHub and your GitHub Repository.
+#    https://octopus.com/docs/octopus-rest-api/openid-connect/github-actions
+#
+# 3. Configure your Octopus project details below:
+#      OCTOPUS_URL: update to your Octopus Instance Url
+#      OCTOPUS_SERVICE_ACCOUNT: update to your service account Id
+#      OCTOPUS_SPACE: update to the name of the space your project is configured in
+#      OCTOPUS_PROJECT: update to the name of your Octopus project
+#      OCTOPUS_ENVIRONMENT: update to the name of the environment to recieve the first deployment
+
+
+name: 'Build and Deploy to Octopus Deploy'
+
+on:
+  push:
+    branches:
+      - '"main"'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    env:
+      DOCKER_REGISTRY: ghcr.io                                # TODO: Update to your docker registry uri
+      DOCKER_REGISTRY_USERNAME: ${{ github.actor }}           # TODO: Update to your docker registry username
+      DOCKER_REGISTRY_PASSWORD: ${{ secrets.GITHUB_TOKEN }}   # TODO: Update to your docker registry password
+    outputs:
+      image_tag: ${{ steps.meta.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f95db51fddba0c2d1ec667646a06c2ce06100226 # v3.0.0
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+        with:
+          registry: ${{ env.DOCKER_REGISTRY }}
+          username: ${{ env.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ env.DOCKER_REGISTRY_PASSWORD }}
+
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.DOCKER_REGISTRY }}/${{ github.repository }}
+          tags: type=semver,pattern={{version}},value=v1.0.0-{{sha}}
+
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+  deploy:
+    name: Deploy
+    permissions:
+      id-token: write
+    runs-on: ubuntu-latest
+    needs: [ build ]
+    env:
+      OCTOPUS_URL: 'https://your-octopus-url'             # TODO: update to your Octopus Instance url
+      OCTOPUS_SERVICE_ACCOUNT: 'your-service-account-id'  # TODO: update to your service account Id
+      OCTOPUS_SPACE: 'your-space'                         # TODO: update to the name of the space your project is configured in
+      OCTOPUS_PROJECT: 'your-project'                     # TODO: update to the name of your Octopus project
+      OCTOPUS_ENVIRONMENT: 'your-environment'             # TODO: update to the name of the environment to recieve the first deployment
+
+    steps:
+      - name: Log in to Octopus Deploy
+        uses: OctopusDeploy/login@34b6dcc1e86fa373c14e6a28c5507d221e4de629  #v1.0.2
+        with:
+          server: '${{ env.OCTOPUS_URL }}'
+          service_account_id: '${{ env.OCTOPUS_SERVICE_ACCOUNT }}'
+
+      - name: Create Release
+        id: create_release
+        uses: OctopusDeploy/create-release-action@fea7e7b45c38c021b6bc5a14bd7eaa2ed5269214 #v3.2.2
+        with:
+          project: '${{ env.OCTOPUS_PROJECT }}'
+          space: '${{ env.OCTOPUS_SPACE }}'
+          packages: '*:${{ needs.build.outputs.image_tag }}'
+
+      - name: Deploy Release
+        uses: OctopusDeploy/deploy-release-action@b10a606c903b0a5bce24102af9d066638ab429ac #v3.2.1
+        with:
+          project: '${{ env.OCTOPUS_PROJECT }}'
+          space: '${{ env.OCTOPUS_SPACE }}'
+          release_number: '${{ steps.create_release.outputs.release_number  }}'
+          environments: ${{ env.OCTOPUS_ENVIRONMENT }}
