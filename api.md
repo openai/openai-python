@@ -789,7 +789,6 @@ from openai.types.realtime import (
     McpListToolsCompleted,
     McpListToolsFailed,
     McpListToolsInProgress,
-    Models,
     NoiseReductionType,
     OutputAudioBufferClearEvent,
     RateLimitsUpdatedEvent,
@@ -806,6 +805,7 @@ from openai.types.realtime import (
     RealtimeConversationItemUserMessage,
     RealtimeError,
     RealtimeErrorEvent,
+    RealtimeFunctionTool,
     RealtimeMcpApprovalRequest,
     RealtimeMcpApprovalResponse,
     RealtimeMcpListTools,
@@ -858,7 +858,6 @@ from openai.types.realtime import (
     SessionCreatedEvent,
     SessionUpdateEvent,
     SessionUpdatedEvent,
-    TranscriptionSessionCreated,
     TranscriptionSessionUpdate,
     TranscriptionSessionUpdatedEvent,
 )
@@ -872,9 +871,7 @@ Types:
 from openai.types.realtime import (
     RealtimeSessionClientSecret,
     RealtimeSessionCreateResponse,
-    RealtimeTranscriptionSessionClientSecret,
     RealtimeTranscriptionSessionCreateResponse,
-    RealtimeTranscriptionSessionInputAudioTranscription,
     RealtimeTranscriptionSessionTurnDetection,
     ClientSecretCreateResponse,
 )

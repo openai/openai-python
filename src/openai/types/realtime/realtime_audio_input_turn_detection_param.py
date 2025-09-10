@@ -27,7 +27,7 @@ class RealtimeAudioInputTurnDetectionParam(TypedDict, total=False):
     idle_timeout_ms: Optional[int]
     """
     Optional idle timeout after which turn detection will auto-timeout when no
-    additional audio is received.
+    additional audio is received and emits a `timeout_triggered` event.
     """
 
     interrupt_response: bool

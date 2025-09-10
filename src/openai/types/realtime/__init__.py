@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-from .models import Models as Models
-from .models_param import ModelsParam as ModelsParam
 from .realtime_error import RealtimeError as RealtimeError
 from .conversation_item import ConversationItem as ConversationItem
 from .realtime_response import RealtimeResponse as RealtimeResponse
@@ -25,6 +23,7 @@ from .session_created_event import SessionCreatedEvent as SessionCreatedEvent
 from .session_updated_event import SessionUpdatedEvent as SessionUpdatedEvent
 from .conversation_item_done import ConversationItemDone as ConversationItemDone
 from .realtime_audio_formats import RealtimeAudioFormats as RealtimeAudioFormats
+from .realtime_function_tool import RealtimeFunctionTool as RealtimeFunctionTool
 from .realtime_mcp_tool_call import RealtimeMcpToolCall as RealtimeMcpToolCall
 from .realtime_mcphttp_error import RealtimeMcphttpError as RealtimeMcphttpError
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
@@ -60,15 +59,14 @@ from .response_create_event_param import ResponseCreateEventParam as ResponseCre
 from .response_mcp_call_completed import ResponseMcpCallCompleted as ResponseMcpCallCompleted
 from .realtime_audio_config_output import RealtimeAudioConfigOutput as RealtimeAudioConfigOutput
 from .realtime_audio_formats_param import RealtimeAudioFormatsParam as RealtimeAudioFormatsParam
+from .realtime_function_tool_param import RealtimeFunctionToolParam as RealtimeFunctionToolParam
 from .realtime_mcp_tool_call_param import RealtimeMcpToolCallParam as RealtimeMcpToolCallParam
 from .realtime_mcphttp_error_param import RealtimeMcphttpErrorParam as RealtimeMcphttpErrorParam
-from .transcription_session_update import TranscriptionSessionUpdate as TranscriptionSessionUpdate
 from .client_secret_create_response import ClientSecretCreateResponse as ClientSecretCreateResponse
 from .realtime_mcp_approval_request import RealtimeMcpApprovalRequest as RealtimeMcpApprovalRequest
 from .realtime_mcp_list_tools_param import RealtimeMcpListToolsParam as RealtimeMcpListToolsParam
 from .realtime_tracing_config_param import RealtimeTracingConfigParam as RealtimeTracingConfigParam
 from .response_mcp_call_in_progress import ResponseMcpCallInProgress as ResponseMcpCallInProgress
-from .transcription_session_created import TranscriptionSessionCreated as TranscriptionSessionCreated
 from .conversation_item_create_event import ConversationItemCreateEvent as ConversationItemCreateEvent
 from .conversation_item_delete_event import ConversationItemDeleteEvent as ConversationItemDeleteEvent
 from .input_audio_buffer_clear_event import InputAudioBufferClearEvent as InputAudioBufferClearEvent
@@ -100,11 +98,9 @@ from .response_content_part_added_event import ResponseContentPartAddedEvent as 
 from .response_mcp_call_arguments_delta import ResponseMcpCallArgumentsDelta as ResponseMcpCallArgumentsDelta
 from .input_audio_buffer_committed_event import InputAudioBufferCommittedEvent as InputAudioBufferCommittedEvent
 from .realtime_audio_config_output_param import RealtimeAudioConfigOutputParam as RealtimeAudioConfigOutputParam
-from .transcription_session_update_param import TranscriptionSessionUpdateParam as TranscriptionSessionUpdateParam
 from .realtime_audio_input_turn_detection import RealtimeAudioInputTurnDetection as RealtimeAudioInputTurnDetection
 from .realtime_mcp_approval_request_param import RealtimeMcpApprovalRequestParam as RealtimeMcpApprovalRequestParam
 from .realtime_truncation_retention_ratio import RealtimeTruncationRetentionRatio as RealtimeTruncationRetentionRatio
-from .transcription_session_updated_event import TranscriptionSessionUpdatedEvent as TranscriptionSessionUpdatedEvent
 from .conversation_item_create_event_param import ConversationItemCreateEventParam as ConversationItemCreateEventParam
 from .conversation_item_delete_event_param import ConversationItemDeleteEventParam as ConversationItemDeleteEventParam
 from .input_audio_buffer_clear_event_param import InputAudioBufferClearEventParam as InputAudioBufferClearEventParam
@@ -181,9 +177,6 @@ from .realtime_conversation_item_assistant_message import (
 from .realtime_response_usage_output_token_details import (
     RealtimeResponseUsageOutputTokenDetails as RealtimeResponseUsageOutputTokenDetails,
 )
-from .realtime_transcription_session_client_secret import (
-    RealtimeTranscriptionSessionClientSecret as RealtimeTranscriptionSessionClientSecret,
-)
 from .response_function_call_arguments_delta_event import (
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,
 )
@@ -228,9 +221,6 @@ from .conversation_item_input_audio_transcription_delta_event import (
 )
 from .conversation_item_input_audio_transcription_failed_event import (
     ConversationItemInputAudioTranscriptionFailedEvent as ConversationItemInputAudioTranscriptionFailedEvent,
-)
-from .realtime_transcription_session_input_audio_transcription import (
-    RealtimeTranscriptionSessionInputAudioTranscription as RealtimeTranscriptionSessionInputAudioTranscription,
 )
 from .realtime_transcription_session_audio_input_turn_detection import (
     RealtimeTranscriptionSessionAudioInputTurnDetection as RealtimeTranscriptionSessionAudioInputTurnDetection,
