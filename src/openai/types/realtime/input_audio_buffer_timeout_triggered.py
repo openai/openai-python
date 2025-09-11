@@ -9,10 +9,16 @@ __all__ = ["InputAudioBufferTimeoutTriggered"]
 
 class InputAudioBufferTimeoutTriggered(BaseModel):
     audio_end_ms: int
-    """Millisecond offset where speech ended within the buffered audio."""
+    """
+    Millisecond offset of audio written to the input audio buffer at the time the
+    timeout was triggered.
+    """
 
     audio_start_ms: int
-    """Millisecond offset where speech started within the buffered audio."""
+    """
+    Millisecond offset of audio written to the input audio buffer that was after the
+    playback time of the last model response.
+    """
 
     event_id: str
     """The unique ID of the server event."""
