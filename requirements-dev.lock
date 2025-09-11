@@ -70,7 +70,7 @@ filelock==3.12.4
 frozenlist==1.7.0
     # via aiohttp
     # via aiosignal
-griffe==1.14.0
+griffe==1.13.0
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -108,7 +108,6 @@ multidict==6.5.0
 mypy==1.14.1
 mypy-extensions==1.0.0
     # via mypy
-nest-asyncio==1.6.0
 nodeenv==1.8.0
     # via pyright
 nox==2023.4.22
