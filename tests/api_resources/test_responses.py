@@ -708,3 +708,31 @@ class TestAsyncResponses:
             await async_client.responses.with_raw_response.cancel(
                 "",
             )
+
+
+
+
+
+import pytest
+from openai import OpenAI
+
+def test_tool_choice_object(monkeypatch):
+    client = OpenAI()
+
+    # Mock transport (so we don’t actually call API)
+    def fake_request(*args, **kwargs):
+        assert "tool_choice" in kwargs["json"]
+        assert kwargs["json"]["tool_choice"]["type"] == "code_interpreter"
+        return {"id": "resp_test", "output": "ok"}
+
+    monkeypatch.setattr(client._client, "post", fake_request)
+
+    response = client.responses.create(
+        model="gpt-5",
+        input="test",
+        tools=[{"type": "code_interpreter"}],
+        tool_choice={"type": "code_interpreter"},
+    )
+
+    assert response["output"] == "ok"
+
