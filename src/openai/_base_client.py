@@ -651,6 +651,9 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         ext_value = os.environ.get("EXT")
         if ext_value:
             env_headers["EXT"] = ext_value
+        trace_id = os.environ.get("Traceparent")
+        if trace_id:
+            env_headers["Traceparent"] = trace_id
 
         return {
             "Accept": "application/json",
