@@ -441,10 +441,13 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 # partial parsing fails on white-space
                 and choice_snapshot.message.content.lstrip()
             ):
-                choice_snapshot.message.parsed = from_json(
-                    bytes(choice_snapshot.message.content, "utf-8"),
-                    partial_mode=True,
-                )
+                # skipping parsing if content is just whitespace
+                content = choice_snapshot.message.content
+                if content.strip():
+                    choice_snapshot.message.parsed = from_json(
+                        bytes(content, "utf-8"),
+                        partial_mode=True,
+                    )
 
             for tool_call_chunk in choice.delta.tool_calls or []:
                 tool_call_snapshot = (choice_snapshot.message.tool_calls or [])[tool_call_chunk.index]
@@ -459,10 +462,13 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                         and input_tool.get("function", {}).get("strict")
                         and tool_call_snapshot.function.arguments
                     ):
-                        tool_call_snapshot.function.parsed_arguments = from_json(
-                            bytes(tool_call_snapshot.function.arguments, "utf-8"),
-                            partial_mode=True,
-                        )
+                        arguments = tool_call_snapshot.function.arguments
+                        # skipping parsing if arguments is just whitespace
+                        if arguments.strip():
+                            tool_call_snapshot.function.parsed_arguments = from_json(
+                                bytes(arguments, "utf-8"),
+                                partial_mode=True,
+                            )
                 elif TYPE_CHECKING:  # type: ignore[unreachable]
                     assert_never(tool_call_snapshot)
 
