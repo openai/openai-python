@@ -16,7 +16,7 @@ class InputAudioBufferAppendEvent(BaseModel):
     session configuration.
     """
 
-    type: Literal["input_audio_buffer.append"]
+    type: Literal["input_audio_buffer.append"] = "input_audio_buffer.append"
     """The event type, must be `input_audio_buffer.append`."""
 
     event_id: Optional[str] = None
