@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Optional
 from typing_extensions import TypedDict
 
 from .noise_reduction_type import NoiseReductionType
@@ -48,12 +49,15 @@ class RealtimeTranscriptionSessionAudioInputParam(TypedDict, total=False):
     transcription, these offer additional guidance to the transcription service.
     """
 
-    turn_detection: RealtimeTranscriptionSessionAudioInputTurnDetectionParam
+    turn_detection: Optional[RealtimeTranscriptionSessionAudioInputTurnDetectionParam]
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
 
     This can be set to `null` to turn off, in which case the client must manually
-    trigger model response. Server VAD means that the model will detect the start
-    and end of speech based on audio volume and respond at the end of user speech.
+    trigger model response.
+
+    Server VAD means that the model will detect the start and end of speech based on
+    audio volume and respond at the end of user speech.
+
     Semantic VAD is more advanced and uses a turn detection model (in conjunction
     with VAD) to semantically estimate whether the user has finished speaking, then
     dynamically sets a timeout based on this probability. For example, if user audio

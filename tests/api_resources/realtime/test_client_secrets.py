@@ -44,14 +44,13 @@ class TestClientSecrets:
                             "prompt": "prompt",
                         },
                         "turn_detection": {
+                            "type": "server_vad",
                             "create_response": True,
-                            "eagerness": "low",
-                            "idle_timeout_ms": 0,
+                            "idle_timeout_ms": 5000,
                             "interrupt_response": True,
                             "prefix_padding_ms": 0,
                             "silence_duration_ms": 0,
                             "threshold": 0,
-                            "type": "server_vad",
                         },
                     },
                     "output": {
@@ -141,14 +140,13 @@ class TestAsyncClientSecrets:
                             "prompt": "prompt",
                         },
                         "turn_detection": {
+                            "type": "server_vad",
                             "create_response": True,
-                            "eagerness": "low",
-                            "idle_timeout_ms": 0,
+                            "idle_timeout_ms": 5000,
                             "interrupt_response": True,
                             "prefix_padding_ms": 0,
                             "silence_duration_ms": 0,
                             "threshold": 0,
-                            "type": "server_vad",
                         },
                     },
                     "output": {
