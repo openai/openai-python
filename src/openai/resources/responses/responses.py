@@ -31,7 +31,6 @@ from ...lib._parsing._responses import (
     parse_response,
     type_to_text_format_param as _type_to_text_format_param,
 )
-from ...types.shared.chat_model import ChatModel
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.shared_params.metadata import Metadata
@@ -136,6 +135,8 @@ class Responses(SyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -259,7 +260,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -267,6 +268,9 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -284,10 +288,10 @@ class Responses(SyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
           user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -377,6 +381,8 @@ class Responses(SyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -493,7 +499,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -501,6 +507,9 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -518,10 +527,10 @@ class Responses(SyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
           user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -611,6 +620,8 @@ class Responses(SyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -727,7 +738,7 @@ class Responses(SyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -735,6 +746,9 @@ class Responses(SyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -752,10 +766,10 @@ class Responses(SyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
           user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -875,22 +889,29 @@ class Responses(SyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -907,22 +928,29 @@ class Responses(SyncAPIResource):
         *,
         response_id: str | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
         text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -937,18 +965,25 @@ class Responses(SyncAPIResource):
         new_response_args = {
             "input": input,
             "model": model,
+            "conversation": conversation,
             "include": include,
             "instructions": instructions,
             "max_output_tokens": max_output_tokens,
+            "max_tool_calls": max_tool_calls,
             "metadata": metadata,
             "parallel_tool_calls": parallel_tool_calls,
             "previous_response_id": previous_response_id,
+            "prompt": prompt,
+            "prompt_cache_key": prompt_cache_key,
             "reasoning": reasoning,
+            "safety_identifier": safety_identifier,
+            "service_tier": service_tier,
             "store": store,
             "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
+            "top_logprobs": top_logprobs,
             "top_p": top_p,
             "truncation": truncation,
             "user": user,
@@ -983,12 +1018,16 @@ class Responses(SyncAPIResource):
                 input=input,
                 model=model,
                 tools=tools,
+                conversation=conversation,
                 include=include,
                 instructions=instructions,
                 max_output_tokens=max_output_tokens,
+                max_tool_calls=max_tool_calls,
                 metadata=metadata,
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
+                prompt=prompt,
+                prompt_cache_key=prompt_cache_key,
                 store=store,
                 stream_options=stream_options,
                 stream=True,
@@ -996,6 +1035,9 @@ class Responses(SyncAPIResource):
                 text=text,
                 tool_choice=tool_choice,
                 reasoning=reasoning,
+                safety_identifier=safety_identifier,
+                service_tier=service_tier,
+                top_logprobs=top_logprobs,
                 top_p=top_p,
                 truncation=truncation,
                 user=user,
@@ -1051,7 +1093,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -1524,6 +1566,8 @@ class AsyncResponses(AsyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1647,7 +1691,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1655,6 +1699,9 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -1672,10 +1719,10 @@ class AsyncResponses(AsyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
           user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -1765,6 +1812,8 @@ class AsyncResponses(AsyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -1881,7 +1930,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -1889,6 +1938,9 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -1906,10 +1958,10 @@ class AsyncResponses(AsyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
           user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -1999,6 +2051,8 @@ class AsyncResponses(AsyncAPIResource):
           include: Specify additional output data to include in the model response. Currently
               supported values are:
 
+              - `web_search_call.action.sources`: Include the sources of the web search tool
+                call.
               - `code_interpreter_call.outputs`: Includes the outputs of python code execution
                 in code interpreter tool call items.
               - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -2115,7 +2169,7 @@ class AsyncResponses(AsyncAPIResource):
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
 
-              The two categories of tools you can provide the model are:
+              We support the following categories of tools:
 
               - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
                 capabilities, like
@@ -2123,6 +2177,9 @@ class AsyncResponses(AsyncAPIResource):
                 [file search](https://platform.openai.com/docs/guides/tools-file-search).
                 Learn more about
                 [built-in tools](https://platform.openai.com/docs/guides/tools).
+              - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+                predefined connectors such as Google Drive and SharePoint. Learn more about
+                [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
               - **Function calls (custom tools)**: Functions that are defined by you, enabling
                 the model to call your own code with strongly typed arguments and outputs.
                 Learn more about
@@ -2140,10 +2197,10 @@ class AsyncResponses(AsyncAPIResource):
 
           truncation: The truncation strategy to use for the model response.
 
-              - `auto`: If the context of this response and previous ones exceeds the model's
-                context window size, the model will truncate the response to fit the context
-                window by dropping input items in the middle of the conversation.
-              - `disabled` (default): If a model response will exceed the context window size
+              - `auto`: If the input to this Response exceeds the model's context window size,
+                the model will truncate the response to fit the context window by dropping
+                items from the beginning of the conversation.
+              - `disabled` (default): If the input size will exceed the context window size
                 for a model, the request will fail with a 400 error.
 
           user: This field is being replaced by `safety_identifier` and `prompt_cache_key`. Use
@@ -2263,22 +2320,29 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         input: Union[str, ResponseInputParam],
-        model: Union[str, ChatModel],
+        model: ResponsesModel,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -2295,22 +2359,29 @@ class AsyncResponses(AsyncAPIResource):
         *,
         response_id: str | NotGiven = NOT_GIVEN,
         input: Union[str, ResponseInputParam] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel] | NotGiven = NOT_GIVEN,
+        model: ResponsesModel | NotGiven = NOT_GIVEN,
         background: Optional[bool] | NotGiven = NOT_GIVEN,
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        conversation: Optional[response_create_params.Conversation] | NotGiven = NOT_GIVEN,
         include: Optional[List[ResponseIncludable]] | NotGiven = NOT_GIVEN,
         instructions: Optional[str] | NotGiven = NOT_GIVEN,
         max_output_tokens: Optional[int] | NotGiven = NOT_GIVEN,
+        max_tool_calls: Optional[int] | NotGiven = NOT_GIVEN,
         metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
         parallel_tool_calls: Optional[bool] | NotGiven = NOT_GIVEN,
         previous_response_id: Optional[str] | NotGiven = NOT_GIVEN,
+        prompt: Optional[ResponsePromptParam] | NotGiven = NOT_GIVEN,
+        prompt_cache_key: str | NotGiven = NOT_GIVEN,
         reasoning: Optional[Reasoning] | NotGiven = NOT_GIVEN,
+        safety_identifier: str | NotGiven = NOT_GIVEN,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | NotGiven = NOT_GIVEN,
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
+        top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
@@ -2325,18 +2396,25 @@ class AsyncResponses(AsyncAPIResource):
         new_response_args = {
             "input": input,
             "model": model,
+            "conversation": conversation,
             "include": include,
             "instructions": instructions,
             "max_output_tokens": max_output_tokens,
+            "max_tool_calls": max_tool_calls,
             "metadata": metadata,
             "parallel_tool_calls": parallel_tool_calls,
             "previous_response_id": previous_response_id,
+            "prompt": prompt,
+            "prompt_cache_key": prompt_cache_key,
             "reasoning": reasoning,
+            "safety_identifier": safety_identifier,
+            "service_tier": service_tier,
             "store": store,
             "stream_options": stream_options,
             "temperature": temperature,
             "text": text,
             "tool_choice": tool_choice,
+            "top_logprobs": top_logprobs,
             "top_p": top_p,
             "truncation": truncation,
             "user": user,
@@ -2372,21 +2450,29 @@ class AsyncResponses(AsyncAPIResource):
                 model=model,
                 stream=True,
                 tools=tools,
+                conversation=conversation,
                 include=include,
                 instructions=instructions,
                 max_output_tokens=max_output_tokens,
+                max_tool_calls=max_tool_calls,
                 metadata=metadata,
                 parallel_tool_calls=parallel_tool_calls,
                 previous_response_id=previous_response_id,
+                prompt=prompt,
+                prompt_cache_key=prompt_cache_key,
                 store=store,
                 stream_options=stream_options,
                 temperature=temperature,
                 text=text,
                 tool_choice=tool_choice,
                 reasoning=reasoning,
+                safety_identifier=safety_identifier,
+                service_tier=service_tier,
+                top_logprobs=top_logprobs,
                 top_p=top_p,
                 truncation=truncation,
                 user=user,
+                background=background,
                 extra_headers=extra_headers,
                 extra_query=extra_query,
                 extra_body=extra_body,
@@ -2443,7 +2529,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,

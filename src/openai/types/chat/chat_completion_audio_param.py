@@ -15,7 +15,9 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     Must be one of `wav`, `mp3`, `flac`, `opus`, or `pcm16`.
     """
 
-    voice: Required[Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse"]]]
+    voice: Required[
+        Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]]
+    ]
     """The voice the model uses to respond.
 
     Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`,

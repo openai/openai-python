@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
-from typing import List
 from typing_extensions import Literal, Required, TypedDict
+
+from .._types import SequenceNotStr
 
 __all__ = ["ContainerCreateParams", "ExpiresAfter"]
 
@@ -15,7 +16,7 @@ class ContainerCreateParams(TypedDict, total=False):
     expires_after: ExpiresAfter
     """Container expiration time in seconds relative to the 'anchor' time."""
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """IDs of files to copy to the container."""
 
 

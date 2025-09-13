@@ -3,6 +3,7 @@
 from typing import Dict, List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
+from . import web_search_tool
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .custom_tool import CustomTool
@@ -10,9 +11,11 @@ from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
 from .web_search_tool import WebSearchTool
 from .file_search_tool import FileSearchTool
+from .web_search_preview_tool import WebSearchPreviewTool
 
 __all__ = [
     "Tool",
+    "WebSearchTool",
     "Mcp",
     "McpAllowedTools",
     "McpAllowedToolsMcpToolFilter",
@@ -28,6 +31,8 @@ __all__ = [
     "LocalShell",
 ]
 
+WebSearchToolFilters = web_search_tool.Filters
+WebSearchToolUserLocation = web_search_tool.UserLocation
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
     read_only: Optional[bool] = None
@@ -245,13 +250,14 @@ Tool: TypeAlias = Annotated[
     Union[
         FunctionTool,
         FileSearchTool,
-        WebSearchTool,
         ComputerTool,
+        WebSearchTool,
         Mcp,
         CodeInterpreter,
         ImageGeneration,
         LocalShell,
         CustomTool,
+        WebSearchPreviewTool,
     ],
     PropertyInfo(discriminator="type"),
 ]

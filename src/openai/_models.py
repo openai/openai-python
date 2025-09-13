@@ -51,7 +51,7 @@ from ._utils import (
     strip_annotated_type,
 )
 from ._compat import (
-    PYDANTIC_V2,
+    PYDANTIC_V1,
     ConfigDict,
     GenericModel as BaseGenericModel,
     get_args,
@@ -84,11 +84,7 @@ class _ConfigProtocol(Protocol):
 
 
 class BaseModel(pydantic.BaseModel):
-    if PYDANTIC_V2:
-        model_config: ClassVar[ConfigDict] = ConfigDict(
-            extra="allow", defer_build=coerce_boolean(os.environ.get("DEFER_PYDANTIC_BUILD", "true"))
-        )
-    else:
+    if PYDANTIC_V1:
 
         @property
         @override
@@ -103,6 +99,10 @@ class BaseModel(pydantic.BaseModel):
         def __repr_args__(self) -> ReprArgs:
             # we don't want these attributes to be included when something like `rich.print` is used
             return [arg for arg in super().__repr_args__() if arg[0] not in {"_request_id", "__exclude_fields__"}]
+    else:
+        model_config: ClassVar[ConfigDict] = ConfigDict(
+            extra="allow", defer_build=coerce_boolean(os.environ.get("DEFER_PYDANTIC_BUILD", "true"))
+        )
 
     if TYPE_CHECKING:
         _request_id: Optional[str] = None
@@ -240,25 +240,25 @@ class BaseModel(pydantic.BaseModel):
             if key not in model_fields:
                 parsed = construct_type(value=value, type_=extra_field_type) if extra_field_type is not None else value
 
-                if PYDANTIC_V2:
-                    _extra[key] = parsed
-                else:
+                if PYDANTIC_V1:
                     _fields_set.add(key)
                     fields_values[key] = parsed
+                else:
+                    _extra[key] = parsed
 
         object.__setattr__(m, "__dict__", fields_values)
 
-        if PYDANTIC_V2:
-            # these properties are copied from Pydantic's `model_construct()` method
-            object.__setattr__(m, "__pydantic_private__", None)
-            object.__setattr__(m, "__pydantic_extra__", _extra)
-            object.__setattr__(m, "__pydantic_fields_set__", _fields_set)
-        else:
+        if PYDANTIC_V1:
             # init_private_attributes() does not exist in v2
             m._init_private_attributes()  # type: ignore
 
             # copied from Pydantic v1's `construct()` method
             object.__setattr__(m, "__fields_set__", _fields_set)
+        else:
+            # these properties are copied from Pydantic's `model_construct()` method
+            object.__setattr__(m, "__pydantic_private__", None)
+            object.__setattr__(m, "__pydantic_extra__", _extra)
+            object.__setattr__(m, "__pydantic_fields_set__", _fields_set)
 
         return m
 
@@ -268,7 +268,7 @@ class BaseModel(pydantic.BaseModel):
         # although not in practice
         model_construct = construct
 
-    if not PYDANTIC_V2:
+    if PYDANTIC_V1:
         # we define aliases for some of the new pydantic v2 methods so
         # that we can just document these methods without having to specify
         # a specific pydantic version as some users may not know which
@@ -329,7 +329,7 @@ class BaseModel(pydantic.BaseModel):
                 exclude_none=exclude_none,
             )
 
-            return cast(dict[str, Any], json_safe(dumped)) if mode == "json" else dumped
+            return cast("dict[str, Any]", json_safe(dumped)) if mode == "json" else dumped
 
         @override
         def model_dump_json(
@@ -388,10 +388,10 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
     if value is None:
         return field_get_default(field)
 
-    if PYDANTIC_V2:
-        type_ = field.annotation
-    else:
+    if PYDANTIC_V1:
         type_ = cast(type, field.outer_type_)  # type: ignore
+    else:
+        type_ = field.annotation  # type: ignore
 
     if type_ is None:
         raise RuntimeError(f"Unexpected field type is None for {key}")
@@ -400,7 +400,7 @@ def _construct_field(value: object, field: FieldInfo, key: str) -> object:
 
 
 def _get_extra_fields_type(cls: type[pydantic.BaseModel]) -> type | None:
-    if not PYDANTIC_V2:
+    if PYDANTIC_V1:
         # TODO
         return None
 
@@ -653,7 +653,19 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
     for variant in get_args(union):
         variant = strip_annotated_type(variant)
         if is_basemodel_type(variant):
-            if PYDANTIC_V2:
+            if PYDANTIC_V1:
+                field_info = cast("dict[str, FieldInfo]", variant.__fields__).get(discriminator_field_name)  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+                if not field_info:
+                    continue
+
+                # Note: if one variant defines an alias then they all should
+                discriminator_alias = field_info.alias
+
+                if (annotation := getattr(field_info, "annotation", None)) and is_literal_type(annotation):
+                    for entry in get_args(annotation):
+                        if isinstance(entry, str):
+                            mapping[entry] = variant
+            else:
                 field = _extract_field_schema_pv2(variant, discriminator_field_name)
                 if not field:
                     continue
@@ -665,18 +677,6 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
 
                 if field_schema["type"] == "literal":
                     for entry in cast("LiteralSchema", field_schema)["expected"]:
-                        if isinstance(entry, str):
-                            mapping[entry] = variant
-            else:
-                field_info = cast("dict[str, FieldInfo]", variant.__fields__).get(discriminator_field_name)  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
-                if not field_info:
-                    continue
-
-                # Note: if one variant defines an alias then they all should
-                discriminator_alias = field_info.alias
-
-                if (annotation := getattr(field_info, "annotation", None)) and is_literal_type(annotation):
-                    for entry in get_args(annotation):
                         if isinstance(entry, str):
                             mapping[entry] = variant
 
@@ -735,7 +735,7 @@ def add_request_id(obj: BaseModel, request_id: str | None) -> None:
     # in Pydantic v1, using setattr like we do above causes the attribute
     # to be included when serializing the model which we don't want in this
     # case so we need to explicitly exclude it
-    if not PYDANTIC_V2:
+    if PYDANTIC_V1:
         try:
             exclude_fields = obj.__exclude_fields__  # type: ignore
         except AttributeError:
@@ -754,7 +754,7 @@ else:
         pass
 
 
-if PYDANTIC_V2:
+if not PYDANTIC_V1:
     from pydantic import TypeAdapter as _TypeAdapter
 
     _CachedTypeAdapter = cast("TypeAdapter[object]", lru_cache(maxsize=None)(_TypeAdapter))
@@ -822,12 +822,12 @@ class FinalRequestOptions(pydantic.BaseModel):
     json_data: Union[Body, None] = None
     extra_json: Union[AnyMapping, None] = None
 
-    if PYDANTIC_V2:
-        model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
-    else:
+    if PYDANTIC_V1:
 
         class Config(pydantic.BaseConfig):  # pyright: ignore[reportDeprecated]
             arbitrary_types_allowed: bool = True
+    else:
+        model_config: ClassVar[ConfigDict] = ConfigDict(arbitrary_types_allowed=True)
 
     def get_max_retries(self, max_retries: int) -> int:
         if isinstance(self.max_retries, NotGiven):
@@ -860,9 +860,9 @@ class FinalRequestOptions(pydantic.BaseModel):
             key: strip_not_given(value)
             for key, value in values.items()
         }
-        if PYDANTIC_V2:
-            return super().model_construct(_fields_set, **kwargs)
-        return cast(FinalRequestOptions, super().construct(_fields_set, **kwargs))  # pyright: ignore[reportDeprecated]
+        if PYDANTIC_V1:
+            return cast(FinalRequestOptions, super().construct(_fields_set, **kwargs))  # pyright: ignore[reportDeprecated]
+        return super().model_construct(_fields_set, **kwargs)
 
     if not TYPE_CHECKING:
         # type checkers incorrectly complain about this assignment

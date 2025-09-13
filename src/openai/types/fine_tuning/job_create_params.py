@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from ..._types import SequenceNotStr
 from .dpo_method_param import DpoMethodParam
 from ..shared_params.metadata import Metadata
 from .supervised_method_param import SupervisedMethodParam
@@ -137,7 +138,7 @@ class IntegrationWandb(TypedDict, total=False):
     If not set, we will use the Job ID as the name.
     """
 
-    tags: List[str]
+    tags: SequenceNotStr[str]
     """A list of tags to be attached to the newly created run.
 
     These tags are passed through directly to WandB. Some default tags are generated

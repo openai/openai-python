@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from .easy_input_message_param import EasyInputMessageParam
 from .response_output_message_param import ResponseOutputMessageParam
 from .response_reasoning_item_param import ResponseReasoningItemParam
@@ -135,7 +136,7 @@ class ImageGenerationCall(TypedDict, total=False):
 
 
 class LocalShellCallAction(TypedDict, total=False):
-    command: Required[List[str]]
+    command: Required[SequenceNotStr[str]]
     """The command to run."""
 
     env: Required[Dict[str, str]]

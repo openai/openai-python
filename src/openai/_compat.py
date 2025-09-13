@@ -12,14 +12,13 @@ from ._types import IncEx, StrBytesIntFloat
 _T = TypeVar("_T")
 _ModelT = TypeVar("_ModelT", bound=pydantic.BaseModel)
 
-# --------------- Pydantic v2 compatibility ---------------
+# --------------- Pydantic v2, v3 compatibility ---------------
 
 # Pyright incorrectly reports some of our functions as overriding a method when they don't
 # pyright: reportIncompatibleMethodOverride=false
 
-PYDANTIC_V2 = pydantic.VERSION.startswith("2.")
+PYDANTIC_V1 = pydantic.VERSION.startswith("1.")
 
-# v1 re-exports
 if TYPE_CHECKING:
 
     def parse_date(value: date | StrBytesIntFloat) -> date:  # noqa: ARG001
@@ -44,16 +43,8 @@ if TYPE_CHECKING:
         ...
 
 else:
-    if PYDANTIC_V2:
-        from pydantic.v1.typing import (
-            get_args as get_args,
-            is_union as is_union,
-            get_origin as get_origin,
-            is_typeddict as is_typeddict,
-            is_literal_type as is_literal_type,
-        )
-        from pydantic.v1.datetime_parse import parse_date as parse_date, parse_datetime as parse_datetime
-    else:
+    # v1 re-exports
+    if PYDANTIC_V1:
         from pydantic.typing import (
             get_args as get_args,
             is_union as is_union,
@@ -62,72 +53,82 @@ else:
             is_literal_type as is_literal_type,
         )
         from pydantic.datetime_parse import parse_date as parse_date, parse_datetime as parse_datetime
+    else:
+        from ._utils import (
+            get_args as get_args,
+            is_union as is_union,
+            get_origin as get_origin,
+            parse_date as parse_date,
+            is_typeddict as is_typeddict,
+            parse_datetime as parse_datetime,
+            is_literal_type as is_literal_type,
+        )
 
 
 # refactored config
 if TYPE_CHECKING:
     from pydantic import ConfigDict as ConfigDict
 else:
-    if PYDANTIC_V2:
-        from pydantic import ConfigDict
-    else:
+    if PYDANTIC_V1:
         # TODO: provide an error message here?
         ConfigDict = None
+    else:
+        from pydantic import ConfigDict as ConfigDict
 
 
 # renamed methods / properties
 def parse_obj(model: type[_ModelT], value: object) -> _ModelT:
-    if PYDANTIC_V2:
-        return model.model_validate(value)
-    else:
+    if PYDANTIC_V1:
         return cast(_ModelT, model.parse_obj(value))  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
+    else:
+        return model.model_validate(value)
 
 
 def field_is_required(field: FieldInfo) -> bool:
-    if PYDANTIC_V2:
-        return field.is_required()
-    return field.required  # type: ignore
+    if PYDANTIC_V1:
+        return field.required  # type: ignore
+    return field.is_required()
 
 
 def field_get_default(field: FieldInfo) -> Any:
     value = field.get_default()
-    if PYDANTIC_V2:
-        from pydantic_core import PydanticUndefined
-
-        if value == PydanticUndefined:
-            return None
+    if PYDANTIC_V1:
         return value
+    from pydantic_core import PydanticUndefined
+
+    if value == PydanticUndefined:
+        return None
     return value
 
 
 def field_outer_type(field: FieldInfo) -> Any:
-    if PYDANTIC_V2:
-        return field.annotation
-    return field.outer_type_  # type: ignore
+    if PYDANTIC_V1:
+        return field.outer_type_  # type: ignore
+    return field.annotation
 
 
 def get_model_config(model: type[pydantic.BaseModel]) -> Any:
-    if PYDANTIC_V2:
-        return model.model_config
-    return model.__config__  # type: ignore
+    if PYDANTIC_V1:
+        return model.__config__  # type: ignore
+    return model.model_config
 
 
 def get_model_fields(model: type[pydantic.BaseModel]) -> dict[str, FieldInfo]:
-    if PYDANTIC_V2:
-        return model.model_fields
-    return model.__fields__  # type: ignore
+    if PYDANTIC_V1:
+        return model.__fields__  # type: ignore
+    return model.model_fields
 
 
 def model_copy(model: _ModelT, *, deep: bool = False) -> _ModelT:
-    if PYDANTIC_V2:
-        return model.model_copy(deep=deep)
-    return model.copy(deep=deep)  # type: ignore
+    if PYDANTIC_V1:
+        return model.copy(deep=deep)  # type: ignore
+    return model.model_copy(deep=deep)
 
 
 def model_json(model: pydantic.BaseModel, *, indent: int | None = None) -> str:
-    if PYDANTIC_V2:
-        return model.model_dump_json(indent=indent)
-    return model.json(indent=indent)  # type: ignore
+    if PYDANTIC_V1:
+        return model.json(indent=indent)  # type: ignore
+    return model.model_dump_json(indent=indent)
 
 
 def model_dump(
@@ -139,14 +140,14 @@ def model_dump(
     warnings: bool = True,
     mode: Literal["json", "python"] = "python",
 ) -> dict[str, Any]:
-    if PYDANTIC_V2 or hasattr(model, "model_dump"):
+    if (not PYDANTIC_V1) or hasattr(model, "model_dump"):
         return model.model_dump(
             mode=mode,
             exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
             # warnings are not supported in Pydantic v1
-            warnings=warnings if PYDANTIC_V2 else True,
+            warnings=True if PYDANTIC_V1 else warnings,
         )
     return cast(
         "dict[str, Any]",
@@ -159,21 +160,21 @@ def model_dump(
 
 
 def model_parse(model: type[_ModelT], data: Any) -> _ModelT:
-    if PYDANTIC_V2:
-        return model.model_validate(data)
-    return model.parse_obj(data)  # pyright: ignore[reportDeprecated]
+    if PYDANTIC_V1:
+        return model.parse_obj(data)  # pyright: ignore[reportDeprecated]
+    return model.model_validate(data)
 
 
 def model_parse_json(model: type[_ModelT], data: str | bytes) -> _ModelT:
-    if PYDANTIC_V2:
-        return model.model_validate_json(data)
-    return model.parse_raw(data)  # pyright: ignore[reportDeprecated]
+    if PYDANTIC_V1:
+        return model.parse_raw(data)  # pyright: ignore[reportDeprecated]
+    return model.model_validate_json(data)
 
 
 def model_json_schema(model: type[_ModelT]) -> dict[str, Any]:
-    if PYDANTIC_V2:
-        return model.model_json_schema()
-    return model.schema()  # pyright: ignore[reportDeprecated]
+    if PYDANTIC_V1:
+        return model.schema()  # pyright: ignore[reportDeprecated]
+    return model.model_json_schema()
 
 
 # generic models
@@ -182,16 +183,15 @@ if TYPE_CHECKING:
     class GenericModel(pydantic.BaseModel): ...
 
 else:
-    if PYDANTIC_V2:
+    if PYDANTIC_V1:
+        import pydantic.generics
+
+        class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel): ...
+    else:
         # there no longer needs to be a distinction in v2 but
         # we still have to create our own subclass to avoid
         # inconsistent MRO ordering errors
         class GenericModel(pydantic.BaseModel): ...
-
-    else:
-        import pydantic.generics
-
-        class GenericModel(pydantic.generics.GenericModel, pydantic.BaseModel): ...
 
 
 # cached properties

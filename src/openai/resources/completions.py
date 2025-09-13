@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, overload
 
 import httpx
 
 from .. import _legacy_response
 from ..types import completion_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, SequenceNotStr
 from .._utils import required_args, maybe_transform, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -49,7 +49,7 @@ class Completions(SyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -59,7 +59,7 @@ class Completions(SyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -204,7 +204,7 @@ class Completions(SyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -215,7 +215,7 @@ class Completions(SyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -359,7 +359,7 @@ class Completions(SyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -370,7 +370,7 @@ class Completions(SyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -514,7 +514,7 @@ class Completions(SyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -524,7 +524,7 @@ class Completions(SyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -599,7 +599,7 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -609,7 +609,7 @@ class AsyncCompletions(AsyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
@@ -754,7 +754,7 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: Literal[True],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -765,7 +765,7 @@ class AsyncCompletions(AsyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -909,7 +909,7 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         stream: bool,
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
@@ -920,7 +920,7 @@ class AsyncCompletions(AsyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1064,7 +1064,7 @@ class AsyncCompletions(AsyncAPIResource):
         self,
         *,
         model: Union[str, Literal["gpt-3.5-turbo-instruct", "davinci-002", "babbage-002"]],
-        prompt: Union[str, List[str], Iterable[int], Iterable[Iterable[int]], None],
+        prompt: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]], None],
         best_of: Optional[int] | NotGiven = NOT_GIVEN,
         echo: Optional[bool] | NotGiven = NOT_GIVEN,
         frequency_penalty: Optional[float] | NotGiven = NOT_GIVEN,
@@ -1074,7 +1074,7 @@ class AsyncCompletions(AsyncAPIResource):
         n: Optional[int] | NotGiven = NOT_GIVEN,
         presence_penalty: Optional[float] | NotGiven = NOT_GIVEN,
         seed: Optional[int] | NotGiven = NOT_GIVEN,
-        stop: Union[Optional[str], List[str], None] | NotGiven = NOT_GIVEN,
+        stop: Union[Optional[str], SequenceNotStr[str], None] | NotGiven = NOT_GIVEN,
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[ChatCompletionStreamOptionsParam] | NotGiven = NOT_GIVEN,
         suffix: Optional[str] | NotGiven = NOT_GIVEN,

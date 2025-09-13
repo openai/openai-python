@@ -2,17 +2,17 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Optional
+from typing import Union, Optional
 from typing_extensions import Literal, Required, TypedDict
 
-from .._types import FileTypes
+from .._types import FileTypes, SequenceNotStr
 from .image_model import ImageModel
 
 __all__ = ["ImageEditParamsBase", "ImageEditParamsNonStreaming", "ImageEditParamsStreaming"]
 
 
 class ImageEditParamsBase(TypedDict, total=False):
-    image: Required[Union[FileTypes, List[FileTypes]]]
+    image: Required[Union[FileTypes, SequenceNotStr[FileTypes]]]
     """The image(s) to edit. Must be a supported image file or an array of images.
 
     For `gpt-image-1`, each image should be a `png`, `webp`, or `jpg` file less than

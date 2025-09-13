@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
+from .._types import SequenceNotStr
 from .shared_params.metadata import Metadata
 from .file_chunking_strategy_param import FileChunkingStrategyParam
 
@@ -22,7 +23,7 @@ class VectorStoreCreateParams(TypedDict, total=False):
     expires_after: ExpiresAfter
     """The expiration policy for a vector store."""
 
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
     the vector store should use. Useful for tools like `file_search` that can access
