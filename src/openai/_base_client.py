@@ -492,6 +492,14 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
             else:
                 raise RuntimeError(f"Unexpected JSON data type, {type(json_data)}, cannot merge with `extra_body`")
 
+        
+        # --- PATCH START (Normalize model name) ---
+        if isinstance(json_data, dict) and "model" in json_data:
+            if isinstance(json_data["model"], str):
+                json_data["model"] = json_data["model"].strip().lower()
+        # --- PATCH END ---
+
+        
         headers = self._build_headers(options, retries_taken=retries_taken)
         params = _merge_mappings(self.default_query, options.params)
         content_type = headers.get("Content-Type")
