@@ -43,12 +43,12 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     """
 
     include: List[TranscriptionInclude]
-    """Additional information to include in the transcription response.
-
-    `logprobs` will return the log probabilities of the tokens in the response to
-    understand the model's confidence in the transcription. `logprobs` only works
-    with response_format set to `json` and only with the models `gpt-4o-transcribe`
-    and `gpt-4o-mini-transcribe`.
+    """
+    Additional information to include in the transcription response. `logprobs` will
+    return the log probabilities of the tokens in the response to understand the
+    model's confidence in the transcription. `logprobs` only works with
+    response_format set to `json` and only with the models `gpt-4o-transcribe` and
+    `gpt-4o-mini-transcribe`.
     """
 
     language: str
