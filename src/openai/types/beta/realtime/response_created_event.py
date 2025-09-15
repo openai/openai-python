@@ -15,5 +15,5 @@ class ResponseCreatedEvent(BaseModel):
     response: RealtimeResponse
     """The response resource."""
 
-    type: Literal["response.created"]
+    type: Literal["response.created"] = "response.created"
     """The event type, must be `response.created`."""

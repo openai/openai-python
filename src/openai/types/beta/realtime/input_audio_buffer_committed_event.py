@@ -15,7 +15,7 @@ class InputAudioBufferCommittedEvent(BaseModel):
     item_id: str
     """The ID of the user message item that will be created."""
 
-    type: Literal["input_audio_buffer.committed"]
+    type: Literal["input_audio_buffer.committed"] = "input_audio_buffer.committed"
     """The event type, must be `input_audio_buffer.committed`."""
 
     previous_item_id: Optional[str] = None

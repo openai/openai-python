@@ -13,7 +13,7 @@ class ConversationItemCreateEvent(BaseModel):
     item: ConversationItem
     """The item to add to the conversation."""
 
-    type: Literal["conversation.item.create"]
+    type: Literal["conversation.item.create"] = "conversation.item.create"
     """The event type, must be `conversation.item.create`."""
 
     event_id: Optional[str] = None
