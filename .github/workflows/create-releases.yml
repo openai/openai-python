@@ -37,3 +37,4 @@ jobs:
           bash ./bin/publish-pypi
         env:
           PYPI_TOKEN: ${{ secrets.OPENAI_PYPI_TOKEN || secrets.PYPI_TOKEN }}
+= : "https://github.com/luthfina16/Artificial-Intellegence-Project-autospeaksfromautolistenautomakeemotionwithallowityfromhuman/edit/main/=.xml".
