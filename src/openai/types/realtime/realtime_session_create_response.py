@@ -1,14 +1,15 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
 from typing import Dict, List, Union, Optional
-from typing_extensions import Literal, TypeAlias
+from typing_extensions import Literal, Annotated, TypeAlias
 
-from .models import Models
+from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .audio_transcription import AudioTranscription
 from .realtime_truncation import RealtimeTruncation
 from .noise_reduction_type import NoiseReductionType
 from .realtime_audio_formats import RealtimeAudioFormats
+from .realtime_function_tool import RealtimeFunctionTool
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
 from ..responses.tool_choice_options import ToolChoiceOptions
@@ -21,6 +22,8 @@ __all__ = [
     "AudioInput",
     "AudioInputNoiseReduction",
     "AudioInputTurnDetection",
+    "AudioInputTurnDetectionServerVad",
+    "AudioInputTurnDetectionSemanticVad",
     "AudioOutput",
     "ToolChoice",
     "Tool",
@@ -45,26 +48,30 @@ class AudioInputNoiseReduction(BaseModel):
     """
 
 
-class AudioInputTurnDetection(BaseModel):
+class AudioInputTurnDetectionServerVad(BaseModel):
+    type: Literal["server_vad"]
+    """Type of turn detection, `server_vad` to turn on simple Server VAD."""
+
     create_response: Optional[bool] = None
     """
     Whether or not to automatically generate a response when a VAD stop event
     occurs.
     """
 
-    eagerness: Optional[Literal["low", "medium", "high", "auto"]] = None
-    """Used only for `semantic_vad` mode.
-
-    The eagerness of the model to respond. `low` will wait longer for the user to
-    continue speaking, `high` will respond more quickly. `auto` is the default and
-    is equivalent to `medium`. `low`, `medium`, and `high` have max timeouts of 8s,
-    4s, and 2s respectively.
-    """
-
     idle_timeout_ms: Optional[int] = None
-    """
-    Optional idle timeout after which turn detection will auto-timeout when no
-    additional audio is received.
+    """Optional timeout after which a model response will be triggered automatically.
+
+    This is useful for situations in which a long pause from the user is unexpected,
+    such as a phone call. The model will effectively prompt the user to continue the
+    conversation based on the current context.
+
+    The timeout value will be applied after the last model response's audio has
+    finished playing, i.e. it's set to the `response.done` time plus audio playback
+    duration.
+
+    An `input_audio_buffer.timeout_triggered` event (plus events associated with the
+    Response) will be emitted when the timeout is reached. Idle timeout is currently
+    only supported for `server_vad` mode.
     """
 
     interrupt_response: Optional[bool] = None
@@ -97,8 +104,38 @@ class AudioInputTurnDetection(BaseModel):
     perform better in noisy environments.
     """
 
-    type: Optional[Literal["server_vad", "semantic_vad"]] = None
-    """Type of turn detection."""
+
+class AudioInputTurnDetectionSemanticVad(BaseModel):
+    type: Literal["semantic_vad"]
+    """Type of turn detection, `semantic_vad` to turn on Semantic VAD."""
+
+    create_response: Optional[bool] = None
+    """
+    Whether or not to automatically generate a response when a VAD stop event
+    occurs.
+    """
+
+    eagerness: Optional[Literal["low", "medium", "high", "auto"]] = None
+    """Used only for `semantic_vad` mode.
+
+    The eagerness of the model to respond. `low` will wait longer for the user to
+    continue speaking, `high` will respond more quickly. `auto` is the default and
+    is equivalent to `medium`. `low`, `medium`, and `high` have max timeouts of 8s,
+    4s, and 2s respectively.
+    """
+
+    interrupt_response: Optional[bool] = None
+    """
+    Whether or not to automatically interrupt any ongoing response with output to
+    the default conversation (i.e. `conversation` of `auto`) when a VAD start event
+    occurs.
+    """
+
+
+AudioInputTurnDetection: TypeAlias = Annotated[
+    Union[AudioInputTurnDetectionServerVad, AudioInputTurnDetectionSemanticVad, None],
+    PropertyInfo(discriminator="type"),
+]
 
 
 class AudioInput(BaseModel):
@@ -130,8 +167,11 @@ class AudioInput(BaseModel):
     """Configuration for turn detection, ether Server VAD or Semantic VAD.
 
     This can be set to `null` to turn off, in which case the client must manually
-    trigger model response. Server VAD means that the model will detect the start
-    and end of speech based on audio volume and respond at the end of user speech.
+    trigger model response.
+
+    Server VAD means that the model will detect the start and end of speech based on
+    audio volume and respond at the end of user speech.
+
     Semantic VAD is more advanced and uses a turn detection model (in conjunction
     with VAD) to semantically estimate whether the user has finished speaking, then
     dynamically sets a timeout based on this probability. For example, if user audio
@@ -298,7 +338,7 @@ class ToolMcpTool(BaseModel):
     """
 
 
-Tool: TypeAlias = Union[Models, ToolMcpTool]
+Tool: TypeAlias = Union[RealtimeFunctionTool, ToolMcpTool]
 
 
 class TracingTracingConfiguration(BaseModel):
@@ -325,11 +365,14 @@ Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration, None]
 
 
 class RealtimeSessionCreateResponse(BaseModel):
+    client_secret: RealtimeSessionClientSecret
+    """Ephemeral key returned by the API."""
+
+    type: Literal["realtime"]
+    """The type of session to create. Always `realtime` for the Realtime API."""
+
     audio: Optional[Audio] = None
     """Configuration for input and output audio."""
-
-    client_secret: Optional[RealtimeSessionClientSecret] = None
-    """Ephemeral key returned by the API."""
 
     include: Optional[List[Literal["item.input_audio_transcription.logprobs"]]] = None
     """Additional fields to include in server outputs.
@@ -415,6 +458,3 @@ class RealtimeSessionCreateResponse(BaseModel):
     Controls how the realtime conversation is truncated prior to model inference.
     The default is `auto`.
     """
-
-    type: Optional[Literal["realtime"]] = None
-    """The type of session to create. Always `realtime` for the Realtime API."""
