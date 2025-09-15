@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.107.3 (2025-09-15)
+
+Full Changelog: [v1.107.2...v1.107.3](https://github.com/openai/openai-python/compare/v1.107.2...v1.107.3)
+
+### Chores
+
+* **api:** docs and spec refactoring ([9bab5da](https://github.com/openai/openai-python/commit/9bab5da1802c3575c58e73ed1470dd5fa61fd1d2))
+* **tests:** simplify `get_platform` test ([0b1f6a2](https://github.com/openai/openai-python/commit/0b1f6a28d5a59e10873264e976d2e332903eef29))
+
 ## 1.107.2 (2025-09-12)
 
 Full Changelog: [v1.107.1...v1.107.2](https://github.com/openai/openai-python/compare/v1.107.1...v1.107.2)
