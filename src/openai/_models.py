@@ -256,7 +256,7 @@ class BaseModel(pydantic.BaseModel):
             mode: Literal["json", "python"] | str = "python",
             include: IncEx | None = None,
             exclude: IncEx | None = None,
-            by_alias: bool = False,
+            by_alias: bool | None = None,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
             exclude_none: bool = False,
@@ -264,6 +264,7 @@ class BaseModel(pydantic.BaseModel):
             warnings: bool | Literal["none", "warn", "error"] = True,
             context: dict[str, Any] | None = None,
             serialize_as_any: bool = False,
+            fallback: Callable[[Any], Any] | None = None,
         ) -> dict[str, Any]:
             """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump
 
@@ -295,10 +296,12 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("context is only supported in Pydantic v2")
             if serialize_as_any != False:
                 raise ValueError("serialize_as_any is only supported in Pydantic v2")
+            if fallback is not None:
+                raise ValueError("fallback is only supported in Pydantic v2")
             dumped = super().dict(  # pyright: ignore[reportDeprecated]
                 include=include,
                 exclude=exclude,
-                by_alias=by_alias,
+                by_alias=by_alias if by_alias is not None else False,
                 exclude_unset=exclude_unset,
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
@@ -313,13 +316,14 @@ class BaseModel(pydantic.BaseModel):
             indent: int | None = None,
             include: IncEx | None = None,
             exclude: IncEx | None = None,
-            by_alias: bool = False,
+            by_alias: bool | None = None,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
             exclude_none: bool = False,
             round_trip: bool = False,
             warnings: bool | Literal["none", "warn", "error"] = True,
             context: dict[str, Any] | None = None,
+            fallback: Callable[[Any], Any] | None = None,
             serialize_as_any: bool = False,
         ) -> str:
             """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump_json
@@ -348,11 +352,13 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("context is only supported in Pydantic v2")
             if serialize_as_any != False:
                 raise ValueError("serialize_as_any is only supported in Pydantic v2")
+            if fallback is not None:
+                raise ValueError("fallback is only supported in Pydantic v2")
             return super().json(  # type: ignore[reportDeprecated]
                 indent=indent,
                 include=include,
                 exclude=exclude,
-                by_alias=by_alias,
+                by_alias=by_alias if by_alias is not None else False,
                 exclude_unset=exclude_unset,
                 exclude_defaults=exclude_defaults,
                 exclude_none=exclude_none,
