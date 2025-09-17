@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
+from ..shared.reasoning_effort import ReasoningEffort
 from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
 from ..responses.response_input_text import ResponseInputText
@@ -166,6 +167,15 @@ SamplingParamsResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseForm
 class SamplingParams(BaseModel):
     max_completion_tokens: Optional[int] = None
     """The maximum number of tokens in the generated output."""
+
+    reasoning_effort: Optional[ReasoningEffort] = None
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+    """
 
     response_format: Optional[SamplingParamsResponseFormat] = None
     """An object specifying the format that the model must output.
