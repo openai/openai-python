@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text_param import ResponseInputTextParam
 from ..responses.response_input_audio_param import ResponseInputAudioParam
 
-__all__ = ["ScoreModelGraderParam", "Input", "InputContent", "InputContentOutputText", "InputContentInputImage"]
+__all__ = [
+    "ScoreModelGraderParam",
+    "Input",
+    "InputContent",
+    "InputContentOutputText",
+    "InputContentInputImage",
+    "SamplingParams",
+]
 
 
 class InputContentOutputText(TypedDict, total=False):
@@ -57,6 +65,29 @@ class Input(TypedDict, total=False):
     """The type of the message input. Always `message`."""
 
 
+class SamplingParams(TypedDict, total=False):
+    max_completions_tokens: Optional[int]
+    """The maximum number of tokens the grader model may generate in its response."""
+
+    reasoning_effort: Optional[ReasoningEffort]
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+    """
+
+    seed: Optional[int]
+    """A seed value to initialize the randomness, during sampling."""
+
+    temperature: Optional[float]
+    """A higher temperature increases randomness in the outputs."""
+
+    top_p: Optional[float]
+    """An alternative to temperature for nucleus sampling; 1.0 includes all tokens."""
+
+
 class ScoreModelGraderParam(TypedDict, total=False):
     input: Required[Iterable[Input]]
     """The input text. This may include template strings."""
@@ -73,5 +104,5 @@ class ScoreModelGraderParam(TypedDict, total=False):
     range: Iterable[float]
     """The range of the score. Defaults to `[0, 1]`."""
 
-    sampling_params: object
+    sampling_params: SamplingParams
     """The sampling parameters for the model."""

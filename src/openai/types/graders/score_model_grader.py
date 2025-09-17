@@ -4,10 +4,18 @@ from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
+from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text import ResponseInputText
 from ..responses.response_input_audio import ResponseInputAudio
 
-__all__ = ["ScoreModelGrader", "Input", "InputContent", "InputContentOutputText", "InputContentInputImage"]
+__all__ = [
+    "ScoreModelGrader",
+    "Input",
+    "InputContent",
+    "InputContentOutputText",
+    "InputContentInputImage",
+    "SamplingParams",
+]
 
 
 class InputContentOutputText(BaseModel):
@@ -51,6 +59,29 @@ class Input(BaseModel):
     """The type of the message input. Always `message`."""
 
 
+class SamplingParams(BaseModel):
+    max_completions_tokens: Optional[int] = None
+    """The maximum number of tokens the grader model may generate in its response."""
+
+    reasoning_effort: Optional[ReasoningEffort] = None
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+    """
+
+    seed: Optional[int] = None
+    """A seed value to initialize the randomness, during sampling."""
+
+    temperature: Optional[float] = None
+    """A higher temperature increases randomness in the outputs."""
+
+    top_p: Optional[float] = None
+    """An alternative to temperature for nucleus sampling; 1.0 includes all tokens."""
+
+
 class ScoreModelGrader(BaseModel):
     input: List[Input]
     """The input text. This may include template strings."""
@@ -67,5 +98,5 @@ class ScoreModelGrader(BaseModel):
     range: Optional[List[float]] = None
     """The range of the score. Defaults to `[0, 1]`."""
 
-    sampling_params: Optional[object] = None
+    sampling_params: Optional[SamplingParams] = None
     """The sampling parameters for the model."""

@@ -108,6 +108,7 @@ multidict==6.5.0
 mypy==1.14.1
 mypy-extensions==1.0.0
     # via mypy
+nest-asyncio==1.6.0
 nodeenv==1.8.0
     # via pyright
 nox==2023.4.22
@@ -133,11 +134,11 @@ portalocker==2.10.1
 propcache==0.3.2
     # via aiohttp
     # via yarl
-pycparser==2.22
+pycparser==2.23
     # via cffi
-pydantic==2.10.3
+pydantic==2.11.9
     # via openai
-pydantic-core==2.27.1
+pydantic-core==2.33.2
     # via pydantic
 pygments==2.18.0
     # via pytest
@@ -199,6 +200,9 @@ typing-extensions==4.12.2
     # via pydantic
     # via pydantic-core
     # via pyright
+    # via typing-inspection
+typing-inspection==0.4.1
+    # via pydantic
 tzdata==2024.1
     # via pandas
 urllib3==2.2.1

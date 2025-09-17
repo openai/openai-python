@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.108.0 (2025-09-17)
+
+Full Changelog: [v1.107.3...v1.108.0](https://github.com/openai/openai-python/compare/v1.107.3...v1.108.0)
+
+### Features
+
+* **api:** type updates for conversations, reasoning_effort and results for evals ([c2ee28c](https://github.com/openai/openai-python/commit/c2ee28c1b77eed98766fbb01cf1ad2ee240f412e))
+
+
+### Chores
+
+* **internal:** update pydantic dependency ([369d10a](https://github.com/openai/openai-python/commit/369d10a40dfe744f6bfc10c99eb1f58176500120))
+
 ## 1.107.3 (2025-09-15)
 
 Full Changelog: [v1.107.2...v1.107.3](https://github.com/openai/openai-python/compare/v1.107.2...v1.107.3)

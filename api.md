@@ -991,22 +991,17 @@ Types:
 ```python
 from openai.types.conversations import (
     ComputerScreenshotContent,
-    ContainerFileCitationBody,
     Conversation,
     ConversationDeleted,
     ConversationDeletedResource,
-    FileCitationBody,
-    InputFileContent,
-    InputImageContent,
-    InputTextContent,
-    LobProb,
     Message,
-    OutputTextContent,
-    RefusalContent,
     SummaryTextContent,
     TextContent,
-    TopLogProb,
-    URLCitationBody,
+    InputTextContent,
+    OutputTextContent,
+    RefusalContent,
+    InputImageContent,
+    InputFileContent,
 )
 ```
 
