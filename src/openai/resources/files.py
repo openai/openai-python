@@ -11,7 +11,7 @@ import httpx
 
 from .. import _legacy_response
 from ..types import FilePurpose, file_list_params, file_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
 from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -57,13 +57,13 @@ class Files(SyncAPIResource):
         *,
         file: FileTypes,
         purpose: FilePurpose,
-        expires_after: file_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
+        expires_after: file_create_params.ExpiresAfter | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """Upload a file that can be used across various endpoints.
 
@@ -139,7 +139,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """
         Returns information about a specific file.
@@ -166,16 +166,16 @@ class Files(SyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        purpose: str | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        purpose: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FileObject]:
         """Returns a list of files.
 
@@ -233,7 +233,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
         Delete a file.
@@ -266,7 +266,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Returns the contents of the specified file.
@@ -301,7 +301,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str:
         """
         Returns the contents of the specified file.
@@ -374,13 +374,13 @@ class AsyncFiles(AsyncAPIResource):
         *,
         file: FileTypes,
         purpose: FilePurpose,
-        expires_after: file_create_params.ExpiresAfter | NotGiven = NOT_GIVEN,
+        expires_after: file_create_params.ExpiresAfter | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """Upload a file that can be used across various endpoints.
 
@@ -456,7 +456,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileObject:
         """
         Returns information about a specific file.
@@ -483,16 +483,16 @@ class AsyncFiles(AsyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
-        purpose: str | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
+        purpose: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileObject, AsyncCursorPage[FileObject]]:
         """Returns a list of files.
 
@@ -550,7 +550,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
         Delete a file.
@@ -583,7 +583,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Returns the contents of the specified file.
@@ -618,7 +618,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str:
         """
         Returns the contents of the specified file.

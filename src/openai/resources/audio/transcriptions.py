@@ -10,7 +10,7 @@ import httpx
 
 from ... import _legacy_response
 from ...types import AudioResponseFormat
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
 from ..._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -57,19 +57,19 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        response_format: Union[Literal["json"], Omit] = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Transcription: ...
 
     @overload
@@ -78,19 +78,19 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
         response_format: Literal["verbose_json"],
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
     @overload
@@ -99,19 +99,19 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
         response_format: Literal["text", "srt", "vtt"],
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     @overload
@@ -121,19 +121,19 @@ class Transcriptions(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: Literal[True],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -209,19 +209,19 @@ class Transcriptions(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: bool,
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -296,20 +296,20 @@ class Transcriptions(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str | Transcription | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -374,20 +374,20 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[Literal["json"], Omit] = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse:
         """
         Transcribes audio into the input language.
@@ -457,19 +457,19 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
         response_format: Literal["verbose_json"],
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
     @overload
@@ -478,19 +478,19 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
         response_format: Literal["text", "srt", "vtt"],
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     @overload
@@ -500,19 +500,19 @@ class AsyncTranscriptions(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: Literal[True],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -588,19 +588,19 @@ class AsyncTranscriptions(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         stream: bool,
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -675,20 +675,20 @@ class AsyncTranscriptions(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | NotGiven = NOT_GIVEN,
-        include: List[TranscriptionInclude] | NotGiven = NOT_GIVEN,
-        language: str | NotGiven = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
-        timestamp_granularities: List[Literal["word", "segment"]] | NotGiven = NOT_GIVEN,
+        chunking_strategy: Optional[transcription_create_params.ChunkingStrategy] | Omit = omit,
+        include: List[TranscriptionInclude] | Omit = omit,
+        language: str | Omit = omit,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        temperature: float | Omit = omit,
+        timestamp_granularities: List[Literal["word", "segment"]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Transcription | TranscriptionVerbose | str | AsyncStream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -764,9 +764,9 @@ class AsyncTranscriptionsWithStreamingResponse:
 
 
 def _get_response_format_type(
-    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven,
+    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit,
 ) -> type[Transcription | TranscriptionVerbose | str]:
-    if isinstance(response_format, NotGiven) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
+    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
         return Transcription
 
     if response_format == "json":
