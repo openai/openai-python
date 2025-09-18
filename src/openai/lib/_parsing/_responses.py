@@ -7,7 +7,7 @@ from typing_extensions import TypeVar, assert_never
 import pydantic
 
 from .._tools import ResponsesPydanticFunctionTool
-from ..._types import NotGiven
+from ..._types import Omit
 from ..._utils import is_given
 from ..._compat import PYDANTIC_V1, model_parse_json
 from ..._models import construct_type_unchecked
@@ -52,8 +52,8 @@ def type_to_text_format_param(type_: type) -> ResponseFormatTextConfigParam:
 
 def parse_response(
     *,
-    text_format: type[TextFormatT] | NotGiven,
-    input_tools: Iterable[ToolParam] | NotGiven | None,
+    text_format: type[TextFormatT] | Omit,
+    input_tools: Iterable[ToolParam] | Omit | None,
     response: Response | ParsedResponse[object],
 ) -> ParsedResponse[TextFormatT]:
     solved_t = solve_response_format_t(text_format)
@@ -130,7 +130,7 @@ def parse_response(
     )
 
 
-def parse_text(text: str, text_format: type[TextFormatT] | NotGiven) -> TextFormatT | None:
+def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
     if not is_given(text_format):
         return None
 
@@ -156,7 +156,7 @@ def get_input_tool_by_name(*, input_tools: Iterable[ToolParam], name: str) -> Fu
 
 def parse_function_tool_arguments(
     *,
-    input_tools: Iterable[ToolParam] | NotGiven | None,
+    input_tools: Iterable[ToolParam] | Omit | None,
     function_call: ParsedResponseFunctionToolCall | ResponseFunctionToolCall,
 ) -> object:
     if input_tools is None or not is_given(input_tools):

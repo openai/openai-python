@@ -9,7 +9,7 @@ import httpx
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
 from ..._utils import is_given, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -50,14 +50,14 @@ class Files(SyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
@@ -115,7 +115,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -153,7 +153,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -191,17 +191,17 @@ class Files(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        filter: Literal["in_progress", "completed", "failed", "cancelled"] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        filter: Literal["in_progress", "completed", "failed", "cancelled"] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files.
@@ -268,7 +268,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
@@ -304,9 +304,9 @@ class Files(SyncAPIResource):
         file_id: str,
         *,
         vector_store_id: str,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         self.create(
@@ -324,7 +324,7 @@ class Files(SyncAPIResource):
         file_id: str,
         *,
         vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
@@ -365,7 +365,7 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Upload a file to the `files` API and then attach it to the given vector store.
 
@@ -380,9 +380,9 @@ class Files(SyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
         file_obj = self._client.files.create(file=file, purpose="assistants")
@@ -404,7 +404,7 @@ class Files(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncPage[FileContentResponse]:
         """
         Retrieve the parsed contents of a vector store file.
@@ -458,14 +458,14 @@ class AsyncFiles(AsyncAPIResource):
         vector_store_id: str,
         *,
         file_id: str,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Create a vector store file by attaching a
@@ -523,7 +523,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Retrieves a vector store file.
@@ -561,7 +561,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """
         Update attributes on a vector store file.
@@ -599,17 +599,17 @@ class AsyncFiles(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        filter: Literal["in_progress", "completed", "failed", "cancelled"] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        filter: Literal["in_progress", "completed", "failed", "cancelled"] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files.
@@ -676,7 +676,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileDeleted:
         """Delete a vector store file.
 
@@ -712,9 +712,9 @@ class AsyncFiles(AsyncAPIResource):
         file_id: str,
         *,
         vector_store_id: str,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         await self.create(
@@ -732,7 +732,7 @@ class AsyncFiles(AsyncAPIResource):
         file_id: str,
         *,
         vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
     ) -> VectorStoreFile:
         """Wait for the vector store file to finish processing.
 
@@ -773,7 +773,7 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Upload a file to the `files` API and then attach it to the given vector store.
 
@@ -790,9 +790,9 @@ class AsyncFiles(AsyncAPIResource):
         *,
         vector_store_id: str,
         file: FileTypes,
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFile:
         """Add a file to a vector store and poll until processing is complete."""
         file_obj = await self._client.files.create(file=file, purpose="assistants")
@@ -814,7 +814,7 @@ class AsyncFiles(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FileContentResponse, AsyncPage[FileContentResponse]]:
         """
         Retrieve the parsed contents of a vector store file.

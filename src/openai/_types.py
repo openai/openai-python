@@ -118,18 +118,21 @@ class RequestOptions(TypedDict, total=False):
 # Sentinel class used until PEP 0661 is accepted
 class NotGiven:
     """
-    A sentinel singleton class used to distinguish omitted keyword arguments
-    from those passed in with the value None (which may have different behavior).
+    For parameters with a meaningful None value, we need to distinguish between
+    the user explicitly passing None, and the user not passing the parameter at
+    all.
+
+    User code shouldn't need to use not_given directly.
 
     For example:
 
     ```py
-    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
+    def create(timeout: Timeout | None | NotGiven = not_given): ...
 
 
-    get(timeout=1)  # 1s timeout
-    get(timeout=None)  # No timeout
-    get()  # Default timeout behavior, which may not be statically known at the method definition.
+    create(timeout=1)  # 1s timeout
+    create(timeout=None)  # No timeout
+    create()  # Default timeout behavior
     ```
     """
 
@@ -141,13 +144,14 @@ class NotGiven:
         return "NOT_GIVEN"
 
 
-NotGivenOr = Union[_T, NotGiven]
+not_given = NotGiven()
+# for backwards compatibility:
 NOT_GIVEN = NotGiven()
 
 
 class Omit:
-    """In certain situations you need to be able to represent a case where a default value has
-    to be explicitly removed and `None` is not an appropriate substitute, for example:
+    """
+    To explicitly omit something from being sent in a request, use `omit`.
 
     ```py
     # as the default `Content-Type` header is `application/json` that will be sent
@@ -157,13 +161,18 @@ class Omit:
     # to look something like: 'multipart/form-data; boundary=0d8382fcf5f8c3be01ca2e11002d2983'
     client.post(..., headers={"Content-Type": "multipart/form-data"})
 
-    # instead you can remove the default `application/json` header by passing Omit
-    client.post(..., headers={"Content-Type": Omit()})
+    # instead you can remove the default `application/json` header by passing omit
+    client.post(..., headers={"Content-Type": omit})
     ```
     """
 
     def __bool__(self) -> Literal[False]:
         return False
+
+
+omit = Omit()
+
+Omittable = Union[_T, Omit]
 
 
 @runtime_checkable

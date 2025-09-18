@@ -36,6 +36,7 @@ WebSearchTool = web_search_tool_param.WebSearchToolParam
 WebSearchToolFilters = web_search_tool_param.Filters
 WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
+
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.

@@ -9,7 +9,7 @@ from typing_extensions import Literal, overload, assert_never
 import httpx
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
 from ..._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -52,15 +52,15 @@ class Translations(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        response_format: Union[Literal["json"], Omit] = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Translation: ...
 
     @overload
@@ -70,14 +70,14 @@ class Translations(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         response_format: Literal["verbose_json"],
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranslationVerbose: ...
 
     @overload
@@ -87,14 +87,14 @@ class Translations(SyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         response_format: Literal["text", "srt", "vtt"],
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     def create(
@@ -102,15 +102,15 @@ class Translations(SyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[Literal["json", "text", "srt", "verbose_json", "vtt"], NotGiven] = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        prompt: str | Omit = omit,
+        response_format: Union[Literal["json", "text", "srt", "verbose_json", "vtt"], Omit] = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
@@ -195,15 +195,15 @@ class AsyncTranslations(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        response_format: Union[Literal["json"], NotGiven] = NOT_GIVEN,
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        response_format: Union[Literal["json"], Omit] = omit,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Translation: ...
 
     @overload
@@ -213,14 +213,14 @@ class AsyncTranslations(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         response_format: Literal["verbose_json"],
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranslationVerbose: ...
 
     @overload
@@ -230,14 +230,14 @@ class AsyncTranslations(AsyncAPIResource):
         file: FileTypes,
         model: Union[str, AudioModel],
         response_format: Literal["text", "srt", "vtt"],
-        prompt: str | NotGiven = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        prompt: str | Omit = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     async def create(
@@ -245,15 +245,15 @@ class AsyncTranslations(AsyncAPIResource):
         *,
         file: FileTypes,
         model: Union[str, AudioModel],
-        prompt: str | NotGiven = NOT_GIVEN,
-        response_format: Union[AudioResponseFormat, NotGiven] = NOT_GIVEN,
-        temperature: float | NotGiven = NOT_GIVEN,
+        prompt: str | Omit = omit,
+        response_format: Union[AudioResponseFormat, Omit] = omit,
+        temperature: float | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Translation | TranslationVerbose | str:
         """
         Translates audio into English.
@@ -349,9 +349,9 @@ class AsyncTranslationsWithStreamingResponse:
 
 
 def _get_response_format_type(
-    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | NotGiven,
+    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
-    if isinstance(response_format, NotGiven) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
+    if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
         return Translation
 
     if response_format == "json":

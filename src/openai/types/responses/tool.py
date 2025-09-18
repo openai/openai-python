@@ -34,6 +34,7 @@ __all__ = [
 WebSearchToolFilters = web_search_tool.Filters
 WebSearchToolUserLocation = web_search_tool.UserLocation
 
+
 class McpAllowedToolsMcpToolFilter(BaseModel):
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
