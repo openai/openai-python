@@ -21,7 +21,7 @@ from typing_extensions import TypeGuard
 
 import sniffio
 
-from .._types import NotGiven, FileTypes, NotGivenOr, HeadersLike
+from .._types import Omit, NotGiven, FileTypes, HeadersLike
 
 _T = TypeVar("_T")
 _TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
@@ -63,7 +63,7 @@ def _extract_items(
     try:
         key = path[index]
     except IndexError:
-        if isinstance(obj, NotGiven):
+        if not is_given(obj):
             # no value was provided - we can safely ignore
             return []
 
@@ -126,8 +126,8 @@ def _extract_items(
     return []
 
 
-def is_given(obj: NotGivenOr[_T]) -> TypeGuard[_T]:
-    return not isinstance(obj, NotGiven)
+def is_given(obj: _T | NotGiven | Omit) -> TypeGuard[_T]:
+    return not isinstance(obj, NotGiven) and not isinstance(obj, Omit)
 
 
 # Type safe methods for narrowing types with TypeVars.

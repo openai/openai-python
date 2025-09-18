@@ -268,7 +268,7 @@ def _transform_typeddict(
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
         if not is_given(value):
-            # we don't need to include `NotGiven` values here as they'll
+            # we don't need to include omitted values here as they'll
             # be stripped out before the request is sent anyway
             continue
 
@@ -434,7 +434,7 @@ async def _async_transform_typeddict(
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
         if not is_given(value):
-            # we don't need to include `NotGiven` values here as they'll
+            # we don't need to include omitted values here as they'll
             # be stripped out before the request is sent anyway
             continue
 

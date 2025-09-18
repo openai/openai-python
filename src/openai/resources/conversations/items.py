@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -50,13 +50,13 @@ class Items(SyncAPIResource):
         conversation_id: str,
         *,
         items: Iterable[ResponseInputItemParam],
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationItemList:
         """
         Create items in a conversation with the given ID.
@@ -96,13 +96,13 @@ class Items(SyncAPIResource):
         item_id: str,
         *,
         conversation_id: str,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationItem:
         """
         Get a single item from a conversation with the given IDs.
@@ -143,16 +143,16 @@ class Items(SyncAPIResource):
         self,
         conversation_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        include: List[ResponseIncludable] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ConversationItem]:
         """
         List all items for a conversation with the given ID.
@@ -228,7 +228,7 @@ class Items(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Delete an item from a conversation with the given IDs.
@@ -280,13 +280,13 @@ class AsyncItems(AsyncAPIResource):
         conversation_id: str,
         *,
         items: Iterable[ResponseInputItemParam],
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationItemList:
         """
         Create items in a conversation with the given ID.
@@ -326,13 +326,13 @@ class AsyncItems(AsyncAPIResource):
         item_id: str,
         *,
         conversation_id: str,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
+        include: List[ResponseIncludable] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationItem:
         """
         Get a single item from a conversation with the given IDs.
@@ -373,16 +373,16 @@ class AsyncItems(AsyncAPIResource):
         self,
         conversation_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        include: List[ResponseIncludable] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ConversationItem, AsyncConversationCursorPage[ConversationItem]]:
         """
         List all items for a conversation with the given ID.
@@ -458,7 +458,7 @@ class AsyncItems(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Delete an item from a conversation with the given IDs.
