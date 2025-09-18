@@ -113,9 +113,12 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
     """
 
     reasoning_effort: Optional[ReasoningEffort]
-    """Optional reasoning effort parameter.
-
-    This is a query parameter used to select responses.
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
     """
 
     temperature: Optional[float]
@@ -248,6 +251,15 @@ class DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText(TypedDict, to
 class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=False):
     max_completion_tokens: int
     """The maximum number of tokens in the generated output."""
+
+    reasoning_effort: Optional[ReasoningEffort]
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+    """
 
     seed: int
     """A seed value to initialize the randomness, during sampling."""

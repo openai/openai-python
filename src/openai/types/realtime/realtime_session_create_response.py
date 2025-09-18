@@ -429,8 +429,8 @@ class RealtimeSessionCreateResponse(BaseModel):
     """
 
     prompt: Optional[ResponsePrompt] = None
-    """Reference to a prompt template and its variables.
-
+    """
+    Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
