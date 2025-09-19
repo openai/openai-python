@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.108.1 (2025-09-19)
+
+Full Changelog: [v1.108.0...v1.108.1](https://github.com/openai/openai-python/compare/v1.108.0...v1.108.1)
+
+### Features
+
+* **api:** add reasoning_text ([18d8e12](https://github.com/openai/openai-python/commit/18d8e12061d1fd4e09d24986ff6e38c5063013e9))
+
+
+### Chores
+
+* **types:** change optional parameter type from NotGiven to Omit ([acc190a](https://github.com/openai/openai-python/commit/acc190a29526e64db6074e7f21aca800423c128c))
+
 ## 1.108.0 (2025-09-17)
 
 Full Changelog: [v1.107.3...v1.108.0](https://github.com/openai/openai-python/compare/v1.107.3...v1.108.0)
