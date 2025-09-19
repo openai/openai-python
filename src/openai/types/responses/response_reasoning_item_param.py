@@ -18,10 +18,10 @@ class Summary(TypedDict, total=False):
 
 class Content(TypedDict, total=False):
     text: Required[str]
-    """Reasoning text output from the model."""
+    """The reasoning text from the model."""
 
     type: Required[Literal["reasoning_text"]]
-    """The type of the object. Always `reasoning_text`."""
+    """The type of the reasoning text. Always `reasoning_text`."""
 
 
 class ResponseReasoningItemParam(TypedDict, total=False):

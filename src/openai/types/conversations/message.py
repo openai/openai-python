@@ -14,7 +14,16 @@ from ..responses.response_input_image import ResponseInputImage
 from ..responses.response_output_text import ResponseOutputText
 from ..responses.response_output_refusal import ResponseOutputRefusal
 
-__all__ = ["Message", "Content"]
+__all__ = ["Message", "Content", "ContentReasoningText"]
+
+
+class ContentReasoningText(BaseModel):
+    text: str
+    """The reasoning text from the model."""
+
+    type: Literal["reasoning_text"]
+    """The type of the reasoning text. Always `reasoning_text`."""
+
 
 Content: TypeAlias = Annotated[
     Union[
@@ -22,6 +31,7 @@ Content: TypeAlias = Annotated[
         ResponseOutputText,
         TextContent,
         SummaryTextContent,
+        ContentReasoningText,
         ResponseOutputRefusal,
         ResponseInputImage,
         ComputerScreenshotContent,
