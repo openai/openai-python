@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.108.2 (2025-09-20)
+
+Full Changelog: [v1.108.1...v1.108.2](https://github.com/openai/openai-python/compare/v1.108.1...v1.108.2)
+
+### Chores
+
+* do not install brew dependencies in ./scripts/bootstrap by default ([6764b00](https://github.com/openai/openai-python/commit/6764b00bcb8aeab41e73d2fcaf6c7a18ea9f7909))
+
 ## 1.108.1 (2025-09-19)
 
 Full Changelog: [v1.108.0...v1.108.1](https://github.com/openai/openai-python/compare/v1.108.0...v1.108.1)
