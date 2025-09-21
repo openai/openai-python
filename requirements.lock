@@ -22,8 +22,7 @@ annotated-types==0.6.0
 anyio==4.1.0
     # via httpx
     # via openai
-async-timeout==5.0.1
-    # via aiohttp
+    # via starlette
 attrs==25.3.0
     # via aiohttp
 certifi==2023.7.22
@@ -33,8 +32,6 @@ cffi==1.17.1
     # via sounddevice
 distro==1.8.0
     # via openai
-exceptiongroup==1.2.2
-    # via anyio
 frozenlist==1.7.0
     # via aiohttp
     # via aiosignal
@@ -84,15 +81,17 @@ sniffio==1.3.0
     # via openai
 sounddevice==0.5.1
     # via openai
+starlette==0.48.0
+    # via openai
 tqdm==4.66.5
     # via openai
 types-pytz==2024.2.0.20241003
     # via pandas-stubs
 typing-extensions==4.12.2
-    # via multidict
     # via openai
     # via pydantic
     # via pydantic-core
+    # via starlette
 tzdata==2024.1
     # via pandas
 websockets==15.0.1

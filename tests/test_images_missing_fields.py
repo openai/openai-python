@@ -1,6 +1,8 @@
 import httpx
 import pytest
+
 from openai import AsyncOpenAI, DefaultAsyncHttpxClient
+
 
 @pytest.mark.anyio
 async def test_images_generate_includes_content_filter_results_async():

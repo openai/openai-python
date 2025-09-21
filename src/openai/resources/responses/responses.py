@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, List, Type, Union, Iterable, Optional, cast
+from typing import Any, List, Type, Union, Iterable, Optional, AsyncIterator, AsyncContextManager, cast
 from functools import partial
 from typing_extensions import Literal, overload
 
@@ -895,7 +895,7 @@ class Responses(SyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
@@ -1057,7 +1057,7 @@ class Responses(SyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,
@@ -2263,12 +2263,13 @@ class AsyncResponses(AsyncAPIResource):
         text_format: type[TextFormatT] | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
+        unified: bool = False,
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncResponseStreamManager[TextFormatT]: ...
+    ) -> AsyncResponseStreamManager[TextFormatT] | AsyncContextManager[AsyncIterator[Any]]: ...
 
     @overload
     def stream(
@@ -2289,18 +2290,19 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
+        unified: bool = False,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncResponseStreamManager[TextFormatT]: ...
+    ) -> AsyncResponseStreamManager[TextFormatT] | AsyncContextManager[AsyncIterator[Any]]: ...
 
     def stream(
         self,
@@ -2321,19 +2323,20 @@ class AsyncResponses(AsyncAPIResource):
         store: Optional[bool] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         top_p: Optional[float] | NotGiven = NOT_GIVEN,
         truncation: Optional[Literal["auto", "disabled"]] | NotGiven = NOT_GIVEN,
         user: str | NotGiven = NOT_GIVEN,
         starting_after: int | NotGiven = NOT_GIVEN,
+        unified: bool = False,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncResponseStreamManager[TextFormatT]:
+    ) -> AsyncResponseStreamManager[TextFormatT] | AsyncContextManager[AsyncIterator[Any]]:
         new_response_args = {
             "input": input,
             "model": model,
@@ -2405,7 +2408,7 @@ class AsyncResponses(AsyncAPIResource):
                 timeout=timeout,
             )
 
-            return AsyncResponseStreamManager(
+            manager: AsyncResponseStreamManager[TextFormatT] = AsyncResponseStreamManager(
                 api_request,
                 text_format=text_format,
                 input_tools=tools,
@@ -2424,12 +2427,19 @@ class AsyncResponses(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
             )
-            return AsyncResponseStreamManager(
+            manager = AsyncResponseStreamManager(
                 api_request,
                 text_format=text_format,
                 input_tools=tools,
                 starting_after=starting_after if is_given(starting_after) else None,
             )
+
+        if not unified:
+            return manager
+
+        from openai._streaming import _wrap_unified, ResponsesEventAdapter
+
+        return _wrap_unified(manager, ResponsesEventAdapter.adapt)
 
     async def parse(
         self,
@@ -2455,7 +2465,7 @@ class AsyncResponses(AsyncAPIResource):
         stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
         stream_options: Optional[response_create_params.StreamOptions] | NotGiven = NOT_GIVEN,
         temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        text: ResponseTextConfigParam| NotGiven = NOT_GIVEN,
+        text: ResponseTextConfigParam | NotGiven = NOT_GIVEN,
         tool_choice: response_create_params.ToolChoice | NotGiven = NOT_GIVEN,
         tools: Iterable[ParseableToolParam] | NotGiven = NOT_GIVEN,
         top_logprobs: Optional[int] | NotGiven = NOT_GIVEN,

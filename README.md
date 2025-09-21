@@ -376,7 +376,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-response = client.responses.create( 
+response = client.responses.create(
     input=[
         {
             "role": "user",

@@ -9,7 +9,6 @@ from respx import MockRouter
 
 from openai import OpenAI
 
-
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
@@ -39,4 +38,3 @@ def test_retry_after_header_is_respected(respx_mock: MockRouter, client: OpenAI)
 
     assert response.retries_taken == 1
     assert int(response.http_request.headers.get("x-stainless-retry-count")) == 1
-

@@ -1,4 +1,3 @@
-
 #!/usr/bin/env -S rye run python
 import asyncio
 from openai import AsyncOpenAI
@@ -18,4 +17,3 @@ async def main() -> None:
 
 if __name__ == "__main__":
     asyncio.run(main())
-

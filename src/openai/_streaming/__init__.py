@@ -9,11 +9,11 @@ from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, r
 
 import httpx
 
-from ._utils import is_mapping, extract_type_var_from_base
-from ._exceptions import APIError
+from .._utils import is_mapping, extract_type_var_from_base
+from .._exceptions import APIError
 
 if TYPE_CHECKING:
-    from ._client import OpenAI, AsyncOpenAI
+    from .._client import OpenAI, AsyncOpenAI
 
 
 _T = TypeVar("_T")
@@ -400,7 +400,7 @@ def extract_stream_chunk_type(
     extract_stream_chunk_type(MyStream) -> bytes
     ```
     """
-    from ._base_client import Stream, AsyncStream
+    from .._base_client import Stream, AsyncStream
 
     return extract_type_var_from_base(
         stream_cls,
@@ -408,3 +408,19 @@ def extract_stream_chunk_type(
         generic_bases=cast("tuple[type, ...]", (Stream, AsyncStream)),
         failure_message=failure_message,
     )
+
+
+from .unified import StreamEvent, extract_text
+from .adapters import ResponsesEventAdapter, ChatCompletionsEventAdapter
+from .wrap import _wrap_unified
+
+
+__all__ = [
+    "Stream",
+    "AsyncStream",
+    "StreamEvent",
+    "extract_text",
+    "ResponsesEventAdapter",
+    "ChatCompletionsEventAdapter",
+    "_wrap_unified",
+]

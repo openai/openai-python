@@ -22,12 +22,11 @@ annotated-types==0.6.0
 anyio==4.1.0
     # via httpx
     # via openai
+    # via starlette
 argcomplete==3.1.2
     # via nox
 asttokens==2.4.1
     # via inline-snapshot
-async-timeout==5.0.1
-    # via aiohttp
 attrs==24.2.0
     # via aiohttp
     # via outcome
@@ -57,10 +56,6 @@ distlib==0.3.7
     # via virtualenv
 distro==1.8.0
     # via openai
-exceptiongroup==1.2.2
-    # via anyio
-    # via pytest
-    # via trio
 execnet==2.1.1
     # via pytest-xdist
 executing==2.2.0
@@ -146,7 +141,7 @@ pygments==2.18.0
 pyjwt==2.8.0
     # via msal
 pyright==1.1.399
-pytest==8.4.1
+pytest==8.4.2
     # via inline-snapshot
     # via pytest-asyncio
     # via pytest-xdist
@@ -179,11 +174,9 @@ sortedcontainers==2.4.0
     # via trio
 sounddevice==0.5.1
     # via openai
+starlette==0.48.0
+    # via openai
 time-machine==2.9.0
-tomli==2.0.2
-    # via inline-snapshot
-    # via mypy
-    # via pytest
 tqdm==4.66.5
     # via openai
 trio==0.27.0
@@ -194,12 +187,12 @@ types-tqdm==4.66.0.20240417
 typing-extensions==4.12.2
     # via azure-core
     # via azure-identity
-    # via multidict
     # via mypy
     # via openai
     # via pydantic
     # via pydantic-core
     # via pyright
+    # via starlette
 tzdata==2024.1
     # via pandas
 urllib3==2.2.1

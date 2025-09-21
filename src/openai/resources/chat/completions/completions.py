@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import inspect
-from typing import Dict, List, Type, Union, Iterable, Optional, cast
 from functools import partial
+from typing import Any, Dict, List, Type, Union, Iterable, Optional, AsyncIterator, AsyncContextManager, cast
+
 from typing_extensions import Literal, overload
 
 import httpx
@@ -2847,13 +2848,14 @@ class AsyncCompletions(AsyncAPIResource):
         user: str | NotGiven = NOT_GIVEN,
         verbosity: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
         web_search_options: completion_create_params.WebSearchOptions | NotGiven = NOT_GIVEN,
+        unified: bool = False,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    ) -> AsyncChatCompletionStreamManager[ResponseFormatT]:
+    ) -> AsyncChatCompletionStreamManager[ResponseFormatT] | AsyncContextManager[AsyncIterator[Any]]:
         """Wrapper over the `client.chat.completions.create(stream=True)` method that provides a more granular event API
         and automatic accumulation of each delta.
 
@@ -2923,11 +2925,18 @@ class AsyncCompletions(AsyncAPIResource):
             extra_body=extra_body,
             timeout=timeout,
         )
-        return AsyncChatCompletionStreamManager(
+        manager: AsyncChatCompletionStreamManager[ResponseFormatT] = AsyncChatCompletionStreamManager(
             api_request,
             response_format=response_format,
             input_tools=tools,
         )
+
+        if not unified:
+            return manager
+
+        from openai._streaming import _wrap_unified, ChatCompletionsEventAdapter
+
+        return _wrap_unified(manager, ChatCompletionsEventAdapter.adapt)
 
 
 class CompletionsWithRawResponse:
@@ -3040,8 +3049,6 @@ class AsyncCompletionsWithStreamingResponse:
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
         return AsyncMessagesWithStreamingResponse(self._completions.messages)
-
-
 def validate_response_format(response_format: object) -> None:
     if inspect.isclass(response_format) and issubclass(response_format, pydantic.BaseModel):
         raise TypeError(
