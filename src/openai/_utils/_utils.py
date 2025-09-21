@@ -23,6 +23,7 @@ from typing_extensions import TypeGuard
 import sniffio
 
 from .._types import NotGiven, FileTypes, NotGivenOr, HeadersLike
+from ._streams import consume_sync_iterator, consume_async_iterator
 
 _T = TypeVar("_T")
 _TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
