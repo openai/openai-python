@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.108.2 (2025-09-22)
+
+Full Changelog: [v1.108.1...v1.108.2](https://github.com/openai/openai-python/compare/v1.108.1...v1.108.2)
+
+### Bug Fixes
+
+* **api:** fix mcp tool name ([fd1c673](https://github.com/openai/openai-python/commit/fd1c673fa8d5581b38c69c37aa4fd1fd251259a2))
+
+
+### Chores
+
+* **api:** openapi updates for conversations ([3224f6f](https://github.com/openai/openai-python/commit/3224f6f9b4221b954a8f63de66bcaab389164ee5))
+* do not install brew dependencies in ./scripts/bootstrap by default ([6764b00](https://github.com/openai/openai-python/commit/6764b00bcb8aeab41e73d2fcaf6c7a18ea9f7909))
+* improve example values ([20b58e1](https://github.com/openai/openai-python/commit/20b58e164f9f28b9fc562968263fa3eacc6f5c7c))
+
 ## 1.108.1 (2025-09-19)
 
 Full Changelog: [v1.108.0...v1.108.1](https://github.com/openai/openai-python/compare/v1.108.0...v1.108.1)
