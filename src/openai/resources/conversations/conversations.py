@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, Optional
+from typing import Iterable, Optional
 
 import httpx
 
@@ -115,7 +115,7 @@ class Conversations(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Get a conversation with the given ID.
+        Get a conversation
 
         Args:
           extra_headers: Send extra headers
@@ -140,7 +140,7 @@ class Conversations(SyncAPIResource):
         self,
         conversation_id: str,
         *,
-        metadata: Dict[str, str],
+        metadata: Optional[Metadata],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -149,14 +149,15 @@ class Conversations(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Update a conversation's metadata with the given ID.
+        Update a conversation
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard. Keys are strings with a maximum
-              length of 64 characters. Values are strings with a maximum length of 512
-              characters.
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -188,8 +189,9 @@ class Conversations(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
-        """
-        Delete a conversation with the given ID.
+        """Delete a conversation.
+
+        Items in the conversation will not be deleted.
 
         Args:
           extra_headers: Send extra headers
@@ -296,7 +298,7 @@ class AsyncConversations(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Get a conversation with the given ID.
+        Get a conversation
 
         Args:
           extra_headers: Send extra headers
@@ -321,7 +323,7 @@ class AsyncConversations(AsyncAPIResource):
         self,
         conversation_id: str,
         *,
-        metadata: Dict[str, str],
+        metadata: Optional[Metadata],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -330,14 +332,15 @@ class AsyncConversations(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Update a conversation's metadata with the given ID.
+        Update a conversation
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard. Keys are strings with a maximum
-              length of 64 characters. Values are strings with a maximum length of 512
-              characters.
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -371,8 +374,9 @@ class AsyncConversations(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
-        """
-        Delete a conversation with the given ID.
+        """Delete a conversation.
+
+        Items in the conversation will not be deleted.
 
         Args:
           extra_headers: Send extra headers
