@@ -30,6 +30,7 @@ class TestItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "type": "message",
                 }
             ],
         )
@@ -58,6 +59,7 @@ class TestItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "type": "message",
                 }
             ],
         )
@@ -75,6 +77,7 @@ class TestItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "type": "message",
                 }
             ],
         ) as response:
@@ -95,6 +98,7 @@ class TestItems:
                     {
                         "content": "string",
                         "role": "user",
+                        "type": "message",
                     }
                 ],
             )
@@ -267,6 +271,7 @@ class TestAsyncItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "type": "message",
                 }
             ],
         )
@@ -295,6 +300,7 @@ class TestAsyncItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "type": "message",
                 }
             ],
         )
@@ -312,6 +318,7 @@ class TestAsyncItems:
                 {
                     "content": "string",
                     "role": "user",
+                    "type": "message",
                 }
             ],
         ) as response:
@@ -332,6 +339,7 @@ class TestAsyncItems:
                     {
                         "content": "string",
                         "role": "user",
+                        "type": "message",
                     }
                 ],
             )
