@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.109.0 (2025-09-23)
+
+Full Changelog: [v1.108.2...v1.109.0](https://github.com/openai/openai-python/compare/v1.108.2...v1.109.0)
+
+### Features
+
+* **api:** gpt-5-codex ([34502b5](https://github.com/openai/openai-python/commit/34502b5a175f8a10ea8694fcea38fe7308de89ef))
+
 ## 1.108.2 (2025-09-22)
 
 Full Changelog: [v1.108.1...v1.108.2](https://github.com/openai/openai-python/compare/v1.108.1...v1.108.2)
