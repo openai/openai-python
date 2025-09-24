@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.109.1 (2025-09-24)
+
+Full Changelog: [v1.109.0...v1.109.1](https://github.com/openai/openai-python/compare/v1.109.0...v1.109.1)
+
+### Bug Fixes
+
+* **compat:** compat with `pydantic&lt;2.8.0` when using additional fields ([5d95ecf](https://github.com/openai/openai-python/commit/5d95ecf7abd65f3e4e273be14c80f9b4cd91ffe8))
+
 ## 1.109.0 (2025-09-23)
 
 Full Changelog: [v1.108.2...v1.109.0](https://github.com/openai/openai-python/compare/v1.108.2...v1.109.0)
