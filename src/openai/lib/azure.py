@@ -230,6 +230,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             if azure_endpoint is not None:
                 raise ValueError("base_url and azure_endpoint are mutually exclusive")
 
+        # if base url does not start with https, we should add it
+        if not base_url.startswith("https://"):
+            base_url = f"https://{base_url}"
+
         if api_key is None:
             # define a sentinel value to avoid any typing issues
             api_key = API_KEY_SENTINEL
@@ -510,6 +514,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         else:
             if azure_endpoint is not None:
                 raise ValueError("base_url and azure_endpoint are mutually exclusive")
+
+        # if base url does not start with https, we should add it
+        if not base_url.startswith("https://"):
+            base_url = f"https://{base_url}"
 
         if api_key is None:
             # define a sentinel value to avoid any typing issues
