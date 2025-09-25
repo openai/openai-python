@@ -464,8 +464,8 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         # Copied from httpx's `_merge_url` method.
         merge_url = URL(url)
         if merge_url.is_relative_url:
-            merge_raw_path = self.base_url.raw_path + merge_url.raw_path.lstrip(b"/")
-            return self.base_url.copy_with(raw_path=merge_raw_path)
+            merge_raw_path = self._base_url.raw_path + merge_url.raw_path.lstrip(b"/")
+            return self._base_url.copy_with(raw_path=merge_raw_path)
 
         return merge_url
 
