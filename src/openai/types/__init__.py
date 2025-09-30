@@ -31,6 +31,7 @@ from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
 from .audio_model import AudioModel as AudioModel
 from .batch_error import BatchError as BatchError
+from .batch_usage import BatchUsage as BatchUsage
 from .file_object import FileObject as FileObject
 from .image_model import ImageModel as ImageModel
 from .file_content import FileContent as FileContent
