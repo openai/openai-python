@@ -584,7 +584,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import Batch, BatchError, BatchRequestCounts
+from openai.types import Batch, BatchError, BatchRequestCounts, BatchUsage
 ```
 
 Methods:
@@ -666,6 +666,8 @@ from openai.types.responses import (
     ResponseFormatTextJSONSchemaConfig,
     ResponseFunctionCallArgumentsDeltaEvent,
     ResponseFunctionCallArgumentsDoneEvent,
+    ResponseFunctionCallOutputItem,
+    ResponseFunctionCallOutputItemList,
     ResponseFunctionToolCall,
     ResponseFunctionToolCallItem,
     ResponseFunctionToolCallOutputItem,
@@ -681,11 +683,14 @@ from openai.types.responses import (
     ResponseInputAudio,
     ResponseInputContent,
     ResponseInputFile,
+    ResponseInputFileContent,
     ResponseInputImage,
+    ResponseInputImageContent,
     ResponseInputItem,
     ResponseInputMessageContentList,
     ResponseInputMessageItem,
     ResponseInputText,
+    ResponseInputTextContent,
     ResponseItem,
     ResponseMcpCallArgumentsDeltaEvent,
     ResponseMcpCallArgumentsDoneEvent,
