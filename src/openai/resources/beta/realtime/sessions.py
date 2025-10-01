@@ -51,6 +51,8 @@ class Sessions(SyncAPIResource):
         max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
         modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
         model: Literal[
+            "gpt-realtime",
+            "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
@@ -233,6 +235,8 @@ class AsyncSessions(AsyncAPIResource):
         max_response_output_tokens: Union[int, Literal["inf"]] | NotGiven = NOT_GIVEN,
         modalities: List[Literal["text", "audio"]] | NotGiven = NOT_GIVEN,
         model: Literal[
+            "gpt-realtime",
+            "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
             "gpt-4o-realtime-preview-2024-12-17",
