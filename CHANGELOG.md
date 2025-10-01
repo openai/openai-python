@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.0.1 (2025-10-01)
+
+Full Changelog: [v2.0.0...v2.0.1](https://github.com/openai/openai-python/compare/v2.0.0...v2.0.1)
+
+### Bug Fixes
+
+* **api:** add status, approval_request_id to MCP tool call ([2a02255](https://github.com/openai/openai-python/commit/2a022553f83b636defcfda3b1c6f4b12d901357b))
+
 ## 2.0.0 (2025-09-30)
 
 Full Changelog: [v1.109.1...v2.0.0](https://github.com/openai/openai-python/compare/v1.109.1...v2.0.0)
