@@ -177,11 +177,24 @@ class McpCall(BaseModel):
     type: Literal["mcp_call"]
     """The type of the item. Always `mcp_call`."""
 
+    approval_request_id: Optional[str] = None
+    """
+    Unique identifier for the MCP tool call approval request. Include this value in
+    a subsequent `mcp_approval_response` input to approve or reject the
+    corresponding tool call.
+    """
+
     error: Optional[str] = None
     """The error from the tool call, if any."""
 
     output: Optional[str] = None
     """The output from the tool call."""
+
+    status: Optional[Literal["in_progress", "completed", "incomplete", "calling", "failed"]] = None
+    """The status of the tool call.
+
+    One of `in_progress`, `completed`, `incomplete`, `calling`, or `failed`.
+    """
 
 
 ConversationItem: TypeAlias = Annotated[
