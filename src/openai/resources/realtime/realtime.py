@@ -11,6 +11,14 @@ from typing_extensions import AsyncIterator
 import httpx
 from pydantic import BaseModel
 
+from .calls import (
+    Calls,
+    AsyncCalls,
+    CallsWithRawResponse,
+    AsyncCallsWithRawResponse,
+    CallsWithStreamingResponse,
+    AsyncCallsWithStreamingResponse,
+)
 from ..._types import Omit, Query, Headers, omit
 from ..._utils import maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
@@ -51,6 +59,10 @@ class Realtime(SyncAPIResource):
         return ClientSecrets(self._client)
 
     @cached_property
+    def calls(self) -> Calls:
+        return Calls(self._client)
+
+    @cached_property
     def with_raw_response(self) -> RealtimeWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -72,7 +84,8 @@ class Realtime(SyncAPIResource):
     def connect(
         self,
         *,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebsocketConnectionOptions = {},
@@ -93,6 +106,7 @@ class Realtime(SyncAPIResource):
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
+            call_id=call_id,
             model=model,
         )
 
@@ -101,6 +115,10 @@ class AsyncRealtime(AsyncAPIResource):
     @cached_property
     def client_secrets(self) -> AsyncClientSecrets:
         return AsyncClientSecrets(self._client)
+
+    @cached_property
+    def calls(self) -> AsyncCalls:
+        return AsyncCalls(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncRealtimeWithRawResponse:
@@ -124,7 +142,8 @@ class AsyncRealtime(AsyncAPIResource):
     def connect(
         self,
         *,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebsocketConnectionOptions = {},
@@ -145,6 +164,7 @@ class AsyncRealtime(AsyncAPIResource):
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
+            call_id=call_id,
             model=model,
         )
 
@@ -157,6 +177,10 @@ class RealtimeWithRawResponse:
     def client_secrets(self) -> ClientSecretsWithRawResponse:
         return ClientSecretsWithRawResponse(self._realtime.client_secrets)
 
+    @cached_property
+    def calls(self) -> CallsWithRawResponse:
+        return CallsWithRawResponse(self._realtime.calls)
+
 
 class AsyncRealtimeWithRawResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -165,6 +189,10 @@ class AsyncRealtimeWithRawResponse:
     @cached_property
     def client_secrets(self) -> AsyncClientSecretsWithRawResponse:
         return AsyncClientSecretsWithRawResponse(self._realtime.client_secrets)
+
+    @cached_property
+    def calls(self) -> AsyncCallsWithRawResponse:
+        return AsyncCallsWithRawResponse(self._realtime.calls)
 
 
 class RealtimeWithStreamingResponse:
@@ -175,6 +203,10 @@ class RealtimeWithStreamingResponse:
     def client_secrets(self) -> ClientSecretsWithStreamingResponse:
         return ClientSecretsWithStreamingResponse(self._realtime.client_secrets)
 
+    @cached_property
+    def calls(self) -> CallsWithStreamingResponse:
+        return CallsWithStreamingResponse(self._realtime.calls)
+
 
 class AsyncRealtimeWithStreamingResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -183,6 +215,10 @@ class AsyncRealtimeWithStreamingResponse:
     @cached_property
     def client_secrets(self) -> AsyncClientSecretsWithStreamingResponse:
         return AsyncClientSecretsWithStreamingResponse(self._realtime.client_secrets)
+
+    @cached_property
+    def calls(self) -> AsyncCallsWithStreamingResponse:
+        return AsyncCallsWithStreamingResponse(self._realtime.calls)
 
 
 class AsyncRealtimeConnection:
@@ -284,12 +320,14 @@ class AsyncRealtimeConnectionManager:
         self,
         *,
         client: AsyncOpenAI,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebsocketConnectionOptions,
     ) -> None:
         self.__client = client
+        self.__call_id = call_id
         self.__model = model
         self.__connection: AsyncRealtimeConnection | None = None
         self.__extra_query = extra_query
@@ -317,6 +355,7 @@ class AsyncRealtimeConnectionManager:
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
+                "call_id": self.__call_id,
                 "model": self.__model,
                 **self.__extra_query,
             },
@@ -458,12 +497,14 @@ class RealtimeConnectionManager:
         self,
         *,
         client: OpenAI,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebsocketConnectionOptions,
     ) -> None:
         self.__client = client
+        self.__call_id = call_id
         self.__model = model
         self.__connection: RealtimeConnection | None = None
         self.__extra_query = extra_query
@@ -491,6 +532,7 @@ class RealtimeConnectionManager:
         url = self._prepare_url().copy_with(
             params={
                 **self.__client.base_url.params,
+                "call_id": self.__call_id,
                 "model": self.__model,
                 **self.__extra_query,
             },
