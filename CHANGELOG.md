@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.1.0 (2025-10-02)
+
+Full Changelog: [v2.0.1...v2.1.0](https://github.com/openai/openai-python/compare/v2.0.1...v2.1.0)
+
+### Features
+
+* **api:** add support for realtime calls ([7f7925b](https://github.com/openai/openai-python/commit/7f7925b4074ecbf879714698000e10fa0519d51a))
+
 ## 2.0.1 (2025-10-01)
 
 Full Changelog: [v2.0.0...v2.0.1](https://github.com/openai/openai-python/compare/v2.0.0...v2.0.1)
