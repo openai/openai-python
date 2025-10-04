@@ -14,12 +14,17 @@ from .tool_choice_mcp_param import ToolChoiceMcpParam
 from ..shared_params.metadata import Metadata
 from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
+from .tool_choice_custom_param import ToolChoiceCustomParam
+from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
+from .response_conversation_param import ResponseConversationParam
 from ..shared_params.responses_model import ResponsesModel
 
 __all__ = [
     "ResponseCreateParamsBase",
+    "Conversation",
+    "StreamOptions",
     "ToolChoice",
     "ResponseCreateParamsNonStreaming",
     "ResponseCreateParamsStreaming",
@@ -28,9 +33,17 @@ __all__ = [
 
 class ResponseCreateParamsBase(TypedDict, total=False):
     background: Optional[bool]
-    """Whether to run the model response in the background.
-
+    """
+    Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
+    conversation: Optional[Conversation]
+    """The conversation that this response belongs to.
+
+    Items from this conversation are prepended to `input_items` for this response
+    request. Input items and output items from this response are automatically added
+    to this conversation after this response completes.
     """
 
     include: Optional[List[ResponseIncludable]]
@@ -38,6 +51,8 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     Currently supported values are:
 
+    - `web_search_call.action.sources`: Include the sources of the web search tool
+      call.
     - `code_interpreter_call.outputs`: Includes the outputs of python code execution
       in code interpreter tool call items.
     - `computer_call_output.output.image_url`: Include image urls from the computer
@@ -115,11 +130,12 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     Use this to create multi-turn conversations. Learn more about
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePromptParam]
-    """Reference to a prompt template and its variables.
-
+    """
+    Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
@@ -131,7 +147,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
     reasoning: Optional[Reasoning]
-    """**o-series models only**
+    """**gpt-5 and o-series models only**
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -155,9 +171,8 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      'priority', then the request will be processed with the corresponding service
-      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-      Priority processing.
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -168,6 +183,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     store: Optional[bool]
     """Whether to store the generated model response for later retrieval via API."""
+
+    stream_options: Optional[StreamOptions]
+    """Options for streaming responses. Only set this when you set `stream: true`."""
 
     temperature: Optional[float]
     """What sampling temperature to use, between 0 and 2.
@@ -198,7 +216,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
 
     You can specify which tool to use by setting the `tool_choice` parameter.
 
-    The two categories of tools you can provide the model are:
+    We support the following categories of tools:
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
@@ -206,9 +224,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       [file search](https://platform.openai.com/docs/guides/tools-file-search).
       Learn more about
       [built-in tools](https://platform.openai.com/docs/guides/tools).
+    - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+      predefined connectors such as Google Drive and SharePoint. Learn more about
+      [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
-      the model to call your own code. Learn more about
+      the model to call your own code with strongly typed arguments and outputs.
+      Learn more about
       [function calling](https://platform.openai.com/docs/guides/function-calling).
+      You can also use custom tools to call your own code.
     """
 
     top_logprobs: Optional[int]
@@ -229,10 +252,10 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     truncation: Optional[Literal["auto", "disabled"]]
     """The truncation strategy to use for the model response.
 
-    - `auto`: If the context of this response and previous ones exceeds the model's
-      context window size, the model will truncate the response to fit the context
-      window by dropping input items in the middle of the conversation.
-    - `disabled` (default): If a model response will exceed the context window size
+    - `auto`: If the input to this Response exceeds the model's context window size,
+      the model will truncate the response to fit the context window by dropping
+      items from the beginning of the conversation.
+    - `disabled` (default): If the input size will exceed the context window size
       for a model, the request will fail with a 400 error.
     """
 
@@ -246,7 +269,30 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypesParam, ToolChoiceFunctionParam, ToolChoiceMcpParam]
+Conversation: TypeAlias = Union[str, ResponseConversationParam]
+
+
+class StreamOptions(TypedDict, total=False):
+    include_obfuscation: bool
+    """When true, stream obfuscation will be enabled.
+
+    Stream obfuscation adds random characters to an `obfuscation` field on streaming
+    delta events to normalize payload sizes as a mitigation to certain side-channel
+    attacks. These obfuscation fields are included by default, but add a small
+    amount of overhead to the data stream. You can set `include_obfuscation` to
+    false to optimize for bandwidth if you trust the network links between your
+    application and the OpenAI API.
+    """
+
+
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions,
+    ToolChoiceAllowedParam,
+    ToolChoiceTypesParam,
+    ToolChoiceFunctionParam,
+    ToolChoiceMcpParam,
+    ToolChoiceCustomParam,
+]
 
 
 class ResponseCreateParamsNonStreaming(ResponseCreateParamsBase, total=False):

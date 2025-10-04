@@ -36,13 +36,13 @@ jobs:
         run: ./scripts/lint
 
   build:
-    if: github.repository == 'stainless-sdks/openai-python' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     timeout-minutes: 10
     name: build
     permissions:
       contents: read
       id-token: write
-    runs-on: depot-ubuntu-24.04
+    runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -61,12 +61,14 @@ jobs:
         run: rye build
 
       - name: Get GitHub OIDC Token
+        if: github.repository == 'stainless-sdks/openai-python'
         id: github-oidc
         uses: actions/github-script@v6
         with:
           script: core.setOutput('github_token', await core.getIDToken());
 
       - name: Upload tarball
+        if: github.repository == 'stainless-sdks/openai-python'
         env:
           URL: https://pkg.stainless.com/s
           AUTH: ${{ steps.github-oidc.outputs.github_token }}

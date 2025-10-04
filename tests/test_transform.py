@@ -8,14 +8,14 @@ from typing_extensions import Required, Annotated, TypedDict
 
 import pytest
 
-from openai._types import NOT_GIVEN, Base64FileInput
+from openai._types import Base64FileInput, omit, not_given
 from openai._utils import (
     PropertyInfo,
     transform as _transform,
     parse_datetime,
     async_transform as _async_transform,
 )
-from openai._compat import PYDANTIC_V2
+from openai._compat import PYDANTIC_V1
 from openai._models import BaseModel
 
 _T = TypeVar("_T")
@@ -189,7 +189,7 @@ class DateModel(BaseModel):
 @pytest.mark.asyncio
 async def test_iso8601_format(use_async: bool) -> None:
     dt = datetime.fromisoformat("2023-02-23T14:16:36.337692+00:00")
-    tz = "Z" if PYDANTIC_V2 else "+00:00"
+    tz = "+00:00" if PYDANTIC_V1 else "Z"
     assert await transform({"foo": dt}, DatetimeDict, use_async) == {"foo": "2023-02-23T14:16:36.337692+00:00"}  # type: ignore[comparison-overlap]
     assert await transform(DatetimeModel(foo=dt), Any, use_async) == {"foo": "2023-02-23T14:16:36.337692" + tz}  # type: ignore[comparison-overlap]
 
@@ -297,11 +297,11 @@ async def test_pydantic_unknown_field(use_async: bool) -> None:
 @pytest.mark.asyncio
 async def test_pydantic_mismatched_types(use_async: bool) -> None:
     model = MyModel.construct(foo=True)
-    if PYDANTIC_V2:
+    if PYDANTIC_V1:
+        params = await transform(model, Any, use_async)
+    else:
         with pytest.warns(UserWarning):
             params = await transform(model, Any, use_async)
-    else:
-        params = await transform(model, Any, use_async)
     assert cast(Any, params) == {"foo": True}
 
 
@@ -309,11 +309,11 @@ async def test_pydantic_mismatched_types(use_async: bool) -> None:
 @pytest.mark.asyncio
 async def test_pydantic_mismatched_object_type(use_async: bool) -> None:
     model = MyModel.construct(foo=MyModel.construct(hello="world"))
-    if PYDANTIC_V2:
+    if PYDANTIC_V1:
+        params = await transform(model, Any, use_async)
+    else:
         with pytest.warns(UserWarning):
             params = await transform(model, Any, use_async)
-    else:
-        params = await transform(model, Any, use_async)
     assert cast(Any, params) == {"foo": {"hello": "world"}}
 
 
@@ -450,4 +450,11 @@ async def test_transform_skipping(use_async: bool) -> None:
 @pytest.mark.asyncio
 async def test_strips_notgiven(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
-    assert await transform({"foo_bar": NOT_GIVEN}, Foo1, use_async) == {}
+    assert await transform({"foo_bar": not_given}, Foo1, use_async) == {}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_strips_omit(use_async: bool) -> None:
+    assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
+    assert await transform({"foo_bar": omit}, Foo1, use_async) == {}

@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Union, Iterable, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..responses.tool_param import ToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text_param import ResponseInputTextParam
+from ..responses.response_input_audio_param import ResponseInputAudioParam
 from .create_eval_jsonl_run_data_source_param import CreateEvalJSONLRunDataSourceParam
 from ..responses.response_format_text_config_param import ResponseFormatTextConfigParam
 from .create_eval_completions_run_data_source_param import CreateEvalCompletionsRunDataSourceParam
@@ -111,21 +113,24 @@ class DataSourceCreateEvalResponsesRunDataSourceSourceResponses(TypedDict, total
     """
 
     reasoning_effort: Optional[ReasoningEffort]
-    """Optional reasoning effort parameter.
-
-    This is a query parameter used to select responses.
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
     """
 
     temperature: Optional[float]
     """Sampling temperature. This is a query parameter used to select responses."""
 
-    tools: Optional[List[str]]
+    tools: Optional[SequenceNotStr[str]]
     """List of tool names. This is a query parameter used to select responses."""
 
     top_p: Optional[float]
     """Nucleus sampling parameter. This is a query parameter used to select responses."""
 
-    users: Optional[List[str]]
+    users: Optional[SequenceNotStr[str]]
     """List of user identifiers. This is a query parameter used to select responses."""
 
 
@@ -175,6 +180,7 @@ DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemC
     ResponseInputTextParam,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudioParam,
     Iterable[object],
 ]
 
@@ -245,6 +251,15 @@ class DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText(TypedDict, to
 class DataSourceCreateEvalResponsesRunDataSourceSamplingParams(TypedDict, total=False):
     max_completion_tokens: int
     """The maximum number of tokens in the generated output."""
+
+    reasoning_effort: Optional[ReasoningEffort]
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+    """
 
     seed: int
     """A seed value to initialize the randomness, during sampling."""

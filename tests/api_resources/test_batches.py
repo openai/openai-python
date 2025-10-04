@@ -34,6 +34,10 @@ class TestBatches:
             endpoint="/v1/responses",
             input_file_id="string",
             metadata={"foo": "string"},
+            output_expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(Batch, batch, path=["response"])
 
@@ -196,6 +200,10 @@ class TestAsyncBatches:
             endpoint="/v1/responses",
             input_file_id="string",
             metadata={"foo": "string"},
+            output_expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(Batch, batch, path=["response"])
 

@@ -13,10 +13,21 @@ from typing import (
     Mapping,
     TypeVar,
     Callable,
+    Iterator,
     Optional,
     Sequence,
 )
-from typing_extensions import Set, Literal, Protocol, TypeAlias, TypedDict, override, runtime_checkable
+from typing_extensions import (
+    Set,
+    Literal,
+    Protocol,
+    TypeAlias,
+    TypedDict,
+    SupportsIndex,
+    overload,
+    override,
+    runtime_checkable,
+)
 
 import httpx
 import pydantic
@@ -107,18 +118,21 @@ class RequestOptions(TypedDict, total=False):
 # Sentinel class used until PEP 0661 is accepted
 class NotGiven:
     """
-    A sentinel singleton class used to distinguish omitted keyword arguments
-    from those passed in with the value None (which may have different behavior).
+    For parameters with a meaningful None value, we need to distinguish between
+    the user explicitly passing None, and the user not passing the parameter at
+    all.
+
+    User code shouldn't need to use not_given directly.
 
     For example:
 
     ```py
-    def get(timeout: Union[int, NotGiven, None] = NotGiven()) -> Response: ...
+    def create(timeout: Timeout | None | NotGiven = not_given): ...
 
 
-    get(timeout=1)  # 1s timeout
-    get(timeout=None)  # No timeout
-    get()  # Default timeout behavior, which may not be statically known at the method definition.
+    create(timeout=1)  # 1s timeout
+    create(timeout=None)  # No timeout
+    create()  # Default timeout behavior
     ```
     """
 
@@ -130,13 +144,14 @@ class NotGiven:
         return "NOT_GIVEN"
 
 
-NotGivenOr = Union[_T, NotGiven]
+not_given = NotGiven()
+# for backwards compatibility:
 NOT_GIVEN = NotGiven()
 
 
 class Omit:
-    """In certain situations you need to be able to represent a case where a default value has
-    to be explicitly removed and `None` is not an appropriate substitute, for example:
+    """
+    To explicitly omit something from being sent in a request, use `omit`.
 
     ```py
     # as the default `Content-Type` header is `application/json` that will be sent
@@ -146,13 +161,18 @@ class Omit:
     # to look something like: 'multipart/form-data; boundary=0d8382fcf5f8c3be01ca2e11002d2983'
     client.post(..., headers={"Content-Type": "multipart/form-data"})
 
-    # instead you can remove the default `application/json` header by passing Omit
-    client.post(..., headers={"Content-Type": Omit()})
+    # instead you can remove the default `application/json` header by passing omit
+    client.post(..., headers={"Content-Type": omit})
     ```
     """
 
     def __bool__(self) -> Literal[False]:
         return False
+
+
+omit = Omit()
+
+Omittable = Union[_T, Omit]
 
 
 @runtime_checkable
@@ -219,3 +239,26 @@ class _GenericAlias(Protocol):
 class HttpxSendArgs(TypedDict, total=False):
     auth: httpx.Auth
     follow_redirects: bool
+
+
+_T_co = TypeVar("_T_co", covariant=True)
+
+
+if TYPE_CHECKING:
+    # This works because str.__contains__ does not accept object (either in typeshed or at runtime)
+    # https://github.com/hauntsaninja/useful_types/blob/5e9710f3875107d068e7679fd7fec9cfab0eff3b/useful_types/__init__.py#L285
+    class SequenceNotStr(Protocol[_T_co]):
+        @overload
+        def __getitem__(self, index: SupportsIndex, /) -> _T_co: ...
+        @overload
+        def __getitem__(self, index: slice, /) -> Sequence[_T_co]: ...
+        def __contains__(self, value: object, /) -> bool: ...
+        def __len__(self) -> int: ...
+        def __iter__(self) -> Iterator[_T_co]: ...
+        def index(self, value: Any, start: int = 0, stop: int = ..., /) -> int: ...
+        def count(self, value: Any, /) -> int: ...
+        def __reversed__(self) -> Iterator[_T_co]: ...
+else:
+    # just point this to a normal `Sequence` at runtime to avoid having to special case
+    # deserializing our custom sequence type
+    SequenceNotStr = Sequence

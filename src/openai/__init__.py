@@ -7,7 +7,7 @@ import typing as _t
 from typing_extensions import override
 
 from . import types
-from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes
+from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
 from ._models import BaseModel
@@ -46,7 +46,9 @@ __all__ = [
     "ProxiesTypes",
     "NotGiven",
     "NOT_GIVEN",
+    "not_given",
     "Omit",
+    "omit",
     "OpenAIError",
     "APIError",
     "APIStatusError",
@@ -379,6 +381,7 @@ from ._module_client import (
     models as models,
     batches as batches,
     uploads as uploads,
+    realtime as realtime,
     webhooks as webhooks,
     responses as responses,
     containers as containers,
@@ -386,5 +389,6 @@ from ._module_client import (
     completions as completions,
     fine_tuning as fine_tuning,
     moderations as moderations,
+    conversations as conversations,
     vector_stores as vector_stores,
 )

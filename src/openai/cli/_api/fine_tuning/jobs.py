@@ -5,7 +5,8 @@ from typing import TYPE_CHECKING
 from argparse import ArgumentParser
 
 from ..._utils import get_client, print_model
-from ...._types import NOT_GIVEN, NotGivenOr
+from ...._types import Omittable, omit
+from ...._utils import is_given
 from ..._models import BaseModel
 from ....pagination import SyncCursorPage
 from ....types.fine_tuning import (
@@ -105,9 +106,9 @@ def register(subparser: _SubParsersAction[ArgumentParser]) -> None:
 class CLIFineTuningJobsCreateArgs(BaseModel):
     model: str
     training_file: str
-    hyperparameters: NotGivenOr[str] = NOT_GIVEN
-    suffix: NotGivenOr[str] = NOT_GIVEN
-    validation_file: NotGivenOr[str] = NOT_GIVEN
+    hyperparameters: Omittable[str] = omit
+    suffix: Omittable[str] = omit
+    validation_file: Omittable[str] = omit
 
 
 class CLIFineTuningJobsRetrieveArgs(BaseModel):
@@ -115,8 +116,8 @@ class CLIFineTuningJobsRetrieveArgs(BaseModel):
 
 
 class CLIFineTuningJobsListArgs(BaseModel):
-    after: NotGivenOr[str] = NOT_GIVEN
-    limit: NotGivenOr[int] = NOT_GIVEN
+    after: Omittable[str] = omit
+    limit: Omittable[int] = omit
 
 
 class CLIFineTuningJobsCancelArgs(BaseModel):
@@ -125,14 +126,14 @@ class CLIFineTuningJobsCancelArgs(BaseModel):
 
 class CLIFineTuningJobsListEventsArgs(BaseModel):
     id: str
-    after: NotGivenOr[str] = NOT_GIVEN
-    limit: NotGivenOr[int] = NOT_GIVEN
+    after: Omittable[str] = omit
+    limit: Omittable[int] = omit
 
 
 class CLIFineTuningJobs:
     @staticmethod
     def create(args: CLIFineTuningJobsCreateArgs) -> None:
-        hyperparameters = json.loads(str(args.hyperparameters)) if args.hyperparameters is not NOT_GIVEN else NOT_GIVEN
+        hyperparameters = json.loads(str(args.hyperparameters)) if is_given(args.hyperparameters) else omit
         fine_tuning_job: FineTuningJob = get_client().fine_tuning.jobs.create(
             model=args.model,
             training_file=args.training_file,
@@ -150,7 +151,7 @@ class CLIFineTuningJobs:
     @staticmethod
     def list(args: CLIFineTuningJobsListArgs) -> None:
         fine_tuning_jobs: SyncCursorPage[FineTuningJob] = get_client().fine_tuning.jobs.list(
-            after=args.after or NOT_GIVEN, limit=args.limit or NOT_GIVEN
+            after=args.after or omit, limit=args.limit or omit
         )
         print_model(fine_tuning_jobs)
 
@@ -163,7 +164,7 @@ class CLIFineTuningJobs:
     def list_events(args: CLIFineTuningJobsListEventsArgs) -> None:
         fine_tuning_job_events: SyncCursorPage[FineTuningJobEvent] = get_client().fine_tuning.jobs.list_events(
             fine_tuning_job_id=args.id,
-            after=args.after or NOT_GIVEN,
-            limit=args.limit or NOT_GIVEN,
+            after=args.after or omit,
+            limit=args.limit or omit,
         )
         print_model(fine_tuning_job_events)

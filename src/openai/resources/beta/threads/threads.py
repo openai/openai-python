@@ -18,7 +18,7 @@ from .messages import (
     MessagesWithStreamingResponse,
     AsyncMessagesWithStreamingResponse,
 )
-from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ...._types import NOT_GIVEN, Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ...._utils import required_args, maybe_transform, async_maybe_transform
 from .runs.runs import (
     Runs,
@@ -91,15 +91,15 @@ class Threads(SyncAPIResource):
     def create(
         self,
         *,
-        messages: Iterable[thread_create_params.Message] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_params.ToolResources] | NotGiven = NOT_GIVEN,
+        messages: Iterable[thread_create_params.Message] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        tool_resources: Optional[thread_create_params.ToolResources] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Create a thread.
@@ -155,7 +155,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Retrieves a thread.
@@ -185,14 +185,14 @@ class Threads(SyncAPIResource):
         self,
         thread_id: str,
         *,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_update_params.ToolResources] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        tool_resources: Optional[thread_update_params.ToolResources] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Modifies a thread.
@@ -246,7 +246,7 @@ class Threads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleted:
         """
         Delete a thread.
@@ -277,27 +277,27 @@ class Threads(SyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a thread and run it in one request.
@@ -393,7 +393,7 @@ class Threads(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -412,26 +412,26 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         stream: Literal[True],
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
@@ -527,7 +527,7 @@ class Threads(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -546,26 +546,26 @@ class Threads(SyncAPIResource):
         *,
         assistant_id: str,
         stream: bool,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
@@ -661,7 +661,7 @@ class Threads(SyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -680,27 +680,27 @@ class Threads(SyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Run | Stream[AssistantStreamEvent]:
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
@@ -740,21 +740,21 @@ class Threads(SyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -796,20 +796,20 @@ class Threads(SyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -825,20 +825,20 @@ class Threads(SyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AssistantEventHandlerT,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -854,20 +854,20 @@ class Threads(SyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AssistantEventHandlerT | None = None,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -949,15 +949,15 @@ class AsyncThreads(AsyncAPIResource):
     async def create(
         self,
         *,
-        messages: Iterable[thread_create_params.Message] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_params.ToolResources] | NotGiven = NOT_GIVEN,
+        messages: Iterable[thread_create_params.Message] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        tool_resources: Optional[thread_create_params.ToolResources] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Create a thread.
@@ -1013,7 +1013,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Retrieves a thread.
@@ -1043,14 +1043,14 @@ class AsyncThreads(AsyncAPIResource):
         self,
         thread_id: str,
         *,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_update_params.ToolResources] | NotGiven = NOT_GIVEN,
+        metadata: Optional[Metadata] | Omit = omit,
+        tool_resources: Optional[thread_update_params.ToolResources] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Thread:
         """
         Modifies a thread.
@@ -1104,7 +1104,7 @@ class AsyncThreads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleted:
         """
         Delete a thread.
@@ -1135,27 +1135,27 @@ class AsyncThreads(AsyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Run:
         """
         Create a thread and run it in one request.
@@ -1251,7 +1251,7 @@ class AsyncThreads(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1270,26 +1270,26 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         stream: Literal[True],
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
@@ -1385,7 +1385,7 @@ class AsyncThreads(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1404,26 +1404,26 @@ class AsyncThreads(AsyncAPIResource):
         *,
         assistant_id: str,
         stream: bool,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         """
         Create a thread and run it in one request.
@@ -1519,7 +1519,7 @@ class AsyncThreads(AsyncAPIResource):
               We generally recommend altering this or temperature but not both.
 
           truncation_strategy: Controls for how a thread will be truncated prior to the run. Use this to
-              control the intial context window of the run.
+              control the initial context window of the run.
 
           extra_headers: Send extra headers
 
@@ -1538,27 +1538,27 @@ class AsyncThreads(AsyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Run | AsyncStream[AssistantStreamEvent]:
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
@@ -1598,21 +1598,21 @@ class AsyncThreads(AsyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1656,20 +1656,20 @@ class AsyncThreads(AsyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1685,20 +1685,20 @@ class AsyncThreads(AsyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AsyncAssistantEventHandlerT,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1714,20 +1714,20 @@ class AsyncThreads(AsyncAPIResource):
         self,
         *,
         assistant_id: str,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        max_completion_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        max_prompt_tokens: Optional[int] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        model: Union[str, ChatModel, None] | NotGiven = NOT_GIVEN,
-        parallel_tool_calls: bool | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        thread: thread_create_and_run_params.Thread | NotGiven = NOT_GIVEN,
-        tool_choice: Optional[AssistantToolChoiceOptionParam] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[thread_create_and_run_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Optional[Iterable[AssistantToolParam]] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
-        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | NotGiven = NOT_GIVEN,
+        instructions: Optional[str] | Omit = omit,
+        max_completion_tokens: Optional[int] | Omit = omit,
+        max_prompt_tokens: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: Union[str, ChatModel, None] | Omit = omit,
+        parallel_tool_calls: bool | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        thread: thread_create_and_run_params.Thread | Omit = omit,
+        tool_choice: Optional[AssistantToolChoiceOptionParam] | Omit = omit,
+        tool_resources: Optional[thread_create_and_run_params.ToolResources] | Omit = omit,
+        tools: Optional[Iterable[AssistantToolParam]] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation_strategy: Optional[thread_create_and_run_params.TruncationStrategy] | Omit = omit,
         event_handler: AsyncAssistantEventHandlerT | None = None,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1785,27 +1785,27 @@ class ThreadsWithRawResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             _legacy_response.to_raw_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -1824,27 +1824,27 @@ class AsyncThreadsWithRawResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             _legacy_response.async_to_raw_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -1863,27 +1863,27 @@ class ThreadsWithStreamingResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             to_streamed_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 
@@ -1902,27 +1902,27 @@ class AsyncThreadsWithStreamingResponse:
 
         self.create = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.create  # pyright: ignore[reportDeprecated],
+                threads.create,  # pyright: ignore[reportDeprecated],
             )
         )
         self.retrieve = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.retrieve  # pyright: ignore[reportDeprecated],
+                threads.retrieve,  # pyright: ignore[reportDeprecated],
             )
         )
         self.update = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.update  # pyright: ignore[reportDeprecated],
+                threads.update,  # pyright: ignore[reportDeprecated],
             )
         )
         self.delete = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.delete  # pyright: ignore[reportDeprecated],
+                threads.delete,  # pyright: ignore[reportDeprecated],
             )
         )
         self.create_and_run = (  # pyright: ignore[reportDeprecated]
             async_to_streamed_response_wrapper(
-                threads.create_and_run  # pyright: ignore[reportDeprecated],
+                threads.create_and_run,  # pyright: ignore[reportDeprecated],
             )
         )
 

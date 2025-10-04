@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ..._utils import maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -46,25 +46,22 @@ class InputItems(SyncAPIResource):
         self,
         response_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        include: List[ResponseIncludable] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[ResponseItem]:
         """
         Returns a list of input items for a given response.
 
         Args:
           after: An item ID to list items after, used in pagination.
-
-          before: An item ID to list items before, used in pagination.
 
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
@@ -98,7 +95,6 @@ class InputItems(SyncAPIResource):
                 query=maybe_transform(
                     {
                         "after": after,
-                        "before": before,
                         "include": include,
                         "limit": limit,
                         "order": order,
@@ -134,25 +130,22 @@ class AsyncInputItems(AsyncAPIResource):
         self,
         response_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        include: List[ResponseIncludable] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        include: List[ResponseIncludable] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ResponseItem, AsyncCursorPage[ResponseItem]]:
         """
         Returns a list of input items for a given response.
 
         Args:
           after: An item ID to list items after, used in pagination.
-
-          before: An item ID to list items before, used in pagination.
 
           include: Additional fields to include in the response. See the `include` parameter for
               Response creation above for more information.
@@ -186,7 +179,6 @@ class AsyncInputItems(AsyncAPIResource):
                 query=maybe_transform(
                     {
                         "after": after,
-                        "before": before,
                         "include": include,
                         "limit": limit,
                         "order": order,

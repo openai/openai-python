@@ -5,6 +5,7 @@ from __future__ import annotations
 from .tool import Tool as Tool
 from .response import Response as Response
 from .tool_param import ToolParam as ToolParam
+from .custom_tool import CustomTool as CustomTool
 from .computer_tool import ComputerTool as ComputerTool
 from .function_tool import FunctionTool as FunctionTool
 from .response_item import ResponseItem as ResponseItem
@@ -23,17 +24,21 @@ from .response_status import ResponseStatus as ResponseStatus
 from .tool_choice_mcp import ToolChoiceMcp as ToolChoiceMcp
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
+from .custom_tool_param import CustomToolParam as CustomToolParam
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
 from .easy_input_message import EasyInputMessage as EasyInputMessage
 from .response_item_list import ResponseItemList as ResponseItemList
+from .tool_choice_custom import ToolChoiceCustom as ToolChoiceCustom
 from .computer_tool_param import ComputerToolParam as ComputerToolParam
 from .function_tool_param import FunctionToolParam as FunctionToolParam
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
 from .response_input_item import ResponseInputItem as ResponseInputItem
 from .response_input_text import ResponseInputText as ResponseInputText
+from .tool_choice_allowed import ToolChoiceAllowed as ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
+from .response_input_audio import ResponseInputAudio as ResponseInputAudio
 from .response_input_image import ResponseInputImage as ResponseInputImage
 from .response_input_param import ResponseInputParam as ResponseInputParam
 from .response_output_item import ResponseOutputItem as ResponseOutputItem
@@ -55,68 +60,86 @@ from .response_output_message import ResponseOutputMessage as ResponseOutputMess
 from .response_output_refusal import ResponseOutputRefusal as ResponseOutputRefusal
 from .response_reasoning_item import ResponseReasoningItem as ResponseReasoningItem
 from .tool_choice_types_param import ToolChoiceTypesParam as ToolChoiceTypesParam
+from .web_search_preview_tool import WebSearchPreviewTool as WebSearchPreviewTool
 from .easy_input_message_param import EasyInputMessageParam as EasyInputMessageParam
 from .response_completed_event import ResponseCompletedEvent as ResponseCompletedEvent
 from .response_retrieve_params import ResponseRetrieveParams as ResponseRetrieveParams
 from .response_text_done_event import ResponseTextDoneEvent as ResponseTextDoneEvent
+from .tool_choice_custom_param import ToolChoiceCustomParam as ToolChoiceCustomParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
+from .response_custom_tool_call import ResponseCustomToolCall as ResponseCustomToolCall
 from .response_incomplete_event import ResponseIncompleteEvent as ResponseIncompleteEvent
 from .response_input_file_param import ResponseInputFileParam as ResponseInputFileParam
 from .response_input_item_param import ResponseInputItemParam as ResponseInputItemParam
 from .response_input_text_param import ResponseInputTextParam as ResponseInputTextParam
 from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDeltaEvent
+from .tool_choice_allowed_param import ToolChoiceAllowedParam as ToolChoiceAllowedParam
 from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudioDeltaEvent
 from .response_in_progress_event import ResponseInProgressEvent as ResponseInProgressEvent
+from .response_input_audio_param import ResponseInputAudioParam as ResponseInputAudioParam
 from .response_input_image_param import ResponseInputImageParam as ResponseInputImageParam
 from .response_output_text_param import ResponseOutputTextParam as ResponseOutputTextParam
 from .response_text_config_param import ResponseTextConfigParam as ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam as ToolChoiceFunctionParam
 from .response_computer_tool_call import ResponseComputerToolCall as ResponseComputerToolCall
+from .response_conversation_param import ResponseConversationParam as ResponseConversationParam
 from .response_format_text_config import ResponseFormatTextConfig as ResponseFormatTextConfig
 from .response_function_tool_call import ResponseFunctionToolCall as ResponseFunctionToolCall
+from .response_input_file_content import ResponseInputFileContent as ResponseInputFileContent
 from .response_input_message_item import ResponseInputMessageItem as ResponseInputMessageItem
+from .response_input_text_content import ResponseInputTextContent as ResponseInputTextContent
 from .response_refusal_done_event import ResponseRefusalDoneEvent as ResponseRefusalDoneEvent
 from .response_function_web_search import ResponseFunctionWebSearch as ResponseFunctionWebSearch
 from .response_input_content_param import ResponseInputContentParam as ResponseInputContentParam
+from .response_input_image_content import ResponseInputImageContent as ResponseInputImageContent
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent as ResponseRefusalDeltaEvent
 from .response_output_message_param import ResponseOutputMessageParam as ResponseOutputMessageParam
 from .response_output_refusal_param import ResponseOutputRefusalParam as ResponseOutputRefusalParam
 from .response_reasoning_item_param import ResponseReasoningItemParam as ResponseReasoningItemParam
+from .web_search_preview_tool_param import WebSearchPreviewToolParam as WebSearchPreviewToolParam
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
+from .response_custom_tool_call_param import ResponseCustomToolCallParam as ResponseCustomToolCallParam
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent as ResponseContentPartDoneEvent
+from .response_custom_tool_call_output import ResponseCustomToolCallOutput as ResponseCustomToolCallOutput
 from .response_function_tool_call_item import ResponseFunctionToolCallItem as ResponseFunctionToolCallItem
 from .response_output_item_added_event import ResponseOutputItemAddedEvent as ResponseOutputItemAddedEvent
 from .response_computer_tool_call_param import ResponseComputerToolCallParam as ResponseComputerToolCallParam
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
 from .response_format_text_config_param import ResponseFormatTextConfigParam as ResponseFormatTextConfigParam
 from .response_function_tool_call_param import ResponseFunctionToolCallParam as ResponseFunctionToolCallParam
+from .response_input_file_content_param import ResponseInputFileContentParam as ResponseInputFileContentParam
+from .response_input_text_content_param import ResponseInputTextContentParam as ResponseInputTextContentParam
 from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent as ResponseMcpCallCompletedEvent
+from .response_function_call_output_item import ResponseFunctionCallOutputItem as ResponseFunctionCallOutputItem
 from .response_function_web_search_param import ResponseFunctionWebSearchParam as ResponseFunctionWebSearchParam
+from .response_input_image_content_param import ResponseInputImageContentParam as ResponseInputImageContentParam
+from .response_reasoning_text_done_event import ResponseReasoningTextDoneEvent as ResponseReasoningTextDoneEvent
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall as ResponseCodeInterpreterToolCall
 from .response_input_message_content_list import ResponseInputMessageContentList as ResponseInputMessageContentList
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent as ResponseMcpCallInProgressEvent
+from .response_reasoning_text_delta_event import ResponseReasoningTextDeltaEvent as ResponseReasoningTextDeltaEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent as ResponseAudioTranscriptDoneEvent
 from .response_file_search_tool_call_param import ResponseFileSearchToolCallParam as ResponseFileSearchToolCallParam
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent as ResponseMcpListToolsFailedEvent
 from .response_audio_transcript_delta_event import (
     ResponseAudioTranscriptDeltaEvent as ResponseAudioTranscriptDeltaEvent,
 )
-from .response_reasoning_summary_done_event import (
-    ResponseReasoningSummaryDoneEvent as ResponseReasoningSummaryDoneEvent,
+from .response_custom_tool_call_output_param import (
+    ResponseCustomToolCallOutputParam as ResponseCustomToolCallOutputParam,
 )
 from .response_mcp_call_arguments_done_event import (
     ResponseMcpCallArgumentsDoneEvent as ResponseMcpCallArgumentsDoneEvent,
-)
-from .response_reasoning_summary_delta_event import (
-    ResponseReasoningSummaryDeltaEvent as ResponseReasoningSummaryDeltaEvent,
 )
 from .response_computer_tool_call_output_item import (
     ResponseComputerToolCallOutputItem as ResponseComputerToolCallOutputItem,
 )
 from .response_format_text_json_schema_config import (
     ResponseFormatTextJSONSchemaConfig as ResponseFormatTextJSONSchemaConfig,
+)
+from .response_function_call_output_item_list import (
+    ResponseFunctionCallOutputItemList as ResponseFunctionCallOutputItemList,
 )
 from .response_function_tool_call_output_item import (
     ResponseFunctionToolCallOutputItem as ResponseFunctionToolCallOutputItem,
@@ -129,6 +152,9 @@ from .response_mcp_call_arguments_delta_event import (
 )
 from .response_mcp_list_tools_completed_event import (
     ResponseMcpListToolsCompletedEvent as ResponseMcpListToolsCompletedEvent,
+)
+from .response_function_call_output_item_param import (
+    ResponseFunctionCallOutputItemParam as ResponseFunctionCallOutputItemParam,
 )
 from .response_image_gen_call_generating_event import (
     ResponseImageGenCallGeneratingEvent as ResponseImageGenCallGeneratingEvent,
@@ -157,6 +183,9 @@ from .response_input_message_content_list_param import (
 from .response_mcp_list_tools_in_progress_event import (
     ResponseMcpListToolsInProgressEvent as ResponseMcpListToolsInProgressEvent,
 )
+from .response_custom_tool_call_input_done_event import (
+    ResponseCustomToolCallInputDoneEvent as ResponseCustomToolCallInputDoneEvent,
+)
 from .response_reasoning_summary_part_done_event import (
     ResponseReasoningSummaryPartDoneEvent as ResponseReasoningSummaryPartDoneEvent,
 )
@@ -165,6 +194,9 @@ from .response_reasoning_summary_text_done_event import (
 )
 from .response_web_search_call_in_progress_event import (
     ResponseWebSearchCallInProgressEvent as ResponseWebSearchCallInProgressEvent,
+)
+from .response_custom_tool_call_input_delta_event import (
+    ResponseCustomToolCallInputDeltaEvent as ResponseCustomToolCallInputDeltaEvent,
 )
 from .response_file_search_call_in_progress_event import (
     ResponseFileSearchCallInProgressEvent as ResponseFileSearchCallInProgressEvent,
@@ -192,6 +224,9 @@ from .response_computer_tool_call_output_screenshot import (
 )
 from .response_format_text_json_schema_config_param import (
     ResponseFormatTextJSONSchemaConfigParam as ResponseFormatTextJSONSchemaConfigParam,
+)
+from .response_function_call_output_item_list_param import (
+    ResponseFunctionCallOutputItemListParam as ResponseFunctionCallOutputItemListParam,
 )
 from .response_code_interpreter_call_code_done_event import (
     ResponseCodeInterpreterCallCodeDoneEvent as ResponseCodeInterpreterCallCodeDoneEvent,

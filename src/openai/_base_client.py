@@ -42,7 +42,6 @@ from . import _exceptions
 from ._qs import Querystring
 from ._files import to_httpx_files, async_to_httpx_files
 from ._types import (
-    NOT_GIVEN,
     Body,
     Omit,
     Query,
@@ -57,9 +56,10 @@ from ._types import (
     RequestOptions,
     HttpxRequestFiles,
     ModelBuilderProtocol,
+    not_given,
 )
 from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
-from ._compat import PYDANTIC_V2, model_copy, model_dump
+from ._compat import PYDANTIC_V1, model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
     APIResponse,
@@ -147,9 +147,9 @@ class PageInfo:
     def __init__(
         self,
         *,
-        url: URL | NotGiven = NOT_GIVEN,
-        json: Body | NotGiven = NOT_GIVEN,
-        params: Query | NotGiven = NOT_GIVEN,
+        url: URL | NotGiven = not_given,
+        json: Body | NotGiven = not_given,
+        params: Query | NotGiven = not_given,
     ) -> None:
         self.url = url
         self.json = json
@@ -234,7 +234,7 @@ class BaseSyncPage(BasePage[_T], Generic[_T]):
         model: Type[_T],
         options: FinalRequestOptions,
     ) -> None:
-        if PYDANTIC_V2 and getattr(self, "__pydantic_private__", None) is None:
+        if (not PYDANTIC_V1) and getattr(self, "__pydantic_private__", None) is None:
             self.__pydantic_private__ = {}
 
         self._model = model
@@ -322,7 +322,7 @@ class BaseAsyncPage(BasePage[_T], Generic[_T]):
         client: AsyncAPIClient,
         options: FinalRequestOptions,
     ) -> None:
-        if PYDANTIC_V2 and getattr(self, "__pydantic_private__", None) is None:
+        if (not PYDANTIC_V1) and getattr(self, "__pydantic_private__", None) is None:
             self.__pydantic_private__ = {}
 
         self._model = model
@@ -534,7 +534,10 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         is_body_allowed = options.method.lower() != "get"
 
         if is_body_allowed:
-            kwargs["json"] = json_data if is_given(json_data) else None
+            if isinstance(json_data, bytes):
+                kwargs["content"] = json_data
+            else:
+                kwargs["json"] = json_data if is_given(json_data) else None
             kwargs["files"] = files
         else:
             headers.pop("Content-Type", None)
@@ -594,7 +597,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         # we internally support defining a temporary header to override the
         # default `cast_to` type for use with `.with_raw_response` and `.with_streaming_response`
         # see _response.py for implementation details
-        override_cast_to = headers.pop(OVERRIDE_CAST_TO_HEADER, NOT_GIVEN)
+        override_cast_to = headers.pop(OVERRIDE_CAST_TO_HEADER, not_given)
         if is_given(override_cast_to):
             options.headers = headers
             return cast(Type[ResponseT], override_cast_to)
@@ -824,7 +827,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         version: str,
         base_url: str | URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
@@ -1370,7 +1373,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         base_url: str | URL,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
@@ -1847,8 +1850,8 @@ def make_request_options(
     extra_query: Query | None = None,
     extra_body: Body | None = None,
     idempotency_key: str | None = None,
-    timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
-    post_parser: PostParser | NotGiven = NOT_GIVEN,
+    timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    post_parser: PostParser | NotGiven = not_given,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""
     options: RequestOptions = {}

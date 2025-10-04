@@ -12,6 +12,7 @@ from ..responses.tool import Tool
 from ..shared.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text import ResponseInputText
+from ..responses.response_input_audio import ResponseInputAudio
 from .create_eval_jsonl_run_data_source import CreateEvalJSONLRunDataSource
 from ..responses.response_format_text_config import ResponseFormatTextConfig
 from .create_eval_completions_run_data_source import CreateEvalCompletionsRunDataSource
@@ -99,9 +100,12 @@ class DataSourceResponsesSourceResponses(BaseModel):
     """
 
     reasoning_effort: Optional[ReasoningEffort] = None
-    """Optional reasoning effort parameter.
-
-    This is a query parameter used to select responses.
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
     """
 
     temperature: Optional[float] = None
@@ -158,6 +162,7 @@ DataSourceResponsesInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Uni
     ResponseInputText,
     DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentOutputText,
     DataSourceResponsesInputMessagesTemplateTemplateEvalItemContentInputImage,
+    ResponseInputAudio,
     List[object],
 ]
 
@@ -228,6 +233,15 @@ class DataSourceResponsesSamplingParamsText(BaseModel):
 class DataSourceResponsesSamplingParams(BaseModel):
     max_completion_tokens: Optional[int] = None
     """The maximum number of tokens in the generated output."""
+
+    reasoning_effort: Optional[ReasoningEffort] = None
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+    """
 
     seed: Optional[int] = None
     """A seed value to initialize the randomness, during sampling."""

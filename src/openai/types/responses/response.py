@@ -13,14 +13,16 @@ from .tool_choice_mcp import ToolChoiceMcp
 from ..shared.metadata import Metadata
 from ..shared.reasoning import Reasoning
 from .tool_choice_types import ToolChoiceTypes
+from .tool_choice_custom import ToolChoiceCustom
 from .response_input_item import ResponseInputItem
+from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 
-__all__ = ["Response", "IncompleteDetails", "ToolChoice"]
+__all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
 
 class IncompleteDetails(BaseModel):
@@ -28,7 +30,14 @@ class IncompleteDetails(BaseModel):
     """The reason why the response is incomplete."""
 
 
-ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp]
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions, ToolChoiceAllowed, ToolChoiceTypes, ToolChoiceFunction, ToolChoiceMcp, ToolChoiceCustom
+]
+
+
+class Conversation(BaseModel):
+    id: str
+    """The unique ID of the conversation."""
 
 
 class Response(BaseModel):
@@ -107,7 +116,7 @@ class Response(BaseModel):
 
     You can specify which tool to use by setting the `tool_choice` parameter.
 
-    The two categories of tools you can provide the model are:
+    We support the following categories of tools:
 
     - **Built-in tools**: Tools that are provided by OpenAI that extend the model's
       capabilities, like
@@ -115,9 +124,14 @@ class Response(BaseModel):
       [file search](https://platform.openai.com/docs/guides/tools-file-search).
       Learn more about
       [built-in tools](https://platform.openai.com/docs/guides/tools).
+    - **MCP Tools**: Integrations with third-party systems via custom MCP servers or
+      predefined connectors such as Google Drive and SharePoint. Learn more about
+      [MCP Tools](https://platform.openai.com/docs/guides/tools-connectors-mcp).
     - **Function calls (custom tools)**: Functions that are defined by you, enabling
-      the model to call your own code. Learn more about
+      the model to call your own code with strongly typed arguments and outputs.
+      Learn more about
       [function calling](https://platform.openai.com/docs/guides/function-calling).
+      You can also use custom tools to call your own code.
     """
 
     top_p: Optional[float] = None
@@ -130,9 +144,16 @@ class Response(BaseModel):
     """
 
     background: Optional[bool] = None
-    """Whether to run the model response in the background.
-
+    """
+    Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
+    """
+
+    conversation: Optional[Conversation] = None
+    """The conversation that this response belongs to.
+
+    Input items and output items from this response are automatically added to this
+    conversation.
     """
 
     max_output_tokens: Optional[int] = None
@@ -155,11 +176,12 @@ class Response(BaseModel):
 
     Use this to create multi-turn conversations. Learn more about
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+    Cannot be used in conjunction with `conversation`.
     """
 
     prompt: Optional[ResponsePrompt] = None
-    """Reference to a prompt template and its variables.
-
+    """
+    Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
@@ -171,7 +193,7 @@ class Response(BaseModel):
     """
 
     reasoning: Optional[Reasoning] = None
-    """**o-series models only**
+    """**gpt-5 and o-series models only**
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
@@ -195,9 +217,8 @@ class Response(BaseModel):
     - If set to 'default', then the request will be processed with the standard
       pricing and performance for the selected model.
     - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
-      'priority', then the request will be processed with the corresponding service
-      tier. [Contact sales](https://openai.com/contact-sales) to learn more about
-      Priority processing.
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
     - When not set, the default behavior is 'auto'.
 
     When the `service_tier` parameter is set, the response body will include the
@@ -231,10 +252,10 @@ class Response(BaseModel):
     truncation: Optional[Literal["auto", "disabled"]] = None
     """The truncation strategy to use for the model response.
 
-    - `auto`: If the context of this response and previous ones exceeds the model's
-      context window size, the model will truncate the response to fit the context
-      window by dropping input items in the middle of the conversation.
-    - `disabled` (default): If a model response will exceed the context window size
+    - `auto`: If the input to this Response exceeds the model's context window size,
+      the model will truncate the response to fit the context window by dropping
+      items from the beginning of the conversation.
+    - `disabled` (default): If the input size will exceed the context window size
       for a model, the request will fail with a 400 error.
     """
 
@@ -255,8 +276,7 @@ class Response(BaseModel):
 
     @property
     def output_text(self) -> str:
-        """Convenience property that aggregates all `output_text` items from the `output`
-        list.
+        """Convenience property that aggregates all `output_text` items from the `output` list.
 
         If no `output_text` content blocks exist, then an empty string is returned.
         """

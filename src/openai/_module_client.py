@@ -19,9 +19,11 @@ if TYPE_CHECKING:
     from .resources.evals.evals import Evals
     from .resources.moderations import Moderations
     from .resources.uploads.uploads import Uploads
+    from .resources.realtime.realtime import Realtime
     from .resources.responses.responses import Responses
     from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
+    from .resources.conversations.conversations import Conversations
     from .resources.vector_stores.vector_stores import VectorStores
 
 from . import _load_client
@@ -88,6 +90,12 @@ class WebhooksProxy(LazyProxy["Webhooks"]):
         return _load_client().webhooks
 
 
+class RealtimeProxy(LazyProxy["Realtime"]):
+    @override
+    def __load__(self) -> Realtime:
+        return _load_client().realtime
+
+
 class ResponsesProxy(LazyProxy["Responses"]):
     @override
     def __load__(self) -> Responses:
@@ -130,6 +138,12 @@ class VectorStoresProxy(LazyProxy["VectorStores"]):
         return _load_client().vector_stores
 
 
+class ConversationsProxy(LazyProxy["Conversations"]):
+    @override
+    def __load__(self) -> Conversations:
+        return _load_client().conversations
+
+
 chat: Chat = ChatProxy().__as_proxied__()
 beta: Beta = BetaProxy().__as_proxied__()
 files: Files = FilesProxy().__as_proxied__()
@@ -140,6 +154,7 @@ models: Models = ModelsProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
 webhooks: Webhooks = WebhooksProxy().__as_proxied__()
+realtime: Realtime = RealtimeProxy().__as_proxied__()
 responses: Responses = ResponsesProxy().__as_proxied__()
 embeddings: Embeddings = EmbeddingsProxy().__as_proxied__()
 containers: Containers = ContainersProxy().__as_proxied__()
@@ -147,3 +162,4 @@ completions: Completions = CompletionsProxy().__as_proxied__()
 moderations: Moderations = ModerationsProxy().__as_proxied__()
 fine_tuning: FineTuning = FineTuningProxy().__as_proxied__()
 vector_stores: VectorStores = VectorStoresProxy().__as_proxied__()
+conversations: Conversations = ConversationsProxy().__as_proxied__()

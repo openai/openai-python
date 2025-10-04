@@ -6,6 +6,7 @@ from openai.types import (
     ChatModel,
     ComparisonFilter,
     CompoundFilter,
+    CustomToolInputFormat,
     ErrorObject,
     FunctionDefinition,
     FunctionParameters,
@@ -15,6 +16,8 @@ from openai.types import (
     ResponseFormatJSONObject,
     ResponseFormatJSONSchema,
     ResponseFormatText,
+    ResponseFormatTextGrammar,
+    ResponseFormatTextPython,
     ResponsesModel,
 )
 ```
@@ -46,6 +49,7 @@ Types:
 ```python
 from openai.types.chat import (
     ChatCompletion,
+    ChatCompletionAllowedToolChoice,
     ChatCompletionAssistantMessageParam,
     ChatCompletionAudio,
     ChatCompletionAudioParam,
@@ -55,25 +59,31 @@ from openai.types.chat import (
     ChatCompletionContentPartInputAudio,
     ChatCompletionContentPartRefusal,
     ChatCompletionContentPartText,
+    ChatCompletionCustomTool,
     ChatCompletionDeleted,
     ChatCompletionDeveloperMessageParam,
     ChatCompletionFunctionCallOption,
     ChatCompletionFunctionMessageParam,
+    ChatCompletionFunctionTool,
     ChatCompletionMessage,
+    ChatCompletionMessageCustomToolCall,
+    ChatCompletionMessageFunctionToolCall,
     ChatCompletionMessageParam,
-    ChatCompletionMessageToolCall,
+    ChatCompletionMessageToolCallUnion,
     ChatCompletionModality,
     ChatCompletionNamedToolChoice,
+    ChatCompletionNamedToolChoiceCustom,
     ChatCompletionPredictionContent,
     ChatCompletionRole,
     ChatCompletionStoreMessage,
     ChatCompletionStreamOptions,
     ChatCompletionSystemMessageParam,
     ChatCompletionTokenLogprob,
-    ChatCompletionTool,
+    ChatCompletionToolUnion,
     ChatCompletionToolChoiceOption,
     ChatCompletionToolMessageParam,
     ChatCompletionUserMessageParam,
+    ChatCompletionAllowedTools,
     ChatCompletionReasoningEffort,
 )
 ```
@@ -421,6 +431,7 @@ from openai.types.webhooks import (
     FineTuningJobCancelledWebhookEvent,
     FineTuningJobFailedWebhookEvent,
     FineTuningJobSucceededWebhookEvent,
+    RealtimeCallIncomingWebhookEvent,
     ResponseCancelledWebhookEvent,
     ResponseCompletedWebhookEvent,
     ResponseFailedWebhookEvent,
@@ -676,7 +687,7 @@ Methods:
 Types:
 
 ```python
-from openai.types import Batch, BatchError, BatchRequestCounts
+from openai.types import Batch, BatchError, BatchRequestCounts, BatchUsage
 ```
 
 Methods:
@@ -719,6 +730,7 @@ Types:
 ```python
 from openai.types.responses import (
     ComputerTool,
+    CustomTool,
     EasyInputMessage,
     FileSearchTool,
     FunctionTool,
@@ -740,7 +752,12 @@ from openai.types.responses import (
     ResponseContent,
     ResponseContentPartAddedEvent,
     ResponseContentPartDoneEvent,
+    ResponseConversationParam,
     ResponseCreatedEvent,
+    ResponseCustomToolCall,
+    ResponseCustomToolCallInputDeltaEvent,
+    ResponseCustomToolCallInputDoneEvent,
+    ResponseCustomToolCallOutput,
     ResponseError,
     ResponseErrorEvent,
     ResponseFailedEvent,
@@ -752,6 +769,8 @@ from openai.types.responses import (
     ResponseFormatTextJSONSchemaConfig,
     ResponseFunctionCallArgumentsDeltaEvent,
     ResponseFunctionCallArgumentsDoneEvent,
+    ResponseFunctionCallOutputItem,
+    ResponseFunctionCallOutputItemList,
     ResponseFunctionToolCall,
     ResponseFunctionToolCallItem,
     ResponseFunctionToolCallOutputItem,
@@ -767,11 +786,14 @@ from openai.types.responses import (
     ResponseInputAudio,
     ResponseInputContent,
     ResponseInputFile,
+    ResponseInputFileContent,
     ResponseInputImage,
+    ResponseInputImageContent,
     ResponseInputItem,
     ResponseInputMessageContentList,
     ResponseInputMessageItem,
     ResponseInputText,
+    ResponseInputTextContent,
     ResponseItem,
     ResponseMcpCallArgumentsDeltaEvent,
     ResponseMcpCallArgumentsDoneEvent,
@@ -792,12 +814,12 @@ from openai.types.responses import (
     ResponsePrompt,
     ResponseQueuedEvent,
     ResponseReasoningItem,
-    ResponseReasoningSummaryDeltaEvent,
-    ResponseReasoningSummaryDoneEvent,
     ResponseReasoningSummaryPartAddedEvent,
     ResponseReasoningSummaryPartDoneEvent,
     ResponseReasoningSummaryTextDeltaEvent,
     ResponseReasoningSummaryTextDoneEvent,
+    ResponseReasoningTextDeltaEvent,
+    ResponseReasoningTextDoneEvent,
     ResponseRefusalDeltaEvent,
     ResponseRefusalDoneEvent,
     ResponseStatus,
@@ -810,10 +832,13 @@ from openai.types.responses import (
     ResponseWebSearchCallInProgressEvent,
     ResponseWebSearchCallSearchingEvent,
     Tool,
+    ToolChoiceAllowed,
+    ToolChoiceCustom,
     ToolChoiceFunction,
     ToolChoiceMcp,
     ToolChoiceOptions,
     ToolChoiceTypes,
+    WebSearchPreviewTool,
     WebSearchTool,
 )
 ```
@@ -836,6 +861,186 @@ from openai.types.responses import ResponseItemList
 Methods:
 
 - <code title="get /responses/{response_id}/input_items">client.responses.input_items.<a href="./src/openai/resources/responses/input_items.py">list</a>(response_id, \*\*<a href="src/openai/types/responses/input_item_list_params.py">params</a>) -> <a href="./src/openai/types/responses/response_item.py">SyncCursorPage[ResponseItem]</a></code>
+
+# Realtime
+
+Types:
+
+```python
+from openai.types.realtime import (
+    AudioTranscription,
+    ConversationCreatedEvent,
+    ConversationItem,
+    ConversationItemAdded,
+    ConversationItemCreateEvent,
+    ConversationItemCreatedEvent,
+    ConversationItemDeleteEvent,
+    ConversationItemDeletedEvent,
+    ConversationItemDone,
+    ConversationItemInputAudioTranscriptionCompletedEvent,
+    ConversationItemInputAudioTranscriptionDeltaEvent,
+    ConversationItemInputAudioTranscriptionFailedEvent,
+    ConversationItemInputAudioTranscriptionSegment,
+    ConversationItemRetrieveEvent,
+    ConversationItemTruncateEvent,
+    ConversationItemTruncatedEvent,
+    ConversationItemWithReference,
+    InputAudioBufferAppendEvent,
+    InputAudioBufferClearEvent,
+    InputAudioBufferClearedEvent,
+    InputAudioBufferCommitEvent,
+    InputAudioBufferCommittedEvent,
+    InputAudioBufferSpeechStartedEvent,
+    InputAudioBufferSpeechStoppedEvent,
+    InputAudioBufferTimeoutTriggered,
+    LogProbProperties,
+    McpListToolsCompleted,
+    McpListToolsFailed,
+    McpListToolsInProgress,
+    NoiseReductionType,
+    OutputAudioBufferClearEvent,
+    RateLimitsUpdatedEvent,
+    RealtimeAudioConfig,
+    RealtimeAudioConfigInput,
+    RealtimeAudioConfigOutput,
+    RealtimeAudioFormats,
+    RealtimeAudioInputTurnDetection,
+    RealtimeClientEvent,
+    RealtimeConversationItemAssistantMessage,
+    RealtimeConversationItemFunctionCall,
+    RealtimeConversationItemFunctionCallOutput,
+    RealtimeConversationItemSystemMessage,
+    RealtimeConversationItemUserMessage,
+    RealtimeError,
+    RealtimeErrorEvent,
+    RealtimeFunctionTool,
+    RealtimeMcpApprovalRequest,
+    RealtimeMcpApprovalResponse,
+    RealtimeMcpListTools,
+    RealtimeMcpProtocolError,
+    RealtimeMcpToolCall,
+    RealtimeMcpToolExecutionError,
+    RealtimeMcphttpError,
+    RealtimeResponse,
+    RealtimeResponseCreateAudioOutput,
+    RealtimeResponseCreateMcpTool,
+    RealtimeResponseCreateParams,
+    RealtimeResponseStatus,
+    RealtimeResponseUsage,
+    RealtimeResponseUsageInputTokenDetails,
+    RealtimeResponseUsageOutputTokenDetails,
+    RealtimeServerEvent,
+    RealtimeSession,
+    RealtimeSessionCreateRequest,
+    RealtimeToolChoiceConfig,
+    RealtimeToolsConfig,
+    RealtimeToolsConfigUnion,
+    RealtimeTracingConfig,
+    RealtimeTranscriptionSessionAudio,
+    RealtimeTranscriptionSessionAudioInput,
+    RealtimeTranscriptionSessionAudioInputTurnDetection,
+    RealtimeTranscriptionSessionCreateRequest,
+    RealtimeTruncation,
+    RealtimeTruncationRetentionRatio,
+    ResponseAudioDeltaEvent,
+    ResponseAudioDoneEvent,
+    ResponseAudioTranscriptDeltaEvent,
+    ResponseAudioTranscriptDoneEvent,
+    ResponseCancelEvent,
+    ResponseContentPartAddedEvent,
+    ResponseContentPartDoneEvent,
+    ResponseCreateEvent,
+    ResponseCreatedEvent,
+    ResponseDoneEvent,
+    ResponseFunctionCallArgumentsDeltaEvent,
+    ResponseFunctionCallArgumentsDoneEvent,
+    ResponseMcpCallArgumentsDelta,
+    ResponseMcpCallArgumentsDone,
+    ResponseMcpCallCompleted,
+    ResponseMcpCallFailed,
+    ResponseMcpCallInProgress,
+    ResponseOutputItemAddedEvent,
+    ResponseOutputItemDoneEvent,
+    ResponseTextDeltaEvent,
+    ResponseTextDoneEvent,
+    SessionCreatedEvent,
+    SessionUpdateEvent,
+    SessionUpdatedEvent,
+    TranscriptionSessionUpdate,
+    TranscriptionSessionUpdatedEvent,
+)
+```
+
+## ClientSecrets
+
+Types:
+
+```python
+from openai.types.realtime import (
+    RealtimeSessionClientSecret,
+    RealtimeSessionCreateResponse,
+    RealtimeTranscriptionSessionCreateResponse,
+    RealtimeTranscriptionSessionTurnDetection,
+    ClientSecretCreateResponse,
+)
+```
+
+Methods:
+
+- <code title="post /realtime/client_secrets">client.realtime.client_secrets.<a href="./src/openai/resources/realtime/client_secrets.py">create</a>(\*\*<a href="src/openai/types/realtime/client_secret_create_params.py">params</a>) -> <a href="./src/openai/types/realtime/client_secret_create_response.py">ClientSecretCreateResponse</a></code>
+
+## Calls
+
+Methods:
+
+- <code title="post /realtime/calls">client.realtime.calls.<a href="./src/openai/resources/realtime/calls.py">create</a>(\*\*<a href="src/openai/types/realtime/call_create_params.py">params</a>) -> HttpxBinaryResponseContent</code>
+- <code title="post /realtime/calls/{call_id}/accept">client.realtime.calls.<a href="./src/openai/resources/realtime/calls.py">accept</a>(call_id, \*\*<a href="src/openai/types/realtime/call_accept_params.py">params</a>) -> None</code>
+- <code title="post /realtime/calls/{call_id}/hangup">client.realtime.calls.<a href="./src/openai/resources/realtime/calls.py">hangup</a>(call_id) -> None</code>
+- <code title="post /realtime/calls/{call_id}/refer">client.realtime.calls.<a href="./src/openai/resources/realtime/calls.py">refer</a>(call_id, \*\*<a href="src/openai/types/realtime/call_refer_params.py">params</a>) -> None</code>
+- <code title="post /realtime/calls/{call_id}/reject">client.realtime.calls.<a href="./src/openai/resources/realtime/calls.py">reject</a>(call_id, \*\*<a href="src/openai/types/realtime/call_reject_params.py">params</a>) -> None</code>
+
+# Conversations
+
+Types:
+
+```python
+from openai.types.conversations import (
+    ComputerScreenshotContent,
+    Conversation,
+    ConversationDeleted,
+    ConversationDeletedResource,
+    Message,
+    SummaryTextContent,
+    TextContent,
+    InputTextContent,
+    OutputTextContent,
+    RefusalContent,
+    InputImageContent,
+    InputFileContent,
+)
+```
+
+Methods:
+
+- <code title="post /conversations">client.conversations.<a href="./src/openai/resources/conversations/conversations.py">create</a>(\*\*<a href="src/openai/types/conversations/conversation_create_params.py">params</a>) -> <a href="./src/openai/types/conversations/conversation.py">Conversation</a></code>
+- <code title="get /conversations/{conversation_id}">client.conversations.<a href="./src/openai/resources/conversations/conversations.py">retrieve</a>(conversation_id) -> <a href="./src/openai/types/conversations/conversation.py">Conversation</a></code>
+- <code title="post /conversations/{conversation_id}">client.conversations.<a href="./src/openai/resources/conversations/conversations.py">update</a>(conversation_id, \*\*<a href="src/openai/types/conversations/conversation_update_params.py">params</a>) -> <a href="./src/openai/types/conversations/conversation.py">Conversation</a></code>
+- <code title="delete /conversations/{conversation_id}">client.conversations.<a href="./src/openai/resources/conversations/conversations.py">delete</a>(conversation_id) -> <a href="./src/openai/types/conversations/conversation_deleted_resource.py">ConversationDeletedResource</a></code>
+
+## Items
+
+Types:
+
+```python
+from openai.types.conversations import ConversationItem, ConversationItemList
+```
+
+Methods:
+
+- <code title="post /conversations/{conversation_id}/items">client.conversations.items.<a href="./src/openai/resources/conversations/items.py">create</a>(conversation_id, \*\*<a href="src/openai/types/conversations/item_create_params.py">params</a>) -> <a href="./src/openai/types/conversations/conversation_item_list.py">ConversationItemList</a></code>
+- <code title="get /conversations/{conversation_id}/items/{item_id}">client.conversations.items.<a href="./src/openai/resources/conversations/items.py">retrieve</a>(item_id, \*, conversation_id, \*\*<a href="src/openai/types/conversations/item_retrieve_params.py">params</a>) -> <a href="./src/openai/types/conversations/conversation_item.py">ConversationItem</a></code>
+- <code title="get /conversations/{conversation_id}/items">client.conversations.items.<a href="./src/openai/resources/conversations/items.py">list</a>(conversation_id, \*\*<a href="src/openai/types/conversations/item_list_params.py">params</a>) -> <a href="./src/openai/types/conversations/conversation_item.py">SyncConversationCursorPage[ConversationItem]</a></code>
+- <code title="delete /conversations/{conversation_id}/items/{item_id}">client.conversations.items.<a href="./src/openai/resources/conversations/items.py">delete</a>(item_id, \*, conversation_id) -> <a href="./src/openai/types/conversations/conversation.py">Conversation</a></code>
 
 # Evals
 

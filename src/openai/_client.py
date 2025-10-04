@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Union, Mapping
+from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
 from typing_extensions import Self, override
 
 import httpx
@@ -11,13 +11,13 @@ import httpx
 from . import _exceptions
 from ._qs import Querystring
 from ._types import (
-    NOT_GIVEN,
     Omit,
     Timeout,
     NotGiven,
     Transport,
     ProxiesTypes,
     RequestOptions,
+    not_given,
 )
 from ._utils import (
     is_given,
@@ -25,6 +25,7 @@ from ._utils import (
     get_async_library,
 )
 from ._compat import cached_property
+from ._models import FinalRequestOptions
 from ._version import __version__
 from ._streaming import Stream as Stream, AsyncStream as AsyncStream
 from ._exceptions import OpenAIError, APIStatusError
@@ -45,12 +46,14 @@ if TYPE_CHECKING:
         models,
         batches,
         uploads,
+        realtime,
         responses,
         containers,
         embeddings,
         completions,
         fine_tuning,
         moderations,
+        conversations,
         vector_stores,
     )
     from .resources.files import Files, AsyncFiles
@@ -66,9 +69,11 @@ if TYPE_CHECKING:
     from .resources.evals.evals import Evals, AsyncEvals
     from .resources.moderations import Moderations, AsyncModerations
     from .resources.uploads.uploads import Uploads, AsyncUploads
+    from .resources.realtime.realtime import Realtime, AsyncRealtime
     from .resources.responses.responses import Responses, AsyncResponses
     from .resources.containers.containers import Containers, AsyncContainers
     from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning
+    from .resources.conversations.conversations import Conversations, AsyncConversations
     from .resources.vector_stores.vector_stores import VectorStores, AsyncVectorStores
 
 __all__ = ["Timeout", "Transport", "ProxiesTypes", "RequestOptions", "OpenAI", "AsyncOpenAI", "Client", "AsyncClient"]
@@ -92,13 +97,13 @@ class OpenAI(SyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | None | Callable[[], str] = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
-        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -130,7 +135,12 @@ class OpenAI(SyncAPIClient):
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        if callable(api_key):
+            self.api_key = ""
+            self._api_key_provider: Callable[[], str] | None = api_key
+        else:
+            self.api_key = api_key
+            self._api_key_provider = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -255,6 +265,18 @@ class OpenAI(SyncAPIClient):
         return Responses(self)
 
     @cached_property
+    def realtime(self) -> Realtime:
+        from .resources.realtime import Realtime
+
+        return Realtime(self)
+
+    @cached_property
+    def conversations(self) -> Conversations:
+        from .resources.conversations import Conversations
+
+        return Conversations(self)
+
+    @cached_property
     def evals(self) -> Evals:
         from .resources.evals import Evals
 
@@ -279,6 +301,15 @@ class OpenAI(SyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    def _refresh_api_key(self) -> None:
+        if self._api_key_provider:
+            self.api_key = self._api_key_provider()
+
+    @override
+    def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        self._refresh_api_key()
+        return super()._prepare_options(options)
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
@@ -302,15 +333,15 @@ class OpenAI(SyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
-        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
-        max_retries: int | NotGiven = NOT_GIVEN,
+        max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -340,7 +371,7 @@ class OpenAI(SyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            api_key=api_key or self._api_key_provider or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -411,13 +442,13 @@ class AsyncOpenAI(AsyncAPIClient):
     def __init__(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
-        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -449,7 +480,12 @@ class AsyncOpenAI(AsyncAPIClient):
             raise OpenAIError(
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
-        self.api_key = api_key
+        if callable(api_key):
+            self.api_key = ""
+            self._api_key_provider: Callable[[], Awaitable[str]] | None = api_key
+        else:
+            self.api_key = api_key
+            self._api_key_provider = None
 
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
@@ -574,6 +610,18 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncResponses(self)
 
     @cached_property
+    def realtime(self) -> AsyncRealtime:
+        from .resources.realtime import AsyncRealtime
+
+        return AsyncRealtime(self)
+
+    @cached_property
+    def conversations(self) -> AsyncConversations:
+        from .resources.conversations import AsyncConversations
+
+        return AsyncConversations(self)
+
+    @cached_property
     def evals(self) -> AsyncEvals:
         from .resources.evals import AsyncEvals
 
@@ -598,6 +646,15 @@ class AsyncOpenAI(AsyncAPIClient):
     def qs(self) -> Querystring:
         return Querystring(array_format="brackets")
 
+    async def _refresh_api_key(self) -> None:
+        if self._api_key_provider:
+            self.api_key = await self._api_key_provider()
+
+    @override
+    async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        await self._refresh_api_key()
+        return await super()._prepare_options(options)
+
     @property
     @override
     def auth_headers(self) -> dict[str, str]:
@@ -621,15 +678,15 @@ class AsyncOpenAI(AsyncAPIClient):
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
-        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
-        max_retries: int | NotGiven = NOT_GIVEN,
+        max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -659,7 +716,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         http_client = http_client or self._client
         return self.__class__(
-            api_key=api_key or self.api_key,
+            api_key=api_key or self._api_key_provider or self.api_key,
             organization=organization or self.organization,
             project=project or self.project,
             webhook_secret=webhook_secret or self.webhook_secret,
@@ -803,6 +860,18 @@ class OpenAIWithRawResponse:
         return ResponsesWithRawResponse(self._client.responses)
 
     @cached_property
+    def realtime(self) -> realtime.RealtimeWithRawResponse:
+        from .resources.realtime import RealtimeWithRawResponse
+
+        return RealtimeWithRawResponse(self._client.realtime)
+
+    @cached_property
+    def conversations(self) -> conversations.ConversationsWithRawResponse:
+        from .resources.conversations import ConversationsWithRawResponse
+
+        return ConversationsWithRawResponse(self._client.conversations)
+
+    @cached_property
     def evals(self) -> evals.EvalsWithRawResponse:
         from .resources.evals import EvalsWithRawResponse
 
@@ -904,6 +973,18 @@ class AsyncOpenAIWithRawResponse:
         from .resources.responses import AsyncResponsesWithRawResponse
 
         return AsyncResponsesWithRawResponse(self._client.responses)
+
+    @cached_property
+    def realtime(self) -> realtime.AsyncRealtimeWithRawResponse:
+        from .resources.realtime import AsyncRealtimeWithRawResponse
+
+        return AsyncRealtimeWithRawResponse(self._client.realtime)
+
+    @cached_property
+    def conversations(self) -> conversations.AsyncConversationsWithRawResponse:
+        from .resources.conversations import AsyncConversationsWithRawResponse
+
+        return AsyncConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.AsyncEvalsWithRawResponse:
@@ -1009,6 +1090,18 @@ class OpenAIWithStreamedResponse:
         return ResponsesWithStreamingResponse(self._client.responses)
 
     @cached_property
+    def realtime(self) -> realtime.RealtimeWithStreamingResponse:
+        from .resources.realtime import RealtimeWithStreamingResponse
+
+        return RealtimeWithStreamingResponse(self._client.realtime)
+
+    @cached_property
+    def conversations(self) -> conversations.ConversationsWithStreamingResponse:
+        from .resources.conversations import ConversationsWithStreamingResponse
+
+        return ConversationsWithStreamingResponse(self._client.conversations)
+
+    @cached_property
     def evals(self) -> evals.EvalsWithStreamingResponse:
         from .resources.evals import EvalsWithStreamingResponse
 
@@ -1110,6 +1203,18 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.responses import AsyncResponsesWithStreamingResponse
 
         return AsyncResponsesWithStreamingResponse(self._client.responses)
+
+    @cached_property
+    def realtime(self) -> realtime.AsyncRealtimeWithStreamingResponse:
+        from .resources.realtime import AsyncRealtimeWithStreamingResponse
+
+        return AsyncRealtimeWithStreamingResponse(self._client.realtime)
+
+    @cached_property
+    def conversations(self) -> conversations.AsyncConversationsWithStreamingResponse:
+        from .resources.conversations import AsyncConversationsWithStreamingResponse
+
+        return AsyncConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.AsyncEvalsWithStreamingResponse:

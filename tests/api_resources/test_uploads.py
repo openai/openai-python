@@ -28,6 +28,20 @@ class TestUploads:
         assert_matches_type(Upload, upload, path=["response"])
 
     @parametrize
+    def test_method_create_with_all_params(self, client: OpenAI) -> None:
+        upload = client.uploads.create(
+            bytes=0,
+            filename="filename",
+            mime_type="mime_type",
+            purpose="assistants",
+            expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
+        )
+        assert_matches_type(Upload, upload, path=["response"])
+
+    @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.uploads.with_raw_response.create(
             bytes=0,
@@ -159,6 +173,20 @@ class TestAsyncUploads:
             filename="filename",
             mime_type="mime_type",
             purpose="assistants",
+        )
+        assert_matches_type(Upload, upload, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        upload = await async_client.uploads.create(
+            bytes=0,
+            filename="filename",
+            mime_type="mime_type",
+            purpose="assistants",
+            expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(Upload, upload, path=["response"])
 

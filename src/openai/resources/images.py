@@ -2,14 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Mapping, Optional, cast
+from typing import Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload
 
 import httpx
 
 from .. import _legacy_response
 from ..types import image_edit_params, image_generate_params, image_create_variation_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes
+from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
 from .._utils import extract_files, required_args, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -48,17 +48,17 @@ class Images(SyncAPIResource):
         self,
         *,
         image: FileTypes,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -121,28 +121,27 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -234,28 +233,27 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -347,28 +345,27 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -460,28 +457,27 @@ class Images(SyncAPIResource):
     def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageEditStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -527,28 +523,28 @@ class Images(SyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -638,27 +634,27 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -748,27 +744,27 @@ class Images(SyncAPIResource):
         *,
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -857,28 +853,28 @@ class Images(SyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | Stream[ImageGenStreamEvent]:
         return self._post(
             "/images/generations",
@@ -936,17 +932,17 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         image: FileTypes,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates a variation of a given image.
 
@@ -1009,28 +1005,27 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1122,28 +1117,27 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1235,28 +1229,27 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         """Creates an edited or extended image given one or more source images and a
         prompt.
@@ -1348,28 +1341,27 @@ class AsyncImages(AsyncAPIResource):
     async def edit(
         self,
         *,
-        image: Union[FileTypes, List[FileTypes]],
+        image: Union[FileTypes, SequenceNotStr[FileTypes]],
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        input_fidelity: Optional[Literal["high", "low"]] | NotGiven = NOT_GIVEN,
-        mask: FileTypes | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
-        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        input_fidelity: Optional[Literal["high", "low"]] | Omit = omit,
+        mask: FileTypes | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
+        size: Optional[Literal["256x256", "512x512", "1024x1024", "1536x1024", "1024x1536", "auto"]] | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageEditStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -1415,28 +1407,28 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse:
         """
         Creates an image given a prompt.
@@ -1526,27 +1518,27 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         stream: Literal[True],
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1636,27 +1628,27 @@ class AsyncImages(AsyncAPIResource):
         *,
         prompt: str,
         stream: bool,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         """
         Creates an image given a prompt.
@@ -1745,28 +1737,28 @@ class AsyncImages(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        background: Optional[Literal["transparent", "opaque", "auto"]] | NotGiven = NOT_GIVEN,
-        model: Union[str, ImageModel, None] | NotGiven = NOT_GIVEN,
-        moderation: Optional[Literal["low", "auto"]] | NotGiven = NOT_GIVEN,
-        n: Optional[int] | NotGiven = NOT_GIVEN,
-        output_compression: Optional[int] | NotGiven = NOT_GIVEN,
-        output_format: Optional[Literal["png", "jpeg", "webp"]] | NotGiven = NOT_GIVEN,
-        partial_images: Optional[int] | NotGiven = NOT_GIVEN,
-        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[Literal["url", "b64_json"]] | NotGiven = NOT_GIVEN,
+        background: Optional[Literal["transparent", "opaque", "auto"]] | Omit = omit,
+        model: Union[str, ImageModel, None] | Omit = omit,
+        moderation: Optional[Literal["low", "auto"]] | Omit = omit,
+        n: Optional[int] | Omit = omit,
+        output_compression: Optional[int] | Omit = omit,
+        output_format: Optional[Literal["png", "jpeg", "webp"]] | Omit = omit,
+        partial_images: Optional[int] | Omit = omit,
+        quality: Optional[Literal["standard", "hd", "low", "medium", "high", "auto"]] | Omit = omit,
+        response_format: Optional[Literal["url", "b64_json"]] | Omit = omit,
         size: Optional[
             Literal["auto", "1024x1024", "1536x1024", "1024x1536", "256x256", "512x512", "1792x1024", "1024x1792"]
         ]
-        | NotGiven = NOT_GIVEN,
-        stream: Optional[Literal[False]] | Literal[True] | NotGiven = NOT_GIVEN,
-        style: Optional[Literal["vivid", "natural"]] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        stream: Optional[Literal[False]] | Literal[True] | Omit = omit,
+        style: Optional[Literal["vivid", "natural"]] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ImagesResponse | AsyncStream[ImageGenStreamEvent]:
         return await self._post(
             "/images/generations",

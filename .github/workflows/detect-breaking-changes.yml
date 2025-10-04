@@ -1,0 +1,42 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+      - next
+
+jobs:
+  detect_breaking_changes:
+    runs-on: 'ubuntu-latest'
+    name: detect-breaking-changes
+    if: github.repository == 'openai/openai-python'
+    steps:
+      - name: Calculate fetch-depth
+        run: |
+          echo "FETCH_DEPTH=$(expr ${{ github.event.pull_request.commits }} + 1)" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v4
+        with:
+          # Ensure we can check out the pull request base in the script below.
+          fetch-depth: ${{ env.FETCH_DEPTH }}
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+      - name: Install dependencies
+        run: |
+          rye sync --all-features
+      - name: Detect removed symbols
+        run: |
+          rye run python scripts/detect-breaking-changes.py "${{ github.event.pull_request.base.sha }}"
+
+      - name: Detect breaking changes
+        run: |
+          # Try to check out previous versions of the breaking change detection script. This ensures that
+          # we still detect breaking changes when entire files and their tests are removed.
+          git checkout "${{ github.event.pull_request.base.sha }}" -- ./scripts/detect-breaking-changes 2>/dev/null || true
+          ./scripts/detect-breaking-changes ${{ github.event.pull_request.base.sha }}

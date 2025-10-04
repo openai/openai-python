@@ -13,7 +13,7 @@ from ._events import (
     ResponseTextDeltaEvent,
     ResponseFunctionCallArgumentsDeltaEvent,
 )
-from ...._types import NOT_GIVEN, NotGiven
+from ...._types import Omit, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._models import build, construct_type_unchecked
 from ...._streaming import Stream, AsyncStream
@@ -32,8 +32,8 @@ class ResponseStream(Generic[TextFormatT]):
         self,
         *,
         raw_stream: Stream[RawResponseStreamEvent],
-        text_format: type[TextFormatT] | NotGiven,
-        input_tools: Iterable[ToolParam] | NotGiven,
+        text_format: type[TextFormatT] | Omit,
+        input_tools: Iterable[ToolParam] | Omit,
         starting_after: int | None,
     ) -> None:
         self._raw_stream = raw_stream
@@ -97,8 +97,8 @@ class ResponseStreamManager(Generic[TextFormatT]):
         self,
         api_request: Callable[[], Stream[RawResponseStreamEvent]],
         *,
-        text_format: type[TextFormatT] | NotGiven,
-        input_tools: Iterable[ToolParam] | NotGiven,
+        text_format: type[TextFormatT] | Omit,
+        input_tools: Iterable[ToolParam] | Omit,
         starting_after: int | None,
     ) -> None:
         self.__stream: ResponseStream[TextFormatT] | None = None
@@ -134,8 +134,8 @@ class AsyncResponseStream(Generic[TextFormatT]):
         self,
         *,
         raw_stream: AsyncStream[RawResponseStreamEvent],
-        text_format: type[TextFormatT] | NotGiven,
-        input_tools: Iterable[ToolParam] | NotGiven,
+        text_format: type[TextFormatT] | Omit,
+        input_tools: Iterable[ToolParam] | Omit,
         starting_after: int | None,
     ) -> None:
         self._raw_stream = raw_stream
@@ -199,8 +199,8 @@ class AsyncResponseStreamManager(Generic[TextFormatT]):
         self,
         api_request: Awaitable[AsyncStream[RawResponseStreamEvent]],
         *,
-        text_format: type[TextFormatT] | NotGiven,
-        input_tools: Iterable[ToolParam] | NotGiven,
+        text_format: type[TextFormatT] | Omit,
+        input_tools: Iterable[ToolParam] | Omit,
         starting_after: int | None,
     ) -> None:
         self.__stream: AsyncResponseStream[TextFormatT] | None = None
@@ -235,14 +235,14 @@ class ResponseStreamState(Generic[TextFormatT]):
     def __init__(
         self,
         *,
-        input_tools: Iterable[ToolParam] | NotGiven,
-        text_format: type[TextFormatT] | NotGiven,
+        input_tools: Iterable[ToolParam] | Omit,
+        text_format: type[TextFormatT] | Omit,
     ) -> None:
         self.__current_snapshot: ParsedResponseSnapshot | None = None
         self._completed_response: ParsedResponse[TextFormatT] | None = None
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._text_format = text_format
-        self._rich_text_format: type | NotGiven = text_format if inspect.isclass(text_format) else NOT_GIVEN
+        self._rich_text_format: type | Omit = text_format if inspect.isclass(text_format) else omit
 
     def handle_event(self, event: RawResponseStreamEvent) -> List[ResponseStreamEvent[TextFormatT]]:
         self.__current_snapshot = snapshot = self.accumulate_event(event)
