@@ -747,6 +747,56 @@ def get_common_xfix(series: Any, xfix: str = "suffix") -> str:
 Validator: TypeAlias = "Callable[[pd.DataFrame], Remediation | None]"
 
 
+def chat_messages_validator(df: pd.DataFrame) -> Remediation:
+    """
+    This validator will ensure that the messages column contains properly formatted chat messages.
+    """
+    import json
+    
+    immediate_msg = None
+    error_msg = None
+    
+    # Check if we have a messages column
+    if 'messages' not in df.columns:
+        error_msg = "`messages` column/key is missing. Chat fine-tuning requires a 'messages' column with an array of message objects."
+    else:
+        # Try to validate the format
+        try:
+            for idx, row in df.iterrows():
+                if 'messages' in row:
+                    messages = json.loads(row['messages']) if isinstance(row['messages'], str) else row['messages']
+                    if not isinstance(messages, list):
+                        raise ValueError(f"Messages must be a list in row {idx}")
+                    for msg in messages:
+                        if not isinstance(msg, dict) or 'role' not in msg or 'content' not in msg:
+                            raise ValueError(f"Each message must have 'role' and 'content' in row {idx}")
+                        if msg['role'] not in ['system', 'user', 'assistant']:
+                            raise ValueError(f"Role must be 'system', 'user', or 'assistant' in row {idx}")
+            immediate_msg = f"\n- Your file contains {len(df)} chat conversations with properly formatted messages"
+        except (json.JSONDecodeError, ValueError, TypeError) as e:
+            error_msg = f"Invalid messages format: {str(e)}. Messages must be a JSON array of objects with 'role' and 'content' fields."
+    
+    return Remediation(
+        name="chat_messages",
+        immediate_msg=immediate_msg,
+        error_msg=error_msg,
+    )
+
+
+def chat_num_examples_validator(df: pd.DataFrame) -> Remediation:
+    """
+    This validator will print out the number of chat examples and recommend increasing if less than 10.
+    """
+    MIN_EXAMPLES = 10
+    optional_suggestion = (
+        ""
+        if len(df) >= MIN_EXAMPLES
+        else ". For chat fine-tuning, we recommend having at least 10 examples, but preferably 50-100 for better results"
+    )
+    immediate_msg = f"\n- Your file contains {len(df)} chat conversations{optional_suggestion}"
+    return Remediation(name="chat_num_examples", immediate_msg=immediate_msg)
+
+
 def get_validators() -> list[Validator]:
     return [
         num_examples_validator,
@@ -764,6 +814,17 @@ def get_validators() -> list[Validator]:
         common_completion_prefix_validator,
         common_completion_suffix_validator,
         completions_space_start_validator,
+    ]
+
+
+def get_chat_validators() -> list[Validator]:
+    """
+    Get validators specifically for chat fine-tuning data format.
+    """
+    return [
+        chat_num_examples_validator,
+        chat_messages_validator,
+        duplicated_rows_validator,
     ]
 
 
