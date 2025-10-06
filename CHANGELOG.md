@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.2.0 (2025-10-06)
+
+Full Changelog: [v2.1.0...v2.2.0](https://github.com/openai/openai-python/compare/v2.1.0...v2.2.0)
+
+### Features
+
+* **api:** dev day 2025 launches ([38ac009](https://github.com/openai/openai-python/commit/38ac0093ebb3419b1e2280d0dc2d26c74a2bbbec))
+
+
+### Bug Fixes
+
+* **client:** add chatkit to beta resource ([de3e561](https://github.com/openai/openai-python/commit/de3e5619d0a85b17906a9416039ef309e820dc0f))
+
 ## 2.1.0 (2025-10-02)
 
 Full Changelog: [v2.0.1...v2.1.0](https://github.com/openai/openai-python/compare/v2.0.1...v2.1.0)
