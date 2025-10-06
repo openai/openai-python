@@ -67,6 +67,7 @@ class Realtime(SyncAPIResource):
     @cached_property
     def calls(self) -> Calls:
         from ...lib._realtime import _Calls
+
         return _Calls(self._client)
 
     @cached_property
@@ -126,6 +127,7 @@ class AsyncRealtime(AsyncAPIResource):
     @cached_property
     def calls(self) -> AsyncCalls:
         from ...lib._realtime import _AsyncCalls
+
         return _AsyncCalls(self._client)
 
     @cached_property
