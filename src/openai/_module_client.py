@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .resources.files import Files
     from .resources.images import Images
     from .resources.models import Models
+    from .resources.videos import Videos
     from .resources.batches import Batches
     from .resources.webhooks import Webhooks
     from .resources.beta.beta import Beta
@@ -70,6 +71,12 @@ class ModelsProxy(LazyProxy["Models"]):
     @override
     def __load__(self) -> Models:
         return _load_client().models
+
+
+class VideosProxy(LazyProxy["Videos"]):
+    @override
+    def __load__(self) -> Videos:
+        return _load_client().videos
 
 
 class BatchesProxy(LazyProxy["Batches"]):
@@ -151,6 +158,7 @@ audio: Audio = AudioProxy().__as_proxied__()
 evals: Evals = EvalsProxy().__as_proxied__()
 images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()
+videos: Videos = VideosProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()
 webhooks: Webhooks = WebhooksProxy().__as_proxied__()

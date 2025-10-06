@@ -123,6 +123,10 @@ class Calls(SyncAPIResource):
                 "gpt-4o-realtime-preview-2025-06-03",
                 "gpt-4o-mini-realtime-preview",
                 "gpt-4o-mini-realtime-preview-2024-12-17",
+                "gpt-realtime-mini",
+                "gpt-realtime-mini-2025-10-06",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-10-06",
             ],
         ]
         | Omit = omit,
@@ -428,6 +432,10 @@ class AsyncCalls(AsyncAPIResource):
                 "gpt-4o-realtime-preview-2025-06-03",
                 "gpt-4o-mini-realtime-preview",
                 "gpt-4o-mini-realtime-preview-2024-12-17",
+                "gpt-realtime-mini",
+                "gpt-realtime-mini-2025-10-06",
+                "gpt-audio-mini",
+                "gpt-audio-mini-2025-10-06",
             ],
         ]
         | Omit = omit,

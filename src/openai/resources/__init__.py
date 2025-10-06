@@ -56,6 +56,14 @@ from .models import (
     ModelsWithStreamingResponse,
     AsyncModelsWithStreamingResponse,
 )
+from .videos import (
+    Videos,
+    AsyncVideos,
+    VideosWithRawResponse,
+    AsyncVideosWithRawResponse,
+    VideosWithStreamingResponse,
+    AsyncVideosWithStreamingResponse,
+)
 from .batches import (
     Batches,
     AsyncBatches,
@@ -212,4 +220,10 @@ __all__ = [
     "AsyncContainersWithRawResponse",
     "ContainersWithStreamingResponse",
     "AsyncContainersWithStreamingResponse",
+    "Videos",
+    "AsyncVideos",
+    "VideosWithRawResponse",
+    "AsyncVideosWithRawResponse",
+    "VideosWithStreamingResponse",
+    "AsyncVideosWithStreamingResponse",
 ]

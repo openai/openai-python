@@ -12,6 +12,14 @@ from .assistants import (
     AsyncAssistantsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from .chatkit.chatkit import (
+    ChatKit,
+    AsyncChatKit,
+    ChatKitWithRawResponse,
+    AsyncChatKitWithRawResponse,
+    ChatKitWithStreamingResponse,
+    AsyncChatKitWithStreamingResponse,
+)
 from .threads.threads import (
     Threads,
     AsyncThreads,
@@ -25,6 +33,10 @@ __all__ = ["Beta", "AsyncBeta"]
 
 
 class Beta(SyncAPIResource):
+    @cached_property
+    def chatkit(self) -> ChatKit:
+        return ChatKit(self._client)
+
     @cached_property
     def assistants(self) -> Assistants:
         return Assistants(self._client)
@@ -54,6 +66,10 @@ class Beta(SyncAPIResource):
 
 
 class AsyncBeta(AsyncAPIResource):
+    @cached_property
+    def chatkit(self) -> AsyncChatKit:
+        return AsyncChatKit(self._client)
+
     @cached_property
     def assistants(self) -> AsyncAssistants:
         return AsyncAssistants(self._client)
@@ -87,6 +103,10 @@ class BetaWithRawResponse:
         self._beta = beta
 
     @cached_property
+    def chatkit(self) -> ChatKitWithRawResponse:
+        return ChatKitWithRawResponse(self._beta.chatkit)
+
+    @cached_property
     def assistants(self) -> AssistantsWithRawResponse:
         return AssistantsWithRawResponse(self._beta.assistants)
 
@@ -98,6 +118,10 @@ class BetaWithRawResponse:
 class AsyncBetaWithRawResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
+
+    @cached_property
+    def chatkit(self) -> AsyncChatKitWithRawResponse:
+        return AsyncChatKitWithRawResponse(self._beta.chatkit)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithRawResponse:
@@ -113,6 +137,10 @@ class BetaWithStreamingResponse:
         self._beta = beta
 
     @cached_property
+    def chatkit(self) -> ChatKitWithStreamingResponse:
+        return ChatKitWithStreamingResponse(self._beta.chatkit)
+
+    @cached_property
     def assistants(self) -> AssistantsWithStreamingResponse:
         return AssistantsWithStreamingResponse(self._beta.assistants)
 
@@ -124,6 +152,10 @@ class BetaWithStreamingResponse:
 class AsyncBetaWithStreamingResponse:
     def __init__(self, beta: AsyncBeta) -> None:
         self._beta = beta
+
+    @cached_property
+    def chatkit(self) -> AsyncChatKitWithStreamingResponse:
+        return AsyncChatKitWithStreamingResponse(self._beta.chatkit)
 
     @cached_property
     def assistants(self) -> AsyncAssistantsWithStreamingResponse:

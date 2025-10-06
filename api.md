@@ -434,6 +434,60 @@ from openai.types.webhooks import (
 
 # Beta
 
+## ChatKit
+
+Types:
+
+```python
+from openai.types.beta import ChatKitWorkflow, FilePart, ImagePart, ChatKitUploadFileResponse
+```
+
+Methods:
+
+- <code title="post /chatkit/files">client.beta.chatkit.<a href="./src/openai/resources/beta/chatkit/chatkit.py">upload_file</a>(\*\*<a href="src/openai/types/beta/chatkit_upload_file_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit_upload_file_response.py">ChatKitUploadFileResponse</a></code>
+
+### Sessions
+
+Methods:
+
+- <code title="post /chatkit/sessions">client.beta.chatkit.sessions.<a href="./src/openai/resources/beta/chatkit/sessions.py">create</a>(\*\*<a href="src/openai/types/beta/chatkit/session_create_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit/chat_session.py">ChatSession</a></code>
+- <code title="post /chatkit/sessions/{session_id}/cancel">client.beta.chatkit.sessions.<a href="./src/openai/resources/beta/chatkit/sessions.py">cancel</a>(session_id) -> <a href="./src/openai/types/beta/chatkit/chat_session.py">ChatSession</a></code>
+
+### Threads
+
+Types:
+
+```python
+from openai.types.beta.chatkit import (
+    ChatSession,
+    ChatSessionAutomaticThreadTitling,
+    ChatSessionChatKitConfiguration,
+    ChatSessionChatKitConfigurationParam,
+    ChatSessionExpiresAfterParam,
+    ChatSessionFileUpload,
+    ChatSessionHistory,
+    ChatSessionRateLimits,
+    ChatSessionRateLimitsParam,
+    ChatSessionStatus,
+    ChatSessionWorkflowParam,
+    ChatKitAttachment,
+    ChatKitResponseOutputText,
+    ChatKitThread,
+    ChatKitThreadAssistantMessageItem,
+    ChatKitThreadItemList,
+    ChatKitThreadUserMessageItem,
+    ChatKitWidgetItem,
+    ThreadDeleteResponse,
+)
+```
+
+Methods:
+
+- <code title="get /chatkit/threads/{thread_id}">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">retrieve</a>(thread_id) -> <a href="./src/openai/types/beta/chatkit/chatkit_thread.py">ChatKitThread</a></code>
+- <code title="get /chatkit/threads">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">list</a>(\*\*<a href="src/openai/types/beta/chatkit/thread_list_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit/chatkit_thread.py">SyncConversationCursorPage[ChatKitThread]</a></code>
+- <code title="delete /chatkit/threads/{thread_id}">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">delete</a>(thread_id) -> <a href="./src/openai/types/beta/chatkit/thread_delete_response.py">ThreadDeleteResponse</a></code>
+- <code title="get /chatkit/threads/{thread_id}/items">client.beta.chatkit.threads.<a href="./src/openai/resources/beta/chatkit/threads.py">list_items</a>(thread_id, \*\*<a href="src/openai/types/beta/chatkit/thread_list_items_params.py">params</a>) -> SyncConversationCursorPage[Data]</code>
+
 ## Assistants
 
 Types:
@@ -1036,3 +1090,27 @@ Methods:
 Methods:
 
 - <code title="get /containers/{container_id}/files/{file_id}/content">client.containers.files.content.<a href="./src/openai/resources/containers/files/content.py">retrieve</a>(file_id, \*, container_id) -> HttpxBinaryResponseContent</code>
+
+# Videos
+
+Types:
+
+```python
+from openai.types import (
+    Video,
+    VideoCreateError,
+    VideoModel,
+    VideoSeconds,
+    VideoSize,
+    VideoDeleteResponse,
+)
+```
+
+Methods:
+
+- <code title="post /videos">client.videos.<a href="./src/openai/resources/videos.py">create</a>(\*\*<a href="src/openai/types/video_create_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="get /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos.py">retrieve</a>(video_id) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="get /videos">client.videos.<a href="./src/openai/resources/videos.py">list</a>(\*\*<a href="src/openai/types/video_list_params.py">params</a>) -> <a href="./src/openai/types/video.py">SyncConversationCursorPage[Video]</a></code>
+- <code title="delete /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos.py">delete</a>(video_id) -> <a href="./src/openai/types/video_delete_response.py">VideoDeleteResponse</a></code>
+- <code title="get /videos/{video_id}/content">client.videos.<a href="./src/openai/resources/videos.py">download_content</a>(video_id, \*\*<a href="src/openai/types/video_download_content_params.py">params</a>) -> HttpxBinaryResponseContent</code>
+- <code title="post /videos/{video_id}/remix">client.videos.<a href="./src/openai/resources/videos.py">remix</a>(video_id, \*\*<a href="src/openai/types/video_remix_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
