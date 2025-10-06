@@ -4,9 +4,12 @@ from __future__ import annotations
 
 from .thread import Thread as Thread
 from .assistant import Assistant as Assistant
+from .file_part import FilePart as FilePart
+from .image_part import ImagePart as ImagePart
 from .function_tool import FunctionTool as FunctionTool
 from .assistant_tool import AssistantTool as AssistantTool
 from .thread_deleted import ThreadDeleted as ThreadDeleted
+from .chatkit_workflow import ChatKitWorkflow as ChatKitWorkflow
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .assistant_deleted import AssistantDeleted as AssistantDeleted
 from .function_tool_param import FunctionToolParam as FunctionToolParam
@@ -20,9 +23,11 @@ from .assistant_stream_event import AssistantStreamEvent as AssistantStreamEvent
 from .file_search_tool_param import FileSearchToolParam as FileSearchToolParam
 from .assistant_create_params import AssistantCreateParams as AssistantCreateParams
 from .assistant_update_params import AssistantUpdateParams as AssistantUpdateParams
+from .chatkit_upload_file_params import ChatKitUploadFileParams as ChatKitUploadFileParams
 from .assistant_tool_choice_param import AssistantToolChoiceParam as AssistantToolChoiceParam
 from .code_interpreter_tool_param import CodeInterpreterToolParam as CodeInterpreterToolParam
 from .assistant_tool_choice_option import AssistantToolChoiceOption as AssistantToolChoiceOption
+from .chatkit_upload_file_response import ChatKitUploadFileResponse as ChatKitUploadFileResponse
 from .thread_create_and_run_params import ThreadCreateAndRunParams as ThreadCreateAndRunParams
 from .assistant_tool_choice_function import AssistantToolChoiceFunction as AssistantToolChoiceFunction
 from .assistant_response_format_option import AssistantResponseFormatOption as AssistantResponseFormatOption

@@ -363,13 +363,14 @@ class AsyncRealtimeConnectionManager:
         extra_query = self.__extra_query
         await self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
+        extra_query = self.__extra_query
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
-            else: 
+            else:
                 url, auth_headers = await self.__client._configure_realtime(model, extra_query)
         else:
             url = self._prepare_url().copy_with(
@@ -551,13 +552,14 @@ class RealtimeConnectionManager:
         extra_query = self.__extra_query
         self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
+        extra_query = self.__extra_query
         if self.__call_id is not omit:
             extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
             model = self.__model
             if not model:
                 raise OpenAIError("`model` is required for Azure Realtime API")
-            else: 
+            else:
                 url, auth_headers = self.__client._configure_realtime(model, extra_query)
         else:
             url = self._prepare_url().copy_with(

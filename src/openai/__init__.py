@@ -379,6 +379,7 @@ from ._module_client import (
     files as files,
     images as images,
     models as models,
+    videos as videos,
     batches as batches,
     uploads as uploads,
     realtime as realtime,
