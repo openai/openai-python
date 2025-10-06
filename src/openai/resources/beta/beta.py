@@ -28,11 +28,24 @@ from .threads.threads import (
     ThreadsWithStreamingResponse,
     AsyncThreadsWithStreamingResponse,
 )
+from ...resources.chat import Chat, AsyncChat
+from .realtime.realtime import (
+    Realtime,
+    AsyncRealtime,
+)
 
 __all__ = ["Beta", "AsyncBeta"]
 
 
 class Beta(SyncAPIResource):
+    @cached_property
+    def chat(self) -> Chat:
+        return Chat(self._client)
+
+    @cached_property
+    def realtime(self) -> Realtime:
+        return Realtime(self._client)
+
     @cached_property
     def chatkit(self) -> ChatKit:
         return ChatKit(self._client)
@@ -66,6 +79,14 @@ class Beta(SyncAPIResource):
 
 
 class AsyncBeta(AsyncAPIResource):
+    @cached_property
+    def chat(self) -> AsyncChat:
+        return AsyncChat(self._client)
+
+    @cached_property
+    def realtime(self) -> AsyncRealtime:
+        return AsyncRealtime(self._client)
+
     @cached_property
     def chatkit(self) -> AsyncChatKit:
         return AsyncChatKit(self._client)
