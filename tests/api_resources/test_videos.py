@@ -24,6 +24,21 @@ from openai.pagination import SyncConversationCursorPage, AsyncConversationCurso
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
 
+def _build_video(status: str, progress: int) -> Video:
+    return Video.model_validate(
+        {
+            "id": "video_123",
+            "created_at": 0,
+            "model": "sora-2",
+            "object": "video",
+            "progress": progress,
+            "seconds": "4",
+            "size": "720x1280",
+            "status": status,
+        }
+    )
+
+
 class TestVideos:
     parametrize = pytest.mark.parametrize("client", [False, True], indirect=True, ids=["loose", "strict"])
 
@@ -278,6 +293,70 @@ class TestVideos:
                 video_id="",
                 prompt="x",
             )
+
+    @parametrize
+    def test_create_and_poll_respects_timeout(self, client: OpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
+        captured_timeouts: list[object] = []
+        create_kwargs: dict[str, object] = {}
+        create_video = _build_video("queued", 0)
+        poll_responses = [
+            (_build_video("in_progress", 50), {"openai-poll-after-ms": "10"}),
+            (_build_video("completed", 100), {}),
+        ]
+
+        def fake_create(**kwargs: object) -> Video:
+            create_kwargs.update(kwargs)
+            return create_video
+
+        class FakeResponse:
+            def __init__(self, video: Video, headers: dict[str, str]) -> None:
+                self._video = video
+                self.headers = headers
+
+            def parse(self) -> Video:
+                return self._video
+
+        def fake_retrieve(video_id: str, *, extra_headers: object, timeout: object) -> FakeResponse:
+            video, headers = poll_responses.pop(0)
+            captured_timeouts.append(timeout)
+            return FakeResponse(video, headers)
+
+        monkeypatch.setattr(client.videos, "create", fake_create)
+        monkeypatch.setattr(client.videos.with_raw_response, "retrieve", fake_retrieve)
+        monkeypatch.setattr(client.videos, "_sleep", lambda _: None)
+
+        timeout_value = 123.0
+        final_video = client.videos.create_and_poll(prompt="x", timeout=timeout_value)
+
+        assert final_video.status == "completed"
+        assert captured_timeouts == [timeout_value, timeout_value]
+        assert poll_responses == []
+        assert create_kwargs.get("timeout") == timeout_value
+
+    @parametrize
+    def test_remix_passes_timeout(self, client: OpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
+        captured: dict[str, object] = {}
+
+        def fake_post(
+            path: str,
+            *,
+            body: object,
+            options: dict[str, object],
+            cast_to: object,
+            **kwargs: object,
+        ) -> Video:
+            captured["path"] = path
+            captured["timeout"] = options.get("timeout")
+            return _build_video("completed", 100)
+
+        monkeypatch.setattr(client.videos, "_post", fake_post)
+
+        timeout_value = 0.5
+        video = client.videos.remix(video_id="video_123", prompt="x", timeout=timeout_value)
+
+        assert video.status == "completed"
+        assert captured["path"] == "/videos/video_123/remix"
+        assert captured["timeout"] == timeout_value
 
 
 class TestAsyncVideos:
@@ -538,6 +617,75 @@ class TestAsyncVideos:
                 video_id="",
                 prompt="x",
             )
+
+    @parametrize
+    async def test_create_and_poll_respects_timeout(
+        self, async_client: AsyncOpenAI, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        captured_timeouts: list[object] = []
+        create_kwargs: dict[str, object] = {}
+        create_video = _build_video("queued", 0)
+        poll_responses = [
+            (_build_video("in_progress", 50), {"openai-poll-after-ms": "10"}),
+            (_build_video("completed", 100), {}),
+        ]
+
+        async def fake_create(**kwargs: object) -> Video:
+            create_kwargs.update(kwargs)
+            return create_video
+
+        class FakeResponse:
+            def __init__(self, video: Video, headers: dict[str, str]) -> None:
+                self._video = video
+                self.headers = headers
+
+            def parse(self) -> Video:
+                return self._video
+
+        async def fake_retrieve(video_id: str, *, extra_headers: object, timeout: object) -> FakeResponse:
+            video, headers = poll_responses.pop(0)
+            captured_timeouts.append(timeout)
+            return FakeResponse(video, headers)
+
+        async def fake_sleep(_: float) -> None:
+            return None
+
+        monkeypatch.setattr(async_client.videos, "create", fake_create)
+        monkeypatch.setattr(async_client.videos.with_raw_response, "retrieve", fake_retrieve)
+        monkeypatch.setattr(async_client.videos, "_sleep", fake_sleep)
+
+        timeout_value = 123.0
+        final_video = await async_client.videos.create_and_poll(prompt="x", timeout=timeout_value)
+
+        assert final_video.status == "completed"
+        assert captured_timeouts == [timeout_value, timeout_value]
+        assert poll_responses == []
+        assert create_kwargs.get("timeout") == timeout_value
+
+    @parametrize
+    async def test_remix_passes_timeout(self, async_client: AsyncOpenAI, monkeypatch: pytest.MonkeyPatch) -> None:
+        captured: dict[str, object] = {}
+
+        async def fake_post(
+            path: str,
+            *,
+            body: object,
+            options: dict[str, object],
+            cast_to: object,
+            **kwargs: object,
+        ) -> Video:
+            captured["path"] = path
+            captured["timeout"] = options.get("timeout")
+            return _build_video("completed", 100)
+
+        monkeypatch.setattr(async_client.videos, "_post", fake_post)
+
+        timeout_value = 0.5
+        video = await async_client.videos.remix(video_id="video_123", prompt="x", timeout=timeout_value)
+
+        assert video.status == "completed"
+        assert captured["path"] == "/videos/video_123/remix"
+        assert captured["timeout"] == timeout_value
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
