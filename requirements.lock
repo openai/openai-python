@@ -51,7 +51,7 @@ idna==3.4
     # via anyio
     # via httpx
     # via yarl
-jiter==0.6.1
+jiter==0.11.0
     # via openai
 multidict==6.5.0
     # via aiohttp
