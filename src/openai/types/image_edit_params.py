@@ -30,11 +30,11 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
 
     background: Optional[Literal["transparent", "opaque", "auto"]]
-    """Allows to set transparency for the background of the generated image(s).
-
-    This parameter is only supported for `gpt-image-1`. Must be one of
-    `transparent`, `opaque` or `auto` (default value). When `auto` is used, the
-    model will automatically determine the best background for the image.
+    """
+    Allows to set transparency for the background of the generated image(s). This
+    parameter is only supported for `gpt-image-1`. Must be one of `transparent`,
+    `opaque` or `auto` (default value). When `auto` is used, the model will
+    automatically determine the best background for the image.
 
     If `transparent`, the output format needs to support transparency, so it should
     be set to either `png` (default value) or `webp`.
@@ -44,7 +44,8 @@ class ImageEditParamsBase(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+    for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
+    `low`. Defaults to `low`.
     """
 
     mask: FileTypes

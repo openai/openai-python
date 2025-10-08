@@ -8,7 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from .... import _legacy_response
-from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ...._utils import maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from .checkpoints import (
@@ -63,19 +63,19 @@ class Jobs(SyncAPIResource):
         *,
         model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo", "gpt-4o-mini"]],
         training_file: str,
-        hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
-        integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        method: job_create_params.Method | NotGiven = NOT_GIVEN,
-        seed: Optional[int] | NotGiven = NOT_GIVEN,
-        suffix: Optional[str] | NotGiven = NOT_GIVEN,
-        validation_file: Optional[str] | NotGiven = NOT_GIVEN,
+        hyperparameters: job_create_params.Hyperparameters | Omit = omit,
+        integrations: Optional[Iterable[job_create_params.Integration]] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        method: job_create_params.Method | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        suffix: Optional[str] | Omit = omit,
+        validation_file: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Creates a fine-tuning job which begins the process of creating a new model from
@@ -186,7 +186,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Get info about a fine-tuning job.
@@ -215,15 +215,15 @@ class Jobs(SyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        metadata: Optional[Dict[str, str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FineTuningJob]:
         """
         List your organization's fine-tuning jobs
@@ -273,7 +273,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Immediately cancel a fine-tune job.
@@ -301,14 +301,14 @@ class Jobs(SyncAPIResource):
         self,
         fine_tuning_job_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[FineTuningJobEvent]:
         """
         Get status updates for a fine-tuning job.
@@ -356,7 +356,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Pause a fine-tune job.
@@ -389,7 +389,7 @@ class Jobs(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Resume a fine-tune job.
@@ -443,19 +443,19 @@ class AsyncJobs(AsyncAPIResource):
         *,
         model: Union[str, Literal["babbage-002", "davinci-002", "gpt-3.5-turbo", "gpt-4o-mini"]],
         training_file: str,
-        hyperparameters: job_create_params.Hyperparameters | NotGiven = NOT_GIVEN,
-        integrations: Optional[Iterable[job_create_params.Integration]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        method: job_create_params.Method | NotGiven = NOT_GIVEN,
-        seed: Optional[int] | NotGiven = NOT_GIVEN,
-        suffix: Optional[str] | NotGiven = NOT_GIVEN,
-        validation_file: Optional[str] | NotGiven = NOT_GIVEN,
+        hyperparameters: job_create_params.Hyperparameters | Omit = omit,
+        integrations: Optional[Iterable[job_create_params.Integration]] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        method: job_create_params.Method | Omit = omit,
+        seed: Optional[int] | Omit = omit,
+        suffix: Optional[str] | Omit = omit,
+        validation_file: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Creates a fine-tuning job which begins the process of creating a new model from
@@ -566,7 +566,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Get info about a fine-tuning job.
@@ -595,15 +595,15 @@ class AsyncJobs(AsyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        metadata: Optional[Dict[str, str]] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
+        metadata: Optional[Dict[str, str]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FineTuningJob, AsyncCursorPage[FineTuningJob]]:
         """
         List your organization's fine-tuning jobs
@@ -653,7 +653,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Immediately cancel a fine-tune job.
@@ -681,14 +681,14 @@ class AsyncJobs(AsyncAPIResource):
         self,
         fine_tuning_job_id: str,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        limit: int | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[FineTuningJobEvent, AsyncCursorPage[FineTuningJobEvent]]:
         """
         Get status updates for a fine-tuning job.
@@ -736,7 +736,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Pause a fine-tune job.
@@ -769,7 +769,7 @@ class AsyncJobs(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FineTuningJob:
         """
         Resume a fine-tune job.

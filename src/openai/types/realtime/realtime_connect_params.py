@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
-from typing_extensions import Required, TypedDict
+from typing_extensions import TypedDict
 
 __all__ = ["RealtimeConnectParams"]
 
 
 class RealtimeConnectParams(TypedDict, total=False):
-    model: Required[str]
+    call_id: str
+
+    model: str

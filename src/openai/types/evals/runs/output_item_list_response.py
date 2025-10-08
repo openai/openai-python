@@ -1,13 +1,43 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-import builtins
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional
 from typing_extensions import Literal
+
+from pydantic import Field as FieldInfo
 
 from ...._models import BaseModel
 from ..eval_api_error import EvalAPIError
 
-__all__ = ["OutputItemListResponse", "Sample", "SampleInput", "SampleOutput", "SampleUsage"]
+__all__ = ["OutputItemListResponse", "Result", "Sample", "SampleInput", "SampleOutput", "SampleUsage"]
+
+
+class Result(BaseModel):
+    name: str
+    """The name of the grader."""
+
+    passed: bool
+    """Whether the grader considered the output a pass."""
+
+    score: float
+    """The numeric score produced by the grader."""
+
+    sample: Optional[Dict[str, object]] = None
+    """Optional sample or intermediate data produced by the grader."""
+
+    type: Optional[str] = None
+    """The grader type (for example, "string-check-grader")."""
+
+    if TYPE_CHECKING:
+        # Some versions of Pydantic <2.8.0 have a bug and don’t allow assigning a
+        # value to this field, so for compatibility we avoid doing it at runtime.
+        __pydantic_extra__: Dict[str, object] = FieldInfo(init=False)  # pyright: ignore[reportIncompatibleVariableOverride]
+
+        # Stub to indicate that arbitrary properties are accepted.
+        # To access properties that are not valid identifiers you can use `getattr`, e.g.
+        # `getattr(obj, '$type')`
+        def __getattr__(self, attr: str) -> object: ...
+    else:
+        __pydantic_extra__: Dict[str, object]
 
 
 class SampleInput(BaseModel):
@@ -91,8 +121,8 @@ class OutputItemListResponse(BaseModel):
     object: Literal["eval.run.output_item"]
     """The type of the object. Always "eval.run.output_item"."""
 
-    results: List[Dict[str, builtins.object]]
-    """A list of results from the evaluation run."""
+    results: List[Result]
+    """A list of grader results for this output item."""
 
     run_id: str
     """The identifier of the evaluation run associated with this output item."""

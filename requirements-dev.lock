@@ -70,7 +70,7 @@ filelock==3.12.4
 frozenlist==1.7.0
     # via aiohttp
     # via aiosignal
-griffe==1.14.0
+griffe==1.13.0
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -134,11 +134,11 @@ portalocker==2.10.1
 propcache==0.3.2
     # via aiohttp
     # via yarl
-pycparser==2.22
+pycparser==2.23
     # via cffi
-pydantic==2.10.3
+pydantic==2.11.9
     # via openai
-pydantic-core==2.27.1
+pydantic-core==2.33.2
     # via pydantic
 pygments==2.18.0
     # via pytest
@@ -200,6 +200,9 @@ typing-extensions==4.12.2
     # via pydantic
     # via pydantic-core
     # via pyright
+    # via typing-inspection
+typing-inspection==0.4.1
+    # via pydantic
 tzdata==2024.1
     # via pandas
 urllib3==2.2.1

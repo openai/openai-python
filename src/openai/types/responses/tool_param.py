@@ -36,6 +36,7 @@ WebSearchTool = web_search_tool_param.WebSearchToolParam
 WebSearchToolFilters = web_search_tool_param.Filters
 WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
+
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
@@ -198,7 +199,8 @@ class ImageGeneration(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+    for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
+    `low`. Defaults to `low`.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -207,7 +209,7 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Literal["gpt-image-1"]
+    model: Literal["gpt-image-1", "gpt-image-1-mini"]
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Literal["auto", "low"]

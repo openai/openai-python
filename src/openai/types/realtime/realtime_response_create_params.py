@@ -3,10 +3,10 @@
 from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
-from .models import Models
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
 from .conversation_item import ConversationItem
+from .realtime_function_tool import RealtimeFunctionTool
 from ..responses.response_prompt import ResponsePrompt
 from ..responses.tool_choice_mcp import ToolChoiceMcp
 from ..responses.tool_choice_options import ToolChoiceOptions
@@ -18,7 +18,7 @@ __all__ = ["RealtimeResponseCreateParams", "ToolChoice", "Tool"]
 
 ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceFunction, ToolChoiceMcp]
 
-Tool: TypeAlias = Union[Models, RealtimeResponseCreateMcpTool]
+Tool: TypeAlias = Union[RealtimeFunctionTool, RealtimeResponseCreateMcpTool]
 
 
 class RealtimeResponseCreateParams(BaseModel):
@@ -83,8 +83,8 @@ class RealtimeResponseCreateParams(BaseModel):
     """
 
     prompt: Optional[ResponsePrompt] = None
-    """Reference to a prompt template and its variables.
-
+    """
+    Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 

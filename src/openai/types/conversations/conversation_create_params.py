@@ -13,14 +13,17 @@ __all__ = ["ConversationCreateParams"]
 
 class ConversationCreateParams(TypedDict, total=False):
     items: Optional[Iterable[ResponseInputItemParam]]
-    """
-    Initial items to include in the conversation context. You may add up to 20 items
-    at a time.
+    """Initial items to include in the conversation context.
+
+    You may add up to 20 items at a time.
     """
 
     metadata: Optional[Metadata]
     """Set of 16 key-value pairs that can be attached to an object.
 
-    Useful for storing additional information about the object in a structured
-    format.
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """

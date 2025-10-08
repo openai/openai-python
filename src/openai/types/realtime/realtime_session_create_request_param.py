@@ -63,6 +63,10 @@ class RealtimeSessionCreateRequestParam(TypedDict, total=False):
             "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
+            "gpt-realtime-mini",
+            "gpt-realtime-mini-2025-10-06",
+            "gpt-audio-mini",
+            "gpt-audio-mini-2025-10-06",
         ],
     ]
     """The Realtime model used for this session."""
@@ -76,8 +80,8 @@ class RealtimeSessionCreateRequestParam(TypedDict, total=False):
     """
 
     prompt: Optional[ResponsePromptParam]
-    """Reference to a prompt template and its variables.
-
+    """
+    Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 

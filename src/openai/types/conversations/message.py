@@ -6,26 +6,36 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .text_content import TextContent
-from .refusal_content import RefusalContent
-from .input_file_content import InputFileContent
-from .input_text_content import InputTextContent
-from .input_image_content import InputImageContent
-from .output_text_content import OutputTextContent
 from .summary_text_content import SummaryTextContent
 from .computer_screenshot_content import ComputerScreenshotContent
+from ..responses.response_input_file import ResponseInputFile
+from ..responses.response_input_text import ResponseInputText
+from ..responses.response_input_image import ResponseInputImage
+from ..responses.response_output_text import ResponseOutputText
+from ..responses.response_output_refusal import ResponseOutputRefusal
 
-__all__ = ["Message", "Content"]
+__all__ = ["Message", "Content", "ContentReasoningText"]
+
+
+class ContentReasoningText(BaseModel):
+    text: str
+    """The reasoning text from the model."""
+
+    type: Literal["reasoning_text"]
+    """The type of the reasoning text. Always `reasoning_text`."""
+
 
 Content: TypeAlias = Annotated[
     Union[
-        InputTextContent,
-        OutputTextContent,
+        ResponseInputText,
+        ResponseOutputText,
         TextContent,
         SummaryTextContent,
-        RefusalContent,
-        InputImageContent,
+        ContentReasoningText,
+        ResponseOutputRefusal,
+        ResponseInputImage,
         ComputerScreenshotContent,
-        InputFileContent,
+        ResponseInputFile,
     ],
     PropertyInfo(discriminator="type"),
 ]

@@ -18,10 +18,10 @@ class Summary(BaseModel):
 
 class Content(BaseModel):
     text: str
-    """Reasoning text output from the model."""
+    """The reasoning text from the model."""
 
     type: Literal["reasoning_text"]
-    """The type of the object. Always `reasoning_text`."""
+    """The type of the reasoning text. Always `reasoning_text`."""
 
 
 class ResponseReasoningItem(BaseModel):

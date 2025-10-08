@@ -27,8 +27,8 @@ class RealtimeMcpToolCallParam(TypedDict, total=False):
     server_label: Required[str]
     """The label of the MCP server running the tool."""
 
-    type: Required[Literal["mcp_tool_call"]]
-    """The type of the item. Always `mcp_tool_call`."""
+    type: Required[Literal["mcp_call"]]
+    """The type of the item. Always `mcp_call`."""
 
     approval_request_id: Optional[str]
     """The ID of an associated approval request, if any."""
