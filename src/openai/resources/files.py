@@ -236,7 +236,7 @@ class Files(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
-        Delete a file.
+        Delete a file and remove it from all vector stores.
 
         Args:
           extra_headers: Send extra headers
@@ -553,7 +553,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
-        Delete a file.
+        Delete a file and remove it from all vector stores.
 
         Args:
           extra_headers: Send extra headers
