@@ -1355,9 +1355,13 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
         if self.is_closed:
             return
 
+        # TODO(someday): support non asyncio runtimes here
         try:
-            # TODO(someday): support non asyncio runtimes here
-            asyncio.get_running_loop().create_task(self.aclose())
+            loop = asyncio.get_event_loop()
+            if loop.is_running():
+                loop.create_task(self.aclose())
+            else:
+                loop.run_until_complete(self.aclose())
         except Exception:
             pass
 
