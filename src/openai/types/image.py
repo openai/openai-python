@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Optional, Dict, Any
 
 from .._models import BaseModel
 
@@ -23,4 +23,11 @@ class Image(BaseModel):
     When using `dall-e-2` or `dall-e-3`, the URL of the generated image if
     `response_format` is set to `url` (default value). Unsupported for
     `gpt-image-1`.
+    """
+
+    content_filter_results: Optional[Dict[str, Any]] = None
+    """Optional content filter metadata returned by the API.
+
+    Includes safety-related categories (e.g. sexual_minors, violence, etc.)
+    indicating whether the image was flagged or filtered.
     """
