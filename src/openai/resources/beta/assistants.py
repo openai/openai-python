@@ -102,6 +102,9 @@ class Assistants(SyncAPIResource):
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
 
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
+
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
@@ -308,6 +311,9 @@ class Assistants(SyncAPIResource):
               supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -555,6 +561,9 @@ class AsyncAssistants(AsyncAPIResource):
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
 
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
+
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
               [GPT-4 Turbo](https://platform.openai.com/docs/models#gpt-4-turbo-and-gpt-4),
@@ -761,6 +770,9 @@ class AsyncAssistants(AsyncAPIResource):
               supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
