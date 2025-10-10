@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.3.0 (2025-10-10)
+
+Full Changelog: [v2.2.0...v2.3.0](https://github.com/openai/openai-python/compare/v2.2.0...v2.3.0)
+
+### Features
+
+* **api:** comparison filter in/not in ([aa49f62](https://github.com/openai/openai-python/commit/aa49f626a6ea9d77ad008badfb3741e16232d62f))
+
+
+### Chores
+
+* **package:** bump jiter to &gt;=0.10.0 to support Python 3.14 ([#2618](https://github.com/openai/openai-python/issues/2618)) ([aa445ca](https://github.com/openai/openai-python/commit/aa445cab5c93c6908697fe98e73e16963330b141))
+
 ## 2.2.0 (2025-10-06)
 
 Full Changelog: [v2.1.0...v2.2.0](https://github.com/openai/openai-python/compare/v2.1.0...v2.2.0)
