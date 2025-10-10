@@ -223,7 +223,8 @@ class Session(BaseModel):
     To disable audio, set this to ["text"].
     """
 
-    model: Optional[
+    model: Union[
+        str,
         Literal[
             "gpt-realtime",
             "gpt-realtime-2025-08-28",
@@ -233,7 +234,8 @@ class Session(BaseModel):
             "gpt-4o-realtime-preview-2025-06-03",
             "gpt-4o-mini-realtime-preview",
             "gpt-4o-mini-realtime-preview-2024-12-17",
-        ]
+        ],
+        None
     ] = None
     """The Realtime model used for this session."""
 
@@ -305,7 +307,7 @@ class SessionUpdateEvent(BaseModel):
     session: Session
     """Realtime session object configuration."""
 
-    type: Literal["session.update"]
+    type: Literal["session.update"] = "session.update"
     """The event type, must be `session.update`."""
 
     event_id: Optional[str] = None
