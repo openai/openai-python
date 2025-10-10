@@ -106,6 +106,9 @@ class DataSourceResponsesSourceResponses(BaseModel):
     supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
     effort can result in faster responses and fewer tokens used on reasoning in a
     response.
+
+    Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+    effort.
     """
 
     temperature: Optional[float] = None
@@ -241,6 +244,9 @@ class DataSourceResponsesSamplingParams(BaseModel):
     supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
     effort can result in faster responses and fewer tokens used on reasoning in a
     response.
+
+    Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+    effort.
     """
 
     seed: Optional[int] = None

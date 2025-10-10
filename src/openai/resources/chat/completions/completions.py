@@ -243,6 +243,9 @@ class Completions(SyncAPIResource):
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
 
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
+
           response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -540,6 +543,9 @@ class Completions(SyncAPIResource):
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
 
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
+
           response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -827,6 +833,9 @@ class Completions(SyncAPIResource):
               supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -1410,6 +1419,9 @@ class AsyncCompletions(AsyncAPIResource):
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
 
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
+
           response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -1707,6 +1719,9 @@ class AsyncCompletions(AsyncAPIResource):
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
 
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
+
           response_format: An object specifying the format that the model must output.
 
               Setting to `{ "type": "json_schema", "json_schema": {...} }` enables Structured
@@ -1994,6 +2009,9 @@ class AsyncCompletions(AsyncAPIResource):
               supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
               effort can result in faster responses and fewer tokens used on reasoning in a
               response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: An object specifying the format that the model must output.
 
