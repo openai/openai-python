@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.3.1 (2025-10-11)
+
+Full Changelog: [v2.3.0...v2.3.1](https://github.com/openai/openai-python/compare/v2.3.0...v2.3.1)
+
+### Chores
+
+* **internal:** detect missing future annotations with ruff ([2672b8f](https://github.com/openai/openai-python/commit/2672b8f0726300f7c62c356f25545ef0b3c0bb2e))
+
 ## 2.3.0 (2025-10-10)
 
 Full Changelog: [v2.2.0...v2.3.0](https://github.com/openai/openai-python/compare/v2.2.0...v2.3.0)
