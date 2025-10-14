@@ -19,11 +19,12 @@
 # ///
 
 from dotenv import load_dotenv
+
 load_dotenv()
 
-import asyncio
-import base64
 import os
+import base64
+import asyncio
 
 from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 
