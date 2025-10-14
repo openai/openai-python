@@ -1,5 +1,29 @@
-import os
+#!/usr/bin/env uv run
+#
+# /// script
+# requires-python = ">=3.9"
+# dependencies = [
+#     "textual",
+#     "numpy",
+#     "pyaudio",
+#     "pydub",
+#     "sounddevice",
+#     "openai[realtime]",
+#     "azure-identity",
+#     "aiohttp",
+#     "python-dotenv",
+# ]
+#
+# [tool.uv.sources]
+# openai = { path = "../../", editable = true }
+# ///
+
+from dotenv import load_dotenv
+load_dotenv()
+
 import asyncio
+import base64
+import os
 
 from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 
@@ -22,20 +46,23 @@ async def main() -> None:
 
     credential = DefaultAzureCredential()
     client = AsyncAzureOpenAI(
+        azure_deployment="gpt-realtime",
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
         azure_ad_token_provider=get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default"),
-        api_version="2024-10-01-preview",
+        api_version="2025-04-01-preview",
     )
-    async with client.realtime.connect(
+
+    async with client.beta.realtime.connect(
         model="gpt-realtime",  # deployment name for your model
     ) as connection:
         await connection.session.update(
             session={
-                "output_modalities": ["text"],
-                "model": "gpt-realtime",
-                "type": "realtime",
+                # "output_modalities": ["text"],
+                # "model": "gpt-realtime",
+                # "type": "realtime",
             }
         )
+
         while True:
             user_input = input("Enter a message: ")
             if user_input == "q":
@@ -48,14 +75,28 @@ async def main() -> None:
                     "content": [{"type": "input_text", "text": user_input}],
                 }
             )
+
             await connection.response.create()
             async for event in connection:
-                if event.type == "response.output_text.delta":
+                print(f"Event: {event.type}")
+
+                if event.type == "error":
+                    print(f"ERROR: {event}")
+
+                if event.type == "response.text.delta":
                     print(event.delta, flush=True, end="")
-                elif event.type == "response.output_text.done":
+                if event.type == "response.text.done":
                     print()
-                elif event.type == "response.done":
-                    break
+                if event.type == "response.done":
+                    print(f"final response: {event.response.output[0].content[0].transcript}")
+                    print(f"usage: {event.response.usage}")
+
+                if event.type == "response.audio.delta":
+                    audio_data = base64.b64decode(event.delta)
+                    print(f"Received {len(audio_data)} bytes of audio data.")
+
+                if event.type == "response.audio_transcript.delta":
+                    print(f"Received text delta: {event.delta}")
 
     await credential.close()
 

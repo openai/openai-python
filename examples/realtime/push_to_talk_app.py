@@ -18,6 +18,9 @@
 #     "pydub",
 #     "sounddevice",
 #     "openai[realtime]",
+#     "azure-identity",
+#     "aiohttp",
+#     "python-dotenv",
 # ]
 #
 # [tool.uv.sources]
@@ -25,21 +28,26 @@
 # ///
 from __future__ import annotations
 
+from dotenv import load_dotenv
+load_dotenv()
+
 import base64
 import asyncio
+import os
 from typing import Any, cast
 from typing_extensions import override
 
 from textual import events
 from audio_util import CHANNELS, SAMPLE_RATE, AudioPlayerAsync
 from textual.app import App, ComposeResult
-from textual.widgets import Button, Static, RichLog
+from textual.widgets import Static, RichLog
 from textual.reactive import reactive
 from textual.containers import Container
 
-from openai import AsyncOpenAI
-from openai.types.realtime.session import Session
+from openai import AsyncAzureOpenAI
+from openai.types.realtime.session_update_event import Session
 from openai.resources.realtime.realtime import AsyncRealtimeConnection
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 
 
 class SessionDisplay(Static):
@@ -60,7 +68,9 @@ class AudioStatusIndicator(Static):
     @override
     def render(self) -> str:
         status = (
-            "🔴 Recording... (Press K to stop)" if self.is_recording else "⚪ Press K to start recording (Q to quit)"
+            "🔴 Recording... (Press K to stop)"
+            if self.is_recording
+            else "⚪ Press K to start recording (Q to quit)"
         )
         return status
 
@@ -123,7 +133,7 @@ class RealtimeApp(App[None]):
         }
     """
 
-    client: AsyncOpenAI
+    client: AsyncAzureOpenAI
     should_send_audio: asyncio.Event
     audio_player: AudioPlayerAsync
     last_audio_item_id: str | None
@@ -135,7 +145,15 @@ class RealtimeApp(App[None]):
         super().__init__()
         self.connection = None
         self.session = None
-        self.client = AsyncOpenAI()
+        credential = DefaultAzureCredential()
+        self.client = AsyncAzureOpenAI(
+            azure_deployment="gpt-realtime",
+            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+            azure_ad_token_provider=get_bearer_token_provider(
+                credential, "https://cognitiveservices.azure.com/.default"
+            ),
+            api_version="2025-04-01-preview",
+        )
         self.audio_player = AudioPlayerAsync()
         self.last_audio_item_id = None
         self.should_send_audio = asyncio.Event()
@@ -247,7 +265,9 @@ class RealtimeApp(App[None]):
                     asyncio.create_task(connection.send({"type": "response.cancel"}))
                     sent_audio = True
 
-                await connection.input_audio_buffer.append(audio=base64.b64encode(cast(Any, data)).decode("utf-8"))
+                await connection.input_audio_buffer.append(
+                    audio=base64.b64encode(cast(Any, data)).decode("utf-8")
+                )
 
                 await asyncio.sleep(0)
         except KeyboardInterrupt:
@@ -258,10 +278,6 @@ class RealtimeApp(App[None]):
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key press events."""
-        if event.key == "enter":
-            self.query_one(Button).press()
-            return
-
         if event.key == "q":
             self.exit()
             return
