@@ -20,6 +20,12 @@ class VectorStoreCreateParams(TypedDict, total=False):
     non-empty.
     """
 
+    description: str
+    """A description for the vector store.
+
+    Can be used to describe the vector store's purpose.
+    """
+
     expires_after: ExpiresAfter
     """The expiration policy for a vector store."""
 
