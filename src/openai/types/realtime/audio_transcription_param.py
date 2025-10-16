@@ -16,11 +16,12 @@ class AudioTranscriptionParam(TypedDict, total=False):
     format will improve accuracy and latency.
     """
 
-    model: Literal["whisper-1", "gpt-4o-transcribe-latest", "gpt-4o-mini-transcribe", "gpt-4o-transcribe"]
+    model: Literal["whisper-1", "gpt-4o-mini-transcribe", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
     """The model to use for transcription.
 
-    Current options are `whisper-1`, `gpt-4o-transcribe-latest`,
-    `gpt-4o-mini-transcribe`, and `gpt-4o-transcribe`.
+    Current options are `whisper-1`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe`,
+    and `gpt-4o-transcribe-diarize`. Use `gpt-4o-transcribe-diarize` when you need
+    diarization with speaker labels.
     """
 
     prompt: str
@@ -28,6 +29,6 @@ class AudioTranscriptionParam(TypedDict, total=False):
     An optional text to guide the model's style or continue a previous audio
     segment. For `whisper-1`, the
     [prompt is a list of keywords](https://platform.openai.com/docs/guides/speech-to-text#prompting).
-    For `gpt-4o-transcribe` models, the prompt is a free text string, for example
-    "expect words related to technology".
+    For `gpt-4o-transcribe` models (excluding `gpt-4o-transcribe-diarize`), the
+    prompt is a free text string, for example "expect words related to technology".
     """

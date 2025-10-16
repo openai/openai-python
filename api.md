@@ -171,11 +171,14 @@ Types:
 ```python
 from openai.types.audio import (
     Transcription,
+    TranscriptionDiarized,
+    TranscriptionDiarizedSegment,
     TranscriptionInclude,
     TranscriptionSegment,
     TranscriptionStreamEvent,
     TranscriptionTextDeltaEvent,
     TranscriptionTextDoneEvent,
+    TranscriptionTextSegmentEvent,
     TranscriptionVerbose,
     TranscriptionWord,
     TranscriptionCreateResponse,
