@@ -55,10 +55,17 @@ async def main() -> None:
     """
 
     credential = DefaultAzureCredential()
+
+    if not (api_key := os.environ.get("AZURE_OPENAI_API_KEY")):
+        token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
+    else:
+        token_provider = None
+
     client = AsyncAzureOpenAI(
         azure_deployment="gpt-realtime",
         azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-        azure_ad_token_provider=get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default"),
+        azure_ad_token_provider=token_provider,
+        api_key=api_key,
         api_version="2025-04-01-preview",
     )
 
