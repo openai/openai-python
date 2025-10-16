@@ -349,7 +349,7 @@ class AsyncTranslationsWithStreamingResponse:
 
 
 def _get_response_format_type(
-    response_format: Literal["json", "text", "srt", "verbose_json", "vtt"] | Omit,
+    response_format: AudioResponseFormat | Omit,
 ) -> type[Translation | TranslationVerbose | str]:
     if isinstance(response_format, Omit) or response_format is None:  # pyright: ignore[reportUnnecessaryComparison]
         return Translation
@@ -360,8 +360,8 @@ def _get_response_format_type(
         return TranslationVerbose
     elif response_format == "srt" or response_format == "text" or response_format == "vtt":
         return str
-    elif TYPE_CHECKING:  # type: ignore[unreachable]
+    elif TYPE_CHECKING and response_format != "diarized_json":  # type: ignore[unreachable]
         assert_never(response_format)
     else:
-        log.warn("Unexpected audio response format: %s", response_format)
-        return Transcription
+        log.warning("Unexpected audio response format: %s", response_format)
+        return Translation
