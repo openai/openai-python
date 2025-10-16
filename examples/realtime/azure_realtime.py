@@ -18,6 +18,7 @@
 # openai = { path = "../../", editable = true }
 # ///
 
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -35,6 +36,14 @@ from openai import AsyncAzureOpenAI
 # How-to: https://learn.microsoft.com/azure/ai-services/openai/how-to/realtime-audio
 # Supported models and API versions: https://learn.microsoft.com/azure/ai-services/openai/how-to/realtime-audio#supported-models
 # Entra ID auth: https://learn.microsoft.com/azure/ai-services/openai/how-to/managed-identity
+
+logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger("websockets").setLevel(logging.DEBUG)
+
+logging.basicConfig(
+    format="%(asctime)s %(message)s",
+    level=logging.DEBUG,
+)
 
 
 async def main() -> None:
