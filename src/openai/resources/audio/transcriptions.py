@@ -103,66 +103,6 @@ class Transcriptions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
-              model's confidence in the transcription. `logprobs` only works with
-              response_format set to `json` and only with the models `gpt-4o-transcribe` and
-              `gpt-4o-mini-transcribe`. This field is not supported when using
-              `gpt-4o-transcribe-diarize`.
-
-          known_speaker_names: Optional list of speaker names that correspond to the audio samples provided in
-              `known_speaker_references[]`. Each entry should be a short identifier (for
-              example `customer` or `agent`). Up to 4 speakers are supported.
-
-          known_speaker_references: Optional list of audio samples (as
-              [data URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs))
-              that contain known speaker references matching `known_speaker_names[]`. Each
-              sample must be between 2 and 10 seconds, and can use any of the same input audio
-              formats supported by `file`.
-
-          language: The language of the input audio. Supplying the input language in
-              [ISO-639-1](https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes) (e.g. `en`)
-              format will improve accuracy and latency.
-
-          prompt: An optional text to guide the model's style or continue a previous audio
-              segment. The
-              [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
-              should match the audio language. This field is not supported when using
-              `gpt-4o-transcribe-diarize`.
-
-          response_format: The format of the output, in one of these options: `json`, `text`, `srt`,
-              `verbose_json`, `vtt`, or `diarized_json`. For `gpt-4o-transcribe` and
-              `gpt-4o-mini-transcribe`, the only supported format is `json`. For
-              `gpt-4o-transcribe-diarize`, the supported formats are `json`, `text`, and
-              `diarized_json`, with `diarized_json` required to receive speaker annotations.
-
-          stream: If set to true, the model response data will be streamed to the client as it is
-              generated using
-              [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
-              See the
-              [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
-              for more information.
-
-              Note: Streaming is not supported for the `whisper-1` model and will be ignored.
-
-          temperature: The sampling temperature, between 0 and 1. Higher values like 0.8 will make the
-              output more random, while lower values like 0.2 will make it more focused and
-              deterministic. If set to 0, the model will use
-              [log probability](https://en.wikipedia.org/wiki/Log_probability) to
-              automatically increase the temperature until certain thresholds are hit.
-
-          timestamp_granularities: The timestamp granularities to populate for this transcription.
-              `response_format` must be set `verbose_json` to use timestamp granularities.
-              Either or both of these options are supported: `word`, or `segment`. Note: There
-              is no additional latency for segment timestamps, but generating word timestamps
-              incurs additional latency. This option is not available for
-              `gpt-4o-transcribe-diarize`.
-
-          extra_headers: Send extra headers
-
-          extra_query: Add additional query parameters to the request
-
-          extra_body: Add additional JSON properties to the request
-    ) -> Transcription: ...
-
     @overload
     def create(
         self,
