@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.4.0"
+version = "2.5.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -44,7 +44,7 @@ Repository = "https://github.com/openai/openai-python"
 openai = "openai.cli:main"
 
 [project.optional-dependencies]
-aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.8"]
+aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]

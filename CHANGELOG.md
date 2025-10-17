@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.5.0 (2025-10-17)
+
+Full Changelog: [v2.4.0...v2.5.0](https://github.com/openai/openai-python/compare/v2.4.0...v2.5.0)
+
+### Features
+
+* **api:** api update ([8b280d5](https://github.com/openai/openai-python/commit/8b280d57d6d361bc3a032e030158f6859c445291))
+
+
+### Chores
+
+* bump `httpx-aiohttp` version to 0.1.9 ([67f2f0a](https://github.com/openai/openai-python/commit/67f2f0afe51dab9d5899fe18b1a4e86b2c774d10))
+
 ## 2.4.0 (2025-10-16)
 
 Full Changelog: [v2.3.0...v2.4.0](https://github.com/openai/openai-python/compare/v2.3.0...v2.4.0)
