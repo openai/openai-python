@@ -13,10 +13,10 @@ class AcknowledgedSafetyCheck(BaseModel):
     id: str
     """The ID of the pending safety check."""
 
-    code: str
+    code: Optional[str] = None
     """The type of the pending safety check."""
 
-    message: str
+    message: Optional[str] = None
     """Details about the pending safety check."""
 
 

@@ -13,12 +13,12 @@ class OutputLogs(TypedDict, total=False):
     """The logs output from the code interpreter."""
 
     type: Required[Literal["logs"]]
-    """The type of the output. Always 'logs'."""
+    """The type of the output. Always `logs`."""
 
 
 class OutputImage(TypedDict, total=False):
     type: Required[Literal["image"]]
-    """The type of the output. Always 'image'."""
+    """The type of the output. Always `image`."""
 
     url: Required[str]
     """The URL of the image output from the code interpreter."""
