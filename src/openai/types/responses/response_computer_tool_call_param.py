@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
@@ -32,10 +32,7 @@ class ActionClick(TypedDict, total=False):
     """
 
     type: Required[Literal["click"]]
-    """Specifies the event type.
-
-    For a click action, this property is always set to `click`.
-    """
+    """Specifies the event type. For a click action, this property is always `click`."""
 
     x: Required[int]
     """The x-coordinate where the click occurred."""
@@ -179,10 +176,10 @@ class PendingSafetyCheck(TypedDict, total=False):
     id: Required[str]
     """The ID of the pending safety check."""
 
-    code: Required[str]
+    code: Optional[str]
     """The type of the pending safety check."""
 
-    message: Required[str]
+    message: Optional[str]
     """Details about the pending safety check."""
 
 
