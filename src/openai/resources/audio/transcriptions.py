@@ -81,7 +81,7 @@ class Transcriptions(SyncAPIResource):
         extra_query: Query | None = None,
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
-    ) -> TranscriptionCreateResponse:
+    ) -> Transcription:
         """
         Transcribes audio into the input language.
 
