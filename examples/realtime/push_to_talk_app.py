@@ -29,6 +29,7 @@
 from __future__ import annotations
 
 from dotenv import load_dotenv
+import httpx
 
 load_dotenv()
 
@@ -144,15 +145,30 @@ class RealtimeApp(App[None]):
         super().__init__()
         self.connection = None
         self.session = None
-        credential = DefaultAzureCredential()
+
+        if not (api_key := os.environ.get("AZURE_OPENAI_API_KEY")):
+            credential = DefaultAzureCredential()
+            token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
+        else:
+            token_provider = None
+
+        endpoint = httpx.URL(os.environ["AZURE_OPENAI_ENDPOINT"])
+        if endpoint.scheme in ("ws", "wss"):
+            websocket_base_url, azure_endpoint = f"{endpoint}/openai", None
+        else:
+            websocket_base_url, azure_endpoint = None, endpoint
+
+        print(f"{websocket_base_url=}, {azure_endpoint=}")
+
         self.client = AsyncAzureOpenAI(
             azure_deployment="gpt-realtime",
-            azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-            azure_ad_token_provider=get_bearer_token_provider(
-                credential, "https://cognitiveservices.azure.com/.default"
-            ),
-            api_version="2025-04-01-preview",
-        )
+            azure_endpoint=str(azure_endpoint),
+            websocket_base_url=websocket_base_url,
+            azure_ad_token_provider=token_provider,
+            api_key=api_key,
+            api_version="2025-04-01-preview"
+        )  # type: ignore
+
         self.audio_player = AudioPlayerAsync()
         self.last_audio_item_id = None
         self.should_send_audio = asyncio.Event()
