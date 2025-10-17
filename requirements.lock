@@ -45,7 +45,7 @@ httpcore==1.0.9
 httpx==0.28.1
     # via httpx-aiohttp
     # via openai
-httpx-aiohttp==0.1.8
+httpx-aiohttp==0.1.9
     # via openai
 idna==3.4
     # via anyio
