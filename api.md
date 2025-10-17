@@ -442,12 +442,8 @@ from openai.types.webhooks import (
 Types:
 
 ```python
-from openai.types.beta import ChatKitWorkflow, FilePart, ImagePart, ChatKitUploadFileResponse
+from openai.types.beta import ChatKitWorkflow
 ```
-
-Methods:
-
-- <code title="post /chatkit/files">client.beta.chatkit.<a href="./src/openai/resources/beta/chatkit/chatkit.py">upload_file</a>(\*\*<a href="src/openai/types/beta/chatkit_upload_file_params.py">params</a>) -> <a href="./src/openai/types/beta/chatkit_upload_file_response.py">ChatKitUploadFileResponse</a></code>
 
 ### Sessions
 
