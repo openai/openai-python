@@ -20,6 +20,7 @@
 
 import logging
 from dotenv import load_dotenv
+import httpx
 
 load_dotenv()
 
@@ -61,13 +62,22 @@ async def main() -> None:
     else:
         token_provider = None
 
+    endpoint = httpx.URL(os.environ["AZURE_OPENAI_ENDPOINT"])
+    if endpoint.scheme in ("ws", "wss"):
+        websocket_base_url, azure_endpoint = f"{endpoint}/openai", None
+    else:
+        websocket_base_url, azure_endpoint = None, endpoint
+
+    print(f"{websocket_base_url=}, {azure_endpoint=}")
+
     client = AsyncAzureOpenAI(
         azure_deployment="gpt-realtime",
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
+        azure_endpoint=str(azure_endpoint),
+        websocket_base_url=websocket_base_url,
         azure_ad_token_provider=token_provider,
         api_key=api_key,
-        api_version="2025-04-01-preview",
-    )
+        api_version="2025-04-01-preview"
+    )  # type: ignore
 
     async with client.beta.realtime.connect(
         model="gpt-realtime",  # deployment name for your model
