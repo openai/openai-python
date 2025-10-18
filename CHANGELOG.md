@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.5.1 (2025-10-18)
+
+Full Changelog: [v2.5.0...v2.5.1](https://github.com/openai/openai-python/compare/v2.5.0...v2.5.1)
+
+### Bug Fixes
+
+* **api:** internal openapi updates ([caabd7c](https://github.com/openai/openai-python/commit/caabd7c81f0f557f66dc0089af460185a5816c11))
+
 ## 2.5.0 (2025-10-17)
 
 Full Changelog: [v2.4.0...v2.5.0](https://github.com/openai/openai-python/compare/v2.4.0...v2.5.0)
