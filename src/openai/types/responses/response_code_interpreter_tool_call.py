@@ -14,12 +14,12 @@ class OutputLogs(BaseModel):
     """The logs output from the code interpreter."""
 
     type: Literal["logs"]
-    """The type of the output. Always 'logs'."""
+    """The type of the output. Always `logs`."""
 
 
 class OutputImage(BaseModel):
     type: Literal["image"]
-    """The type of the output. Always 'image'."""
+    """The type of the output. Always `image`."""
 
     url: str
     """The URL of the image output from the code interpreter."""

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union
+from typing import List, Union, Optional
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
@@ -31,10 +31,7 @@ class ActionClick(BaseModel):
     """
 
     type: Literal["click"]
-    """Specifies the event type.
-
-    For a click action, this property is always set to `click`.
-    """
+    """Specifies the event type. For a click action, this property is always `click`."""
 
     x: int
     """The x-coordinate where the click occurred."""
@@ -181,10 +178,10 @@ class PendingSafetyCheck(BaseModel):
     id: str
     """The ID of the pending safety check."""
 
-    code: str
+    code: Optional[str] = None
     """The type of the pending safety check."""
 
-    message: str
+    message: Optional[str] = None
     """Details about the pending safety check."""
 
 
