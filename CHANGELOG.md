@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.6.0 (2025-10-20)
+
+Full Changelog: [v2.5.0...v2.6.0](https://github.com/openai/openai-python/compare/v2.5.0...v2.6.0)
+
+### Features
+
+* **api:** Add responses.input_tokens.count ([6dd09e2](https://github.com/openai/openai-python/commit/6dd09e2829f385f72b28620888d91a4493c96772))
+
+
+### Bug Fixes
+
+* **api:** internal openapi updates ([caabd7c](https://github.com/openai/openai-python/commit/caabd7c81f0f557f66dc0089af460185a5816c11))
+
 ## 2.5.0 (2025-10-17)
 
 Full Changelog: [v2.4.0...v2.5.0](https://github.com/openai/openai-python/compare/v2.4.0...v2.5.0)
