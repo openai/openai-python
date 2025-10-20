@@ -22,6 +22,14 @@ from .input_items import (
     AsyncInputItemsWithStreamingResponse,
 )
 from ..._streaming import Stream, AsyncStream
+from .input_tokens import (
+    InputTokens,
+    AsyncInputTokens,
+    InputTokensWithRawResponse,
+    AsyncInputTokensWithRawResponse,
+    InputTokensWithStreamingResponse,
+    AsyncInputTokensWithStreamingResponse,
+)
 from ..._base_client import make_request_options
 from ...types.responses import response_create_params, response_retrieve_params
 from ...types.responses.response import Response
@@ -42,6 +50,10 @@ class Responses(SyncAPIResource):
     @cached_property
     def input_items(self) -> InputItems:
         return InputItems(self._client)
+
+    @cached_property
+    def input_tokens(self) -> InputTokens:
+        return InputTokens(self._client)
 
     @cached_property
     def with_raw_response(self) -> ResponsesWithRawResponse:
@@ -1121,6 +1133,10 @@ class AsyncResponses(AsyncAPIResource):
     @cached_property
     def input_items(self) -> AsyncInputItems:
         return AsyncInputItems(self._client)
+
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokens:
+        return AsyncInputTokens(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncResponsesWithRawResponse:
@@ -2217,6 +2233,10 @@ class ResponsesWithRawResponse:
     def input_items(self) -> InputItemsWithRawResponse:
         return InputItemsWithRawResponse(self._responses.input_items)
 
+    @cached_property
+    def input_tokens(self) -> InputTokensWithRawResponse:
+        return InputTokensWithRawResponse(self._responses.input_tokens)
+
 
 class AsyncResponsesWithRawResponse:
     def __init__(self, responses: AsyncResponses) -> None:
@@ -2238,6 +2258,10 @@ class AsyncResponsesWithRawResponse:
     @cached_property
     def input_items(self) -> AsyncInputItemsWithRawResponse:
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
+
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
 
 
 class ResponsesWithStreamingResponse:
@@ -2261,6 +2285,10 @@ class ResponsesWithStreamingResponse:
     def input_items(self) -> InputItemsWithStreamingResponse:
         return InputItemsWithStreamingResponse(self._responses.input_items)
 
+    @cached_property
+    def input_tokens(self) -> InputTokensWithStreamingResponse:
+        return InputTokensWithStreamingResponse(self._responses.input_tokens)
+
 
 class AsyncResponsesWithStreamingResponse:
     def __init__(self, responses: AsyncResponses) -> None:
@@ -2282,3 +2310,7 @@ class AsyncResponsesWithStreamingResponse:
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
+
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
