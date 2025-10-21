@@ -4,6 +4,7 @@ from enum import Enum
 from typing import List, Optional
 from typing_extensions import Literal, TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from pydantic import Field, BaseModel
@@ -159,6 +160,65 @@ ParsedChatCompletion[Location](
 )
 """
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_pydantic_schema_preserves_unicode(client: OpenAI, respx_mock: MockRouter) -> None:
+    class EmojiModel(BaseModel):
+        """Emoji docstring 😍"""
+
+        message: str = Field(description="Say hi 😍")
+
+    body_capture: dict[str, str] = {}
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        body_capture["content"] = request.content.decode()
+        return httpx.Response(
+            200,
+            json={
+                "id": "chatcmpl-emoji",
+                "object": "chat.completion",
+                "created": 0,
+                "model": "gpt-4o-mini",
+                "choices": [
+                    {
+                        "index": 0,
+                        "message": {
+                            "role": "assistant",
+                            "content": '{"message":"hi 😍"}',
+                            "refusal": None,
+                        },
+                        "logprobs": None,
+                        "finish_reason": "stop",
+                    }
+                ],
+                "usage": {
+                    "prompt_tokens": 0,
+                    "completion_tokens": 0,
+                    "total_tokens": 0,
+                    "completion_tokens_details": {"reasoning_tokens": 0},
+                },
+                "system_fingerprint": "fp_test",
+            },
+        )
+
+    respx_mock.post("/chat/completions").mock(side_effect=handler)
+
+    client.chat.completions.parse(
+        model="gpt-4o-mini",
+        messages=[
+            {
+                "role": "user",
+                "content": "Say hi",
+            }
+        ],
+        response_format=EmojiModel,
+    )
+
+    body = body_capture.get("content", "")
+    assert body, "expected request body to be captured"
+    assert "Say hi 😍" in body
+    assert "\\ud83d" not in body
 
 
 @pytest.mark.respx(base_url=base_url)
