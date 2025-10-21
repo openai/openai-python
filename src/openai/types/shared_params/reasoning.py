@@ -36,4 +36,6 @@ class Reasoning(TypedDict, total=False):
 
     This can be useful for debugging and understanding the model's reasoning
     process. One of `auto`, `concise`, or `detailed`.
+
+    `concise` is only supported for `computer-use-preview` models.
     """
