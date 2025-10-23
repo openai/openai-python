@@ -9,25 +9,25 @@ from openai.lib._parsing._completions import _schema_cache
 
 
 @pytest.mark.asyncio
-async def test_async_completions_parse_memory():
+async def test_async_completions_parse_memory() -> None:
     """Test if AsyncCompletions.parse() doesn't leak memory with dynamic models"""
+    # Create a base step model
     StepModel = create_model(
         "Step",
         explanation=(str, Field()),
         output=(str, Field()),
     )
     
-    # Clear the cache and record initial state
+    # Clear the cache before testing
     _schema_cache.clear()
-    initial_cache_size = len(_schema_cache)
-    
+
     # Simulate the issue by creating multiple models and making calls
-    models = []
+    models: list[type] = []
     for i in range(10):
         # Create a new dynamic model each time
         new_model = create_model(
             f"MathResponse{i}",
-            steps=(List[StepModel], Field()),
+            steps=(List[StepModel], Field()),  # type: ignore[valid-type]
             final_answer=(str, Field()),
         )
         models.append(new_model)
@@ -40,7 +40,7 @@ async def test_async_completions_parse_memory():
     cache_size_with_references = len(_schema_cache)
     
     # Let the models go out of scope and trigger garbage collection
-    models = None
+    del models
     gc.collect()
     
     # After garbage collection, the cache should be significantly reduced

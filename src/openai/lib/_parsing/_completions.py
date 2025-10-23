@@ -32,7 +32,7 @@ from ...types.chat.completion_create_params import ResponseFormat as ResponseFor
 from ...types.chat.chat_completion_message_function_tool_call import Function
 
 # Cache to store weak references to schema objects
-_schema_cache = weakref.WeakKeyDictionary()
+_schema_cache: weakref.WeakKeyDictionary[type, ResponseFormatParam] = weakref.WeakKeyDictionary()
 
 ResponseFormatT = TypeVar(
     "ResponseFormatT",
