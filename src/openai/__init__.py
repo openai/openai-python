@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import os as _os
+import typing as _t
 from typing_extensions import override
 
 from . import types
-from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes
+from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
 from ._models import BaseModel
@@ -29,9 +30,10 @@ from ._exceptions import (
     LengthFinishReasonError,
     UnprocessableEntityError,
     APIResponseValidationError,
+    InvalidWebhookSignatureError,
     ContentFilterFinishReasonError,
 )
-from ._base_client import DefaultHttpxClient, DefaultAsyncHttpxClient
+from ._base_client import DefaultHttpxClient, DefaultAioHttpClient, DefaultAsyncHttpxClient
 from ._utils._logs import setup_logging as _setup_logging
 from ._legacy_response import HttpxBinaryResponseContent as HttpxBinaryResponseContent
 
@@ -44,7 +46,9 @@ __all__ = [
     "ProxiesTypes",
     "NotGiven",
     "NOT_GIVEN",
+    "not_given",
     "Omit",
+    "omit",
     "OpenAIError",
     "APIError",
     "APIStatusError",
@@ -61,6 +65,7 @@ __all__ = [
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
+    "InvalidWebhookSignatureError",
     "Timeout",
     "RequestOptions",
     "Client",
@@ -76,7 +81,11 @@ __all__ = [
     "DEFAULT_CONNECTION_LIMITS",
     "DefaultHttpxClient",
     "DefaultAsyncHttpxClient",
+    "DefaultAioHttpClient",
 ]
+
+if not _t.TYPE_CHECKING:
+    from ._utils._resources_proxy import resources as resources
 
 from .lib import azure as _azure, pydantic_function_tool as pydantic_function_tool
 from .version import VERSION as VERSION
@@ -115,6 +124,8 @@ api_key: str | None = None
 organization: str | None = None
 
 project: str | None = None
+
+webhook_secret: str | None = None
 
 base_url: str | _httpx.URL | None = None
 
@@ -177,6 +188,17 @@ class _ModuleClient(OpenAI):
         global project
 
         project = value
+
+    @property  # type: ignore
+    @override
+    def webhook_secret(self) -> str | None:
+        return webhook_secret
+
+    @webhook_secret.setter  # type: ignore
+    def webhook_secret(self, value: str | None) -> None:  # type: ignore
+        global webhook_secret
+
+        webhook_secret = value
 
     @property
     @override
@@ -330,6 +352,7 @@ def _load_client() -> OpenAI:  # type: ignore[reportUnusedFunction]
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -352,12 +375,21 @@ from ._module_client import (
     beta as beta,
     chat as chat,
     audio as audio,
+    evals as evals,
     files as files,
     images as images,
     models as models,
+    videos as videos,
     batches as batches,
+    uploads as uploads,
+    realtime as realtime,
+    webhooks as webhooks,
+    responses as responses,
+    containers as containers,
     embeddings as embeddings,
     completions as completions,
     fine_tuning as fine_tuning,
     moderations as moderations,
+    conversations as conversations,
+    vector_stores as vector_stores,
 )

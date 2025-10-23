@@ -17,6 +17,7 @@ def reset_state() -> None:
     openai.api_key = None or "My API Key"
     openai.organization = None
     openai.project = None
+    openai.webhook_secret = None
     openai.base_url = None
     openai.timeout = DEFAULT_TIMEOUT
     openai.max_retries = DEFAULT_MAX_RETRIES

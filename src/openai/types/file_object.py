@@ -25,12 +25,19 @@ class FileObject(BaseModel):
     """The object type, which is always `file`."""
 
     purpose: Literal[
-        "assistants", "assistants_output", "batch", "batch_output", "fine-tune", "fine-tune-results", "vision"
+        "assistants",
+        "assistants_output",
+        "batch",
+        "batch_output",
+        "fine-tune",
+        "fine-tune-results",
+        "vision",
+        "user_data",
     ]
     """The intended purpose of the file.
 
     Supported values are `assistants`, `assistants_output`, `batch`, `batch_output`,
-    `fine-tune`, `fine-tune-results` and `vision`.
+    `fine-tune`, `fine-tune-results`, `vision`, and `user_data`.
     """
 
     status: Literal["uploaded", "processed", "error"]
@@ -39,6 +46,9 @@ class FileObject(BaseModel):
     The current status of the file, which can be either `uploaded`, `processed`, or
     `error`.
     """
+
+    expires_at: Optional[int] = None
+    """The Unix timestamp (in seconds) for when the file will expire."""
 
     status_details: Optional[str] = None
     """Deprecated.

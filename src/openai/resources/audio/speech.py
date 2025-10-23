@@ -8,11 +8,8 @@ from typing_extensions import Literal
 import httpx
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import (
-    maybe_transform,
-    async_maybe_transform,
-)
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import (
@@ -53,15 +50,19 @@ class Speech(SyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
-        response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
-        speed: float | NotGiven = NOT_GIVEN,
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]
+        ],
+        instructions: str | Omit = omit,
+        response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | Omit = omit,
+        speed: float | Omit = omit,
+        stream_format: Literal["sse", "audio"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -71,18 +72,24 @@ class Speech(SyncAPIResource):
 
           model:
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-              `tts-1` or `tts-1-hd`
+              `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
-              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
-              voices are available in the
+              `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+              `verse`. Previews of the voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+
+          instructions: Control the voice of your generated audio with additional instructions. Does not
+              work with `tts-1` or `tts-1-hd`.
 
           response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, `flac`,
               `wav`, and `pcm`.
 
           speed: The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is
               the default.
+
+          stream_format: The format to stream the audio in. Supported formats are `sse` and `audio`.
+              `sse` is not supported for `tts-1` or `tts-1-hd`.
 
           extra_headers: Send extra headers
 
@@ -100,8 +107,10 @@ class Speech(SyncAPIResource):
                     "input": input,
                     "model": model,
                     "voice": voice,
+                    "instructions": instructions,
                     "response_format": response_format,
                     "speed": speed,
+                    "stream_format": stream_format,
                 },
                 speech_create_params.SpeechCreateParams,
             ),
@@ -137,15 +146,19 @@ class AsyncSpeech(AsyncAPIResource):
         *,
         input: str,
         model: Union[str, SpeechModel],
-        voice: Literal["alloy", "ash", "coral", "echo", "fable", "onyx", "nova", "sage", "shimmer"],
-        response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | NotGiven = NOT_GIVEN,
-        speed: float | NotGiven = NOT_GIVEN,
+        voice: Union[
+            str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]
+        ],
+        instructions: str | Omit = omit,
+        response_format: Literal["mp3", "opus", "aac", "flac", "wav", "pcm"] | Omit = omit,
+        speed: float | Omit = omit,
+        stream_format: Literal["sse", "audio"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
@@ -155,18 +168,24 @@ class AsyncSpeech(AsyncAPIResource):
 
           model:
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-              `tts-1` or `tts-1-hd`
+              `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
-              `coral`, `echo`, `fable`, `onyx`, `nova`, `sage` and `shimmer`. Previews of the
-              voices are available in the
+              `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
+              `verse`. Previews of the voices are available in the
               [Text to speech guide](https://platform.openai.com/docs/guides/text-to-speech#voice-options).
+
+          instructions: Control the voice of your generated audio with additional instructions. Does not
+              work with `tts-1` or `tts-1-hd`.
 
           response_format: The format to audio in. Supported formats are `mp3`, `opus`, `aac`, `flac`,
               `wav`, and `pcm`.
 
           speed: The speed of the generated audio. Select a value from `0.25` to `4.0`. `1.0` is
               the default.
+
+          stream_format: The format to stream the audio in. Supported formats are `sse` and `audio`.
+              `sse` is not supported for `tts-1` or `tts-1-hd`.
 
           extra_headers: Send extra headers
 
@@ -184,8 +203,10 @@ class AsyncSpeech(AsyncAPIResource):
                     "input": input,
                     "model": model,
                     "voice": voice,
+                    "instructions": instructions,
                     "response_format": response_format,
                     "speed": speed,
+                    "stream_format": stream_format,
                 },
                 speech_create_params.SpeechCreateParams,
             ),

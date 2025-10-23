@@ -23,7 +23,7 @@ from ._events import (
     FunctionToolCallArgumentsDeltaEvent,
 )
 from .._deltas import accumulate_delta
-from ...._types import NOT_GIVEN, IncEx, NotGiven
+from ...._types import Omit, IncEx, omit
 from ...._utils import is_given, consume_sync_iterator, consume_async_iterator
 from ...._compat import model_dump
 from ...._models import build, construct_type
@@ -37,7 +37,7 @@ from ..._parsing import (
     parse_function_tool_arguments,
 )
 from ...._streaming import Stream, AsyncStream
-from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolParam
+from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
 from ....types.chat.chat_completion_chunk import Choice as ChoiceChunk
@@ -57,8 +57,8 @@ class ChatCompletionStream(Generic[ResponseFormatT]):
         self,
         *,
         raw_stream: Stream[ChatCompletionChunk],
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
@@ -113,6 +113,8 @@ class ChatCompletionStream(Generic[ResponseFormatT]):
 
     def __stream__(self) -> Iterator[ChatCompletionStreamEvent[ResponseFormatT]]:
         for sse_event in self._raw_stream:
+            if not _is_valid_chat_completion_chunk_weak(sse_event):
+                continue
             events_to_fire = self._state.handle_chunk(sse_event)
             for event in events_to_fire:
                 yield event
@@ -126,7 +128,7 @@ class ChatCompletionStreamManager(Generic[ResponseFormatT]):
 
     Usage:
     ```py
-    with client.beta.chat.completions.stream(...) as stream:
+    with client.chat.completions.stream(...) as stream:
         for event in stream:
             ...
     ```
@@ -136,8 +138,8 @@ class ChatCompletionStreamManager(Generic[ResponseFormatT]):
         self,
         api_request: Callable[[], Stream[ChatCompletionChunk]],
         *,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self.__stream: ChatCompletionStream[ResponseFormatT] | None = None
         self.__api_request = api_request
@@ -178,8 +180,8 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
         self,
         *,
         raw_stream: AsyncStream[ChatCompletionChunk],
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self._raw_stream = raw_stream
         self._response = raw_stream.response
@@ -234,6 +236,8 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
 
     async def __stream__(self) -> AsyncIterator[ChatCompletionStreamEvent[ResponseFormatT]]:
         async for sse_event in self._raw_stream:
+            if not _is_valid_chat_completion_chunk_weak(sse_event):
+                continue
             events_to_fire = self._state.handle_chunk(sse_event)
             for event in events_to_fire:
                 yield event
@@ -247,7 +251,7 @@ class AsyncChatCompletionStreamManager(Generic[ResponseFormatT]):
 
     Usage:
     ```py
-    async with client.beta.chat.completions.stream(...) as stream:
+    async with client.chat.completions.stream(...) as stream:
         for event in stream:
             ...
     ```
@@ -257,8 +261,8 @@ class AsyncChatCompletionStreamManager(Generic[ResponseFormatT]):
         self,
         api_request: Awaitable[AsyncStream[ChatCompletionChunk]],
         *,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit,
     ) -> None:
         self.__stream: AsyncChatCompletionStream[ResponseFormatT] | None = None
         self.__api_request = api_request
@@ -310,15 +314,15 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
     def __init__(
         self,
         *,
-        input_tools: Iterable[ChatCompletionToolParam] | NotGiven = NOT_GIVEN,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven = NOT_GIVEN,
+        input_tools: Iterable[ChatCompletionToolUnionParam] | Omit = omit,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit = omit,
     ) -> None:
         self.__current_completion_snapshot: ParsedChatCompletionSnapshot | None = None
         self.__choice_event_states: list[ChoiceEventState] = []
 
         self._input_tools = [tool for tool in input_tools] if is_given(input_tools) else []
         self._response_format = response_format
-        self._rich_response_format: type | NotGiven = response_format if inspect.isclass(response_format) else NOT_GIVEN
+        self._rich_response_format: type | Omit = response_format if inspect.isclass(response_format) else omit
 
     def get_final_completion(self) -> ParsedChatCompletion[ResponseFormatT]:
         """Parse the final completion object.
@@ -434,6 +438,8 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                 choice_snapshot.message.content
                 and not choice_snapshot.message.refusal
                 and is_given(self._rich_response_format)
+                # partial parsing fails on white-space
+                and choice_snapshot.message.content.lstrip()
             ):
                 choice_snapshot.message.parsed = from_json(
                     bytes(choice_snapshot.message.content, "utf-8"),
@@ -578,7 +584,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
 
 
 class ChoiceEventState:
-    def __init__(self, *, input_tools: list[ChatCompletionToolParam]) -> None:
+    def __init__(self, *, input_tools: list[ChatCompletionToolUnionParam]) -> None:
         self._input_tools = input_tools
 
         self._content_done = False
@@ -593,7 +599,7 @@ class ChoiceEventState:
         *,
         choice_chunk: ChoiceChunk,
         choice_snapshot: ParsedChoiceSnapshot,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
     ) -> list[ChatCompletionStreamEvent[ResponseFormatT]]:
         events_to_fire: list[ChatCompletionStreamEvent[ResponseFormatT]] = []
 
@@ -633,7 +639,7 @@ class ChoiceEventState:
         self,
         *,
         choice_snapshot: ParsedChoiceSnapshot,
-        response_format: type[ResponseFormatT] | ResponseFormatParam | NotGiven,
+        response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
     ) -> list[ChatCompletionStreamEvent[ResponseFormatT]]:
         events_to_fire: list[ChatCompletionStreamEvent[ResponseFormatT]] = []
 
@@ -753,3 +759,12 @@ def _convert_initial_chunk_into_snapshot(chunk: ChatCompletionChunk) -> ParsedCh
             },
         ),
     )
+
+
+def _is_valid_chat_completion_chunk_weak(sse_event: ChatCompletionChunk) -> bool:
+    # Although the _raw_stream is always supposed to contain only objects adhering to ChatCompletionChunk schema,
+    # this is broken by the Azure OpenAI in case of Asynchronous Filter enabled.
+    # An easy filter is to check for the "object" property:
+    # - should be "chat.completion.chunk" for a ChatCompletionChunk;
+    # - is an empty string for Asynchronous Filter events.
+    return sse_event.object == "chat.completion.chunk"  # type: ignore # pylance reports this as a useless check

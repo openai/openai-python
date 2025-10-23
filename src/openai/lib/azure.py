@@ -25,6 +25,7 @@ _deployments_endpoints = set(
         "/audio/translations",
         "/audio/speech",
         "/images/generations",
+        "/images/edits",
     ]
 )
 
@@ -49,6 +50,9 @@ class MutuallyExclusiveAuthError(OpenAIError):
 
 
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
+    _azure_endpoint: httpx.URL | None
+    _azure_deployment: str | None
+
     @override
     def _build_request(
         self,
@@ -58,10 +62,28 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     ) -> httpx.Request:
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
-            if model is not None and not "/deployments" in str(self.base_url):
+            if model is not None and "/deployments" not in str(self.base_url.path):
                 options.url = f"/deployments/{model}{options.url}"
 
         return super()._build_request(options, retries_taken=retries_taken)
+
+    @override
+    def _prepare_url(self, url: str) -> httpx.URL:
+        """Adjust the URL if the client was configured with an Azure endpoint + deployment
+        and the API feature being called is **not** a deployments-based endpoint
+        (i.e. requires /deployments/deployment-name in the URL path).
+        """
+        if self._azure_deployment and self._azure_endpoint and url not in _deployments_endpoints:
+            merge_url = httpx.URL(url)
+            if merge_url.is_relative_url:
+                merge_raw_path = (
+                    self._azure_endpoint.raw_path.rstrip(b"/") + b"/openai/" + merge_url.raw_path.lstrip(b"/")
+                )
+                return self._azure_endpoint.copy_with(raw_path=merge_raw_path)
+
+            return merge_url
+
+        return super()._prepare_url(url)
 
 
 class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
@@ -72,10 +94,11 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         azure_endpoint: str,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -91,10 +114,11 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         *,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -110,10 +134,11 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         *,
         base_url: str,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -129,11 +154,12 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         api_version: str | None = None,
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AzureADTokenProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -160,8 +186,8 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
             azure_ad_token_provider: A function that returns an Azure Active Directory token, will be invoked on every request.
 
-            azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
-                Note: this means you won't be able to use non-deployment endpoints. Not supported with Assistants APIs.
+            azure_deployment: A model deployment, if given with `azure_endpoint`, sets the base client URL to include `/deployments/{azure_deployment}`.
+                Not supported with Assistants APIs.
         """
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
@@ -212,6 +238,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -224,14 +251,17 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
+        self._azure_deployment = azure_deployment if azure_endpoint else None
+        self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
 
     @override
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], str] | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         api_version: str | None = None,
         azure_ad_token: str | None = None,
@@ -253,6 +283,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             websocket_base_url=websocket_base_url,
             base_url=base_url,
             timeout=timeout,
@@ -307,20 +338,30 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
         return options
 
-    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+    def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx.URL, dict[str, str]]:
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
-            "deployment": model,
+            "deployment": self._azure_deployment or model,
         }
-        if self.api_key != "<missing API key>":
+        if self.api_key and self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
             token = self._get_azure_ad_token()
             if token:
                 auth_headers = {"Authorization": f"Bearer {token}"}
-        return query, auth_headers
+
+        if self.websocket_base_url is not None:
+            base_url = httpx.URL(self.websocket_base_url)
+            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+            realtime_url = base_url.copy_with(raw_path=merge_raw_path)
+        else:
+            base_url = self._prepare_url("/realtime")
+            realtime_url = base_url.copy_with(scheme="wss")
+
+        url = realtime_url.copy_with(params={**query})
+        return url, auth_headers
 
 
 class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], AsyncOpenAI):
@@ -331,11 +372,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_endpoint: str,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -351,11 +393,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         *,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -371,11 +414,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         *,
         base_url: str,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
         max_retries: int = DEFAULT_MAX_RETRIES,
@@ -391,11 +435,12 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         azure_endpoint: str | None = None,
         azure_deployment: str | None = None,
         api_version: str | None = None,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: AsyncAzureADTokenProvider | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         base_url: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
@@ -422,8 +467,8 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
             azure_ad_token_provider: A function that returns an Azure Active Directory token, will be invoked on every request.
 
-            azure_deployment: A model deployment, if given sets the base client URL to include `/deployments/{azure_deployment}`.
-                Note: this means you won't be able to use non-deployment endpoints. Not supported with Assistants APIs.
+            azure_deployment: A model deployment, if given with `azure_endpoint`, sets the base client URL to include `/deployments/{azure_deployment}`.
+                Not supported with Assistants APIs.
         """
         if api_key is None:
             api_key = os.environ.get("AZURE_OPENAI_API_KEY")
@@ -474,6 +519,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             base_url=base_url,
             timeout=timeout,
             max_retries=max_retries,
@@ -486,14 +532,17 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._api_version = api_version
         self._azure_ad_token = azure_ad_token
         self._azure_ad_token_provider = azure_ad_token_provider
+        self._azure_deployment = azure_deployment if azure_endpoint else None
+        self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
 
     @override
     def copy(
         self,
         *,
-        api_key: str | None = None,
+        api_key: str | Callable[[], Awaitable[str]] | None = None,
         organization: str | None = None,
         project: str | None = None,
+        webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         api_version: str | None = None,
         azure_ad_token: str | None = None,
@@ -515,6 +564,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
             api_key=api_key,
             organization=organization,
             project=project,
+            webhook_secret=webhook_secret,
             websocket_base_url=websocket_base_url,
             base_url=base_url,
             timeout=timeout,
@@ -571,17 +621,27 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
         return options
 
-    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[Query, dict[str, str]]:
+    async def _configure_realtime(self, model: str, extra_query: Query) -> tuple[httpx.URL, dict[str, str]]:
         auth_headers = {}
         query = {
             **extra_query,
             "api-version": self._api_version,
-            "deployment": model,
+            "deployment": self._azure_deployment or model,
         }
-        if self.api_key != "<missing API key>":
+        if self.api_key and self.api_key != "<missing API key>":
             auth_headers = {"api-key": self.api_key}
         else:
             token = await self._get_azure_ad_token()
             if token:
                 auth_headers = {"Authorization": f"Bearer {token}"}
-        return query, auth_headers
+
+        if self.websocket_base_url is not None:
+            base_url = httpx.URL(self.websocket_base_url)
+            merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
+            realtime_url = base_url.copy_with(raw_path=merge_raw_path)
+        else:
+            base_url = self._prepare_url("/realtime")
+            realtime_url = base_url.copy_with(scheme="wss")
+
+        url = realtime_url.copy_with(params={**query})
+        return url, auth_headers

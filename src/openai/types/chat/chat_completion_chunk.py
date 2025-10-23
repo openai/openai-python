@@ -128,8 +128,24 @@ class ChatCompletionChunk(BaseModel):
     object: Literal["chat.completion.chunk"]
     """The object type, which is always `chat.completion.chunk`."""
 
-    service_tier: Optional[Literal["scale", "default"]] = None
-    """The service tier used for processing the request."""
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
+    """Specifies the processing type used for serving the request.
+
+    - If set to 'auto', then the request will be processed with the service tier
+      configured in the Project settings. Unless otherwise configured, the Project
+      will use 'default'.
+    - If set to 'default', then the request will be processed with the standard
+      pricing and performance for the selected model.
+    - If set to '[flex](https://platform.openai.com/docs/guides/flex-processing)' or
+      '[priority](https://openai.com/api-priority-processing/)', then the request
+      will be processed with the corresponding service tier.
+    - When not set, the default behavior is 'auto'.
+
+    When the `service_tier` parameter is set, the response body will include the
+    `service_tier` value based on the processing mode actually used to serve the
+    request. This response value may be different from the value set in the
+    parameter.
+    """
 
     system_fingerprint: Optional[str] = None
     """
@@ -142,6 +158,9 @@ class ChatCompletionChunk(BaseModel):
     """
     An optional field that will only be present when you set
     `stream_options: {"include_usage": true}` in your request. When present, it
-    contains a null value except for the last chunk which contains the token usage
-    statistics for the entire request.
+    contains a null value **except for the last chunk** which contains the token
+    usage statistics for the entire request.
+
+    **NOTE:** If the stream is interrupted or cancelled, you may not receive the
+    final usage chunk which contains the total token usage for the request.
     """

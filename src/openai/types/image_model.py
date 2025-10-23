@@ -4,4 +4,4 @@ from typing_extensions import Literal, TypeAlias
 
 __all__ = ["ImageModel"]
 
-ImageModel: TypeAlias = Literal["dall-e-2", "dall-e-3"]
+ImageModel: TypeAlias = Literal["dall-e-2", "dall-e-3", "gpt-image-1", "gpt-image-1-mini"]

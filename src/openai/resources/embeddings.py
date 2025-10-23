@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import array
 import base64
-from typing import List, Union, Iterable, cast
+from typing import Union, Iterable, cast
 from typing_extensions import Literal
 
 import httpx
 
 from .. import _legacy_response
 from ..types import embedding_create_params
-from .._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from .._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
 from .._utils import is_given, maybe_transform
 from .._compat import cached_property
 from .._extras import numpy as np, has_numpy
@@ -47,17 +47,17 @@ class Embeddings(SyncAPIResource):
     def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
-        dimensions: int | NotGiven = NOT_GIVEN,
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        dimensions: int | Omit = omit,
+        encoding_format: Literal["float", "base64"] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -66,11 +66,12 @@ class Embeddings(SyncAPIResource):
           input: Input text to embed, encoded as a string or array of tokens. To embed multiple
               inputs in a single request, pass an array of strings or array of token arrays.
               The input must not exceed the max input tokens for the model (8192 tokens for
-              `text-embedding-ada-002`), cannot be an empty string, and any array must be 2048
+              all embedding models), cannot be an empty string, and any array must be 2048
               dimensions or less.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens. Some models may also impose a limit on total number of
-              tokens summed across inputs.
+              for counting tokens. In addition to the per-input token limit, all embedding
+              models enforce a maximum of 300,000 tokens summed across all inputs in a single
+              request.
 
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -110,6 +111,9 @@ class Embeddings(SyncAPIResource):
             if is_given(encoding_format):
                 # don't modify the response object if a user explicitly asked for a format
                 return obj
+
+            if not obj.data:
+                raise ValueError("No embedding data received")
 
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)
@@ -162,17 +166,17 @@ class AsyncEmbeddings(AsyncAPIResource):
     async def create(
         self,
         *,
-        input: Union[str, List[str], Iterable[int], Iterable[Iterable[int]]],
+        input: Union[str, SequenceNotStr[str], Iterable[int], Iterable[Iterable[int]]],
         model: Union[str, EmbeddingModel],
-        dimensions: int | NotGiven = NOT_GIVEN,
-        encoding_format: Literal["float", "base64"] | NotGiven = NOT_GIVEN,
-        user: str | NotGiven = NOT_GIVEN,
+        dimensions: int | Omit = omit,
+        encoding_format: Literal["float", "base64"] | Omit = omit,
+        user: str | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -181,11 +185,12 @@ class AsyncEmbeddings(AsyncAPIResource):
           input: Input text to embed, encoded as a string or array of tokens. To embed multiple
               inputs in a single request, pass an array of strings or array of token arrays.
               The input must not exceed the max input tokens for the model (8192 tokens for
-              `text-embedding-ada-002`), cannot be an empty string, and any array must be 2048
+              all embedding models), cannot be an empty string, and any array must be 2048
               dimensions or less.
               [Example Python code](https://cookbook.openai.com/examples/how_to_count_tokens_with_tiktoken)
-              for counting tokens. Some models may also impose a limit on total number of
-              tokens summed across inputs.
+              for counting tokens. In addition to the per-input token limit, all embedding
+              models enforce a maximum of 300,000 tokens summed across all inputs in a single
+              request.
 
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -225,6 +230,9 @@ class AsyncEmbeddings(AsyncAPIResource):
             if is_given(encoding_format):
                 # don't modify the response object if a user explicitly asked for a format
                 return obj
+
+            if not obj.data:
+                raise ValueError("No embedding data received")
 
             for embedding in obj.data:
                 data = cast(object, embedding.embedding)

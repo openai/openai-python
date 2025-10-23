@@ -1,5 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
+from typing import Optional
 from typing_extensions import Literal
 
 from ...._models import BaseModel
@@ -15,11 +16,12 @@ class ConversationItemCreatedEvent(BaseModel):
     item: ConversationItem
     """The item to add to the conversation."""
 
-    previous_item_id: str
-    """
-    The ID of the preceding item in the Conversation context, allows the client to
-    understand the order of the conversation.
-    """
-
     type: Literal["conversation.item.created"]
     """The event type, must be `conversation.item.created`."""
+
+    previous_item_id: Optional[str] = None
+    """
+    The ID of the preceding item in the Conversation context, allows the client to
+    understand the order of the conversation. Can be `null` if the item has no
+    predecessor.
+    """

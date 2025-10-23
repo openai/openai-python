@@ -22,7 +22,7 @@ class TestBatches:
     def test_method_create(self, client: OpenAI) -> None:
         batch = client.batches.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
         )
         assert_matches_type(Batch, batch, path=["response"])
@@ -31,9 +31,13 @@ class TestBatches:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         batch = client.batches.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
             metadata={"foo": "string"},
+            output_expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(Batch, batch, path=["response"])
 
@@ -41,7 +45,7 @@ class TestBatches:
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.batches.with_raw_response.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
         )
 
@@ -54,7 +58,7 @@ class TestBatches:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.batches.with_streaming_response.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
         ) as response:
             assert not response.is_closed
@@ -176,13 +180,15 @@ class TestBatches:
 
 
 class TestAsyncBatches:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         batch = await async_client.batches.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
         )
         assert_matches_type(Batch, batch, path=["response"])
@@ -191,9 +197,13 @@ class TestAsyncBatches:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         batch = await async_client.batches.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
             metadata={"foo": "string"},
+            output_expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(Batch, batch, path=["response"])
 
@@ -201,7 +211,7 @@ class TestAsyncBatches:
     async def test_raw_response_create(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.batches.with_raw_response.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
         )
 
@@ -214,7 +224,7 @@ class TestAsyncBatches:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.batches.with_streaming_response.create(
             completion_window="24h",
-            endpoint="/v1/chat/completions",
+            endpoint="/v1/responses",
             input_file_id="string",
         ) as response:
             assert not response.is_closed

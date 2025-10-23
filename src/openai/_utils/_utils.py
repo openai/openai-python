@@ -22,8 +22,7 @@ from typing_extensions import TypeGuard
 
 import sniffio
 
-from .._types import NotGiven, FileTypes, NotGivenOr, HeadersLike
-from .._compat import parse_date as parse_date, parse_datetime as parse_datetime
+from .._types import Omit, NotGiven, FileTypes, HeadersLike
 
 _T = TypeVar("_T")
 _TupleT = TypeVar("_TupleT", bound=Tuple[object, ...])
@@ -68,7 +67,7 @@ def _extract_items(
     try:
         key = path[index]
     except IndexError:
-        if isinstance(obj, NotGiven):
+        if not is_given(obj):
             # no value was provided - we can safely ignore
             return []
 
@@ -76,8 +75,16 @@ def _extract_items(
         from .._files import assert_is_file_content
 
         # We have exhausted the path, return the entry we found.
-        assert_is_file_content(obj, key=flattened_key)
         assert flattened_key is not None
+
+        if is_list(obj):
+            files: list[tuple[str, FileTypes]] = []
+            for entry in obj:
+                assert_is_file_content(entry, key=flattened_key + "[]" if flattened_key else "")
+                files.append((flattened_key + "[]", cast(FileTypes, entry)))
+            return files
+
+        assert_is_file_content(obj, key=flattened_key)
         return [(flattened_key, cast(FileTypes, obj))]
 
     index += 1
@@ -123,8 +130,8 @@ def _extract_items(
     return []
 
 
-def is_given(obj: NotGivenOr[_T]) -> TypeGuard[_T]:
-    return not isinstance(obj, NotGiven)
+def is_given(obj: _T | NotGiven | Omit) -> TypeGuard[_T]:
+    return not isinstance(obj, NotGiven) and not isinstance(obj, Omit)
 
 
 # Type safe methods for narrowing types with TypeVars.

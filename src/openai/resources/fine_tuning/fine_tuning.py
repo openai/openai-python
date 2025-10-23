@@ -12,6 +12,22 @@ from .jobs.jobs import (
     AsyncJobsWithStreamingResponse,
 )
 from ..._resource import SyncAPIResource, AsyncAPIResource
+from .alpha.alpha import (
+    Alpha,
+    AsyncAlpha,
+    AlphaWithRawResponse,
+    AsyncAlphaWithRawResponse,
+    AlphaWithStreamingResponse,
+    AsyncAlphaWithStreamingResponse,
+)
+from .checkpoints.checkpoints import (
+    Checkpoints,
+    AsyncCheckpoints,
+    CheckpointsWithRawResponse,
+    AsyncCheckpointsWithRawResponse,
+    CheckpointsWithStreamingResponse,
+    AsyncCheckpointsWithStreamingResponse,
+)
 
 __all__ = ["FineTuning", "AsyncFineTuning"]
 
@@ -20,6 +36,14 @@ class FineTuning(SyncAPIResource):
     @cached_property
     def jobs(self) -> Jobs:
         return Jobs(self._client)
+
+    @cached_property
+    def checkpoints(self) -> Checkpoints:
+        return Checkpoints(self._client)
+
+    @cached_property
+    def alpha(self) -> Alpha:
+        return Alpha(self._client)
 
     @cached_property
     def with_raw_response(self) -> FineTuningWithRawResponse:
@@ -45,6 +69,14 @@ class AsyncFineTuning(AsyncAPIResource):
     @cached_property
     def jobs(self) -> AsyncJobs:
         return AsyncJobs(self._client)
+
+    @cached_property
+    def checkpoints(self) -> AsyncCheckpoints:
+        return AsyncCheckpoints(self._client)
+
+    @cached_property
+    def alpha(self) -> AsyncAlpha:
+        return AsyncAlpha(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncFineTuningWithRawResponse:
@@ -74,6 +106,14 @@ class FineTuningWithRawResponse:
     def jobs(self) -> JobsWithRawResponse:
         return JobsWithRawResponse(self._fine_tuning.jobs)
 
+    @cached_property
+    def checkpoints(self) -> CheckpointsWithRawResponse:
+        return CheckpointsWithRawResponse(self._fine_tuning.checkpoints)
+
+    @cached_property
+    def alpha(self) -> AlphaWithRawResponse:
+        return AlphaWithRawResponse(self._fine_tuning.alpha)
+
 
 class AsyncFineTuningWithRawResponse:
     def __init__(self, fine_tuning: AsyncFineTuning) -> None:
@@ -82,6 +122,14 @@ class AsyncFineTuningWithRawResponse:
     @cached_property
     def jobs(self) -> AsyncJobsWithRawResponse:
         return AsyncJobsWithRawResponse(self._fine_tuning.jobs)
+
+    @cached_property
+    def checkpoints(self) -> AsyncCheckpointsWithRawResponse:
+        return AsyncCheckpointsWithRawResponse(self._fine_tuning.checkpoints)
+
+    @cached_property
+    def alpha(self) -> AsyncAlphaWithRawResponse:
+        return AsyncAlphaWithRawResponse(self._fine_tuning.alpha)
 
 
 class FineTuningWithStreamingResponse:
@@ -92,6 +140,14 @@ class FineTuningWithStreamingResponse:
     def jobs(self) -> JobsWithStreamingResponse:
         return JobsWithStreamingResponse(self._fine_tuning.jobs)
 
+    @cached_property
+    def checkpoints(self) -> CheckpointsWithStreamingResponse:
+        return CheckpointsWithStreamingResponse(self._fine_tuning.checkpoints)
+
+    @cached_property
+    def alpha(self) -> AlphaWithStreamingResponse:
+        return AlphaWithStreamingResponse(self._fine_tuning.alpha)
+
 
 class AsyncFineTuningWithStreamingResponse:
     def __init__(self, fine_tuning: AsyncFineTuning) -> None:
@@ -100,3 +156,11 @@ class AsyncFineTuningWithStreamingResponse:
     @cached_property
     def jobs(self) -> AsyncJobsWithStreamingResponse:
         return AsyncJobsWithStreamingResponse(self._fine_tuning.jobs)
+
+    @cached_property
+    def checkpoints(self) -> AsyncCheckpointsWithStreamingResponse:
+        return AsyncCheckpointsWithStreamingResponse(self._fine_tuning.checkpoints)
+
+    @cached_property
+    def alpha(self) -> AsyncAlphaWithStreamingResponse:
+        return AsyncAlphaWithStreamingResponse(self._fine_tuning.alpha)

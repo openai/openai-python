@@ -6,13 +6,10 @@ import gc
 import os
 import sys
 import json
-import time
 import asyncio
 import inspect
-import subprocess
 import tracemalloc
-from typing import Any, Union, cast
-from textwrap import dedent
+from typing import Any, Union, Protocol, cast
 from unittest import mock
 from typing_extensions import Literal
 
@@ -23,18 +20,29 @@ from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
 from openai._types import Omit
-from openai._utils import maybe_transform
+from openai._utils import asyncify
 from openai._models import BaseModel, FinalRequestOptions
-from openai._constants import RAW_RESPONSE_HEADER
 from openai._streaming import Stream, AsyncStream
 from openai._exceptions import OpenAIError, APIStatusError, APITimeoutError, APIResponseValidationError
-from openai._base_client import DEFAULT_TIMEOUT, HTTPX_DEFAULT_TIMEOUT, BaseClient, make_request_options
-from openai.types.chat.completion_create_params import CompletionCreateParamsNonStreaming
+from openai._base_client import (
+    DEFAULT_TIMEOUT,
+    HTTPX_DEFAULT_TIMEOUT,
+    BaseClient,
+    OtherPlatform,
+    DefaultHttpxClient,
+    DefaultAsyncHttpxClient,
+    get_platform,
+    make_request_options,
+)
 
 from .utils import update_env
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 api_key = "My API Key"
+
+
+class MockRequestCall(Protocol):
+    request: httpx.Request
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
@@ -188,6 +196,7 @@ class TestOpenAI:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
+    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
     def test_copy_build_request(self) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
@@ -332,7 +341,9 @@ class TestOpenAI:
 
     def test_validate_headers(self) -> None:
         client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        options = client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
+        request = client._build_request(options)
+
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
         with pytest.raises(OpenAIError):
@@ -458,7 +469,7 @@ class TestOpenAI:
     def test_multipart_repeating_array(self, client: OpenAI) -> None:
         request = client._build_request(
             FinalRequestOptions.construct(
-                method="get",
+                method="post",
                 url="/foo",
                 headers={"Content-Type": "multipart/form-data; boundary=6b7ba517decee4a450543ea6ae821c82"},
                 json_data={"array": ["foo", "bar"]},
@@ -718,60 +729,37 @@ class TestOpenAI:
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: OpenAI) -> None:
         respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            self.client.post(
-                "/chat/completions",
-                body=cast(
-                    object,
-                    maybe_transform(
-                        dict(
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": "Say this is a test",
-                                }
-                            ],
-                            model="gpt-4o",
-                        ),
-                        CompletionCreateParamsNonStreaming,
-                    ),
-                ),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
+            client.chat.completions.with_streaming_response.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-4o",
+            ).__enter__()
 
         assert _get_open_connections(self.client) == 0
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: OpenAI) -> None:
         respx_mock.post("/chat/completions").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            self.client.post(
-                "/chat/completions",
-                body=cast(
-                    object,
-                    maybe_transform(
-                        dict(
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": "Say this is a test",
-                                }
-                            ],
-                            model="gpt-4o",
-                        ),
-                        CompletionCreateParamsNonStreaming,
-                    ),
-                ),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
-
+            client.chat.completions.with_streaming_response.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-4o",
+            ).__enter__()
         assert _get_open_connections(self.client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -907,6 +895,111 @@ class TestOpenAI:
         ) as response:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Test that the proxy environment variables are set correctly
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
+
+        client = DefaultHttpxClient()
+
+        mounts = tuple(client._mounts.items())
+        assert len(mounts) == 1
+        assert mounts[0][0].pattern == "https://"
+
+    @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
+    def test_default_client_creation(self) -> None:
+        # Ensure that the client can be initialized without any exceptions
+        DefaultHttpxClient(
+            verify=True,
+            cert=None,
+            trust_env=True,
+            http1=True,
+            http2=False,
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+        )
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_follow_redirects(self, respx_mock: MockRouter) -> None:
+        # Test that the default follow_redirects=True allows following redirects
+        respx_mock.post("/redirect").mock(
+            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+        )
+        respx_mock.get("/redirected").mock(return_value=httpx.Response(200, json={"status": "ok"}))
+
+        response = self.client.post("/redirect", body={"key": "value"}, cast_to=httpx.Response)
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
+
+    @pytest.mark.respx(base_url=base_url)
+    def test_follow_redirects_disabled(self, respx_mock: MockRouter) -> None:
+        # Test that follow_redirects=False prevents following redirects
+        respx_mock.post("/redirect").mock(
+            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+        )
+
+        with pytest.raises(APIStatusError) as exc_info:
+            self.client.post(
+                "/redirect", body={"key": "value"}, options={"follow_redirects": False}, cast_to=httpx.Response
+            )
+
+        assert exc_info.value.response.status_code == 302
+        assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
+
+    def test_api_key_before_after_refresh_provider(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token")
+
+        assert client.api_key == ""
+        assert "Authorization" not in client.auth_headers
+
+        client._refresh_api_key()
+
+        assert client.api_key == "test_bearer_token"
+        assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
+
+    def test_api_key_before_after_refresh_str(self) -> None:
+        client = OpenAI(base_url=base_url, api_key="test_api_key")
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+        client._refresh_api_key()
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+
+    @pytest.mark.respx()
+    def test_api_key_refresh_on_retry(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(500, json={"error": "server error"}),
+                httpx.Response(200, json={"foo": "bar"}),
+            ]
+        )
+
+        counter = 0
+
+        def token_provider() -> str:
+            nonlocal counter
+
+            counter += 1
+
+            if counter == 1:
+                return "first"
+
+            return "second"
+
+        client = OpenAI(base_url=base_url, api_key=token_provider)
+        client.chat.completions.create(messages=[], model="gpt-4")
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == 2
+
+        assert calls[0].request.headers.get("Authorization") == "Bearer first"
+        assert calls[1].request.headers.get("Authorization") == "Bearer second"
+
+    def test_copy_auth(self) -> None:
+        client = OpenAI(base_url=base_url, api_key=lambda: "test_bearer_token_1").copy(
+            api_key=lambda: "test_bearer_token_2"
+        )
+        client._refresh_api_key()
+        assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}
 
 
 class TestAsyncOpenAI:
@@ -1044,6 +1137,7 @@ class TestAsyncOpenAI:
             copy_param = copy_signature.parameters.get(name)
             assert copy_param is not None, f"copy() signature is missing the {name} param"
 
+    @pytest.mark.skipif(sys.version_info >= (3, 10), reason="fails because of a memory leak that started from 3.12")
     def test_copy_build_request(self) -> None:
         options = FinalRequestOptions(method="get", url="/foo")
 
@@ -1188,9 +1282,10 @@ class TestAsyncOpenAI:
         assert request.headers.get("x-foo") == "stainless"
         assert request.headers.get("x-stainless-lang") == "my-overriding-header"
 
-    def test_validate_headers(self) -> None:
+    async def test_validate_headers(self) -> None:
         client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
-        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        options = await client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
+        request = client._build_request(options)
         assert request.headers.get("Authorization") == f"Bearer {api_key}"
 
         with pytest.raises(OpenAIError):
@@ -1316,7 +1411,7 @@ class TestAsyncOpenAI:
     def test_multipart_repeating_array(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(
             FinalRequestOptions.construct(
-                method="get",
+                method="post",
                 url="/foo",
                 headers={"Content-Type": "multipart/form-data; boundary=6b7ba517decee4a450543ea6ae821c82"},
                 json_data={"array": ["foo", "bar"]},
@@ -1591,60 +1686,37 @@ class TestAsyncOpenAI:
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
-            await self.client.post(
-                "/chat/completions",
-                body=cast(
-                    object,
-                    maybe_transform(
-                        dict(
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": "Say this is a test",
-                                }
-                            ],
-                            model="gpt-4o",
-                        ),
-                        CompletionCreateParamsNonStreaming,
-                    ),
-                ),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
+            await async_client.chat.completions.with_streaming_response.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-4o",
+            ).__aenter__()
 
         assert _get_open_connections(self.client) == 0
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter) -> None:
+    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
         respx_mock.post("/chat/completions").mock(return_value=httpx.Response(500))
 
         with pytest.raises(APIStatusError):
-            await self.client.post(
-                "/chat/completions",
-                body=cast(
-                    object,
-                    maybe_transform(
-                        dict(
-                            messages=[
-                                {
-                                    "role": "user",
-                                    "content": "Say this is a test",
-                                }
-                            ],
-                            model="gpt-4o",
-                        ),
-                        CompletionCreateParamsNonStreaming,
-                    ),
-                ),
-                cast_to=httpx.Response,
-                options={"headers": {RAW_RESPONSE_HEADER: "stream"}},
-            )
-
+            await async_client.chat.completions.with_streaming_response.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-4o",
+            ).__aenter__()
         assert _get_open_connections(self.client) == 0
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
@@ -1785,47 +1857,122 @@ class TestAsyncOpenAI:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
 
-    def test_get_platform(self) -> None:
-        # A previous implementation of asyncify could leave threads unterminated when
-        # used with nest_asyncio.
-        #
-        # Since nest_asyncio.apply() is global and cannot be un-applied, this
-        # test is run in a separate process to avoid affecting other tests.
-        test_code = dedent("""
-        import asyncio
-        import nest_asyncio
-        import threading
+    async def test_get_platform(self) -> None:
+        platform = await asyncify(get_platform)()
+        assert isinstance(platform, (str, OtherPlatform))
 
-        from openai._utils import asyncify
-        from openai._base_client import get_platform 
+    async def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        # Test that the proxy environment variables are set correctly
+        monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
 
-        async def test_main() -> None:
-            result = await asyncify(get_platform)()
-            print(result)
-            for thread in threading.enumerate():
-                print(thread.name)
+        client = DefaultAsyncHttpxClient()
 
-        nest_asyncio.apply()
-        asyncio.run(test_main())
-        """)
-        with subprocess.Popen(
-            [sys.executable, "-c", test_code],
-            text=True,
-        ) as process:
-            timeout = 10  # seconds
+        mounts = tuple(client._mounts.items())
+        assert len(mounts) == 1
+        assert mounts[0][0].pattern == "https://"
 
-            start_time = time.monotonic()
-            while True:
-                return_code = process.poll()
-                if return_code is not None:
-                    if return_code != 0:
-                        raise AssertionError("calling get_platform using asyncify resulted in a non-zero exit code")
+    @pytest.mark.filterwarnings("ignore:.*deprecated.*:DeprecationWarning")
+    async def test_default_client_creation(self) -> None:
+        # Ensure that the client can be initialized without any exceptions
+        DefaultAsyncHttpxClient(
+            verify=True,
+            cert=None,
+            trust_env=True,
+            http1=True,
+            http2=False,
+            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+        )
 
-                    # success
-                    break
+    @pytest.mark.respx(base_url=base_url)
+    async def test_follow_redirects(self, respx_mock: MockRouter) -> None:
+        # Test that the default follow_redirects=True allows following redirects
+        respx_mock.post("/redirect").mock(
+            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+        )
+        respx_mock.get("/redirected").mock(return_value=httpx.Response(200, json={"status": "ok"}))
 
-                if time.monotonic() - start_time > timeout:
-                    process.kill()
-                    raise AssertionError("calling get_platform using asyncify resulted in a hung process")
+        response = await self.client.post("/redirect", body={"key": "value"}, cast_to=httpx.Response)
+        assert response.status_code == 200
+        assert response.json() == {"status": "ok"}
 
-                time.sleep(0.1)
+    @pytest.mark.respx(base_url=base_url)
+    async def test_follow_redirects_disabled(self, respx_mock: MockRouter) -> None:
+        # Test that follow_redirects=False prevents following redirects
+        respx_mock.post("/redirect").mock(
+            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+        )
+
+        with pytest.raises(APIStatusError) as exc_info:
+            await self.client.post(
+                "/redirect", body={"key": "value"}, options={"follow_redirects": False}, cast_to=httpx.Response
+            )
+
+        assert exc_info.value.response.status_code == 302
+        assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
+
+    @pytest.mark.asyncio
+    async def test_api_key_before_after_refresh_provider(self) -> None:
+        async def mock_api_key_provider():
+            return "test_bearer_token"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=mock_api_key_provider)
+
+        assert client.api_key == ""
+        assert "Authorization" not in client.auth_headers
+
+        await client._refresh_api_key()
+
+        assert client.api_key == "test_bearer_token"
+        assert client.auth_headers.get("Authorization") == "Bearer test_bearer_token"
+
+    @pytest.mark.asyncio
+    async def test_api_key_before_after_refresh_str(self) -> None:
+        client = AsyncOpenAI(base_url=base_url, api_key="test_api_key")
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+        await client._refresh_api_key()
+
+        assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
+
+    @pytest.mark.asyncio
+    @pytest.mark.respx()
+    async def test_bearer_token_refresh_async(self, respx_mock: MockRouter) -> None:
+        respx_mock.post(base_url + "/chat/completions").mock(
+            side_effect=[
+                httpx.Response(500, json={"error": "server error"}),
+                httpx.Response(200, json={"foo": "bar"}),
+            ]
+        )
+
+        counter = 0
+
+        async def token_provider() -> str:
+            nonlocal counter
+
+            counter += 1
+
+            if counter == 1:
+                return "first"
+
+            return "second"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=token_provider)
+        await client.chat.completions.create(messages=[], model="gpt-4")
+
+        calls = cast("list[MockRequestCall]", respx_mock.calls)
+        assert len(calls) == 2
+
+        assert calls[0].request.headers.get("Authorization") == "Bearer first"
+        assert calls[1].request.headers.get("Authorization") == "Bearer second"
+
+    @pytest.mark.asyncio
+    async def test_copy_auth(self) -> None:
+        async def token_provider_1() -> str:
+            return "test_bearer_token_1"
+
+        async def token_provider_2() -> str:
+            return "test_bearer_token_2"
+
+        client = AsyncOpenAI(base_url=base_url, api_key=token_provider_1).copy(api_key=token_provider_2)
+        await client._refresh_api_key()
+        assert client.auth_headers == {"Authorization": "Bearer test_bearer_token_2"}

@@ -5,27 +5,31 @@ import base64
 import pathlib
 from typing import Any, Mapping, TypeVar, cast
 from datetime import date, datetime
-from typing_extensions import Literal, get_args, override, get_type_hints
+from typing_extensions import Literal, get_args, override, get_type_hints as _get_type_hints
 
 import anyio
 import pydantic
 
 from ._utils import (
     is_list,
+    is_given,
+    lru_cache,
     is_mapping,
     is_iterable,
+    is_sequence,
 )
 from .._files import is_base64_file_input
+from ._compat import get_origin, is_typeddict
 from ._typing import (
     is_list_type,
     is_union_type,
     extract_type_arg,
     is_iterable_type,
     is_required_type,
+    is_sequence_type,
     is_annotated_type,
     strip_annotated_type,
 )
-from .._compat import get_origin, model_dump, is_typeddict
 
 _T = TypeVar("_T")
 
@@ -108,6 +112,7 @@ def transform(
     return cast(_T, transformed)
 
 
+@lru_cache(maxsize=8096)
 def _get_annotated_type(type_: type) -> type | None:
     """If the given type is an `Annotated` type then it is returned, if not `None` is returned.
 
@@ -126,7 +131,7 @@ def _get_annotated_type(type_: type) -> type | None:
 def _maybe_transform_key(key: str, type_: type) -> str:
     """Transform the given `data` based on the annotations provided in `type_`.
 
-    Note: this function only looks at `Annotated` types that contain `PropertInfo` metadata.
+    Note: this function only looks at `Annotated` types that contain `PropertyInfo` metadata.
     """
     annotated_type = _get_annotated_type(type_)
     if annotated_type is None:
@@ -140,6 +145,10 @@ def _maybe_transform_key(key: str, type_: type) -> str:
             return annotation.alias
 
     return key
+
+
+def _no_transform_needed(annotation: type) -> bool:
+    return annotation == float or annotation == int
 
 
 def _transform_recursive(
@@ -160,6 +169,8 @@ def _transform_recursive(
 
             Defaults to the same value as the `annotation` argument.
     """
+    from .._compat import model_dump
+
     if inner_type is None:
         inner_type = annotation
 
@@ -177,6 +188,8 @@ def _transform_recursive(
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        # Sequence[T]
+        or (is_sequence_type(stripped_type) and is_sequence(data) and not isinstance(data, str))
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
@@ -184,6 +197,15 @@ def _transform_recursive(
             return cast(object, data)
 
         inner_type = extract_type_arg(stripped_type, 0)
+        if _no_transform_needed(inner_type):
+            # for some types there is no need to transform anything, so we can get a small
+            # perf boost from skipping that work.
+            #
+            # but we still need to convert to a list to ensure the data is json-serializable
+            if is_list(data):
+                return data
+            return list(data)
+
         return [_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
 
     if is_union_type(stripped_type):
@@ -196,7 +218,7 @@ def _transform_recursive(
         return data
 
     if isinstance(data, pydantic.BaseModel):
-        return model_dump(data, exclude_unset=True, mode="json")
+        return model_dump(data, exclude_unset=True, mode="json", exclude=getattr(data, "__api_exclude__", None))
 
     annotated_type = _get_annotated_type(annotation)
     if annotated_type is None:
@@ -245,6 +267,11 @@ def _transform_typeddict(
     result: dict[str, object] = {}
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
+        if not is_given(value):
+            # we don't need to include omitted values here as they'll
+            # be stripped out before the request is sent anyway
+            continue
+
         type_ = annotations.get(key)
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
@@ -308,6 +335,8 @@ async def _async_transform_recursive(
 
             Defaults to the same value as the `annotation` argument.
     """
+    from .._compat import model_dump
+
     if inner_type is None:
         inner_type = annotation
 
@@ -325,6 +354,8 @@ async def _async_transform_recursive(
         (is_list_type(stripped_type) and is_list(data))
         # Iterable[T]
         or (is_iterable_type(stripped_type) and is_iterable(data) and not isinstance(data, str))
+        # Sequence[T]
+        or (is_sequence_type(stripped_type) and is_sequence(data) and not isinstance(data, str))
     ):
         # dicts are technically iterable, but it is an iterable on the keys of the dict and is not usually
         # intended as an iterable, so we don't transform it.
@@ -332,6 +363,15 @@ async def _async_transform_recursive(
             return cast(object, data)
 
         inner_type = extract_type_arg(stripped_type, 0)
+        if _no_transform_needed(inner_type):
+            # for some types there is no need to transform anything, so we can get a small
+            # perf boost from skipping that work.
+            #
+            # but we still need to convert to a list to ensure the data is json-serializable
+            if is_list(data):
+                return data
+            return list(data)
+
         return [await _async_transform_recursive(d, annotation=annotation, inner_type=inner_type) for d in data]
 
     if is_union_type(stripped_type):
@@ -393,6 +433,11 @@ async def _async_transform_typeddict(
     result: dict[str, object] = {}
     annotations = get_type_hints(expected_type, include_extras=True)
     for key, value in data.items():
+        if not is_given(value):
+            # we don't need to include omitted values here as they'll
+            # be stripped out before the request is sent anyway
+            continue
+
         type_ = annotations.get(key)
         if type_ is None:
             # we do not have a type annotation for this field, leave it as is
@@ -400,3 +445,13 @@ async def _async_transform_typeddict(
         else:
             result[_maybe_transform_key(key, type_)] = await _async_transform_recursive(value, annotation=type_)
     return result
+
+
+@lru_cache(maxsize=8096)
+def get_type_hints(
+    obj: Any,
+    globalns: dict[str, Any] | None = None,
+    localns: Mapping[str, Any] | None = None,
+    include_extras: bool = False,
+) -> dict[str, Any]:
+    return _get_type_hints(obj, globalns=globalns, localns=localns, include_extras=include_extras)

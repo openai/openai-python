@@ -8,11 +8,8 @@ from typing_extensions import Literal
 import httpx
 
 from ... import _legacy_response
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
-from ..._utils import (
-    maybe_transform,
-    async_maybe_transform,
-)
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
+from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -23,10 +20,11 @@ from ...types.beta import (
     assistant_update_params,
 )
 from ..._base_client import AsyncPaginator, make_request_options
-from ...types.chat_model import ChatModel
 from ...types.beta.assistant import Assistant
+from ...types.shared.chat_model import ChatModel
 from ...types.beta.assistant_deleted import AssistantDeleted
 from ...types.shared_params.metadata import Metadata
+from ...types.shared.reasoning_effort import ReasoningEffort
 from ...types.beta.assistant_tool_param import AssistantToolParam
 from ...types.beta.assistant_response_format_option_param import AssistantResponseFormatOptionParam
 
@@ -57,22 +55,22 @@ class Assistants(SyncAPIResource):
         self,
         *,
         model: Union[str, ChatModel],
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_create_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_create_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
@@ -98,12 +96,14 @@ class Assistants(SyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o1 and o3-mini models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -187,7 +187,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -216,12 +216,24 @@ class Assistants(SyncAPIResource):
         self,
         assistant_id: str,
         *,
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         model: Union[
             str,
             Literal[
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
                 "o3-mini",
                 "o3-mini-2025-01-31",
                 "o1",
@@ -232,6 +244,8 @@ class Assistants(SyncAPIResource):
                 "gpt-4o-2024-05-13",
                 "gpt-4o-mini",
                 "gpt-4o-mini-2024-07-18",
+                "gpt-4.5-preview",
+                "gpt-4.5-preview-2025-02-27",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -252,20 +266,20 @@ class Assistants(SyncAPIResource):
                 "gpt-3.5-turbo-16k-0613",
             ],
         ]
-        | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_update_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_update_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -292,12 +306,14 @@ class Assistants(SyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o1 and o3-mini models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -377,16 +393,16 @@ class Assistants(SyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Assistant]:
         """Returns a list of assistants.
 
@@ -448,7 +464,7 @@ class Assistants(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AssistantDeleted:
         """
         Delete an assistant.
@@ -498,22 +514,22 @@ class AsyncAssistants(AsyncAPIResource):
         self,
         *,
         model: Union[str, ChatModel],
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_create_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_create_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Create an assistant with a model and instructions.
@@ -539,12 +555,14 @@ class AsyncAssistants(AsyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o1 and o3-mini models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -628,7 +646,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """
         Retrieves an assistant.
@@ -657,12 +675,24 @@ class AsyncAssistants(AsyncAPIResource):
         self,
         assistant_id: str,
         *,
-        description: Optional[str] | NotGiven = NOT_GIVEN,
-        instructions: Optional[str] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        description: Optional[str] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         model: Union[
             str,
             Literal[
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
                 "o3-mini",
                 "o3-mini-2025-01-31",
                 "o1",
@@ -673,6 +703,8 @@ class AsyncAssistants(AsyncAPIResource):
                 "gpt-4o-2024-05-13",
                 "gpt-4o-mini",
                 "gpt-4o-mini-2024-07-18",
+                "gpt-4.5-preview",
+                "gpt-4.5-preview-2025-02-27",
                 "gpt-4-turbo",
                 "gpt-4-turbo-2024-04-09",
                 "gpt-4-0125-preview",
@@ -693,20 +725,20 @@ class AsyncAssistants(AsyncAPIResource):
                 "gpt-3.5-turbo-16k-0613",
             ],
         ]
-        | NotGiven = NOT_GIVEN,
-        name: Optional[str] | NotGiven = NOT_GIVEN,
-        reasoning_effort: Optional[Literal["low", "medium", "high"]] | NotGiven = NOT_GIVEN,
-        response_format: Optional[AssistantResponseFormatOptionParam] | NotGiven = NOT_GIVEN,
-        temperature: Optional[float] | NotGiven = NOT_GIVEN,
-        tool_resources: Optional[assistant_update_params.ToolResources] | NotGiven = NOT_GIVEN,
-        tools: Iterable[AssistantToolParam] | NotGiven = NOT_GIVEN,
-        top_p: Optional[float] | NotGiven = NOT_GIVEN,
+        | Omit = omit,
+        name: Optional[str] | Omit = omit,
+        reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
+        response_format: Optional[AssistantResponseFormatOptionParam] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        tool_resources: Optional[assistant_update_params.ToolResources] | Omit = omit,
+        tools: Iterable[AssistantToolParam] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Assistant:
         """Modifies an assistant.
 
@@ -733,12 +765,14 @@ class AsyncAssistants(AsyncAPIResource):
 
           name: The name of the assistant. The maximum length is 256 characters.
 
-          reasoning_effort: **o1 and o3-mini models only**
-
-              Constrains effort on reasoning for
+          reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `low`, `medium`, and `high`. Reducing reasoning effort can
-              result in faster responses and fewer tokens used on reasoning in a response.
+              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+              effort can result in faster responses and fewer tokens used on reasoning in a
+              response.
+
+              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+              effort.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -818,16 +852,16 @@ class AsyncAssistants(AsyncAPIResource):
     def list(
         self,
         *,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Assistant, AsyncCursorPage[Assistant]]:
         """Returns a list of assistants.
 
@@ -889,7 +923,7 @@ class AsyncAssistants(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AssistantDeleted:
         """
         Delete an assistant.

@@ -36,7 +36,7 @@ class TestAssistants:
             instructions="instructions",
             metadata={"foo": "string"},
             name="name",
-            reasoning_effort="low",
+            reasoning_effort="minimal",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -135,7 +135,7 @@ class TestAssistants:
             metadata={"foo": "string"},
             model="string",
             name="name",
-            reasoning_effort="low",
+            reasoning_effort="minimal",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -253,7 +253,9 @@ class TestAssistants:
 
 
 class TestAsyncAssistants:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
@@ -270,7 +272,7 @@ class TestAsyncAssistants:
             instructions="instructions",
             metadata={"foo": "string"},
             name="name",
-            reasoning_effort="low",
+            reasoning_effort="minimal",
             response_format="auto",
             temperature=1,
             tool_resources={
@@ -369,7 +371,7 @@ class TestAsyncAssistants:
             metadata={"foo": "string"},
             model="string",
             name="name",
-            reasoning_effort="low",
+            reasoning_effort="minimal",
             response_format="auto",
             temperature=1,
             tool_resources={

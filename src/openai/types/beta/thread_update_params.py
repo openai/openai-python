@@ -2,9 +2,10 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import Optional
 from typing_extensions import TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared_params.metadata import Metadata
 
 __all__ = ["ThreadUpdateParams", "ToolResources", "ToolResourcesCodeInterpreter", "ToolResourcesFileSearch"]
@@ -31,7 +32,7 @@ class ThreadUpdateParams(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
     available to the `code_interpreter` tool. There can be a maximum of 20 files
@@ -40,7 +41,7 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The
     [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)

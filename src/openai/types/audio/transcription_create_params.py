@@ -2,17 +2,24 @@
 
 from __future__ import annotations
 
-from typing import List, Union
-from typing_extensions import Literal, Required, TypedDict
+from typing import List, Union, Optional
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..._types import FileTypes
+from ..._types import FileTypes, SequenceNotStr
 from ..audio_model import AudioModel
+from .transcription_include import TranscriptionInclude
 from ..audio_response_format import AudioResponseFormat
 
-__all__ = ["TranscriptionCreateParams"]
+__all__ = [
+    "TranscriptionCreateParamsBase",
+    "ChunkingStrategy",
+    "ChunkingStrategyVadConfig",
+    "TranscriptionCreateParamsNonStreaming",
+    "TranscriptionCreateParamsStreaming",
+]
 
 
-class TranscriptionCreateParams(TypedDict, total=False):
+class TranscriptionCreateParamsBase(TypedDict, total=False):
     file: Required[FileTypes]
     """
     The audio file object (not file name) to transcribe, in one of these formats:
@@ -22,8 +29,45 @@ class TranscriptionCreateParams(TypedDict, total=False):
     model: Required[Union[str, AudioModel]]
     """ID of the model to use.
 
-    Only `whisper-1` (which is powered by our open source Whisper V2 model) is
-    currently available.
+    The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `whisper-1`
+    (which is powered by our open source Whisper V2 model), and
+    `gpt-4o-transcribe-diarize`.
+    """
+
+    chunking_strategy: Optional[ChunkingStrategy]
+    """Controls how the audio is cut into chunks.
+
+    When set to `"auto"`, the server first normalizes loudness and then uses voice
+    activity detection (VAD) to choose boundaries. `server_vad` object can be
+    provided to tweak VAD detection parameters manually. If unset, the audio is
+    transcribed as a single block. Required when using `gpt-4o-transcribe-diarize`
+    for inputs longer than 30 seconds.
+    """
+
+    include: List[TranscriptionInclude]
+    """
+    Additional information to include in the transcription response. `logprobs` will
+    return the log probabilities of the tokens in the response to understand the
+    model's confidence in the transcription. `logprobs` only works with
+    response_format set to `json` and only with the models `gpt-4o-transcribe` and
+    `gpt-4o-mini-transcribe`. This field is not supported when using
+    `gpt-4o-transcribe-diarize`.
+    """
+
+    known_speaker_names: SequenceNotStr[str]
+    """
+    Optional list of speaker names that correspond to the audio samples provided in
+    `known_speaker_references[]`. Each entry should be a short identifier (for
+    example `customer` or `agent`). Up to 4 speakers are supported.
+    """
+
+    known_speaker_references: SequenceNotStr[str]
+    """
+    Optional list of audio samples (as
+    [data URLs](https://developer.mozilla.org/en-US/docs/Web/HTTP/Basics_of_HTTP/Data_URLs))
+    that contain known speaker references matching `known_speaker_names[]`. Each
+    sample must be between 2 and 10 seconds, and can use any of the same input audio
+    formats supported by `file`.
     """
 
     language: str
@@ -39,13 +83,17 @@ class TranscriptionCreateParams(TypedDict, total=False):
     segment.
 
     The [prompt](https://platform.openai.com/docs/guides/speech-to-text#prompting)
-    should match the audio language.
+    should match the audio language. This field is not supported when using
+    `gpt-4o-transcribe-diarize`.
     """
 
     response_format: AudioResponseFormat
     """
     The format of the output, in one of these options: `json`, `text`, `srt`,
-    `verbose_json`, or `vtt`.
+    `verbose_json`, `vtt`, or `diarized_json`. For `gpt-4o-transcribe` and
+    `gpt-4o-mini-transcribe`, the only supported format is `json`. For
+    `gpt-4o-transcribe-diarize`, the supported formats are `json`, `text`, and
+    `diarized_json`, with `diarized_json` required to receive speaker annotations.
     """
 
     temperature: float
@@ -63,5 +111,62 @@ class TranscriptionCreateParams(TypedDict, total=False):
     `response_format` must be set `verbose_json` to use timestamp granularities.
     Either or both of these options are supported: `word`, or `segment`. Note: There
     is no additional latency for segment timestamps, but generating word timestamps
-    incurs additional latency.
+    incurs additional latency. This option is not available for
+    `gpt-4o-transcribe-diarize`.
     """
+
+
+class ChunkingStrategyVadConfig(TypedDict, total=False):
+    type: Required[Literal["server_vad"]]
+    """Must be set to `server_vad` to enable manual chunking using server side VAD."""
+
+    prefix_padding_ms: int
+    """Amount of audio to include before the VAD detected speech (in milliseconds)."""
+
+    silence_duration_ms: int
+    """
+    Duration of silence to detect speech stop (in milliseconds). With shorter values
+    the model will respond more quickly, but may jump in on short pauses from the
+    user.
+    """
+
+    threshold: float
+    """Sensitivity threshold (0.0 to 1.0) for voice activity detection.
+
+    A higher threshold will require louder audio to activate the model, and thus
+    might perform better in noisy environments.
+    """
+
+
+ChunkingStrategy: TypeAlias = Union[Literal["auto"], ChunkingStrategyVadConfig]
+
+
+class TranscriptionCreateParamsNonStreaming(TranscriptionCreateParamsBase, total=False):
+    stream: Optional[Literal[False]]
+    """
+    If set to true, the model response data will be streamed to the client as it is
+    generated using
+    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+    See the
+    [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+    for more information.
+
+    Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+    """
+
+
+class TranscriptionCreateParamsStreaming(TranscriptionCreateParamsBase):
+    stream: Required[Literal[True]]
+    """
+    If set to true, the model response data will be streamed to the client as it is
+    generated using
+    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+    See the
+    [Streaming section of the Speech-to-Text guide](https://platform.openai.com/docs/guides/speech-to-text?lang=curl#streaming-transcriptions)
+    for more information.
+
+    Note: Streaming is not supported for the `whisper-1` model and will be ignored.
+    """
+
+
+TranscriptionCreateParams = Union[TranscriptionCreateParamsNonStreaming, TranscriptionCreateParamsStreaming]

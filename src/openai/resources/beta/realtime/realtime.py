@@ -32,7 +32,19 @@ from ...._models import construct_type_unchecked
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._exceptions import OpenAIError
 from ...._base_client import _merge_mappings
-from ....types.beta.realtime import session_update_event_param, response_create_event_param
+from ....types.beta.realtime import (
+    session_update_event_param,
+    response_create_event_param,
+    transcription_session_update_param,
+)
+from .transcription_sessions import (
+    TranscriptionSessions,
+    AsyncTranscriptionSessions,
+    TranscriptionSessionsWithRawResponse,
+    AsyncTranscriptionSessionsWithRawResponse,
+    TranscriptionSessionsWithStreamingResponse,
+    AsyncTranscriptionSessionsWithStreamingResponse,
+)
 from ....types.websocket_connection_options import WebsocketConnectionOptions
 from ....types.beta.realtime.realtime_client_event import RealtimeClientEvent
 from ....types.beta.realtime.realtime_server_event import RealtimeServerEvent
@@ -54,6 +66,10 @@ class Realtime(SyncAPIResource):
     @cached_property
     def sessions(self) -> Sessions:
         return Sessions(self._client)
+
+    @cached_property
+    def transcription_sessions(self) -> TranscriptionSessions:
+        return TranscriptionSessions(self._client)
 
     @cached_property
     def with_raw_response(self) -> RealtimeWithRawResponse:
@@ -106,6 +122,10 @@ class AsyncRealtime(AsyncAPIResource):
     @cached_property
     def sessions(self) -> AsyncSessions:
         return AsyncSessions(self._client)
+
+    @cached_property
+    def transcription_sessions(self) -> AsyncTranscriptionSessions:
+        return AsyncTranscriptionSessions(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncRealtimeWithRawResponse:
@@ -162,6 +182,10 @@ class RealtimeWithRawResponse:
     def sessions(self) -> SessionsWithRawResponse:
         return SessionsWithRawResponse(self._realtime.sessions)
 
+    @cached_property
+    def transcription_sessions(self) -> TranscriptionSessionsWithRawResponse:
+        return TranscriptionSessionsWithRawResponse(self._realtime.transcription_sessions)
+
 
 class AsyncRealtimeWithRawResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -170,6 +194,10 @@ class AsyncRealtimeWithRawResponse:
     @cached_property
     def sessions(self) -> AsyncSessionsWithRawResponse:
         return AsyncSessionsWithRawResponse(self._realtime.sessions)
+
+    @cached_property
+    def transcription_sessions(self) -> AsyncTranscriptionSessionsWithRawResponse:
+        return AsyncTranscriptionSessionsWithRawResponse(self._realtime.transcription_sessions)
 
 
 class RealtimeWithStreamingResponse:
@@ -180,6 +208,10 @@ class RealtimeWithStreamingResponse:
     def sessions(self) -> SessionsWithStreamingResponse:
         return SessionsWithStreamingResponse(self._realtime.sessions)
 
+    @cached_property
+    def transcription_sessions(self) -> TranscriptionSessionsWithStreamingResponse:
+        return TranscriptionSessionsWithStreamingResponse(self._realtime.transcription_sessions)
+
 
 class AsyncRealtimeWithStreamingResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -189,14 +221,20 @@ class AsyncRealtimeWithStreamingResponse:
     def sessions(self) -> AsyncSessionsWithStreamingResponse:
         return AsyncSessionsWithStreamingResponse(self._realtime.sessions)
 
+    @cached_property
+    def transcription_sessions(self) -> AsyncTranscriptionSessionsWithStreamingResponse:
+        return AsyncTranscriptionSessionsWithStreamingResponse(self._realtime.transcription_sessions)
+
 
 class AsyncRealtimeConnection:
     """Represents a live websocket connection to the Realtime API"""
 
     session: AsyncRealtimeSessionResource
     response: AsyncRealtimeResponseResource
-    conversation: AsyncRealtimeConversationResource
     input_audio_buffer: AsyncRealtimeInputAudioBufferResource
+    conversation: AsyncRealtimeConversationResource
+    output_audio_buffer: AsyncRealtimeOutputAudioBufferResource
+    transcription_session: AsyncRealtimeTranscriptionSessionResource
 
     _connection: AsyncWebsocketConnection
 
@@ -205,8 +243,10 @@ class AsyncRealtimeConnection:
 
         self.session = AsyncRealtimeSessionResource(self)
         self.response = AsyncRealtimeResponseResource(self)
-        self.conversation = AsyncRealtimeConversationResource(self)
         self.input_audio_buffer = AsyncRealtimeInputAudioBufferResource(self)
+        self.conversation = AsyncRealtimeConversationResource(self)
+        self.output_audio_buffer = AsyncRealtimeOutputAudioBufferResource(self)
+        self.transcription_session = AsyncRealtimeTranscriptionSessionResource(self)
 
     async def __aiter__(self) -> AsyncIterator[RealtimeServerEvent]:
         """
@@ -239,10 +279,6 @@ class AsyncRealtimeConnection:
         """
         message = await self._connection.recv(decode=False)
         log.debug(f"Received websocket message: %s", message)
-        if not isinstance(message, bytes):
-            # passing `decode=False` should always result in us getting `bytes` back
-            raise TypeError(f"Expected `.recv(decode=False)` to return `bytes` but got {type(message)}")
-
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -322,17 +358,18 @@ class AsyncRealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         extra_query = self.__extra_query
+        await self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
         if is_async_azure_client(self.__client):
-            extra_query, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
-
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                "model": self.__model,
-                **extra_query,
-            },
-        )
+            url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
+        else:
+            url = self._prepare_url().copy_with(
+                params={
+                    **self.__client.base_url.params,
+                    "model": self.__model,
+                    **extra_query,
+                },
+            )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
@@ -377,8 +414,10 @@ class RealtimeConnection:
 
     session: RealtimeSessionResource
     response: RealtimeResponseResource
-    conversation: RealtimeConversationResource
     input_audio_buffer: RealtimeInputAudioBufferResource
+    conversation: RealtimeConversationResource
+    output_audio_buffer: RealtimeOutputAudioBufferResource
+    transcription_session: RealtimeTranscriptionSessionResource
 
     _connection: WebsocketConnection
 
@@ -387,8 +426,10 @@ class RealtimeConnection:
 
         self.session = RealtimeSessionResource(self)
         self.response = RealtimeResponseResource(self)
-        self.conversation = RealtimeConversationResource(self)
         self.input_audio_buffer = RealtimeInputAudioBufferResource(self)
+        self.conversation = RealtimeConversationResource(self)
+        self.output_audio_buffer = RealtimeOutputAudioBufferResource(self)
+        self.transcription_session = RealtimeTranscriptionSessionResource(self)
 
     def __iter__(self) -> Iterator[RealtimeServerEvent]:
         """
@@ -421,10 +462,6 @@ class RealtimeConnection:
         """
         message = self._connection.recv(decode=False)
         log.debug(f"Received websocket message: %s", message)
-        if not isinstance(message, bytes):
-            # passing `decode=False` should always result in us getting `bytes` back
-            raise TypeError(f"Expected `.recv(decode=False)` to return `bytes` but got {type(message)}")
-
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -504,17 +541,18 @@ class RealtimeConnectionManager:
             raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
 
         extra_query = self.__extra_query
+        self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
         if is_azure_client(self.__client):
-            extra_query, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
-
-        url = self._prepare_url().copy_with(
-            params={
-                **self.__client.base_url.params,
-                "model": self.__model,
-                **extra_query,
-            },
-        )
+            url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
+        else:
+            url = self._prepare_url().copy_with(
+                params={
+                    **self.__client.base_url.params,
+                    "model": self.__model,
+                    **extra_query,
+                },
+            )
         log.debug("Connecting to %s", url)
         if self.__websocket_connection_options:
             log.debug("Connection options: %s", self.__websocket_connection_options)
@@ -561,14 +599,17 @@ class BaseRealtimeConnectionResource:
 
 class RealtimeSessionResource(BaseRealtimeConnectionResource):
     def update(self, *, session: session_update_event_param.Session, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to update the session’s default configuration.
+        """
+        Send this event to update the session’s default configuration.
+        The client may send this event at any time to update any field,
+        except for `voice`. However, note that once a session has been
+        initialized with a particular `model`, it can’t be changed to
+        another model using `session.update`.
 
-        The client may
-        send this event at any time to update the session configuration, and any
-        field may be updated at any time, except for "voice". The server will respond
-        with a `session.updated` event that shows the full effective configuration.
-        Only fields that are present are updated, thus the correct way to clear a
-        field like "instructions" is to pass an empty string.
+        When the server receives a `session.update`, it will respond
+        with a `session.updated` event showing the full, effective configuration.
+        Only the fields that are present are updated. To clear a field like
+        `instructions`, pass an empty string.
         """
         self._connection.send(
             cast(
@@ -579,20 +620,6 @@ class RealtimeSessionResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeResponseResource(BaseRealtimeConnectionResource):
-    def cancel(self, *, event_id: str | NotGiven = NOT_GIVEN, response_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to cancel an in-progress response.
-
-        The server will respond
-        with a `response.cancelled` event or an error if there is no response to
-        cancel.
-        """
-        self._connection.send(
-            cast(
-                RealtimeClientEventParam,
-                strip_not_given({"type": "response.cancel", "event_id": event_id, "response_id": response_id}),
-            )
-        )
-
     def create(
         self,
         *,
@@ -620,6 +647,70 @@ class RealtimeResponseResource(BaseRealtimeConnectionResource):
             cast(
                 RealtimeClientEventParam,
                 strip_not_given({"type": "response.create", "event_id": event_id, "response": response}),
+            )
+        )
+
+    def cancel(self, *, event_id: str | NotGiven = NOT_GIVEN, response_id: str | NotGiven = NOT_GIVEN) -> None:
+        """Send this event to cancel an in-progress response.
+
+        The server will respond
+        with a `response.done` event with a status of `response.status=cancelled`. If
+        there is no response to cancel, the server will respond with an error.
+        """
+        self._connection.send(
+            cast(
+                RealtimeClientEventParam,
+                strip_not_given({"type": "response.cancel", "event_id": event_id, "response_id": response_id}),
+            )
+        )
+
+
+class RealtimeInputAudioBufferResource(BaseRealtimeConnectionResource):
+    def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """Send this event to clear the audio bytes in the buffer.
+
+        The server will
+        respond with an `input_audio_buffer.cleared` event.
+        """
+        self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.clear", "event_id": event_id}))
+        )
+
+    def commit(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """
+        Send this event to commit the user input audio buffer, which will create a
+        new user message item in the conversation. This event will produce an error
+        if the input audio buffer is empty. When in Server VAD mode, the client does
+        not need to send this event, the server will commit the audio buffer
+        automatically.
+
+        Committing the input audio buffer will trigger input audio transcription
+        (if enabled in session configuration), but it will not create a response
+        from the model. The server will respond with an `input_audio_buffer.committed`
+        event.
+        """
+        self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.commit", "event_id": event_id}))
+        )
+
+    def append(self, *, audio: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """Send this event to append audio bytes to the input audio buffer.
+
+        The audio
+        buffer is temporary storage you can write to and later commit. In Server VAD
+        mode, the audio buffer is used to detect speech and the server will decide
+        when to commit. When Server VAD is disabled, you must commit the audio buffer
+        manually.
+
+        The client may choose how much audio to place in each event up to a maximum
+        of 15 MiB, for example streaming smaller chunks from the client may allow the
+        VAD to be more responsive. Unlike made other client events, the server will
+        not send a confirmation response to this event.
+        """
+        self._connection.send(
+            cast(
+                RealtimeClientEventParam,
+                strip_not_given({"type": "input_audio_buffer.append", "audio": audio, "event_id": event_id}),
             )
         )
 
@@ -708,53 +799,45 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
             )
         )
 
-
-class RealtimeInputAudioBufferResource(BaseRealtimeConnectionResource):
-    def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to clear the audio bytes in the buffer.
-
-        The server will
-        respond with an `input_audio_buffer.cleared` event.
+    def retrieve(self, *, item_id: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
         """
-        self._connection.send(
-            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.clear", "event_id": event_id}))
-        )
-
-    def commit(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """
-        Send this event to commit the user input audio buffer, which will create a
-        new user message item in the conversation. This event will produce an error
-        if the input audio buffer is empty. When in Server VAD mode, the client does
-        not need to send this event, the server will commit the audio buffer
-        automatically.
-
-        Committing the input audio buffer will trigger input audio transcription
-        (if enabled in session configuration), but it will not create a response
-        from the model. The server will respond with an `input_audio_buffer.committed`
-        event.
-        """
-        self._connection.send(
-            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.commit", "event_id": event_id}))
-        )
-
-    def append(self, *, audio: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to append audio bytes to the input audio buffer.
-
-        The audio
-        buffer is temporary storage you can write to and later commit. In Server VAD
-        mode, the audio buffer is used to detect speech and the server will decide
-        when to commit. When Server VAD is disabled, you must commit the audio buffer
-        manually.
-
-        The client may choose how much audio to place in each event up to a maximum
-        of 15 MiB, for example streaming smaller chunks from the client may allow the
-        VAD to be more responsive. Unlike made other client events, the server will
-        not send a confirmation response to this event.
+        Send this event when you want to retrieve the server's representation of a specific item in the conversation history. This is useful, for example, to inspect user audio after noise cancellation and VAD.
+        The server will respond with a `conversation.item.retrieved` event,
+        unless the item does not exist in the conversation history, in which case the
+        server will respond with an error.
         """
         self._connection.send(
             cast(
                 RealtimeClientEventParam,
-                strip_not_given({"type": "input_audio_buffer.append", "audio": audio, "event_id": event_id}),
+                strip_not_given({"type": "conversation.item.retrieve", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+
+class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
+    def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """**WebRTC Only:** Emit to cut off the current audio response.
+
+        This will trigger the server to
+        stop generating audio and emit a `output_audio_buffer.cleared` event. This
+        event should be preceded by a `response.cancel` client event to stop the
+        generation of the current response.
+        [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+        """
+        self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
+        )
+
+
+class RealtimeTranscriptionSessionResource(BaseRealtimeConnectionResource):
+    def update(
+        self, *, session: transcription_session_update_param.Session, event_id: str | NotGiven = NOT_GIVEN
+    ) -> None:
+        """Send this event to update a transcription session."""
+        self._connection.send(
+            cast(
+                RealtimeClientEventParam,
+                strip_not_given({"type": "transcription_session.update", "session": session, "event_id": event_id}),
             )
         )
 
@@ -768,14 +851,17 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
     async def update(
         self, *, session: session_update_event_param.Session, event_id: str | NotGiven = NOT_GIVEN
     ) -> None:
-        """Send this event to update the session’s default configuration.
+        """
+        Send this event to update the session’s default configuration.
+        The client may send this event at any time to update any field,
+        except for `voice`. However, note that once a session has been
+        initialized with a particular `model`, it can’t be changed to
+        another model using `session.update`.
 
-        The client may
-        send this event at any time to update the session configuration, and any
-        field may be updated at any time, except for "voice". The server will respond
-        with a `session.updated` event that shows the full effective configuration.
-        Only fields that are present are updated, thus the correct way to clear a
-        field like "instructions" is to pass an empty string.
+        When the server receives a `session.update`, it will respond
+        with a `session.updated` event showing the full, effective configuration.
+        Only the fields that are present are updated. To clear a field like
+        `instructions`, pass an empty string.
         """
         await self._connection.send(
             cast(
@@ -786,20 +872,6 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
 
 
 class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
-    async def cancel(self, *, event_id: str | NotGiven = NOT_GIVEN, response_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to cancel an in-progress response.
-
-        The server will respond
-        with a `response.cancelled` event or an error if there is no response to
-        cancel.
-        """
-        await self._connection.send(
-            cast(
-                RealtimeClientEventParam,
-                strip_not_given({"type": "response.cancel", "event_id": event_id, "response_id": response_id}),
-            )
-        )
-
     async def create(
         self,
         *,
@@ -827,6 +899,70 @@ class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
             cast(
                 RealtimeClientEventParam,
                 strip_not_given({"type": "response.create", "event_id": event_id, "response": response}),
+            )
+        )
+
+    async def cancel(self, *, event_id: str | NotGiven = NOT_GIVEN, response_id: str | NotGiven = NOT_GIVEN) -> None:
+        """Send this event to cancel an in-progress response.
+
+        The server will respond
+        with a `response.done` event with a status of `response.status=cancelled`. If
+        there is no response to cancel, the server will respond with an error.
+        """
+        await self._connection.send(
+            cast(
+                RealtimeClientEventParam,
+                strip_not_given({"type": "response.cancel", "event_id": event_id, "response_id": response_id}),
+            )
+        )
+
+
+class AsyncRealtimeInputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
+    async def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """Send this event to clear the audio bytes in the buffer.
+
+        The server will
+        respond with an `input_audio_buffer.cleared` event.
+        """
+        await self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.clear", "event_id": event_id}))
+        )
+
+    async def commit(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """
+        Send this event to commit the user input audio buffer, which will create a
+        new user message item in the conversation. This event will produce an error
+        if the input audio buffer is empty. When in Server VAD mode, the client does
+        not need to send this event, the server will commit the audio buffer
+        automatically.
+
+        Committing the input audio buffer will trigger input audio transcription
+        (if enabled in session configuration), but it will not create a response
+        from the model. The server will respond with an `input_audio_buffer.committed`
+        event.
+        """
+        await self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.commit", "event_id": event_id}))
+        )
+
+    async def append(self, *, audio: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """Send this event to append audio bytes to the input audio buffer.
+
+        The audio
+        buffer is temporary storage you can write to and later commit. In Server VAD
+        mode, the audio buffer is used to detect speech and the server will decide
+        when to commit. When Server VAD is disabled, you must commit the audio buffer
+        manually.
+
+        The client may choose how much audio to place in each event up to a maximum
+        of 15 MiB, for example streaming smaller chunks from the client may allow the
+        VAD to be more responsive. Unlike made other client events, the server will
+        not send a confirmation response to this event.
+        """
+        await self._connection.send(
+            cast(
+                RealtimeClientEventParam,
+                strip_not_given({"type": "input_audio_buffer.append", "audio": audio, "event_id": event_id}),
             )
         )
 
@@ -915,52 +1051,44 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
             )
         )
 
-
-class AsyncRealtimeInputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
-    async def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to clear the audio bytes in the buffer.
-
-        The server will
-        respond with an `input_audio_buffer.cleared` event.
+    async def retrieve(self, *, item_id: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
         """
-        await self._connection.send(
-            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.clear", "event_id": event_id}))
-        )
-
-    async def commit(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """
-        Send this event to commit the user input audio buffer, which will create a
-        new user message item in the conversation. This event will produce an error
-        if the input audio buffer is empty. When in Server VAD mode, the client does
-        not need to send this event, the server will commit the audio buffer
-        automatically.
-
-        Committing the input audio buffer will trigger input audio transcription
-        (if enabled in session configuration), but it will not create a response
-        from the model. The server will respond with an `input_audio_buffer.committed`
-        event.
-        """
-        await self._connection.send(
-            cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.commit", "event_id": event_id}))
-        )
-
-    async def append(self, *, audio: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
-        """Send this event to append audio bytes to the input audio buffer.
-
-        The audio
-        buffer is temporary storage you can write to and later commit. In Server VAD
-        mode, the audio buffer is used to detect speech and the server will decide
-        when to commit. When Server VAD is disabled, you must commit the audio buffer
-        manually.
-
-        The client may choose how much audio to place in each event up to a maximum
-        of 15 MiB, for example streaming smaller chunks from the client may allow the
-        VAD to be more responsive. Unlike made other client events, the server will
-        not send a confirmation response to this event.
+        Send this event when you want to retrieve the server's representation of a specific item in the conversation history. This is useful, for example, to inspect user audio after noise cancellation and VAD.
+        The server will respond with a `conversation.item.retrieved` event,
+        unless the item does not exist in the conversation history, in which case the
+        server will respond with an error.
         """
         await self._connection.send(
             cast(
                 RealtimeClientEventParam,
-                strip_not_given({"type": "input_audio_buffer.append", "audio": audio, "event_id": event_id}),
+                strip_not_given({"type": "conversation.item.retrieve", "item_id": item_id, "event_id": event_id}),
+            )
+        )
+
+
+class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
+    async def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+        """**WebRTC Only:** Emit to cut off the current audio response.
+
+        This will trigger the server to
+        stop generating audio and emit a `output_audio_buffer.cleared` event. This
+        event should be preceded by a `response.cancel` client event to stop the
+        generation of the current response.
+        [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+        """
+        await self._connection.send(
+            cast(RealtimeClientEventParam, strip_not_given({"type": "output_audio_buffer.clear", "event_id": event_id}))
+        )
+
+
+class AsyncRealtimeTranscriptionSessionResource(BaseAsyncRealtimeConnectionResource):
+    async def update(
+        self, *, session: transcription_session_update_param.Session, event_id: str | NotGiven = NOT_GIVEN
+    ) -> None:
+        """Send this event to update a transcription session."""
+        await self._connection.send(
+            cast(
+                RealtimeClientEventParam,
+                strip_not_given({"type": "transcription_session.update", "session": session, "event_id": event_id}),
             )
         )

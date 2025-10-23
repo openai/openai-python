@@ -32,6 +32,18 @@ class TestFiles:
         assert_matches_type(FileObject, file, path=["response"])
 
     @parametrize
+    def test_method_create_with_all_params(self, client: OpenAI) -> None:
+        file = client.files.create(
+            file=b"raw file contents",
+            purpose="assistants",
+            expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
+        )
+        assert_matches_type(FileObject, file, path=["response"])
+
+    @parametrize
     def test_raw_response_create(self, client: OpenAI) -> None:
         response = client.files.with_raw_response.create(
             file=b"raw file contents",
@@ -260,13 +272,27 @@ class TestFiles:
 
 
 class TestAsyncFiles:
-    parametrize = pytest.mark.parametrize("async_client", [False, True], indirect=True, ids=["loose", "strict"])
+    parametrize = pytest.mark.parametrize(
+        "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
+    )
 
     @parametrize
     async def test_method_create(self, async_client: AsyncOpenAI) -> None:
         file = await async_client.files.create(
             file=b"raw file contents",
             purpose="assistants",
+        )
+        assert_matches_type(FileObject, file, path=["response"])
+
+    @parametrize
+    async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
+        file = await async_client.files.create(
+            file=b"raw file contents",
+            purpose="assistants",
+            expires_after={
+                "anchor": "created_at",
+                "seconds": 3600,
+            },
         )
         assert_matches_type(FileObject, file, path=["response"])
 

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
 from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
-from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .threads.message_content_part_param import MessageContentPartParam
 
 __all__ = [
@@ -20,6 +20,10 @@ __all__ = [
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
     "ToolResourcesFileSearchVectorStore",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
 ]
 
 
@@ -93,7 +97,7 @@ class Message(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
     available to the `code_interpreter` tool. There can be a maximum of 20 files
@@ -101,15 +105,46 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
-class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
-    chunking_strategy: FileChunkingStrategyParam
-    """The chunking strategy used to chunk the file(s).
+class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
 
-    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
-    non-empty.
+
+class ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
     """
 
-    file_ids: List[str]
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
+    ToolResourcesFileSearchVectorStoreChunkingStrategyAuto, ToolResourcesFileSearchVectorStoreChunkingStrategyStatic
+]
+
+
+class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    chunking_strategy: ToolResourcesFileSearchVectorStoreChunkingStrategy
+    """The chunking strategy used to chunk the file(s).
+
+    If not set, will use the `auto` strategy.
+    """
+
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
     add to the vector store. There can be a maximum of 10000 files in a vector
@@ -128,7 +163,7 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The
     [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)

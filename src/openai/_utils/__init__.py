@@ -11,7 +11,6 @@ from ._utils import (
     lru_cache as lru_cache,
     is_mapping as is_mapping,
     is_tuple_t as is_tuple_t,
-    parse_date as parse_date,
     is_iterable as is_iterable,
     is_sequence as is_sequence,
     coerce_float as coerce_float,
@@ -24,7 +23,6 @@ from ._utils import (
     coerce_boolean as coerce_boolean,
     coerce_integer as coerce_integer,
     file_from_path as file_from_path,
-    parse_datetime as parse_datetime,
     is_azure_client as is_azure_client,
     strip_not_given as strip_not_given,
     deepcopy_minimal as deepcopy_minimal,
@@ -35,12 +33,20 @@ from ._utils import (
     maybe_coerce_integer as maybe_coerce_integer,
     is_async_azure_client as is_async_azure_client,
 )
+from ._compat import (
+    get_args as get_args,
+    is_union as is_union,
+    get_origin as get_origin,
+    is_typeddict as is_typeddict,
+    is_literal_type as is_literal_type,
+)
 from ._typing import (
     is_list_type as is_list_type,
     is_union_type as is_union_type,
     extract_type_arg as extract_type_arg,
     is_iterable_type as is_iterable_type,
     is_required_type as is_required_type,
+    is_sequence_type as is_sequence_type,
     is_annotated_type as is_annotated_type,
     is_type_alias_type as is_type_alias_type,
     strip_annotated_type as strip_annotated_type,
@@ -58,3 +64,4 @@ from ._reflection import (
     function_has_argument as function_has_argument,
     assert_signatures_in_sync as assert_signatures_in_sync,
 )
+from ._datetime_parse import parse_date as parse_date, parse_datetime as parse_datetime

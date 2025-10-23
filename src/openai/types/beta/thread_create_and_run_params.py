@@ -2,15 +2,14 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable, Optional
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..chat_model import ChatModel
-from .function_tool_param import FunctionToolParam
-from .file_search_tool_param import FileSearchToolParam
+from ..._types import SequenceNotStr
+from ..shared.chat_model import ChatModel
+from .assistant_tool_param import AssistantToolParam
 from ..shared_params.metadata import Metadata
 from .code_interpreter_tool_param import CodeInterpreterToolParam
-from .file_chunking_strategy_param import FileChunkingStrategyParam
 from .assistant_tool_choice_option_param import AssistantToolChoiceOptionParam
 from .threads.message_content_part_param import MessageContentPartParam
 from .assistant_response_format_option_param import AssistantResponseFormatOptionParam
@@ -26,10 +25,13 @@ __all__ = [
     "ThreadToolResourcesCodeInterpreter",
     "ThreadToolResourcesFileSearch",
     "ThreadToolResourcesFileSearchVectorStore",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategy",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic",
+    "ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic",
     "ToolResources",
     "ToolResourcesCodeInterpreter",
     "ToolResourcesFileSearch",
-    "Tool",
     "TruncationStrategy",
     "ThreadCreateAndRunParamsNonStreaming",
     "ThreadCreateAndRunParamsStreaming",
@@ -150,7 +152,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     tool requires a list of vector store IDs.
     """
 
-    tools: Optional[Iterable[Tool]]
+    tools: Optional[Iterable[AssistantToolParam]]
     """Override the tools the assistant can use for this run.
 
     This is useful for modifying the behavior on a per-run basis.
@@ -168,7 +170,7 @@ class ThreadCreateAndRunParamsBase(TypedDict, total=False):
     truncation_strategy: Optional[TruncationStrategy]
     """Controls for how a thread will be truncated prior to the run.
 
-    Use this to control the intial context window of the run.
+    Use this to control the initial context window of the run.
     """
 
 
@@ -216,7 +218,7 @@ class ThreadMessage(TypedDict, total=False):
 
 
 class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
     available to the `code_interpreter` tool. There can be a maximum of 20 files
@@ -224,15 +226,47 @@ class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
     """
 
 
-class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
-    chunking_strategy: FileChunkingStrategyParam
-    """The chunking strategy used to chunk the file(s).
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    type: Required[Literal["auto"]]
+    """Always `auto`."""
 
-    If not set, will use the `auto` strategy. Only applicable if `file_ids` is
-    non-empty.
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic(TypedDict, total=False):
+    chunk_overlap_tokens: Required[int]
+    """The number of tokens that overlap between chunks. The default value is `400`.
+
+    Note that the overlap must not exceed half of `max_chunk_size_tokens`.
     """
 
-    file_ids: List[str]
+    max_chunk_size_tokens: Required[int]
+    """The maximum number of tokens in each chunk.
+
+    The default value is `800`. The minimum value is `100` and the maximum value is
+    `4096`.
+    """
+
+
+class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic(TypedDict, total=False):
+    static: Required[ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStaticStatic]
+
+    type: Required[Literal["static"]]
+    """Always `static`."""
+
+
+ThreadToolResourcesFileSearchVectorStoreChunkingStrategy: TypeAlias = Union[
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto,
+    ThreadToolResourcesFileSearchVectorStoreChunkingStrategyStatic,
+]
+
+
+class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
+    chunking_strategy: ThreadToolResourcesFileSearchVectorStoreChunkingStrategy
+    """The chunking strategy used to chunk the file(s).
+
+    If not set, will use the `auto` strategy.
+    """
+
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
     add to the vector store. There can be a maximum of 10000 files in a vector
@@ -251,7 +285,7 @@ class ThreadToolResourcesFileSearchVectorStore(TypedDict, total=False):
 
 
 class ThreadToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The
     [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
@@ -301,7 +335,7 @@ class Thread(TypedDict, total=False):
 
 
 class ToolResourcesCodeInterpreter(TypedDict, total=False):
-    file_ids: List[str]
+    file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs made
     available to the `code_interpreter` tool. There can be a maximum of 20 files
@@ -310,7 +344,7 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
 
 
 class ToolResourcesFileSearch(TypedDict, total=False):
-    vector_store_ids: List[str]
+    vector_store_ids: SequenceNotStr[str]
     """
     The ID of the
     [vector store](https://platform.openai.com/docs/api-reference/vector-stores/object)
@@ -323,9 +357,6 @@ class ToolResources(TypedDict, total=False):
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch
-
-
-Tool: TypeAlias = Union[CodeInterpreterToolParam, FileSearchToolParam, FunctionToolParam]
 
 
 class TruncationStrategy(TypedDict, total=False):

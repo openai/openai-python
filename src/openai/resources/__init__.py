@@ -24,6 +24,14 @@ from .audio import (
     AudioWithStreamingResponse,
     AsyncAudioWithStreamingResponse,
 )
+from .evals import (
+    Evals,
+    AsyncEvals,
+    EvalsWithRawResponse,
+    AsyncEvalsWithRawResponse,
+    EvalsWithStreamingResponse,
+    AsyncEvalsWithStreamingResponse,
+)
 from .files import (
     Files,
     AsyncFiles,
@@ -48,6 +56,14 @@ from .models import (
     ModelsWithStreamingResponse,
     AsyncModelsWithStreamingResponse,
 )
+from .videos import (
+    Videos,
+    AsyncVideos,
+    VideosWithRawResponse,
+    AsyncVideosWithRawResponse,
+    VideosWithStreamingResponse,
+    AsyncVideosWithStreamingResponse,
+)
 from .batches import (
     Batches,
     AsyncBatches,
@@ -63,6 +79,14 @@ from .uploads import (
     AsyncUploadsWithRawResponse,
     UploadsWithStreamingResponse,
     AsyncUploadsWithStreamingResponse,
+)
+from .containers import (
+    Containers,
+    AsyncContainers,
+    ContainersWithRawResponse,
+    AsyncContainersWithRawResponse,
+    ContainersWithStreamingResponse,
+    AsyncContainersWithStreamingResponse,
 )
 from .embeddings import (
     Embeddings,
@@ -95,6 +119,14 @@ from .moderations import (
     AsyncModerationsWithRawResponse,
     ModerationsWithStreamingResponse,
     AsyncModerationsWithStreamingResponse,
+)
+from .vector_stores import (
+    VectorStores,
+    AsyncVectorStores,
+    VectorStoresWithRawResponse,
+    AsyncVectorStoresWithRawResponse,
+    VectorStoresWithStreamingResponse,
+    AsyncVectorStoresWithStreamingResponse,
 )
 
 __all__ = [
@@ -152,6 +184,12 @@ __all__ = [
     "AsyncFineTuningWithRawResponse",
     "FineTuningWithStreamingResponse",
     "AsyncFineTuningWithStreamingResponse",
+    "VectorStores",
+    "AsyncVectorStores",
+    "VectorStoresWithRawResponse",
+    "AsyncVectorStoresWithRawResponse",
+    "VectorStoresWithStreamingResponse",
+    "AsyncVectorStoresWithStreamingResponse",
     "Beta",
     "AsyncBeta",
     "BetaWithRawResponse",
@@ -170,4 +208,22 @@ __all__ = [
     "AsyncUploadsWithRawResponse",
     "UploadsWithStreamingResponse",
     "AsyncUploadsWithStreamingResponse",
+    "Evals",
+    "AsyncEvals",
+    "EvalsWithRawResponse",
+    "AsyncEvalsWithRawResponse",
+    "EvalsWithStreamingResponse",
+    "AsyncEvalsWithStreamingResponse",
+    "Containers",
+    "AsyncContainers",
+    "ContainersWithRawResponse",
+    "AsyncContainersWithRawResponse",
+    "ContainersWithStreamingResponse",
+    "AsyncContainersWithStreamingResponse",
+    "Videos",
+    "AsyncVideos",
+    "VideosWithRawResponse",
+    "AsyncVideosWithRawResponse",
+    "VideosWithStreamingResponse",
+    "AsyncVideosWithStreamingResponse",
 ]
