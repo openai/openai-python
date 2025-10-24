@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import copy
 from typing import Any, List, Type, Union, Iterable, Optional, cast
 from functools import partial
 from typing_extensions import Literal, overload
@@ -1023,6 +1024,7 @@ class Responses(SyncAPIResource):
                 if "format" in text:
                     raise TypeError("Cannot mix and match text.format with text_format")
 
+                text = copy(text)
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request: partial[Stream[ResponseStreamEvent]] = partial(
@@ -1126,7 +1128,7 @@ class Responses(SyncAPIResource):
 
             if "format" in text:
                 raise TypeError("Cannot mix and match text.format with text_format")
-
+            text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
@@ -2458,7 +2460,7 @@ class AsyncResponses(AsyncAPIResource):
 
                 if "format" in text:
                     raise TypeError("Cannot mix and match text.format with text_format")
-
+                text = copy(text)
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request = self.create(
@@ -2566,7 +2568,7 @@ class AsyncResponses(AsyncAPIResource):
 
             if "format" in text:
                 raise TypeError("Cannot mix and match text.format with text_format")
-
+            text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
