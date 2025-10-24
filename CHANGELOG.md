@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.6.1 (2025-10-24)
+
+Full Changelog: [v2.6.0...v2.6.1](https://github.com/openai/openai-python/compare/v2.6.0...v2.6.1)
+
+### Bug Fixes
+
+* **api:** docs updates ([d01a0c9](https://github.com/openai/openai-python/commit/d01a0c96ecb94c78b7e16546790c573704b7515b))
+
+
+### Chores
+
+* **client:** clean up custom translations code ([cfb9e25](https://github.com/openai/openai-python/commit/cfb9e25855b8eb020abe02cdd99566adf474e821))
+
 ## 2.6.0 (2025-10-20)
 
 Full Changelog: [v2.5.0...v2.6.0](https://github.com/openai/openai-python/compare/v2.5.0...v2.6.0)
