@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from argparse import ArgumentParser
 
-from . import chat, audio, files, image, models, completions, fine_tuning
+from . import chat, audio, files, image, models, completions, fine_tuning, chat_fine_tunes
 
 
 def register_commands(parser: ArgumentParser) -> None:
@@ -15,3 +15,4 @@ def register_commands(parser: ArgumentParser) -> None:
     models.register(subparsers)
     completions.register(subparsers)
     fine_tuning.register(subparsers)
+    chat_fine_tunes.register(subparsers)
