@@ -4,7 +4,7 @@ from openai.openai_object import OpenAIObject
 
 
 class Moderation(OpenAIObject):
-    VALID_MODEL_NAMES: List[str] = ["text-moderation-stable", "text-moderation-latest"]
+    VALID_MODEL_NAMES: List[str] = ["text-moderation-stable", "text-moderation-latest", "omni-moderation-latest"]
 
     @classmethod
     def get_url(cls):
