@@ -160,6 +160,8 @@ class Uploads(SyncAPIResource):
         except Exception:
             buf.close()
             raise
+        finally:
+            buf.close()
 
         return self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
@@ -468,6 +470,8 @@ class AsyncUploads(AsyncAPIResource):
             except Exception:
                 buf.close()
                 raise
+            finally:
+                buf.close()
 
         return await self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
