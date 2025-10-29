@@ -244,7 +244,9 @@ async def main():
     client = AsyncOpenAI()
 
     async with client.realtime.connect(model="gpt-realtime") as connection:
-        await connection.session.update(session={'modalities': ['text']})
+        await connection.session.update(
+            session={"type": "realtime", "output_modalities": ["text"]}
+        )
 
         await connection.conversation.item.create(
             item={
@@ -256,10 +258,10 @@ async def main():
         await connection.response.create()
 
         async for event in connection:
-            if event.type == 'response.text.delta':
+            if event.type == "response.output_text.delta":
                 print(event.delta, flush=True, end="")
 
-            elif event.type == 'response.text.done':
+            elif event.type == "response.output_text.done":
                 print()
 
             elif event.type == "response.done":
