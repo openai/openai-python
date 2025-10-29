@@ -158,7 +158,6 @@ class Uploads(SyncAPIResource):
                 log.info("Uploaded part %s for upload %s", part.id, upload.id)
                 part_ids.append(part.id)
         except Exception:
-            buf.close()
             raise
         finally:
             buf.close()
@@ -468,7 +467,6 @@ class AsyncUploads(AsyncAPIResource):
                     log.info("Uploaded part %s for upload %s", part.id, upload.id)
                     part_ids.append(part.id)
             except Exception:
-                buf.close()
                 raise
             finally:
                 buf.close()
