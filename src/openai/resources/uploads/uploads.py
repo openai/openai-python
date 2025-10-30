@@ -157,9 +157,8 @@ class Uploads(SyncAPIResource):
                 part = self.parts.create(upload_id=upload.id, data=data)
                 log.info("Uploaded part %s for upload %s", part.id, upload.id)
                 part_ids.append(part.id)
-        except Exception:
+        finally:
             buf.close()
-            raise
 
         return self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
@@ -465,9 +464,8 @@ class AsyncUploads(AsyncAPIResource):
                     part = await self.parts.create(upload_id=upload.id, data=data)
                     log.info("Uploaded part %s for upload %s", part.id, upload.id)
                     part_ids.append(part.id)
-            except Exception:
+            finally:
                 buf.close()
-                raise
 
         return await self.complete(upload_id=upload.id, part_ids=part_ids, md5=md5)
 
