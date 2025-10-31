@@ -216,6 +216,76 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_retry_directive_without_data(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """Test that standalone retry directives (with no data field) are skipped.
+
+    This is a common pattern in SSE streams, especially from providers like Anthropic,
+    where a retry directive is sent at the beginning of the stream:
+
+        retry: 3000
+
+        data: {"actual":"content"}
+
+    The retry directive is a valid SSE meta-field but should not be parsed as JSON data.
+    """
+    def body() -> Iterator[bytes]:
+        # Standalone retry directive (no data field)
+        yield b"retry: 3000\n"
+        yield b"\n"
+        # Actual data event
+        yield b'data: {"foo":true}\n'
+        yield b"\n"
+
+    iterator = make_event_iterator(content=body(), sync=sync, client=client, async_client=async_client)
+
+    # First SSE event has retry but no data - should be yielded by decoder
+    sse = await iter_next(iterator)
+    assert sse.retry == 3000
+    assert sse.data == ""
+
+    # Second SSE event has actual data
+    sse = await iter_next(iterator)
+    assert sse.json() == {"foo": True}
+
+    await assert_empty_iter(iterator)
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_retry_with_id_directive_without_data(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """Test that SSE events with only meta-fields (retry, id, event) and no data are skipped.
+
+    Per the SSE spec, these are valid meta-only events that configure the event stream
+    but don't contain actual data to be processed.
+    """
+    def body() -> Iterator[bytes]:
+        # Meta-only event with retry and id
+        yield b"id: msg_123\n"
+        yield b"retry: 5000\n"
+        yield b"\n"
+        # Actual data event
+        yield b"id: msg_124\n"
+        yield b'data: {"bar":false}\n'
+        yield b"\n"
+
+    iterator = make_event_iterator(content=body(), sync=sync, client=client, async_client=async_client)
+
+    # First SSE event is meta-only
+    sse = await iter_next(iterator)
+    assert sse.id == "msg_123"
+    assert sse.retry == 5000
+    assert sse.data == ""
+
+    # Second SSE event has actual data
+    sse = await iter_next(iterator)
+    assert sse.id == "msg_124"
+    assert sse.json() == {"bar": False}
+
+    await assert_empty_iter(iterator)
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
