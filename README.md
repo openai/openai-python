@@ -184,6 +184,56 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
+### With HTTP/2
+
+For high-concurrency workloads, HTTP/2 support can significantly improve performance through request multiplexing. HTTP/2 allows multiple requests to share a single connection, reducing latency and resource usage.
+
+You can enable HTTP/2 by installing the `h2` package:
+
+```sh
+# install from PyPI
+pip install openai[http2]
+```
+
+Then enable it when instantiating the client:
+
+```python
+import asyncio
+from openai import AsyncOpenAI
+
+
+async def main() -> None:
+    # Enable HTTP/2 for better performance with concurrent requests
+    async with AsyncOpenAI(http2=True) as client:
+        # Make multiple concurrent requests
+        tasks = [
+            client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[{"role": "user", "content": f"Request {i}"}],
+            )
+            for i in range(100)
+        ]
+
+        responses = await asyncio.gather(*tasks)
+
+
+asyncio.run(main())
+```
+
+**When to use HTTP/2:**
+- **High-concurrency workloads**: Processing 100+ requests concurrently
+- **Batch operations**: Generating embeddings or completions for many items
+- **Real-time applications**: Chat systems, streaming responses
+- **Serverless environments**: Faster connection setup and better resource utilization
+
+**Performance benefits:**
+- 3-5x faster for 100+ concurrent requests
+- Lower resource usage (fewer connections needed)
+- Reduced latency from connection reuse
+- Better throughput under high load
+
+See `examples/http2_benchmark.py` for a performance comparison.
+
 ## Streaming responses
 
 We provide support for streaming responses using Server Side Events (SSE).

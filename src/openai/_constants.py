@@ -10,5 +10,9 @@ DEFAULT_TIMEOUT = httpx.Timeout(timeout=600, connect=5.0)
 DEFAULT_MAX_RETRIES = 2
 DEFAULT_CONNECTION_LIMITS = httpx.Limits(max_connections=1000, max_keepalive_connections=100)
 
+# HTTP/2 can handle more concurrent streams per connection, so we need fewer total connections
+# but can support more keepalive connections for multiplexing
+HTTP2_CONNECTION_LIMITS = httpx.Limits(max_connections=100, max_keepalive_connections=100)
+
 INITIAL_RETRY_DELAY = 0.5
 MAX_RETRY_DELAY = 8.0

@@ -73,6 +73,7 @@ from ._constants import (
     DEFAULT_MAX_RETRIES,
     INITIAL_RETRY_DELAY,
     RAW_RESPONSE_HEADER,
+    HTTP2_CONNECTION_LIMITS,
     OVERRIDE_CAST_TO_HEADER,
     DEFAULT_CONNECTION_LIMITS,
 )
@@ -789,7 +790,11 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 class _DefaultHttpxClient(httpx.Client):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
-        kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+        # Use HTTP/2 optimized limits if http2 is enabled
+        if kwargs.get("http2", False):
+            kwargs.setdefault("limits", HTTP2_CONNECTION_LIMITS)
+        else:
+            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
         super().__init__(**kwargs)
 
@@ -832,6 +837,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
+        http2: bool = False,
     ) -> None:
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
@@ -865,6 +871,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
+            http2=http2,
         )
 
     def is_closed(self) -> bool:
@@ -1311,7 +1318,11 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 class _DefaultAsyncHttpxClient(httpx.AsyncClient):
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
-        kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
+        # Use HTTP/2 optimized limits if http2 is enabled
+        if kwargs.get("http2", False):
+            kwargs.setdefault("limits", HTTP2_CONNECTION_LIMITS)
+        else:
+            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
         kwargs.setdefault("follow_redirects", True)
         super().__init__(**kwargs)
 
@@ -1377,6 +1388,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
+        http2: bool = False,
     ) -> None:
         if not is_given(timeout):
             # if the user passed in a custom http client with a non-default
@@ -1410,6 +1422,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             base_url=base_url,
             # cast to a valid type because mypy doesn't understand our type narrowing
             timeout=cast(Timeout, timeout),
+            http2=http2,
         )
 
     def is_closed(self) -> bool:

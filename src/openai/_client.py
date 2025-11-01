@@ -122,6 +122,11 @@ class OpenAI(SyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        # Enable HTTP/2 support.
+        # Requires the `h2` package to be installed (`pip install openai[http2]`).
+        # HTTP/2 can significantly improve performance for high-concurrency workloads
+        # by enabling request multiplexing over a single connection.
+        http2: bool = False,
     ) -> None:
         """Construct a new synchronous OpenAI client instance.
 
@@ -172,6 +177,7 @@ class OpenAI(SyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            http2=http2,
         )
 
         self._default_stream_cls = Stream
@@ -473,6 +479,11 @@ class AsyncOpenAI(AsyncAPIClient):
         # outlining your use-case to help us decide if it should be
         # part of our public interface in the future.
         _strict_response_validation: bool = False,
+        # Enable HTTP/2 support.
+        # Requires the `h2` package to be installed (`pip install openai[http2]`).
+        # HTTP/2 can significantly improve performance for high-concurrency workloads
+        # by enabling request multiplexing over a single connection.
+        http2: bool = False,
     ) -> None:
         """Construct a new async AsyncOpenAI client instance.
 
@@ -523,6 +534,7 @@ class AsyncOpenAI(AsyncAPIClient):
             custom_headers=default_headers,
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
+            http2=http2,
         )
 
         self._default_stream_cls = AsyncStream
