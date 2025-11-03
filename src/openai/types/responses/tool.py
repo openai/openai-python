@@ -161,6 +161,8 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(BaseModel):
     file_ids: Optional[List[str]] = None
     """An optional list of uploaded files to make available to your code."""
 
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
+
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]
 
