@@ -133,7 +133,7 @@ def is_given(obj: _T | NotGiven | Omit) -> TypeGuard[_T]:
 # Type safe methods for narrowing types with TypeVars.
 # The default narrowing for isinstance(obj, dict) is dict[unknown, unknown],
 # however this cause Pyright to rightfully report errors. As we know we don't
-# care about the contained types we can safely use `object` in it's place.
+# care about the contained types we can safely use `object` in its place.
 #
 # There are two separate functions defined, `is_*` and `is_*_t` for different use cases.
 # `is_*` is for when you're dealing with an unknown input
