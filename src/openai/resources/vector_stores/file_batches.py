@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Union, Optional
+from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal
 
 import httpx
@@ -48,9 +48,10 @@ class FileBatches(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -62,10 +63,6 @@ class FileBatches(SyncAPIResource):
         Create a vector store file batch.
 
         Args:
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
-
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
               querying for objects via API or the dashboard. Keys are strings with a maximum
@@ -74,6 +71,16 @@ class FileBatches(SyncAPIResource):
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
+
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. If `attributes` or `chunking_strategy` are provided, they will be applied
+              to all files in the batch. Mutually exclusive with `files`.
+
+          files: A list of objects that each include a `file_id` plus optional `attributes` or
+              `chunking_strategy`. Use this when you need to override metadata for specific
+              files. The global `attributes` or `chunking_strategy` will be ignored and must
+              be specified for each file. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -90,9 +97,10 @@ class FileBatches(SyncAPIResource):
             f"/vector_stores/{vector_store_id}/file_batches",
             body=maybe_transform(
                 {
-                    "file_ids": file_ids,
                     "attributes": attributes,
                     "chunking_strategy": chunking_strategy,
+                    "file_ids": file_ids,
+                    "files": files,
                 },
                 file_batch_create_params.FileBatchCreateParams,
             ),
@@ -277,9 +285,10 @@ class AsyncFileBatches(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -291,10 +300,6 @@ class AsyncFileBatches(AsyncAPIResource):
         Create a vector store file batch.
 
         Args:
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
-
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
               querying for objects via API or the dashboard. Keys are strings with a maximum
@@ -303,6 +308,16 @@ class AsyncFileBatches(AsyncAPIResource):
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
+
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. If `attributes` or `chunking_strategy` are provided, they will be applied
+              to all files in the batch. Mutually exclusive with `files`.
+
+          files: A list of objects that each include a `file_id` plus optional `attributes` or
+              `chunking_strategy`. Use this when you need to override metadata for specific
+              files. The global `attributes` or `chunking_strategy` will be ignored and must
+              be specified for each file. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -319,9 +334,10 @@ class AsyncFileBatches(AsyncAPIResource):
             f"/vector_stores/{vector_store_id}/file_batches",
             body=await async_maybe_transform(
                 {
-                    "file_ids": file_ids,
                     "attributes": attributes,
                     "chunking_strategy": chunking_strategy,
+                    "file_ids": file_ids,
+                    "files": files,
                 },
                 file_batch_create_params.FileBatchCreateParams,
             ),
