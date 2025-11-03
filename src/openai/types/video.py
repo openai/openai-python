@@ -37,6 +37,9 @@ class Video(BaseModel):
     progress: int
     """Approximate completion percentage for the generation task."""
 
+    prompt: Optional[str] = None
+    """The prompt that was used to generate the video."""
+
     remixed_from_video_id: Optional[str] = None
     """Identifier of the source video if this video is a remix."""
 
