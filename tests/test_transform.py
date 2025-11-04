@@ -8,7 +8,7 @@ from typing_extensions import Required, Annotated, TypedDict
 
 import pytest
 
-from openai._types import NOT_GIVEN, Base64FileInput
+from openai._types import Base64FileInput, omit, not_given
 from openai._utils import (
     PropertyInfo,
     transform as _transform,
@@ -450,4 +450,11 @@ async def test_transform_skipping(use_async: bool) -> None:
 @pytest.mark.asyncio
 async def test_strips_notgiven(use_async: bool) -> None:
     assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
-    assert await transform({"foo_bar": NOT_GIVEN}, Foo1, use_async) == {}
+    assert await transform({"foo_bar": not_given}, Foo1, use_async) == {}
+
+
+@parametrize
+@pytest.mark.asyncio
+async def test_strips_omit(use_async: bool) -> None:
+    assert await transform({"foo_bar": "bar"}, Foo1, use_async) == {"fooBar": "bar"}
+    assert await transform({"foo_bar": omit}, Foo1, use_async) == {}

@@ -30,7 +30,7 @@ class TestResponses:
         response = client.responses.create(
             background=True,
             conversation="string",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
@@ -110,7 +110,7 @@ class TestResponses:
             stream=True,
             background=True,
             conversation="string",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
@@ -190,7 +190,7 @@ class TestResponses:
     def test_method_retrieve_with_all_params_overload_1(self, client: OpenAI) -> None:
         response = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             include_obfuscation=True,
             starting_after=0,
             stream=False,
@@ -241,7 +241,7 @@ class TestResponses:
         response_stream = client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             stream=True,
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             include_obfuscation=True,
             starting_after=0,
         )
@@ -383,7 +383,7 @@ class TestAsyncResponses:
         response = await async_client.responses.create(
             background=True,
             conversation="string",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
@@ -463,7 +463,7 @@ class TestAsyncResponses:
             stream=True,
             background=True,
             conversation="string",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             input="string",
             instructions="instructions",
             max_output_tokens=0,
@@ -543,7 +543,7 @@ class TestAsyncResponses:
     async def test_method_retrieve_with_all_params_overload_1(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             include_obfuscation=True,
             starting_after=0,
             stream=False,
@@ -594,7 +594,7 @@ class TestAsyncResponses:
         response_stream = await async_client.responses.retrieve(
             response_id="resp_677efb5139a88190b512bc3fef8e535d",
             stream=True,
-            include=["code_interpreter_call.outputs"],
+            include=["file_search_call.results"],
             include_obfuscation=True,
             starting_after=0,
         )

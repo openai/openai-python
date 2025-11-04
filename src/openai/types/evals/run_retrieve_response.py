@@ -100,9 +100,15 @@ class DataSourceResponsesSourceResponses(BaseModel):
     """
 
     reasoning_effort: Optional[ReasoningEffort] = None
-    """Optional reasoning effort parameter.
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
 
-    This is a query parameter used to select responses.
+    Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+    effort.
     """
 
     temperature: Optional[float] = None
@@ -230,6 +236,18 @@ class DataSourceResponsesSamplingParamsText(BaseModel):
 class DataSourceResponsesSamplingParams(BaseModel):
     max_completion_tokens: Optional[int] = None
     """The maximum number of tokens in the generated output."""
+
+    reasoning_effort: Optional[ReasoningEffort] = None
+    """
+    Constrains effort on reasoning for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
+    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
+    effort can result in faster responses and fewer tokens used on reasoning in a
+    response.
+
+    Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+    effort.
+    """
 
     seed: Optional[int] = None
     """A seed value to initialize the randomness, during sampling."""

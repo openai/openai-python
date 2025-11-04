@@ -18,9 +18,13 @@ class CompletionListParams(TypedDict, total=False):
     """Number of Chat Completions to retrieve."""
 
     metadata: Optional[Metadata]
-    """A list of metadata keys to filter the Chat Completions by. Example:
+    """Set of 16 key-value pairs that can be attached to an object.
 
-    `metadata[key1]=value1&metadata[key2]=value2`
+    This can be useful for storing additional information about the object in a
+    structured format, and querying for objects via API or the dashboard.
+
+    Keys are strings with a maximum length of 64 characters. Values are strings with
+    a maximum length of 512 characters.
     """
 
     model: str

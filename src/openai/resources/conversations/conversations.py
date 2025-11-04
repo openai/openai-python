@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, Iterable, Optional
+from typing import Iterable, Optional
 
 import httpx
 
@@ -15,7 +15,7 @@ from .items import (
     ItemsWithStreamingResponse,
     AsyncItemsWithStreamingResponse,
 )
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven
+from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -57,14 +57,14 @@ class Conversations(SyncAPIResource):
     def create(
         self,
         *,
-        items: Optional[Iterable[ResponseInputItemParam]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        items: Optional[Iterable[ResponseInputItemParam]] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Create a conversation.
@@ -73,8 +73,12 @@ class Conversations(SyncAPIResource):
           items: Initial items to include in the conversation context. You may add up to 20 items
               at a time.
 
-          metadata: Set of 16 key-value pairs that can be attached to an object. Useful for storing
-              additional information about the object in a structured format.
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -108,10 +112,10 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Get a conversation with the given ID.
+        Get a conversation
 
         Args:
           extra_headers: Send extra headers
@@ -136,23 +140,24 @@ class Conversations(SyncAPIResource):
         self,
         conversation_id: str,
         *,
-        metadata: Dict[str, str],
+        metadata: Optional[Metadata],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Update a conversation's metadata with the given ID.
+        Update a conversation
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard. Keys are strings with a maximum
-              length of 64 characters. Values are strings with a maximum length of 512
-              characters.
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -182,10 +187,11 @@ class Conversations(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
-        """
-        Delete a conversation with the given ID.
+        """Delete a conversation.
+
+        Items in the conversation will not be deleted.
 
         Args:
           extra_headers: Send extra headers
@@ -234,14 +240,14 @@ class AsyncConversations(AsyncAPIResource):
     async def create(
         self,
         *,
-        items: Optional[Iterable[ResponseInputItemParam]] | NotGiven = NOT_GIVEN,
-        metadata: Optional[Metadata] | NotGiven = NOT_GIVEN,
+        items: Optional[Iterable[ResponseInputItemParam]] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
         Create a conversation.
@@ -250,8 +256,12 @@ class AsyncConversations(AsyncAPIResource):
           items: Initial items to include in the conversation context. You may add up to 20 items
               at a time.
 
-          metadata: Set of 16 key-value pairs that can be attached to an object. Useful for storing
-              additional information about the object in a structured format.
+          metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
+              for storing additional information about the object in a structured format, and
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -285,10 +295,10 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Get a conversation with the given ID.
+        Get a conversation
 
         Args:
           extra_headers: Send extra headers
@@ -313,23 +323,24 @@ class AsyncConversations(AsyncAPIResource):
         self,
         conversation_id: str,
         *,
-        metadata: Dict[str, str],
+        metadata: Optional[Metadata],
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Conversation:
         """
-        Update a conversation's metadata with the given ID.
+        Update a conversation
 
         Args:
           metadata: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
-              querying for objects via API or the dashboard. Keys are strings with a maximum
-              length of 64 characters. Values are strings with a maximum length of 512
-              characters.
+              querying for objects via API or the dashboard.
+
+              Keys are strings with a maximum length of 64 characters. Values are strings with
+              a maximum length of 512 characters.
 
           extra_headers: Send extra headers
 
@@ -361,10 +372,11 @@ class AsyncConversations(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ConversationDeletedResource:
-        """
-        Delete a conversation with the given ID.
+        """Delete a conversation.
+
+        Items in the conversation will not be deleted.
 
         Args:
           extra_headers: Send extra headers

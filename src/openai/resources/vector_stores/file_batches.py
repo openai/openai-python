@@ -12,7 +12,7 @@ import sniffio
 
 from ... import _legacy_response
 from ...types import FileChunkingStrategyParam
-from ..._types import NOT_GIVEN, Body, Query, Headers, NotGiven, FileTypes, SequenceNotStr
+from ..._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
 from ..._utils import is_given, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -52,24 +52,21 @@ class FileBatches(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Create a vector store file batch.
 
         Args:
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
-
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
               querying for objects via API or the dashboard. Keys are strings with a maximum
@@ -78,6 +75,16 @@ class FileBatches(SyncAPIResource):
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
+
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. If `attributes` or `chunking_strategy` are provided, they will be applied
+              to all files in the batch. Mutually exclusive with `files`.
+
+          files: A list of objects that each include a `file_id` plus optional `attributes` or
+              `chunking_strategy`. Use this when you need to override metadata for specific
+              files. The global `attributes` or `chunking_strategy` will be ignored and must
+              be specified for each file. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -94,9 +101,10 @@ class FileBatches(SyncAPIResource):
             f"/vector_stores/{vector_store_id}/file_batches",
             body=maybe_transform(
                 {
-                    "file_ids": file_ids,
                     "attributes": attributes,
                     "chunking_strategy": chunking_strategy,
+                    "file_ids": file_ids,
+                    "files": files,
                 },
                 file_batch_create_params.FileBatchCreateParams,
             ),
@@ -116,7 +124,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Retrieves a vector store file batch.
@@ -153,7 +161,7 @@ class FileBatches(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Cancel a vector store file batch.
 
@@ -187,8 +195,8 @@ class FileBatches(SyncAPIResource):
         vector_store_id: str,
         *,
         file_ids: SequenceNotStr[str],
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = self.create(
@@ -208,17 +216,17 @@ class FileBatches(SyncAPIResource):
         batch_id: str,
         *,
         vector_store_id: str,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        filter: Literal["in_progress", "completed", "failed", "cancelled"] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        filter: Literal["in_progress", "completed", "failed", "cancelled"] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[VectorStoreFile]:
         """
         Returns a list of vector store files in a batch.
@@ -282,7 +290,7 @@ class FileBatches(SyncAPIResource):
         batch_id: str,
         *,
         vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Wait for the given file batch to be processed.
 
@@ -321,8 +329,8 @@ class FileBatches(SyncAPIResource):
         files: Iterable[FileTypes],
         max_concurrency: int = 5,
         file_ids: SequenceNotStr[str] = [],
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
 
@@ -389,24 +397,21 @@ class AsyncFileBatches(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
-        attributes: Optional[Dict[str, Union[str, float, bool]]] | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Create a vector store file batch.
 
         Args:
-          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
-              the vector store should use. Useful for tools like `file_search` that can access
-              files.
-
           attributes: Set of 16 key-value pairs that can be attached to an object. This can be useful
               for storing additional information about the object in a structured format, and
               querying for objects via API or the dashboard. Keys are strings with a maximum
@@ -415,6 +420,16 @@ class AsyncFileBatches(AsyncAPIResource):
 
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
+
+          file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
+              the vector store should use. Useful for tools like `file_search` that can access
+              files. If `attributes` or `chunking_strategy` are provided, they will be applied
+              to all files in the batch. Mutually exclusive with `files`.
+
+          files: A list of objects that each include a `file_id` plus optional `attributes` or
+              `chunking_strategy`. Use this when you need to override metadata for specific
+              files. The global `attributes` or `chunking_strategy` will be ignored and must
+              be specified for each file. Mutually exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -431,9 +446,10 @@ class AsyncFileBatches(AsyncAPIResource):
             f"/vector_stores/{vector_store_id}/file_batches",
             body=await async_maybe_transform(
                 {
-                    "file_ids": file_ids,
                     "attributes": attributes,
                     "chunking_strategy": chunking_strategy,
+                    "file_ids": file_ids,
+                    "files": files,
                 },
                 file_batch_create_params.FileBatchCreateParams,
             ),
@@ -453,7 +469,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """
         Retrieves a vector store file batch.
@@ -490,7 +506,7 @@ class AsyncFileBatches(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Cancel a vector store file batch.
 
@@ -524,8 +540,8 @@ class AsyncFileBatches(AsyncAPIResource):
         vector_store_id: str,
         *,
         file_ids: SequenceNotStr[str],
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = await self.create(
@@ -545,17 +561,17 @@ class AsyncFileBatches(AsyncAPIResource):
         batch_id: str,
         *,
         vector_store_id: str,
-        after: str | NotGiven = NOT_GIVEN,
-        before: str | NotGiven = NOT_GIVEN,
-        filter: Literal["in_progress", "completed", "failed", "cancelled"] | NotGiven = NOT_GIVEN,
-        limit: int | NotGiven = NOT_GIVEN,
-        order: Literal["asc", "desc"] | NotGiven = NOT_GIVEN,
+        after: str | Omit = omit,
+        before: str | Omit = omit,
+        filter: Literal["in_progress", "completed", "failed", "cancelled"] | Omit = omit,
+        limit: int | Omit = omit,
+        order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[VectorStoreFile, AsyncCursorPage[VectorStoreFile]]:
         """
         Returns a list of vector store files in a batch.
@@ -619,7 +635,7 @@ class AsyncFileBatches(AsyncAPIResource):
         batch_id: str,
         *,
         vector_store_id: str,
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Wait for the given file batch to be processed.
 
@@ -658,8 +674,8 @@ class AsyncFileBatches(AsyncAPIResource):
         files: Iterable[FileTypes],
         max_concurrency: int = 5,
         file_ids: SequenceNotStr[str] = [],
-        poll_interval_ms: int | NotGiven = NOT_GIVEN,
-        chunking_strategy: FileChunkingStrategyParam | NotGiven = NOT_GIVEN,
+        poll_interval_ms: int | Omit = omit,
+        chunking_strategy: FileChunkingStrategyParam | Omit = omit,
     ) -> VectorStoreFileBatch:
         """Uploads the given files concurrently and then creates a vector store file batch.
 

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Optional, cast
 from argparse import ArgumentParser
 
 from .._utils import get_client, print_model
-from ..._types import NOT_GIVEN
+from ..._types import omit
 from .._models import BaseModel
 from .._progress import BufferReader
 from ...types.audio import Transcription
@@ -72,9 +72,9 @@ class CLIAudio:
             get_client().audio.transcriptions.create(
                 file=(args.file, buffer_reader),
                 model=args.model,
-                language=args.language or NOT_GIVEN,
-                temperature=args.temperature or NOT_GIVEN,
-                prompt=args.prompt or NOT_GIVEN,
+                language=args.language or omit,
+                temperature=args.temperature or omit,
+                prompt=args.prompt or omit,
                 # casts required because the API is typed for enums
                 # but we don't want to validate that here for forwards-compat
                 response_format=cast(Any, args.response_format),
@@ -95,8 +95,8 @@ class CLIAudio:
             get_client().audio.translations.create(
                 file=(args.file, buffer_reader),
                 model=args.model,
-                temperature=args.temperature or NOT_GIVEN,
-                prompt=args.prompt or NOT_GIVEN,
+                temperature=args.temperature or omit,
+                prompt=args.prompt or omit,
                 # casts required because the API is typed for enums
                 # but we don't want to validate that here for forwards-compat
                 response_format=cast(Any, args.response_format),

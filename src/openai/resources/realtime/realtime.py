@@ -11,7 +11,15 @@ from typing_extensions import AsyncIterator
 import httpx
 from pydantic import BaseModel
 
-from ..._types import NOT_GIVEN, Query, Headers, NotGiven
+from .calls import (
+    Calls,
+    AsyncCalls,
+    CallsWithRawResponse,
+    AsyncCallsWithRawResponse,
+    CallsWithStreamingResponse,
+    AsyncCallsWithStreamingResponse,
+)
+from ..._types import Omit, Query, Headers, omit
 from ..._utils import (
     is_azure_client,
     maybe_transform,
@@ -57,6 +65,12 @@ class Realtime(SyncAPIResource):
         return ClientSecrets(self._client)
 
     @cached_property
+    def calls(self) -> Calls:
+        from ...lib._realtime import _Calls
+
+        return _Calls(self._client)
+
+    @cached_property
     def with_raw_response(self) -> RealtimeWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -78,7 +92,8 @@ class Realtime(SyncAPIResource):
     def connect(
         self,
         *,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebsocketConnectionOptions = {},
@@ -99,6 +114,7 @@ class Realtime(SyncAPIResource):
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
+            call_id=call_id,
             model=model,
         )
 
@@ -107,6 +123,12 @@ class AsyncRealtime(AsyncAPIResource):
     @cached_property
     def client_secrets(self) -> AsyncClientSecrets:
         return AsyncClientSecrets(self._client)
+
+    @cached_property
+    def calls(self) -> AsyncCalls:
+        from ...lib._realtime import _AsyncCalls
+
+        return _AsyncCalls(self._client)
 
     @cached_property
     def with_raw_response(self) -> AsyncRealtimeWithRawResponse:
@@ -130,7 +152,8 @@ class AsyncRealtime(AsyncAPIResource):
     def connect(
         self,
         *,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
         websocket_connection_options: WebsocketConnectionOptions = {},
@@ -151,6 +174,7 @@ class AsyncRealtime(AsyncAPIResource):
             extra_query=extra_query,
             extra_headers=extra_headers,
             websocket_connection_options=websocket_connection_options,
+            call_id=call_id,
             model=model,
         )
 
@@ -163,6 +187,10 @@ class RealtimeWithRawResponse:
     def client_secrets(self) -> ClientSecretsWithRawResponse:
         return ClientSecretsWithRawResponse(self._realtime.client_secrets)
 
+    @cached_property
+    def calls(self) -> CallsWithRawResponse:
+        return CallsWithRawResponse(self._realtime.calls)
+
 
 class AsyncRealtimeWithRawResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -171,6 +199,10 @@ class AsyncRealtimeWithRawResponse:
     @cached_property
     def client_secrets(self) -> AsyncClientSecretsWithRawResponse:
         return AsyncClientSecretsWithRawResponse(self._realtime.client_secrets)
+
+    @cached_property
+    def calls(self) -> AsyncCallsWithRawResponse:
+        return AsyncCallsWithRawResponse(self._realtime.calls)
 
 
 class RealtimeWithStreamingResponse:
@@ -181,6 +213,10 @@ class RealtimeWithStreamingResponse:
     def client_secrets(self) -> ClientSecretsWithStreamingResponse:
         return ClientSecretsWithStreamingResponse(self._realtime.client_secrets)
 
+    @cached_property
+    def calls(self) -> CallsWithStreamingResponse:
+        return CallsWithStreamingResponse(self._realtime.calls)
+
 
 class AsyncRealtimeWithStreamingResponse:
     def __init__(self, realtime: AsyncRealtime) -> None:
@@ -189,6 +225,10 @@ class AsyncRealtimeWithStreamingResponse:
     @cached_property
     def client_secrets(self) -> AsyncClientSecretsWithStreamingResponse:
         return AsyncClientSecretsWithStreamingResponse(self._realtime.client_secrets)
+
+    @cached_property
+    def calls(self) -> AsyncCallsWithStreamingResponse:
+        return AsyncCallsWithStreamingResponse(self._realtime.calls)
 
 
 class AsyncRealtimeConnection:
@@ -290,12 +330,14 @@ class AsyncRealtimeConnectionManager:
         self,
         *,
         client: AsyncOpenAI,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebsocketConnectionOptions,
     ) -> None:
         self.__client = client
+        self.__call_id = call_id
         self.__model = model
         self.__connection: AsyncRealtimeConnection | None = None
         self.__extra_query = extra_query
@@ -323,13 +365,20 @@ class AsyncRealtimeConnectionManager:
         extra_query = self.__extra_query
         await self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
+        extra_query = self.__extra_query
+        if self.__call_id is not omit:
+            extra_query = {**extra_query, "call_id": self.__call_id}
         if is_async_azure_client(self.__client):
-            url, auth_headers = await self.__client._configure_realtime(self.__model, extra_query)
+            model = self.__model
+            if not model:
+                raise OpenAIError("`model` is required for Azure Realtime API")
+            else:
+                url, auth_headers = await self.__client._configure_realtime(model, extra_query)
         else:
             url = self._prepare_url().copy_with(
                 params={
                     **self.__client.base_url.params,
-                    "model": self.__model,
+                    **({"model": self.__model} if self.__model is not omit else {}),
                     **extra_query,
                 },
             )
@@ -470,12 +519,14 @@ class RealtimeConnectionManager:
         self,
         *,
         client: OpenAI,
-        model: str,
+        call_id: str | Omit = omit,
+        model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
         websocket_connection_options: WebsocketConnectionOptions,
     ) -> None:
         self.__client = client
+        self.__call_id = call_id
         self.__model = model
         self.__connection: RealtimeConnection | None = None
         self.__extra_query = extra_query
@@ -503,13 +554,20 @@ class RealtimeConnectionManager:
         extra_query = self.__extra_query
         self.__client._refresh_api_key()
         auth_headers = self.__client.auth_headers
+        extra_query = self.__extra_query
+        if self.__call_id is not omit:
+            extra_query = {**extra_query, "call_id": self.__call_id}
         if is_azure_client(self.__client):
-            url, auth_headers = self.__client._configure_realtime(self.__model, extra_query)
+            model = self.__model
+            if not model:
+                raise OpenAIError("`model` is required for Azure Realtime API")
+            else:
+                url, auth_headers = self.__client._configure_realtime(model, extra_query)
         else:
             url = self._prepare_url().copy_with(
                 params={
                     **self.__client.base_url.params,
-                    "model": self.__model,
+                    **({"model": self.__model} if self.__model is not omit else {}),
                     **extra_query,
                 },
             )
@@ -557,7 +615,7 @@ class BaseRealtimeConnectionResource:
 
 
 class RealtimeSessionResource(BaseRealtimeConnectionResource):
-    def update(self, *, session: session_update_event_param.Session, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def update(self, *, session: session_update_event_param.Session, event_id: str | Omit = omit) -> None:
         """
         Send this event to update the session’s configuration.
         The client may send this event at any time to update any field
@@ -578,12 +636,7 @@ class RealtimeSessionResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeResponseResource(BaseRealtimeConnectionResource):
-    def create(
-        self,
-        *,
-        event_id: str | NotGiven = NOT_GIVEN,
-        response: RealtimeResponseCreateParamsParam | NotGiven = NOT_GIVEN,
-    ) -> None:
+    def create(self, *, event_id: str | Omit = omit, response: RealtimeResponseCreateParamsParam | Omit = omit) -> None:
         """
         This event instructs the server to create a Response, which means triggering
         model inference. When in Server VAD mode, the server will create Responses
@@ -618,7 +671,7 @@ class RealtimeResponseResource(BaseRealtimeConnectionResource):
             )
         )
 
-    def cancel(self, *, event_id: str | NotGiven = NOT_GIVEN, response_id: str | NotGiven = NOT_GIVEN) -> None:
+    def cancel(self, *, event_id: str | Omit = omit, response_id: str | Omit = omit) -> None:
         """Send this event to cancel an in-progress response.
 
         The server will respond
@@ -636,7 +689,7 @@ class RealtimeResponseResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeInputAudioBufferResource(BaseRealtimeConnectionResource):
-    def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def clear(self, *, event_id: str | Omit = omit) -> None:
         """Send this event to clear the audio bytes in the buffer.
 
         The server will
@@ -646,7 +699,7 @@ class RealtimeInputAudioBufferResource(BaseRealtimeConnectionResource):
             cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.clear", "event_id": event_id}))
         )
 
-    def commit(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def commit(self, *, event_id: str | Omit = omit) -> None:
         """
         Send this event to commit the user input audio buffer, which will create a  new user message item in the conversation. This event will produce an error  if the input audio buffer is empty. When in Server VAD mode, the client does  not need to send this event, the server will commit the audio buffer  automatically.
 
@@ -656,7 +709,7 @@ class RealtimeInputAudioBufferResource(BaseRealtimeConnectionResource):
             cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.commit", "event_id": event_id}))
         )
 
-    def append(self, *, audio: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def append(self, *, audio: str, event_id: str | Omit = omit) -> None:
         """Send this event to append audio bytes to the input audio buffer.
 
         The audio
@@ -688,7 +741,7 @@ class RealtimeConversationResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
-    def delete(self, *, item_id: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def delete(self, *, item_id: str, event_id: str | Omit = omit) -> None:
         """Send this event when you want to remove any item from the conversation
         history.
 
@@ -704,11 +757,7 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
         )
 
     def create(
-        self,
-        *,
-        item: ConversationItemParam,
-        event_id: str | NotGiven = NOT_GIVEN,
-        previous_item_id: str | NotGiven = NOT_GIVEN,
+        self, *, item: ConversationItemParam, event_id: str | Omit = omit, previous_item_id: str | Omit = omit
     ) -> None:
         """
         Add a new Item to the Conversation's context, including messages, function
@@ -733,9 +782,7 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
             )
         )
 
-    def truncate(
-        self, *, audio_end_ms: int, content_index: int, item_id: str, event_id: str | NotGiven = NOT_GIVEN
-    ) -> None:
+    def truncate(self, *, audio_end_ms: int, content_index: int, item_id: str, event_id: str | Omit = omit) -> None:
         """Send this event to truncate a previous assistant message’s audio.
 
         The server
@@ -765,7 +812,7 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
             )
         )
 
-    def retrieve(self, *, item_id: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def retrieve(self, *, item_id: str, event_id: str | Omit = omit) -> None:
         """
         Send this event when you want to retrieve the server's representation of a specific item in the conversation history. This is useful, for example, to inspect user audio after noise cancellation and VAD.
         The server will respond with a `conversation.item.retrieved` event,
@@ -781,7 +828,7 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
 
 
 class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
-    def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    def clear(self, *, event_id: str | Omit = omit) -> None:
         """**WebRTC Only:** Emit to cut off the current audio response.
 
         This will trigger the server to
@@ -801,9 +848,7 @@ class BaseAsyncRealtimeConnectionResource:
 
 
 class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
-    async def update(
-        self, *, session: session_update_event_param.Session, event_id: str | NotGiven = NOT_GIVEN
-    ) -> None:
+    async def update(self, *, session: session_update_event_param.Session, event_id: str | Omit = omit) -> None:
         """
         Send this event to update the session’s configuration.
         The client may send this event at any time to update any field
@@ -825,10 +870,7 @@ class AsyncRealtimeSessionResource(BaseAsyncRealtimeConnectionResource):
 
 class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
     async def create(
-        self,
-        *,
-        event_id: str | NotGiven = NOT_GIVEN,
-        response: RealtimeResponseCreateParamsParam | NotGiven = NOT_GIVEN,
+        self, *, event_id: str | Omit = omit, response: RealtimeResponseCreateParamsParam | Omit = omit
     ) -> None:
         """
         This event instructs the server to create a Response, which means triggering
@@ -864,7 +906,7 @@ class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
             )
         )
 
-    async def cancel(self, *, event_id: str | NotGiven = NOT_GIVEN, response_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def cancel(self, *, event_id: str | Omit = omit, response_id: str | Omit = omit) -> None:
         """Send this event to cancel an in-progress response.
 
         The server will respond
@@ -882,7 +924,7 @@ class AsyncRealtimeResponseResource(BaseAsyncRealtimeConnectionResource):
 
 
 class AsyncRealtimeInputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
-    async def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def clear(self, *, event_id: str | Omit = omit) -> None:
         """Send this event to clear the audio bytes in the buffer.
 
         The server will
@@ -892,7 +934,7 @@ class AsyncRealtimeInputAudioBufferResource(BaseAsyncRealtimeConnectionResource)
             cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.clear", "event_id": event_id}))
         )
 
-    async def commit(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def commit(self, *, event_id: str | Omit = omit) -> None:
         """
         Send this event to commit the user input audio buffer, which will create a  new user message item in the conversation. This event will produce an error  if the input audio buffer is empty. When in Server VAD mode, the client does  not need to send this event, the server will commit the audio buffer  automatically.
 
@@ -902,7 +944,7 @@ class AsyncRealtimeInputAudioBufferResource(BaseAsyncRealtimeConnectionResource)
             cast(RealtimeClientEventParam, strip_not_given({"type": "input_audio_buffer.commit", "event_id": event_id}))
         )
 
-    async def append(self, *, audio: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def append(self, *, audio: str, event_id: str | Omit = omit) -> None:
         """Send this event to append audio bytes to the input audio buffer.
 
         The audio
@@ -934,7 +976,7 @@ class AsyncRealtimeConversationResource(BaseAsyncRealtimeConnectionResource):
 
 
 class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource):
-    async def delete(self, *, item_id: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def delete(self, *, item_id: str, event_id: str | Omit = omit) -> None:
         """Send this event when you want to remove any item from the conversation
         history.
 
@@ -950,11 +992,7 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
         )
 
     async def create(
-        self,
-        *,
-        item: ConversationItemParam,
-        event_id: str | NotGiven = NOT_GIVEN,
-        previous_item_id: str | NotGiven = NOT_GIVEN,
+        self, *, item: ConversationItemParam, event_id: str | Omit = omit, previous_item_id: str | Omit = omit
     ) -> None:
         """
         Add a new Item to the Conversation's context, including messages, function
@@ -980,7 +1018,7 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
         )
 
     async def truncate(
-        self, *, audio_end_ms: int, content_index: int, item_id: str, event_id: str | NotGiven = NOT_GIVEN
+        self, *, audio_end_ms: int, content_index: int, item_id: str, event_id: str | Omit = omit
     ) -> None:
         """Send this event to truncate a previous assistant message’s audio.
 
@@ -1011,7 +1049,7 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
             )
         )
 
-    async def retrieve(self, *, item_id: str, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def retrieve(self, *, item_id: str, event_id: str | Omit = omit) -> None:
         """
         Send this event when you want to retrieve the server's representation of a specific item in the conversation history. This is useful, for example, to inspect user audio after noise cancellation and VAD.
         The server will respond with a `conversation.item.retrieved` event,
@@ -1027,7 +1065,7 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
 
 
 class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
-    async def clear(self, *, event_id: str | NotGiven = NOT_GIVEN) -> None:
+    async def clear(self, *, event_id: str | Omit = omit) -> None:
         """**WebRTC Only:** Emit to cut off the current audio response.
 
         This will trigger the server to

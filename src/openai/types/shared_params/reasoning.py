@@ -18,6 +18,9 @@ class Reasoning(TypedDict, total=False):
     supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
     effort can result in faster responses and fewer tokens used on reasoning in a
     response.
+
+    Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
+    effort.
     """
 
     generate_summary: Optional[Literal["auto", "concise", "detailed"]]
@@ -33,4 +36,6 @@ class Reasoning(TypedDict, total=False):
 
     This can be useful for debugging and understanding the model's reasoning
     process. One of `auto`, `concise`, or `detailed`.
+
+    `concise` is only supported for `computer-use-preview` models.
     """

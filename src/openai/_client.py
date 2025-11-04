@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import os
-from typing import TYPE_CHECKING, Any, Union, Mapping, Callable, Awaitable
+from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
 from typing_extensions import Self, override
 
 import httpx
@@ -11,13 +11,13 @@ import httpx
 from . import _exceptions
 from ._qs import Querystring
 from ._types import (
-    NOT_GIVEN,
     Omit,
     Timeout,
     NotGiven,
     Transport,
     ProxiesTypes,
     RequestOptions,
+    not_given,
 )
 from ._utils import (
     is_given,
@@ -44,6 +44,7 @@ if TYPE_CHECKING:
         files,
         images,
         models,
+        videos,
         batches,
         uploads,
         realtime,
@@ -59,6 +60,7 @@ if TYPE_CHECKING:
     from .resources.files import Files, AsyncFiles
     from .resources.images import Images, AsyncImages
     from .resources.models import Models, AsyncModels
+    from .resources.videos import Videos, AsyncVideos
     from .resources.batches import Batches, AsyncBatches
     from .resources.webhooks import Webhooks, AsyncWebhooks
     from .resources.beta.beta import Beta, AsyncBeta
@@ -103,7 +105,7 @@ class OpenAI(SyncAPIClient):
         webhook_secret: str | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
-        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -289,6 +291,12 @@ class OpenAI(SyncAPIClient):
         return Containers(self)
 
     @cached_property
+    def videos(self) -> Videos:
+        from .resources.videos import Videos
+
+        return Videos(self)
+
+    @cached_property
     def with_raw_response(self) -> OpenAIWithRawResponse:
         return OpenAIWithRawResponse(self)
 
@@ -339,9 +347,9 @@ class OpenAI(SyncAPIClient):
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
-        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.Client | None = None,
-        max_retries: int | NotGiven = NOT_GIVEN,
+        max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -448,7 +456,7 @@ class AsyncOpenAI(AsyncAPIClient):
         webhook_secret: str | None = None,
         base_url: str | httpx.URL | None = None,
         websocket_base_url: str | httpx.URL | None = None,
-        timeout: Union[float, Timeout, None, NotGiven] = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -634,6 +642,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncContainers(self)
 
     @cached_property
+    def videos(self) -> AsyncVideos:
+        from .resources.videos import AsyncVideos
+
+        return AsyncVideos(self)
+
+    @cached_property
     def with_raw_response(self) -> AsyncOpenAIWithRawResponse:
         return AsyncOpenAIWithRawResponse(self)
 
@@ -684,9 +698,9 @@ class AsyncOpenAI(AsyncAPIClient):
         webhook_secret: str | None = None,
         websocket_base_url: str | httpx.URL | None = None,
         base_url: str | httpx.URL | None = None,
-        timeout: float | Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | Timeout | None | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
-        max_retries: int | NotGiven = NOT_GIVEN,
+        max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
         default_query: Mapping[str, object] | None = None,
@@ -883,6 +897,12 @@ class OpenAIWithRawResponse:
 
         return ContainersWithRawResponse(self._client.containers)
 
+    @cached_property
+    def videos(self) -> videos.VideosWithRawResponse:
+        from .resources.videos import VideosWithRawResponse
+
+        return VideosWithRawResponse(self._client.videos)
+
 
 class AsyncOpenAIWithRawResponse:
     _client: AsyncOpenAI
@@ -997,6 +1017,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.containers import AsyncContainersWithRawResponse
 
         return AsyncContainersWithRawResponse(self._client.containers)
+
+    @cached_property
+    def videos(self) -> videos.AsyncVideosWithRawResponse:
+        from .resources.videos import AsyncVideosWithRawResponse
+
+        return AsyncVideosWithRawResponse(self._client.videos)
 
 
 class OpenAIWithStreamedResponse:
@@ -1113,6 +1139,12 @@ class OpenAIWithStreamedResponse:
 
         return ContainersWithStreamingResponse(self._client.containers)
 
+    @cached_property
+    def videos(self) -> videos.VideosWithStreamingResponse:
+        from .resources.videos import VideosWithStreamingResponse
+
+        return VideosWithStreamingResponse(self._client.videos)
+
 
 class AsyncOpenAIWithStreamedResponse:
     _client: AsyncOpenAI
@@ -1227,6 +1259,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.containers import AsyncContainersWithStreamingResponse
 
         return AsyncContainersWithStreamingResponse(self._client.containers)
+
+    @cached_property
+    def videos(self) -> videos.AsyncVideosWithStreamingResponse:
+        from .resources.videos import AsyncVideosWithStreamingResponse
+
+        return AsyncVideosWithStreamingResponse(self._client.videos)
 
 
 Client = OpenAI

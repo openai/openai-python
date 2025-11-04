@@ -23,5 +23,8 @@ ResponsesModel: TypeAlias = Union[
         "o4-mini-deep-research-2025-06-26",
         "computer-use-preview",
         "computer-use-preview-2025-03-11",
+        "gpt-5-codex",
+        "gpt-5-pro",
+        "gpt-5-pro-2025-10-06",
     ],
 ]
