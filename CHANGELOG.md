@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.7.1 (2025-11-04)
+
+Full Changelog: [v2.7.0...v2.7.1](https://github.com/openai/openai-python/compare/v2.7.0...v2.7.1)
+
+### Bug Fixes
+
+* **api:** fix nullability of logprobs ([373b7f6](https://github.com/openai/openai-python/commit/373b7f6e4255dfef3ccd92520011e8ba44e8b7f0))
+
 ## 2.7.0 (2025-11-03)
 
 Full Changelog: [v2.6.1...v2.7.0](https://github.com/openai/openai-python/compare/v2.6.1...v2.7.0)
