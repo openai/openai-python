@@ -106,10 +106,10 @@ class ResponseOutputTextParam(TypedDict, total=False):
     annotations: Required[Iterable[Annotation]]
     """The annotations of the text output."""
 
+    logprobs: Required[Iterable[Logprob]]
+
     text: Required[str]
     """The text output from the model."""
 
     type: Required[Literal["output_text"]]
     """The type of the output text. Always `output_text`."""
-
-    logprobs: Iterable[Logprob]

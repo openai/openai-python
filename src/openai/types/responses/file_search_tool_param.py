@@ -9,12 +9,26 @@ from ..._types import SequenceNotStr
 from ..shared_params.compound_filter import CompoundFilter
 from ..shared_params.comparison_filter import ComparisonFilter
 
-__all__ = ["FileSearchToolParam", "Filters", "RankingOptions"]
+__all__ = ["FileSearchToolParam", "Filters", "RankingOptions", "RankingOptionsHybridSearch"]
 
 Filters: TypeAlias = Union[ComparisonFilter, CompoundFilter]
 
 
+class RankingOptionsHybridSearch(TypedDict, total=False):
+    embedding_weight: Required[float]
+    """The weight of the embedding in the reciprocal ranking fusion."""
+
+    text_weight: Required[float]
+    """The weight of the text in the reciprocal ranking fusion."""
+
+
 class RankingOptions(TypedDict, total=False):
+    hybrid_search: RankingOptionsHybridSearch
+    """
+    Weights that control how reciprocal rank fusion balances semantic embedding
+    matches versus sparse keyword matches when hybrid search is enabled.
+    """
+
     ranker: Literal["auto", "default-2024-11-15"]
     """The ranker to use for the file search."""
 
