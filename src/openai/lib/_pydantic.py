@@ -112,6 +112,30 @@ def _ensure_strict_json_schema(
         # we call `_ensure_strict_json_schema` again to fix the inlined schema and ensure it's valid.
         return _ensure_strict_json_schema(json_schema, path=path, root=root)
 
+    # Remove JSON Schema keywords that are not supported by OpenAI's structured outputs
+    # These keywords are used for validation but cause errors with strict mode
+    # See: https://platform.openai.com/docs/guides/structured-outputs/supported-schemas
+    unsupported_keywords = [
+        "pattern",         # Regex patterns (e.g., from Decimal fields)
+        "format",          # String formats like "date-time"
+        "minLength",       # String length constraints
+        "maxLength",       # String length constraints
+        "minimum",         # Numeric minimum values
+        "maximum",         # Numeric maximum values
+        "exclusiveMinimum",  # Exclusive numeric bounds
+        "exclusiveMaximum",  # Exclusive numeric bounds
+        "multipleOf",      # Numeric multiple constraints
+        "patternProperties",  # Pattern-based object properties
+        "minItems",        # Array size constraints
+        "maxItems",        # Array size constraints
+        "minProperties",   # Object property count constraints
+        "maxProperties",   # Object property count constraints
+        "uniqueItems",     # Array uniqueness constraints
+    ]
+
+    for keyword in unsupported_keywords:
+        json_schema.pop(keyword, None)
+
     return json_schema
 
 
