@@ -321,7 +321,7 @@ class ResponseStreamState(Generic[TextFormatT]):
             events.append(
                 build(
                     ResponseFunctionCallArgumentsDoneEvent,
-                    arguments=output.arguments,
+                    arguments=event.arguments,  # Use event as source of truth
                     item_id=event.item_id,
                     name=output.name,  # FROM SNAPSHOT, not raw event
                     output_index=event.output_index,
