@@ -66,6 +66,15 @@ def _ensure_strict_json_schema(
     if is_dict(items):
         json_schema["items"] = _ensure_strict_json_schema(items, path=(*path, "items"), root=root)
 
+    # typed dictionaries
+    # { 'type': 'object', 'additionalProperties': {...} }
+    # Note: additionalProperties can be boolean (true/false) or a schema dict
+    additional_properties = json_schema.get("additionalProperties")
+    if is_dict(additional_properties):
+        json_schema["additionalProperties"] = _ensure_strict_json_schema(
+            additional_properties, path=(*path, "additionalProperties"), root=root
+        )
+
     # unions
     any_of = json_schema.get("anyOf")
     if is_list(any_of):
