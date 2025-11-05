@@ -303,7 +303,7 @@ class FileBatches(SyncAPIResource):
 
         while True:
             response = self.with_raw_response.retrieve(
-                batch_id,
+                batch_id=batch_id,
                 vector_store_id=vector_store_id,
                 extra_headers=headers,
             )
@@ -648,7 +648,7 @@ class AsyncFileBatches(AsyncAPIResource):
 
         while True:
             response = await self.with_raw_response.retrieve(
-                batch_id,
+                batch_id=batch_id,
                 vector_store_id=vector_store_id,
                 extra_headers=headers,
             )
