@@ -337,7 +337,7 @@ class Files(SyncAPIResource):
 
         while True:
             response = self.with_raw_response.retrieve(
-                file_id,
+                file_id=file_id,
                 vector_store_id=vector_store_id,
                 extra_headers=headers,
             )
@@ -745,7 +745,7 @@ class AsyncFiles(AsyncAPIResource):
 
         while True:
             response = await self.with_raw_response.retrieve(
-                file_id,
+                file_id=file_id,
                 vector_store_id=vector_store_id,
                 extra_headers=headers,
             )
