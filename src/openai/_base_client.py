@@ -438,6 +438,22 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         # headers are case-insensitive while dictionaries are not.
         headers = httpx.Headers(headers_dict)
 
+        option_client_request_id = options.client_request_id
+        if option_client_request_id:
+            headers["X-Client-Request-Id"] = option_client_request_id
+        else:
+            client_request_id_header = None
+            for key, value in custom_headers.items():
+                if key.lower() != "x-client-request-id":
+                    continue
+                if isinstance(value, Omit) or value in (None, ""):
+                    break
+                client_request_id_header = str(value)
+                break
+
+            if client_request_id_header:
+                headers["X-Client-Request-Id"] = client_request_id_header
+
         idempotency_header = self._idempotency_header
         if idempotency_header and options.idempotency_key and idempotency_header not in headers:
             headers[idempotency_header] = options.idempotency_key
@@ -1850,6 +1866,7 @@ def make_request_options(
     extra_query: Query | None = None,
     extra_body: Body | None = None,
     idempotency_key: str | None = None,
+    client_request_id: str | None = None,
     timeout: float | httpx.Timeout | None | NotGiven = not_given,
     post_parser: PostParser | NotGiven = not_given,
 ) -> RequestOptions:
@@ -1872,6 +1889,9 @@ def make_request_options(
 
     if idempotency_key is not None:
         options["idempotency_key"] = idempotency_key
+
+    if client_request_id:
+        options["client_request_id"] = client_request_id
 
     if is_given(post_parser):
         # internal

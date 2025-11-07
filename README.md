@@ -678,6 +678,12 @@ print(completion)
 
 These methods return a [`LegacyAPIResponse`](https://github.com/openai/openai-python/tree/main/src/openai/_legacy_response.py) object. This is a legacy class as we're changing it slightly in the next major version.
 
+Tag your own requests for easier support follow-up:
+
+```py
+client.responses.create(..., extra_headers={"X-Client-Request-Id": "123e4567-e89b-12d3-a456-426614174000"})
+```
+
 For the sync client this will mostly be the same with the exception
 of `content` & `text` will be methods instead of properties. In the
 async client, all methods will be async.

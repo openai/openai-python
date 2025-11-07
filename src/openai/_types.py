@@ -112,6 +112,7 @@ class RequestOptions(TypedDict, total=False):
     params: Query
     extra_json: AnyMapping
     idempotency_key: str
+    client_request_id: str | None
     follow_redirects: bool
 
 
