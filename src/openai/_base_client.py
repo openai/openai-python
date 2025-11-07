@@ -112,7 +112,7 @@ def _should_not_retry(exc: Exception) -> bool:
         return True
 
     # asyncio cancellation
-    if exc_module == "asyncio" and exc_name == "CancelledError":
+    if exc_module.startswith("asyncio") and exc_name == "CancelledError":
         return True
 
     return False
