@@ -10,11 +10,14 @@ __all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchS
 
 
 class ActionSearchSource(BaseModel):
-    type: Literal["url"]
-    """The type of source. Always `url`."""
+    type: Literal["url", "api"]
+    """The type of source. Can be 'url' for web sources or 'api' for specialized OpenAI APIs."""
 
-    url: str
-    """The URL of the source."""
+    url: Optional[str] = None
+    """The URL of the source (present when type='url')."""
+
+    name: Optional[str] = None
+    """The name/identifier of the specialized API (e.g., 'oai-weather', 'oai-sports', 'oai-finance')."""
 
 
 class ActionSearch(BaseModel):
