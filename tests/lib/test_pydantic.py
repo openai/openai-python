@@ -409,3 +409,28 @@ def test_nested_inline_ref_expansion() -> None:
                 "additionalProperties": False,
             }
         )
+
+
+def test_pydantic_extra_allow() -> None:
+    """Test that models with extra='allow' correctly set additionalProperties to False.
+
+    Regression test for issue #2740.
+    The OpenAI API requires additionalProperties=false for structured output,
+    even when Pydantic models use extra="allow" which generates True by default.
+    """
+    from pydantic import ConfigDict
+
+    class MyClassWithExtraAllow(BaseModel):
+        model_config = ConfigDict(extra="allow")
+        field: str = Field(description="A test field")
+
+    schema = to_strict_json_schema(MyClassWithExtraAllow)
+
+    # The schema must have additionalProperties set to False
+    assert schema.get("additionalProperties") == False, \
+        "additionalProperties must be False for API compliance, even with extra='allow'"
+
+    # Verify the rest of the schema is correct
+    assert schema["type"] == "object"
+    assert "field" in schema["properties"]
+    assert schema["required"] == ["field"]

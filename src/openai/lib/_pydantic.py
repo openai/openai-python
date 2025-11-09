@@ -47,7 +47,10 @@ def _ensure_strict_json_schema(
             _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
 
     typ = json_schema.get("type")
-    if typ == "object" and "additionalProperties" not in json_schema:
+    if typ == "object":
+        # Always set additionalProperties to False for strict schema compliance.
+        # The OpenAI API requires additionalProperties=false for structured output,
+        # even if Pydantic models use extra="allow" which sets it to True.
         json_schema["additionalProperties"] = False
 
     # object types
