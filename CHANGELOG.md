@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.7.2 (2025-11-10)
+
+Full Changelog: [v2.7.1...v2.7.2](https://github.com/openai/openai-python/compare/v2.7.1...v2.7.2)
+
+### Bug Fixes
+
+* compat with Python 3.14 ([15a7ec8](https://github.com/openai/openai-python/commit/15a7ec8a753d7f57d525fca60c547fd5331cb214))
+
+
+### Chores
+
+* **package:** drop Python 3.8 support ([afc14f2](https://github.com/openai/openai-python/commit/afc14f2e42e7a8174f2ff1a5672829b808a716bf))
+
 ## 2.7.1 (2025-11-04)
 
 Full Changelog: [v2.7.0...v2.7.1](https://github.com/openai/openai-python/compare/v2.7.0...v2.7.1)
