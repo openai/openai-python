@@ -17,11 +17,10 @@ dependencies = [
     "tqdm > 4",
     "jiter>=0.10.0, <1",
 ]
-requires-python = ">= 3.8"
+requires-python = ">= 3.9"
 classifiers = [
   "Typing :: Typed",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
   "Programming Language :: Python :: 3.11",
@@ -159,7 +158,7 @@ format-command="ruff format --stdin-filename {filename}"
 # there are a couple of flags that are still disabled by
 # default in strict mode as they are experimental and niche.
 typeCheckingMode = "strict"
-pythonVersion = "3.8"
+pythonVersion = "3.9"
 
 exclude = [
     "_dev",
