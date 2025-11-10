@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
+import weakref
 from typing import TYPE_CHECKING, Any, Type, Tuple, Union, Generic, TypeVar, Callable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import (
@@ -598,6 +599,9 @@ class CachedDiscriminatorType(Protocol):
     __discriminator__: DiscriminatorDetails
 
 
+DISCRIMINATOR_CACHE: weakref.WeakKeyDictionary[type, DiscriminatorDetails] = weakref.WeakKeyDictionary()
+
+
 class DiscriminatorDetails:
     field_name: str
     """The name of the discriminator field in the variant class, e.g.
@@ -640,8 +644,9 @@ class DiscriminatorDetails:
 
 
 def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any, ...]) -> DiscriminatorDetails | None:
-    if isinstance(union, CachedDiscriminatorType):
-        return union.__discriminator__
+    cached = DISCRIMINATOR_CACHE.get(union)
+    if cached is not None:
+        return cached
 
     discriminator_field_name: str | None = None
 
@@ -694,7 +699,7 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
         discriminator_field=discriminator_field_name,
         discriminator_alias=discriminator_alias,
     )
-    cast(CachedDiscriminatorType, union).__discriminator__ = details
+    DISCRIMINATOR_CACHE.setdefault(union, details)
     return details
 
 
