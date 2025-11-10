@@ -810,6 +810,7 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     timeout: float | Timeout | None
     files: HttpxRequestFiles | None
     idempotency_key: str
+    client_request_id: str | None
     json_data: Body
     extra_json: AnyMapping
     follow_redirects: bool
@@ -825,6 +826,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     timeout: Union[float, Timeout, None, NotGiven] = NotGiven()
     files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
+    client_request_id: Union[str, None] = None
     post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
     follow_redirects: Union[bool, None] = None
 

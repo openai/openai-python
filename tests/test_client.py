@@ -349,6 +349,29 @@ class TestOpenAI:
         test_client.close()
         test_client2.close()
 
+    def test_client_request_id_header_from_option(self, client: OpenAI) -> None:
+        request = client._build_request(
+            FinalRequestOptions(method="get", url="/foo", client_request_id="custom-option-id")
+        )
+
+        assert request.headers.get("X-Client-Request-Id") == "custom-option-id"
+
+    def test_client_request_id_header_from_custom_headers(self, client: OpenAI) -> None:
+        request = client._build_request(
+            FinalRequestOptions(
+                method="get",
+                url="/foo",
+                headers={"x-client-request-id": "custom-header-id"},
+            )
+        )
+
+        assert request.headers.get("X-Client-Request-Id") == "custom-header-id"
+
+    def test_client_request_id_header_absent_when_unspecified(self, client: OpenAI) -> None:
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+
+        assert request.headers.get("X-Client-Request-Id") is None
+
     def test_validate_headers(self) -> None:
         client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
         options = client._prepare_options(FinalRequestOptions(method="get", url="/foo"))
