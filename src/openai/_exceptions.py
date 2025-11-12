@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any, Optional, cast
-from typing_extensions import Literal, Self
+from typing import TYPE_CHECKING, Any, Callable, Optional, cast
+from typing_extensions import Self, Literal, override
 
 import httpx
 
@@ -67,11 +67,12 @@ class APIError(OpenAIError):
             self.type = None
 
     @classmethod
-    def _reconstruct(cls, message: str, request: httpx.Request, body: object | None) -> Self:
+    def _reconstruct_base(cls, message: str, request: httpx.Request, body: object | None) -> Self:
         return cls(message, request, body=body)
 
-    def __reduce__(self) -> tuple[type[APIError], tuple[str, httpx.Request, object | None]]:
-        return (self.__class__._reconstruct, (self.message, self.request, self.body))
+    @override
+    def __reduce__(self) -> tuple[Callable[..., Self], tuple[Any, ...]]:
+        return (self.__class__._reconstruct_base, (self.message, self.request, self.body))
 
 
 class APIResponseValidationError(APIError):
@@ -87,7 +88,10 @@ class APIResponseValidationError(APIError):
     def _reconstruct(cls, response: httpx.Response, body: object | None, message: str | None) -> Self:
         return cls(response, body, message=message)
 
-    def __reduce__(self) -> tuple[type[APIResponseValidationError], tuple[httpx.Response, object | None, str | None]]:
+    @override
+    def __reduce__(
+        self,
+    ) -> tuple[Callable[..., Self], tuple[Any, ...]]:
         return (self.__class__._reconstruct, (self.response, self.body, self.message))
 
 
@@ -108,7 +112,10 @@ class APIStatusError(APIError):
     def _reconstruct(cls, message: str, response: httpx.Response, body: object | None) -> Self:
         return cls(message, response=response, body=body)
 
-    def __reduce__(self) -> tuple[type[APIStatusError], tuple[str, httpx.Response, object | None]]:
+    @override
+    def __reduce__(
+        self,
+    ) -> tuple[Callable[..., Self], tuple[Any, ...]]:
         return (self.__class__._reconstruct, (self.message, self.response, self.body))
 
 
@@ -120,7 +127,8 @@ class APIConnectionError(APIError):
     def _reconstruct(cls, message: str, request: httpx.Request) -> Self:
         return cls(message=message, request=request)
 
-    def __reduce__(self) -> tuple[type[APIConnectionError], tuple[str, httpx.Request]]:
+    @override
+    def __reduce__(self) -> tuple[Callable[..., Self], tuple[Any, ...]]:
         return (self.__class__._reconstruct, (self.message, self.request))
 
 
@@ -181,7 +189,8 @@ class LengthFinishReasonError(OpenAIError):
     def _reconstruct(cls, completion: ChatCompletion) -> Self:
         return cls(completion=completion)
 
-    def __reduce__(self) -> tuple[type[LengthFinishReasonError], tuple[ChatCompletion]]:
+    @override
+    def __reduce__(self) -> tuple[Callable[..., Self], tuple[Any, ...]]:
         return (self.__class__._reconstruct, (self.completion,))
 
 
