@@ -10,7 +10,9 @@ from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
 from .web_search_tool import WebSearchTool
+from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
+from .function_shell_tool import FunctionShellTool
 from .web_search_preview_tool import WebSearchPreviewTool
 
 __all__ = [
@@ -260,8 +262,10 @@ Tool: TypeAlias = Annotated[
         CodeInterpreter,
         ImageGeneration,
         LocalShell,
+        FunctionShellTool,
         CustomTool,
         WebSearchPreviewTool,
+        ApplyPatchTool,
     ],
     PropertyInfo(discriminator="type"),
 ]
