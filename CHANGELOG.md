@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.8.0 (2025-11-13)
+
+Full Changelog: [v2.7.2...v2.8.0](https://github.com/openai/openai-python/compare/v2.7.2...v2.8.0)
+
+### Features
+
+* **api:** gpt 5.1 ([8d9f2ca](https://github.com/openai/openai-python/commit/8d9f2cab4cb2e12f6e2ab1de967f858736a656ac))
+
+
+### Bug Fixes
+
+* **compat:** update signatures of `model_dump` and `model_dump_json` for Pydantic v1 ([c7bd234](https://github.com/openai/openai-python/commit/c7bd234b18239fcdbf0edb1b51ca9116c0ac7251))
+
 ## 2.7.2 (2025-11-10)
 
 Full Changelog: [v2.7.1...v2.7.2](https://github.com/openai/openai-python/compare/v2.7.1...v2.7.2)
