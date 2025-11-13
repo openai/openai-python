@@ -12,6 +12,7 @@ from .response_input_param import ResponseInputParam
 from .response_prompt_param import ResponsePromptParam
 from .tool_choice_mcp_param import ToolChoiceMcpParam
 from ..shared_params.metadata import Metadata
+from .tool_choice_shell_param import ToolChoiceShellParam
 from .tool_choice_types_param import ToolChoiceTypesParam
 from ..shared_params.reasoning import Reasoning
 from .tool_choice_custom_param import ToolChoiceCustomParam
@@ -19,6 +20,7 @@ from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
 from .response_conversation_param import ResponseConversationParam
+from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
 from ..shared_params.responses_model import ResponsesModel
 
 __all__ = [
@@ -144,6 +146,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+    """
+
+    prompt_cache_retention: Optional[Literal["in-memory", "24h"]]
+    """The retention policy for the prompt cache.
+
+    Set to `24h` to enable extended prompt caching, which keeps cached prefixes
+    active for longer, up to a maximum of 24 hours.
+    [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
     """
 
     reasoning: Optional[Reasoning]
@@ -292,6 +302,8 @@ ToolChoice: TypeAlias = Union[
     ToolChoiceFunctionParam,
     ToolChoiceMcpParam,
     ToolChoiceCustomParam,
+    ToolChoiceApplyPatchParam,
+    ToolChoiceShellParam,
 ]
 
 
