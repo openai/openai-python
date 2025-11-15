@@ -426,11 +426,12 @@ def test_pydantic_extra_allow() -> None:
 
     schema = to_strict_json_schema(MyClassWithExtraAllow)
 
-    # The schema must have additionalProperties set to False
-    assert schema.get("additionalProperties") == False, \
-        "additionalProperties must be False for API compliance, even with extra='allow'"
-
-    # Verify the rest of the schema is correct
-    assert schema["type"] == "object"
-    assert "field" in schema["properties"]
-    assert schema["required"] == ["field"]
+    assert schema == snapshot(
+        {
+            "properties": {"field": {"description": "A test field", "title": "Field", "type": "string"}},
+            "required": ["field"],
+            "title": "MyClassWithExtraAllow",
+            "type": "object",
+            "additionalProperties": False,
+        }
+    )
