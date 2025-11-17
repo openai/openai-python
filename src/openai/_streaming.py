@@ -59,6 +59,11 @@ class Stream(Generic[_T]):
             if sse.data.startswith("[DONE]"):
                 break
 
+            # Skip events with no data (e.g., standalone retry/id directives)
+            # Per SSE spec, these are valid meta-only events that shouldn't be parsed as JSON
+            if not sse.data or sse.data.strip() == "":
+                continue
+
             # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
             if sse.event and sse.event.startswith("thread."):
                 data = sse.json()
@@ -159,6 +164,11 @@ class AsyncStream(Generic[_T]):
         async for sse in iterator:
             if sse.data.startswith("[DONE]"):
                 break
+
+            # Skip events with no data (e.g., standalone retry/id directives)
+            # Per SSE spec, these are valid meta-only events that shouldn't be parsed as JSON
+            if not sse.data or sse.data.strip() == "":
+                continue
 
             # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
             if sse.event and sse.event.startswith("thread."):
