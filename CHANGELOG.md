@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.8.1 (2025-11-17)
+
+Full Changelog: [v2.8.0...v2.8.1](https://github.com/openai/openai-python/compare/v2.8.0...v2.8.1)
+
+### Bug Fixes
+
+* **api:** align types of input items / output items for typescript ([64c9fb3](https://github.com/openai/openai-python/commit/64c9fb3fcc79f0049b3a36bd429faf0600d969f6))
+
 ## 2.8.0 (2025-11-13)
 
 Full Changelog: [v2.7.2...v2.8.0](https://github.com/openai/openai-python/compare/v2.7.2...v2.8.0)
