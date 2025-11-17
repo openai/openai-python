@@ -335,7 +335,7 @@ class ApplyPatchCallOutput(TypedDict, total=False):
     Populated when this item is returned via API.
     """
 
-    output: str
+    output: Optional[str]
     """
     Optional human-readable log text from the apply patch tool (e.g., patch results
     or errors).
