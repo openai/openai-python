@@ -380,7 +380,7 @@ class ChatCompletionStreamState(Generic[ResponseFormatT]):
                                     choice_snapshot.message,
                                     # we don't want to serialise / deserialise our custom properties
                                     # as they won't appear in the delta and we don't want to have to
-                                    # continuosly reparse the content
+                                    # continuously reparse the content
                                     exclude=cast(
                                         # cast required as mypy isn't smart enough to infer `True` here to `Literal[True]`
                                         IncEx,
