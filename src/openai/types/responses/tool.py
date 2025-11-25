@@ -10,7 +10,9 @@ from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
 from .web_search_tool import WebSearchTool
+from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
+from .function_shell_tool import FunctionShellTool
 from .web_search_preview_tool import WebSearchPreviewTool
 
 __all__ = [
@@ -161,6 +163,8 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(BaseModel):
     file_ids: Optional[List[str]] = None
     """An optional list of uploaded files to make available to your code."""
 
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
+
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]
 
@@ -199,7 +203,8 @@ class ImageGeneration(BaseModel):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1`. Supports `high` and `low`. Defaults to `low`.
+    for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
+    `low`. Defaults to `low`.
     """
 
     input_image_mask: Optional[ImageGenerationInputImageMask] = None
@@ -208,7 +213,7 @@ class ImageGeneration(BaseModel):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Optional[Literal["gpt-image-1"]] = None
+    model: Optional[Literal["gpt-image-1", "gpt-image-1-mini"]] = None
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Optional[Literal["auto", "low"]] = None
@@ -257,8 +262,10 @@ Tool: TypeAlias = Annotated[
         CodeInterpreter,
         ImageGeneration,
         LocalShell,
+        FunctionShellTool,
         CustomTool,
         WebSearchPreviewTool,
+        ApplyPatchTool,
     ],
     PropertyInfo(discriminator="type"),
 ]

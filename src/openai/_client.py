@@ -44,6 +44,7 @@ if TYPE_CHECKING:
         files,
         images,
         models,
+        videos,
         batches,
         uploads,
         realtime,
@@ -59,6 +60,7 @@ if TYPE_CHECKING:
     from .resources.files import Files, AsyncFiles
     from .resources.images import Images, AsyncImages
     from .resources.models import Models, AsyncModels
+    from .resources.videos import Videos, AsyncVideos
     from .resources.batches import Batches, AsyncBatches
     from .resources.webhooks import Webhooks, AsyncWebhooks
     from .resources.beta.beta import Beta, AsyncBeta
@@ -287,6 +289,12 @@ class OpenAI(SyncAPIClient):
         from .resources.containers import Containers
 
         return Containers(self)
+
+    @cached_property
+    def videos(self) -> Videos:
+        from .resources.videos import Videos
+
+        return Videos(self)
 
     @cached_property
     def with_raw_response(self) -> OpenAIWithRawResponse:
@@ -634,6 +642,12 @@ class AsyncOpenAI(AsyncAPIClient):
         return AsyncContainers(self)
 
     @cached_property
+    def videos(self) -> AsyncVideos:
+        from .resources.videos import AsyncVideos
+
+        return AsyncVideos(self)
+
+    @cached_property
     def with_raw_response(self) -> AsyncOpenAIWithRawResponse:
         return AsyncOpenAIWithRawResponse(self)
 
@@ -883,6 +897,12 @@ class OpenAIWithRawResponse:
 
         return ContainersWithRawResponse(self._client.containers)
 
+    @cached_property
+    def videos(self) -> videos.VideosWithRawResponse:
+        from .resources.videos import VideosWithRawResponse
+
+        return VideosWithRawResponse(self._client.videos)
+
 
 class AsyncOpenAIWithRawResponse:
     _client: AsyncOpenAI
@@ -997,6 +1017,12 @@ class AsyncOpenAIWithRawResponse:
         from .resources.containers import AsyncContainersWithRawResponse
 
         return AsyncContainersWithRawResponse(self._client.containers)
+
+    @cached_property
+    def videos(self) -> videos.AsyncVideosWithRawResponse:
+        from .resources.videos import AsyncVideosWithRawResponse
+
+        return AsyncVideosWithRawResponse(self._client.videos)
 
 
 class OpenAIWithStreamedResponse:
@@ -1113,6 +1139,12 @@ class OpenAIWithStreamedResponse:
 
         return ContainersWithStreamingResponse(self._client.containers)
 
+    @cached_property
+    def videos(self) -> videos.VideosWithStreamingResponse:
+        from .resources.videos import VideosWithStreamingResponse
+
+        return VideosWithStreamingResponse(self._client.videos)
+
 
 class AsyncOpenAIWithStreamedResponse:
     _client: AsyncOpenAI
@@ -1227,6 +1259,12 @@ class AsyncOpenAIWithStreamedResponse:
         from .resources.containers import AsyncContainersWithStreamingResponse
 
         return AsyncContainersWithStreamingResponse(self._client.containers)
+
+    @cached_property
+    def videos(self) -> videos.AsyncVideosWithStreamingResponse:
+        from .resources.videos import AsyncVideosWithStreamingResponse
+
+        return AsyncVideosWithStreamingResponse(self._client.videos)
 
 
 Client = OpenAI

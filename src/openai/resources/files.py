@@ -71,20 +71,19 @@ class Files(SyncAPIResource):
         up to 512 MB, and the size of all files uploaded by one organization can be up
         to 1 TB.
 
-        The Assistants API supports files up to 2 million tokens and of specific file
-        types. See the
-        [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
-        details.
-
-        The Fine-tuning API only supports `.jsonl` files. The input also has certain
-        required formats for fine-tuning
-        [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
-        [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
-        models.
-
-        The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
-        has a specific required
-        [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+        - The Assistants API supports files up to 2 million tokens and of specific file
+          types. See the
+          [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+          for details.
+        - The Fine-tuning API only supports `.jsonl` files. The input also has certain
+          required formats for fine-tuning
+          [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+          or
+          [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+          models.
+        - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
+          also has a specific required
+          [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
         Please [contact us](https://help.openai.com/) if you need to increase these
         storage limits.
@@ -236,7 +235,7 @@ class Files(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
-        Delete a file.
+        Delete a file and remove it from all vector stores.
 
         Args:
           extra_headers: Send extra headers
@@ -388,20 +387,19 @@ class AsyncFiles(AsyncAPIResource):
         up to 512 MB, and the size of all files uploaded by one organization can be up
         to 1 TB.
 
-        The Assistants API supports files up to 2 million tokens and of specific file
-        types. See the
-        [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools) for
-        details.
-
-        The Fine-tuning API only supports `.jsonl` files. The input also has certain
-        required formats for fine-tuning
-        [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input) or
-        [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
-        models.
-
-        The Batch API only supports `.jsonl` files up to 200 MB in size. The input also
-        has a specific required
-        [format](https://platform.openai.com/docs/api-reference/batch/request-input).
+        - The Assistants API supports files up to 2 million tokens and of specific file
+          types. See the
+          [Assistants Tools guide](https://platform.openai.com/docs/assistants/tools)
+          for details.
+        - The Fine-tuning API only supports `.jsonl` files. The input also has certain
+          required formats for fine-tuning
+          [chat](https://platform.openai.com/docs/api-reference/fine-tuning/chat-input)
+          or
+          [completions](https://platform.openai.com/docs/api-reference/fine-tuning/completions-input)
+          models.
+        - The Batch API only supports `.jsonl` files up to 200 MB in size. The input
+          also has a specific required
+          [format](https://platform.openai.com/docs/api-reference/batch/request-input).
 
         Please [contact us](https://help.openai.com/) if you need to increase these
         storage limits.
@@ -553,7 +551,7 @@ class AsyncFiles(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> FileDeleted:
         """
-        Delete a file.
+        Delete a file and remove it from all vector stores.
 
         Args:
           extra_headers: Send extra headers

@@ -79,6 +79,7 @@ class VectorStores(SyncAPIResource):
         self,
         *,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        description: str | Omit = omit,
         expires_after: vector_store_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
@@ -96,6 +97,9 @@ class VectorStores(SyncAPIResource):
         Args:
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
+
+          description: A description for the vector store. Can be used to describe the vector store's
+              purpose.
 
           expires_after: The expiration policy for a vector store.
 
@@ -126,6 +130,7 @@ class VectorStores(SyncAPIResource):
             body=maybe_transform(
                 {
                     "chunking_strategy": chunking_strategy,
+                    "description": description,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "metadata": metadata,
@@ -424,6 +429,7 @@ class AsyncVectorStores(AsyncAPIResource):
         self,
         *,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        description: str | Omit = omit,
         expires_after: vector_store_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
         metadata: Optional[Metadata] | Omit = omit,
@@ -441,6 +447,9 @@ class AsyncVectorStores(AsyncAPIResource):
         Args:
           chunking_strategy: The chunking strategy used to chunk the file(s). If not set, will use the `auto`
               strategy. Only applicable if `file_ids` is non-empty.
+
+          description: A description for the vector store. Can be used to describe the vector store's
+              purpose.
 
           expires_after: The expiration policy for a vector store.
 
@@ -471,6 +480,7 @@ class AsyncVectorStores(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "chunking_strategy": chunking_strategy,
+                    "description": description,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "metadata": metadata,

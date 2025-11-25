@@ -1,5 +1,148 @@
 # Changelog
 
+## 2.8.1 (2025-11-17)
+
+Full Changelog: [v2.8.0...v2.8.1](https://github.com/openai/openai-python/compare/v2.8.0...v2.8.1)
+
+### Bug Fixes
+
+* **api:** align types of input items / output items for typescript ([64c9fb3](https://github.com/openai/openai-python/commit/64c9fb3fcc79f0049b3a36bd429faf0600d969f6))
+
+## 2.8.0 (2025-11-13)
+
+Full Changelog: [v2.7.2...v2.8.0](https://github.com/openai/openai-python/compare/v2.7.2...v2.8.0)
+
+### Features
+
+* **api:** gpt 5.1 ([8d9f2ca](https://github.com/openai/openai-python/commit/8d9f2cab4cb2e12f6e2ab1de967f858736a656ac))
+
+
+### Bug Fixes
+
+* **compat:** update signatures of `model_dump` and `model_dump_json` for Pydantic v1 ([c7bd234](https://github.com/openai/openai-python/commit/c7bd234b18239fcdbf0edb1b51ca9116c0ac7251))
+
+## 2.7.2 (2025-11-10)
+
+Full Changelog: [v2.7.1...v2.7.2](https://github.com/openai/openai-python/compare/v2.7.1...v2.7.2)
+
+### Bug Fixes
+
+* compat with Python 3.14 ([15a7ec8](https://github.com/openai/openai-python/commit/15a7ec8a753d7f57d525fca60c547fd5331cb214))
+
+
+### Chores
+
+* **package:** drop Python 3.8 support ([afc14f2](https://github.com/openai/openai-python/commit/afc14f2e42e7a8174f2ff1a5672829b808a716bf))
+
+## 2.7.1 (2025-11-04)
+
+Full Changelog: [v2.7.0...v2.7.1](https://github.com/openai/openai-python/compare/v2.7.0...v2.7.1)
+
+### Bug Fixes
+
+* **api:** fix nullability of logprobs ([373b7f6](https://github.com/openai/openai-python/commit/373b7f6e4255dfef3ccd92520011e8ba44e8b7f0))
+
+## 2.7.0 (2025-11-03)
+
+Full Changelog: [v2.6.1...v2.7.0](https://github.com/openai/openai-python/compare/v2.6.1...v2.7.0)
+
+### Features
+
+* **api:** Realtime API token_limits, Hybrid searching ranking options ([5b43992](https://github.com/openai/openai-python/commit/5b4399219d7ed326411aec524d25ef2b8e3152fc))
+* **api:** remove InputAudio from ResponseInputContent ([bd70a33](https://github.com/openai/openai-python/commit/bd70a33234741fa68c185105e4f53cc0275a2a50))
+
+
+### Bug Fixes
+
+* **client:** close streams without requiring full consumption ([d8bb7d6](https://github.com/openai/openai-python/commit/d8bb7d6d728c5481de4198eebe668b67803ae14a))
+* **readme:** update realtime examples ([#2714](https://github.com/openai/openai-python/issues/2714)) ([d0370a8](https://github.com/openai/openai-python/commit/d0370a8d61fc2f710a34d8aad48f649a9683106d))
+* **uploads:** avoid file handle leak ([4f1b691](https://github.com/openai/openai-python/commit/4f1b691ab4db41aebd397ec41942b43fb0f0743c))
+
+
+### Chores
+
+* **internal/tests:** avoid race condition with implicit client cleanup ([933d23b](https://github.com/openai/openai-python/commit/933d23bd8d7809c77e0796becfe052167d44d40a))
+* **internal:** grammar fix (it's -&gt; its) ([f7e9e9e](https://github.com/openai/openai-python/commit/f7e9e9e4f43039f19a41375a6d2b2bdc2264dad7))
+
+## 2.6.1 (2025-10-24)
+
+Full Changelog: [v2.6.0...v2.6.1](https://github.com/openai/openai-python/compare/v2.6.0...v2.6.1)
+
+### Bug Fixes
+
+* **api:** docs updates ([d01a0c9](https://github.com/openai/openai-python/commit/d01a0c96ecb94c78b7e16546790c573704b7515b))
+
+
+### Chores
+
+* **client:** clean up custom translations code ([cfb9e25](https://github.com/openai/openai-python/commit/cfb9e25855b8eb020abe02cdd99566adf474e821))
+
+## 2.6.0 (2025-10-20)
+
+Full Changelog: [v2.5.0...v2.6.0](https://github.com/openai/openai-python/compare/v2.5.0...v2.6.0)
+
+### Features
+
+* **api:** Add responses.input_tokens.count ([6dd09e2](https://github.com/openai/openai-python/commit/6dd09e2829f385f72b28620888d91a4493c96772))
+
+
+### Bug Fixes
+
+* **api:** internal openapi updates ([caabd7c](https://github.com/openai/openai-python/commit/caabd7c81f0f557f66dc0089af460185a5816c11))
+
+## 2.5.0 (2025-10-17)
+
+Full Changelog: [v2.4.0...v2.5.0](https://github.com/openai/openai-python/compare/v2.4.0...v2.5.0)
+
+### Features
+
+* **api:** api update ([8b280d5](https://github.com/openai/openai-python/commit/8b280d57d6d361bc3a032e030158f6859c445291))
+
+
+### Chores
+
+* bump `httpx-aiohttp` version to 0.1.9 ([67f2f0a](https://github.com/openai/openai-python/commit/67f2f0afe51dab9d5899fe18b1a4e86b2c774d10))
+
+## 2.4.0 (2025-10-16)
+
+Full Changelog: [v2.3.0...v2.4.0](https://github.com/openai/openai-python/compare/v2.3.0...v2.4.0)
+
+### Features
+
+* **api:** Add support for gpt-4o-transcribe-diarize on audio/transcriptions endpoint ([bdbe9b8](https://github.com/openai/openai-python/commit/bdbe9b8f440209afa2979db4a9eda9579b3d2550))
+
+
+### Chores
+
+* fix dangling comment ([da14e99](https://github.com/openai/openai-python/commit/da14e9960608f7ade6f5cdf91967830c8a6c1657))
+* **internal:** detect missing future annotations with ruff ([2672b8f](https://github.com/openai/openai-python/commit/2672b8f0726300f7c62c356f25545ef0b3c0bb2e))
+
+## 2.3.0 (2025-10-10)
+
+Full Changelog: [v2.2.0...v2.3.0](https://github.com/openai/openai-python/compare/v2.2.0...v2.3.0)
+
+### Features
+
+* **api:** comparison filter in/not in ([aa49f62](https://github.com/openai/openai-python/commit/aa49f626a6ea9d77ad008badfb3741e16232d62f))
+
+
+### Chores
+
+* **package:** bump jiter to &gt;=0.10.0 to support Python 3.14 ([#2618](https://github.com/openai/openai-python/issues/2618)) ([aa445ca](https://github.com/openai/openai-python/commit/aa445cab5c93c6908697fe98e73e16963330b141))
+
+## 2.2.0 (2025-10-06)
+
+Full Changelog: [v2.1.0...v2.2.0](https://github.com/openai/openai-python/compare/v2.1.0...v2.2.0)
+
+### Features
+
+* **api:** dev day 2025 launches ([38ac009](https://github.com/openai/openai-python/commit/38ac0093ebb3419b1e2280d0dc2d26c74a2bbbec))
+
+
+### Bug Fixes
+
+* **client:** add chatkit to beta resource ([de3e561](https://github.com/openai/openai-python/commit/de3e5619d0a85b17906a9416039ef309e820dc0f))
+
 ## 2.1.0 (2025-10-02)
 
 Full Changelog: [v2.0.1...v2.1.0](https://github.com/openai/openai-python/compare/v2.0.1...v2.1.0)

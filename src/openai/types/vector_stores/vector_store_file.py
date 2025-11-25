@@ -11,7 +11,7 @@ __all__ = ["VectorStoreFile", "LastError"]
 
 class LastError(BaseModel):
     code: Literal["server_error", "unsupported_file", "invalid_file"]
-    """One of `server_error` or `rate_limit_exceeded`."""
+    """One of `server_error`, `unsupported_file`, or `invalid_file`."""
 
     message: str
     """A human-readable description of the error."""

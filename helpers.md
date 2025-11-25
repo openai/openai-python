@@ -514,4 +514,5 @@ client.beta.vector_stores.files.upload_and_poll(...)
 client.beta.vector_stores.files.create_and_poll(...)
 client.beta.vector_stores.file_batches.create_and_poll(...)
 client.beta.vector_stores.file_batches.upload_and_poll(...)
+client.videos.create_and_poll(...)
 ```

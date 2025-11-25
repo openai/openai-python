@@ -15,9 +15,16 @@ class Reasoning(TypedDict, total=False):
     """
     Constrains effort on reasoning for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-    supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-    effort can result in faster responses and fewer tokens used on reasoning in a
-    response.
+    supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+    reasoning effort can result in faster responses and fewer tokens used on
+    reasoning in a response.
+
+    - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+      reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+      calls are supported for all reasoning values in gpt-5.1.
+    - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+      support `none`.
+    - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
     """
 
     generate_summary: Optional[Literal["auto", "concise", "detailed"]]
@@ -33,4 +40,6 @@ class Reasoning(TypedDict, total=False):
 
     This can be useful for debugging and understanding the model's reasoning
     process. One of `auto`, `concise`, or `detailed`.
+
+    `concise` is only supported for `computer-use-preview` models.
     """

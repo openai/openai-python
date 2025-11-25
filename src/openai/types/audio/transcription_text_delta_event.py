@@ -33,3 +33,9 @@ class TranscriptionTextDeltaEvent(BaseModel):
     [create a transcription](https://platform.openai.com/docs/api-reference/audio/create-transcription)
     with the `include[]` parameter set to `logprobs`.
     """
+
+    segment_id: Optional[str] = None
+    """Identifier of the diarized segment that this delta belongs to.
+
+    Only present when using `gpt-4o-transcribe-diarize`.
+    """

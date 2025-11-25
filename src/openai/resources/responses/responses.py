@@ -24,6 +24,14 @@ from .input_items import (
 )
 from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
+from .input_tokens import (
+    InputTokens,
+    AsyncInputTokens,
+    InputTokensWithRawResponse,
+    AsyncInputTokensWithRawResponse,
+    InputTokensWithStreamingResponse,
+    AsyncInputTokensWithStreamingResponse,
+)
 from ..._base_client import make_request_options
 from ...types.responses import response_create_params, response_retrieve_params
 from ...lib._parsing._responses import (
@@ -51,6 +59,10 @@ class Responses(SyncAPIResource):
     @cached_property
     def input_items(self) -> InputItems:
         return InputItems(self._client)
+
+    @cached_property
+    def input_tokens(self) -> InputTokens:
+        return InputTokens(self._client)
 
     @cached_property
     def with_raw_response(self) -> ResponsesWithRawResponse:
@@ -88,6 +100,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -202,6 +215,11 @@ class Responses(SyncAPIResource):
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
 
           reasoning: **gpt-5 and o-series models only**
 
@@ -328,6 +346,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -449,6 +468,11 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
@@ -567,6 +591,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -688,6 +713,11 @@ class Responses(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
@@ -804,6 +834,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -842,6 +873,7 @@ class Responses(SyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
@@ -903,6 +935,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -942,6 +975,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -975,6 +1009,7 @@ class Responses(SyncAPIResource):
             "previous_response_id": previous_response_id,
             "prompt": prompt,
             "prompt_cache_key": prompt_cache_key,
+            "prompt_cache_retention": prompt_cache_retention,
             "reasoning": reasoning,
             "safety_identifier": safety_identifier,
             "service_tier": service_tier,
@@ -1028,6 +1063,7 @@ class Responses(SyncAPIResource):
                 previous_response_id=previous_response_id,
                 prompt=prompt,
                 prompt_cache_key=prompt_cache_key,
+                prompt_cache_retention=prompt_cache_retention,
                 store=store,
                 stream_options=stream_options,
                 stream=True,
@@ -1086,6 +1122,7 @@ class Responses(SyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -1143,6 +1180,7 @@ class Responses(SyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
@@ -1484,6 +1522,10 @@ class AsyncResponses(AsyncAPIResource):
         return AsyncInputItems(self._client)
 
     @cached_property
+    def input_tokens(self) -> AsyncInputTokens:
+        return AsyncInputTokens(self._client)
+
+    @cached_property
     def with_raw_response(self) -> AsyncResponsesWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
@@ -1519,6 +1561,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -1633,6 +1676,11 @@ class AsyncResponses(AsyncAPIResource):
           prompt_cache_key: Used by OpenAI to cache responses for similar requests to optimize your cache
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
+
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
 
           reasoning: **gpt-5 and o-series models only**
 
@@ -1759,6 +1807,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -1880,6 +1929,11 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
@@ -1998,6 +2052,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -2119,6 +2174,11 @@ class AsyncResponses(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning: **gpt-5 and o-series models only**
 
               Configuration options for
@@ -2235,6 +2295,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -2273,6 +2334,7 @@ class AsyncResponses(AsyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
@@ -2334,6 +2396,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -2373,6 +2436,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -2406,6 +2470,7 @@ class AsyncResponses(AsyncAPIResource):
             "previous_response_id": previous_response_id,
             "prompt": prompt,
             "prompt_cache_key": prompt_cache_key,
+            "prompt_cache_retention": prompt_cache_retention,
             "reasoning": reasoning,
             "safety_identifier": safety_identifier,
             "service_tier": service_tier,
@@ -2460,6 +2525,7 @@ class AsyncResponses(AsyncAPIResource):
                 previous_response_id=previous_response_id,
                 prompt=prompt,
                 prompt_cache_key=prompt_cache_key,
+                prompt_cache_retention=prompt_cache_retention,
                 store=store,
                 stream_options=stream_options,
                 temperature=temperature,
@@ -2522,6 +2588,7 @@ class AsyncResponses(AsyncAPIResource):
         previous_response_id: Optional[str] | Omit = omit,
         prompt: Optional[ResponsePromptParam] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning: Optional[Reasoning] | Omit = omit,
         safety_identifier: str | Omit = omit,
         service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
@@ -2579,6 +2646,7 @@ class AsyncResponses(AsyncAPIResource):
                     "previous_response_id": previous_response_id,
                     "prompt": prompt,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning": reasoning,
                     "safety_identifier": safety_identifier,
                     "service_tier": service_tier,
@@ -2938,6 +3006,10 @@ class ResponsesWithRawResponse:
     def input_items(self) -> InputItemsWithRawResponse:
         return InputItemsWithRawResponse(self._responses.input_items)
 
+    @cached_property
+    def input_tokens(self) -> InputTokensWithRawResponse:
+        return InputTokensWithRawResponse(self._responses.input_tokens)
+
 
 class AsyncResponsesWithRawResponse:
     def __init__(self, responses: AsyncResponses) -> None:
@@ -2963,6 +3035,10 @@ class AsyncResponsesWithRawResponse:
     def input_items(self) -> AsyncInputItemsWithRawResponse:
         return AsyncInputItemsWithRawResponse(self._responses.input_items)
 
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokensWithRawResponse:
+        return AsyncInputTokensWithRawResponse(self._responses.input_tokens)
+
 
 class ResponsesWithStreamingResponse:
     def __init__(self, responses: Responses) -> None:
@@ -2985,6 +3061,10 @@ class ResponsesWithStreamingResponse:
     def input_items(self) -> InputItemsWithStreamingResponse:
         return InputItemsWithStreamingResponse(self._responses.input_items)
 
+    @cached_property
+    def input_tokens(self) -> InputTokensWithStreamingResponse:
+        return InputTokensWithStreamingResponse(self._responses.input_tokens)
+
 
 class AsyncResponsesWithStreamingResponse:
     def __init__(self, responses: AsyncResponses) -> None:
@@ -3006,6 +3086,10 @@ class AsyncResponsesWithStreamingResponse:
     @cached_property
     def input_items(self) -> AsyncInputItemsWithStreamingResponse:
         return AsyncInputItemsWithStreamingResponse(self._responses.input_items)
+
+    @cached_property
+    def input_tokens(self) -> AsyncInputTokensWithStreamingResponse:
+        return AsyncInputTokensWithStreamingResponse(self._responses.input_tokens)
 
 
 def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] | Omit:

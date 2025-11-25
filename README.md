@@ -3,7 +3,7 @@
 <!-- prettier-ignore -->
 [![PyPI version](https://img.shields.io/pypi/v/openai.svg?label=pypi%20(stable))](https://pypi.org/project/openai/)
 
-The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.8+
+The OpenAI Python library provides convenient access to the OpenAI REST API from any Python 3.9+
 application. The library includes type definitions for all request params and response fields,
 and offers both synchronous and asynchronous clients powered by [httpx](https://github.com/encode/httpx).
 
@@ -244,7 +244,9 @@ async def main():
     client = AsyncOpenAI()
 
     async with client.realtime.connect(model="gpt-realtime") as connection:
-        await connection.session.update(session={'modalities': ['text']})
+        await connection.session.update(
+            session={"type": "realtime", "output_modalities": ["text"]}
+        )
 
         await connection.conversation.item.create(
             item={
@@ -256,10 +258,10 @@ async def main():
         await connection.response.create()
 
         async for event in connection:
-            if event.type == 'response.text.delta':
+            if event.type == "response.output_text.delta":
                 print(event.delta, flush=True, end="")
 
-            elif event.type == 'response.text.done':
+            elif event.type == "response.output_text.done":
                 print()
 
             elif event.type == "response.done":
@@ -861,7 +863,7 @@ print(openai.__version__)
 
 ## Requirements
 
-Python 3.8 or higher.
+Python 3.9 or higher.
 
 ## Contributing
 

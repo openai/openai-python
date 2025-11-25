@@ -7,12 +7,26 @@ from ..._models import BaseModel
 from ..shared.compound_filter import CompoundFilter
 from ..shared.comparison_filter import ComparisonFilter
 
-__all__ = ["FileSearchTool", "Filters", "RankingOptions"]
+__all__ = ["FileSearchTool", "Filters", "RankingOptions", "RankingOptionsHybridSearch"]
 
 Filters: TypeAlias = Union[ComparisonFilter, CompoundFilter, None]
 
 
+class RankingOptionsHybridSearch(BaseModel):
+    embedding_weight: float
+    """The weight of the embedding in the reciprocal ranking fusion."""
+
+    text_weight: float
+    """The weight of the text in the reciprocal ranking fusion."""
+
+
 class RankingOptions(BaseModel):
+    hybrid_search: Optional[RankingOptionsHybridSearch] = None
+    """
+    Weights that control how reciprocal rank fusion balances semantic embedding
+    matches versus sparse keyword matches when hybrid search is enabled.
+    """
+
     ranker: Optional[Literal["auto", "default-2024-11-15"]] = None
     """The ranker to use for the file search."""
 
