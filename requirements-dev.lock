@@ -75,7 +75,7 @@ mdurl==0.1.2
 multidict==6.4.4
     # via aiohttp
     # via yarl
-mypy==1.14.1
+mypy==1.17.0
 mypy-extensions==1.0.0
     # via mypy
 nodeenv==1.8.0
@@ -84,6 +84,8 @@ nox==2023.4.22
 packaging==23.2
     # via nox
     # via pytest
+pathspec==0.12.1
+    # via mypy
 platformdirs==3.11.0
     # via virtualenv
 pluggy==1.5.0
