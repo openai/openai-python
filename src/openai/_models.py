@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import inspect
+import weakref
 from typing import TYPE_CHECKING, Any, Type, Tuple, Union, Generic, TypeVar, Callable, Optional, cast
 from datetime import date, datetime
 from typing_extensions import (
@@ -281,15 +282,16 @@ class BaseModel(pydantic.BaseModel):
             mode: Literal["json", "python"] | str = "python",
             include: IncEx | None = None,
             exclude: IncEx | None = None,
+            context: Any | None = None,
             by_alias: bool | None = None,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
             exclude_none: bool = False,
+            exclude_computed_fields: bool = False,
             round_trip: bool = False,
             warnings: bool | Literal["none", "warn", "error"] = True,
-            context: dict[str, Any] | None = None,
-            serialize_as_any: bool = False,
             fallback: Callable[[Any], Any] | None = None,
+            serialize_as_any: bool = False,
         ) -> dict[str, Any]:
             """Usage docs: https://docs.pydantic.dev/2.4/concepts/serialization/#modelmodel_dump
 
@@ -297,16 +299,24 @@ class BaseModel(pydantic.BaseModel):
 
             Args:
                 mode: The mode in which `to_python` should run.
-                    If mode is 'json', the dictionary will only contain JSON serializable types.
-                    If mode is 'python', the dictionary may contain any Python objects.
-                include: A list of fields to include in the output.
-                exclude: A list of fields to exclude from the output.
+                    If mode is 'json', the output will only contain JSON serializable types.
+                    If mode is 'python', the output may contain non-JSON-serializable Python objects.
+                include: A set of fields to include in the output.
+                exclude: A set of fields to exclude from the output.
+                context: Additional context to pass to the serializer.
                 by_alias: Whether to use the field's alias in the dictionary key if defined.
-                exclude_unset: Whether to exclude fields that are unset or None from the output.
-                exclude_defaults: Whether to exclude fields that are set to their default value from the output.
-                exclude_none: Whether to exclude fields that have a value of `None` from the output.
-                round_trip: Whether to enable serialization and deserialization round-trip support.
-                warnings: Whether to log warnings when invalid fields are encountered.
+                exclude_unset: Whether to exclude fields that have not been explicitly set.
+                exclude_defaults: Whether to exclude fields that are set to their default value.
+                exclude_none: Whether to exclude fields that have a value of `None`.
+                exclude_computed_fields: Whether to exclude computed fields.
+                    While this can be useful for round-tripping, it is usually recommended to use the dedicated
+                    `round_trip` parameter instead.
+                round_trip: If True, dumped values should be valid as input for non-idempotent types such as Json[T].
+                warnings: How to handle serialization errors. False/"none" ignores them, True/"warn" logs errors,
+                    "error" raises a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError].
+                fallback: A function to call when an unknown value is encountered. If not provided,
+                    a [`PydanticSerializationError`][pydantic_core.PydanticSerializationError] error is raised.
+                serialize_as_any: Whether to serialize fields with duck-typing serialization behavior.
 
             Returns:
                 A dictionary representation of the model.
@@ -323,6 +333,8 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("serialize_as_any is only supported in Pydantic v2")
             if fallback is not None:
                 raise ValueError("fallback is only supported in Pydantic v2")
+            if exclude_computed_fields != False:
+                raise ValueError("exclude_computed_fields is only supported in Pydantic v2")
             dumped = super().dict(  # pyright: ignore[reportDeprecated]
                 include=include,
                 exclude=exclude,
@@ -339,15 +351,17 @@ class BaseModel(pydantic.BaseModel):
             self,
             *,
             indent: int | None = None,
+            ensure_ascii: bool = False,
             include: IncEx | None = None,
             exclude: IncEx | None = None,
+            context: Any | None = None,
             by_alias: bool | None = None,
             exclude_unset: bool = False,
             exclude_defaults: bool = False,
             exclude_none: bool = False,
+            exclude_computed_fields: bool = False,
             round_trip: bool = False,
             warnings: bool | Literal["none", "warn", "error"] = True,
-            context: dict[str, Any] | None = None,
             fallback: Callable[[Any], Any] | None = None,
             serialize_as_any: bool = False,
         ) -> str:
@@ -379,6 +393,10 @@ class BaseModel(pydantic.BaseModel):
                 raise ValueError("serialize_as_any is only supported in Pydantic v2")
             if fallback is not None:
                 raise ValueError("fallback is only supported in Pydantic v2")
+            if ensure_ascii != False:
+                raise ValueError("ensure_ascii is only supported in Pydantic v2")
+            if exclude_computed_fields != False:
+                raise ValueError("exclude_computed_fields is only supported in Pydantic v2")
             return super().json(  # type: ignore[reportDeprecated]
                 indent=indent,
                 include=include,
@@ -598,6 +616,9 @@ class CachedDiscriminatorType(Protocol):
     __discriminator__: DiscriminatorDetails
 
 
+DISCRIMINATOR_CACHE: weakref.WeakKeyDictionary[type, DiscriminatorDetails] = weakref.WeakKeyDictionary()
+
+
 class DiscriminatorDetails:
     field_name: str
     """The name of the discriminator field in the variant class, e.g.
@@ -640,8 +661,9 @@ class DiscriminatorDetails:
 
 
 def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any, ...]) -> DiscriminatorDetails | None:
-    if isinstance(union, CachedDiscriminatorType):
-        return union.__discriminator__
+    cached = DISCRIMINATOR_CACHE.get(union)
+    if cached is not None:
+        return cached
 
     discriminator_field_name: str | None = None
 
@@ -694,7 +716,7 @@ def _build_discriminated_union_meta(*, union: type, meta_annotations: tuple[Any,
         discriminator_field=discriminator_field_name,
         discriminator_alias=discriminator_alias,
     )
-    cast(CachedDiscriminatorType, union).__discriminator__ = details
+    DISCRIMINATOR_CACHE.setdefault(union, details)
     return details
 
 

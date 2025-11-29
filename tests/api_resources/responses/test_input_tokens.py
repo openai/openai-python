@@ -32,7 +32,7 @@ class TestInputTokens:
             parallel_tool_calls=True,
             previous_response_id="resp_123",
             reasoning={
-                "effort": "minimal",
+                "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
             },
@@ -95,7 +95,7 @@ class TestAsyncInputTokens:
             parallel_tool_calls=True,
             previous_response_id="resp_123",
             reasoning={
-                "effort": "minimal",
+                "effort": "none",
                 "generate_summary": "auto",
                 "summary": "auto",
             },

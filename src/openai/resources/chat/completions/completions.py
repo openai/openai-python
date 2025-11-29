@@ -102,6 +102,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -201,6 +202,7 @@ class Completions(SyncAPIResource):
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning_effort": reasoning_effort,
                     "response_format": _type_to_response_format(response_format),
                     "safety_identifier": safety_identifier,
@@ -255,6 +257,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -401,14 +404,23 @@ class Completions(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-              effort can result in faster responses and fewer tokens used on reasoning in a
-              response.
+              supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response.
 
-              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
-              effort.
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -547,6 +559,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -701,14 +714,23 @@ class Completions(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-              effort can result in faster responses and fewer tokens used on reasoning in a
-              response.
+              supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response.
 
-              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
-              effort.
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -838,6 +860,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -992,14 +1015,23 @@ class Completions(SyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-              effort can result in faster responses and fewer tokens used on reasoning in a
-              response.
+              supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response.
 
-              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
-              effort.
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -1128,6 +1160,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -1174,6 +1207,7 @@ class Completions(SyncAPIResource):
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
@@ -1407,6 +1441,7 @@ class Completions(SyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -1477,6 +1512,7 @@ class Completions(SyncAPIResource):
             prediction=prediction,
             presence_penalty=presence_penalty,
             prompt_cache_key=prompt_cache_key,
+            prompt_cache_retention=prompt_cache_retention,
             reasoning_effort=reasoning_effort,
             safety_identifier=safety_identifier,
             seed=seed,
@@ -1549,6 +1585,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -1648,6 +1685,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning_effort": reasoning_effort,
                     "response_format": _type_to_response_format(response_format),
                     "safety_identifier": safety_identifier,
@@ -1702,6 +1740,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -1848,14 +1887,23 @@ class AsyncCompletions(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-              effort can result in faster responses and fewer tokens used on reasoning in a
-              response.
+              supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response.
 
-              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
-              effort.
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -1994,6 +2042,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2148,14 +2197,23 @@ class AsyncCompletions(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-              effort can result in faster responses and fewer tokens used on reasoning in a
-              response.
+              supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response.
 
-              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
-              effort.
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -2285,6 +2343,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2439,14 +2498,23 @@ class AsyncCompletions(AsyncAPIResource):
               hit rates. Replaces the `user` field.
               [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
 
+          prompt_cache_retention: The retention policy for the prompt cache. Set to `24h` to enable extended
+              prompt caching, which keeps cached prefixes active for longer, up to a maximum
+              of 24 hours.
+              [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
+
           reasoning_effort: Constrains effort on reasoning for
               [reasoning models](https://platform.openai.com/docs/guides/reasoning). Currently
-              supported values are `minimal`, `low`, `medium`, and `high`. Reducing reasoning
-              effort can result in faster responses and fewer tokens used on reasoning in a
-              response.
+              supported values are `none`, `minimal`, `low`, `medium`, and `high`. Reducing
+              reasoning effort can result in faster responses and fewer tokens used on
+              reasoning in a response.
 
-              Note: The `gpt-5-pro` model defaults to (and only supports) `high` reasoning
-              effort.
+              - `gpt-5.1` defaults to `none`, which does not perform reasoning. The supported
+                reasoning values for `gpt-5.1` are `none`, `low`, `medium`, and `high`. Tool
+                calls are supported for all reasoning values in gpt-5.1.
+              - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
+                support `none`.
+              - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
 
           response_format: An object specifying the format that the model must output.
 
@@ -2575,6 +2643,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         response_format: completion_create_params.ResponseFormat | Omit = omit,
         safety_identifier: str | Omit = omit,
@@ -2621,6 +2690,7 @@ class AsyncCompletions(AsyncAPIResource):
                     "prediction": prediction,
                     "presence_penalty": presence_penalty,
                     "prompt_cache_key": prompt_cache_key,
+                    "prompt_cache_retention": prompt_cache_retention,
                     "reasoning_effort": reasoning_effort,
                     "response_format": response_format,
                     "safety_identifier": safety_identifier,
@@ -2854,6 +2924,7 @@ class AsyncCompletions(AsyncAPIResource):
         prediction: Optional[ChatCompletionPredictionContentParam] | Omit = omit,
         presence_penalty: Optional[float] | Omit = omit,
         prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
         reasoning_effort: Optional[ReasoningEffort] | Omit = omit,
         safety_identifier: str | Omit = omit,
         seed: Optional[int] | Omit = omit,
@@ -2925,6 +2996,7 @@ class AsyncCompletions(AsyncAPIResource):
             prediction=prediction,
             presence_penalty=presence_penalty,
             prompt_cache_key=prompt_cache_key,
+            prompt_cache_retention=prompt_cache_retention,
             reasoning_effort=reasoning_effort,
             safety_identifier=safety_identifier,
             seed=seed,

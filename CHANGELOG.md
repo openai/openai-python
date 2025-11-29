@@ -1,5 +1,39 @@
 # Changelog
 
+## 2.8.1 (2025-11-17)
+
+Full Changelog: [v2.8.0...v2.8.1](https://github.com/openai/openai-python/compare/v2.8.0...v2.8.1)
+
+### Bug Fixes
+
+* **api:** align types of input items / output items for typescript ([64c9fb3](https://github.com/openai/openai-python/commit/64c9fb3fcc79f0049b3a36bd429faf0600d969f6))
+
+## 2.8.0 (2025-11-13)
+
+Full Changelog: [v2.7.2...v2.8.0](https://github.com/openai/openai-python/compare/v2.7.2...v2.8.0)
+
+### Features
+
+* **api:** gpt 5.1 ([8d9f2ca](https://github.com/openai/openai-python/commit/8d9f2cab4cb2e12f6e2ab1de967f858736a656ac))
+
+
+### Bug Fixes
+
+* **compat:** update signatures of `model_dump` and `model_dump_json` for Pydantic v1 ([c7bd234](https://github.com/openai/openai-python/commit/c7bd234b18239fcdbf0edb1b51ca9116c0ac7251))
+
+## 2.7.2 (2025-11-10)
+
+Full Changelog: [v2.7.1...v2.7.2](https://github.com/openai/openai-python/compare/v2.7.1...v2.7.2)
+
+### Bug Fixes
+
+* compat with Python 3.14 ([15a7ec8](https://github.com/openai/openai-python/commit/15a7ec8a753d7f57d525fca60c547fd5331cb214))
+
+
+### Chores
+
+* **package:** drop Python 3.8 support ([afc14f2](https://github.com/openai/openai-python/commit/afc14f2e42e7a8174f2ff1a5672829b808a716bf))
+
 ## 2.7.1 (2025-11-04)
 
 Full Changelog: [v2.7.0...v2.7.1](https://github.com/openai/openai-python/compare/v2.7.0...v2.7.1)

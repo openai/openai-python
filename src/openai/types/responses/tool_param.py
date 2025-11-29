@@ -12,7 +12,9 @@ from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
 from .web_search_tool_param import WebSearchToolParam
+from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
+from .function_shell_tool_param import FunctionShellToolParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam
 
 __all__ = [
@@ -259,8 +261,10 @@ ToolParam: TypeAlias = Union[
     CodeInterpreter,
     ImageGeneration,
     LocalShell,
+    FunctionShellToolParam,
     CustomToolParam,
     WebSearchPreviewToolParam,
+    ApplyPatchToolParam,
 ]
 
 
