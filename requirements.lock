@@ -69,9 +69,9 @@ propcache==0.3.2
     # via yarl
 pycparser==2.23
     # via cffi
-pydantic==2.11.9
+pydantic==2.12.5
     # via openai
-pydantic-core==2.33.2
+pydantic-core==2.41.5
     # via pydantic
 python-dateutil==2.9.0.post0
     # via pandas
@@ -88,13 +88,14 @@ tqdm==4.66.5
     # via openai
 types-pytz==2024.2.0.20241003
     # via pandas-stubs
-typing-extensions==4.12.2
+typing-extensions==4.15.0
+    # via anyio
     # via multidict
     # via openai
     # via pydantic
     # via pydantic-core
     # via typing-inspection
-typing-inspection==0.4.1
+typing-inspection==0.4.2
     # via pydantic
 tzdata==2025.2
     # via pandas

@@ -105,7 +105,7 @@ msal-extensions==1.2.0
 multidict==6.5.0
     # via aiohttp
     # via yarl
-mypy==1.14.1
+mypy==1.17.0
 mypy-extensions==1.0.0
     # via mypy
 nest-asyncio==1.6.0
@@ -125,6 +125,8 @@ pandas==2.2.3
     # via openai
 pandas-stubs==2.1.4.231227
     # via openai
+pathspec==0.12.1
+    # via mypy
 platformdirs==3.11.0
     # via virtualenv
 pluggy==1.5.0
