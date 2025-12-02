@@ -7,16 +7,18 @@ license = "Apache-2.0"
 authors = [
 { name = "OpenAI", email = "support@openai.com" },
 ]
+
 dependencies = [
-    "httpx>=0.23.0, <1",
-    "pydantic>=1.9.0, <3",
+  "httpx>=0.23.0, <1",
+  "pydantic>=1.9.0, <3",
     "typing-extensions>=4.11, <5",
-    "anyio>=3.5.0, <5",
-    "distro>=1.7.0, <2",
-    "sniffio",
+  "anyio>=3.5.0, <5",
+  "distro>=1.7.0, <2",
+  "sniffio",
     "tqdm > 4",
     "jiter>=0.10.0, <1",
 ]
+
 requires-python = ">= 3.9"
 classifiers = [
   "Typing :: Typed",
