@@ -12,28 +12,28 @@
 -e file:.
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.12.8
+aiohttp==3.13.2
     # via httpx-aiohttp
     # via openai
-aiosignal==1.3.2
+aiosignal==1.4.0
     # via aiohttp
-annotated-types==0.6.0
+annotated-types==0.7.0
     # via pydantic
-anyio==4.4.0
+anyio==4.12.0
     # via httpx
     # via openai
 async-timeout==5.0.1
     # via aiohttp
-attrs==25.3.0
+attrs==25.4.0
     # via aiohttp
-certifi==2023.7.22
+certifi==2025.11.12
     # via httpcore
     # via httpx
-distro==1.8.0
+distro==1.9.0
     # via openai
-exceptiongroup==1.2.2
+exceptiongroup==1.3.1
     # via anyio
-frozenlist==1.6.2
+frozenlist==1.8.0
     # via aiohttp
     # via aiosignal
 h11==0.16.0
@@ -45,25 +45,26 @@ httpx==0.28.1
     # via openai
 httpx-aiohttp==0.1.9
     # via openai
-idna==3.4
+idna==3.11
     # via anyio
     # via httpx
     # via yarl
-multidict==6.4.4
+multidict==6.7.0
     # via aiohttp
     # via yarl
-propcache==0.3.1
+propcache==0.4.1
     # via aiohttp
     # via yarl
 pydantic==2.12.5
     # via openai
 pydantic-core==2.41.5
     # via pydantic
-sniffio==1.3.0
-    # via anyio
+sniffio==1.3.1
     # via openai
 typing-extensions==4.15.0
+    # via aiosignal
     # via anyio
+    # via exceptiongroup
     # via multidict
     # via openai
     # via pydantic
@@ -73,5 +74,5 @@ typing-inspection==0.4.2
     # via pydantic
 websockets==15.0.1
     # via openai
-yarl==1.20.0
+yarl==1.22.0
     # via aiohttp

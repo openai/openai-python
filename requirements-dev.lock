@@ -12,45 +12,50 @@
 -e file:.
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.12.8
+aiohttp==3.13.2
     # via httpx-aiohttp
     # via openai
-aiosignal==1.3.2
+aiosignal==1.4.0
     # via aiohttp
-annotated-types==0.6.0
+annotated-types==0.7.0
     # via pydantic
-anyio==4.4.0
+anyio==4.12.0
     # via httpx
     # via openai
-argcomplete==3.1.2
+argcomplete==3.6.3
     # via nox
 async-timeout==5.0.1
     # via aiohttp
-attrs==25.3.0
+attrs==25.4.0
     # via aiohttp
-certifi==2023.7.22
+    # via nox
+backports-asyncio-runner==1.2.0
+    # via pytest-asyncio
+certifi==2025.11.12
     # via httpcore
     # via httpx
 colorama==0.4.6
     # via griffe
-colorlog==6.7.0
+colorlog==6.10.1
     # via nox
-dirty-equals==0.6.0
-distlib==0.3.7
+dependency-groups==1.3.1
+    # via nox
+dirty-equals==0.11
+distlib==0.4.0
     # via virtualenv
-distro==1.8.0
+distro==1.9.0
     # via openai
-exceptiongroup==1.2.2
+exceptiongroup==1.3.1
     # via anyio
     # via pytest
-execnet==2.1.1
+execnet==2.1.2
     # via pytest-xdist
-filelock==3.12.4
+filelock==3.19.1
     # via virtualenv
-frozenlist==1.6.2
+frozenlist==1.8.0
     # via aiohttp
     # via aiosignal
-griffe==1.13.0
+griffe==1.14.0
 h11==0.16.0
     # via httpcore
 httpcore==1.0.9
@@ -61,84 +66,89 @@ httpx==0.28.1
     # via respx
 httpx-aiohttp==0.1.9
     # via openai
-idna==3.4
+humanize==4.13.0
+    # via nox
+idna==3.11
     # via anyio
     # via httpx
     # via yarl
-importlib-metadata==7.0.0
-iniconfig==2.0.0
+importlib-metadata==8.7.0
+iniconfig==2.1.0
     # via pytest
 markdown-it-py==3.0.0
     # via rich
 mdurl==0.1.2
     # via markdown-it-py
-multidict==6.4.4
+multidict==6.7.0
     # via aiohttp
     # via yarl
 mypy==1.17.0
-mypy-extensions==1.0.0
+mypy-extensions==1.1.0
     # via mypy
-nodeenv==1.8.0
+nodeenv==1.9.1
     # via pyright
-nox==2023.4.22
-packaging==23.2
+nox==2025.11.12
+packaging==25.0
+    # via dependency-groups
     # via nox
     # via pytest
 pathspec==0.12.1
     # via mypy
-platformdirs==3.11.0
+platformdirs==4.4.0
     # via virtualenv
-pluggy==1.5.0
+pluggy==1.6.0
     # via pytest
-propcache==0.3.1
+propcache==0.4.1
     # via aiohttp
     # via yarl
-pydantic==2.11.9
+pydantic==2.12.5
     # via openai
-pydantic-core==2.33.2
+pydantic-core==2.41.5
     # via pydantic
-pygments==2.18.0
+pygments==2.19.2
+    # via pytest
     # via rich
 pyright==1.1.399
-pytest==8.3.3
+pytest==8.4.2
     # via pytest-asyncio
     # via pytest-xdist
-pytest-asyncio==0.24.0
-pytest-xdist==3.7.0
-python-dateutil==2.8.2
+pytest-asyncio==1.2.0
+pytest-xdist==3.8.0
+python-dateutil==2.9.0.post0
     # via time-machine
-pytz==2023.3.post1
-    # via dirty-equals
 respx==0.22.0
-rich==13.7.1
-ruff==0.9.4
-setuptools==68.2.2
-    # via nodeenv
-six==1.16.0
+rich==14.2.0
+ruff==0.14.7
+six==1.17.0
     # via python-dateutil
-sniffio==1.3.0
-    # via anyio
+sniffio==1.3.1
     # via openai
-time-machine==2.9.0
-tomli==2.0.2
+time-machine==2.19.0
+tomli==2.3.0
+    # via dependency-groups
     # via mypy
+    # via nox
     # via pytest
-typing-extensions==4.12.2
+typing-extensions==4.15.0
+    # via aiosignal
     # via anyio
+    # via exceptiongroup
     # via multidict
     # via mypy
     # via openai
     # via pydantic
     # via pydantic-core
     # via pyright
+    # via pytest-asyncio
     # via typing-inspection
-typing-inspection==0.4.1
+    # via virtualenv
+typing-inspection==0.4.2
     # via pydantic
-virtualenv==20.24.5
+virtualenv==20.35.4
     # via nox
 websockets==15.0.1
     # via openai
-yarl==1.20.0
+yarl==1.22.0
     # via aiohttp
-zipp==3.17.0
+zipp==3.23.0
     # via importlib-metadata
