@@ -91,6 +91,7 @@ pip install openai[aiohttp]
 Then you can enable it by instantiating the client with `http_client=DefaultAioHttpClient()`:
 
 ```python
+import os
 import asyncio
 from openai import DefaultAioHttpClient
 from openai import AsyncOpenAI
@@ -98,7 +99,7 @@ from openai import AsyncOpenAI
 
 async def main() -> None:
     async with AsyncOpenAI(
-        api_key="My API Key",
+        api_key=os.environ.get("OPENAI_API_KEY"),  # This is the default and can be omitted
         http_client=DefaultAioHttpClient(),
     ) as client:
         chat_completion = await client.chat.completions.create(
