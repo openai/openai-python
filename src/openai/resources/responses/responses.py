@@ -39,6 +39,11 @@ from ...types.responses import (
     response_compact_params,
     response_retrieve_params,
 )
+from ...lib._parsing._responses import (
+    TextFormatT,
+    parse_response,
+    type_to_text_format_param as _type_to_text_format_param,
+)
 from ...types.responses.response import Response
 from ...types.responses.tool_param import ToolParam, ParseableToolParam
 from ...types.shared_params.metadata import Metadata
