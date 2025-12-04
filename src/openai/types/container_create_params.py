@@ -19,6 +19,9 @@ class ContainerCreateParams(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """IDs of files to copy to the container."""
 
+    memory_limit: Literal["1g", "4g", "16g", "64g"]
+    """Optional memory limit for the container. Defaults to "1g"."""
+
 
 class ExpiresAfter(TypedDict, total=False):
     anchor: Required[Literal["last_active_at"]]

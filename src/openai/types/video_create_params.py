@@ -20,10 +20,16 @@ class VideoCreateParams(TypedDict, total=False):
     """Optional image reference that guides generation."""
 
     model: VideoModel
-    """The video generation model to use. Defaults to `sora-2`."""
+    """The video generation model to use (allowed values: sora-2, sora-2-pro).
+
+    Defaults to `sora-2`.
+    """
 
     seconds: VideoSeconds
-    """Clip duration in seconds. Defaults to 4 seconds."""
+    """Clip duration in seconds (allowed values: 4, 8, 12). Defaults to 4 seconds."""
 
     size: VideoSize
-    """Output resolution formatted as width x height. Defaults to 720x1280."""
+    """
+    Output resolution formatted as width x height (allowed values: 720x1280,
+    1280x720, 1024x1792, 1792x1024). Defaults to 720x1280.
+    """

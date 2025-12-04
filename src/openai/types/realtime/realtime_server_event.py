@@ -42,6 +42,7 @@ from .response_audio_transcript_delta_event import ResponseAudioTranscriptDeltaE
 from .input_audio_buffer_speech_started_event import InputAudioBufferSpeechStartedEvent
 from .input_audio_buffer_speech_stopped_event import InputAudioBufferSpeechStoppedEvent
 from .response_function_call_arguments_done_event import ResponseFunctionCallArgumentsDoneEvent
+from .input_audio_buffer_dtmf_event_received_event import InputAudioBufferDtmfEventReceivedEvent
 from .response_function_call_arguments_delta_event import ResponseFunctionCallArgumentsDeltaEvent
 from .conversation_item_input_audio_transcription_segment import ConversationItemInputAudioTranscriptionSegment
 from .conversation_item_input_audio_transcription_delta_event import ConversationItemInputAudioTranscriptionDeltaEvent
@@ -116,6 +117,7 @@ RealtimeServerEvent: TypeAlias = Annotated[
         RealtimeErrorEvent,
         InputAudioBufferClearedEvent,
         InputAudioBufferCommittedEvent,
+        InputAudioBufferDtmfEventReceivedEvent,
         InputAudioBufferSpeechStartedEvent,
         InputAudioBufferSpeechStoppedEvent,
         RateLimitsUpdatedEvent,

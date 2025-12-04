@@ -174,7 +174,7 @@ class CodeInterpreter(TypedDict, total=False):
     """The code interpreter container.
 
     Can be a container ID or an object that specifies uploaded file IDs to make
-    available to your code.
+    available to your code, along with an optional `memory_limit` setting.
     """
 
     type: Required[Literal["code_interpreter"]]

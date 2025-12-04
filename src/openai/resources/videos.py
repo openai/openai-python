@@ -84,11 +84,13 @@ class Videos(SyncAPIResource):
 
           input_reference: Optional image reference that guides generation.
 
-          model: The video generation model to use. Defaults to `sora-2`.
+          model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
+              to `sora-2`.
 
-          seconds: Clip duration in seconds. Defaults to 4 seconds.
+          seconds: Clip duration in seconds (allowed values: 4, 8, 12). Defaults to 4 seconds.
 
-          size: Output resolution formatted as width x height. Defaults to 720x1280.
+          size: Output resolution formatted as width x height (allowed values: 720x1280,
+              1280x720, 1024x1792, 1792x1024). Defaults to 720x1280.
 
           extra_headers: Send extra headers
 
@@ -437,11 +439,13 @@ class AsyncVideos(AsyncAPIResource):
 
           input_reference: Optional image reference that guides generation.
 
-          model: The video generation model to use. Defaults to `sora-2`.
+          model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
+              to `sora-2`.
 
-          seconds: Clip duration in seconds. Defaults to 4 seconds.
+          seconds: Clip duration in seconds (allowed values: 4, 8, 12). Defaults to 4 seconds.
 
-          size: Output resolution formatted as width x height. Defaults to 720x1280.
+          size: Output resolution formatted as width x height (allowed values: 720x1280,
+              1280x720, 1024x1792, 1792x1024). Defaults to 720x1280.
 
           extra_headers: Send extra headers
 

@@ -7,6 +7,7 @@ from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
+from .response_compaction_item import ResponseCompactionItem
 from .response_custom_tool_call import ResponseCustomToolCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
@@ -173,6 +174,7 @@ ResponseOutputItem: TypeAlias = Annotated[
         ResponseFunctionWebSearch,
         ResponseComputerToolCall,
         ResponseReasoningItem,
+        ResponseCompactionItem,
         ImageGenerationCall,
         ResponseCodeInterpreterToolCall,
         LocalShellCall,

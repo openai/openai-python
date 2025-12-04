@@ -733,6 +733,7 @@ Types:
 ```python
 from openai.types.responses import (
     ApplyPatchTool,
+    CompactedResponse,
     ComputerTool,
     CustomTool,
     EasyInputMessage,
@@ -752,6 +753,8 @@ from openai.types.responses import (
     ResponseCodeInterpreterCallInProgressEvent,
     ResponseCodeInterpreterCallInterpretingEvent,
     ResponseCodeInterpreterToolCall,
+    ResponseCompactionItem,
+    ResponseCompactionItemParam,
     ResponseCompletedEvent,
     ResponseComputerToolCall,
     ResponseComputerToolCallOutputItem,
@@ -861,6 +864,7 @@ Methods:
 - <code title="get /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">retrieve</a>(response_id, \*\*<a href="src/openai/types/responses/response_retrieve_params.py">params</a>) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
 - <code title="delete /responses/{response_id}">client.responses.<a href="./src/openai/resources/responses/responses.py">delete</a>(response_id) -> None</code>
 - <code title="post /responses/{response_id}/cancel">client.responses.<a href="./src/openai/resources/responses/responses.py">cancel</a>(response_id) -> <a href="./src/openai/types/responses/response.py">Response</a></code>
+- <code title="post /responses/compact">client.responses.<a href="./src/openai/resources/responses/responses.py">compact</a>(\*\*<a href="src/openai/types/responses/response_compact_params.py">params</a>) -> <a href="./src/openai/types/responses/compacted_response.py">CompactedResponse</a></code>
 
 ## InputItems
 
@@ -914,6 +918,7 @@ from openai.types.realtime import (
     InputAudioBufferClearedEvent,
     InputAudioBufferCommitEvent,
     InputAudioBufferCommittedEvent,
+    InputAudioBufferDtmfEventReceivedEvent,
     InputAudioBufferSpeechStartedEvent,
     InputAudioBufferSpeechStoppedEvent,
     InputAudioBufferTimeoutTriggered,
