@@ -76,6 +76,10 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         and the API feature being called is **not** a deployments-based endpoint
         (i.e. requires /deployments/deployment-name in the URL path).
         """
+        # v1 API doesn't need URL rewriting - base_url already has /openai/v1/
+        if getattr(self, '_is_v1_api', False):
+            return super()._prepare_url(url)
+
         if self._azure_deployment and self._azure_endpoint and url not in _deployments_endpoints:
             merge_url = httpx.URL(url)
             if merge_url.is_relative_url:
