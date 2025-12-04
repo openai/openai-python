@@ -1,5 +1,28 @@
 # Changelog
 
+## 2.9.0 (2025-12-04)
+
+Full Changelog: [v2.8.1...v2.9.0](https://github.com/openai/openai-python/compare/v2.8.1...v2.9.0)
+
+### Features
+
+* **api:** gpt-5.1-codex-max and responses/compact ([22f646e](https://github.com/openai/openai-python/commit/22f646e985b7c93782cf695edbe643844cae7017))
+
+
+### Bug Fixes
+
+* **client:** avoid mutating user-provided response config object ([#2700](https://github.com/openai/openai-python/issues/2700)) ([e040d22](https://github.com/openai/openai-python/commit/e040d22c2df068e908f69dc6b892e7f8b3fe6e99))
+* ensure streams are always closed ([0b1a27f](https://github.com/openai/openai-python/commit/0b1a27f08639d14dfe40bf80b48e2b8a1a51593c))
+* **streaming:** correct indentation ([575bbac](https://github.com/openai/openai-python/commit/575bbac13b3a57731a4e07b67636ae94463d43fa))
+
+
+### Chores
+
+* **deps:** mypy 1.18.1 has a regression, pin to 1.17 ([22cd586](https://github.com/openai/openai-python/commit/22cd586dbd5484b47f625da55db697691116b22b))
+* **docs:** use environment variables for authentication in code snippets ([c2a3cd5](https://github.com/openai/openai-python/commit/c2a3cd502bfb03f68f62f50aed15a40458c0996e))
+* **internal:** codegen related update ([307a066](https://github.com/openai/openai-python/commit/307a0664383b9d1d4151bc1a05a78c4fdcdcc9b0))
+* update lockfile ([b4109c5](https://github.com/openai/openai-python/commit/b4109c5fcf971ccfb25b4bdaef0bf36999f9eca5))
+
 ## 2.8.1 (2025-11-17)
 
 Full Changelog: [v2.8.0...v2.8.1](https://github.com/openai/openai-python/compare/v2.8.0...v2.8.1)
