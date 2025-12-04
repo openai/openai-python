@@ -22,6 +22,7 @@ from .chat_completion_function_call_option_param import ChatCompletionFunctionCa
 
 __all__ = [
     "CompletionCreateParamsBase",
+    "ExprValue",
     "FunctionCall",
     "Function",
     "ResponseFormat",
@@ -31,6 +32,19 @@ __all__ = [
     "CompletionCreateParamsNonStreaming",
     "CompletionCreateParamsStreaming",
 ]
+
+
+class ExprValue(TypedDict, total=False):
+    """Expression value for guided generation constraints."""
+
+    type: str
+    """The type of the expression."""
+
+    expr: str
+    """The expression string."""
+
+    text: "ExprValue"
+    """Nested expression value for text."""
 
 
 class CompletionCreateParamsBase(TypedDict, total=False):
@@ -89,6 +103,15 @@ class CompletionCreateParamsBase(TypedDict, total=False):
 
     A list of functions the model may generate JSON inputs for.
     """
+
+    guided_choice_expr: Optional[ExprValue]
+    """Expression value for guided choice generation constraints."""
+
+    guided_json_expr: Optional[ExprValue]
+    """Expression value for guided JSON generation constraints."""
+
+    guided_regex_expr: Optional[ExprValue]
+    """Expression value for guided regex generation constraints."""
 
     logit_bias: Optional[Dict[str, int]]
     """Modify the likelihood of specified tokens appearing in the completion.

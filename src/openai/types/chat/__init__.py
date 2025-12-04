@@ -16,6 +16,7 @@ from .chat_completion_deleted import ChatCompletionDeleted as ChatCompletionDele
 from .chat_completion_message import ChatCompletionMessage as ChatCompletionMessage
 from .chat_completion_modality import ChatCompletionModality as ChatCompletionModality
 from .completion_create_params import CompletionCreateParams as CompletionCreateParams
+from .completion_create_params import ExprValue as ExprValue
 from .completion_update_params import CompletionUpdateParams as CompletionUpdateParams
 from .parsed_function_tool_call import (
     ParsedFunction as ParsedFunction,
