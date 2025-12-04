@@ -24,5 +24,6 @@ AllModels: TypeAlias = Union[
         "gpt-5-codex",
         "gpt-5-pro",
         "gpt-5-pro-2025-10-06",
+        "gpt-5.1-codex-max",
     ],
 ]
