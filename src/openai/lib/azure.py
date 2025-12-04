@@ -52,6 +52,7 @@ class MutuallyExclusiveAuthError(OpenAIError):
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     _azure_endpoint: httpx.URL | None
     _azure_deployment: str | None
+    _is_v1_api: bool
 
     @override
     def _build_request(
@@ -60,10 +61,12 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         *,
         retries_taken: int = 0,
     ) -> httpx.Request:
-        if options.url in _deployments_endpoints and is_mapping(options.json_data):
-            model = options.json_data.get("model")
-            if model is not None and "/deployments" not in str(self.base_url.path):
-                options.url = f"/deployments/{model}{options.url}"
+        # v1 API doesn't use /deployments/{model}/ path - model is passed in body
+        if not getattr(self, '_is_v1_api', False):
+            if options.url in _deployments_endpoints and is_mapping(options.json_data):
+                model = options.json_data.get("model")
+                if model is not None and "/deployments" not in str(self.base_url.path):
+                    options.url = f"/deployments/{model}{options.url}"
 
         return super()._build_request(options, retries_taken=retries_taken)
 
@@ -208,6 +211,9 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                 "Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable"
             )
 
+        # Check if using v1 API format (new Azure OpenAI API)
+        _is_v1_api = api_version in ("v1", "latest", "preview")
+
         if default_query is None:
             default_query = {"api-version": api_version}
         else:
@@ -222,7 +228,10 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
                     "Must provide one of the `base_url` or `azure_endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable"
                 )
 
-            if azure_deployment is not None:
+            if _is_v1_api:
+                # v1 API uses /openai/v1/ path without /deployments/
+                base_url = f"{azure_endpoint.rstrip('/')}/openai/v1"
+            elif azure_deployment is not None:
                 base_url = f"{azure_endpoint.rstrip('/')}/openai/deployments/{azure_deployment}"
             else:
                 base_url = f"{azure_endpoint.rstrip('/')}/openai"
@@ -253,6 +262,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
         self._azure_ad_token_provider = azure_ad_token_provider
         self._azure_deployment = azure_deployment if azure_endpoint else None
         self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
+        self._is_v1_api = _is_v1_api
 
     @override
     def copy(
@@ -489,6 +499,9 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                 "Must provide either the `api_version` argument or the `OPENAI_API_VERSION` environment variable"
             )
 
+        # Check if using v1 API format (new Azure OpenAI API)
+        _is_v1_api = api_version in ("v1", "latest", "preview")
+
         if default_query is None:
             default_query = {"api-version": api_version}
         else:
@@ -503,7 +516,10 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
                     "Must provide one of the `base_url` or `azure_endpoint` arguments, or the `AZURE_OPENAI_ENDPOINT` environment variable"
                 )
 
-            if azure_deployment is not None:
+            if _is_v1_api:
+                # v1 API uses /openai/v1/ path without /deployments/
+                base_url = f"{azure_endpoint.rstrip('/')}/openai/v1"
+            elif azure_deployment is not None:
                 base_url = f"{azure_endpoint.rstrip('/')}/openai/deployments/{azure_deployment}"
             else:
                 base_url = f"{azure_endpoint.rstrip('/')}/openai"
@@ -534,6 +550,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
         self._azure_ad_token_provider = azure_ad_token_provider
         self._azure_deployment = azure_deployment if azure_endpoint else None
         self._azure_endpoint = httpx.URL(azure_endpoint) if azure_endpoint else None
+        self._is_v1_api = _is_v1_api
 
     @override
     def copy(
