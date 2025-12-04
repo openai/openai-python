@@ -38,3 +38,9 @@ class ContainerRetrieveResponse(BaseModel):
     point for the expiration. The minutes is the number of minutes after the anchor
     before the container expires.
     """
+
+    last_active_at: Optional[int] = None
+    """Unix timestamp (in seconds) when the container was last active."""
+
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
+    """The memory limit configured for the container."""

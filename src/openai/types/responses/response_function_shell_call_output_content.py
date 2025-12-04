@@ -27,10 +27,10 @@ Outcome: TypeAlias = Annotated[Union[OutcomeTimeout, OutcomeExit], PropertyInfo(
 
 class ResponseFunctionShellCallOutputContent(BaseModel):
     outcome: Outcome
-    """The exit or timeout outcome associated with this chunk."""
+    """The exit or timeout outcome associated with this shell call."""
 
     stderr: str
-    """Captured stderr output for this chunk of the shell call."""
+    """Captured stderr output for the shell call."""
 
     stdout: str
-    """Captured stdout output for this chunk of the shell call."""
+    """Captured stdout output for the shell call."""

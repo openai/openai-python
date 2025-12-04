@@ -175,6 +175,9 @@ from .realtime_response_usage_input_token_details import (
 from .response_function_call_arguments_done_event import (
     ResponseFunctionCallArgumentsDoneEvent as ResponseFunctionCallArgumentsDoneEvent,
 )
+from .input_audio_buffer_dtmf_event_received_event import (
+    InputAudioBufferDtmfEventReceivedEvent as InputAudioBufferDtmfEventReceivedEvent,
+)
 from .realtime_conversation_item_assistant_message import (
     RealtimeConversationItemAssistantMessage as RealtimeConversationItemAssistantMessage,
 )

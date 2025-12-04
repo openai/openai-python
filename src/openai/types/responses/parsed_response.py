@@ -6,7 +6,6 @@ from typing_extensions import Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from .response import Response
 from ..._models import GenericModel
-from ..._utils._transform import PropertyInfo
 from .response_output_item import (
     McpCall,
     McpListTools,
@@ -19,6 +18,7 @@ from .response_output_text import ResponseOutputText
 from .response_output_message import ResponseOutputMessage
 from .response_output_refusal import ResponseOutputRefusal
 from .response_reasoning_item import ResponseReasoningItem
+from .response_compaction_item import ResponseCompactionItem
 from .response_custom_tool_call import ResponseCustomToolCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
@@ -79,6 +79,7 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
         McpListTools,
         ResponseCodeInterpreterToolCall,
         ResponseCustomToolCall,
+        ResponseCompactionItem,
         ResponseFunctionShellToolCall,
         ResponseFunctionShellToolCallOutput,
         ResponseApplyPatchToolCall,
