@@ -3302,6 +3302,9 @@ class ResponsesWithRawResponse:
         self.cancel = _legacy_response.to_raw_response_wrapper(
             responses.cancel,
         )
+        self.compact = _legacy_response.to_raw_response_wrapper(
+            responses.compact,
+        )
 
     @cached_property
     def input_items(self) -> InputItemsWithRawResponse:
@@ -3327,6 +3330,9 @@ class AsyncResponsesWithRawResponse:
         )
         self.cancel = _legacy_response.async_to_raw_response_wrapper(
             responses.cancel,
+        )
+        self.compact = _legacy_response.to_raw_response_wrapper(
+            responses.compact,
         )
 
     @cached_property
