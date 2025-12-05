@@ -222,7 +222,7 @@ class AsyncRealtimeWithStreamingResponse:
 
 
 class AsyncRealtimeConnection:
-    """Represents a live websocket connection to the Realtime API"""
+    """Represents a live WebSocket connection to the Realtime API"""
 
     session: AsyncRealtimeSessionResource
     response: AsyncRealtimeResponseResource
@@ -399,7 +399,7 @@ class AsyncRealtimeConnectionManager:
 
 
 class RealtimeConnection:
-    """Represents a live websocket connection to the Realtime API"""
+    """Represents a live WebSocket connection to the Realtime API"""
 
     session: RealtimeSessionResource
     response: RealtimeResponseResource
