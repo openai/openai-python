@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.9.1 (2025-12-06)
+
+Full Changelog: [v2.9.0...v2.9.1](https://github.com/openai/openai-python/compare/v2.9.0...v2.9.1)
+
+### Chores
+
+* **internal:** update docstring ([9a993f2](https://github.com/openai/openai-python/commit/9a993f2261b6524aa30b955e006c7ea89f086968))
+
 ## 2.9.0 (2025-12-04)
 
 Full Changelog: [v2.8.1...v2.9.0](https://github.com/openai/openai-python/compare/v2.8.1...v2.9.0)
