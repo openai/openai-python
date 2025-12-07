@@ -236,9 +236,15 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
 
     async def __stream__(self) -> AsyncIterator[ChatCompletionStreamEvent[ResponseFormatT]]:
         async for sse_event in self._raw_stream:
-            if not _is_valid_chat_completion_chunk_weak(sse_event):
+            valid = _is_valid_chat_completion_chunk_weak(sse_event)
+            if valid is False:
                 continue
-            events_to_fire = self._state.handle_chunk(sse_event)
+    
+            try:
+                events_to_fire = self._state.handle_chunk(sse_event)
+            except Exception as e:
+                raise RuntimeError("Stream processing failed while handling a chunk") from e
+    
             for event in events_to_fire:
                 yield event
 
