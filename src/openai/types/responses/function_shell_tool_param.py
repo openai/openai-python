@@ -8,5 +8,7 @@ __all__ = ["FunctionShellToolParam"]
 
 
 class FunctionShellToolParam(TypedDict, total=False):
+    """A tool that allows the model to execute shell commands."""
+
     type: Required[Literal["shell"]]
     """The type of the shell tool. Always `shell`."""

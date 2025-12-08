@@ -8,6 +8,11 @@ __all__ = ["ToolChoiceTypes"]
 
 
 class ToolChoiceTypes(BaseModel):
+    """
+    Indicates that the model should use a built-in tool to generate a response.
+    [Learn more about built-in tools](https://platform.openai.com/docs/guides/tools).
+    """
+
     type: Literal[
         "file_search",
         "web_search_preview",

@@ -8,6 +8,8 @@ __all__ = ["ThreadDeleteResponse"]
 
 
 class ThreadDeleteResponse(BaseModel):
+    """Confirmation payload returned after deleting a thread."""
+
     id: str
     """Identifier of the deleted thread."""
 

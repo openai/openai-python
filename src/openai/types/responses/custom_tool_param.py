@@ -10,6 +10,11 @@ __all__ = ["CustomToolParam"]
 
 
 class CustomToolParam(TypedDict, total=False):
+    """A custom tool that processes input using a specified format.
+
+    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    """
+
     name: Required[str]
     """The name of the custom tool, used to identify it in tool calls."""
 

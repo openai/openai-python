@@ -8,6 +8,8 @@ __all__ = ["ResponseMcpListToolsCompletedEvent"]
 
 
 class ResponseMcpListToolsCompletedEvent(BaseModel):
+    """Emitted when the list of available MCP tools has been successfully retrieved."""
+
     item_id: str
     """The ID of the MCP tool call item that produced this output."""
 

@@ -8,6 +8,8 @@ __all__ = ["VideoDeleteResponse"]
 
 
 class VideoDeleteResponse(BaseModel):
+    """Confirmation payload returned after deleting a video."""
+
     id: str
     """Identifier of the deleted video."""
 

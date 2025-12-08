@@ -8,6 +8,10 @@ __all__ = ["ResponseMcpListToolsInProgressEvent"]
 
 
 class ResponseMcpListToolsInProgressEvent(BaseModel):
+    """
+    Emitted when the system is in the process of retrieving the list of available MCP tools.
+    """
+
     item_id: str
     """The ID of the MCP tool call item that is being processed."""
 

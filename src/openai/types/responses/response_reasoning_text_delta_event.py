@@ -8,6 +8,8 @@ __all__ = ["ResponseReasoningTextDeltaEvent"]
 
 
 class ResponseReasoningTextDeltaEvent(BaseModel):
+    """Emitted when a delta is added to a reasoning text."""
+
     content_index: int
     """The index of the reasoning content part this delta is associated with."""
 

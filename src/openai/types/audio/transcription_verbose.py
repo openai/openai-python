@@ -11,6 +11,8 @@ __all__ = ["TranscriptionVerbose", "Usage"]
 
 
 class Usage(BaseModel):
+    """Usage statistics for models billed by audio input duration."""
+
     seconds: float
     """Duration of the input audio in seconds."""
 
@@ -19,6 +21,10 @@ class Usage(BaseModel):
 
 
 class TranscriptionVerbose(BaseModel):
+    """
+    Represents a verbose json transcription response returned by model, based on the provided input.
+    """
+
     duration: float
     """The duration of the input audio."""
 

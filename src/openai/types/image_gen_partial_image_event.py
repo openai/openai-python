@@ -8,6 +8,8 @@ __all__ = ["ImageGenPartialImageEvent"]
 
 
 class ImageGenPartialImageEvent(BaseModel):
+    """Emitted when a partial image is available during image generation streaming."""
+
     b64_json: str
     """Base64-encoded partial image data, suitable for rendering as an image."""
 

@@ -9,6 +9,8 @@ __all__ = ["RealtimeConversationItemFunctionCallOutput"]
 
 
 class RealtimeConversationItemFunctionCallOutput(BaseModel):
+    """A function call output item in a Realtime conversation."""
+
     call_id: str
     """The ID of the function call this output is for."""
 

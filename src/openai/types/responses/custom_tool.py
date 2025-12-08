@@ -10,6 +10,11 @@ __all__ = ["CustomTool"]
 
 
 class CustomTool(BaseModel):
+    """A custom tool that processes input using a specified format.
+
+    Learn more about   [custom tools](https://platform.openai.com/docs/guides/function-calling#custom-tools)
+    """
+
     name: str
     """The name of the custom tool, used to identify it in tool calls."""
 

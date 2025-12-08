@@ -8,6 +8,8 @@ __all__ = ["ResponseImageGenCallPartialImageEvent"]
 
 
 class ResponseImageGenCallPartialImageEvent(BaseModel):
+    """Emitted when a partial image is available during image generation streaming."""
+
     item_id: str
     """The unique identifier of the image generation item being processed."""
 

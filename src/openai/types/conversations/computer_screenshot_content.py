@@ -9,6 +9,8 @@ __all__ = ["ComputerScreenshotContent"]
 
 
 class ComputerScreenshotContent(BaseModel):
+    """A screenshot of a computer."""
+
     file_id: Optional[str] = None
     """The identifier of an uploaded file that contains the screenshot."""
 

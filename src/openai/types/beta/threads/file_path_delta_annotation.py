@@ -14,6 +14,10 @@ class FilePath(BaseModel):
 
 
 class FilePathDeltaAnnotation(BaseModel):
+    """
+    A URL for the file that's generated when the assistant used the `code_interpreter` tool to generate a file.
+    """
+
     index: int
     """The index of the annotation in the text content part."""
 

@@ -9,6 +9,8 @@ __all__ = ["ResponseQueuedEvent"]
 
 
 class ResponseQueuedEvent(BaseModel):
+    """Emitted when a response is queued and waiting to be processed."""
+
     response: Response
     """The full response object that is queued."""
 

@@ -10,6 +10,8 @@ __all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchS
 
 
 class ActionSearchSource(BaseModel):
+    """A source used in the search."""
+
     type: Literal["url"]
     """The type of source. Always `url`."""
 
@@ -18,6 +20,8 @@ class ActionSearchSource(BaseModel):
 
 
 class ActionSearch(BaseModel):
+    """Action type "search" - Performs a web search query."""
+
     query: str
     """The search query."""
 
@@ -29,6 +33,8 @@ class ActionSearch(BaseModel):
 
 
 class ActionOpenPage(BaseModel):
+    """Action type "open_page" - Opens a specific URL from search results."""
+
     type: Literal["open_page"]
     """The action type."""
 
@@ -37,6 +43,8 @@ class ActionOpenPage(BaseModel):
 
 
 class ActionFind(BaseModel):
+    """Action type "find": Searches for a pattern within a loaded page."""
+
     pattern: str
     """The pattern or text to search for within the page."""
 
@@ -51,6 +59,12 @@ Action: TypeAlias = Annotated[Union[ActionSearch, ActionOpenPage, ActionFind], P
 
 
 class ResponseFunctionWebSearch(BaseModel):
+    """The results of a web search tool call.
+
+    See the
+    [web search guide](https://platform.openai.com/docs/guides/tools-web-search) for more information.
+    """
+
     id: str
     """The unique ID of the web search tool call."""
 

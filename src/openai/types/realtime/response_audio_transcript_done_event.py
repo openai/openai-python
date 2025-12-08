@@ -8,6 +8,12 @@ __all__ = ["ResponseAudioTranscriptDoneEvent"]
 
 
 class ResponseAudioTranscriptDoneEvent(BaseModel):
+    """
+    Returned when the model-generated transcription of audio output is done
+    streaming. Also emitted when a Response is interrupted, incomplete, or
+    cancelled.
+    """
+
     content_index: int
     """The index of the content part in the item's content array."""
 

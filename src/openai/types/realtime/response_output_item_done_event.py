@@ -9,6 +9,12 @@ __all__ = ["ResponseOutputItemDoneEvent"]
 
 
 class ResponseOutputItemDoneEvent(BaseModel):
+    """Returned when an Item is done streaming.
+
+    Also emitted when a Response is
+    interrupted, incomplete, or cancelled.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

@@ -31,12 +31,19 @@ class ToolResourcesFileSearch(BaseModel):
 
 
 class ToolResources(BaseModel):
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: Optional[ToolResourcesCodeInterpreter] = None
 
     file_search: Optional[ToolResourcesFileSearch] = None
 
 
 class Assistant(BaseModel):
+    """Represents an `assistant` that can call the model and use tools."""
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

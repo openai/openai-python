@@ -16,6 +16,8 @@ __all__ = [
 
 
 class UsageTranscriptTextUsageTokensInputTokenDetails(BaseModel):
+    """Details about the input tokens billed for this request."""
+
     audio_tokens: Optional[int] = None
     """Number of audio tokens billed for this request."""
 
@@ -24,6 +26,8 @@ class UsageTranscriptTextUsageTokensInputTokenDetails(BaseModel):
 
 
 class UsageTranscriptTextUsageTokens(BaseModel):
+    """Usage statistics for models billed by token usage."""
+
     input_tokens: int
     """Number of input tokens billed for this request."""
 
@@ -41,6 +45,8 @@ class UsageTranscriptTextUsageTokens(BaseModel):
 
 
 class UsageTranscriptTextUsageDuration(BaseModel):
+    """Usage statistics for models billed by audio input duration."""
+
     seconds: float
     """Duration of the input audio in seconds."""
 
@@ -52,6 +58,19 @@ Usage: TypeAlias = Union[UsageTranscriptTextUsageTokens, UsageTranscriptTextUsag
 
 
 class ConversationItemInputAudioTranscriptionCompletedEvent(BaseModel):
+    """
+    This event is the output of audio transcription for user audio written to the
+    user audio buffer. Transcription begins when the input audio buffer is
+    committed by the client or server (when VAD is enabled). Transcription runs
+    asynchronously with Response creation, so this event may come before or after
+    the Response events.
+
+    Realtime API models accept audio natively, and thus input transcription is a
+    separate process run on a separate ASR (Automatic Speech Recognition) model.
+    The transcript may diverge somewhat from the model's interpretation, and
+    should be treated as a rough guide.
+    """
+
     content_index: int
     """The index of the content part containing the audio."""
 

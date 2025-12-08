@@ -13,6 +13,8 @@ __all__ = ["Video"]
 
 
 class Video(BaseModel):
+    """Structured information describing a generated video job."""
+
     id: str
     """Unique identifier for the video job."""
 

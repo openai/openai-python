@@ -28,6 +28,14 @@ class ClientSecretCreateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """Configuration for the client secret expiration.
+
+    Expiration refers to the time after which
+    a client secret will no longer be valid for creating sessions. The session itself may
+    continue after that time once started. A secret can be used to create multiple sessions
+    until it expires.
+    """
+
     anchor: Literal["created_at"]
     """
     The anchor point for the client secret expiration, meaning that `seconds` will

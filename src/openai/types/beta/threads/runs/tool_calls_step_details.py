@@ -10,6 +10,8 @@ __all__ = ["ToolCallsStepDetails"]
 
 
 class ToolCallsStepDetails(BaseModel):
+    """Details of the tool call."""
+
     tool_calls: List[ToolCall]
     """An array of tool calls the run step was involved in.
 

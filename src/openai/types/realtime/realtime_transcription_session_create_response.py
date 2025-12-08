@@ -13,6 +13,8 @@ __all__ = ["RealtimeTranscriptionSessionCreateResponse", "Audio", "AudioInput", 
 
 
 class AudioInputNoiseReduction(BaseModel):
+    """Configuration for input audio noise reduction."""
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 
@@ -41,10 +43,14 @@ class AudioInput(BaseModel):
 
 
 class Audio(BaseModel):
+    """Configuration for input audio for the session."""
+
     input: Optional[AudioInput] = None
 
 
 class RealtimeTranscriptionSessionCreateResponse(BaseModel):
+    """A Realtime transcription session configuration object."""
+
     id: str
     """Unique identifier for the session that looks like `sess_1234567890abcdef`."""
 

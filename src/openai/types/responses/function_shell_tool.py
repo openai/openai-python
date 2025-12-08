@@ -8,5 +8,7 @@ __all__ = ["FunctionShellTool"]
 
 
 class FunctionShellTool(BaseModel):
+    """A tool that allows the model to execute shell commands."""
+
     type: Literal["shell"]
     """The type of the shell tool. Always `shell`."""

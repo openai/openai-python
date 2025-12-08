@@ -17,6 +17,8 @@ OutputOutputContentList: TypeAlias = Annotated[
 
 
 class ResponseCustomToolCallOutput(BaseModel):
+    """The output of a custom tool call from your code, being sent back to the model."""
+
     call_id: str
     """The call ID, used to map this custom tool call output to a custom tool call."""
 

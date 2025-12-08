@@ -6,5 +6,7 @@ __all__ = ["ChatSessionAutomaticThreadTitling"]
 
 
 class ChatSessionAutomaticThreadTitling(BaseModel):
+    """Automatic thread title preferences for the session."""
+
     enabled: bool
     """Whether automatic thread titling is enabled."""

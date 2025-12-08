@@ -9,6 +9,8 @@ __all__ = ["ResponseReasoningItem", "Summary", "Content"]
 
 
 class Summary(BaseModel):
+    """A summary text from the model."""
+
     text: str
     """A summary of the reasoning output from the model so far."""
 
@@ -17,6 +19,8 @@ class Summary(BaseModel):
 
 
 class Content(BaseModel):
+    """Reasoning text from the model."""
+
     text: str
     """The reasoning text from the model."""
 
@@ -25,6 +29,13 @@ class Content(BaseModel):
 
 
 class ResponseReasoningItem(BaseModel):
+    """
+    A description of the chain of thought used by a reasoning model while generating
+    a response. Be sure to include these items in your `input` to the Responses API
+    for subsequent turns of a conversation if you are manually
+    [managing context](https://platform.openai.com/docs/guides/conversation-state).
+    """
+
     id: str
     """The unique identifier of the reasoning content."""
 

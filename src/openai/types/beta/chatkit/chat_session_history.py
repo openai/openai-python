@@ -8,6 +8,8 @@ __all__ = ["ChatSessionHistory"]
 
 
 class ChatSessionHistory(BaseModel):
+    """History retention preferences returned for the session."""
+
     enabled: bool
     """Indicates if chat history is persisted for the session."""
 

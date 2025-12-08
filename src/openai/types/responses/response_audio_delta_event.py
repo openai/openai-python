@@ -8,6 +8,8 @@ __all__ = ["ResponseAudioDeltaEvent"]
 
 
 class ResponseAudioDeltaEvent(BaseModel):
+    """Emitted when there is a partial audio response."""
+
     delta: str
     """A chunk of Base64 encoded response audio bytes."""
 

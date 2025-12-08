@@ -10,6 +10,8 @@ __all__ = ["ImagesResponse", "Usage", "UsageInputTokensDetails"]
 
 
 class UsageInputTokensDetails(BaseModel):
+    """The input tokens detailed information for the image generation."""
+
     image_tokens: int
     """The number of image tokens in the input prompt."""
 
@@ -18,6 +20,8 @@ class UsageInputTokensDetails(BaseModel):
 
 
 class Usage(BaseModel):
+    """For `gpt-image-1` only, the token usage information for the image generation."""
+
     input_tokens: int
     """The number of tokens (images and text) in the input prompt."""
 
@@ -32,6 +36,8 @@ class Usage(BaseModel):
 
 
 class ImagesResponse(BaseModel):
+    """The response from the image generation endpoint."""
+
     created: int
     """The Unix timestamp (in seconds) of when the image was created."""
 

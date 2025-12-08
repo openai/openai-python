@@ -13,6 +13,8 @@ Filter: TypeAlias = Union[ComparisonFilter, object]
 
 
 class CompoundFilter(TypedDict, total=False):
+    """Combine multiple filters using `and` or `or`."""
+
     filters: Required[Iterable[Filter]]
     """Array of filters to combine.
 

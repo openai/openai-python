@@ -8,6 +8,8 @@ __all__ = ["ConversationItemInputAudioTranscriptionSegment"]
 
 
 class ConversationItemInputAudioTranscriptionSegment(BaseModel):
+    """Returned when an input audio transcription segment is identified for an item."""
+
     id: str
     """The segment identifier."""
 

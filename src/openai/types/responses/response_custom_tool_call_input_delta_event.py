@@ -8,6 +8,8 @@ __all__ = ["ResponseCustomToolCallInputDeltaEvent"]
 
 
 class ResponseCustomToolCallInputDeltaEvent(BaseModel):
+    """Event representing a delta (partial update) to the input of a custom tool call."""
+
     delta: str
     """The incremental input data (delta) for the custom tool call."""
 

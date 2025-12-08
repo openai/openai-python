@@ -8,5 +8,7 @@ __all__ = ["ResponseConversationParam"]
 
 
 class ResponseConversationParam(TypedDict, total=False):
+    """The conversation that this response belongs to."""
+
     id: Required[str]
     """The unique ID of the conversation."""

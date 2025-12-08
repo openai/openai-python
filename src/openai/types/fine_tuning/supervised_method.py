@@ -9,5 +9,7 @@ __all__ = ["SupervisedMethod"]
 
 
 class SupervisedMethod(BaseModel):
+    """Configuration for the supervised fine-tuning method."""
+
     hyperparameters: Optional[SupervisedHyperparameters] = None
     """The hyperparameters used for the fine-tuning job."""

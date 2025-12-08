@@ -9,6 +9,11 @@ __all__ = ["FunctionTool"]
 
 
 class FunctionTool(BaseModel):
+    """Defines a function in your own code the model can choose to call.
+
+    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    """
+
     name: str
     """The name of the function to call."""
 

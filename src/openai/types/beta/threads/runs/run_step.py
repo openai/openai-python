@@ -13,6 +13,11 @@ __all__ = ["RunStep", "LastError", "StepDetails", "Usage"]
 
 
 class LastError(BaseModel):
+    """The last error associated with this run step.
+
+    Will be `null` if there are no errors.
+    """
+
     code: Literal["server_error", "rate_limit_exceeded"]
     """One of `server_error` or `rate_limit_exceeded`."""
 
@@ -26,6 +31,11 @@ StepDetails: TypeAlias = Annotated[
 
 
 class Usage(BaseModel):
+    """Usage statistics related to the run step.
+
+    This value will be `null` while the run step's status is `in_progress`.
+    """
+
     completion_tokens: int
     """Number of completion tokens used over the course of the run step."""
 
@@ -37,6 +47,8 @@ class Usage(BaseModel):
 
 
 class RunStep(BaseModel):
+    """Represents a step in execution of a run."""
+
     id: str
     """The identifier of the run step, which can be referenced in API endpoints."""
 

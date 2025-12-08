@@ -8,6 +8,11 @@ __all__ = ["ToolChoiceTypesParam"]
 
 
 class ToolChoiceTypesParam(TypedDict, total=False):
+    """
+    Indicates that the model should use a built-in tool to generate a response.
+    [Learn more about built-in tools](https://platform.openai.com/docs/guides/tools).
+    """
+
     type: Required[
         Literal[
             "file_search",

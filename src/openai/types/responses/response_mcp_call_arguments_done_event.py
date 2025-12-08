@@ -8,6 +8,8 @@ __all__ = ["ResponseMcpCallArgumentsDoneEvent"]
 
 
 class ResponseMcpCallArgumentsDoneEvent(BaseModel):
+    """Emitted when the arguments for an MCP tool call are finalized."""
+
     arguments: str
     """A JSON string containing the finalized arguments for the MCP tool call."""
 

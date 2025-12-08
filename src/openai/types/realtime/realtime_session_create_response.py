@@ -40,6 +40,13 @@ __all__ = [
 
 
 class AudioInputNoiseReduction(BaseModel):
+    """Configuration for input audio noise reduction.
+
+    This can be set to `null` to turn off.
+    Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
+    Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
+    """
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 
@@ -49,6 +56,10 @@ class AudioInputNoiseReduction(BaseModel):
 
 
 class AudioInputTurnDetectionServerVad(BaseModel):
+    """
+    Server-side voice activity detection (VAD) which flips on when user speech is detected and off after a period of silence.
+    """
+
     type: Literal["server_vad"]
     """Type of turn detection, `server_vad` to turn on simple Server VAD."""
 
@@ -115,6 +126,10 @@ class AudioInputTurnDetectionServerVad(BaseModel):
 
 
 class AudioInputTurnDetectionSemanticVad(BaseModel):
+    """
+    Server-side semantic turn detection which uses a model to determine when the user has finished speaking.
+    """
+
     type: Literal["semantic_vad"]
     """Type of turn detection, `semantic_vad` to turn on Semantic VAD."""
 
@@ -218,6 +233,8 @@ class AudioOutput(BaseModel):
 
 
 class Audio(BaseModel):
+    """Configuration for input and output audio."""
+
     input: Optional[AudioInput] = None
 
     output: Optional[AudioOutput] = None
@@ -227,6 +244,8 @@ ToolChoice: TypeAlias = Union[ToolChoiceOptions, ToolChoiceFunction, ToolChoiceM
 
 
 class ToolMcpToolAllowedToolsMcpToolFilter(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -243,6 +262,8 @@ ToolMcpToolAllowedTools: TypeAlias = Union[List[str], ToolMcpToolAllowedToolsMcp
 
 
 class ToolMcpToolRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -256,6 +277,8 @@ class ToolMcpToolRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
 
 
 class ToolMcpToolRequireApprovalMcpToolApprovalFilterNever(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -269,6 +292,13 @@ class ToolMcpToolRequireApprovalMcpToolApprovalFilterNever(BaseModel):
 
 
 class ToolMcpToolRequireApprovalMcpToolApprovalFilter(BaseModel):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: Optional[ToolMcpToolRequireApprovalMcpToolApprovalFilterAlways] = None
     """A filter object to specify which tools are allowed."""
 
@@ -282,6 +312,11 @@ ToolMcpToolRequireApproval: TypeAlias = Union[
 
 
 class ToolMcpTool(BaseModel):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: str
     """A label for this MCP server, used to identify it in tool calls."""
 
@@ -351,6 +386,8 @@ Tool: TypeAlias = Union[RealtimeFunctionTool, ToolMcpTool]
 
 
 class TracingTracingConfiguration(BaseModel):
+    """Granular configuration for tracing."""
+
     group_id: Optional[str] = None
     """
     The group id to attach to this trace to enable filtering and grouping in the
@@ -374,6 +411,12 @@ Tracing: TypeAlias = Union[Literal["auto"], TracingTracingConfiguration, None]
 
 
 class RealtimeSessionCreateResponse(BaseModel):
+    """A new Realtime session configuration, with an ephemeral key.
+
+    Default TTL
+    for keys is one minute.
+    """
+
     client_secret: RealtimeSessionClientSecret
     """Ephemeral key returned by the API."""
 

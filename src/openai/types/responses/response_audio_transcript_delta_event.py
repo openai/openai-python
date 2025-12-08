@@ -8,6 +8,8 @@ __all__ = ["ResponseAudioTranscriptDeltaEvent"]
 
 
 class ResponseAudioTranscriptDeltaEvent(BaseModel):
+    """Emitted when there is a partial transcript of audio."""
+
     delta: str
     """The partial transcript of the audio response."""
 

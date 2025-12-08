@@ -9,6 +9,8 @@ __all__ = ["ResponseCreatedEvent"]
 
 
 class ResponseCreatedEvent(BaseModel):
+    """An event that is emitted when a response is created."""
+
     response: Response
     """The response that was created."""
 

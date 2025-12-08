@@ -6,6 +6,8 @@ __all__ = ["RealtimeSessionClientSecret"]
 
 
 class RealtimeSessionClientSecret(BaseModel):
+    """Ephemeral key returned by the API."""
+
     expires_at: int
     """Timestamp for when the token expires.
 

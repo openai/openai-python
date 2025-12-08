@@ -9,6 +9,8 @@ __all__ = ["FunctionToolCallDelta", "Function"]
 
 
 class Function(BaseModel):
+    """The definition of the function that was called."""
+
     arguments: Optional[str] = None
     """The arguments passed to the function."""
 

@@ -21,6 +21,8 @@ class ImageURL(BaseModel):
 
 
 class ChatCompletionContentPartImage(BaseModel):
+    """Learn about [image inputs](https://platform.openai.com/docs/guides/vision)."""
+
     image_url: ImageURL
 
     type: Literal["image_url"]

@@ -9,6 +9,11 @@ __all__ = ["ResponseInputImageContentParam"]
 
 
 class ResponseInputImageContentParam(TypedDict, total=False):
+    """An image input to the model.
+
+    Learn about [image inputs](https://platform.openai.com/docs/guides/vision)
+    """
+
     type: Required[Literal["input_image"]]
     """The type of the input item. Always `input_image`."""
 
