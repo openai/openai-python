@@ -10,6 +10,8 @@ __all__ = ["ImageURLDeltaBlock"]
 
 
 class ImageURLDeltaBlock(BaseModel):
+    """References an image URL in the content of a message."""
+
     index: int
     """The index of the content part in the message."""
 

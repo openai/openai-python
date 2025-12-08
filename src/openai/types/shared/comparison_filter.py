@@ -9,6 +9,10 @@ __all__ = ["ComparisonFilter"]
 
 
 class ComparisonFilter(BaseModel):
+    """
+    A filter used to compare a specified attribute key to a given value using a defined comparison operation.
+    """
+
     key: str
     """The key to compare against the value."""
 

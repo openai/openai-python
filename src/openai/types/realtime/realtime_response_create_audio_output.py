@@ -26,4 +26,6 @@ class Output(BaseModel):
 
 
 class RealtimeResponseCreateAudioOutput(BaseModel):
+    """Configuration for audio input and output."""
+
     output: Optional[Output] = None

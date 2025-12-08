@@ -9,6 +9,8 @@ __all__ = ["ResponseInputFile"]
 
 
 class ResponseInputFile(BaseModel):
+    """A file input to the model."""
+
     type: Literal["input_file"]
     """The type of the input item. Always `input_file`."""
 

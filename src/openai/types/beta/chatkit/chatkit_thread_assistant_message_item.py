@@ -10,6 +10,8 @@ __all__ = ["ChatKitThreadAssistantMessageItem"]
 
 
 class ChatKitThreadAssistantMessageItem(BaseModel):
+    """Assistant-authored message within a thread."""
+
     id: str
     """Identifier of the thread item."""
 

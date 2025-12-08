@@ -8,6 +8,8 @@ __all__ = ["ResponseAudioDeltaEvent"]
 
 
 class ResponseAudioDeltaEvent(BaseModel):
+    """Returned when the model-generated audio is updated."""
+
     content_index: int
     """The index of the content part in the item's content array."""
 

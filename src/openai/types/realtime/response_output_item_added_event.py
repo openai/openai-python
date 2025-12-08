@@ -9,6 +9,8 @@ __all__ = ["ResponseOutputItemAddedEvent"]
 
 
 class ResponseOutputItemAddedEvent(BaseModel):
+    """Returned when a new Item is created during Response generation."""
+
     event_id: str
     """The unique ID of the server event."""
 

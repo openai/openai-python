@@ -34,6 +34,8 @@ __all__ = [
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -50,6 +52,8 @@ McpAllowedTools: TypeAlias = Union[SequenceNotStr[str], McpAllowedToolsMcpToolFi
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -63,6 +67,8 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
 
 
 class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -76,6 +82,13 @@ class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
 
 
 class McpRequireApprovalMcpToolApprovalFilter(TypedDict, total=False):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: McpRequireApprovalMcpToolApprovalFilterAlways
     """A filter object to specify which tools are allowed."""
 
@@ -87,6 +100,11 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 
 
 class Mcp(TypedDict, total=False):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: Required[str]
     """A label for this MCP server, used to identify it in tool calls."""
 
@@ -151,6 +169,11 @@ class Mcp(TypedDict, total=False):
 
 
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
+    """Configuration for a code interpreter container.
+
+    Optionally specify the IDs of the files to run the code on.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -164,6 +187,8 @@ CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInt
 
 
 class CodeInterpreter(TypedDict, total=False):
+    """A tool that runs Python code to help generate a response to a prompt."""
+
     container: Required[CodeInterpreterContainer]
     """The code interpreter container.
 
@@ -176,6 +201,12 @@ class CodeInterpreter(TypedDict, total=False):
 
 
 class ImageGenerationInputImageMask(TypedDict, total=False):
+    """Optional mask for inpainting.
+
+    Contains `image_url`
+    (string, optional) and `file_id` (string, optional).
+    """
+
     file_id: str
     """File ID for the mask image."""
 
@@ -184,6 +215,8 @@ class ImageGenerationInputImageMask(TypedDict, total=False):
 
 
 class ImageGeneration(TypedDict, total=False):
+    """A tool that generates images using a model like `gpt-image-1`."""
+
     type: Required[Literal["image_generation"]]
     """The type of the image generation tool. Always `image_generation`."""
 
@@ -242,6 +275,8 @@ class ImageGeneration(TypedDict, total=False):
 
 
 class LocalShell(TypedDict, total=False):
+    """A tool that allows the model to execute shell commands in a local environment."""
+
     type: Required[Literal["local_shell"]]
     """The type of the local shell tool. Always `local_shell`."""
 

@@ -9,6 +9,12 @@ __all__ = ["ResponseFunctionToolCall"]
 
 
 class ResponseFunctionToolCall(BaseModel):
+    """A tool call to run a function.
+
+    See the
+    [function calling guide](https://platform.openai.com/docs/guides/function-calling) for more information.
+    """
+
     arguments: str
     """A JSON string of the arguments to pass to the function."""
 

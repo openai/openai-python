@@ -8,6 +8,8 @@ __all__ = ["ResponseOutputRefusal"]
 
 
 class ResponseOutputRefusal(BaseModel):
+    """A refusal from the model."""
+
     refusal: str
     """The refusal explanation from the model."""
 

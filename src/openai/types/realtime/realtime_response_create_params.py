@@ -22,6 +22,8 @@ Tool: TypeAlias = Union[RealtimeFunctionTool, RealtimeResponseCreateMcpTool]
 
 
 class RealtimeResponseCreateParams(BaseModel):
+    """Create a new Realtime response with these parameters"""
+
     audio: Optional[RealtimeResponseCreateAudioOutput] = None
     """Configuration for audio input and output."""
 

@@ -16,6 +16,8 @@ class InputAudio(TypedDict, total=False):
 
 
 class ResponseInputAudioParam(TypedDict, total=False):
+    """An audio input to the model."""
+
     input_audio: Required[InputAudio]
 
     type: Required[Literal["input_audio"]]

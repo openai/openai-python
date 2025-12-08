@@ -9,6 +9,8 @@ __all__ = ["WebSearchPreviewToolParam", "UserLocation"]
 
 
 class UserLocation(TypedDict, total=False):
+    """The user's location."""
+
     type: Required[Literal["approximate"]]
     """The type of location approximation. Always `approximate`."""
 
@@ -32,6 +34,11 @@ class UserLocation(TypedDict, total=False):
 
 
 class WebSearchPreviewToolParam(TypedDict, total=False):
+    """This tool searches the web for relevant results to use in a response.
+
+    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    """
+
     type: Required[Literal["web_search_preview", "web_search_preview_2025_03_11"]]
     """The type of the web search tool.
 

@@ -10,6 +10,8 @@ __all__ = ["FineTuningJobEvent"]
 
 
 class FineTuningJobEvent(BaseModel):
+    """Fine-tuning job event object"""
+
     id: str
     """The object identifier."""
 

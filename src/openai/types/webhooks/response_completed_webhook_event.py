@@ -9,11 +9,15 @@ __all__ = ["ResponseCompletedWebhookEvent", "Data"]
 
 
 class Data(BaseModel):
+    """Event data payload."""
+
     id: str
     """The unique ID of the model response."""
 
 
 class ResponseCompletedWebhookEvent(BaseModel):
+    """Sent when a background response has been completed."""
+
     id: str
     """The unique ID of the event."""
 

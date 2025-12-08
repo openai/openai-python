@@ -25,4 +25,6 @@ class Output(TypedDict, total=False):
 
 
 class RealtimeResponseCreateAudioOutputParam(TypedDict, total=False):
+    """Configuration for audio input and output."""
+
     output: Output

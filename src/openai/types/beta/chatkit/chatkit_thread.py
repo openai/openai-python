@@ -10,11 +10,15 @@ __all__ = ["ChatKitThread", "Status", "StatusActive", "StatusLocked", "StatusClo
 
 
 class StatusActive(BaseModel):
+    """Indicates that a thread is active."""
+
     type: Literal["active"]
     """Status discriminator that is always `active`."""
 
 
 class StatusLocked(BaseModel):
+    """Indicates that a thread is locked and cannot accept new input."""
+
     reason: Optional[str] = None
     """Reason that the thread was locked. Defaults to null when no reason is recorded."""
 
@@ -23,6 +27,8 @@ class StatusLocked(BaseModel):
 
 
 class StatusClosed(BaseModel):
+    """Indicates that a thread has been closed."""
+
     reason: Optional[str] = None
     """Reason that the thread was closed. Defaults to null when no reason is recorded."""
 
@@ -34,6 +40,8 @@ Status: TypeAlias = Annotated[Union[StatusActive, StatusLocked, StatusClosed], P
 
 
 class ChatKitThread(BaseModel):
+    """Represents a ChatKit thread and its current status."""
+
     id: str
     """Identifier of the thread."""
 

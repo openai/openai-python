@@ -9,6 +9,8 @@ __all__ = ["ResponseFormatJSONSchema", "JSONSchema"]
 
 
 class JSONSchema(TypedDict, total=False):
+    """Structured Outputs configuration options, including a JSON Schema."""
+
     name: Required[str]
     """The name of the response format.
 
@@ -39,6 +41,12 @@ class JSONSchema(TypedDict, total=False):
 
 
 class ResponseFormatJSONSchema(TypedDict, total=False):
+    """JSON Schema response format.
+
+    Used to generate structured JSON responses.
+    Learn more about [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs).
+    """
+
     json_schema: Required[JSONSchema]
     """Structured Outputs configuration options, including a JSON Schema."""
 

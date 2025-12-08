@@ -16,6 +16,8 @@ __all__ = [
 
 
 class OperationCreateFile(BaseModel):
+    """Instruction describing how to create a file via the apply_patch tool."""
+
     diff: str
     """Diff to apply."""
 
@@ -27,6 +29,8 @@ class OperationCreateFile(BaseModel):
 
 
 class OperationDeleteFile(BaseModel):
+    """Instruction describing how to delete a file via the apply_patch tool."""
+
     path: str
     """Path of the file to delete."""
 
@@ -35,6 +39,8 @@ class OperationDeleteFile(BaseModel):
 
 
 class OperationUpdateFile(BaseModel):
+    """Instruction describing how to update a file via the apply_patch tool."""
+
     diff: str
     """Diff to apply."""
 
@@ -51,6 +57,8 @@ Operation: TypeAlias = Annotated[
 
 
 class ResponseApplyPatchToolCall(BaseModel):
+    """A tool call that applies file diffs by creating, deleting, or updating files."""
+
     id: str
     """The unique ID of the apply patch tool call.
 

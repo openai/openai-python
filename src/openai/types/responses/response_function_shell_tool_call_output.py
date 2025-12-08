@@ -16,11 +16,15 @@ __all__ = [
 
 
 class OutputOutcomeTimeout(BaseModel):
+    """Indicates that the shell call exceeded its configured time limit."""
+
     type: Literal["timeout"]
     """The outcome type. Always `timeout`."""
 
 
 class OutputOutcomeExit(BaseModel):
+    """Indicates that the shell commands finished and returned an exit code."""
+
     exit_code: int
     """Exit code from the shell process."""
 
@@ -32,6 +36,8 @@ OutputOutcome: TypeAlias = Annotated[Union[OutputOutcomeTimeout, OutputOutcomeEx
 
 
 class Output(BaseModel):
+    """The content of a shell call output."""
+
     outcome: OutputOutcome
     """
     Represents either an exit outcome (with an exit code) or a timeout outcome for a
@@ -46,6 +52,8 @@ class Output(BaseModel):
 
 
 class ResponseFunctionShellToolCallOutput(BaseModel):
+    """The output of a shell tool call."""
+
     id: str
     """The unique ID of the shell call output.
 

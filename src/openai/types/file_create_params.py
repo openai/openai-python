@@ -32,6 +32,11 @@ class FileCreateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """The expiration policy for a file.
+
+    By default, files with `purpose=batch` expire after 30 days and all other files are persisted until they are manually deleted.
+    """
+
     anchor: Required[Literal["created_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

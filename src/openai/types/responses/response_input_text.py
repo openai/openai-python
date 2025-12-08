@@ -8,6 +8,8 @@ __all__ = ["ResponseInputText"]
 
 
 class ResponseInputText(BaseModel):
+    """A text input to the model."""
+
     text: str
     """The text input to the model."""
 

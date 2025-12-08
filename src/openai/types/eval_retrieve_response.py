@@ -28,6 +28,13 @@ __all__ = [
 
 
 class DataSourceConfigLogs(BaseModel):
+    """
+    A LogsDataSourceConfig which specifies the metadata property of your logs query.
+    This is usually metadata like `usecase=chatbot` or `prompt-version=v2`, etc.
+    The schema returned by this data source config is used to defined what variables are available in your evals.
+    `item` and `sample` are both defined when using this data source config.
+    """
+
     schema_: Dict[str, object] = FieldInfo(alias="schema")
     """
     The json schema for the run data source items. Learn how to build JSON schemas
@@ -56,18 +63,21 @@ DataSourceConfig: TypeAlias = Annotated[
 
 class TestingCriterionEvalGraderTextSimilarity(TextSimilarityGrader):
     __test__ = False
+    """A TextSimilarityGrader object which grades text based on similarity metrics."""
     pass_threshold: float
     """The threshold for the score."""
 
 
 class TestingCriterionEvalGraderPython(PythonGrader):
     __test__ = False
+    """A PythonGrader object that runs a python script on the input."""
     pass_threshold: Optional[float] = None
     """The threshold for the score."""
 
 
 class TestingCriterionEvalGraderScoreModel(ScoreModelGrader):
     __test__ = False
+    """A ScoreModelGrader object that uses a model to assign a score to the input."""
     pass_threshold: Optional[float] = None
     """The threshold for the score."""
 
@@ -82,6 +92,15 @@ TestingCriterion: TypeAlias = Union[
 
 
 class EvalRetrieveResponse(BaseModel):
+    """
+    An Eval object with a data source config and testing criteria.
+    An Eval represents a task to be done for your LLM integration.
+    Like:
+     - Improve the quality of my chatbot
+     - See how well my chatbot handles customer support
+     - Check if o4-mini is better at my usecase than gpt-4o
+    """
+
     id: str
     """Unique identifier for the evaluation."""
 

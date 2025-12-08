@@ -13,6 +13,11 @@ class Custom(TypedDict, total=False):
 
 
 class ChatCompletionNamedToolChoiceCustomParam(TypedDict, total=False):
+    """Specifies a tool the model should use.
+
+    Use to force the model to call a specific custom tool.
+    """
+
     custom: Required[Custom]
 
     type: Required[Literal["custom"]]

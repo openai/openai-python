@@ -27,6 +27,10 @@ class FileFile(TypedDict, total=False):
 
 
 class File(TypedDict, total=False):
+    """
+    Learn about [file inputs](https://platform.openai.com/docs/guides/text) for text generation.
+    """
+
     file: Required[FileFile]
 
     type: Required[Literal["file"]]

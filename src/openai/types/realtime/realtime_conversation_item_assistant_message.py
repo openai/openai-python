@@ -33,6 +33,8 @@ class Content(BaseModel):
 
 
 class RealtimeConversationItemAssistantMessage(BaseModel):
+    """An assistant message item in a Realtime conversation."""
+
     content: List[Content]
     """The content of the message."""
 

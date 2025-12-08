@@ -28,6 +28,8 @@ __all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
 
 class IncompleteDetails(BaseModel):
+    """Details about why the response is incomplete."""
+
     reason: Optional[Literal["max_output_tokens", "content_filter"]] = None
     """The reason why the response is incomplete."""
 
@@ -45,6 +47,11 @@ ToolChoice: TypeAlias = Union[
 
 
 class Conversation(BaseModel):
+    """The conversation that this response belongs to.
+
+    Input items and output items from this response are automatically added to this conversation.
+    """
+
     id: str
     """The unique ID of the conversation."""
 

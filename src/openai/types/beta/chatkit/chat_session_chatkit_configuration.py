@@ -9,6 +9,8 @@ __all__ = ["ChatSessionChatKitConfiguration"]
 
 
 class ChatSessionChatKitConfiguration(BaseModel):
+    """ChatKit configuration for the session."""
+
     automatic_thread_titling: ChatSessionAutomaticThreadTitling
     """Automatic thread titling preferences."""
 

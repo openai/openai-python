@@ -9,6 +9,12 @@ __all__ = ["ChatCompletionAudioParam"]
 
 
 class ChatCompletionAudioParam(TypedDict, total=False):
+    """Parameters for audio output.
+
+    Required when audio output is requested with
+    `modalities: ["audio"]`. [Learn more](https://platform.openai.com/docs/guides/audio).
+    """
+
     format: Required[Literal["wav", "aac", "mp3", "flac", "opus", "pcm16"]]
     """Specifies the output audio format.
 

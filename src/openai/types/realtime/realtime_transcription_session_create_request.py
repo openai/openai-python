@@ -10,6 +10,8 @@ __all__ = ["RealtimeTranscriptionSessionCreateRequest"]
 
 
 class RealtimeTranscriptionSessionCreateRequest(BaseModel):
+    """Realtime transcription session object configuration."""
+
     type: Literal["transcription"]
     """The type of session to create.
 

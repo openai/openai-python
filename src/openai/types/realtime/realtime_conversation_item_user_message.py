@@ -44,6 +44,8 @@ class Content(BaseModel):
 
 
 class RealtimeConversationItemUserMessage(BaseModel):
+    """A user message item in a Realtime conversation."""
+
     content: List[Content]
     """The content of the message."""
 

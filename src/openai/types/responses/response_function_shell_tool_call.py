@@ -9,6 +9,8 @@ __all__ = ["ResponseFunctionShellToolCall", "Action"]
 
 
 class Action(BaseModel):
+    """The shell commands and limits that describe how to run the tool call."""
+
     commands: List[str]
 
     max_output_length: Optional[int] = None
@@ -19,6 +21,8 @@ class Action(BaseModel):
 
 
 class ResponseFunctionShellToolCall(BaseModel):
+    """A tool call that executes one or more shell commands in a managed environment."""
+
     id: str
     """The unique ID of the shell tool call.
 

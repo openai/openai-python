@@ -21,6 +21,8 @@ class Logprob(BaseModel):
 
 
 class UsageTokensInputTokenDetails(BaseModel):
+    """Details about the input tokens billed for this request."""
+
     audio_tokens: Optional[int] = None
     """Number of audio tokens billed for this request."""
 
@@ -29,6 +31,8 @@ class UsageTokensInputTokenDetails(BaseModel):
 
 
 class UsageTokens(BaseModel):
+    """Usage statistics for models billed by token usage."""
+
     input_tokens: int
     """Number of input tokens billed for this request."""
 
@@ -46,6 +50,8 @@ class UsageTokens(BaseModel):
 
 
 class UsageDuration(BaseModel):
+    """Usage statistics for models billed by audio input duration."""
+
     seconds: float
     """Duration of the input audio in seconds."""
 
@@ -57,6 +63,10 @@ Usage: TypeAlias = Annotated[Union[UsageTokens, UsageDuration], PropertyInfo(dis
 
 
 class Transcription(BaseModel):
+    """
+    Represents a transcription response returned by model, based on the provided input.
+    """
+
     text: str
     """The transcribed text."""
 

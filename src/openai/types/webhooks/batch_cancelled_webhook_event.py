@@ -9,11 +9,15 @@ __all__ = ["BatchCancelledWebhookEvent", "Data"]
 
 
 class Data(BaseModel):
+    """Event data payload."""
+
     id: str
     """The unique ID of the batch API request."""
 
 
 class BatchCancelledWebhookEvent(BaseModel):
+    """Sent when a batch API request has been cancelled."""
+
     id: str
     """The unique ID of the event."""
 

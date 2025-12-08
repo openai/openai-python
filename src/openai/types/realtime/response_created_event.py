@@ -9,6 +9,12 @@ __all__ = ["ResponseCreatedEvent"]
 
 
 class ResponseCreatedEvent(BaseModel):
+    """Returned when a new Response is created.
+
+    The first event of response creation,
+    where the response is in an initial state of `in_progress`.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

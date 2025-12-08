@@ -8,6 +8,8 @@ __all__ = ["CompletionUsage", "CompletionTokensDetails", "PromptTokensDetails"]
 
 
 class CompletionTokensDetails(BaseModel):
+    """Breakdown of tokens used in a completion."""
+
     accepted_prediction_tokens: Optional[int] = None
     """
     When using Predicted Outputs, the number of tokens in the prediction that
@@ -30,6 +32,8 @@ class CompletionTokensDetails(BaseModel):
 
 
 class PromptTokensDetails(BaseModel):
+    """Breakdown of tokens used in the prompt."""
+
     audio_tokens: Optional[int] = None
     """Audio input tokens present in the prompt."""
 
@@ -38,6 +42,8 @@ class PromptTokensDetails(BaseModel):
 
 
 class CompletionUsage(BaseModel):
+    """Usage statistics for the completion request."""
+
     completion_tokens: int
     """Number of tokens in the generated completion."""
 

@@ -10,6 +10,8 @@ __all__ = ["CreateEmbeddingResponse", "Usage"]
 
 
 class Usage(BaseModel):
+    """The usage information for the request."""
+
     prompt_tokens: int
     """The number of tokens used by the prompt."""
 

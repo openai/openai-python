@@ -283,6 +283,8 @@ Conversation: TypeAlias = Union[str, ResponseConversationParam]
 
 
 class StreamOptions(TypedDict, total=False):
+    """Options for streaming responses. Only set this when you set `stream: true`."""
+
     include_obfuscation: bool
     """When true, stream obfuscation will be enabled.
 

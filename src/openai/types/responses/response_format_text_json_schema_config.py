@@ -11,6 +11,12 @@ __all__ = ["ResponseFormatTextJSONSchemaConfig"]
 
 
 class ResponseFormatTextJSONSchemaConfig(BaseModel):
+    """JSON Schema response format.
+
+    Used to generate structured JSON responses.
+    Learn more about [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs).
+    """
+
     name: str
     """The name of the response format.
 

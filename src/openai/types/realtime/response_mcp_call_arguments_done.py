@@ -8,6 +8,8 @@ __all__ = ["ResponseMcpCallArgumentsDone"]
 
 
 class ResponseMcpCallArgumentsDone(BaseModel):
+    """Returned when MCP tool call arguments are finalized during response generation."""
+
     arguments: str
     """The final JSON-encoded arguments string."""
 

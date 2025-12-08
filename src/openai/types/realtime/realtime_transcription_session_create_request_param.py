@@ -11,6 +11,8 @@ __all__ = ["RealtimeTranscriptionSessionCreateRequestParam"]
 
 
 class RealtimeTranscriptionSessionCreateRequestParam(TypedDict, total=False):
+    """Realtime transcription session object configuration."""
+
     type: Required[Literal["transcription"]]
     """The type of session to create.
 
