@@ -1,0 +1,18 @@
+import openai
+
+# تنظیم کلید API شما
+openai.api_key = 'YOUR_API_KEY'
+
+def generate_content(prompt):
+    response = openai.Completion.create(
+        engine="text-davinci-003",  # مدل پیشرفته‌تر OpenAI
+        prompt=prompt,
+        max_tokens=500,  # حداکثر تعداد کلمات
+        temperature=0.7  # تنظیم دقت و خلاقیت
+    )
+    return response.choices[0].text.strip()
+
+# تولید متن برای یک موضوع خاص
+prompt = "موضوع: راهکارهای انگیزشی برای نوجوانان"
+generated_text = generate_content(prompt)
+print(generated_text)
