@@ -382,6 +382,8 @@ ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, 
 
 
 class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     city: str
     """Free text input for the city of the user, e.g. `San Francisco`."""
 
@@ -402,6 +404,8 @@ class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
 
 
 class WebSearchOptionsUserLocation(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     approximate: Required[WebSearchOptionsUserLocationApproximate]
     """Approximate location parameters for the search."""
 
@@ -410,6 +414,11 @@ class WebSearchOptionsUserLocation(TypedDict, total=False):
 
 
 class WebSearchOptions(TypedDict, total=False):
+    """
+    This tool searches the web for relevant results to use in a response.
+    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+    """
+
     search_context_size: Literal["low", "medium", "high"]
     """
     High level guidance for the amount of context window space to use for the

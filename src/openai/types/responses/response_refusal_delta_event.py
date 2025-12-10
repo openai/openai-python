@@ -8,6 +8,8 @@ __all__ = ["ResponseRefusalDeltaEvent"]
 
 
 class ResponseRefusalDeltaEvent(BaseModel):
+    """Emitted when there is a partial refusal text."""
+
     content_index: int
     """The index of the content part that the refusal text is added to."""
 

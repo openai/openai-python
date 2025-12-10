@@ -9,6 +9,8 @@ __all__ = ["ModerationCreateResponse"]
 
 
 class ModerationCreateResponse(BaseModel):
+    """Represents if a given text input is potentially harmful."""
+
     id: str
     """The unique identifier for the moderation request."""
 

@@ -24,6 +24,8 @@ class ContainerCreateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """Container expiration time in seconds relative to the 'anchor' time."""
+
     anchor: Required[Literal["last_active_at"]]
     """Time anchor for the expiration time.
 

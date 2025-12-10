@@ -12,6 +12,8 @@ __all__ = ["ChatCompletion", "Choice", "ChoiceLogprobs"]
 
 
 class ChoiceLogprobs(BaseModel):
+    """Log probability information for the choice."""
+
     content: Optional[List[ChatCompletionTokenLogprob]] = None
     """A list of message content tokens with log probability information."""
 
@@ -41,6 +43,10 @@ class Choice(BaseModel):
 
 
 class ChatCompletion(BaseModel):
+    """
+    Represents a chat completion response returned by model, based on the provided input.
+    """
+
     id: str
     """A unique identifier for the chat completion."""
 

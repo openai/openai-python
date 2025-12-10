@@ -1526,8 +1526,6 @@ class Responses(SyncAPIResource):
     def compact(
         self,
         *,
-        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
         model: Union[
             Literal[
                 "gpt-5.1",
@@ -1614,8 +1612,9 @@ class Responses(SyncAPIResource):
             ],
             str,
             None,
-        ]
-        | Omit = omit,
+        ],
+        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -1628,18 +1627,18 @@ class Responses(SyncAPIResource):
         Compact conversation
 
         Args:
+          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
+
           input: Text, image, or file inputs to the model, used to generate a response
 
           instructions: A system (or developer) message inserted into the model's context. When used
               along with `previous_response_id`, the instructions from a previous response
               will not be carried over to the next response. This makes it simple to swap out
               system (or developer) messages in new responses.
-
-          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
@@ -1658,9 +1657,9 @@ class Responses(SyncAPIResource):
             "/responses/compact",
             body=maybe_transform(
                 {
+                    "model": model,
                     "input": input,
                     "instructions": instructions,
-                    "model": model,
                     "previous_response_id": previous_response_id,
                 },
                 response_compact_params.ResponseCompactParams,
@@ -3140,8 +3139,6 @@ class AsyncResponses(AsyncAPIResource):
     async def compact(
         self,
         *,
-        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
-        instructions: Optional[str] | Omit = omit,
         model: Union[
             Literal[
                 "gpt-5.1",
@@ -3228,8 +3225,9 @@ class AsyncResponses(AsyncAPIResource):
             ],
             str,
             None,
-        ]
-        | Omit = omit,
+        ],
+        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -3242,18 +3240,18 @@ class AsyncResponses(AsyncAPIResource):
         Compact conversation
 
         Args:
+          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
+
           input: Text, image, or file inputs to the model, used to generate a response
 
           instructions: A system (or developer) message inserted into the model's context. When used
               along with `previous_response_id`, the instructions from a previous response
               will not be carried over to the next response. This makes it simple to swap out
               system (or developer) messages in new responses.
-
-          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
-              wide range of models with different capabilities, performance characteristics,
-              and price points. Refer to the
-              [model guide](https://platform.openai.com/docs/models) to browse and compare
-              available models.
 
           previous_response_id: The unique ID of the previous response to the model. Use this to create
               multi-turn conversations. Learn more about
@@ -3272,9 +3270,9 @@ class AsyncResponses(AsyncAPIResource):
             "/responses/compact",
             body=await async_maybe_transform(
                 {
+                    "model": model,
                     "input": input,
                     "instructions": instructions,
-                    "model": model,
                     "previous_response_id": previous_response_id,
                 },
                 response_compact_params.ResponseCompactParams,

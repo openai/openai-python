@@ -232,6 +232,11 @@ class AdditionalMessage(TypedDict, total=False):
 
 
 class TruncationStrategy(TypedDict, total=False):
+    """Controls for how a thread will be truncated prior to the run.
+
+    Use this to control the initial context window of the run.
+    """
+
     type: Required[Literal["auto", "last_messages"]]
     """The truncation strategy to use for the thread.
 

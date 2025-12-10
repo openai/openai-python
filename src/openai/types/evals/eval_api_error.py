@@ -6,6 +6,8 @@ __all__ = ["EvalAPIError"]
 
 
 class EvalAPIError(BaseModel):
+    """An object representing an error response from the Eval API."""
+
     code: str
     """The error code."""
 

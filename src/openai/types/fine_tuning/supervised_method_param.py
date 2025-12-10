@@ -10,5 +10,7 @@ __all__ = ["SupervisedMethodParam"]
 
 
 class SupervisedMethodParam(TypedDict, total=False):
+    """Configuration for the supervised fine-tuning method."""
+
     hyperparameters: SupervisedHyperparametersParam
     """The hyperparameters used for the fine-tuning job."""

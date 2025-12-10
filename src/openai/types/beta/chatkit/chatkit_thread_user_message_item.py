@@ -18,6 +18,8 @@ __all__ = [
 
 
 class ContentInputText(BaseModel):
+    """Text block that a user contributed to the thread."""
+
     text: str
     """Plain-text content supplied by the user."""
 
@@ -26,6 +28,8 @@ class ContentInputText(BaseModel):
 
 
 class ContentQuotedText(BaseModel):
+    """Quoted snippet that the user referenced in their message."""
+
     text: str
     """Quoted text content."""
 
@@ -37,11 +41,15 @@ Content: TypeAlias = Annotated[Union[ContentInputText, ContentQuotedText], Prope
 
 
 class InferenceOptionsToolChoice(BaseModel):
+    """Preferred tool to invoke. Defaults to null when ChatKit should auto-select."""
+
     id: str
     """Identifier of the requested tool."""
 
 
 class InferenceOptions(BaseModel):
+    """Inference overrides applied to the message. Defaults to null when unset."""
+
     model: Optional[str] = None
     """Model name that generated the response.
 
@@ -53,6 +61,8 @@ class InferenceOptions(BaseModel):
 
 
 class ChatKitThreadUserMessageItem(BaseModel):
+    """User-authored messages within a thread."""
+
     id: str
     """Identifier of the thread item."""
 

@@ -10,6 +10,8 @@ __all__ = ["ConversationItemList"]
 
 
 class ConversationItemList(BaseModel):
+    """A list of Conversation items."""
+
     data: List[ConversationItem]
     """A list of conversation items."""
 

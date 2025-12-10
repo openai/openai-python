@@ -12,6 +12,8 @@ __all__ = ["ChatSession"]
 
 
 class ChatSession(BaseModel):
+    """Represents a ChatKit session and its resolved configuration."""
+
     id: str
     """Identifier for the ChatKit session."""
 

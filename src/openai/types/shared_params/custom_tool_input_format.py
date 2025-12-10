@@ -9,11 +9,15 @@ __all__ = ["CustomToolInputFormat", "Text", "Grammar"]
 
 
 class Text(TypedDict, total=False):
+    """Unconstrained free-form text."""
+
     type: Required[Literal["text"]]
     """Unconstrained text format. Always `text`."""
 
 
 class Grammar(TypedDict, total=False):
+    """A grammar defined by the user."""
+
     definition: Required[str]
     """The grammar definition."""
 

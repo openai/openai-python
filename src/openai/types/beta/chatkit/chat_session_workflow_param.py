@@ -9,11 +9,18 @@ __all__ = ["ChatSessionWorkflowParam", "Tracing"]
 
 
 class Tracing(TypedDict, total=False):
+    """Optional tracing overrides for the workflow invocation.
+
+    When omitted, tracing is enabled by default.
+    """
+
     enabled: bool
     """Whether tracing is enabled during the session. Defaults to true."""
 
 
 class ChatSessionWorkflowParam(TypedDict, total=False):
+    """Workflow reference and overrides applied to the chat session."""
+
     id: Required[str]
     """Identifier for the workflow invoked by the session."""
 

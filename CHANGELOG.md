@@ -1,5 +1,24 @@
 # Changelog
 
+## 2.10.0 (2025-12-10)
+
+Full Changelog: [v2.9.0...v2.10.0](https://github.com/openai/openai-python/compare/v2.9.0...v2.10.0)
+
+### Features
+
+* **api:** make model required for the responses/compact endpoint ([a12936b](https://github.com/openai/openai-python/commit/a12936b18cf19009d4e6d586c9b1958359636dbe))
+
+
+### Bug Fixes
+
+* **types:** allow pyright to infer TypedDict types within SequenceNotStr ([8f0d230](https://github.com/openai/openai-python/commit/8f0d23066c1edc38a6e9858b054dceaf92ae001b))
+
+
+### Chores
+
+* add missing docstrings ([f20a9a1](https://github.com/openai/openai-python/commit/f20a9a18a421ba69622c77ab539509d218e774eb))
+* **internal:** update docstring ([9a993f2](https://github.com/openai/openai-python/commit/9a993f2261b6524aa30b955e006c7ea89f086968))
+
 ## 2.9.0 (2025-12-04)
 
 Full Changelog: [v2.8.1...v2.9.0](https://github.com/openai/openai-python/compare/v2.8.1...v2.9.0)

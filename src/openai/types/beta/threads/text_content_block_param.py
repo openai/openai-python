@@ -8,6 +8,8 @@ __all__ = ["TextContentBlockParam"]
 
 
 class TextContentBlockParam(TypedDict, total=False):
+    """The text content that is part of a message."""
+
     text: Required[str]
     """Text content to be sent to the model"""
 

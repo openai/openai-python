@@ -10,6 +10,8 @@ __all__ = ["ChatCompletionAllowedToolChoiceParam"]
 
 
 class ChatCompletionAllowedToolChoiceParam(TypedDict, total=False):
+    """Constrains the tools available to the model to a pre-defined set."""
+
     allowed_tools: Required[ChatCompletionAllowedToolsParam]
     """Constrains the tools available to the model to a pre-defined set."""
 

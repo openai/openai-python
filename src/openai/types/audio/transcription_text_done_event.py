@@ -20,6 +20,8 @@ class Logprob(BaseModel):
 
 
 class UsageInputTokenDetails(BaseModel):
+    """Details about the input tokens billed for this request."""
+
     audio_tokens: Optional[int] = None
     """Number of audio tokens billed for this request."""
 
@@ -28,6 +30,8 @@ class UsageInputTokenDetails(BaseModel):
 
 
 class Usage(BaseModel):
+    """Usage statistics for models billed by token usage."""
+
     input_tokens: int
     """Number of input tokens billed for this request."""
 
@@ -45,6 +49,11 @@ class Usage(BaseModel):
 
 
 class TranscriptionTextDoneEvent(BaseModel):
+    """Emitted when the transcription is complete.
+
+    Contains the complete transcription text. Only emitted when you [create a transcription](https://platform.openai.com/docs/api-reference/audio/create-transcription) with the `Stream` parameter set to `true`.
+    """
+
     text: str
     """The text that was transcribed."""
 

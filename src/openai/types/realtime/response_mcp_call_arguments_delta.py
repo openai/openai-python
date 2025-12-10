@@ -9,6 +9,8 @@ __all__ = ["ResponseMcpCallArgumentsDelta"]
 
 
 class ResponseMcpCallArgumentsDelta(BaseModel):
+    """Returned when MCP tool call arguments are updated during response generation."""
+
     delta: str
     """The JSON-encoded arguments delta."""
 

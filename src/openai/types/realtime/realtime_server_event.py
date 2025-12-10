@@ -61,6 +61,11 @@ __all__ = [
 
 
 class ConversationItemRetrieved(BaseModel):
+    """Returned when a conversation item is retrieved with `conversation.item.retrieve`.
+
+    This is provided as a way to fetch the server's representation of an item, for example to get access to the post-processed audio data after noise cancellation and VAD. It includes the full content of the Item, including audio data.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 
@@ -72,6 +77,13 @@ class ConversationItemRetrieved(BaseModel):
 
 
 class OutputAudioBufferStarted(BaseModel):
+    """
+    **WebRTC/SIP Only:** Emitted when the server begins streaming audio to the client. This event is
+    emitted after an audio content part has been added (`response.content_part.added`)
+    to the response.
+    [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+    """
+
     event_id: str
     """The unique ID of the server event."""
 
@@ -83,6 +95,13 @@ class OutputAudioBufferStarted(BaseModel):
 
 
 class OutputAudioBufferStopped(BaseModel):
+    """
+    **WebRTC/SIP Only:** Emitted when the output audio buffer has been completely drained on the server,
+    and no more audio is forthcoming. This event is emitted after the full response
+    data has been sent to the client (`response.done`).
+    [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+    """
+
     event_id: str
     """The unique ID of the server event."""
 
@@ -94,6 +113,15 @@ class OutputAudioBufferStopped(BaseModel):
 
 
 class OutputAudioBufferCleared(BaseModel):
+    """**WebRTC/SIP Only:** Emitted when the output audio buffer is cleared.
+
+    This happens either in VAD
+    mode when the user has interrupted (`input_audio_buffer.speech_started`),
+    or when the client has emitted the `output_audio_buffer.clear` event to manually
+    cut off the current audio response.
+    [Learn more](https://platform.openai.com/docs/guides/realtime-conversations#client-and-server-events-for-audio-in-webrtc).
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

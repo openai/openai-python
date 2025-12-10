@@ -8,6 +8,11 @@ __all__ = ["ComputerTool"]
 
 
 class ComputerTool(BaseModel):
+    """A tool that controls a virtual computer.
+
+    Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+    """
+
     display_height: int
     """The height of the computer display."""
 

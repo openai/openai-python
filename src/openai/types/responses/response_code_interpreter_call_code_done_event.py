@@ -8,6 +8,8 @@ __all__ = ["ResponseCodeInterpreterCallCodeDoneEvent"]
 
 
 class ResponseCodeInterpreterCallCodeDoneEvent(BaseModel):
+    """Emitted when the code snippet is finalized by the code interpreter."""
+
     code: str
     """The final code snippet output by the code interpreter."""
 

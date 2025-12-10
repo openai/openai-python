@@ -32,6 +32,8 @@ __all__ = [
 
 
 class ImageGenerationCall(BaseModel):
+    """An image generation request made by the model."""
+
     id: str
     """The unique ID of the image generation call."""
 
@@ -46,6 +48,8 @@ class ImageGenerationCall(BaseModel):
 
 
 class LocalShellCallAction(BaseModel):
+    """Execute a shell command on the server."""
+
     command: List[str]
     """The command to run."""
 
@@ -66,6 +70,8 @@ class LocalShellCallAction(BaseModel):
 
 
 class LocalShellCall(BaseModel):
+    """A tool call to run a command on the local shell."""
+
     id: str
     """The unique ID of the local shell call."""
 
@@ -83,6 +89,8 @@ class LocalShellCall(BaseModel):
 
 
 class McpCall(BaseModel):
+    """An invocation of a tool on an MCP server."""
+
     id: str
     """The unique ID of the tool call."""
 
@@ -119,6 +127,8 @@ class McpCall(BaseModel):
 
 
 class McpListToolsTool(BaseModel):
+    """A tool available on an MCP server."""
+
     input_schema: object
     """The JSON schema describing the tool's input."""
 
@@ -133,6 +143,8 @@ class McpListToolsTool(BaseModel):
 
 
 class McpListTools(BaseModel):
+    """A list of tools available on an MCP server."""
+
     id: str
     """The unique ID of the list."""
 
@@ -150,6 +162,8 @@ class McpListTools(BaseModel):
 
 
 class McpApprovalRequest(BaseModel):
+    """A request for human approval of a tool invocation."""
+
     id: str
     """The unique ID of the approval request."""
 

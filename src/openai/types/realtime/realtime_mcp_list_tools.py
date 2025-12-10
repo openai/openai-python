@@ -9,6 +9,8 @@ __all__ = ["RealtimeMcpListTools", "Tool"]
 
 
 class Tool(BaseModel):
+    """A tool available on an MCP server."""
+
     input_schema: object
     """The JSON schema describing the tool's input."""
 
@@ -23,6 +25,8 @@ class Tool(BaseModel):
 
 
 class RealtimeMcpListTools(BaseModel):
+    """A Realtime item listing tools available on an MCP server."""
+
     server_label: str
     """The label of the MCP server."""
 

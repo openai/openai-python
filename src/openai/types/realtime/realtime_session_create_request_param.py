@@ -16,6 +16,8 @@ __all__ = ["RealtimeSessionCreateRequestParam"]
 
 
 class RealtimeSessionCreateRequestParam(TypedDict, total=False):
+    """Realtime session object configuration."""
+
     type: Required[Literal["realtime"]]
     """The type of session to create. Always `realtime` for the Realtime API."""
 

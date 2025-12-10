@@ -38,6 +38,8 @@ WebSearchToolUserLocation = web_search_tool.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -54,6 +56,8 @@ McpAllowedTools: TypeAlias = Union[List[str], McpAllowedToolsMcpToolFilter, None
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -67,6 +71,8 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
 
 
 class McpRequireApprovalMcpToolApprovalFilterNever(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -80,6 +86,13 @@ class McpRequireApprovalMcpToolApprovalFilterNever(BaseModel):
 
 
 class McpRequireApprovalMcpToolApprovalFilter(BaseModel):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: Optional[McpRequireApprovalMcpToolApprovalFilterAlways] = None
     """A filter object to specify which tools are allowed."""
 
@@ -91,6 +104,11 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 
 
 class Mcp(BaseModel):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: str
     """A label for this MCP server, used to identify it in tool calls."""
 
@@ -157,6 +175,11 @@ class Mcp(BaseModel):
 
 
 class CodeInterpreterContainerCodeInterpreterToolAuto(BaseModel):
+    """Configuration for a code interpreter container.
+
+    Optionally specify the IDs of the files to run the code on.
+    """
+
     type: Literal["auto"]
     """Always `auto`."""
 
@@ -170,6 +193,8 @@ CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInt
 
 
 class CodeInterpreter(BaseModel):
+    """A tool that runs Python code to help generate a response to a prompt."""
+
     container: CodeInterpreterContainer
     """The code interpreter container.
 
@@ -182,6 +207,12 @@ class CodeInterpreter(BaseModel):
 
 
 class ImageGenerationInputImageMask(BaseModel):
+    """Optional mask for inpainting.
+
+    Contains `image_url`
+    (string, optional) and `file_id` (string, optional).
+    """
+
     file_id: Optional[str] = None
     """File ID for the mask image."""
 
@@ -190,6 +221,8 @@ class ImageGenerationInputImageMask(BaseModel):
 
 
 class ImageGeneration(BaseModel):
+    """A tool that generates images using a model like `gpt-image-1`."""
+
     type: Literal["image_generation"]
     """The type of the image generation tool. Always `image_generation`."""
 
@@ -248,6 +281,8 @@ class ImageGeneration(BaseModel):
 
 
 class LocalShell(BaseModel):
+    """A tool that allows the model to execute shell commands in a local environment."""
+
     type: Literal["local_shell"]
     """The type of the local shell tool. Always `local_shell`."""
 

@@ -8,6 +8,8 @@ __all__ = ["ImageEditCompletedEvent", "Usage", "UsageInputTokensDetails"]
 
 
 class UsageInputTokensDetails(BaseModel):
+    """The input tokens detailed information for the image generation."""
+
     image_tokens: int
     """The number of image tokens in the input prompt."""
 
@@ -16,6 +18,8 @@ class UsageInputTokensDetails(BaseModel):
 
 
 class Usage(BaseModel):
+    """For `gpt-image-1` only, the token usage information for the image generation."""
+
     input_tokens: int
     """The number of tokens (images and text) in the input prompt."""
 
@@ -30,6 +34,8 @@ class Usage(BaseModel):
 
 
 class ImageEditCompletedEvent(BaseModel):
+    """Emitted when image editing has completed and the final image is available."""
+
     b64_json: str
     """Base64-encoded final edited image data, suitable for rendering as an image."""
 

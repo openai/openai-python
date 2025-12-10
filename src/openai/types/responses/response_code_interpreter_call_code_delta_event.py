@@ -8,6 +8,8 @@ __all__ = ["ResponseCodeInterpreterCallCodeDeltaEvent"]
 
 
 class ResponseCodeInterpreterCallCodeDeltaEvent(BaseModel):
+    """Emitted when a partial code snippet is streamed by the code interpreter."""
+
     delta: str
     """The partial code snippet being streamed by the code interpreter."""
 

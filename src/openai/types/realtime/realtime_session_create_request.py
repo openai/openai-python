@@ -15,6 +15,8 @@ __all__ = ["RealtimeSessionCreateRequest"]
 
 
 class RealtimeSessionCreateRequest(BaseModel):
+    """Realtime session object configuration."""
+
     type: Literal["realtime"]
     """The type of session to create. Always `realtime` for the Realtime API."""
 

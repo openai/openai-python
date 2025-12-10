@@ -18,6 +18,8 @@ __all__ = ["Message", "Content", "ContentReasoningText"]
 
 
 class ContentReasoningText(BaseModel):
+    """Reasoning text from the model."""
+
     text: str
     """The reasoning text from the model."""
 
@@ -42,6 +44,8 @@ Content: TypeAlias = Annotated[
 
 
 class Message(BaseModel):
+    """A message to or from the model."""
+
     id: str
     """The unique ID of the message."""
 

@@ -8,6 +8,8 @@ __all__ = ["ResponseFunctionCallArgumentsDeltaEvent"]
 
 
 class ResponseFunctionCallArgumentsDeltaEvent(BaseModel):
+    """Returned when the model-generated function call arguments are updated."""
+
     call_id: str
     """The ID of the function call."""
 

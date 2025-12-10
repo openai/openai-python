@@ -8,6 +8,8 @@ __all__ = ["ResponseFunctionCallArgumentsDoneEvent"]
 
 
 class ResponseFunctionCallArgumentsDoneEvent(BaseModel):
+    """Emitted when function-call arguments are finalized."""
+
     arguments: str
     """The function-call arguments."""
 

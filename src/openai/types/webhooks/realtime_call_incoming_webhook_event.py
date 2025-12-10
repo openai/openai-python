@@ -9,6 +9,8 @@ __all__ = ["RealtimeCallIncomingWebhookEvent", "Data", "DataSipHeader"]
 
 
 class DataSipHeader(BaseModel):
+    """A header from the SIP Invite."""
+
     name: str
     """Name of the SIP Header."""
 
@@ -17,6 +19,8 @@ class DataSipHeader(BaseModel):
 
 
 class Data(BaseModel):
+    """Event data payload."""
+
     call_id: str
     """The unique ID of this call."""
 
@@ -25,6 +29,8 @@ class Data(BaseModel):
 
 
 class RealtimeCallIncomingWebhookEvent(BaseModel):
+    """Sent when Realtime API Receives a incoming SIP call."""
+
     id: str
     """The unique ID of the event."""
 

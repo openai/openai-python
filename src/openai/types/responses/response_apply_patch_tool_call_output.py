@@ -9,6 +9,8 @@ __all__ = ["ResponseApplyPatchToolCallOutput"]
 
 
 class ResponseApplyPatchToolCallOutput(BaseModel):
+    """The output emitted by an apply patch tool call."""
+
     id: str
     """The unique ID of the apply patch tool call output.
 
