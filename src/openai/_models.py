@@ -491,12 +491,46 @@ def construct_type_unchecked(*, value: object, type_: type[_T]) -> _T:
     return cast(_T, construct_type(value=value, type_=type_))
 
 
+def _preprocess_completion_usage(type_: object, value: Any) -> Any:
+    """Preprocess CompletionUsage data to ensure token details fields are dicts, not None.
+
+    This handles cases where APIs (like Gemini) don't include prompt_tokens_details
+    or completion_tokens_details in their response. Instead of leaving them as None,
+    we create empty dicts so the nested models get constructed with default None values.
+
+    Args:
+        type_: The type being constructed (should be CompletionUsage, already unwrapped)
+        value: The data dict from the API response
+
+    Returns:
+        Preprocessed data dict with empty dicts for missing token details
+    """
+    # Only preprocess if constructing CompletionUsage
+    if not (isinstance(type_, type) and type_.__name__ == "CompletionUsage"):
+        return value
+
+    if not is_mapping(value):
+        return value
+
+    # Make a copy to avoid mutating the original
+    result = dict(value)
+
+    # If prompt_tokens_details is missing or None, set it to empty dict
+    if "prompt_tokens_details" not in result or result.get("prompt_tokens_details") is None:
+        result["prompt_tokens_details"] = {}
+
+    # If completion_tokens_details is missing or None, set it to empty dict
+    if "completion_tokens_details" not in result or result.get("completion_tokens_details") is None:
+        result["completion_tokens_details"] = {}
+
+    return result
+
+
 def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]] = None) -> object:
     """Loose coercion to the expected type with construction of nested values.
 
     If the given value does not match the expected type then it is returned as-is.
     """
-
     # store a reference to the original type we were given before we extract any inner
     # types so that we can properly resolve forward references in `TypeAliasType` annotations
     original_type = None
@@ -523,6 +557,14 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
     args = get_args(type_)
 
     if is_union(origin):
+        # Preprocess before validation for Optional[CompletionUsage]
+        # Check if any of the union args is CompletionUsage
+        completion_usage_type = next(
+            (arg for arg in args if isinstance(arg, type) and arg.__name__ == "CompletionUsage"), None
+        )
+        if completion_usage_type is not None:
+            value = _preprocess_completion_usage(completion_usage_type, value)
+
         try:
             return validate_type(type_=cast("type[object]", original_type or type_), value=value)
         except Exception:
@@ -540,7 +582,7 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
         #   kind: Literal['bar']
         #   value: int
         #
-        # without this block, if the data we get is something like `{'kind': 'bar', 'value': 'foo'}` then
+        # without this block, if the data we get is something like `{'kind': 'bar', 'value': 'foo'}' then
         # we'd end up constructing `FooType` when it should be `BarType`.
         discriminator = _build_discriminated_union_meta(union=type_, meta_annotations=meta)
         if discriminator and is_mapping(value):
@@ -576,7 +618,10 @@ def construct_type(*, value: object, type_: object, metadata: Optional[List[Any]
 
         if is_mapping(value):
             if issubclass(type_, BaseModel):
-                return type_.construct(**value)  # type: ignore[arg-type]
+                # Preprocess data for CompletionUsage to ensure prompt_tokens_details
+                # is always a dict (not None) when missing from API response
+                preprocessed_value = _preprocess_completion_usage(type_, value)
+                return type_.construct(**preprocessed_value)  # type: ignore[arg-type]
 
             return cast(Any, type_).construct(**value)
 
