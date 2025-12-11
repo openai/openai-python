@@ -108,7 +108,7 @@ class Assistants(SyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -323,7 +323,7 @@ class Assistants(SyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -577,7 +577,7 @@ class AsyncAssistants(AsyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -792,7 +792,7 @@ class AsyncAssistants(AsyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
