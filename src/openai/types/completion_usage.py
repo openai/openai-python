@@ -36,6 +36,12 @@ class PromptTokensDetails(BaseModel):
     cached_tokens: Optional[int] = None
     """Cached tokens present in the prompt."""
 
+    image_tokens: Optional[int] = None
+    """Image input tokens present in the prompt."""
+
+    text_tokens: Optional[int] = None
+    """Text input tokens present in the prompt."""
+
 
 class CompletionUsage(BaseModel):
     completion_tokens: int
