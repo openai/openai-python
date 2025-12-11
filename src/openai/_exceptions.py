@@ -136,6 +136,10 @@ class APITimeoutError(APIConnectionError):
     def __init__(self, request: httpx.Request) -> None:
         super().__init__(message="Request timed out.", request=request)
 
+    @override
+    def __reduce__(self) -> tuple[Callable[..., Self], tuple[Any, ...]]:
+        return (self.__class__, (self.request,))
+
 
 class BadRequestError(APIStatusError):
     status_code: Literal[400] = 400  # pyright: ignore[reportIncompatibleVariableOverride]
