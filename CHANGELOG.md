@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.11.0 (2025-12-11)
+
+Full Changelog: [v2.10.0...v2.11.0](https://github.com/openai/openai-python/compare/v2.10.0...v2.11.0)
+
+### Features
+
+* **api:** gpt 5.2 ([dd9b8e8](https://github.com/openai/openai-python/commit/dd9b8e85cf91fe0d7470143fba10fe950ec740c4))
+
 ## 2.10.0 (2025-12-10)
 
 Full Changelog: [v2.9.0...v2.10.0](https://github.com/openai/openai-python/compare/v2.9.0...v2.10.0)
