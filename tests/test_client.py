@@ -885,6 +885,68 @@ class TestOpenAI:
 
         assert response.http_request.headers.get("x-stainless-retry-count") == "42"
 
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    def test_termination_signal_not_retried(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        """Test that termination signals (like Celery's SoftTimeLimitExceeded) are not retried."""
+        client = client.with_options(max_retries=3)
+
+        # Create a mock exception that mimics Celery's SoftTimeLimitExceeded
+        class MockCelerySoftTimeLimitExceeded(Exception):
+            """Mock of celery.exceptions.SoftTimeLimitExceeded"""
+
+            __module__ = "celery.exceptions"
+            __name__ = "SoftTimeLimitExceeded"
+
+        # Mock the request to raise our termination signal
+        respx_mock.post("/chat/completions").mock(side_effect=MockCelerySoftTimeLimitExceeded("Time limit exceeded"))
+
+        # Verify the exception propagates without retry
+        with pytest.raises(MockCelerySoftTimeLimitExceeded):
+            client.chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-4o",
+            )
+
+        # Verify only one attempt was made (no retries)
+        assert len(respx_mock.calls) == 1
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    def test_asyncio_cancelled_error_not_retried(self, respx_mock: MockRouter, client: OpenAI) -> None:
+        """Test that asyncio.CancelledError is not retried."""
+        client = client.with_options(max_retries=3)
+
+        # Create a mock exception that mimics asyncio.exceptions.CancelledError
+        class MockCancelledError(Exception):
+            """Mock of asyncio.exceptions.CancelledError"""
+
+            __module__ = "asyncio.exceptions"
+            __name__ = "CancelledError"
+
+        # Mock the request to raise our cancellation signal
+        respx_mock.post("/chat/completions").mock(side_effect=MockCancelledError("Task cancelled"))
+
+        # Verify the exception propagates without retry
+        with pytest.raises(MockCancelledError):
+            client.chat.completions.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-4o",
+            )
+
+        # Verify only one attempt was made (no retries)
+        assert len(respx_mock.calls) == 1
+
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
