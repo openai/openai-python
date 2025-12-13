@@ -4,6 +4,7 @@ from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
+from .grader_inputs import GraderInputs
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text import ResponseInputText
 from ..responses.response_input_audio import ResponseInputAudio
@@ -13,10 +14,7 @@ __all__ = [
     "Input",
     "InputContent",
     "InputContentOutputText",
-    "InputContentEvalItemInputImage",
-    "InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudio",
-    "InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText",
-    "InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage",
+    "InputContentInputImage",
     "SamplingParams",
 ]
 
@@ -31,7 +29,7 @@ class InputContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
-class InputContentEvalItemInputImage(BaseModel):
+class InputContentInputImage(BaseModel):
     """An image input block used within EvalItem content arrays."""
 
     image_url: str
@@ -46,48 +44,9 @@ class InputContentEvalItemInputImage(BaseModel):
     One of `high`, `low`, or `auto`. Defaults to `auto`.
     """
 
-
-class InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText(BaseModel):
-    """A text output from the model."""
-
-    text: str
-    """The text output from the model."""
-
-    type: Literal["output_text"]
-    """The type of the output text. Always `output_text`."""
-
-
-class InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage(BaseModel):
-    """An image input block used within EvalItem content arrays."""
-
-    image_url: str
-    """The URL of the image input."""
-
-    type: Literal["input_image"]
-    """The type of the image input. Always `input_image`."""
-
-    detail: Optional[str] = None
-    """The detail level of the image to be sent to the model.
-
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
-    """
-
-
-InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudio: TypeAlias = Union[
-    str,
-    ResponseInputText,
-    InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText,
-    InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage,
-    ResponseInputAudio,
-]
 
 InputContent: TypeAlias = Union[
-    str,
-    ResponseInputText,
-    InputContentOutputText,
-    InputContentEvalItemInputImage,
-    ResponseInputAudio,
-    List[InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudio],
+    str, ResponseInputText, InputContentOutputText, InputContentInputImage, ResponseInputAudio, GraderInputs
 ]
 
 
