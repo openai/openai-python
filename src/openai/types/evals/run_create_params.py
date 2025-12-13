@@ -31,7 +31,10 @@ __all__ = [
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItem",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText",
-    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage",
+    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentEvalItemInputImage",
+    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio",
+    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText",
+    "DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage",
     "DataSourceCreateEvalResponsesRunDataSourceInputMessagesItemReference",
     "DataSourceCreateEvalResponsesRunDataSourceSamplingParams",
     "DataSourceCreateEvalResponsesRunDataSourceSamplingParamsText",
@@ -171,10 +174,10 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
     """The type of the output text. Always `output_text`."""
 
 
-class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage(
+class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentEvalItemInputImage(
     TypedDict, total=False
 ):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
     """The URL of the image input."""
@@ -189,13 +192,53 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
     """
 
 
+class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText(
+    TypedDict, total=False
+):
+    """A text output from the model."""
+
+    text: Required[str]
+    """The text output from the model."""
+
+    type: Required[Literal["output_text"]]
+    """The type of the output text. Always `output_text`."""
+
+
+class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage(
+    TypedDict, total=False
+):
+    """An image input block used within EvalItem content arrays."""
+
+    image_url: Required[str]
+    """The URL of the image input."""
+
+    type: Required[Literal["input_image"]]
+    """The type of the image input. Always `input_image`."""
+
+    detail: str
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
+DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio: TypeAlias = Union[
+    str,
+    ResponseInputTextParam,
+    DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText,
+    DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage,
+    ResponseInputAudioParam,
+]
+
 DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     str,
     ResponseInputTextParam,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText,
-    DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage,
+    DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentEvalItemInputImage,
     ResponseInputAudioParam,
-    Iterable[object],
+    SequenceNotStr[
+        DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio
+    ],
 ]
 
 
@@ -209,7 +252,11 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
     """
 
     content: Required[DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent]
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.
