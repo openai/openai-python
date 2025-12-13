@@ -9,6 +9,7 @@ from ..._types import SequenceNotStr
 from ..responses.tool_param import ToolParam
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
+from ..graders.grader_inputs_param import GraderInputsParam
 from ..responses.response_input_text_param import ResponseInputTextParam
 from ..responses.response_input_audio_param import ResponseInputAudioParam
 from .create_eval_jsonl_run_data_source_param import CreateEvalJSONLRunDataSourceParam
@@ -174,7 +175,7 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
 class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage(
     TypedDict, total=False
 ):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
     """The URL of the image input."""
@@ -195,7 +196,7 @@ DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemC
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentOutputText,
     DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContentInputImage,
     ResponseInputAudioParam,
-    Iterable[object],
+    GraderInputsParam,
 ]
 
 
@@ -209,7 +210,11 @@ class DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEva
     """
 
     content: Required[DataSourceCreateEvalResponsesRunDataSourceInputMessagesTemplateTemplateEvalItemContent]
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.

@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..shared_params.metadata import Metadata
 from ..shared.reasoning_effort import ReasoningEffort
+from ..graders.grader_inputs_param import GraderInputsParam
 from ..responses.easy_input_message_param import EasyInputMessageParam
 from ..shared_params.response_format_text import ResponseFormatText
 from ..responses.response_input_text_param import ResponseInputTextParam
@@ -100,7 +101,7 @@ class InputMessagesTemplateTemplateEvalItemContentOutputText(TypedDict, total=Fa
 
 
 class InputMessagesTemplateTemplateEvalItemContentInputImage(TypedDict, total=False):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
     """The URL of the image input."""
@@ -121,7 +122,7 @@ InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     InputMessagesTemplateTemplateEvalItemContentOutputText,
     InputMessagesTemplateTemplateEvalItemContentInputImage,
     ResponseInputAudioParam,
-    Iterable[object],
+    GraderInputsParam,
 ]
 
 
@@ -135,7 +136,11 @@ class InputMessagesTemplateTemplateEvalItem(TypedDict, total=False):
     """
 
     content: Required[InputMessagesTemplateTemplateEvalItemContent]
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.

@@ -4,6 +4,7 @@ from typing import List, Union, Optional
 from typing_extensions import Literal, TypeAlias
 
 from ..._models import BaseModel
+from .grader_inputs import GraderInputs
 from ..responses.response_input_text import ResponseInputText
 from ..responses.response_input_audio import ResponseInputAudio
 
@@ -21,7 +22,7 @@ class InputContentOutputText(BaseModel):
 
 
 class InputContentInputImage(BaseModel):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: str
     """The URL of the image input."""
@@ -37,7 +38,7 @@ class InputContentInputImage(BaseModel):
 
 
 InputContent: TypeAlias = Union[
-    str, ResponseInputText, InputContentOutputText, InputContentInputImage, ResponseInputAudio, List[object]
+    str, ResponseInputText, InputContentOutputText, InputContentInputImage, ResponseInputAudio, GraderInputs
 ]
 
 
@@ -51,7 +52,11 @@ class Input(BaseModel):
     """
 
     content: InputContent
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.

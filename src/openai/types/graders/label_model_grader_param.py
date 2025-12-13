@@ -6,6 +6,7 @@ from typing import Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
+from .grader_inputs_param import GraderInputsParam
 from ..responses.response_input_text_param import ResponseInputTextParam
 from ..responses.response_input_audio_param import ResponseInputAudioParam
 
@@ -23,7 +24,7 @@ class InputContentOutputText(TypedDict, total=False):
 
 
 class InputContentInputImage(TypedDict, total=False):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
     """The URL of the image input."""
@@ -44,7 +45,7 @@ InputContent: TypeAlias = Union[
     InputContentOutputText,
     InputContentInputImage,
     ResponseInputAudioParam,
-    Iterable[object],
+    GraderInputsParam,
 ]
 
 
@@ -58,7 +59,11 @@ class Input(TypedDict, total=False):
     """
 
     content: Required[InputContent]
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.

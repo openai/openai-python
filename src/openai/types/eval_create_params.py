@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .._types import SequenceNotStr
 from .shared_params.metadata import Metadata
+from .graders.grader_inputs_param import GraderInputsParam
 from .graders.python_grader_param import PythonGraderParam
 from .graders.score_model_grader_param import ScoreModelGraderParam
 from .graders.string_check_grader_param import StringCheckGraderParam
@@ -129,7 +130,7 @@ class TestingCriterionLabelModelInputEvalItemContentOutputText(TypedDict, total=
 
 
 class TestingCriterionLabelModelInputEvalItemContentInputImage(TypedDict, total=False):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
     """The URL of the image input."""
@@ -150,7 +151,7 @@ TestingCriterionLabelModelInputEvalItemContent: TypeAlias = Union[
     TestingCriterionLabelModelInputEvalItemContentOutputText,
     TestingCriterionLabelModelInputEvalItemContentInputImage,
     ResponseInputAudioParam,
-    Iterable[object],
+    GraderInputsParam,
 ]
 
 
@@ -164,7 +165,11 @@ class TestingCriterionLabelModelInputEvalItem(TypedDict, total=False):
     """
 
     content: Required[TestingCriterionLabelModelInputEvalItemContent]
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Required[Literal["user", "assistant", "system", "developer"]]
     """The role of the message input.

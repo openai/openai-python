@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
+from ..graders.grader_inputs import GraderInputs
 from ..shared.reasoning_effort import ReasoningEffort
 from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
@@ -102,7 +103,7 @@ class InputMessagesTemplateTemplateEvalItemContentOutputText(BaseModel):
 
 
 class InputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
-    """An image input to the model."""
+    """An image input block used within EvalItem content arrays."""
 
     image_url: str
     """The URL of the image input."""
@@ -123,7 +124,7 @@ InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     InputMessagesTemplateTemplateEvalItemContentOutputText,
     InputMessagesTemplateTemplateEvalItemContentInputImage,
     ResponseInputAudio,
-    List[object],
+    GraderInputs,
 ]
 
 
@@ -137,7 +138,11 @@ class InputMessagesTemplateTemplateEvalItem(BaseModel):
     """
 
     content: InputMessagesTemplateTemplateEvalItemContent
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.
