@@ -6,6 +6,7 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 from ..shared.metadata import Metadata
+from ..graders.grader_inputs import GraderInputs
 from ..shared.reasoning_effort import ReasoningEffort
 from ..shared.response_format_text import ResponseFormatText
 from ..responses.easy_input_message import EasyInputMessage
@@ -28,10 +29,7 @@ __all__ = [
     "InputMessagesTemplateTemplateEvalItem",
     "InputMessagesTemplateTemplateEvalItemContent",
     "InputMessagesTemplateTemplateEvalItemContentOutputText",
-    "InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage",
-    "InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio",
-    "InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText",
-    "InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage",
+    "InputMessagesTemplateTemplateEvalItemContentInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
     "SamplingParamsResponseFormat",
@@ -104,7 +102,7 @@ class InputMessagesTemplateTemplateEvalItemContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
-class InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage(BaseModel):
+class InputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
     """An image input block used within EvalItem content arrays."""
 
     image_url: str
@@ -119,52 +117,14 @@ class InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage(BaseModel):
     One of `high`, `low`, or `auto`. Defaults to `auto`.
     """
 
-
-class InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText(
-    BaseModel
-):
-    """A text output from the model."""
-
-    text: str
-    """The text output from the model."""
-
-    type: Literal["output_text"]
-    """The type of the output text. Always `output_text`."""
-
-
-class InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage(
-    BaseModel
-):
-    """An image input block used within EvalItem content arrays."""
-
-    image_url: str
-    """The URL of the image input."""
-
-    type: Literal["input_image"]
-    """The type of the image input. Always `input_image`."""
-
-    detail: Optional[str] = None
-    """The detail level of the image to be sent to the model.
-
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
-    """
-
-
-InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio: TypeAlias = Union[
-    str,
-    ResponseInputText,
-    InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText,
-    InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage,
-    ResponseInputAudio,
-]
 
 InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     str,
     ResponseInputText,
     InputMessagesTemplateTemplateEvalItemContentOutputText,
-    InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage,
+    InputMessagesTemplateTemplateEvalItemContentInputImage,
     ResponseInputAudio,
-    List[InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio],
+    GraderInputs,
 ]
 
 

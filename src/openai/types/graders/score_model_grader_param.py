@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
-from ..._types import SequenceNotStr
+from .grader_inputs_param import GraderInputsParam
 from ..shared.reasoning_effort import ReasoningEffort
 from ..responses.response_input_text_param import ResponseInputTextParam
 from ..responses.response_input_audio_param import ResponseInputAudioParam
@@ -15,10 +15,7 @@ __all__ = [
     "Input",
     "InputContent",
     "InputContentOutputText",
-    "InputContentEvalItemInputImage",
-    "InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudio",
-    "InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText",
-    "InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage",
+    "InputContentInputImage",
     "SamplingParams",
 ]
 
@@ -33,7 +30,7 @@ class InputContentOutputText(TypedDict, total=False):
     """The type of the output text. Always `output_text`."""
 
 
-class InputContentEvalItemInputImage(TypedDict, total=False):
+class InputContentInputImage(TypedDict, total=False):
     """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
@@ -48,48 +45,14 @@ class InputContentEvalItemInputImage(TypedDict, total=False):
     One of `high`, `low`, or `auto`. Defaults to `auto`.
     """
 
-
-class InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText(TypedDict, total=False):
-    """A text output from the model."""
-
-    text: Required[str]
-    """The text output from the model."""
-
-    type: Required[Literal["output_text"]]
-    """The type of the output text. Always `output_text`."""
-
-
-class InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage(TypedDict, total=False):
-    """An image input block used within EvalItem content arrays."""
-
-    image_url: Required[str]
-    """The URL of the image input."""
-
-    type: Required[Literal["input_image"]]
-    """The type of the image input. Always `input_image`."""
-
-    detail: str
-    """The detail level of the image to be sent to the model.
-
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
-    """
-
-
-InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudio: TypeAlias = Union[
-    str,
-    ResponseInputTextParam,
-    InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText,
-    InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage,
-    ResponseInputAudioParam,
-]
 
 InputContent: TypeAlias = Union[
     str,
     ResponseInputTextParam,
     InputContentOutputText,
-    InputContentEvalItemInputImage,
+    InputContentInputImage,
     ResponseInputAudioParam,
-    SequenceNotStr[InputContentAnArrayOfInputTextOutputTextInputImageAndInputAudio],
+    GraderInputsParam,
 ]
 
 
