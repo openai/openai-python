@@ -28,7 +28,10 @@ __all__ = [
     "InputMessagesTemplateTemplateEvalItem",
     "InputMessagesTemplateTemplateEvalItemContent",
     "InputMessagesTemplateTemplateEvalItemContentOutputText",
-    "InputMessagesTemplateTemplateEvalItemContentInputImage",
+    "InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage",
+    "InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio",
+    "InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText",
+    "InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage",
     "InputMessagesItemReference",
     "SamplingParams",
     "SamplingParamsResponseFormat",
@@ -101,8 +104,8 @@ class InputMessagesTemplateTemplateEvalItemContentOutputText(BaseModel):
     """The type of the output text. Always `output_text`."""
 
 
-class InputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
-    """An image input to the model."""
+class InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage(BaseModel):
+    """An image input block used within EvalItem content arrays."""
 
     image_url: str
     """The URL of the image input."""
@@ -117,13 +120,51 @@ class InputMessagesTemplateTemplateEvalItemContentInputImage(BaseModel):
     """
 
 
+class InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText(
+    BaseModel
+):
+    """A text output from the model."""
+
+    text: str
+    """The text output from the model."""
+
+    type: Literal["output_text"]
+    """The type of the output text. Always `output_text`."""
+
+
+class InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage(
+    BaseModel
+):
+    """An image input block used within EvalItem content arrays."""
+
+    image_url: str
+    """The URL of the image input."""
+
+    type: Literal["input_image"]
+    """The type of the image input. Always `input_image`."""
+
+    detail: Optional[str] = None
+    """The detail level of the image to be sent to the model.
+
+    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    """
+
+
+InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio: TypeAlias = Union[
+    str,
+    ResponseInputText,
+    InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText,
+    InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage,
+    ResponseInputAudio,
+]
+
 InputMessagesTemplateTemplateEvalItemContent: TypeAlias = Union[
     str,
     ResponseInputText,
     InputMessagesTemplateTemplateEvalItemContentOutputText,
-    InputMessagesTemplateTemplateEvalItemContentInputImage,
+    InputMessagesTemplateTemplateEvalItemContentEvalItemInputImage,
     ResponseInputAudio,
-    List[object],
+    List[InputMessagesTemplateTemplateEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio],
 ]
 
 
@@ -137,7 +178,11 @@ class InputMessagesTemplateTemplateEvalItem(BaseModel):
     """
 
     content: InputMessagesTemplateTemplateEvalItemContent
-    """Inputs to the model - can contain template strings."""
+    """Inputs to the model - can contain template strings.
+
+    Supports text, output text, input images, and input audio, either as a single
+    item or an array of items.
+    """
 
     role: Literal["user", "assistant", "system", "developer"]
     """The role of the message input.
