@@ -341,6 +341,7 @@ Types:
 
 ```python
 from openai.types.graders import (
+    GraderInputs,
     LabelModelGrader,
     MultiGrader,
     PythonGrader,

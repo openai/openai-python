@@ -7,6 +7,7 @@ from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .._types import SequenceNotStr
 from .shared_params.metadata import Metadata
+from .graders.grader_inputs_param import GraderInputsParam
 from .graders.python_grader_param import PythonGraderParam
 from .graders.score_model_grader_param import ScoreModelGraderParam
 from .graders.string_check_grader_param import StringCheckGraderParam
@@ -27,10 +28,7 @@ __all__ = [
     "TestingCriterionLabelModelInputEvalItem",
     "TestingCriterionLabelModelInputEvalItemContent",
     "TestingCriterionLabelModelInputEvalItemContentOutputText",
-    "TestingCriterionLabelModelInputEvalItemContentEvalItemInputImage",
-    "TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio",
-    "TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText",
-    "TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage",
+    "TestingCriterionLabelModelInputEvalItemContentInputImage",
     "TestingCriterionTextSimilarity",
     "TestingCriterionPython",
     "TestingCriterionScoreModel",
@@ -131,7 +129,7 @@ class TestingCriterionLabelModelInputEvalItemContentOutputText(TypedDict, total=
     """The type of the output text. Always `output_text`."""
 
 
-class TestingCriterionLabelModelInputEvalItemContentEvalItemInputImage(TypedDict, total=False):
+class TestingCriterionLabelModelInputEvalItemContentInputImage(TypedDict, total=False):
     """An image input block used within EvalItem content arrays."""
 
     image_url: Required[str]
@@ -146,52 +144,14 @@ class TestingCriterionLabelModelInputEvalItemContentEvalItemInputImage(TypedDict
     One of `high`, `low`, or `auto`. Defaults to `auto`.
     """
 
-
-class TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText(
-    TypedDict, total=False
-):
-    """A text output from the model."""
-
-    text: Required[str]
-    """The text output from the model."""
-
-    type: Required[Literal["output_text"]]
-    """The type of the output text. Always `output_text`."""
-
-
-class TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage(
-    TypedDict, total=False
-):
-    """An image input block used within EvalItem content arrays."""
-
-    image_url: Required[str]
-    """The URL of the image input."""
-
-    type: Required[Literal["input_image"]]
-    """The type of the image input. Always `input_image`."""
-
-    detail: str
-    """The detail level of the image to be sent to the model.
-
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
-    """
-
-
-TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio: TypeAlias = Union[
-    str,
-    ResponseInputTextParam,
-    TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioOutputText,
-    TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudioEvalItemInputImage,
-    ResponseInputAudioParam,
-]
 
 TestingCriterionLabelModelInputEvalItemContent: TypeAlias = Union[
     str,
     ResponseInputTextParam,
     TestingCriterionLabelModelInputEvalItemContentOutputText,
-    TestingCriterionLabelModelInputEvalItemContentEvalItemInputImage,
+    TestingCriterionLabelModelInputEvalItemContentInputImage,
     ResponseInputAudioParam,
-    SequenceNotStr[TestingCriterionLabelModelInputEvalItemContentAnArrayOfInputTextOutputTextInputImageAndInputAudio],
+    GraderInputsParam,
 ]
 
 
