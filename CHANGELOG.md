@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.12.0 (2025-12-15)
+
+Full Changelog: [v2.11.0...v2.12.0](https://github.com/openai/openai-python/compare/v2.11.0...v2.12.0)
+
+### Features
+
+* **api:** api update ([a95c4d0](https://github.com/openai/openai-python/commit/a95c4d0952ff5eb767206574e687cb029a49a4ab))
+* **api:** fix grader input list, add dated slugs for sora-2 ([b2c389b](https://github.com/openai/openai-python/commit/b2c389bf5c3bde50bac2d9f60cce58f4aef44a41))
+
 ## 2.11.0 (2025-12-11)
 
 Full Changelog: [v2.10.0...v2.11.0](https://github.com/openai/openai-python/compare/v2.10.0...v2.11.0)
