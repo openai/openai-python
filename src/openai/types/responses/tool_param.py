@@ -221,7 +221,7 @@ class ImageGenerationInputImageMask(TypedDict, total=False):
 
 
 class ImageGeneration(TypedDict, total=False):
-    """A tool that generates images using a model like `gpt-image-1`."""
+    """A tool that generates images using the GPT image models."""
 
     type: Required[Literal["image_generation"]]
     """The type of the image generation tool. Always `image_generation`."""
@@ -246,7 +246,7 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Literal["gpt-image-1", "gpt-image-1-mini"]
+    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini"]]
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Literal["auto", "low"]
