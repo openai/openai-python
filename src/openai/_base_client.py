@@ -1805,7 +1805,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         options: RequestOptions = {},
     ) -> ResponseT:
         opts = FinalRequestOptions.construct(
-            method="patch", url=path, json_data=body, files=to_httpx_files(files), **options
+            method="patch", url=path, json_data=body, files=await async_to_httpx_files(files), **options
         )
         return await self.request(cast_to, opts)
 
