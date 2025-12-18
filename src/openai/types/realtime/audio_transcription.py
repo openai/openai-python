@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Union, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -17,13 +17,22 @@ class AudioTranscription(BaseModel):
     format will improve accuracy and latency.
     """
 
-    model: Optional[
-        Literal["whisper-1", "gpt-4o-mini-transcribe", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
+    model: Union[
+        str,
+        Literal[
+            "whisper-1",
+            "gpt-4o-mini-transcribe",
+            "gpt-4o-mini-transcribe-2025-12-15",
+            "gpt-4o-transcribe",
+            "gpt-4o-transcribe-diarize",
+        ],
+        None,
     ] = None
     """The model to use for transcription.
 
-    Current options are `whisper-1`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe`,
-    and `gpt-4o-transcribe-diarize`. Use `gpt-4o-transcribe-diarize` when you need
+    Current options are `whisper-1`, `gpt-4o-mini-transcribe`,
+    `gpt-4o-mini-transcribe-2025-12-15`, `gpt-4o-transcribe`, and
+    `gpt-4o-transcribe-diarize`. Use `gpt-4o-transcribe-diarize` when you need
     diarization with speaker labels.
     """
 

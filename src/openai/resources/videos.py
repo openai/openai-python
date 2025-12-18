@@ -10,7 +10,6 @@ import httpx
 from .. import _legacy_response
 from ..types import (
     VideoSize,
-    VideoModel,
     VideoSeconds,
     video_list_params,
     video_remix_params,
@@ -33,8 +32,8 @@ from ..pagination import SyncConversationCursorPage, AsyncConversationCursorPage
 from ..types.video import Video
 from .._base_client import AsyncPaginator, make_request_options
 from ..types.video_size import VideoSize
-from ..types.video_model import VideoModel
 from ..types.video_seconds import VideoSeconds
+from ..types.video_model_param import VideoModelParam
 from ..types.video_delete_response import VideoDeleteResponse
 
 __all__ = ["Videos", "AsyncVideos"]
@@ -65,7 +64,7 @@ class Videos(SyncAPIResource):
         *,
         prompt: str,
         input_reference: FileTypes | Omit = omit,
-        model: VideoModel | Omit = omit,
+        model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -347,7 +346,7 @@ class AsyncVideos(AsyncAPIResource):
         *,
         prompt: str,
         input_reference: FileTypes | Omit = omit,
-        model: VideoModel | Omit = omit,
+        model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.

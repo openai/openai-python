@@ -29,9 +29,9 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     model: Required[Union[str, AudioModel]]
     """ID of the model to use.
 
-    The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`, `whisper-1`
-    (which is powered by our open source Whisper V2 model), and
-    `gpt-4o-transcribe-diarize`.
+    The options are `gpt-4o-transcribe`, `gpt-4o-mini-transcribe`,
+    `gpt-4o-mini-transcribe-2025-12-15`, `whisper-1` (which is powered by our open
+    source Whisper V2 model), and `gpt-4o-transcribe-diarize`.
     """
 
     chunking_strategy: Optional[ChunkingStrategy]
@@ -49,9 +49,9 @@ class TranscriptionCreateParamsBase(TypedDict, total=False):
     Additional information to include in the transcription response. `logprobs` will
     return the log probabilities of the tokens in the response to understand the
     model's confidence in the transcription. `logprobs` only works with
-    response_format set to `json` and only with the models `gpt-4o-transcribe` and
-    `gpt-4o-mini-transcribe`. This field is not supported when using
-    `gpt-4o-transcribe-diarize`.
+    response_format set to `json` and only with the models `gpt-4o-transcribe`,
+    `gpt-4o-mini-transcribe`, and `gpt-4o-mini-transcribe-2025-12-15`. This field is
+    not supported when using `gpt-4o-transcribe-diarize`.
     """
 
     known_speaker_names: SequenceNotStr[str]
