@@ -72,7 +72,7 @@ class Speech(SyncAPIResource):
 
           model:
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-              `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
+              `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
               `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and
@@ -168,7 +168,7 @@ class AsyncSpeech(AsyncAPIResource):
 
           model:
               One of the available [TTS models](https://platform.openai.com/docs/models#tts):
-              `tts-1`, `tts-1-hd` or `gpt-4o-mini-tts`.
+              `tts-1`, `tts-1-hd`, `gpt-4o-mini-tts`, or `gpt-4o-mini-tts-2025-12-15`.
 
           voice: The voice to use when generating the audio. Supported voices are `alloy`, `ash`,
               `ballad`, `coral`, `echo`, `fable`, `onyx`, `nova`, `sage`, `shimmer`, and

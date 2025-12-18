@@ -6,8 +6,8 @@ from typing_extensions import Required, TypedDict
 
 from .._types import FileTypes
 from .video_size import VideoSize
-from .video_model import VideoModel
 from .video_seconds import VideoSeconds
+from .video_model_param import VideoModelParam
 
 __all__ = ["VideoCreateParams"]
 
@@ -19,7 +19,7 @@ class VideoCreateParams(TypedDict, total=False):
     input_reference: FileTypes
     """Optional image reference that guides generation."""
 
-    model: VideoModel
+    model: VideoModelParam
     """The video generation model to use (allowed values: sora-2, sora-2-pro).
 
     Defaults to `sora-2`.
