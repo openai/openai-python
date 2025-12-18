@@ -67,8 +67,10 @@ class RealtimeSessionCreateRequestParam(TypedDict, total=False):
             "gpt-4o-mini-realtime-preview-2024-12-17",
             "gpt-realtime-mini",
             "gpt-realtime-mini-2025-10-06",
+            "gpt-realtime-mini-2025-12-15",
             "gpt-audio-mini",
             "gpt-audio-mini-2025-10-06",
+            "gpt-audio-mini-2025-12-15",
         ],
     ]
     """The Realtime model used for this session."""
