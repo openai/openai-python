@@ -11,7 +11,7 @@ jobs:
     environment: publish
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rye
         run: |
