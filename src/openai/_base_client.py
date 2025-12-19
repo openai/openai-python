@@ -436,7 +436,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self._validate_headers(headers_dict, custom_headers)
 
         # headers are case-insensitive while dictionaries are not.
-        headers = httpx.Headers(headers_dict)
+        headers = httpx.Headers(headers_dict, encoding="utf-8")
 
         idempotency_header = self._idempotency_header
         if idempotency_header and options.idempotency_key and idempotency_header not in headers:
