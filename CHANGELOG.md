@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.14.0 (2025-12-19)
+
+Full Changelog: [v2.13.0...v2.14.0](https://github.com/openai/openai-python/compare/v2.13.0...v2.14.0)
+
+### Features
+
+* **api:** slugs for new audio models; make all `model` params accept strings ([e517792](https://github.com/openai/openai-python/commit/e517792b58d1768cfb3432a555a354ae0a9cfa21))
+
+
+### Bug Fixes
+
+* use async_to_httpx_files in patch method ([a6af9ee](https://github.com/openai/openai-python/commit/a6af9ee5643197222f328d5e73a80ab3515c32e2))
+
+
+### Chores
+
+* **internal:** add `--fix` argument to lint script ([93107ef](https://github.com/openai/openai-python/commit/93107ef36abcfd9c6b1419533a1720031f03caec))
+
 ## 2.13.0 (2025-12-16)
 
 Full Changelog: [v2.12.0...v2.13.0](https://github.com/openai/openai-python/compare/v2.12.0...v2.13.0)
