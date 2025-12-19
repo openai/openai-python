@@ -993,3 +993,78 @@ def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpe
         checking_client.chat.completions.parse,
         exclude_params={"response_format", "stream"},
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_content_filter_includes_completion(client: OpenAI, respx_mock: MockRouter) -> None:
+    """Verify ContentFilterFinishReasonError exposes completion object with usage info."""
+    class Location(BaseModel):
+        city: str
+        temperature: float
+
+    with pytest.raises(openai.ContentFilterFinishReasonError) as exc_info:
+        make_snapshot_request(
+            lambda c: c.chat.completions.parse(
+                model="gpt-4o-2024-08-06",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "Test content that triggers filter",
+                    },
+                ],
+                response_format=Location,
+            ),
+            content_snapshot=snapshot(
+                '{"id": "chatcmpl-test123", "object": "chat.completion", "created": 1727346163, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null, "refusal": null}, "logprobs": null, "finish_reason": "content_filter"}], "usage": {"prompt_tokens": 50, "completion_tokens": 0, "total_tokens": 50, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_test"}'
+            ),
+            path="/chat/completions",
+            mock_client=client,
+            respx_mock=respx_mock,
+        )
+
+    error = exc_info.value
+    
+    # Verify completion is accessible
+    assert error.completion is not None
+    assert error.completion.id == "chatcmpl-test123"
+    assert error.completion.model == "gpt-4o-2024-08-06"
+    
+    # Verify usage information is accessible
+    assert error.completion.usage is not None
+    assert error.completion.usage.total_tokens == 50
+    assert error.completion.usage.prompt_tokens == 50
+    assert error.completion.usage.completion_tokens == 0
+    
+    # Verify usage is included in error message
+    error_msg = str(error)
+    assert "content filter" in error_msg.lower()
+    assert "prompt_tokens=50" in error_msg
+    assert "total_tokens=50" in error_msg
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_content_filter_backward_compatibility(client: OpenAI, respx_mock: MockRouter) -> None:
+    """Verify existing try/except blocks still work after adding completion parameter."""
+    class Location(BaseModel):
+        city: str
+
+    # Old code that just catches the error should still work
+    caught_error = False
+    try:
+        make_snapshot_request(
+            lambda c: c.chat.completions.parse(
+                model="gpt-4o-2024-08-06",
+                messages=[{"role": "user", "content": "Test"}],
+                response_format=Location,
+            ),
+            content_snapshot=snapshot(
+                '{"id": "chatcmpl-test456", "object": "chat.completion", "created": 1727346163, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": null}, "finish_reason": "content_filter"}], "usage": {"prompt_tokens": 10, "completion_tokens": 0, "total_tokens": 10}}'
+            ),
+            path="/chat/completions",
+            mock_client=client,
+            respx_mock=respx_mock,
+        )
+    except openai.ContentFilterFinishReasonError:
+        caught_error = True
+    
+    assert caught_error, "Exception should still be catchable"
