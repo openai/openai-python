@@ -1677,6 +1677,42 @@ class Responses(SyncAPIResource):
 
 
 class AsyncResponses(AsyncAPIResource):
+    async def wait_until_completed(
+        self,
+        response_id: str,
+        *,
+        poll_interval: float = 1.0,
+        timeout: float = 60.0,
+        include: Optional[List[ResponseIncludable]] = None,
+        **kwargs: Any,
+    ) -> Response:
+        """
+        Polls retrieve() until the response status is 'completed' or timeout is reached.
+        Args:
+            response_id: The response ID to poll.
+            poll_interval: Seconds between polls (default 1.0).
+            timeout: Max seconds to wait (default 60.0).
+            include: Optional fields to include in retrieve().
+            **kwargs: Passed to retrieve().
+        Returns:
+            The completed Response object.
+        Raises:
+            TimeoutError: If the response does not complete in time.
+        """
+        import time
+        import asyncio
+
+        start: float = time.monotonic()
+        while True:
+            resp = cast(
+                Response, await self.retrieve(response_id, include=include if include is not None else omit, **kwargs)
+            )
+            if hasattr(resp, "status") and getattr(resp, "status", None) == "completed":
+                return resp
+            if time.monotonic() - start > timeout:
+                raise TimeoutError(f"Response {response_id} did not complete within {timeout} seconds.")
+            await asyncio.sleep(poll_interval)
+
     @cached_property
     def input_items(self) -> AsyncInputItems:
         return AsyncInputItems(self._client)
