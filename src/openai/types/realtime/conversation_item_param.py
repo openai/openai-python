@@ -14,6 +14,7 @@ from .realtime_conversation_item_function_call_param import RealtimeConversation
 from .realtime_conversation_item_system_message_param import RealtimeConversationItemSystemMessageParam
 from .realtime_conversation_item_assistant_message_param import RealtimeConversationItemAssistantMessageParam
 from .realtime_conversation_item_function_call_output_param import RealtimeConversationItemFunctionCallOutputParam
+from .realtime_conversation_item_reference_param import RealtimeConversationItemReferenceParam
 
 __all__ = ["ConversationItemParam"]
 
@@ -23,6 +24,7 @@ ConversationItemParam: TypeAlias = Union[
     RealtimeConversationItemAssistantMessageParam,
     RealtimeConversationItemFunctionCallParam,
     RealtimeConversationItemFunctionCallOutputParam,
+    RealtimeConversationItemReferenceParam,
     RealtimeMcpApprovalResponseParam,
     RealtimeMcpListToolsParam,
     RealtimeMcpToolCallParam,
