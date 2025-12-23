@@ -76,21 +76,57 @@ so that your API key is not stored in source control.
 With an image URL:
 
 ```python
-prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+import requests
+import os
+from openai import OpenAI
+from pathlib import Path
+from PIL import Image
 
-response = client.responses.create(
-    model="gpt-4o-mini",
-    input=[
-        {
-            "role": "user",
-            "content": [
-                {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": f"{img_url}"},
-            ],
-        }
-    ],
-)
+# Initialize OpenAI client
+client = OpenAI()
+
+# Function to download and save image
+def download_image(image_url, save_path="downloaded_image.jpg"):
+    response = requests.get(image_url)
+    response.raise_for_status()  
+    with open(save_path, 'wb') as f:
+        f.write(response.content)
+    return save_path
+
+# Function to interact with GPT-4 Vision API
+def call_ai(image_path, question="What teams are playing in this image?"):
+    # Open image and convert to base64-compatible format
+    image_file = open(image_path, "rb")
+
+    # Send request
+    response = client.chat.completions.create(
+        model="gpt-4-vision-preview",
+        messages=[
+            {"role": "user", "content": question},
+            {
+                "role": "user",
+                "content": [
+                    {
+                        "type": "image_url",
+                        "image_url": {
+                            "url": f"data:image/jpeg;base64,{image_file.read().encode('base64').decode()}"
+                        }
+                    }
+                ]
+            }
+        ],
+        max_tokens=500
+    )
+
+    return response.choices[0].message.content
+
+# Step 1: Download image from the link
+image_url = "https://upload.wikimedia.org/wikipedia/commons/3/3b/LeBron_James_Layup_%28Cleveland_vs_Brooklyn_2018%29.jpg"
+image_path = download_image(image_url)
+
+# Step 2: Ask a question using GPT-4 Vision
+answer = call_ai(image_path, "What teams are playing in this image?")
+print("AI Answer:", answer)
 ```
 
 With the image as a base64 encoded string:
