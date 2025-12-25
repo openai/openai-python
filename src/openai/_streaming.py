@@ -60,11 +60,10 @@ class Stream(Generic[_T]):
                 if sse.data.startswith("[DONE]"):
                     break
 
-                # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
-                if sse.event and sse.event.startswith("thread."):
+                # Check for error events first
+                if sse.event == "error":
                     data = sse.json()
-
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
@@ -78,6 +77,9 @@ class Stream(Generic[_T]):
                             body=data["error"],
                         )
 
+                # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
+                if sse.event and sse.event.startswith("thread."):
+                    data = sse.json()
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
@@ -163,11 +165,10 @@ class AsyncStream(Generic[_T]):
                 if sse.data.startswith("[DONE]"):
                     break
 
-                # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
-                if sse.event and sse.event.startswith("thread."):
+                # Check for error events first
+                if sse.event == "error":
                     data = sse.json()
-
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
+                    if is_mapping(data) and data.get("error"):
                         message = None
                         error = data.get("error")
                         if is_mapping(error):
@@ -181,6 +182,9 @@ class AsyncStream(Generic[_T]):
                             body=data["error"],
                         )
 
+                # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
+                if sse.event and sse.event.startswith("thread."):
+                    data = sse.json()
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
