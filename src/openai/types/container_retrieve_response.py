@@ -9,6 +9,12 @@ __all__ = ["ContainerRetrieveResponse", "ExpiresAfter"]
 
 
 class ExpiresAfter(BaseModel):
+    """
+    The container will expire after this time period.
+    The anchor is the reference point for the expiration.
+    The minutes is the number of minutes after the anchor before the container expires.
+    """
+
     anchor: Optional[Literal["last_active_at"]] = None
     """The reference point for the expiration."""
 
@@ -38,3 +44,9 @@ class ContainerRetrieveResponse(BaseModel):
     point for the expiration. The minutes is the number of minutes after the anchor
     before the container expires.
     """
+
+    last_active_at: Optional[int] = None
+    """Unix timestamp (in seconds) when the container was last active."""
+
+    memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]] = None
+    """The memory limit configured for the container."""

@@ -40,3 +40,51 @@ jobs:
           # we still detect breaking changes when entire files and their tests are removed.
           git checkout "${{ github.event.pull_request.base.sha }}" -- ./scripts/detect-breaking-changes 2>/dev/null || true
           ./scripts/detect-breaking-changes ${{ github.event.pull_request.base.sha }}
+
+  agents_sdk:
+    runs-on: 'ubuntu-latest'
+    name: Detect Agents SDK regressions
+    if: github.repository == 'openai/openai-python'
+    steps:
+      # Setup this sdk
+      - uses: actions/checkout@v4
+        with:
+          path: openai-python
+
+      - name: Install Rye
+        working-directory: openai-python
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Install dependencies
+        working-directory: openai-python
+        run: |
+          rye sync --all-features
+
+      # Setup the agents lib
+      - uses: actions/checkout@v4
+        with:
+          repository: openai/openai-agents-python
+          path: openai-agents-python
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Link to local SDK
+        working-directory: openai-agents-python
+        run: uv add ../openai-python
+
+      - name: Install dependencies
+        working-directory: openai-agents-python
+        run: make sync
+
+      - name: Run integration type checks
+        working-directory: openai-agents-python
+        run: make mypy
+

@@ -8,6 +8,8 @@ __all__ = ["RequiredActionFunctionToolCall", "Function"]
 
 
 class Function(BaseModel):
+    """The function definition."""
+
     arguments: str
     """The arguments that the model expects you to pass to the function."""
 
@@ -16,6 +18,8 @@ class Function(BaseModel):
 
 
 class RequiredActionFunctionToolCall(BaseModel):
+    """Tool call objects"""
+
     id: str
     """The ID of the tool call.
 

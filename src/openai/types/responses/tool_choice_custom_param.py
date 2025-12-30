@@ -8,6 +8,8 @@ __all__ = ["ToolChoiceCustomParam"]
 
 
 class ToolChoiceCustomParam(TypedDict, total=False):
+    """Use this option to force the model to call a specific custom tool."""
+
     name: Required[str]
     """The name of the custom tool to call."""
 

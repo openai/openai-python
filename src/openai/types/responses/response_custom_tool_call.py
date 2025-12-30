@@ -9,6 +9,8 @@ __all__ = ["ResponseCustomToolCall"]
 
 
 class ResponseCustomToolCall(BaseModel):
+    """A call to a custom tool created by the model."""
+
     call_id: str
     """An identifier used to map this custom tool call to a tool call output."""
 

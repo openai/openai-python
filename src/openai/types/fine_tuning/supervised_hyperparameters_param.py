@@ -9,6 +9,8 @@ __all__ = ["SupervisedHyperparametersParam"]
 
 
 class SupervisedHyperparametersParam(TypedDict, total=False):
+    """The hyperparameters used for the fine-tuning job."""
+
     batch_size: Union[Literal["auto"], int]
     """Number of examples in each batch.
 

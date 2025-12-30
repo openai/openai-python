@@ -1,5 +1,96 @@
 # Changelog
 
+## 2.14.0 (2025-12-19)
+
+Full Changelog: [v2.13.0...v2.14.0](https://github.com/openai/openai-python/compare/v2.13.0...v2.14.0)
+
+### Features
+
+* **api:** slugs for new audio models; make all `model` params accept strings ([e517792](https://github.com/openai/openai-python/commit/e517792b58d1768cfb3432a555a354ae0a9cfa21))
+
+
+### Bug Fixes
+
+* use async_to_httpx_files in patch method ([a6af9ee](https://github.com/openai/openai-python/commit/a6af9ee5643197222f328d5e73a80ab3515c32e2))
+
+
+### Chores
+
+* **internal:** add `--fix` argument to lint script ([93107ef](https://github.com/openai/openai-python/commit/93107ef36abcfd9c6b1419533a1720031f03caec))
+
+## 2.13.0 (2025-12-16)
+
+Full Changelog: [v2.12.0...v2.13.0](https://github.com/openai/openai-python/compare/v2.12.0...v2.13.0)
+
+### Features
+
+* **api:** gpt-image-1.5 ([1c88f03](https://github.com/openai/openai-python/commit/1c88f03bb48aa67426744e5b74f6197f30f61c73))
+
+
+### Chores
+
+* **ci:** add CI job to detect breaking changes with the Agents SDK ([#1436](https://github.com/openai/openai-python/issues/1436)) ([237c91e](https://github.com/openai/openai-python/commit/237c91ee6738b6764b139fd7afa68294d3ee0153))
+* **internal:** add missing files argument to base client ([e6d6fd5](https://github.com/openai/openai-python/commit/e6d6fd5989d76358ea5d9abb5949aa87646cbef6))
+
+## 2.12.0 (2025-12-15)
+
+Full Changelog: [v2.11.0...v2.12.0](https://github.com/openai/openai-python/compare/v2.11.0...v2.12.0)
+
+### Features
+
+* **api:** api update ([a95c4d0](https://github.com/openai/openai-python/commit/a95c4d0952ff5eb767206574e687cb029a49a4ab))
+* **api:** fix grader input list, add dated slugs for sora-2 ([b2c389b](https://github.com/openai/openai-python/commit/b2c389bf5c3bde50bac2d9f60cce58f4aef44a41))
+
+## 2.11.0 (2025-12-11)
+
+Full Changelog: [v2.10.0...v2.11.0](https://github.com/openai/openai-python/compare/v2.10.0...v2.11.0)
+
+### Features
+
+* **api:** gpt 5.2 ([dd9b8e8](https://github.com/openai/openai-python/commit/dd9b8e85cf91fe0d7470143fba10fe950ec740c4))
+
+## 2.10.0 (2025-12-10)
+
+Full Changelog: [v2.9.0...v2.10.0](https://github.com/openai/openai-python/compare/v2.9.0...v2.10.0)
+
+### Features
+
+* **api:** make model required for the responses/compact endpoint ([a12936b](https://github.com/openai/openai-python/commit/a12936b18cf19009d4e6d586c9b1958359636dbe))
+
+
+### Bug Fixes
+
+* **types:** allow pyright to infer TypedDict types within SequenceNotStr ([8f0d230](https://github.com/openai/openai-python/commit/8f0d23066c1edc38a6e9858b054dceaf92ae001b))
+
+
+### Chores
+
+* add missing docstrings ([f20a9a1](https://github.com/openai/openai-python/commit/f20a9a18a421ba69622c77ab539509d218e774eb))
+* **internal:** update docstring ([9a993f2](https://github.com/openai/openai-python/commit/9a993f2261b6524aa30b955e006c7ea89f086968))
+
+## 2.9.0 (2025-12-04)
+
+Full Changelog: [v2.8.1...v2.9.0](https://github.com/openai/openai-python/compare/v2.8.1...v2.9.0)
+
+### Features
+
+* **api:** gpt-5.1-codex-max and responses/compact ([22f646e](https://github.com/openai/openai-python/commit/22f646e985b7c93782cf695edbe643844cae7017))
+
+
+### Bug Fixes
+
+* **client:** avoid mutating user-provided response config object ([#2700](https://github.com/openai/openai-python/issues/2700)) ([e040d22](https://github.com/openai/openai-python/commit/e040d22c2df068e908f69dc6b892e7f8b3fe6e99))
+* ensure streams are always closed ([0b1a27f](https://github.com/openai/openai-python/commit/0b1a27f08639d14dfe40bf80b48e2b8a1a51593c))
+* **streaming:** correct indentation ([575bbac](https://github.com/openai/openai-python/commit/575bbac13b3a57731a4e07b67636ae94463d43fa))
+
+
+### Chores
+
+* **deps:** mypy 1.18.1 has a regression, pin to 1.17 ([22cd586](https://github.com/openai/openai-python/commit/22cd586dbd5484b47f625da55db697691116b22b))
+* **docs:** use environment variables for authentication in code snippets ([c2a3cd5](https://github.com/openai/openai-python/commit/c2a3cd502bfb03f68f62f50aed15a40458c0996e))
+* **internal:** codegen related update ([307a066](https://github.com/openai/openai-python/commit/307a0664383b9d1d4151bc1a05a78c4fdcdcc9b0))
+* update lockfile ([b4109c5](https://github.com/openai/openai-python/commit/b4109c5fcf971ccfb25b4bdaef0bf36999f9eca5))
+
 ## 2.8.1 (2025-11-17)
 
 Full Changelog: [v2.8.0...v2.8.1](https://github.com/openai/openai-python/compare/v2.8.0...v2.8.1)

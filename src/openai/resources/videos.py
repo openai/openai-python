@@ -10,7 +10,6 @@ import httpx
 from .. import _legacy_response
 from ..types import (
     VideoSize,
-    VideoModel,
     VideoSeconds,
     video_list_params,
     video_remix_params,
@@ -34,8 +33,8 @@ from ..types.video import Video
 from .._base_client import AsyncPaginator, make_request_options
 from .._utils._utils import is_given
 from ..types.video_size import VideoSize
-from ..types.video_model import VideoModel
 from ..types.video_seconds import VideoSeconds
+from ..types.video_model_param import VideoModelParam
 from ..types.video_delete_response import VideoDeleteResponse
 
 __all__ = ["Videos", "AsyncVideos"]
@@ -66,7 +65,7 @@ class Videos(SyncAPIResource):
         *,
         prompt: str,
         input_reference: FileTypes | Omit = omit,
-        model: VideoModel | Omit = omit,
+        model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -84,11 +83,13 @@ class Videos(SyncAPIResource):
 
           input_reference: Optional image reference that guides generation.
 
-          model: The video generation model to use. Defaults to `sora-2`.
+          model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
+              to `sora-2`.
 
-          seconds: Clip duration in seconds. Defaults to 4 seconds.
+          seconds: Clip duration in seconds (allowed values: 4, 8, 12). Defaults to 4 seconds.
 
-          size: Output resolution formatted as width x height. Defaults to 720x1280.
+          size: Output resolution formatted as width x height (allowed values: 720x1280,
+              1280x720, 1024x1792, 1792x1024). Defaults to 720x1280.
 
           extra_headers: Send extra headers
 
@@ -128,7 +129,7 @@ class Videos(SyncAPIResource):
         *,
         prompt: str,
         input_reference: FileTypes | Omit = omit,
-        model: VideoModel | Omit = omit,
+        model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
         poll_interval_ms: int | Omit = omit,
@@ -419,7 +420,7 @@ class AsyncVideos(AsyncAPIResource):
         *,
         prompt: str,
         input_reference: FileTypes | Omit = omit,
-        model: VideoModel | Omit = omit,
+        model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
@@ -437,11 +438,13 @@ class AsyncVideos(AsyncAPIResource):
 
           input_reference: Optional image reference that guides generation.
 
-          model: The video generation model to use. Defaults to `sora-2`.
+          model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
+              to `sora-2`.
 
-          seconds: Clip duration in seconds. Defaults to 4 seconds.
+          seconds: Clip duration in seconds (allowed values: 4, 8, 12). Defaults to 4 seconds.
 
-          size: Output resolution formatted as width x height. Defaults to 720x1280.
+          size: Output resolution formatted as width x height (allowed values: 720x1280,
+              1280x720, 1024x1792, 1792x1024). Defaults to 720x1280.
 
           extra_headers: Send extra headers
 
@@ -481,7 +484,7 @@ class AsyncVideos(AsyncAPIResource):
         *,
         prompt: str,
         input_reference: FileTypes | Omit = omit,
-        model: VideoModel | Omit = omit,
+        model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
         poll_interval_ms: int | Omit = omit,

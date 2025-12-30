@@ -13,6 +13,11 @@ Session: TypeAlias = Union[RealtimeSessionCreateRequest, RealtimeTranscriptionSe
 
 
 class SessionUpdatedEvent(BaseModel):
+    """
+    Returned when a session is updated with a `session.update` event, unless
+    there is an error.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

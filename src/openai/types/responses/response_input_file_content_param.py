@@ -9,6 +9,8 @@ __all__ = ["ResponseInputFileContentParam"]
 
 
 class ResponseInputFileContentParam(TypedDict, total=False):
+    """A file input to the model."""
+
     type: Required[Literal["input_file"]]
     """The type of the input item. Always `input_file`."""
 

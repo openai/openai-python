@@ -125,8 +125,10 @@ class Calls(SyncAPIResource):
                 "gpt-4o-mini-realtime-preview-2024-12-17",
                 "gpt-realtime-mini",
                 "gpt-realtime-mini-2025-10-06",
+                "gpt-realtime-mini-2025-12-15",
                 "gpt-audio-mini",
                 "gpt-audio-mini-2025-10-06",
+                "gpt-audio-mini-2025-12-15",
             ],
         ]
         | Omit = omit,
@@ -199,15 +201,20 @@ class Calls(SyncAPIResource):
               limit, the conversation be truncated, meaning messages (starting from the
               oldest) will not be included in the model's context. A 32k context model with
               4,096 max output tokens can only include 28,224 tokens in the context before
-              truncation occurs. Clients can configure truncation behavior to truncate with a
-              lower max token limit, which is an effective way to control token usage and
-              cost. Truncation will reduce the number of cached tokens on the next turn
-              (busting the cache), since messages are dropped from the beginning of the
-              context. However, clients can also configure truncation to retain messages up to
-              a fraction of the maximum context size, which will reduce the need for future
-              truncations and thus improve the cache rate. Truncation can be disabled
-              entirely, which means the server will never truncate but would instead return an
-              error if the conversation exceeds the model's input token limit.
+              truncation occurs.
+
+              Clients can configure truncation behavior to truncate with a lower max token
+              limit, which is an effective way to control token usage and cost.
+
+              Truncation will reduce the number of cached tokens on the next turn (busting the
+              cache), since messages are dropped from the beginning of the context. However,
+              clients can also configure truncation to retain messages up to a fraction of the
+              maximum context size, which will reduce the need for future truncations and thus
+              improve the cache rate.
+
+              Truncation can be disabled entirely, which means the server will never truncate
+              but would instead return an error if the conversation exceeds the model's input
+              token limit.
 
           extra_headers: Send extra headers
 
@@ -445,8 +452,10 @@ class AsyncCalls(AsyncAPIResource):
                 "gpt-4o-mini-realtime-preview-2024-12-17",
                 "gpt-realtime-mini",
                 "gpt-realtime-mini-2025-10-06",
+                "gpt-realtime-mini-2025-12-15",
                 "gpt-audio-mini",
                 "gpt-audio-mini-2025-10-06",
+                "gpt-audio-mini-2025-12-15",
             ],
         ]
         | Omit = omit,
@@ -519,15 +528,20 @@ class AsyncCalls(AsyncAPIResource):
               limit, the conversation be truncated, meaning messages (starting from the
               oldest) will not be included in the model's context. A 32k context model with
               4,096 max output tokens can only include 28,224 tokens in the context before
-              truncation occurs. Clients can configure truncation behavior to truncate with a
-              lower max token limit, which is an effective way to control token usage and
-              cost. Truncation will reduce the number of cached tokens on the next turn
-              (busting the cache), since messages are dropped from the beginning of the
-              context. However, clients can also configure truncation to retain messages up to
-              a fraction of the maximum context size, which will reduce the need for future
-              truncations and thus improve the cache rate. Truncation can be disabled
-              entirely, which means the server will never truncate but would instead return an
-              error if the conversation exceeds the model's input token limit.
+              truncation occurs.
+
+              Clients can configure truncation behavior to truncate with a lower max token
+              limit, which is an effective way to control token usage and cost.
+
+              Truncation will reduce the number of cached tokens on the next turn (busting the
+              cache), since messages are dropped from the beginning of the context. However,
+              clients can also configure truncation to retain messages up to a fraction of the
+              maximum context size, which will reduce the need for future truncations and thus
+              improve the cache rate.
+
+              Truncation can be disabled entirely, which means the server will never truncate
+              but would instead return an error if the conversation exceeds the model's input
+              token limit.
 
           extra_headers: Send extra headers
 

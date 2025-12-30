@@ -8,11 +8,15 @@ __all__ = ["ChatKitWorkflow", "Tracing"]
 
 
 class Tracing(BaseModel):
+    """Tracing settings applied to the workflow."""
+
     enabled: bool
     """Indicates whether tracing is enabled."""
 
 
 class ChatKitWorkflow(BaseModel):
+    """Workflow metadata and state returned for the session."""
+
     id: str
     """Identifier of the workflow backing the session."""
 

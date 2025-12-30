@@ -8,6 +8,8 @@ __all__ = ["ChatKitWidgetItem"]
 
 
 class ChatKitWidgetItem(BaseModel):
+    """Thread item that renders a widget payload."""
+
     id: str
     """Identifier of the thread item."""
 

@@ -8,6 +8,8 @@ __all__ = ["RealtimeError"]
 
 
 class RealtimeError(BaseModel):
+    """Details of the error."""
+
     message: str
     """A human-readable error message."""
 

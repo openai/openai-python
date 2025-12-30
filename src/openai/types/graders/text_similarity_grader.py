@@ -8,6 +8,8 @@ __all__ = ["TextSimilarityGrader"]
 
 
 class TextSimilarityGrader(BaseModel):
+    """A TextSimilarityGrader object which grades text based on similarity metrics."""
+
     evaluation_metric: Literal[
         "cosine",
         "fuzzy_match",

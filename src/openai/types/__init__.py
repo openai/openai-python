@@ -53,6 +53,7 @@ from .batch_list_params import BatchListParams as BatchListParams
 from .completion_choice import CompletionChoice as CompletionChoice
 from .image_edit_params import ImageEditParams as ImageEditParams
 from .video_list_params import VideoListParams as VideoListParams
+from .video_model_param import VideoModelParam as VideoModelParam
 from .eval_create_params import EvalCreateParams as EvalCreateParams
 from .eval_list_response import EvalListResponse as EvalListResponse
 from .eval_update_params import EvalUpdateParams as EvalUpdateParams

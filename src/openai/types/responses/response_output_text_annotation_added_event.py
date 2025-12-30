@@ -8,6 +8,8 @@ __all__ = ["ResponseOutputTextAnnotationAddedEvent"]
 
 
 class ResponseOutputTextAnnotationAddedEvent(BaseModel):
+    """Emitted when an annotation is added to output text content."""
+
     annotation: object
     """The annotation object being added. (See annotation schema for details.)"""
 

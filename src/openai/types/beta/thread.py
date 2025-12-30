@@ -29,12 +29,20 @@ class ToolResourcesFileSearch(BaseModel):
 
 
 class ToolResources(BaseModel):
+    """
+    A set of resources that are made available to the assistant's tools in this thread. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: Optional[ToolResourcesCodeInterpreter] = None
 
     file_search: Optional[ToolResourcesFileSearch] = None
 
 
 class Thread(BaseModel):
+    """
+    Represents a thread that contains [messages](https://platform.openai.com/docs/api-reference/messages).
+    """
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

@@ -9,6 +9,13 @@ __all__ = ["InputAudioBufferCommittedEvent"]
 
 
 class InputAudioBufferCommittedEvent(BaseModel):
+    """
+    Returned when an input audio buffer is committed, either by the client or
+    automatically in server VAD mode. The `item_id` property is the ID of the user
+    message item that will be created, thus a `conversation.item.created` event
+    will also be sent to the client.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

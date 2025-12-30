@@ -14,6 +14,8 @@ class MessageCreation(BaseModel):
 
 
 class RunStepDeltaMessageDelta(BaseModel):
+    """Details of the message creation by the run step."""
+
     type: Literal["message_creation"]
     """Always `message_creation`."""
 

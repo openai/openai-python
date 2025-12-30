@@ -9,11 +9,15 @@ __all__ = ["EvalRunCanceledWebhookEvent", "Data"]
 
 
 class Data(BaseModel):
+    """Event data payload."""
+
     id: str
     """The unique ID of the eval run."""
 
 
 class EvalRunCanceledWebhookEvent(BaseModel):
+    """Sent when an eval run has been canceled."""
+
     id: str
     """The unique ID of the event."""
 

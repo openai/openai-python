@@ -8,6 +8,8 @@ __all__ = ["ResponseCodeInterpreterCallCompletedEvent"]
 
 
 class ResponseCodeInterpreterCallCompletedEvent(BaseModel):
+    """Emitted when the code interpreter call is completed."""
+
     item_id: str
     """The unique identifier of the code interpreter tool call item."""
 

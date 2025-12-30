@@ -9,6 +9,8 @@ __all__ = ["ConversationCreatedEvent", "Conversation"]
 
 
 class Conversation(BaseModel):
+    """The conversation resource."""
+
     id: Optional[str] = None
     """The unique ID of the conversation."""
 
@@ -17,6 +19,8 @@ class Conversation(BaseModel):
 
 
 class ConversationCreatedEvent(BaseModel):
+    """Returned when a conversation is created. Emitted right after session creation."""
+
     conversation: Conversation
     """The conversation resource."""
 

@@ -9,13 +9,22 @@ __all__ = ["RealtimeAudioInputTurnDetectionParam", "ServerVad", "SemanticVad"]
 
 
 class ServerVad(TypedDict, total=False):
+    """
+    Server-side voice activity detection (VAD) which flips on when user speech is detected and off after a period of silence.
+    """
+
     type: Required[Literal["server_vad"]]
     """Type of turn detection, `server_vad` to turn on simple Server VAD."""
 
     create_response: bool
-    """
-    Whether or not to automatically generate a response when a VAD stop event
+    """Whether or not to automatically generate a response when a VAD stop event
     occurs.
+
+    If `interrupt_response` is set to `false` this may fail to create a response if
+    the model is already responding.
+
+    If both `create_response` and `interrupt_response` are set to `false`, the model
+    will never respond automatically but VAD events will still be emitted.
     """
 
     idle_timeout_ms: Optional[int]
@@ -36,9 +45,13 @@ class ServerVad(TypedDict, total=False):
 
     interrupt_response: bool
     """
-    Whether or not to automatically interrupt any ongoing response with output to
-    the default conversation (i.e. `conversation` of `auto`) when a VAD start event
-    occurs.
+    Whether or not to automatically interrupt (cancel) any ongoing response with
+    output to the default conversation (i.e. `conversation` of `auto`) when a VAD
+    start event occurs. If `true` then the response will be cancelled, otherwise it
+    will continue until complete.
+
+    If both `create_response` and `interrupt_response` are set to `false`, the model
+    will never respond automatically but VAD events will still be emitted.
     """
 
     prefix_padding_ms: int
@@ -66,6 +79,10 @@ class ServerVad(TypedDict, total=False):
 
 
 class SemanticVad(TypedDict, total=False):
+    """
+    Server-side semantic turn detection which uses a model to determine when the user has finished speaking.
+    """
+
     type: Required[Literal["semantic_vad"]]
     """Type of turn detection, `semantic_vad` to turn on Semantic VAD."""
 

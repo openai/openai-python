@@ -8,6 +8,8 @@ __all__ = ["UploadPart"]
 
 
 class UploadPart(BaseModel):
+    """The upload Part represents a chunk of bytes we can add to an Upload object."""
+
     id: str
     """The upload Part unique identifier, which can be referenced in API endpoints."""
 

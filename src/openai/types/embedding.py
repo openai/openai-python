@@ -9,6 +9,8 @@ __all__ = ["Embedding"]
 
 
 class Embedding(BaseModel):
+    """Represents an embedding vector returned by embedding endpoint."""
+
     embedding: List[float]
     """The embedding vector, which is a list of floats.
 

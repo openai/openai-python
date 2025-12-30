@@ -58,6 +58,10 @@ class BatchCreateParams(TypedDict, total=False):
 
 
 class OutputExpiresAfter(TypedDict, total=False):
+    """
+    The expiration policy for the output and/or error file that are generated for a batch.
+    """
+
     anchor: Required[Literal["created_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

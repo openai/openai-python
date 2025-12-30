@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from copy import copy
 from typing import Any, List, Type, Union, Iterable, Optional, cast
 from functools import partial
 from typing_extensions import Literal, overload
@@ -33,7 +34,11 @@ from .input_tokens import (
     AsyncInputTokensWithStreamingResponse,
 )
 from ..._base_client import make_request_options
-from ...types.responses import response_create_params, response_retrieve_params
+from ...types.responses import (
+    response_create_params,
+    response_compact_params,
+    response_retrieve_params,
+)
 from ...lib._parsing._responses import (
     TextFormatT,
     parse_response,
@@ -45,11 +50,13 @@ from ...types.shared_params.metadata import Metadata
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.parsed_response import ParsedResponse
 from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncResponseStreamManager
+from ...types.responses.compacted_response import CompactedResponse
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
+from ...types.responses.response_input_item_param import ResponseInputItemParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
 
 __all__ = ["Responses", "AsyncResponses"]
@@ -1046,6 +1053,7 @@ class Responses(SyncAPIResource):
                 if "format" in text:
                     raise TypeError("Cannot mix and match text.format with text_format")
 
+                text = copy(text)
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request: partial[Stream[ResponseStreamEvent]] = partial(
@@ -1151,7 +1159,7 @@ class Responses(SyncAPIResource):
 
             if "format" in text:
                 raise TypeError("Cannot mix and match text.format with text_format")
-
+            text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
@@ -1513,6 +1521,158 @@ class Responses(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Response,
+        )
+
+    def compact(
+        self,
+        *,
+        model: Union[
+            Literal[
+                "gpt-5.2",
+                "gpt-5.2-2025-12-11",
+                "gpt-5.2-chat-latest",
+                "gpt-5.2-pro",
+                "gpt-5.2-pro-2025-12-11",
+                "gpt-5.1",
+                "gpt-5.1-2025-11-13",
+                "gpt-5.1-codex",
+                "gpt-5.1-mini",
+                "gpt-5.1-chat-latest",
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
+                "gpt-5-chat-latest",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
+                "o4-mini",
+                "o4-mini-2025-04-16",
+                "o3",
+                "o3-2025-04-16",
+                "o3-mini",
+                "o3-mini-2025-01-31",
+                "o1",
+                "o1-2024-12-17",
+                "o1-preview",
+                "o1-preview-2024-09-12",
+                "o1-mini",
+                "o1-mini-2024-09-12",
+                "gpt-4o",
+                "gpt-4o-2024-11-20",
+                "gpt-4o-2024-08-06",
+                "gpt-4o-2024-05-13",
+                "gpt-4o-audio-preview",
+                "gpt-4o-audio-preview-2024-10-01",
+                "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03",
+                "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17",
+                "gpt-4o-search-preview",
+                "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11",
+                "gpt-4o-mini-search-preview-2025-03-11",
+                "chatgpt-4o-latest",
+                "codex-mini-latest",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0301",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+                "o1-pro",
+                "o1-pro-2025-03-19",
+                "o3-pro",
+                "o3-pro-2025-06-10",
+                "o3-deep-research",
+                "o3-deep-research-2025-06-26",
+                "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26",
+                "computer-use-preview",
+                "computer-use-preview-2025-03-11",
+                "gpt-5-codex",
+                "gpt-5-pro",
+                "gpt-5-pro-2025-10-06",
+                "gpt-5.1-codex-max",
+            ],
+            str,
+            None,
+        ],
+        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> CompactedResponse:
+        """
+        Compact conversation
+
+        Args:
+          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
+
+          input: Text, image, or file inputs to the model, used to generate a response
+
+          instructions: A system (or developer) message inserted into the model's context. When used
+              along with `previous_response_id`, the instructions from a previous response
+              will not be carried over to the next response. This makes it simple to swap out
+              system (or developer) messages in new responses.
+
+          previous_response_id: The unique ID of the previous response to the model. Use this to create
+              multi-turn conversations. Learn more about
+              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return self._post(
+            "/responses/compact",
+            body=maybe_transform(
+                {
+                    "model": model,
+                    "input": input,
+                    "instructions": instructions,
+                    "previous_response_id": previous_response_id,
+                },
+                response_compact_params.ResponseCompactParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=CompactedResponse,
         )
 
 
@@ -2507,7 +2667,7 @@ class AsyncResponses(AsyncAPIResource):
 
                 if "format" in text:
                     raise TypeError("Cannot mix and match text.format with text_format")
-
+                text = copy(text)
                 text["format"] = _type_to_text_format_param(text_format)
 
             api_request = self.create(
@@ -2617,7 +2777,7 @@ class AsyncResponses(AsyncAPIResource):
 
             if "format" in text:
                 raise TypeError("Cannot mix and match text.format with text_format")
-
+            text = copy(text)
             text["format"] = _type_to_text_format_param(text_format)
 
         tools = _make_tools(tools)
@@ -2981,6 +3141,158 @@ class AsyncResponses(AsyncAPIResource):
             cast_to=Response,
         )
 
+    async def compact(
+        self,
+        *,
+        model: Union[
+            Literal[
+                "gpt-5.2",
+                "gpt-5.2-2025-12-11",
+                "gpt-5.2-chat-latest",
+                "gpt-5.2-pro",
+                "gpt-5.2-pro-2025-12-11",
+                "gpt-5.1",
+                "gpt-5.1-2025-11-13",
+                "gpt-5.1-codex",
+                "gpt-5.1-mini",
+                "gpt-5.1-chat-latest",
+                "gpt-5",
+                "gpt-5-mini",
+                "gpt-5-nano",
+                "gpt-5-2025-08-07",
+                "gpt-5-mini-2025-08-07",
+                "gpt-5-nano-2025-08-07",
+                "gpt-5-chat-latest",
+                "gpt-4.1",
+                "gpt-4.1-mini",
+                "gpt-4.1-nano",
+                "gpt-4.1-2025-04-14",
+                "gpt-4.1-mini-2025-04-14",
+                "gpt-4.1-nano-2025-04-14",
+                "o4-mini",
+                "o4-mini-2025-04-16",
+                "o3",
+                "o3-2025-04-16",
+                "o3-mini",
+                "o3-mini-2025-01-31",
+                "o1",
+                "o1-2024-12-17",
+                "o1-preview",
+                "o1-preview-2024-09-12",
+                "o1-mini",
+                "o1-mini-2024-09-12",
+                "gpt-4o",
+                "gpt-4o-2024-11-20",
+                "gpt-4o-2024-08-06",
+                "gpt-4o-2024-05-13",
+                "gpt-4o-audio-preview",
+                "gpt-4o-audio-preview-2024-10-01",
+                "gpt-4o-audio-preview-2024-12-17",
+                "gpt-4o-audio-preview-2025-06-03",
+                "gpt-4o-mini-audio-preview",
+                "gpt-4o-mini-audio-preview-2024-12-17",
+                "gpt-4o-search-preview",
+                "gpt-4o-mini-search-preview",
+                "gpt-4o-search-preview-2025-03-11",
+                "gpt-4o-mini-search-preview-2025-03-11",
+                "chatgpt-4o-latest",
+                "codex-mini-latest",
+                "gpt-4o-mini",
+                "gpt-4o-mini-2024-07-18",
+                "gpt-4-turbo",
+                "gpt-4-turbo-2024-04-09",
+                "gpt-4-0125-preview",
+                "gpt-4-turbo-preview",
+                "gpt-4-1106-preview",
+                "gpt-4-vision-preview",
+                "gpt-4",
+                "gpt-4-0314",
+                "gpt-4-0613",
+                "gpt-4-32k",
+                "gpt-4-32k-0314",
+                "gpt-4-32k-0613",
+                "gpt-3.5-turbo",
+                "gpt-3.5-turbo-16k",
+                "gpt-3.5-turbo-0301",
+                "gpt-3.5-turbo-0613",
+                "gpt-3.5-turbo-1106",
+                "gpt-3.5-turbo-0125",
+                "gpt-3.5-turbo-16k-0613",
+                "o1-pro",
+                "o1-pro-2025-03-19",
+                "o3-pro",
+                "o3-pro-2025-06-10",
+                "o3-deep-research",
+                "o3-deep-research-2025-06-26",
+                "o4-mini-deep-research",
+                "o4-mini-deep-research-2025-06-26",
+                "computer-use-preview",
+                "computer-use-preview-2025-03-11",
+                "gpt-5-codex",
+                "gpt-5-pro",
+                "gpt-5-pro-2025-10-06",
+                "gpt-5.1-codex-max",
+            ],
+            str,
+            None,
+        ],
+        input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> CompactedResponse:
+        """
+        Compact conversation
+
+        Args:
+          model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
+              wide range of models with different capabilities, performance characteristics,
+              and price points. Refer to the
+              [model guide](https://platform.openai.com/docs/models) to browse and compare
+              available models.
+
+          input: Text, image, or file inputs to the model, used to generate a response
+
+          instructions: A system (or developer) message inserted into the model's context. When used
+              along with `previous_response_id`, the instructions from a previous response
+              will not be carried over to the next response. This makes it simple to swap out
+              system (or developer) messages in new responses.
+
+          previous_response_id: The unique ID of the previous response to the model. Use this to create
+              multi-turn conversations. Learn more about
+              [conversation state](https://platform.openai.com/docs/guides/conversation-state).
+              Cannot be used in conjunction with `conversation`.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        return await self._post(
+            "/responses/compact",
+            body=await async_maybe_transform(
+                {
+                    "model": model,
+                    "input": input,
+                    "instructions": instructions,
+                    "previous_response_id": previous_response_id,
+                },
+                response_compact_params.ResponseCompactParams,
+            ),
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=CompactedResponse,
+        )
+
 
 class ResponsesWithRawResponse:
     def __init__(self, responses: Responses) -> None:
@@ -2997,6 +3309,9 @@ class ResponsesWithRawResponse:
         )
         self.cancel = _legacy_response.to_raw_response_wrapper(
             responses.cancel,
+        )
+        self.compact = _legacy_response.to_raw_response_wrapper(
+            responses.compact,
         )
         self.parse = _legacy_response.to_raw_response_wrapper(
             responses.parse,
@@ -3027,6 +3342,9 @@ class AsyncResponsesWithRawResponse:
         self.cancel = _legacy_response.async_to_raw_response_wrapper(
             responses.cancel,
         )
+        self.compact = _legacy_response.async_to_raw_response_wrapper(
+            responses.compact,
+        )
         self.parse = _legacy_response.async_to_raw_response_wrapper(
             responses.parse,
         )
@@ -3056,6 +3374,9 @@ class ResponsesWithStreamingResponse:
         self.cancel = to_streamed_response_wrapper(
             responses.cancel,
         )
+        self.compact = to_streamed_response_wrapper(
+            responses.compact,
+        )
 
     @cached_property
     def input_items(self) -> InputItemsWithStreamingResponse:
@@ -3081,6 +3402,9 @@ class AsyncResponsesWithStreamingResponse:
         )
         self.cancel = async_to_streamed_response_wrapper(
             responses.cancel,
+        )
+        self.compact = async_to_streamed_response_wrapper(
+            responses.compact,
         )
 
     @cached_property

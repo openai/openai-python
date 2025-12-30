@@ -33,6 +33,8 @@ class Content(TypedDict, total=False):
 
 
 class RealtimeConversationItemAssistantMessageParam(TypedDict, total=False):
+    """An assistant message item in a Realtime conversation."""
+
     content: Required[Iterable[Content]]
     """The content of the message."""
 

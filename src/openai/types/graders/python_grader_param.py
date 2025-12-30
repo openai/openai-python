@@ -8,6 +8,8 @@ __all__ = ["PythonGraderParam"]
 
 
 class PythonGraderParam(TypedDict, total=False):
+    """A PythonGrader object that runs a python script on the input."""
+
     name: Required[str]
     """The name of the grader."""
 

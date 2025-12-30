@@ -15,6 +15,10 @@ Filters: TypeAlias = Union[ComparisonFilter, CompoundFilter]
 
 
 class RankingOptionsHybridSearch(TypedDict, total=False):
+    """
+    Weights that control how reciprocal rank fusion balances semantic embedding matches versus sparse keyword matches when hybrid search is enabled.
+    """
+
     embedding_weight: Required[float]
     """The weight of the embedding in the reciprocal ranking fusion."""
 
@@ -23,6 +27,8 @@ class RankingOptionsHybridSearch(TypedDict, total=False):
 
 
 class RankingOptions(TypedDict, total=False):
+    """Ranking options for search."""
+
     hybrid_search: RankingOptionsHybridSearch
     """
     Weights that control how reciprocal rank fusion balances semantic embedding
@@ -41,6 +47,11 @@ class RankingOptions(TypedDict, total=False):
 
 
 class FileSearchToolParam(TypedDict, total=False):
+    """A tool that searches for relevant content from uploaded files.
+
+    Learn more about the [file search tool](https://platform.openai.com/docs/guides/tools-file-search).
+    """
+
     type: Required[Literal["file_search"]]
     """The type of the file search tool. Always `file_search`."""
 

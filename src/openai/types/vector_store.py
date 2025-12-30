@@ -27,6 +27,8 @@ class FileCounts(BaseModel):
 
 
 class ExpiresAfter(BaseModel):
+    """The expiration policy for a vector store."""
+
     anchor: Literal["last_active_at"]
     """Anchor timestamp after which the expiration policy applies.
 
@@ -38,6 +40,10 @@ class ExpiresAfter(BaseModel):
 
 
 class VectorStore(BaseModel):
+    """
+    A vector store is a collection of processed files can be used by the `file_search` tool.
+    """
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

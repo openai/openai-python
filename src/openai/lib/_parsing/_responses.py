@@ -103,6 +103,7 @@ def parse_response(
             or output.type == "file_search_call"
             or output.type == "web_search_call"
             or output.type == "reasoning"
+            or output.type == "compaction"
             or output.type == "mcp_call"
             or output.type == "mcp_approval_request"
             or output.type == "image_generation_call"

@@ -20,6 +20,8 @@ __all__ = [
 
 
 class McpAllowedToolsMcpToolFilter(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -36,6 +38,8 @@ McpAllowedTools: TypeAlias = Union[List[str], McpAllowedToolsMcpToolFilter, None
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -49,6 +53,8 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(BaseModel):
 
 
 class McpRequireApprovalMcpToolApprovalFilterNever(BaseModel):
+    """A filter object to specify which tools are allowed."""
+
     read_only: Optional[bool] = None
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -62,6 +68,13 @@ class McpRequireApprovalMcpToolApprovalFilterNever(BaseModel):
 
 
 class McpRequireApprovalMcpToolApprovalFilter(BaseModel):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: Optional[McpRequireApprovalMcpToolApprovalFilterAlways] = None
     """A filter object to specify which tools are allowed."""
 
@@ -73,6 +86,11 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 
 
 class Mcp(BaseModel):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: str
     """A label for this MCP server, used to identify it in tool calls."""
 

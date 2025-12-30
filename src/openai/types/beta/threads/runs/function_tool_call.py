@@ -9,6 +9,8 @@ __all__ = ["FunctionToolCall", "Function"]
 
 
 class Function(BaseModel):
+    """The definition of the function that was called."""
+
     arguments: str
     """The arguments passed to the function."""
 

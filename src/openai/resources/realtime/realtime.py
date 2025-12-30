@@ -232,7 +232,7 @@ class AsyncRealtimeWithStreamingResponse:
 
 
 class AsyncRealtimeConnection:
-    """Represents a live websocket connection to the Realtime API"""
+    """Represents a live WebSocket connection to the Realtime API"""
 
     session: AsyncRealtimeSessionResource
     response: AsyncRealtimeResponseResource
@@ -421,7 +421,7 @@ class AsyncRealtimeConnectionManager:
 
 
 class RealtimeConnection:
-    """Represents a live websocket connection to the Realtime API"""
+    """Represents a live WebSocket connection to the Realtime API"""
 
     session: RealtimeSessionResource
     response: RealtimeResponseResource
@@ -829,7 +829,7 @@ class RealtimeConversationItemResource(BaseRealtimeConnectionResource):
 
 class RealtimeOutputAudioBufferResource(BaseRealtimeConnectionResource):
     def clear(self, *, event_id: str | Omit = omit) -> None:
-        """**WebRTC Only:** Emit to cut off the current audio response.
+        """**WebRTC/SIP Only:** Emit to cut off the current audio response.
 
         This will trigger the server to
         stop generating audio and emit a `output_audio_buffer.cleared` event. This
@@ -1066,7 +1066,7 @@ class AsyncRealtimeConversationItemResource(BaseAsyncRealtimeConnectionResource)
 
 class AsyncRealtimeOutputAudioBufferResource(BaseAsyncRealtimeConnectionResource):
     async def clear(self, *, event_id: str | Omit = omit) -> None:
-        """**WebRTC Only:** Emit to cut off the current audio response.
+        """**WebRTC/SIP Only:** Emit to cut off the current audio response.
 
         This will trigger the server to
         stop generating audio and emit a `output_audio_buffer.cleared` event. This

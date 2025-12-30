@@ -8,6 +8,8 @@ __all__ = ["ResponseCustomToolCallInputDoneEvent"]
 
 
 class ResponseCustomToolCallInputDoneEvent(BaseModel):
+    """Event indicating that input for a custom tool call is complete."""
+
     input: str
     """The complete input data for the custom tool call."""
 

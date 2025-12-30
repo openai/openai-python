@@ -60,6 +60,7 @@ class Containers(SyncAPIResource):
         name: str,
         expires_after: container_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
+        memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -77,6 +78,8 @@ class Containers(SyncAPIResource):
 
           file_ids: IDs of files to copy to the container.
 
+          memory_limit: Optional memory limit for the container. Defaults to "1g".
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -92,6 +95,7 @@ class Containers(SyncAPIResource):
                     "name": name,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
+                    "memory_limit": memory_limit,
                 },
                 container_create_params.ContainerCreateParams,
             ),
@@ -256,6 +260,7 @@ class AsyncContainers(AsyncAPIResource):
         name: str,
         expires_after: container_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
+        memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -273,6 +278,8 @@ class AsyncContainers(AsyncAPIResource):
 
           file_ids: IDs of files to copy to the container.
 
+          memory_limit: Optional memory limit for the container. Defaults to "1g".
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -288,6 +295,7 @@ class AsyncContainers(AsyncAPIResource):
                     "name": name,
                     "expires_after": expires_after,
                     "file_ids": file_ids,
+                    "memory_limit": memory_limit,
                 },
                 container_create_params.ContainerCreateParams,
             ),

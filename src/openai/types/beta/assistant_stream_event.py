@@ -43,6 +43,10 @@ __all__ = [
 
 
 class ThreadCreated(BaseModel):
+    """
+    Occurs when a new [thread](https://platform.openai.com/docs/api-reference/threads/object) is created.
+    """
+
     data: Thread
     """
     Represents a thread that contains
@@ -56,6 +60,10 @@ class ThreadCreated(BaseModel):
 
 
 class ThreadRunCreated(BaseModel):
+    """
+    Occurs when a new [run](https://platform.openai.com/docs/api-reference/runs/object) is created.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -66,6 +74,10 @@ class ThreadRunCreated(BaseModel):
 
 
 class ThreadRunQueued(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) moves to a `queued` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -76,6 +88,10 @@ class ThreadRunQueued(BaseModel):
 
 
 class ThreadRunInProgress(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) moves to an `in_progress` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -86,6 +102,10 @@ class ThreadRunInProgress(BaseModel):
 
 
 class ThreadRunRequiresAction(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) moves to a `requires_action` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -96,6 +116,10 @@ class ThreadRunRequiresAction(BaseModel):
 
 
 class ThreadRunCompleted(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) is completed.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -106,6 +130,10 @@ class ThreadRunCompleted(BaseModel):
 
 
 class ThreadRunIncomplete(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) ends with status `incomplete`.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -116,6 +144,10 @@ class ThreadRunIncomplete(BaseModel):
 
 
 class ThreadRunFailed(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) fails.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -126,6 +158,10 @@ class ThreadRunFailed(BaseModel):
 
 
 class ThreadRunCancelling(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) moves to a `cancelling` status.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -136,6 +172,10 @@ class ThreadRunCancelling(BaseModel):
 
 
 class ThreadRunCancelled(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) is cancelled.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -146,6 +186,10 @@ class ThreadRunCancelled(BaseModel):
 
 
 class ThreadRunExpired(BaseModel):
+    """
+    Occurs when a [run](https://platform.openai.com/docs/api-reference/runs/object) expires.
+    """
+
     data: Run
     """
     Represents an execution run on a
@@ -156,6 +200,10 @@ class ThreadRunExpired(BaseModel):
 
 
 class ThreadRunStepCreated(BaseModel):
+    """
+    Occurs when a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) is created.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -163,6 +211,10 @@ class ThreadRunStepCreated(BaseModel):
 
 
 class ThreadRunStepInProgress(BaseModel):
+    """
+    Occurs when a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) moves to an `in_progress` state.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -170,6 +222,10 @@ class ThreadRunStepInProgress(BaseModel):
 
 
 class ThreadRunStepDelta(BaseModel):
+    """
+    Occurs when parts of a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) are being streamed.
+    """
+
     data: RunStepDeltaEvent
     """Represents a run step delta i.e.
 
@@ -180,6 +236,10 @@ class ThreadRunStepDelta(BaseModel):
 
 
 class ThreadRunStepCompleted(BaseModel):
+    """
+    Occurs when a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) is completed.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -187,6 +247,10 @@ class ThreadRunStepCompleted(BaseModel):
 
 
 class ThreadRunStepFailed(BaseModel):
+    """
+    Occurs when a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) fails.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -194,6 +258,10 @@ class ThreadRunStepFailed(BaseModel):
 
 
 class ThreadRunStepCancelled(BaseModel):
+    """
+    Occurs when a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) is cancelled.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -201,6 +269,10 @@ class ThreadRunStepCancelled(BaseModel):
 
 
 class ThreadRunStepExpired(BaseModel):
+    """
+    Occurs when a [run step](https://platform.openai.com/docs/api-reference/run-steps/step-object) expires.
+    """
+
     data: RunStep
     """Represents a step in execution of a run."""
 
@@ -208,6 +280,10 @@ class ThreadRunStepExpired(BaseModel):
 
 
 class ThreadMessageCreated(BaseModel):
+    """
+    Occurs when a [message](https://platform.openai.com/docs/api-reference/messages/object) is created.
+    """
+
     data: Message
     """
     Represents a message within a
@@ -218,6 +294,10 @@ class ThreadMessageCreated(BaseModel):
 
 
 class ThreadMessageInProgress(BaseModel):
+    """
+    Occurs when a [message](https://platform.openai.com/docs/api-reference/messages/object) moves to an `in_progress` state.
+    """
+
     data: Message
     """
     Represents a message within a
@@ -228,6 +308,10 @@ class ThreadMessageInProgress(BaseModel):
 
 
 class ThreadMessageDelta(BaseModel):
+    """
+    Occurs when parts of a [Message](https://platform.openai.com/docs/api-reference/messages/object) are being streamed.
+    """
+
     data: MessageDeltaEvent
     """Represents a message delta i.e.
 
@@ -238,6 +322,10 @@ class ThreadMessageDelta(BaseModel):
 
 
 class ThreadMessageCompleted(BaseModel):
+    """
+    Occurs when a [message](https://platform.openai.com/docs/api-reference/messages/object) is completed.
+    """
+
     data: Message
     """
     Represents a message within a
@@ -248,6 +336,10 @@ class ThreadMessageCompleted(BaseModel):
 
 
 class ThreadMessageIncomplete(BaseModel):
+    """
+    Occurs when a [message](https://platform.openai.com/docs/api-reference/messages/object) ends before it is completed.
+    """
+
     data: Message
     """
     Represents a message within a
@@ -258,6 +350,10 @@ class ThreadMessageIncomplete(BaseModel):
 
 
 class ErrorEvent(BaseModel):
+    """
+    Occurs when an [error](https://platform.openai.com/docs/guides/error-codes#api-errors) occurs. This can happen due to an internal server error or a timeout.
+    """
+
     data: ErrorObject
 
     event: Literal["error"]

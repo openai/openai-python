@@ -12,6 +12,13 @@ __all__ = ["RealtimeAudioConfigInput", "NoiseReduction"]
 
 
 class NoiseReduction(BaseModel):
+    """Configuration for input audio noise reduction.
+
+    This can be set to `null` to turn off.
+    Noise reduction filters audio added to the input audio buffer before it is sent to VAD and the model.
+    Filtering the audio can improve VAD and turn detection accuracy (reducing false positives) and model performance by improving perception of the input audio.
+    """
+
     type: Optional[NoiseReductionType] = None
     """Type of noise reduction.
 

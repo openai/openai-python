@@ -9,6 +9,8 @@ __all__ = ["ConversationItemInputAudioTranscriptionFailedEvent", "Error"]
 
 
 class Error(BaseModel):
+    """Details of the transcription error."""
+
     code: Optional[str] = None
     """Error code, if any."""
 
@@ -23,6 +25,12 @@ class Error(BaseModel):
 
 
 class ConversationItemInputAudioTranscriptionFailedEvent(BaseModel):
+    """
+    Returned when input audio transcription is configured, and a transcription
+    request for a user message failed. These events are separate from other
+    `error` events so that the client can identify the related Item.
+    """
+
     content_index: int
     """The index of the content part containing the audio."""
 

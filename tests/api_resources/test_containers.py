@@ -38,6 +38,7 @@ class TestContainers:
                 "minutes": 0,
             },
             file_ids=["string"],
+            memory_limit="1g",
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 
@@ -197,6 +198,7 @@ class TestAsyncContainers:
                 "minutes": 0,
             },
             file_ids=["string"],
+            memory_limit="1g",
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 

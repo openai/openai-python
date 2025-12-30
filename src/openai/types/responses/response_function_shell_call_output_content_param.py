@@ -9,11 +9,15 @@ __all__ = ["ResponseFunctionShellCallOutputContentParam", "Outcome", "OutcomeTim
 
 
 class OutcomeTimeout(TypedDict, total=False):
+    """Indicates that the shell call exceeded its configured time limit."""
+
     type: Required[Literal["timeout"]]
     """The outcome type. Always `timeout`."""
 
 
 class OutcomeExit(TypedDict, total=False):
+    """Indicates that the shell commands finished and returned an exit code."""
+
     exit_code: Required[int]
     """The exit code returned by the shell process."""
 
@@ -25,11 +29,13 @@ Outcome: TypeAlias = Union[OutcomeTimeout, OutcomeExit]
 
 
 class ResponseFunctionShellCallOutputContentParam(TypedDict, total=False):
+    """Captured stdout and stderr for a portion of a shell tool call output."""
+
     outcome: Required[Outcome]
-    """The exit or timeout outcome associated with this chunk."""
+    """The exit or timeout outcome associated with this shell call."""
 
     stderr: Required[str]
-    """Captured stderr output for this chunk of the shell call."""
+    """Captured stderr output for the shell call."""
 
     stdout: Required[str]
-    """Captured stdout output for this chunk of the shell call."""
+    """Captured stdout output for the shell call."""

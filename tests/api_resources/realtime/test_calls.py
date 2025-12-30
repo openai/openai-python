@@ -48,7 +48,7 @@ class TestCalls:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "whisper-1",
+                            "model": "string",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -147,7 +147,7 @@ class TestCalls:
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
                         "language": "language",
-                        "model": "whisper-1",
+                        "model": "string",
                         "prompt": "prompt",
                     },
                     "turn_detection": {
@@ -386,7 +386,7 @@ class TestAsyncCalls:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "whisper-1",
+                            "model": "string",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -485,7 +485,7 @@ class TestAsyncCalls:
                     "noise_reduction": {"type": "near_field"},
                     "transcription": {
                         "language": "language",
-                        "model": "whisper-1",
+                        "model": "string",
                         "prompt": "prompt",
                     },
                     "turn_detection": {

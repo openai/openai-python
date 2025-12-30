@@ -9,6 +9,11 @@ __all__ = ["ResponseInputImage"]
 
 
 class ResponseInputImage(BaseModel):
+    """An image input to the model.
+
+    Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
+    """
+
     detail: Literal["low", "high", "auto"]
     """The detail level of the image to be sent to the model.
 

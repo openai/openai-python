@@ -32,6 +32,12 @@ class Result(BaseModel):
 
 
 class ResponseFileSearchToolCall(BaseModel):
+    """The results of a file search tool call.
+
+    See the
+    [file search guide](https://platform.openai.com/docs/guides/tools-file-search) for more information.
+    """
+
     id: str
     """The unique ID of the file search tool call."""
 

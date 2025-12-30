@@ -9,6 +9,8 @@ __all__ = ["ChatKitAttachment"]
 
 
 class ChatKitAttachment(BaseModel):
+    """Attachment metadata included on thread items."""
+
     id: str
     """Identifier for the attachment."""
 

@@ -28,6 +28,7 @@ from .file_search_tool import FileSearchTool as FileSearchTool
 from .custom_tool_param import CustomToolParam as CustomToolParam
 from .tool_choice_shell import ToolChoiceShell as ToolChoiceShell
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
+from .compacted_response import CompactedResponse as CompactedResponse
 from .easy_input_message import EasyInputMessage as EasyInputMessage
 from .response_item_list import ResponseItemList as ResponseItemList
 from .tool_choice_custom import ToolChoiceCustom as ToolChoiceCustom
@@ -60,6 +61,7 @@ from .input_item_list_params import InputItemListParams as InputItemListParams
 from .response_create_params import ResponseCreateParams as ResponseCreateParams
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
 from .response_input_content import ResponseInputContent as ResponseInputContent
+from .response_compact_params import ResponseCompactParams as ResponseCompactParams
 from .response_output_message import ResponseOutputMessage as ResponseOutputMessage
 from .response_output_refusal import ResponseOutputRefusal as ResponseOutputRefusal
 from .response_reasoning_item import ResponseReasoningItem as ResponseReasoningItem
@@ -69,6 +71,7 @@ from .tool_choice_types_param import ToolChoiceTypesParam as ToolChoiceTypesPara
 from .web_search_preview_tool import WebSearchPreviewTool as WebSearchPreviewTool
 from .easy_input_message_param import EasyInputMessageParam as EasyInputMessageParam
 from .input_token_count_params import InputTokenCountParams as InputTokenCountParams
+from .response_compaction_item import ResponseCompactionItem as ResponseCompactionItem
 from .response_completed_event import ResponseCompletedEvent as ResponseCompletedEvent
 from .response_retrieve_params import ResponseRetrieveParams as ResponseRetrieveParams
 from .response_text_done_event import ResponseTextDoneEvent as ResponseTextDoneEvent
@@ -108,6 +111,7 @@ from .response_reasoning_item_param import ResponseReasoningItemParam as Respons
 from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam as ToolChoiceApplyPatchParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam as WebSearchPreviewToolParam
 from .response_apply_patch_tool_call import ResponseApplyPatchToolCall as ResponseApplyPatchToolCall
+from .response_compaction_item_param import ResponseCompactionItemParam as ResponseCompactionItemParam
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
 from .response_custom_tool_call_param import ResponseCustomToolCallParam as ResponseCustomToolCallParam
@@ -133,6 +137,7 @@ from .response_input_message_content_list import ResponseInputMessageContentList
 from .response_mcp_call_in_progress_event import ResponseMcpCallInProgressEvent as ResponseMcpCallInProgressEvent
 from .response_reasoning_text_delta_event import ResponseReasoningTextDeltaEvent as ResponseReasoningTextDeltaEvent
 from .response_audio_transcript_done_event import ResponseAudioTranscriptDoneEvent as ResponseAudioTranscriptDoneEvent
+from .response_compaction_item_param_param import ResponseCompactionItemParamParam as ResponseCompactionItemParamParam
 from .response_file_search_tool_call_param import ResponseFileSearchToolCallParam as ResponseFileSearchToolCallParam
 from .response_mcp_list_tools_failed_event import ResponseMcpListToolsFailedEvent as ResponseMcpListToolsFailedEvent
 from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOutput as ResponseApplyPatchToolCallOutput

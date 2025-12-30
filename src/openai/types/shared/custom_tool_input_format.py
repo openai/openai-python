@@ -10,11 +10,15 @@ __all__ = ["CustomToolInputFormat", "Text", "Grammar"]
 
 
 class Text(BaseModel):
+    """Unconstrained free-form text."""
+
     type: Literal["text"]
     """Unconstrained text format. Always `text`."""
 
 
 class Grammar(BaseModel):
+    """A grammar defined by the user."""
+
     definition: str
     """The grammar definition."""
 

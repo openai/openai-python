@@ -9,6 +9,8 @@ __all__ = ["ReinforcementHyperparameters"]
 
 
 class ReinforcementHyperparameters(BaseModel):
+    """The hyperparameters used for the reinforcement fine-tuning job."""
+
     batch_size: Union[Literal["auto"], int, None] = None
     """Number of examples in each batch.
 

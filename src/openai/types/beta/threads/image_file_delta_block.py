@@ -10,6 +10,10 @@ __all__ = ["ImageFileDeltaBlock"]
 
 
 class ImageFileDeltaBlock(BaseModel):
+    """
+    References an image [File](https://platform.openai.com/docs/api-reference/files) in the content of a message.
+    """
+
     index: int
     """The index of the content part in the message."""
 

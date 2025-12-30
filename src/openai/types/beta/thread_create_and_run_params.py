@@ -227,6 +227,11 @@ class ThreadToolResourcesCodeInterpreter(TypedDict, total=False):
 
 
 class ThreadToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    """The default strategy.
+
+    This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -303,12 +308,22 @@ class ThreadToolResourcesFileSearch(TypedDict, total=False):
 
 
 class ThreadToolResources(TypedDict, total=False):
+    """
+    A set of resources that are made available to the assistant's tools in this thread. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ThreadToolResourcesCodeInterpreter
 
     file_search: ThreadToolResourcesFileSearch
 
 
 class Thread(TypedDict, total=False):
+    """Options to create a new thread.
+
+    If no thread is provided when running a
+    request, an empty thread will be created.
+    """
+
     messages: Iterable[ThreadMessage]
     """
     A list of [messages](https://platform.openai.com/docs/api-reference/messages) to
@@ -354,12 +369,22 @@ class ToolResourcesFileSearch(TypedDict, total=False):
 
 
 class ToolResources(TypedDict, total=False):
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch
 
 
 class TruncationStrategy(TypedDict, total=False):
+    """Controls for how a thread will be truncated prior to the run.
+
+    Use this to control the initial context window of the run.
+    """
+
     type: Required[Literal["auto", "last_messages"]]
     """The truncation strategy to use for the thread.
 

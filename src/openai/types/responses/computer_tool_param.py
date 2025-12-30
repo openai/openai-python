@@ -8,6 +8,11 @@ __all__ = ["ComputerToolParam"]
 
 
 class ComputerToolParam(TypedDict, total=False):
+    """A tool that controls a virtual computer.
+
+    Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+    """
+
     display_height: Required[int]
     """The height of the computer display."""
 
