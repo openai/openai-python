@@ -50,6 +50,8 @@ aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
+cli = ["argcomplete >= 1.12.0"]
+
 
 [tool.rye]
 managed = true
