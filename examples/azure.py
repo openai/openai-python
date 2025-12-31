@@ -24,7 +24,7 @@ print(completion.to_json())
 
 # The code above uses the Chat Completions API to generate text, but this can also be accomplished with the Responses API
 # response = client.responses.create(
-#     model="deployment-name"
+#     model="deployment-name",
 #     input="How do I output all files in a directory using Python?",
 # )
 # print(response.to_json())
@@ -51,7 +51,7 @@ print(completion.to_json())
 
 # The code above uses the Chat Completions API to generate text, but this can also be accomplished with the Responses API
 # response = deployment_client.responses.create(
-#     model="<ignored>"
+#     model="<ignored>",
 #     input="How do I output all files in a directory using Python?",
 # )
 # print(response.to_json())
