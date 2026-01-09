@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.15.0 (2026-01-09)
+
+Full Changelog: [v2.14.0...v2.15.0](https://github.com/openai/openai-python/compare/v2.14.0...v2.15.0)
+
+### Features
+
+* **api:** add new Response completed_at prop ([f077752](https://github.com/openai/openai-python/commit/f077752f4a8364a74f784f8fb1cbe31277e1762b))
+
+
+### Chores
+
+* **internal:** codegen related update ([e7daba6](https://github.com/openai/openai-python/commit/e7daba6662a3c30f73d991e96cb19d2b54d772e0))
+
 ## 2.14.0 (2025-12-19)
 
 Full Changelog: [v2.13.0...v2.14.0](https://github.com/openai/openai-python/compare/v2.13.0...v2.14.0)
