@@ -187,6 +187,7 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     """An optional list of uploaded files to make available to your code."""
 
     memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
+    """The memory limit for the code interpreter container."""
 
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]

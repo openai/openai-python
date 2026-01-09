@@ -78,11 +78,7 @@ class InputTokenCountParams(TypedDict, total=False):
     """
 
     tool_choice: Optional[ToolChoice]
-    """
-    How the model should select which tool (or tools) to use when generating a
-    response. See the `tools` parameter to see how to specify which tools the model
-    can call.
-    """
+    """Controls which tool the model should use, if any."""
 
     tools: Optional[Iterable[ToolParam]]
     """An array of tools the model may call while generating a response.

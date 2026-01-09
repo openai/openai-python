@@ -5,6 +5,8 @@ from __future__ import annotations
 from typing import Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
+from ..._types import SequenceNotStr
+
 __all__ = [
     "ResponseFunctionWebSearchParam",
     "Action",
@@ -29,10 +31,13 @@ class ActionSearch(TypedDict, total=False):
     """Action type "search" - Performs a web search query."""
 
     query: Required[str]
-    """The search query."""
+    """[DEPRECATED] The search query."""
 
     type: Required[Literal["search"]]
     """The action type."""
+
+    queries: SequenceNotStr[str]
+    """The search queries."""
 
     sources: Iterable[ActionSearchSource]
     """The sources used in the search."""
