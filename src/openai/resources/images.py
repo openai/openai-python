@@ -146,7 +146,8 @@ class Images(SyncAPIResource):
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        and `gpt-image-1-mini`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
@@ -260,7 +261,8 @@ class Images(SyncAPIResource):
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        and `gpt-image-1-mini`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
@@ -374,7 +376,8 @@ class Images(SyncAPIResource):
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        and `gpt-image-1-mini`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
@@ -1039,7 +1042,8 @@ class AsyncImages(AsyncAPIResource):
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        and `gpt-image-1-mini`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
@@ -1153,7 +1157,8 @@ class AsyncImages(AsyncAPIResource):
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        and `gpt-image-1-mini`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.
@@ -1267,7 +1272,8 @@ class AsyncImages(AsyncAPIResource):
         """Creates an edited or extended image given one or more source images and a
         prompt.
 
-        This endpoint only supports `gpt-image-1` and `dall-e-2`.
+        This endpoint supports GPT Image models (`gpt-image-1.5`, `gpt-image-1`,
+        and `gpt-image-1-mini`) and `dall-e-2`.
 
         Args:
           image: The image(s) to edit. Must be a supported image file or an array of images.

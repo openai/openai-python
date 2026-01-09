@@ -36,7 +36,7 @@ OutputOutcome: TypeAlias = Annotated[Union[OutputOutcomeTimeout, OutputOutcomeEx
 
 
 class Output(BaseModel):
-    """The content of a shell call output."""
+    """The content of a shell tool call output that was emitted."""
 
     outcome: OutputOutcome
     """
@@ -45,14 +45,17 @@ class Output(BaseModel):
     """
 
     stderr: str
+    """The standard error output that was captured."""
 
     stdout: str
+    """The standard output that was captured."""
 
     created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""
 
 
 class ResponseFunctionShellToolCallOutput(BaseModel):
-    """The output of a shell tool call."""
+    """The output of a shell tool call that was emitted."""
 
     id: str
     """The unique ID of the shell call output.
@@ -76,3 +79,4 @@ class ResponseFunctionShellToolCallOutput(BaseModel):
     """The type of the shell call output. Always `shell_call_output`."""
 
     created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""

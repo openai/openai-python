@@ -26,6 +26,6 @@ class ChatCompletionAudioParam(TypedDict, total=False):
     ]
     """The voice the model uses to respond.
 
-    Supported voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `fable`, `nova`,
-    `onyx`, `sage`, and `shimmer`.
+    Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`,
+    `fable`, `nova`, `onyx`, `sage`, `shimmer`, `marin`, and `cedar`.
     """
