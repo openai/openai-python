@@ -61,8 +61,10 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .video_create_error import VideoCreateError as VideoCreateError
 from .video_remix_params import VideoRemixParams as VideoRemixParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
+from .batch_request_input import BatchRequestInput as BatchRequestInput
 from .video_create_params import VideoCreateParams as VideoCreateParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
+from .batch_request_output import BatchRequestOutput as BatchRequestOutput
 from .eval_create_response import EvalCreateResponse as EvalCreateResponse
 from .eval_delete_response import EvalDeleteResponse as EvalDeleteResponse
 from .eval_update_response import EvalUpdateResponse as EvalUpdateResponse
