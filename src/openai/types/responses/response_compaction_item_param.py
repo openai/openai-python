@@ -14,6 +14,7 @@ class ResponseCompactionItemParam(BaseModel):
     """
 
     encrypted_content: str
+    """The encrypted content of the compaction summary."""
 
     type: Literal["compaction"]
     """The type of the item. Always `compaction`."""

@@ -14,6 +14,7 @@ class ResponseCompactionItemParamParam(TypedDict, total=False):
     """
 
     encrypted_content: Required[str]
+    """The encrypted content of the compaction summary."""
 
     type: Required[Literal["compaction"]]
     """The type of the item. Always `compaction`."""
