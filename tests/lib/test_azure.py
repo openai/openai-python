@@ -802,3 +802,109 @@ def test_client_sets_base_url(client: Client) -> None:
         )
     )
     assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+
+
+# Tests for v1 API support
+class TestAzureV1API:
+    """Tests for Azure OpenAI v1/latest/preview API support."""
+
+    @pytest.mark.parametrize("api_version", ["v1", "latest", "preview"])
+    @pytest.mark.parametrize("client_cls", [AzureOpenAI, AsyncAzureOpenAI])
+    def test_v1_api_base_url(self, api_version: str, client_cls: type[Client]) -> None:
+        """v1 API should use /openai/v1/ base URL."""
+        client = client_cls(
+            api_version=api_version,
+            api_key="test",
+            azure_endpoint="https://example.azure.openai.com",
+        )
+        assert "/openai/v1" in str(client.base_url)
+        assert "/deployments/" not in str(client.base_url)
+
+    @pytest.mark.parametrize("api_version", ["v1", "latest", "preview"])
+    @pytest.mark.parametrize("client_cls", [AzureOpenAI, AsyncAzureOpenAI])
+    def test_v1_api_no_deployments_path(self, api_version: str, client_cls: type[Client]) -> None:
+        """v1 API should NOT add /deployments/{model}/ to the path."""
+        client = client_cls(
+            api_version=api_version,
+            api_key="test",
+            azure_endpoint="https://example.azure.openai.com",
+        )
+        req = client._build_request(
+            FinalRequestOptions.construct(
+                method="post",
+                url="/chat/completions",
+                json_data={"model": "gpt-4o"},
+            )
+        )
+        assert "/deployments/" not in str(req.url)
+        assert "/openai/v1/chat/completions" in str(req.url)
+
+    @pytest.mark.parametrize("api_version", ["v1", "latest", "preview"])
+    @pytest.mark.parametrize("client_cls", [AzureOpenAI, AsyncAzureOpenAI])
+    def test_v1_api_has_query_param(self, api_version: str, client_cls: type[Client]) -> None:
+        """v1 API should still include ?api-version= query param."""
+        client = client_cls(
+            api_version=api_version,
+            api_key="test",
+            azure_endpoint="https://example.azure.openai.com",
+        )
+        req = client._build_request(
+            FinalRequestOptions.construct(
+                method="post",
+                url="/chat/completions",
+                json_data={"model": "gpt-4o"},
+            )
+        )
+        assert f"api-version={api_version}" in str(req.url)
+
+    @pytest.mark.parametrize("client_cls", [AzureOpenAI, AsyncAzureOpenAI])
+    def test_traditional_api_still_works(self, client_cls: type[Client]) -> None:
+        """Traditional API should still use /deployments/ path."""
+        client = client_cls(
+            api_version="2024-10-21",
+            api_key="test",
+            azure_endpoint="https://example.azure.openai.com",
+        )
+        req = client._build_request(
+            FinalRequestOptions.construct(
+                method="post",
+                url="/chat/completions",
+                json_data={"model": "gpt-4o"},
+            )
+        )
+        assert "/deployments/gpt-4o/" in str(req.url)
+        assert "api-version=2024-10-21" in str(req.url)
+
+    @pytest.mark.parametrize("api_version", ["v1", "latest", "preview"])
+    def test_v1_api_ignores_azure_deployment_param(self, api_version: str) -> None:
+        """v1 API should ignore azure_deployment parameter since model is in body."""
+        client = AzureOpenAI(
+            api_version=api_version,
+            api_key="test",
+            azure_endpoint="https://example.azure.openai.com",
+            azure_deployment="ignored-deployment",
+        )
+        # base_url should still be /openai/v1, not /openai/deployments/ignored-deployment
+        assert "/openai/v1" in str(client.base_url)
+        assert "/deployments/" not in str(client.base_url)
+
+    @pytest.mark.parametrize("api_version", ["v1", "latest", "preview"])
+    @pytest.mark.parametrize("client_cls", [AzureOpenAI, AsyncAzureOpenAI])
+    def test_v1_api_non_deployment_endpoints_keep_v1_path(self, api_version: str, client_cls: type[Client]) -> None:
+        """v1 API should keep /v1/ path for non-deployment endpoints like /responses."""
+        client = client_cls(
+            api_version=api_version,
+            api_key="test",
+            azure_endpoint="https://example.azure.openai.com",
+            azure_deployment="some-deployment",  # Even with deployment param
+        )
+        req = client._build_request(
+            FinalRequestOptions.construct(
+                method="post",
+                url="/responses",
+                json_data={"model": "gpt-4o", "input": "hi"},
+            )
+        )
+        # Should be /openai/v1/responses, NOT /openai/responses
+        assert "/openai/v1/responses" in str(req.url)
+        assert "/deployments/" not in str(req.url)
