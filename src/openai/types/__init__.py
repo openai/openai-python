@@ -6,6 +6,9 @@ from .batch import Batch as Batch
 from .image import Image as Image
 from .model import Model as Model
 from .video import Video as Video
+from .chat import ChatCompletion as ChatCompletion
+from .responses import Response as Response
+from .responses import ResponseUsage as ResponseUsage
 from .shared import (
     Metadata as Metadata,
     AllModels as AllModels,
