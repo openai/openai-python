@@ -14,7 +14,7 @@ class ResponseInputImageParam(TypedDict, total=False):
     Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
     """
 
-    detail: Required[Literal["low", "high", "auto"]]
+    detail: Optional[Literal["low", "high", "auto"]] = "auto"
     """The detail level of the image to be sent to the model.
 
     One of `high`, `low`, or `auto`. Defaults to `auto`.
