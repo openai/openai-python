@@ -6,6 +6,7 @@ import httpx
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
+from openai._exceptions import APIError
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
 
 
@@ -214,6 +215,85 @@ async def test_multi_byte_character_multiple_chunks(
     sse = await iter_next(iterator)
     assert sse.event is None
     assert sse.json() == {"content": "известни"}
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_error_event_raises_api_error(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """
+    Test that an SSE event with event type 'error' raises an APIError.
+
+    This is a regression test for issue #2796 where the error event check was
+    unreachable dead code inside the 'thread.' event handling block.
+    """
+
+    def body() -> Iterator[bytes]:
+        yield b"event: error\n"
+        yield b'data: {"message": "Test error message", "type": "server_error", "code": "internal_error"}\n'
+        yield b"\n"
+
+    # Create a mock request to attach to the response
+    mock_request = httpx.Request("POST", "https://api.openai.com/v1/test")
+
+    if sync:
+        response = httpx.Response(200, content=body(), request=mock_request)
+        stream = Stream(
+            cast_to=object,
+            client=client,
+            response=response,
+        )
+        with pytest.raises(APIError) as exc_info:
+            for _ in stream:
+                pass
+        assert exc_info.value.message == "Test error message"
+    else:
+        response = httpx.Response(200, content=to_aiter(body()), request=mock_request)
+        stream = AsyncStream(
+            cast_to=object,
+            client=async_client,
+            response=response,
+        )
+        with pytest.raises(APIError) as exc_info:
+            async for _ in stream:
+                pass
+        assert exc_info.value.message == "Test error message"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_error_event_with_missing_message(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """Test that error events without a message field use a default message."""
+
+    def body() -> Iterator[bytes]:
+        yield b"event: error\n"
+        yield b'data: {"type": "server_error"}\n'
+        yield b"\n"
+
+    # Create a mock request to attach to the response
+    mock_request = httpx.Request("POST", "https://api.openai.com/v1/test")
+
+    if sync:
+        response = httpx.Response(200, content=body(), request=mock_request)
+        stream = Stream(
+            cast_to=object,
+            client=client,
+            response=response,
+        )
+        with pytest.raises(APIError) as exc_info:
+            for _ in stream:
+                pass
+        assert exc_info.value.message == "An error occurred during streaming"
+    else:
+        response = httpx.Response(200, content=to_aiter(body()), request=mock_request)
+        stream = AsyncStream(
+            cast_to=object,
+            client=async_client,
+            response=response,
+        )
+        with pytest.raises(APIError) as exc_info:
+            async for _ in stream:
+                pass
+        assert exc_info.value.message == "An error occurred during streaming"
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
