@@ -52,6 +52,8 @@ ChatModel: TypeAlias = Literal[
     "gpt-4o-audio-preview-2025-06-03",
     "gpt-4o-mini-audio-preview",
     "gpt-4o-mini-audio-preview-2024-12-17",
+    "gpt-audio-mini",
+    "gpt-audio-mini-2025-04-01",
     "gpt-4o-search-preview",
     "gpt-4o-mini-search-preview",
     "gpt-4o-search-preview-2025-03-11",
