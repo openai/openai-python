@@ -33,6 +33,12 @@ from .realtime_mcphttp_error import RealtimeMcphttpError as RealtimeMcphttpError
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
 from .conversation_item_added import ConversationItemAdded as ConversationItemAdded
 from .conversation_item_param import ConversationItemParam as ConversationItemParam
+from .realtime_conversation_item_reference import (
+    RealtimeConversationItemReference as RealtimeConversationItemReference,
+)
+from .realtime_conversation_item_reference_param import (
+    RealtimeConversationItemReferenceParam as RealtimeConversationItemReferenceParam,
+)
 from .realtime_connect_params import RealtimeConnectParams as RealtimeConnectParams
 from .realtime_mcp_list_tools import RealtimeMcpListTools as RealtimeMcpListTools
 from .realtime_response_usage import RealtimeResponseUsage as RealtimeResponseUsage
