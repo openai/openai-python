@@ -22,7 +22,7 @@ class ResponseCompactParams(TypedDict, total=False):
                 "gpt-5.1",
                 "gpt-5.1-2025-11-13",
                 "gpt-5.1-codex",
-                "gpt-5.1-mini",
+                "gpt-5.1-codex-mini",
                 "gpt-5.1-chat-latest",
                 "gpt-5",
                 "gpt-5-mini",
