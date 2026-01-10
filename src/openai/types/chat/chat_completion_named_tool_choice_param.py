@@ -4,12 +4,7 @@ from __future__ import annotations
 
 from typing_extensions import Literal, Required, TypedDict
 
-__all__ = ["ChatCompletionNamedToolChoiceParam", "Function"]
-
-
-class Function(TypedDict, total=False):
-    name: Required[str]
-    """The name of the function to call."""
+__all__ = ["ChatCompletionNamedToolChoiceParam"]
 
 
 class ChatCompletionNamedToolChoiceParam(TypedDict, total=False):
@@ -18,7 +13,8 @@ class ChatCompletionNamedToolChoiceParam(TypedDict, total=False):
     Use to force the model to call a specific function.
     """
 
-    function: Required[Function]
+    name: Required[str]
+    """The name of the function to call."""
 
     type: Required[Literal["function"]]
     """For function calling, the type is always `function`."""
