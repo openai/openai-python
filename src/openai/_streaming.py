@@ -19,6 +19,22 @@ if TYPE_CHECKING:
 _T = TypeVar("_T")
 
 
+def _raise_if_stream_error(data: object, response: httpx.Response) -> None:
+    if is_mapping(data) and data.get("error"):
+        message = None
+        error = data.get("error")
+        if is_mapping(error):
+            message = error.get("message")
+        if not message or not isinstance(message, str):
+            message = "An error occurred during streaming"
+
+        raise APIError(
+            message=message,
+            request=response.request,
+            body=data["error"],
+        )
+
+
 class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
 
@@ -64,36 +80,12 @@ class Stream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
+                    _raise_if_stream_error(data, response)
 
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
+                    _raise_if_stream_error(data, response)
 
                     yield process_data(data=data, cast_to=cast_to, response=response)
 
@@ -167,36 +159,12 @@ class AsyncStream(Generic[_T]):
                 if sse.event and sse.event.startswith("thread."):
                     data = sse.json()
 
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
+                    _raise_if_stream_error(data, response)
 
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
                     data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
+                    _raise_if_stream_error(data, response)
 
                     yield process_data(data=data, cast_to=cast_to, response=response)
 
