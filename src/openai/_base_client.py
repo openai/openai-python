@@ -88,6 +88,36 @@ from ._legacy_response import LegacyAPIResponse
 log: logging.Logger = logging.getLogger(__name__)
 log.addFilter(SensitiveHeadersFilter())
 
+
+def _should_not_retry(exc: Exception) -> bool:
+    """
+    Check if an exception should propagate immediately without retry.
+
+    This includes task cancellation signals from async frameworks
+    and task executors like Celery that should not be caught and retried.
+
+    Args:
+        exc: The exception to check
+
+    Returns:
+        True if the exception should propagate without retry, False otherwise
+    """
+    exc_class = exc.__class__
+    exc_module = exc_class.__module__
+    exc_name = exc_class.__name__
+
+    # Celery task termination (don't import celery - check by name)
+    # Examples: SoftTimeLimitExceeded, TimeLimitExceeded, Terminated
+    if exc_module.startswith("celery") and ("Limit" in exc_name or "Terminated" in exc_name):
+        return True
+
+    # asyncio cancellation
+    if exc_module.startswith("asyncio") and exc_name == "CancelledError":
+        return True
+
+    return False
+
+
 # TODO: make base page type vars covariant
 SyncPageT = TypeVar("SyncPageT", bound="BaseSyncPage[Any]")
 AsyncPageT = TypeVar("AsyncPageT", bound="BaseAsyncPage[Any]")
@@ -1001,6 +1031,10 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             except Exception as err:
                 log.debug("Encountered Exception", exc_info=True)
 
+                # Check if this is a termination signal that should not be retried
+                if _should_not_retry(err):
+                    raise
+
                 if remaining_retries > 0:
                     self._sleep_for_retry(
                         retries_taken=retries_taken,
@@ -1550,6 +1584,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 raise APITimeoutError(request=request) from err
             except Exception as err:
                 log.debug("Encountered Exception", exc_info=True)
+
+                # Check if this is a termination signal that should not be retried
+                if _should_not_retry(err):
+                    raise
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(
