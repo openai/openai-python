@@ -7,7 +7,7 @@ import typing as _t
 from typing_extensions import override
 
 from . import types
-from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given
+from ._types import NOT_GIVEN, Omit, NoneType, NotGiven, Transport, ProxiesTypes, omit, not_given, TimeoutTypes
 from ._utils import file_from_path
 from ._client import Client, OpenAI, Stream, Timeout, Transport, AsyncClient, AsyncOpenAI, AsyncStream, RequestOptions
 from ._models import BaseModel
@@ -129,7 +129,7 @@ webhook_secret: str | None = None
 
 base_url: str | _httpx.URL | None = None
 
-timeout: float | Timeout | None = DEFAULT_TIMEOUT
+timeout: TimeoutTypes = DEFAULT_TIMEOUT
 
 max_retries: int = DEFAULT_MAX_RETRIES
 
@@ -214,11 +214,11 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
-    def timeout(self) -> float | Timeout | None:
+    def timeout(self) -> TimeoutTypes:
         return timeout
 
     @timeout.setter  # type: ignore
-    def timeout(self, value: float | Timeout | None) -> None:  # type: ignore
+    def timeout(self, value: TimeoutTypes) -> None:  # type: ignore
         global timeout
 
         timeout = value

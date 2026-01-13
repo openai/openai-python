@@ -105,10 +105,20 @@ else:
     NoneType = type(None)
 
 
+TimeoutTypes = Union[
+    Optional[float],
+    Timeout,
+    None,
+    Tuple[Optional[float], Optional[float]],
+    Tuple[Optional[float], Optional[float], Optional[float]],
+    Tuple[Optional[float], Optional[float], Optional[float], Optional[float]],
+]
+
+
 class RequestOptions(TypedDict, total=False):
     headers: Headers
     max_retries: int
-    timeout: float | Timeout | None
+    timeout: TimeoutTypes
     params: Query
     extra_json: AnyMapping
     idempotency_key: str

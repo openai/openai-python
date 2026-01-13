@@ -33,6 +33,7 @@ from ._types import (
     Timeout,
     NotGiven,
     AnyMapping,
+    TimeoutTypes,
     HttpxRequestFiles,
 )
 from ._utils import (
@@ -824,7 +825,7 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     params: Query
     headers: Headers
     max_retries: int
-    timeout: float | Timeout | None
+    timeout: TimeoutTypes
     files: HttpxRequestFiles | None
     idempotency_key: str
     json_data: Body
@@ -839,7 +840,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     params: Query = {}
     headers: Union[Headers, NotGiven] = NotGiven()
     max_retries: Union[int, NotGiven] = NotGiven()
-    timeout: Union[float, Timeout, None, NotGiven] = NotGiven()
+    timeout: Union[TimeoutTypes, NotGiven] = NotGiven()
     files: Union[HttpxRequestFiles, None] = None
     idempotency_key: Union[str, None] = None
     post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
