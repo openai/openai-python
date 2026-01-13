@@ -51,6 +51,7 @@ from ._types import (
     ResponseT,
     AnyMapping,
     PostParser,
+    TimeoutTypes,
     RequestFiles,
     HttpxSendArgs,
     RequestOptions,
@@ -363,7 +364,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     _version: str
     _base_url: URL
     max_retries: int
-    timeout: Union[float, Timeout, None]
+    timeout: TimeoutTypes
     _strict_response_validation: bool
     _idempotency_header: str | None
     _default_stream_cls: type[_DefaultStreamT] | None = None
@@ -375,7 +376,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         base_url: str | URL,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None = DEFAULT_TIMEOUT,
+        timeout: TimeoutTypes = DEFAULT_TIMEOUT,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
@@ -546,7 +547,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         # TODO: report this error to httpx
         return self._client.build_request(  # pyright: ignore[reportUnknownMemberType]
             headers=headers,
-            timeout=self.timeout if isinstance(options.timeout, NotGiven) else options.timeout,
+            timeout=cast(Any, self.timeout if isinstance(options.timeout, NotGiven) else options.timeout),
             method=options.method,
             url=prepared_url,
             # the `Query` type that we use is incompatible with qs'
@@ -827,7 +828,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         version: str,
         base_url: str | URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None | NotGiven = not_given,
+        timeout: TimeoutTypes | NotGiven = not_given,
         http_client: httpx.Client | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
@@ -1376,7 +1377,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         base_url: str | URL,
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
-        timeout: float | Timeout | None | NotGiven = not_given,
+        timeout: TimeoutTypes | NotGiven = not_given,
         http_client: httpx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
@@ -1856,7 +1857,7 @@ def make_request_options(
     extra_query: Query | None = None,
     extra_body: Body | None = None,
     idempotency_key: str | None = None,
-    timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    timeout: TimeoutTypes | NotGiven = not_given,
     post_parser: PostParser | NotGiven = not_given,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""

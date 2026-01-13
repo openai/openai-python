@@ -260,6 +260,51 @@ class TestOpenAI:
                     print(frame)
             raise AssertionError()
 
+    def test_request_timeout_tuple(self, client: OpenAI) -> None:
+        # 2-tuple
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo", timeout=(5.0, 10.0)))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        assert timeout.write is None
+        assert timeout.pool is None
+
+        # 4-tuple
+        request = client._build_request(
+            FinalRequestOptions(method="get", url="/foo", timeout=(5.0, 10.0, 15.0, 20.0))
+        )
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        assert timeout.write == 15.0
+        assert timeout.pool == 20.0
+
+    def test_client_timeout_tuple(self) -> None:
+        # 2-tuple
+        client = OpenAI(
+            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=(5.0, 10.0)
+        )
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        client.close()
+
+        # 4-tuple
+        client = OpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            _strict_response_validation=True,
+            timeout=(5.0, 10.0, 15.0, 20.0),
+        )
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        assert timeout.write == 15.0
+        assert timeout.pool == 20.0
+        client.close()
+
     def test_request_timeout(self, client: OpenAI) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
         timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
@@ -1216,6 +1261,51 @@ class TestAsyncOpenAI:
                 for frame in leak.traceback:
                     print(frame)
             raise AssertionError()
+
+    async def test_request_timeout_tuple(self, async_client: AsyncOpenAI) -> None:
+        # 2-tuple
+        request = async_client._build_request(FinalRequestOptions(method="get", url="/foo", timeout=(5.0, 10.0)))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        assert timeout.write is None
+        assert timeout.pool is None
+
+        # 4-tuple
+        request = async_client._build_request(
+            FinalRequestOptions(method="get", url="/foo", timeout=(5.0, 10.0, 15.0, 20.0))
+        )
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        assert timeout.write == 15.0
+        assert timeout.pool == 20.0
+
+    async def test_client_timeout_tuple(self) -> None:
+        # 2-tuple
+        client = AsyncOpenAI(
+            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=(5.0, 10.0)
+        )
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        await client.close()
+
+        # 4-tuple
+        client = AsyncOpenAI(
+            base_url=base_url,
+            api_key=api_key,
+            _strict_response_validation=True,
+            timeout=(5.0, 10.0, 15.0, 20.0),
+        )
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
+        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout.connect == 5.0
+        assert timeout.read == 10.0
+        assert timeout.write == 15.0
+        assert timeout.pool == 20.0
+        await client.close()
 
     async def test_request_timeout(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo"))
