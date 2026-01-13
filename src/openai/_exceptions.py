@@ -151,10 +151,20 @@ class LengthFinishReasonError(OpenAIError):
 
 
 class ContentFilterFinishReasonError(OpenAIError):
-    def __init__(self) -> None:
-        super().__init__(
-            f"Could not parse response content as the request was rejected by the content filter",
-        )
+    completion: ChatCompletion
+    """The completion that caused this error.
+
+    Note: this will *not* be a complete `ChatCompletion` object when streaming as `usage`
+          will not be included.
+    """
+
+    def __init__(self, *, completion: ChatCompletion) -> None:
+        msg = "Could not parse response content as the request was rejected by the content filter"
+        if completion.usage:
+            msg += f" - {completion.usage}"
+
+        super().__init__(msg)
+        self.completion = completion
 
 
 class InvalidWebhookSignatureError(ValueError):
