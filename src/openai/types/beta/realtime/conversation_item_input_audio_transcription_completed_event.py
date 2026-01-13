@@ -33,7 +33,7 @@ class UsageTranscriptTextUsageTokens(BaseModel):
     total_tokens: int
     """Total number of tokens used (input + output)."""
 
-    type: Literal["tokens"]
+    type: Literal["tokens"] = "tokens"
     """The type of the usage object. Always `tokens` for this variant."""
 
     input_token_details: Optional[UsageTranscriptTextUsageTokensInputTokenDetails] = None
@@ -44,7 +44,7 @@ class UsageTranscriptTextUsageDuration(BaseModel):
     seconds: float
     """Duration of the input audio in seconds."""
 
-    type: Literal["duration"]
+    type: Literal["duration"] = "duration"
     """The type of the usage object. Always `duration` for this variant."""
 
 
@@ -75,7 +75,7 @@ class ConversationItemInputAudioTranscriptionCompletedEvent(BaseModel):
     transcript: str
     """The transcribed text."""
 
-    type: Literal["conversation.item.input_audio_transcription.completed"]
+    type: Literal["conversation.item.input_audio_transcription.completed"] = "conversation.item.input_audio_transcription.completed"
     """
     The event type, must be `conversation.item.input_audio_transcription.completed`.
     """

@@ -29,5 +29,5 @@ class RateLimitsUpdatedEvent(BaseModel):
     rate_limits: List[RateLimit]
     """List of rate limit information."""
 
-    type: Literal["rate_limits.updated"]
+    type: Literal["rate_limits.updated"] = "rate_limits.updated"
     """The event type, must be `rate_limits.updated`."""

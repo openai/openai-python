@@ -111,7 +111,7 @@ class Response(BaseModel):
 
 
 class ResponseCreateEvent(BaseModel):
-    type: Literal["response.create"]
+    type: Literal["response.create"] = "response.create"
     """The event type, must be `response.create`."""
 
     event_id: Optional[str] = None

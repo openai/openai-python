@@ -21,7 +21,7 @@ __all__ = ["RealtimeClientEvent", "OutputAudioBufferClear"]
 
 
 class OutputAudioBufferClear(BaseModel):
-    type: Literal["output_audio_buffer.clear"]
+    type: Literal["output_audio_buffer.clear"] = "output_audio_buffer.clear"
     """The event type, must be `output_audio_buffer.clear`."""
 
     event_id: Optional[str] = None

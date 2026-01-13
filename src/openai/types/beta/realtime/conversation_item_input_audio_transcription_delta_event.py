@@ -26,7 +26,7 @@ class ConversationItemInputAudioTranscriptionDeltaEvent(BaseModel):
     item_id: str
     """The ID of the item."""
 
-    type: Literal["conversation.item.input_audio_transcription.delta"]
+    type: Literal["conversation.item.input_audio_transcription.delta"] = "conversation.item.input_audio_transcription.delta"
     """The event type, must be `conversation.item.input_audio_transcription.delta`."""
 
     content_index: Optional[int] = None
