@@ -315,6 +315,10 @@ class Response(BaseModel):
             if output.type == "message":
                 for content in output.content:
                     if content.type == "output_text":
+                        # can be occasionally empty even if type is string, so we need to check for that
+                        # see issue https://github.com/openai/openai-python/issues/2822
+                        if not content.text:
+                            continue
                         texts.append(content.text)
 
         return "".join(texts)
