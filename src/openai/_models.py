@@ -3,7 +3,20 @@ from __future__ import annotations
 import os
 import inspect
 import weakref
-from typing import TYPE_CHECKING, Any, Type, Union, Generic, TypeVar, Callable, Optional, cast
+from typing import (
+    IO,
+    TYPE_CHECKING,
+    Any,
+    Type,
+    Union,
+    Generic,
+    TypeVar,
+    Callable,
+    Iterable,
+    Optional,
+    AsyncIterable,
+    cast,
+)
 from datetime import date, datetime
 from typing_extensions import (
     List,
@@ -787,6 +800,7 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     timeout: float | Timeout | None
     files: HttpxRequestFiles | None
     idempotency_key: str
+    content: Union[bytes, bytearray, IO[bytes], Iterable[bytes], AsyncIterable[bytes], None]
     json_data: Body
     extra_json: AnyMapping
     follow_redirects: bool
@@ -805,6 +819,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
     follow_redirects: Union[bool, None] = None
 
+    content: Union[bytes, bytearray, IO[bytes], Iterable[bytes], AsyncIterable[bytes], None] = None
     # It should be noted that we cannot use `json` here as that would override
     # a BaseModel method in an incompatible fashion.
     json_data: Union[Body, None] = None
