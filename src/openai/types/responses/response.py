@@ -317,7 +317,7 @@ class Response(BaseModel):
                     if content.type == "output_text":
                         # can be occasionally empty even if type is string, so we need to check for that
                         # see issue https://github.com/openai/openai-python/issues/2822
-                        if not content.text:
+                        if content.text is None:  # type: ignore
                             continue
                         texts.append(content.text)
 
