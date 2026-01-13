@@ -18,6 +18,9 @@
 #     "pydub",
 #     "sounddevice",
 #     "openai[realtime]",
+#     "azure-identity",
+#     "aiohttp",
+#     "python-dotenv",
 # ]
 #
 # [tool.uv.sources]
@@ -25,6 +28,12 @@
 # ///
 from __future__ import annotations
 
+from dotenv import load_dotenv
+import httpx
+
+load_dotenv()
+
+import os
 import base64
 import asyncio
 from typing import Any, cast
@@ -33,13 +42,14 @@ from typing_extensions import override
 from textual import events
 from audio_util import CHANNELS, SAMPLE_RATE, AudioPlayerAsync
 from textual.app import App, ComposeResult
-from textual.widgets import Button, Static, RichLog
+from textual.widgets import Static, RichLog
 from textual.reactive import reactive
+from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 from textual.containers import Container
 
-from openai import AsyncOpenAI
-from openai.types.realtime.session import Session
+from openai import AsyncAzureOpenAI
 from openai.resources.realtime.realtime import AsyncRealtimeConnection
+from openai.types.realtime.session_update_event import Session
 
 
 class SessionDisplay(Static):
@@ -123,7 +133,7 @@ class RealtimeApp(App[None]):
         }
     """
 
-    client: AsyncOpenAI
+    client: AsyncAzureOpenAI
     should_send_audio: asyncio.Event
     audio_player: AudioPlayerAsync
     last_audio_item_id: str | None
@@ -135,7 +145,30 @@ class RealtimeApp(App[None]):
         super().__init__()
         self.connection = None
         self.session = None
-        self.client = AsyncOpenAI()
+
+        if not (api_key := os.environ.get("AZURE_OPENAI_API_KEY")):
+            credential = DefaultAzureCredential()
+            token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
+        else:
+            token_provider = None
+
+        endpoint = httpx.URL(os.environ["AZURE_OPENAI_ENDPOINT"])
+        if endpoint.scheme in ("ws", "wss"):
+            websocket_base_url, azure_endpoint = f"{endpoint}/openai", None
+        else:
+            websocket_base_url, azure_endpoint = None, endpoint
+
+        print(f"{websocket_base_url=}, {azure_endpoint=}")
+
+        self.client = AsyncAzureOpenAI(
+            azure_deployment="gpt-realtime",
+            azure_endpoint=str(azure_endpoint),
+            websocket_base_url=websocket_base_url,
+            azure_ad_token_provider=token_provider,
+            api_key=api_key,
+            api_version="2025-04-01-preview"
+        )  # type: ignore
+
         self.audio_player = AudioPlayerAsync()
         self.last_audio_item_id = None
         self.should_send_audio = asyncio.Event()
@@ -154,21 +187,21 @@ class RealtimeApp(App[None]):
         self.run_worker(self.send_mic_audio())
 
     async def handle_realtime_connection(self) -> None:
-        async with self.client.realtime.connect(model="gpt-realtime") as conn:
+        async with self.client.beta.realtime.connect(model="gpt-realtime") as conn:
             self.connection = conn
             self.connected.set()
 
             # note: this is the default and can be omitted
             # if you want to manually handle VAD yourself, then set `'turn_detection': None`
-            await conn.session.update(
-                session={
-                    "audio": {
-                        "input": {"turn_detection": {"type": "server_vad"}},
-                    },
-                    "model": "gpt-realtime",
-                    "type": "realtime",
-                }
-            )
+            # await conn.session.update(
+            #     session={
+            #         "audio": {
+            #             "input": {"turn_detection": {"type": "server_vad"}},
+            #         },
+            #         "model": "gpt-realtime",
+            #         "type": "realtime",
+            #     }
+            # )
 
             acc_items: dict[str, Any] = {}
 
@@ -184,7 +217,7 @@ class RealtimeApp(App[None]):
                     self.session = event.session
                     continue
 
-                if event.type == "response.output_audio.delta":
+                if event.type == "response.audio.delta":
                     if event.item_id != self.last_audio_item_id:
                         self.audio_player.reset_frame_count()
                         self.last_audio_item_id = event.item_id
@@ -193,7 +226,7 @@ class RealtimeApp(App[None]):
                     self.audio_player.add_data(bytes_data)
                     continue
 
-                if event.type == "response.output_audio_transcript.delta":
+                if event.type == "response.audio_transcript.delta":
                     try:
                         text = acc_items[event.item_id]
                     except KeyError:
@@ -258,10 +291,6 @@ class RealtimeApp(App[None]):
 
     async def on_key(self, event: events.Key) -> None:
         """Handle key press events."""
-        if event.key == "enter":
-            self.query_one(Button).press()
-            return
-
         if event.key == "q":
             self.exit()
             return
