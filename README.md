@@ -379,7 +379,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-response = client.chat.responses.create(
+response = client.responses.create( 
     input=[
         {
             "role": "user",
@@ -625,6 +625,35 @@ client.with_options(timeout=5.0).chat.completions.create(
     model="gpt-4o",
 )
 ```
+- from openai import OpenAI
++ import httpx
++ from openai import OpenAI
+
+import httpx
+from openai import OpenAI
+
+# Configure the default for all requests:
+client = OpenAI(
+    # 20 seconds (default is 10 minutes)
+    timeout=20.0,
+)
+
+# More granular control:
+client = OpenAI(
+    timeout=httpx.Timeout(60.0, read=5.0, write=10.0, connect=2.0),
+)
+
+# Override per-request:
+client.with_options(timeout=5.0).chat.completions.create(
+    messages=[
+        {
+            "role": "user",
+            "content": "How can I list all files in a directory using Python?",
+        }
+    ],
+    model="gpt-4o",
+)
+
 
 On timeout, an `APITimeoutError` is thrown.
 
