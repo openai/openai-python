@@ -21,6 +21,14 @@ pytest.register_assert_rewrite("tests.utils")
 logging.getLogger("openai").setLevel(logging.DEBUG)
 
 
+# Autouse fixture to ensure an API key is always set for tests
+@pytest.fixture(autouse=True)
+def _fake_openai_key(monkeypatch: pytest.MonkeyPatch) -> None:
+    # evita dependência real de credencial
+    monkeypatch.setenv("OPENAI_API_KEY", "test")
+    yield
+
+
 # automatically add `pytest.mark.asyncio()` to all of our async tests
 # so we don't have to add that boilerplate everywhere
 def pytest_collection_modifyitems(items: list[pytest.Function]) -> None:
