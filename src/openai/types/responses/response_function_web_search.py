@@ -23,10 +23,13 @@ class ActionSearch(BaseModel):
     """Action type "search" - Performs a web search query."""
 
     query: str
-    """The search query."""
+    """[DEPRECATED] The search query."""
 
     type: Literal["search"]
     """The action type."""
+
+    queries: Optional[List[str]] = None
+    """The search queries."""
 
     sources: Optional[List[ActionSearchSource]] = None
     """The sources used in the search."""

@@ -17,8 +17,10 @@ class ResponseCompactionItem(BaseModel):
     """The unique ID of the compaction item."""
 
     encrypted_content: str
+    """The encrypted content that was produced by compaction."""
 
     type: Literal["compaction"]
     """The type of the item. Always `compaction`."""
 
     created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""
