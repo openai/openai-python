@@ -1,3 +1,5 @@
+#!usr/bin/env python
+# PYTHON_ARGCOMPLETE_OK
 from __future__ import annotations
 
 import sys
@@ -161,6 +163,11 @@ def _parse_args(parser: argparse.ArgumentParser) -> tuple[argparse.Namespace, Ar
 
 def _main() -> None:
     parser = _build_parser()
+    try:
+        import argcomplete
+        argcomplete.autocomplete(parser)
+    except ImportError:
+        pass
     parsed, args, unknown = _parse_args(parser)
 
     if args.verbosity != 0:
