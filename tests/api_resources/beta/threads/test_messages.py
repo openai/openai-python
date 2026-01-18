@@ -62,7 +62,7 @@ class TestMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(Message, message, path=["response"])
 
@@ -75,7 +75,7 @@ class TestMessages:
                 role="user",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = response.parse()
                 assert_matches_type(Message, message, path=["response"])
@@ -111,7 +111,7 @@ class TestMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(Message, message, path=["response"])
 
@@ -123,7 +123,7 @@ class TestMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = response.parse()
                 assert_matches_type(Message, message, path=["response"])
@@ -175,7 +175,7 @@ class TestMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(Message, message, path=["response"])
 
@@ -187,7 +187,7 @@ class TestMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = response.parse()
                 assert_matches_type(Message, message, path=["response"])
@@ -240,7 +240,7 @@ class TestMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(SyncCursorPage[Message], message, path=["response"])
 
@@ -251,7 +251,7 @@ class TestMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = response.parse()
                 assert_matches_type(SyncCursorPage[Message], message, path=["response"])
@@ -285,7 +285,7 @@ class TestMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(MessageDeleted, message, path=["response"])
 
@@ -297,7 +297,7 @@ class TestMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = response.parse()
                 assert_matches_type(MessageDeleted, message, path=["response"])
@@ -364,7 +364,7 @@ class TestAsyncMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(Message, message, path=["response"])
 
@@ -377,7 +377,7 @@ class TestAsyncMessages:
                 role="user",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = await response.parse()
                 assert_matches_type(Message, message, path=["response"])
@@ -413,7 +413,7 @@ class TestAsyncMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(Message, message, path=["response"])
 
@@ -425,7 +425,7 @@ class TestAsyncMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = await response.parse()
                 assert_matches_type(Message, message, path=["response"])
@@ -477,7 +477,7 @@ class TestAsyncMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(Message, message, path=["response"])
 
@@ -489,7 +489,7 @@ class TestAsyncMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = await response.parse()
                 assert_matches_type(Message, message, path=["response"])
@@ -542,7 +542,7 @@ class TestAsyncMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(AsyncCursorPage[Message], message, path=["response"])
 
@@ -553,7 +553,7 @@ class TestAsyncMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = await response.parse()
                 assert_matches_type(AsyncCursorPage[Message], message, path=["response"])
@@ -587,7 +587,7 @@ class TestAsyncMessages:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(MessageDeleted, message, path=["response"])
 
@@ -599,7 +599,7 @@ class TestAsyncMessages:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 message = await response.parse()
                 assert_matches_type(MessageDeleted, message, path=["response"])

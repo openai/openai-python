@@ -52,7 +52,7 @@ class TestVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(Video, video, path=["response"])
 
@@ -62,7 +62,7 @@ class TestVideos:
             prompt="x",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = response.parse()
             assert_matches_type(Video, video, path=["response"])
@@ -83,7 +83,7 @@ class TestVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(Video, video, path=["response"])
 
@@ -93,7 +93,7 @@ class TestVideos:
             "video_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = response.parse()
             assert_matches_type(Video, video, path=["response"])
@@ -126,7 +126,7 @@ class TestVideos:
         response = client.videos.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(SyncConversationCursorPage[Video], video, path=["response"])
 
@@ -134,7 +134,7 @@ class TestVideos:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.videos.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = response.parse()
             assert_matches_type(SyncConversationCursorPage[Video], video, path=["response"])
@@ -155,7 +155,7 @@ class TestVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(VideoDeleteResponse, video, path=["response"])
 
@@ -165,7 +165,7 @@ class TestVideos:
             "video_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = response.parse()
             assert_matches_type(VideoDeleteResponse, video, path=["response"])
@@ -210,7 +210,7 @@ class TestVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, video, path=["response"])
 
@@ -222,7 +222,7 @@ class TestVideos:
             video_id="video_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = response.parse()
             assert_matches_type(bytes, video, path=["response"])
@@ -253,7 +253,7 @@ class TestVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(Video, video, path=["response"])
 
@@ -264,7 +264,7 @@ class TestVideos:
             prompt="x",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = response.parse()
             assert_matches_type(Video, video, path=["response"])
@@ -310,7 +310,7 @@ class TestAsyncVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(Video, video, path=["response"])
 
@@ -320,7 +320,7 @@ class TestAsyncVideos:
             prompt="x",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = await response.parse()
             assert_matches_type(Video, video, path=["response"])
@@ -341,7 +341,7 @@ class TestAsyncVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(Video, video, path=["response"])
 
@@ -351,7 +351,7 @@ class TestAsyncVideos:
             "video_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = await response.parse()
             assert_matches_type(Video, video, path=["response"])
@@ -384,7 +384,7 @@ class TestAsyncVideos:
         response = await async_client.videos.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(AsyncConversationCursorPage[Video], video, path=["response"])
 
@@ -392,7 +392,7 @@ class TestAsyncVideos:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.videos.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = await response.parse()
             assert_matches_type(AsyncConversationCursorPage[Video], video, path=["response"])
@@ -413,7 +413,7 @@ class TestAsyncVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(VideoDeleteResponse, video, path=["response"])
 
@@ -423,7 +423,7 @@ class TestAsyncVideos:
             "video_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = await response.parse()
             assert_matches_type(VideoDeleteResponse, video, path=["response"])
@@ -470,7 +470,7 @@ class TestAsyncVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, video, path=["response"])
 
@@ -482,7 +482,7 @@ class TestAsyncVideos:
             video_id="video_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = await response.parse()
             assert_matches_type(bytes, video, path=["response"])
@@ -513,7 +513,7 @@ class TestAsyncVideos:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         video = response.parse()
         assert_matches_type(Video, video, path=["response"])
 
@@ -524,7 +524,7 @@ class TestAsyncVideos:
             prompt="x",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             video = await response.parse()
             assert_matches_type(Video, video, path=["response"])

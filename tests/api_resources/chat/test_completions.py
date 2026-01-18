@@ -131,7 +131,7 @@ class TestCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -147,7 +147,7 @@ class TestCompletions:
             model="gpt-4o",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = response.parse()
             assert_matches_type(ChatCompletion, completion, path=["response"])
@@ -264,7 +264,7 @@ class TestCompletions:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -281,7 +281,7 @@ class TestCompletions:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = response.parse()
             stream.close()
@@ -302,7 +302,7 @@ class TestCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -312,7 +312,7 @@ class TestCompletions:
             "completion_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = response.parse()
             assert_matches_type(ChatCompletion, completion, path=["response"])
@@ -342,7 +342,7 @@ class TestCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -353,7 +353,7 @@ class TestCompletions:
             metadata={"foo": "string"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = response.parse()
             assert_matches_type(ChatCompletion, completion, path=["response"])
@@ -389,7 +389,7 @@ class TestCompletions:
         response = client.chat.completions.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(SyncCursorPage[ChatCompletion], completion, path=["response"])
 
@@ -397,7 +397,7 @@ class TestCompletions:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.chat.completions.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = response.parse()
             assert_matches_type(SyncCursorPage[ChatCompletion], completion, path=["response"])
@@ -418,7 +418,7 @@ class TestCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletionDeleted, completion, path=["response"])
 
@@ -428,7 +428,7 @@ class TestCompletions:
             "completion_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = response.parse()
             assert_matches_type(ChatCompletionDeleted, completion, path=["response"])
@@ -574,7 +574,7 @@ class TestAsyncCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -590,7 +590,7 @@ class TestAsyncCompletions:
             model="gpt-4o",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = await response.parse()
             assert_matches_type(ChatCompletion, completion, path=["response"])
@@ -707,7 +707,7 @@ class TestAsyncCompletions:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -724,7 +724,7 @@ class TestAsyncCompletions:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = await response.parse()
             await stream.close()
@@ -745,7 +745,7 @@ class TestAsyncCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -755,7 +755,7 @@ class TestAsyncCompletions:
             "completion_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = await response.parse()
             assert_matches_type(ChatCompletion, completion, path=["response"])
@@ -785,7 +785,7 @@ class TestAsyncCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -796,7 +796,7 @@ class TestAsyncCompletions:
             metadata={"foo": "string"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = await response.parse()
             assert_matches_type(ChatCompletion, completion, path=["response"])
@@ -832,7 +832,7 @@ class TestAsyncCompletions:
         response = await async_client.chat.completions.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(AsyncCursorPage[ChatCompletion], completion, path=["response"])
 
@@ -840,7 +840,7 @@ class TestAsyncCompletions:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.chat.completions.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = await response.parse()
             assert_matches_type(AsyncCursorPage[ChatCompletion], completion, path=["response"])
@@ -861,7 +861,7 @@ class TestAsyncCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(ChatCompletionDeleted, completion, path=["response"])
 
@@ -871,7 +871,7 @@ class TestAsyncCompletions:
             "completion_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = await response.parse()
             assert_matches_type(ChatCompletionDeleted, completion, path=["response"])

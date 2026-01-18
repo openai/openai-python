@@ -53,7 +53,7 @@ class TestSteps:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         step = response.parse()
         assert_matches_type(RunStep, step, path=["response"])
 
@@ -66,7 +66,7 @@ class TestSteps:
                 run_id="run_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 step = response.parse()
                 assert_matches_type(RunStep, step, path=["response"])
@@ -131,7 +131,7 @@ class TestSteps:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         step = response.parse()
         assert_matches_type(SyncCursorPage[RunStep], step, path=["response"])
 
@@ -143,7 +143,7 @@ class TestSteps:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 step = response.parse()
                 assert_matches_type(SyncCursorPage[RunStep], step, path=["response"])
@@ -204,7 +204,7 @@ class TestAsyncSteps:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         step = response.parse()
         assert_matches_type(RunStep, step, path=["response"])
 
@@ -217,7 +217,7 @@ class TestAsyncSteps:
                 run_id="run_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 step = await response.parse()
                 assert_matches_type(RunStep, step, path=["response"])
@@ -282,7 +282,7 @@ class TestAsyncSteps:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         step = response.parse()
         assert_matches_type(AsyncCursorPage[RunStep], step, path=["response"])
 
@@ -294,7 +294,7 @@ class TestAsyncSteps:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 step = await response.parse()
                 assert_matches_type(AsyncCursorPage[RunStep], step, path=["response"])

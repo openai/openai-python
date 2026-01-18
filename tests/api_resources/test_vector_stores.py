@@ -47,7 +47,7 @@ class TestVectorStores:
         response = client.vector_stores.with_raw_response.create()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -55,7 +55,7 @@ class TestVectorStores:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.vector_stores.with_streaming_response.create() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = response.parse()
             assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -76,7 +76,7 @@ class TestVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -86,7 +86,7 @@ class TestVectorStores:
             "vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = response.parse()
             assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -127,7 +127,7 @@ class TestVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -137,7 +137,7 @@ class TestVectorStores:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = response.parse()
             assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -171,7 +171,7 @@ class TestVectorStores:
         response = client.vector_stores.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(SyncCursorPage[VectorStore], vector_store, path=["response"])
 
@@ -179,7 +179,7 @@ class TestVectorStores:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.vector_stores.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = response.parse()
             assert_matches_type(SyncCursorPage[VectorStore], vector_store, path=["response"])
@@ -200,7 +200,7 @@ class TestVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStoreDeleted, vector_store, path=["response"])
 
@@ -210,7 +210,7 @@ class TestVectorStores:
             "vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = response.parse()
             assert_matches_type(VectorStoreDeleted, vector_store, path=["response"])
@@ -259,7 +259,7 @@ class TestVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(SyncPage[VectorStoreSearchResponse], vector_store, path=["response"])
 
@@ -270,7 +270,7 @@ class TestVectorStores:
             query="string",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = response.parse()
             assert_matches_type(SyncPage[VectorStoreSearchResponse], vector_store, path=["response"])
@@ -316,7 +316,7 @@ class TestAsyncVectorStores:
         response = await async_client.vector_stores.with_raw_response.create()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -324,7 +324,7 @@ class TestAsyncVectorStores:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.vector_stores.with_streaming_response.create() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = await response.parse()
             assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -345,7 +345,7 @@ class TestAsyncVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -355,7 +355,7 @@ class TestAsyncVectorStores:
             "vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = await response.parse()
             assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -396,7 +396,7 @@ class TestAsyncVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStore, vector_store, path=["response"])
 
@@ -406,7 +406,7 @@ class TestAsyncVectorStores:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = await response.parse()
             assert_matches_type(VectorStore, vector_store, path=["response"])
@@ -440,7 +440,7 @@ class TestAsyncVectorStores:
         response = await async_client.vector_stores.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(AsyncCursorPage[VectorStore], vector_store, path=["response"])
 
@@ -448,7 +448,7 @@ class TestAsyncVectorStores:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.vector_stores.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = await response.parse()
             assert_matches_type(AsyncCursorPage[VectorStore], vector_store, path=["response"])
@@ -469,7 +469,7 @@ class TestAsyncVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(VectorStoreDeleted, vector_store, path=["response"])
 
@@ -479,7 +479,7 @@ class TestAsyncVectorStores:
             "vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = await response.parse()
             assert_matches_type(VectorStoreDeleted, vector_store, path=["response"])
@@ -528,7 +528,7 @@ class TestAsyncVectorStores:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         vector_store = response.parse()
         assert_matches_type(AsyncPage[VectorStoreSearchResponse], vector_store, path=["response"])
 
@@ -539,7 +539,7 @@ class TestAsyncVectorStores:
             query="string",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             vector_store = await response.parse()
             assert_matches_type(AsyncPage[VectorStoreSearchResponse], vector_store, path=["response"])

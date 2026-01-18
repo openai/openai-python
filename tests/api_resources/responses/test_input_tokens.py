@@ -59,7 +59,7 @@ class TestInputTokens:
         response = client.responses.input_tokens.with_raw_response.count()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         input_token = response.parse()
         assert_matches_type(InputTokenCountResponse, input_token, path=["response"])
 
@@ -67,7 +67,7 @@ class TestInputTokens:
     def test_streaming_response_count(self, client: OpenAI) -> None:
         with client.responses.input_tokens.with_streaming_response.count() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             input_token = response.parse()
             assert_matches_type(InputTokenCountResponse, input_token, path=["response"])
@@ -122,7 +122,7 @@ class TestAsyncInputTokens:
         response = await async_client.responses.input_tokens.with_raw_response.count()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         input_token = response.parse()
         assert_matches_type(InputTokenCountResponse, input_token, path=["response"])
 
@@ -130,7 +130,7 @@ class TestAsyncInputTokens:
     async def test_streaming_response_count(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.input_tokens.with_streaming_response.count() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             input_token = await response.parse()
             assert_matches_type(InputTokenCountResponse, input_token, path=["response"])

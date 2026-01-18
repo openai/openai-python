@@ -44,7 +44,7 @@ class TestTranslations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         translation = response.parse()
         assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
@@ -55,7 +55,7 @@ class TestTranslations:
             model="whisper-1",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             translation = response.parse()
             assert_matches_type(TranslationCreateResponse, translation, path=["response"])
@@ -95,7 +95,7 @@ class TestAsyncTranslations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         translation = response.parse()
         assert_matches_type(TranslationCreateResponse, translation, path=["response"])
 
@@ -106,7 +106,7 @@ class TestAsyncTranslations:
             model="whisper-1",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             translation = await response.parse()
             assert_matches_type(TranslationCreateResponse, translation, path=["response"])

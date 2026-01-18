@@ -65,7 +65,7 @@ class TestSessions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         session = response.parse()
         assert_matches_type(ChatSession, session, path=["response"])
 
@@ -76,7 +76,7 @@ class TestSessions:
             workflow={"id": "id"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             session = response.parse()
             assert_matches_type(ChatSession, session, path=["response"])
@@ -97,7 +97,7 @@ class TestSessions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         session = response.parse()
         assert_matches_type(ChatSession, session, path=["response"])
 
@@ -107,7 +107,7 @@ class TestSessions:
             "cksess_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             session = response.parse()
             assert_matches_type(ChatSession, session, path=["response"])
@@ -173,7 +173,7 @@ class TestAsyncSessions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         session = response.parse()
         assert_matches_type(ChatSession, session, path=["response"])
 
@@ -184,7 +184,7 @@ class TestAsyncSessions:
             workflow={"id": "id"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             session = await response.parse()
             assert_matches_type(ChatSession, session, path=["response"])
@@ -205,7 +205,7 @@ class TestAsyncSessions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         session = response.parse()
         assert_matches_type(ChatSession, session, path=["response"])
 
@@ -215,7 +215,7 @@ class TestAsyncSessions:
             "cksess_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             session = await response.parse()
             assert_matches_type(ChatSession, session, path=["response"])

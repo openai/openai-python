@@ -101,7 +101,7 @@ class TestJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -112,7 +112,7 @@ class TestJobs:
             training_file="file-abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -133,7 +133,7 @@ class TestJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -143,7 +143,7 @@ class TestJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -176,7 +176,7 @@ class TestJobs:
         response = client.fine_tuning.jobs.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
 
@@ -184,7 +184,7 @@ class TestJobs:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.fine_tuning.jobs.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(SyncCursorPage[FineTuningJob], job, path=["response"])
@@ -205,7 +205,7 @@ class TestJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -215,7 +215,7 @@ class TestJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -252,7 +252,7 @@ class TestJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
@@ -262,7 +262,7 @@ class TestJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(SyncCursorPage[FineTuningJobEvent], job, path=["response"])
@@ -290,7 +290,7 @@ class TestJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -300,7 +300,7 @@ class TestJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -328,7 +328,7 @@ class TestJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -338,7 +338,7 @@ class TestJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -438,7 +438,7 @@ class TestAsyncJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -449,7 +449,7 @@ class TestAsyncJobs:
             training_file="file-abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -470,7 +470,7 @@ class TestAsyncJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -480,7 +480,7 @@ class TestAsyncJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -513,7 +513,7 @@ class TestAsyncJobs:
         response = await async_client.fine_tuning.jobs.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
 
@@ -521,7 +521,7 @@ class TestAsyncJobs:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.fine_tuning.jobs.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(AsyncCursorPage[FineTuningJob], job, path=["response"])
@@ -542,7 +542,7 @@ class TestAsyncJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -552,7 +552,7 @@ class TestAsyncJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -589,7 +589,7 @@ class TestAsyncJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
 
@@ -599,7 +599,7 @@ class TestAsyncJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(AsyncCursorPage[FineTuningJobEvent], job, path=["response"])
@@ -627,7 +627,7 @@ class TestAsyncJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -637,7 +637,7 @@ class TestAsyncJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])
@@ -665,7 +665,7 @@ class TestAsyncJobs:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         job = response.parse()
         assert_matches_type(FineTuningJob, job, path=["response"])
 
@@ -675,7 +675,7 @@ class TestAsyncJobs:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             job = await response.parse()
             assert_matches_type(FineTuningJob, job, path=["response"])

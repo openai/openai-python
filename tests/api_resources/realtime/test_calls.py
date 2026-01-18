@@ -106,7 +106,7 @@ class TestCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, call, path=["response"])
 
@@ -118,7 +118,7 @@ class TestCalls:
             sdp="sdp",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = response.parse()
             assert_matches_type(bytes, call, path=["response"])
@@ -201,7 +201,7 @@ class TestCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -212,7 +212,7 @@ class TestCalls:
             type="realtime",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = response.parse()
             assert call is None
@@ -241,7 +241,7 @@ class TestCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -251,7 +251,7 @@ class TestCalls:
             "call_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = response.parse()
             assert call is None
@@ -281,7 +281,7 @@ class TestCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -292,7 +292,7 @@ class TestCalls:
             target_uri="tel:+14155550123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = response.parse()
             assert call is None
@@ -329,7 +329,7 @@ class TestCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -339,7 +339,7 @@ class TestCalls:
             call_id="call_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = response.parse()
             assert call is None
@@ -444,7 +444,7 @@ class TestAsyncCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, call, path=["response"])
 
@@ -456,7 +456,7 @@ class TestAsyncCalls:
             sdp="sdp",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = await response.parse()
             assert_matches_type(bytes, call, path=["response"])
@@ -539,7 +539,7 @@ class TestAsyncCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -550,7 +550,7 @@ class TestAsyncCalls:
             type="realtime",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = await response.parse()
             assert call is None
@@ -579,7 +579,7 @@ class TestAsyncCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -589,7 +589,7 @@ class TestAsyncCalls:
             "call_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = await response.parse()
             assert call is None
@@ -619,7 +619,7 @@ class TestAsyncCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -630,7 +630,7 @@ class TestAsyncCalls:
             target_uri="tel:+14155550123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = await response.parse()
             assert call is None
@@ -667,7 +667,7 @@ class TestAsyncCalls:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         call = response.parse()
         assert call is None
 
@@ -677,7 +677,7 @@ class TestAsyncCalls:
             call_id="call_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             call = await response.parse()
             assert call is None

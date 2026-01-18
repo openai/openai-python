@@ -102,7 +102,7 @@ class TestEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalCreateResponse, eval, path=["response"])
 
@@ -130,7 +130,7 @@ class TestEvals:
             ],
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = response.parse()
             assert_matches_type(EvalCreateResponse, eval, path=["response"])
@@ -151,7 +151,7 @@ class TestEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalRetrieveResponse, eval, path=["response"])
 
@@ -161,7 +161,7 @@ class TestEvals:
             "eval_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = response.parse()
             assert_matches_type(EvalRetrieveResponse, eval, path=["response"])
@@ -198,7 +198,7 @@ class TestEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalUpdateResponse, eval, path=["response"])
 
@@ -208,7 +208,7 @@ class TestEvals:
             eval_id="eval_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = response.parse()
             assert_matches_type(EvalUpdateResponse, eval, path=["response"])
@@ -242,7 +242,7 @@ class TestEvals:
         response = client.evals.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(SyncCursorPage[EvalListResponse], eval, path=["response"])
 
@@ -250,7 +250,7 @@ class TestEvals:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.evals.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = response.parse()
             assert_matches_type(SyncCursorPage[EvalListResponse], eval, path=["response"])
@@ -271,7 +271,7 @@ class TestEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalDeleteResponse, eval, path=["response"])
 
@@ -281,7 +281,7 @@ class TestEvals:
             "eval_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = response.parse()
             assert_matches_type(EvalDeleteResponse, eval, path=["response"])
@@ -379,7 +379,7 @@ class TestAsyncEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalCreateResponse, eval, path=["response"])
 
@@ -407,7 +407,7 @@ class TestAsyncEvals:
             ],
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = await response.parse()
             assert_matches_type(EvalCreateResponse, eval, path=["response"])
@@ -428,7 +428,7 @@ class TestAsyncEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalRetrieveResponse, eval, path=["response"])
 
@@ -438,7 +438,7 @@ class TestAsyncEvals:
             "eval_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = await response.parse()
             assert_matches_type(EvalRetrieveResponse, eval, path=["response"])
@@ -475,7 +475,7 @@ class TestAsyncEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalUpdateResponse, eval, path=["response"])
 
@@ -485,7 +485,7 @@ class TestAsyncEvals:
             eval_id="eval_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = await response.parse()
             assert_matches_type(EvalUpdateResponse, eval, path=["response"])
@@ -519,7 +519,7 @@ class TestAsyncEvals:
         response = await async_client.evals.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(AsyncCursorPage[EvalListResponse], eval, path=["response"])
 
@@ -527,7 +527,7 @@ class TestAsyncEvals:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.evals.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = await response.parse()
             assert_matches_type(AsyncCursorPage[EvalListResponse], eval, path=["response"])
@@ -548,7 +548,7 @@ class TestAsyncEvals:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         eval = response.parse()
         assert_matches_type(EvalDeleteResponse, eval, path=["response"])
 
@@ -558,7 +558,7 @@ class TestAsyncEvals:
             "eval_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             eval = await response.parse()
             assert_matches_type(EvalDeleteResponse, eval, path=["response"])

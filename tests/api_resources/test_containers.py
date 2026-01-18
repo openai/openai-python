@@ -49,7 +49,7 @@ class TestContainers:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 
@@ -59,7 +59,7 @@ class TestContainers:
             name="name",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = response.parse()
             assert_matches_type(ContainerCreateResponse, container, path=["response"])
@@ -80,7 +80,7 @@ class TestContainers:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert_matches_type(ContainerRetrieveResponse, container, path=["response"])
 
@@ -90,7 +90,7 @@ class TestContainers:
             "container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = response.parse()
             assert_matches_type(ContainerRetrieveResponse, container, path=["response"])
@@ -123,7 +123,7 @@ class TestContainers:
         response = client.containers.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert_matches_type(SyncCursorPage[ContainerListResponse], container, path=["response"])
 
@@ -131,7 +131,7 @@ class TestContainers:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.containers.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = response.parse()
             assert_matches_type(SyncCursorPage[ContainerListResponse], container, path=["response"])
@@ -152,7 +152,7 @@ class TestContainers:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert container is None
 
@@ -162,7 +162,7 @@ class TestContainers:
             "container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = response.parse()
             assert container is None
@@ -209,7 +209,7 @@ class TestAsyncContainers:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 
@@ -219,7 +219,7 @@ class TestAsyncContainers:
             name="name",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = await response.parse()
             assert_matches_type(ContainerCreateResponse, container, path=["response"])
@@ -240,7 +240,7 @@ class TestAsyncContainers:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert_matches_type(ContainerRetrieveResponse, container, path=["response"])
 
@@ -250,7 +250,7 @@ class TestAsyncContainers:
             "container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = await response.parse()
             assert_matches_type(ContainerRetrieveResponse, container, path=["response"])
@@ -283,7 +283,7 @@ class TestAsyncContainers:
         response = await async_client.containers.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert_matches_type(AsyncCursorPage[ContainerListResponse], container, path=["response"])
 
@@ -291,7 +291,7 @@ class TestAsyncContainers:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.containers.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = await response.parse()
             assert_matches_type(AsyncCursorPage[ContainerListResponse], container, path=["response"])
@@ -312,7 +312,7 @@ class TestAsyncContainers:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         container = response.parse()
         assert container is None
 
@@ -322,7 +322,7 @@ class TestAsyncContainers:
             "container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             container = await response.parse()
             assert container is None

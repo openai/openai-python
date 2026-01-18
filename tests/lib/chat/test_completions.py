@@ -858,7 +858,7 @@ def test_parse_pydantic_raw_response(client: OpenAI, respx_mock: MockRouter, mon
         mock_client=client,
         respx_mock=respx_mock,
     )
-    assert response.http_request.headers.get("x-stainless-helper-method") == "chat.completions.parse"
+    assert response.http_request.headers.get("x-nonsense-helper-method") == "chat.completions.parse"
 
     completion = response.parse()
     message = completion.choices[0].message
@@ -935,7 +935,7 @@ async def test_async_parse_pydantic_raw_response(
         mock_client=async_client,
         respx_mock=respx_mock,
     )
-    assert response.http_request.headers.get("x-stainless-helper-method") == "chat.completions.parse"
+    assert response.http_request.headers.get("x-nonsense-helper-method") == "chat.completions.parse"
 
     completion = response.parse()
     message = completion.choices[0].message

@@ -43,7 +43,7 @@ class TestImages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -53,7 +53,7 @@ class TestImages:
             image=b"raw file contents",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             image = response.parse()
             assert_matches_type(ImagesResponse, image, path=["response"])
@@ -97,7 +97,7 @@ class TestImages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -108,7 +108,7 @@ class TestImages:
             prompt="A cute baby sea otter wearing a beret",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             image = response.parse()
             assert_matches_type(ImagesResponse, image, path=["response"])
@@ -153,7 +153,7 @@ class TestImages:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -165,7 +165,7 @@ class TestImages:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = response.parse()
             stream.close()
@@ -206,7 +206,7 @@ class TestImages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -216,7 +216,7 @@ class TestImages:
             prompt="A cute baby sea otter",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             image = response.parse()
             assert_matches_type(ImagesResponse, image, path=["response"])
@@ -258,7 +258,7 @@ class TestImages:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -269,7 +269,7 @@ class TestImages:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = response.parse()
             stream.close()
@@ -308,7 +308,7 @@ class TestAsyncImages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -318,7 +318,7 @@ class TestAsyncImages:
             image=b"raw file contents",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             image = await response.parse()
             assert_matches_type(ImagesResponse, image, path=["response"])
@@ -362,7 +362,7 @@ class TestAsyncImages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -373,7 +373,7 @@ class TestAsyncImages:
             prompt="A cute baby sea otter wearing a beret",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             image = await response.parse()
             assert_matches_type(ImagesResponse, image, path=["response"])
@@ -418,7 +418,7 @@ class TestAsyncImages:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -430,7 +430,7 @@ class TestAsyncImages:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = await response.parse()
             await stream.close()
@@ -471,7 +471,7 @@ class TestAsyncImages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         image = response.parse()
         assert_matches_type(ImagesResponse, image, path=["response"])
 
@@ -481,7 +481,7 @@ class TestAsyncImages:
             prompt="A cute baby sea otter",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             image = await response.parse()
             assert_matches_type(ImagesResponse, image, path=["response"])
@@ -523,7 +523,7 @@ class TestAsyncImages:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -534,7 +534,7 @@ class TestAsyncImages:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = await response.parse()
             await stream.close()

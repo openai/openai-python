@@ -2,7 +2,7 @@
 
 import httpx
 
-RAW_RESPONSE_HEADER = "X-Stainless-Raw-Response"
+RAW_RESPONSE_HEADER = "X-Nonsense-Raw-Response"
 OVERRIDE_CAST_TO_HEADER = "____stainless_override_cast_to"
 
 # default timeout is 10 minutes

@@ -64,7 +64,7 @@ class TestAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
 
@@ -74,7 +74,7 @@ class TestAssistants:
             model="gpt-4o",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = response.parse()
             assert_matches_type(Assistant, assistant, path=["response"])
@@ -95,7 +95,7 @@ class TestAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
 
@@ -105,7 +105,7 @@ class TestAssistants:
             "assistant_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = response.parse()
             assert_matches_type(Assistant, assistant, path=["response"])
@@ -154,7 +154,7 @@ class TestAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
 
@@ -164,7 +164,7 @@ class TestAssistants:
             assistant_id="assistant_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = response.parse()
             assert_matches_type(Assistant, assistant, path=["response"])
@@ -198,7 +198,7 @@ class TestAssistants:
         response = client.beta.assistants.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(SyncCursorPage[Assistant], assistant, path=["response"])
 
@@ -206,7 +206,7 @@ class TestAssistants:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.beta.assistants.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = response.parse()
             assert_matches_type(SyncCursorPage[Assistant], assistant, path=["response"])
@@ -227,7 +227,7 @@ class TestAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
@@ -237,7 +237,7 @@ class TestAssistants:
             "assistant_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = response.parse()
             assert_matches_type(AssistantDeleted, assistant, path=["response"])
@@ -300,7 +300,7 @@ class TestAsyncAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
 
@@ -310,7 +310,7 @@ class TestAsyncAssistants:
             model="gpt-4o",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = await response.parse()
             assert_matches_type(Assistant, assistant, path=["response"])
@@ -331,7 +331,7 @@ class TestAsyncAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
 
@@ -341,7 +341,7 @@ class TestAsyncAssistants:
             "assistant_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = await response.parse()
             assert_matches_type(Assistant, assistant, path=["response"])
@@ -390,7 +390,7 @@ class TestAsyncAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(Assistant, assistant, path=["response"])
 
@@ -400,7 +400,7 @@ class TestAsyncAssistants:
             assistant_id="assistant_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = await response.parse()
             assert_matches_type(Assistant, assistant, path=["response"])
@@ -434,7 +434,7 @@ class TestAsyncAssistants:
         response = await async_client.beta.assistants.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(AsyncCursorPage[Assistant], assistant, path=["response"])
 
@@ -442,7 +442,7 @@ class TestAsyncAssistants:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.assistants.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = await response.parse()
             assert_matches_type(AsyncCursorPage[Assistant], assistant, path=["response"])
@@ -463,7 +463,7 @@ class TestAsyncAssistants:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         assistant = response.parse()
         assert_matches_type(AssistantDeleted, assistant, path=["response"])
 
@@ -473,7 +473,7 @@ class TestAsyncAssistants:
             "assistant_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             assistant = await response.parse()
             assert_matches_type(AssistantDeleted, assistant, path=["response"])

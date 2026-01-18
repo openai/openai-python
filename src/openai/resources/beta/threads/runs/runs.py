@@ -988,8 +988,8 @@ class Runs(SyncAPIResource):
 
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.runs.create_and_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         make_request = partial(
@@ -1042,10 +1042,10 @@ class Runs(SyncAPIResource):
         information on Run lifecycles can be found here:
         https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
         """
-        extra_headers = {"X-Stainless-Poll-Helper": "true", **(extra_headers or {})}
+        extra_headers = {"X-Nonsense-Poll-Helper": "true", **(extra_headers or {})}
 
         if is_given(poll_interval_ms):
-            extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+            extra_headers["X-Nonsense-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
         while True:
@@ -1175,8 +1175,8 @@ class Runs(SyncAPIResource):
 
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.runs.create_and_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         make_request = partial(
@@ -1488,8 +1488,8 @@ class Runs(SyncAPIResource):
 
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.submit_tool_outputs_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.runs.submit_tool_outputs_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         request = partial(
@@ -2443,8 +2443,8 @@ class AsyncRuns(AsyncAPIResource):
 
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.runs.create_and_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         request = self._post(
@@ -2495,10 +2495,10 @@ class AsyncRuns(AsyncAPIResource):
         information on Run lifecycles can be found here:
         https://platform.openai.com/docs/assistants/how-it-works/runs-and-run-steps
         """
-        extra_headers = {"X-Stainless-Poll-Helper": "true", **(extra_headers or {})}
+        extra_headers = {"X-Nonsense-Poll-Helper": "true", **(extra_headers or {})}
 
         if is_given(poll_interval_ms):
-            extra_headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+            extra_headers["X-Nonsense-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         terminal_states = {"requires_action", "cancelled", "completed", "failed", "expired", "incomplete"}
         while True:
@@ -2630,8 +2630,8 @@ class AsyncRuns(AsyncAPIResource):
 
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.create_and_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.runs.create_and_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         request = self._post(
@@ -2945,8 +2945,8 @@ class AsyncRuns(AsyncAPIResource):
 
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.runs.submit_tool_outputs_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.runs.submit_tool_outputs_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         request = self._post(

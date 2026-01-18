@@ -52,7 +52,7 @@ class TestFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -62,7 +62,7 @@ class TestFileBatches:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = response.parse()
             assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -92,7 +92,7 @@ class TestFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -103,7 +103,7 @@ class TestFileBatches:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = response.parse()
             assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -140,7 +140,7 @@ class TestFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -151,7 +151,7 @@ class TestFileBatches:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = response.parse()
             assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -201,7 +201,7 @@ class TestFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(SyncCursorPage[VectorStoreFile], file_batch, path=["response"])
 
@@ -212,7 +212,7 @@ class TestFileBatches:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = response.parse()
             assert_matches_type(SyncCursorPage[VectorStoreFile], file_batch, path=["response"])
@@ -270,7 +270,7 @@ class TestAsyncFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -280,7 +280,7 @@ class TestAsyncFileBatches:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = await response.parse()
             assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -310,7 +310,7 @@ class TestAsyncFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -321,7 +321,7 @@ class TestAsyncFileBatches:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = await response.parse()
             assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -358,7 +358,7 @@ class TestAsyncFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
 
@@ -369,7 +369,7 @@ class TestAsyncFileBatches:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = await response.parse()
             assert_matches_type(VectorStoreFileBatch, file_batch, path=["response"])
@@ -419,7 +419,7 @@ class TestAsyncFileBatches:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file_batch = response.parse()
         assert_matches_type(AsyncCursorPage[VectorStoreFile], file_batch, path=["response"])
 
@@ -430,7 +430,7 @@ class TestAsyncFileBatches:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file_batch = await response.parse()
             assert_matches_type(AsyncCursorPage[VectorStoreFile], file_batch, path=["response"])

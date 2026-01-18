@@ -51,7 +51,7 @@ class TestTranscriptions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         transcription = response.parse()
         assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
@@ -62,7 +62,7 @@ class TestTranscriptions:
             model="gpt-4o-transcribe",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             transcription = response.parse()
             assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
@@ -104,7 +104,7 @@ class TestTranscriptions:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -116,7 +116,7 @@ class TestTranscriptions:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = response.parse()
             stream.close()
@@ -163,7 +163,7 @@ class TestAsyncTranscriptions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         transcription = response.parse()
         assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
 
@@ -174,7 +174,7 @@ class TestAsyncTranscriptions:
             model="gpt-4o-transcribe",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             transcription = await response.parse()
             assert_matches_type(TranscriptionCreateResponse, transcription, path=["response"])
@@ -216,7 +216,7 @@ class TestAsyncTranscriptions:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -228,7 +228,7 @@ class TestAsyncTranscriptions:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = await response.parse()
             await stream.close()

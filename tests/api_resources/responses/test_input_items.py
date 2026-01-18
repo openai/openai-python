@@ -43,7 +43,7 @@ class TestInputItems:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         input_item = response.parse()
         assert_matches_type(SyncCursorPage[ResponseItem], input_item, path=["response"])
 
@@ -53,7 +53,7 @@ class TestInputItems:
             response_id="response_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             input_item = response.parse()
             assert_matches_type(SyncCursorPage[ResponseItem], input_item, path=["response"])
@@ -98,7 +98,7 @@ class TestAsyncInputItems:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         input_item = response.parse()
         assert_matches_type(AsyncCursorPage[ResponseItem], input_item, path=["response"])
 
@@ -108,7 +108,7 @@ class TestAsyncInputItems:
             response_id="response_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             input_item = await response.parse()
             assert_matches_type(AsyncCursorPage[ResponseItem], input_item, path=["response"])

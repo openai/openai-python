@@ -38,7 +38,7 @@ class TestPermissions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         permission = response.parse()
         assert_matches_type(SyncPage[PermissionCreateResponse], permission, path=["response"])
 
@@ -49,7 +49,7 @@ class TestPermissions:
             project_ids=["string"],
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             permission = response.parse()
             assert_matches_type(SyncPage[PermissionCreateResponse], permission, path=["response"])
@@ -91,7 +91,7 @@ class TestPermissions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         permission = response.parse()
         assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
 
@@ -101,7 +101,7 @@ class TestPermissions:
             fine_tuned_model_checkpoint="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             permission = response.parse()
             assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
@@ -133,7 +133,7 @@ class TestPermissions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         permission = response.parse()
         assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
 
@@ -144,7 +144,7 @@ class TestPermissions:
             fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             permission = response.parse()
             assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
@@ -189,7 +189,7 @@ class TestAsyncPermissions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         permission = response.parse()
         assert_matches_type(AsyncPage[PermissionCreateResponse], permission, path=["response"])
 
@@ -200,7 +200,7 @@ class TestAsyncPermissions:
             project_ids=["string"],
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             permission = await response.parse()
             assert_matches_type(AsyncPage[PermissionCreateResponse], permission, path=["response"])
@@ -242,7 +242,7 @@ class TestAsyncPermissions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         permission = response.parse()
         assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
 
@@ -252,7 +252,7 @@ class TestAsyncPermissions:
             fine_tuned_model_checkpoint="ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             permission = await response.parse()
             assert_matches_type(PermissionRetrieveResponse, permission, path=["response"])
@@ -284,7 +284,7 @@ class TestAsyncPermissions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         permission = response.parse()
         assert_matches_type(PermissionDeleteResponse, permission, path=["response"])
 
@@ -295,7 +295,7 @@ class TestAsyncPermissions:
             fine_tuned_model_checkpoint="ft:gpt-4o-mini-2024-07-18:org:weather:B7R9VjQd",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             permission = await response.parse()
             assert_matches_type(PermissionDeleteResponse, permission, path=["response"])

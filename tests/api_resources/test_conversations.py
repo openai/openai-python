@@ -44,7 +44,7 @@ class TestConversations:
         response = client.conversations.with_raw_response.create()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -52,7 +52,7 @@ class TestConversations:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.conversations.with_streaming_response.create() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = response.parse()
             assert_matches_type(Conversation, conversation, path=["response"])
@@ -73,7 +73,7 @@ class TestConversations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -83,7 +83,7 @@ class TestConversations:
             "conv_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = response.parse()
             assert_matches_type(Conversation, conversation, path=["response"])
@@ -113,7 +113,7 @@ class TestConversations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -124,7 +124,7 @@ class TestConversations:
             metadata={"foo": "string"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = response.parse()
             assert_matches_type(Conversation, conversation, path=["response"])
@@ -153,7 +153,7 @@ class TestConversations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(ConversationDeletedResource, conversation, path=["response"])
 
@@ -163,7 +163,7 @@ class TestConversations:
             "conv_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = response.parse()
             assert_matches_type(ConversationDeletedResource, conversation, path=["response"])
@@ -207,7 +207,7 @@ class TestAsyncConversations:
         response = await async_client.conversations.with_raw_response.create()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -215,7 +215,7 @@ class TestAsyncConversations:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.conversations.with_streaming_response.create() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = await response.parse()
             assert_matches_type(Conversation, conversation, path=["response"])
@@ -236,7 +236,7 @@ class TestAsyncConversations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -246,7 +246,7 @@ class TestAsyncConversations:
             "conv_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = await response.parse()
             assert_matches_type(Conversation, conversation, path=["response"])
@@ -276,7 +276,7 @@ class TestAsyncConversations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(Conversation, conversation, path=["response"])
 
@@ -287,7 +287,7 @@ class TestAsyncConversations:
             metadata={"foo": "string"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = await response.parse()
             assert_matches_type(Conversation, conversation, path=["response"])
@@ -316,7 +316,7 @@ class TestAsyncConversations:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         conversation = response.parse()
         assert_matches_type(ConversationDeletedResource, conversation, path=["response"])
 
@@ -326,7 +326,7 @@ class TestAsyncConversations:
             "conv_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             conversation = await response.parse()
             assert_matches_type(ConversationDeletedResource, conversation, path=["response"])

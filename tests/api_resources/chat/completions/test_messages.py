@@ -42,7 +42,7 @@ class TestMessages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(SyncCursorPage[ChatCompletionStoreMessage], message, path=["response"])
 
@@ -52,7 +52,7 @@ class TestMessages:
             completion_id="completion_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             message = response.parse()
             assert_matches_type(SyncCursorPage[ChatCompletionStoreMessage], message, path=["response"])
@@ -96,7 +96,7 @@ class TestAsyncMessages:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         message = response.parse()
         assert_matches_type(AsyncCursorPage[ChatCompletionStoreMessage], message, path=["response"])
 
@@ -106,7 +106,7 @@ class TestAsyncMessages:
             completion_id="completion_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             message = await response.parse()
             assert_matches_type(AsyncCursorPage[ChatCompletionStoreMessage], message, path=["response"])

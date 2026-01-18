@@ -332,7 +332,7 @@ class OpenAI(SyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
-            "X-Stainless-Async": "false",
+            "X-Nonsense-Async": "false",
             "OpenAI-Organization": self.organization if self.organization is not None else Omit(),
             "OpenAI-Project": self.project if self.project is not None else Omit(),
             **self._custom_headers,
@@ -683,7 +683,7 @@ class AsyncOpenAI(AsyncAPIClient):
     def default_headers(self) -> dict[str, str | Omit]:
         return {
             **super().default_headers,
-            "X-Stainless-Async": f"async:{get_async_library()}",
+            "X-Nonsense-Async": f"async:{get_async_library()}",
             "OpenAI-Organization": self.organization if self.organization is not None else Omit(),
             "OpenAI-Project": self.project if self.project is not None else Omit(),
             **self._custom_headers,

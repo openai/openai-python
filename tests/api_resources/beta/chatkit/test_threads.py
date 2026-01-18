@@ -33,7 +33,7 @@ class TestThreads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(ChatKitThread, thread, path=["response"])
 
@@ -43,7 +43,7 @@ class TestThreads:
             "cthr_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = response.parse()
             assert_matches_type(ChatKitThread, thread, path=["response"])
@@ -78,7 +78,7 @@ class TestThreads:
         response = client.beta.chatkit.threads.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(SyncConversationCursorPage[ChatKitThread], thread, path=["response"])
 
@@ -86,7 +86,7 @@ class TestThreads:
     def test_streaming_response_list(self, client: OpenAI) -> None:
         with client.beta.chatkit.threads.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = response.parse()
             assert_matches_type(SyncConversationCursorPage[ChatKitThread], thread, path=["response"])
@@ -107,7 +107,7 @@ class TestThreads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(ThreadDeleteResponse, thread, path=["response"])
 
@@ -117,7 +117,7 @@ class TestThreads:
             "cthr_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = response.parse()
             assert_matches_type(ThreadDeleteResponse, thread, path=["response"])
@@ -156,7 +156,7 @@ class TestThreads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(SyncConversationCursorPage[Data], thread, path=["response"])
 
@@ -166,7 +166,7 @@ class TestThreads:
             thread_id="cthr_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = response.parse()
             assert_matches_type(SyncConversationCursorPage[Data], thread, path=["response"])
@@ -200,7 +200,7 @@ class TestAsyncThreads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(ChatKitThread, thread, path=["response"])
 
@@ -210,7 +210,7 @@ class TestAsyncThreads:
             "cthr_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = await response.parse()
             assert_matches_type(ChatKitThread, thread, path=["response"])
@@ -245,7 +245,7 @@ class TestAsyncThreads:
         response = await async_client.beta.chatkit.threads.with_raw_response.list()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(AsyncConversationCursorPage[ChatKitThread], thread, path=["response"])
 
@@ -253,7 +253,7 @@ class TestAsyncThreads:
     async def test_streaming_response_list(self, async_client: AsyncOpenAI) -> None:
         async with async_client.beta.chatkit.threads.with_streaming_response.list() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = await response.parse()
             assert_matches_type(AsyncConversationCursorPage[ChatKitThread], thread, path=["response"])
@@ -274,7 +274,7 @@ class TestAsyncThreads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(ThreadDeleteResponse, thread, path=["response"])
 
@@ -284,7 +284,7 @@ class TestAsyncThreads:
             "cthr_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = await response.parse()
             assert_matches_type(ThreadDeleteResponse, thread, path=["response"])
@@ -323,7 +323,7 @@ class TestAsyncThreads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         thread = response.parse()
         assert_matches_type(AsyncConversationCursorPage[Data], thread, path=["response"])
 
@@ -333,7 +333,7 @@ class TestAsyncThreads:
             thread_id="cthr_123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             thread = await response.parse()
             assert_matches_type(AsyncConversationCursorPage[Data], thread, path=["response"])

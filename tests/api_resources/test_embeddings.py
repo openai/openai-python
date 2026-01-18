@@ -44,7 +44,7 @@ class TestEmbeddings:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         embedding = response.parse()
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
 
@@ -55,7 +55,7 @@ class TestEmbeddings:
             model="text-embedding-3-small",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             embedding = response.parse()
             assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
@@ -95,7 +95,7 @@ class TestAsyncEmbeddings:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         embedding = response.parse()
         assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])
 
@@ -106,7 +106,7 @@ class TestAsyncEmbeddings:
             model="text-embedding-3-small",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             embedding = await response.parse()
             assert_matches_type(CreateEmbeddingResponse, embedding, path=["response"])

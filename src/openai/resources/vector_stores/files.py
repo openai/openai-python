@@ -331,9 +331,9 @@ class Files(SyncAPIResource):
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        headers: dict[str, str] = {"X-Nonsense-Poll-Helper": "true"}
         if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+            headers["X-Nonsense-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         while True:
             response = self.with_raw_response.retrieve(
@@ -739,9 +739,9 @@ class AsyncFiles(AsyncAPIResource):
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
         """
-        headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
+        headers: dict[str, str] = {"X-Nonsense-Poll-Helper": "true"}
         if is_given(poll_interval_ms):
-            headers["X-Stainless-Custom-Poll-Interval"] = str(poll_interval_ms)
+            headers["X-Nonsense-Custom-Poll-Interval"] = str(poll_interval_ms)
 
         while True:
             response = await self.with_raw_response.retrieve(

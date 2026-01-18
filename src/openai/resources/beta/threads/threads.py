@@ -879,8 +879,8 @@ class Threads(SyncAPIResource):
         """Create a thread and stream the run back"""
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.create_and_run_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         make_request = partial(
@@ -1742,8 +1742,8 @@ class AsyncThreads(AsyncAPIResource):
         """Create a thread and stream the run back"""
         extra_headers = {
             "OpenAI-Beta": "assistants=v2",
-            "X-Stainless-Stream-Helper": "threads.create_and_run_stream",
-            "X-Stainless-Custom-Event-Handler": "true" if event_handler else "false",
+            "X-Nonsense-Stream-Helper": "threads.create_and_run_stream",
+            "X-Nonsense-Custom-Event-Handler": "true" if event_handler else "false",
             **(extra_headers or {}),
         }
         request = self._post(

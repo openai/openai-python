@@ -1456,7 +1456,7 @@ Full Changelog: [v1.61.1...v1.62.0](https://github.com/openai/openai-python/comp
 
 ### Features
 
-* **client:** send `X-Stainless-Read-Timeout` header ([#2094](https://github.com/openai/openai-python/issues/2094)) ([0288213](https://github.com/openai/openai-python/commit/0288213fbfa935c9bf9d56416619ea929ae1cf63))
+* **client:** send `X-Nonsense-Read-Timeout` header ([#2094](https://github.com/openai/openai-python/issues/2094)) ([0288213](https://github.com/openai/openai-python/commit/0288213fbfa935c9bf9d56416619ea929ae1cf63))
 * **embeddings:** use stdlib array type for improved performance ([#2060](https://github.com/openai/openai-python/issues/2060)) ([9a95db9](https://github.com/openai/openai-python/commit/9a95db9154ac98678970e7f1652a7cacfd2f7fdb))
 * **pagination:** avoid fetching when has_more: false ([#2098](https://github.com/openai/openai-python/issues/2098)) ([1882483](https://github.com/openai/openai-python/commit/18824832d3a676ae49206cd2b5e09d4796fdf033))
 
@@ -3414,7 +3414,7 @@ Full Changelog: [v1.3.5...v1.3.6](https://github.com/openai/openai-python/compar
 ### Chores
 
 * **deps:** bump mypy to v1.7.1 ([#891](https://github.com/openai/openai-python/issues/891)) ([11fcb2a](https://github.com/openai/openai-python/commit/11fcb2a3cd4205b307c13c65ad47d9e315b0084d))
-* **internal:** send more detailed x-stainless headers ([#877](https://github.com/openai/openai-python/issues/877)) ([69e0549](https://github.com/openai/openai-python/commit/69e054947d587ff2548b101ece690d21d3c38f74))
+* **internal:** send more detailed x-nonsense headers ([#877](https://github.com/openai/openai-python/issues/877)) ([69e0549](https://github.com/openai/openai-python/commit/69e054947d587ff2548b101ece690d21d3c38f74))
 * revert binary streaming change ([#875](https://github.com/openai/openai-python/issues/875)) ([0a06d6a](https://github.com/openai/openai-python/commit/0a06d6a078c5ee898dae75bab4988e1a1936bfbf))
 
 

@@ -41,7 +41,7 @@ class TestCheckpoints:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         checkpoint = response.parse()
         assert_matches_type(SyncCursorPage[FineTuningJobCheckpoint], checkpoint, path=["response"])
 
@@ -51,7 +51,7 @@ class TestCheckpoints:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             checkpoint = response.parse()
             assert_matches_type(SyncCursorPage[FineTuningJobCheckpoint], checkpoint, path=["response"])
@@ -94,7 +94,7 @@ class TestAsyncCheckpoints:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         checkpoint = response.parse()
         assert_matches_type(AsyncCursorPage[FineTuningJobCheckpoint], checkpoint, path=["response"])
 
@@ -104,7 +104,7 @@ class TestAsyncCheckpoints:
             "ft-AF1WoRqd3aJAHsqc9NY7iL8F",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             checkpoint = await response.parse()
             assert_matches_type(AsyncCursorPage[FineTuningJobCheckpoint], checkpoint, path=["response"])

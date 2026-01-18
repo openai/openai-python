@@ -49,7 +49,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
@@ -60,7 +60,7 @@ class TestFiles:
             file_id="file_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(VectorStoreFile, file, path=["response"])
@@ -91,7 +91,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
@@ -102,7 +102,7 @@ class TestFiles:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(VectorStoreFile, file, path=["response"])
@@ -141,7 +141,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
@@ -153,7 +153,7 @@ class TestFiles:
             attributes={"foo": "string"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(VectorStoreFile, file, path=["response"])
@@ -202,7 +202,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(SyncCursorPage[VectorStoreFile], file, path=["response"])
 
@@ -212,7 +212,7 @@ class TestFiles:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(SyncCursorPage[VectorStoreFile], file, path=["response"])
@@ -242,7 +242,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFileDeleted, file, path=["response"])
 
@@ -253,7 +253,7 @@ class TestFiles:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(VectorStoreFileDeleted, file, path=["response"])
@@ -290,7 +290,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(SyncPage[FileContentResponse], file, path=["response"])
 
@@ -301,7 +301,7 @@ class TestFiles:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(SyncPage[FileContentResponse], file, path=["response"])
@@ -354,7 +354,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
@@ -365,7 +365,7 @@ class TestAsyncFiles:
             file_id="file_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(VectorStoreFile, file, path=["response"])
@@ -396,7 +396,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
@@ -407,7 +407,7 @@ class TestAsyncFiles:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(VectorStoreFile, file, path=["response"])
@@ -446,7 +446,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFile, file, path=["response"])
 
@@ -458,7 +458,7 @@ class TestAsyncFiles:
             attributes={"foo": "string"},
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(VectorStoreFile, file, path=["response"])
@@ -507,7 +507,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(AsyncCursorPage[VectorStoreFile], file, path=["response"])
 
@@ -517,7 +517,7 @@ class TestAsyncFiles:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(AsyncCursorPage[VectorStoreFile], file, path=["response"])
@@ -547,7 +547,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(VectorStoreFileDeleted, file, path=["response"])
 
@@ -558,7 +558,7 @@ class TestAsyncFiles:
             vector_store_id="vector_store_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(VectorStoreFileDeleted, file, path=["response"])
@@ -595,7 +595,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(AsyncPage[FileContentResponse], file, path=["response"])
 
@@ -606,7 +606,7 @@ class TestAsyncFiles:
             vector_store_id="vs_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(AsyncPage[FileContentResponse], file, path=["response"])

@@ -83,7 +83,7 @@ class TestRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -95,7 +95,7 @@ class TestRuns:
                 assistant_id="assistant_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -173,7 +173,7 @@ class TestRuns:
                 stream=True,
             )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -186,7 +186,7 @@ class TestRuns:
                 stream=True,
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 stream = response.parse()
                 stream.close()
@@ -222,7 +222,7 @@ class TestRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -234,7 +234,7 @@ class TestRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -286,7 +286,7 @@ class TestRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -298,7 +298,7 @@ class TestRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -350,7 +350,7 @@ class TestRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(SyncCursorPage[Run], run, path=["response"])
 
@@ -361,7 +361,7 @@ class TestRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = response.parse()
                 assert_matches_type(SyncCursorPage[Run], run, path=["response"])
@@ -395,7 +395,7 @@ class TestRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -407,7 +407,7 @@ class TestRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -467,7 +467,7 @@ class TestRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -480,7 +480,7 @@ class TestRuns:
                 tool_outputs=[{}],
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -526,7 +526,7 @@ class TestRuns:
                 tool_outputs=[{}],
             )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -540,7 +540,7 @@ class TestRuns:
                 tool_outputs=[{}],
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 stream = response.parse()
                 stream.close()
@@ -633,7 +633,7 @@ class TestAsyncRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -645,7 +645,7 @@ class TestAsyncRuns:
                 assistant_id="assistant_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = await response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -723,7 +723,7 @@ class TestAsyncRuns:
                 stream=True,
             )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -736,7 +736,7 @@ class TestAsyncRuns:
                 stream=True,
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 stream = await response.parse()
                 await stream.close()
@@ -772,7 +772,7 @@ class TestAsyncRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -784,7 +784,7 @@ class TestAsyncRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = await response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -836,7 +836,7 @@ class TestAsyncRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -848,7 +848,7 @@ class TestAsyncRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = await response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -900,7 +900,7 @@ class TestAsyncRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(AsyncCursorPage[Run], run, path=["response"])
 
@@ -911,7 +911,7 @@ class TestAsyncRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = await response.parse()
                 assert_matches_type(AsyncCursorPage[Run], run, path=["response"])
@@ -945,7 +945,7 @@ class TestAsyncRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -957,7 +957,7 @@ class TestAsyncRuns:
                 thread_id="thread_id",
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = await response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -1017,7 +1017,7 @@ class TestAsyncRuns:
             )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         run = response.parse()
         assert_matches_type(Run, run, path=["response"])
 
@@ -1030,7 +1030,7 @@ class TestAsyncRuns:
                 tool_outputs=[{}],
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 run = await response.parse()
                 assert_matches_type(Run, run, path=["response"])
@@ -1076,7 +1076,7 @@ class TestAsyncRuns:
                 tool_outputs=[{}],
             )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -1090,7 +1090,7 @@ class TestAsyncRuns:
                 tool_outputs=[{}],
             ) as response:
                 assert not response.is_closed
-                assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+                assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
                 stream = await response.parse()
                 await stream.close()

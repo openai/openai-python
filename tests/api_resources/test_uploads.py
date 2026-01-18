@@ -51,7 +51,7 @@ class TestUploads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         upload = response.parse()
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -64,7 +64,7 @@ class TestUploads:
             purpose="assistants",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             upload = response.parse()
             assert_matches_type(Upload, upload, path=["response"])
@@ -85,7 +85,7 @@ class TestUploads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         upload = response.parse()
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -95,7 +95,7 @@ class TestUploads:
             "upload_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             upload = response.parse()
             assert_matches_type(Upload, upload, path=["response"])
@@ -134,7 +134,7 @@ class TestUploads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         upload = response.parse()
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -145,7 +145,7 @@ class TestUploads:
             part_ids=["string"],
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             upload = response.parse()
             assert_matches_type(Upload, upload, path=["response"])
@@ -200,7 +200,7 @@ class TestAsyncUploads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         upload = response.parse()
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -213,7 +213,7 @@ class TestAsyncUploads:
             purpose="assistants",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             upload = await response.parse()
             assert_matches_type(Upload, upload, path=["response"])
@@ -234,7 +234,7 @@ class TestAsyncUploads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         upload = response.parse()
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -244,7 +244,7 @@ class TestAsyncUploads:
             "upload_abc123",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             upload = await response.parse()
             assert_matches_type(Upload, upload, path=["response"])
@@ -283,7 +283,7 @@ class TestAsyncUploads:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         upload = response.parse()
         assert_matches_type(Upload, upload, path=["response"])
 
@@ -294,7 +294,7 @@ class TestAsyncUploads:
             part_ids=["string"],
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             upload = await response.parse()
             assert_matches_type(Upload, upload, path=["response"])

@@ -47,7 +47,7 @@ class TestContent:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         content = response.parse()
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, content, path=["response"])
 
@@ -62,7 +62,7 @@ class TestContent:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             content = response.parse()
             assert_matches_type(bytes, content, path=["response"])
@@ -116,7 +116,7 @@ class TestAsyncContent:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         content = response.parse()
         assert_matches_type(_legacy_response.HttpxBinaryResponseContent, content, path=["response"])
 
@@ -131,7 +131,7 @@ class TestAsyncContent:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             content = await response.parse()
             assert_matches_type(bytes, content, path=["response"])

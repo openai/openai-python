@@ -45,7 +45,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(FileCreateResponse, file, path=["response"])
 
@@ -55,7 +55,7 @@ class TestFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(FileCreateResponse, file, path=["response"])
@@ -85,7 +85,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(FileRetrieveResponse, file, path=["response"])
 
@@ -96,7 +96,7 @@ class TestFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(FileRetrieveResponse, file, path=["response"])
@@ -141,7 +141,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(SyncCursorPage[FileListResponse], file, path=["response"])
 
@@ -151,7 +151,7 @@ class TestFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert_matches_type(SyncCursorPage[FileListResponse], file, path=["response"])
@@ -181,7 +181,7 @@ class TestFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert file is None
 
@@ -192,7 +192,7 @@ class TestFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = response.parse()
             assert file is None
@@ -242,7 +242,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(FileCreateResponse, file, path=["response"])
 
@@ -252,7 +252,7 @@ class TestAsyncFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(FileCreateResponse, file, path=["response"])
@@ -282,7 +282,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(FileRetrieveResponse, file, path=["response"])
 
@@ -293,7 +293,7 @@ class TestAsyncFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(FileRetrieveResponse, file, path=["response"])
@@ -338,7 +338,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert_matches_type(AsyncCursorPage[FileListResponse], file, path=["response"])
 
@@ -348,7 +348,7 @@ class TestAsyncFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert_matches_type(AsyncCursorPage[FileListResponse], file, path=["response"])
@@ -378,7 +378,7 @@ class TestAsyncFiles:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         file = response.parse()
         assert file is None
 
@@ -389,7 +389,7 @@ class TestAsyncFiles:
             container_id="container_id",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             file = await response.parse()
             assert file is None

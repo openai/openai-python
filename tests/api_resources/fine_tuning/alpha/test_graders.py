@@ -63,7 +63,7 @@ class TestGraders:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         grader = response.parse()
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -80,7 +80,7 @@ class TestGraders:
             model_sample="model_sample",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             grader = response.parse()
             assert_matches_type(GraderRunResponse, grader, path=["response"])
@@ -126,7 +126,7 @@ class TestGraders:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         grader = response.parse()
         assert_matches_type(GraderValidateResponse, grader, path=["response"])
 
@@ -142,7 +142,7 @@ class TestGraders:
             },
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             grader = response.parse()
             assert_matches_type(GraderValidateResponse, grader, path=["response"])
@@ -198,7 +198,7 @@ class TestAsyncGraders:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         grader = response.parse()
         assert_matches_type(GraderRunResponse, grader, path=["response"])
 
@@ -215,7 +215,7 @@ class TestAsyncGraders:
             model_sample="model_sample",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             grader = await response.parse()
             assert_matches_type(GraderRunResponse, grader, path=["response"])
@@ -261,7 +261,7 @@ class TestAsyncGraders:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         grader = response.parse()
         assert_matches_type(GraderValidateResponse, grader, path=["response"])
 
@@ -277,7 +277,7 @@ class TestAsyncGraders:
             },
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             grader = await response.parse()
             assert_matches_type(GraderValidateResponse, grader, path=["response"])

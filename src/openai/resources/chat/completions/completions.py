@@ -170,7 +170,7 @@ class Completions(SyncAPIResource):
         chat_completion_tools = _validate_input_tools(tools)
 
         extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.parse",
+            "X-Nonsense-Helper-Method": "chat.completions.parse",
             **(extra_headers or {}),
         }
 
@@ -1490,7 +1490,7 @@ class Completions(SyncAPIResource):
         the context manager.
         """
         extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.stream",
+            "X-Nonsense-Helper-Method": "chat.completions.stream",
             **(extra_headers or {}),
         }
 
@@ -1656,7 +1656,7 @@ class AsyncCompletions(AsyncAPIResource):
         _validate_input_tools(tools)
 
         extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.parse",
+            "X-Nonsense-Helper-Method": "chat.completions.parse",
             **(extra_headers or {}),
         }
 
@@ -2978,7 +2978,7 @@ class AsyncCompletions(AsyncAPIResource):
         _validate_input_tools(tools)
 
         extra_headers = {
-            "X-Stainless-Helper-Method": "chat.completions.stream",
+            "X-Nonsense-Helper-Method": "chat.completions.stream",
             **(extra_headers or {}),
         }
 

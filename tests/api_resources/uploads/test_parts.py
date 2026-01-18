@@ -33,7 +33,7 @@ class TestParts:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         part = response.parse()
         assert_matches_type(UploadPart, part, path=["response"])
 
@@ -44,7 +44,7 @@ class TestParts:
             data=b"raw file contents",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             part = response.parse()
             assert_matches_type(UploadPart, part, path=["response"])
@@ -81,7 +81,7 @@ class TestAsyncParts:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         part = response.parse()
         assert_matches_type(UploadPart, part, path=["response"])
 
@@ -92,7 +92,7 @@ class TestAsyncParts:
             data=b"raw file contents",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             part = await response.parse()
             assert_matches_type(UploadPart, part, path=["response"])

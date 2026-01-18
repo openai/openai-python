@@ -92,7 +92,7 @@ class TestClientSecrets:
         response = client.realtime.client_secrets.with_raw_response.create()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         client_secret = response.parse()
         assert_matches_type(ClientSecretCreateResponse, client_secret, path=["response"])
 
@@ -100,7 +100,7 @@ class TestClientSecrets:
     def test_streaming_response_create(self, client: OpenAI) -> None:
         with client.realtime.client_secrets.with_streaming_response.create() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             client_secret = response.parse()
             assert_matches_type(ClientSecretCreateResponse, client_secret, path=["response"])
@@ -188,7 +188,7 @@ class TestAsyncClientSecrets:
         response = await async_client.realtime.client_secrets.with_raw_response.create()
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         client_secret = response.parse()
         assert_matches_type(ClientSecretCreateResponse, client_secret, path=["response"])
 
@@ -196,7 +196,7 @@ class TestAsyncClientSecrets:
     async def test_streaming_response_create(self, async_client: AsyncOpenAI) -> None:
         async with async_client.realtime.client_secrets.with_streaming_response.create() as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             client_secret = await response.parse()
             assert_matches_type(ClientSecretCreateResponse, client_secret, path=["response"])

@@ -60,7 +60,7 @@ class TestCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(Completion, completion, path=["response"])
 
@@ -71,7 +71,7 @@ class TestCompletions:
             prompt="This is a test.",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = response.parse()
             assert_matches_type(Completion, completion, path=["response"])
@@ -122,7 +122,7 @@ class TestCompletions:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         stream.close()
 
@@ -134,7 +134,7 @@ class TestCompletions:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = response.parse()
             stream.close()
@@ -190,7 +190,7 @@ class TestAsyncCompletions:
         )
 
         assert response.is_closed is True
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         completion = response.parse()
         assert_matches_type(Completion, completion, path=["response"])
 
@@ -201,7 +201,7 @@ class TestAsyncCompletions:
             prompt="This is a test.",
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             completion = await response.parse()
             assert_matches_type(Completion, completion, path=["response"])
@@ -252,7 +252,7 @@ class TestAsyncCompletions:
             stream=True,
         )
 
-        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
         stream = response.parse()
         await stream.close()
 
@@ -264,7 +264,7 @@ class TestAsyncCompletions:
             stream=True,
         ) as response:
             assert not response.is_closed
-            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+            assert response.http_request.headers.get("X-Nonsense-Lang") == "python"
 
             stream = await response.parse()
             await stream.close()
