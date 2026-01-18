@@ -13,7 +13,7 @@ from openai import OpenAI, AsyncOpenAI
 def sync_main() -> None:
     client = OpenAI()
     response = client.completions.create(
-        model="gpt-3.5-turbo-instruct",
+        model="gpt-4o",
         prompt="1,2,3,",
         max_tokens=5,
         temperature=0,
@@ -33,7 +33,7 @@ def sync_main() -> None:
 async def async_main() -> None:
     client = AsyncOpenAI()
     response = await client.completions.create(
-        model="gpt-3.5-turbo-instruct",
+        model="gpt-4o",
         prompt="1,2,3,",
         max_tokens=5,
         temperature=0,
