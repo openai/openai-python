@@ -42,8 +42,8 @@ def test_base_url_option() -> None:
 
     openai.base_url = "http://foo.com"
 
-    assert openai.base_url == URL("http://foo.com")
-    assert openai.completions._client.base_url == URL("http://foo.com")
+    assert openai.base_url == URL("http://foo.com/")
+    assert openai.completions._client.base_url == URL("http://foo.com/")
 
 
 def test_timeout_option() -> None:
