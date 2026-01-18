@@ -118,6 +118,50 @@ response = client.responses.create(
     ],
 )
 ```
+### Updated Response API Pattern
+#### Important: Function calling differences
+
+**⚠️ Breaking Change:** The Responses API uses a different function calling pattern than Chat Completions.
+
+**Chat Completions pattern (❌ Not supported in Responses API):**
+This DOES NOT work with Responses API
+messages = [
+{"role": "assistant", "tool_calls": [...]}, # ❌ Raises error
+{"role": "tool", "content": "...", "tool_call_id": "..."} # ❌ Raises error
+]
+
+text
+
+**Responses API pattern (✅ Correct approach):**
+from openai import OpenAI
+client = OpenAI()
+
+Initial request
+response = client.responses.create(
+model="gpt-4o",
+tools=[{"type": "function", "name": "get_weather", ...}],
+input=[{"role": "user", "content": "What's the weather?"}]
+)
+
+Append entire output to input
+input_messages = response.output
+
+Execute function calls
+for item in response.output:
+if item.type == "function_call":
+result = execute_function(item.name, item.arguments)
+input_messages.append({
+"type": "function_call_output", # Use 'type', not 'role'
+"call_id": item.call_id,
+"output": result
+})
+
+Get final response
+final = client.responses.create(model="gpt-4o", tools=tools, input=input_messages)
+
+text
+
+See `examples/responses/function_calling_migration.py` for a complete migration guide.
 
 ## Async usage
 
