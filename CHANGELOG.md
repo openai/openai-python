@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.16.0 (2026-01-18)
+
+Full Changelog: [v2.15.0...v2.16.0](https://github.com/openai/openai-python/compare/v2.15.0...v2.16.0)
+
+### Features
+
+* **client:** add support for binary request streaming ([49561d8](https://github.com/openai/openai-python/commit/49561d88279628bc400d1b09aa98765b67018ef1))
+
+
+### Chores
+
+* **internal:** update `actions/checkout` version ([f276714](https://github.com/openai/openai-python/commit/f2767144c11833070c0579063ed33918089b4617))
+
 ## 2.15.0 (2026-01-09)
 
 Full Changelog: [v2.14.0...v2.15.0](https://github.com/openai/openai-python/compare/v2.14.0...v2.15.0)
