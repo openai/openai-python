@@ -90,10 +90,15 @@ class Files(SyncAPIResource):
         Args:
           file: The File object (not file name) to be uploaded.
 
-          purpose: The intended purpose of the uploaded file. One of: - `assistants`: Used in the
-              Assistants API - `batch`: Used in the Batch API - `fine-tune`: Used for
-              fine-tuning - `vision`: Images used for vision fine-tuning - `user_data`:
-              Flexible file type for any purpose - `evals`: Used for eval data sets
+          purpose:
+              The intended purpose of the uploaded file. One of:
+
+              - `assistants`: Used in the Assistants API
+              - `batch`: Used in the Batch API
+              - `fine-tune`: Used for fine-tuning
+              - `vision`: Images used for vision fine-tuning
+              - `user_data`: Flexible file type for any purpose
+              - `evals`: Used for eval data sets
 
           expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
               after 30 days and all other files are persisted until they are manually deleted.
@@ -383,10 +388,15 @@ class AsyncFiles(AsyncAPIResource):
         Args:
           file: The File object (not file name) to be uploaded.
 
-          purpose: The intended purpose of the uploaded file. One of: - `assistants`: Used in the
-              Assistants API - `batch`: Used in the Batch API - `fine-tune`: Used for
-              fine-tuning - `vision`: Images used for vision fine-tuning - `user_data`:
-              Flexible file type for any purpose - `evals`: Used for eval data sets
+          purpose:
+              The intended purpose of the uploaded file. One of:
+
+              - `assistants`: Used in the Assistants API
+              - `batch`: Used in the Batch API
+              - `fine-tune`: Used for fine-tuning
+              - `vision`: Images used for vision fine-tuning
+              - `user_data`: Flexible file type for any purpose
+              - `evals`: Used for eval data sets
 
           expires_after: The expiration policy for a file. By default, files with `purpose=batch` expire
               after 30 days and all other files are persisted until they are manually deleted.
