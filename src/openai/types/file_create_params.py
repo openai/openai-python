@@ -15,12 +15,14 @@ class FileCreateParams(TypedDict, total=False):
     """The File object (not file name) to be uploaded."""
 
     purpose: Required[FilePurpose]
-    """The intended purpose of the uploaded file.
+    """The intended purpose of the uploaded file. One of:
 
-    One of: - `assistants`: Used in the Assistants API - `batch`: Used in the Batch
-    API - `fine-tune`: Used for fine-tuning - `vision`: Images used for vision
-    fine-tuning - `user_data`: Flexible file type for any purpose - `evals`: Used
-    for eval data sets
+    - `assistants`: Used in the Assistants API
+    - `batch`: Used in the Batch API
+    - `fine-tune`: Used for fine-tuning
+    - `vision`: Images used for vision fine-tuning
+    - `user_data`: Flexible file type for any purpose
+    - `evals`: Used for eval data sets
     """
 
     expires_after: ExpiresAfter
