@@ -10,7 +10,7 @@ import asyncio
 import inspect
 import dataclasses
 import tracemalloc
-from typing import Any, Union, Protocol, TypeVar, Callable, Iterable, Iterator, Optional, Coroutine, cast
+from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Protocol, Coroutine, cast
 from unittest import mock
 from typing_extensions import Literal, AsyncIterator, override
 
