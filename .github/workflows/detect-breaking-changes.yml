@@ -15,7 +15,7 @@ jobs:
         run: |
           echo "FETCH_DEPTH=$(expr ${{ github.event.pull_request.commits }} + 1)" >> $GITHUB_ENV
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           # Ensure we can check out the pull request base in the script below.
           fetch-depth: ${{ env.FETCH_DEPTH }}
@@ -47,7 +47,7 @@ jobs:
     if: github.repository == 'openai/openai-python'
     steps:
       # Setup this sdk
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: openai-python
 
@@ -66,7 +66,7 @@ jobs:
           rye sync --all-features
 
       # Setup the agents lib
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: openai/openai-agents-python
           path: openai-agents-python
