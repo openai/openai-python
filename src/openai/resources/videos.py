@@ -132,6 +132,7 @@ class Videos(SyncAPIResource):
         self,
         *,
         prompt: str,
+        character_ids: SequenceNotStr[str] | Omit = omit,
         input_reference: FileTypes | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
@@ -148,6 +149,7 @@ class Videos(SyncAPIResource):
         video = self.create(
             model=model,
             prompt=prompt,
+            character_ids=character_ids,
             input_reference=input_reference,
             seconds=seconds,
             size=size,
@@ -491,6 +493,7 @@ class AsyncVideos(AsyncAPIResource):
         self,
         *,
         prompt: str,
+        character_ids: SequenceNotStr[str] | Omit = omit,
         input_reference: FileTypes | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
@@ -507,6 +510,7 @@ class AsyncVideos(AsyncAPIResource):
         video = await self.create(
             model=model,
             prompt=prompt,
+            character_ids=character_ids,
             input_reference=input_reference,
             seconds=seconds,
             size=size,
