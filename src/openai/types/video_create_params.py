@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing_extensions import Required, TypedDict
 
-from .._types import FileTypes
+from .._types import FileTypes, SequenceNotStr
 from .video_size import VideoSize
 from .video_seconds import VideoSeconds
 from .video_model_param import VideoModelParam
@@ -15,6 +15,9 @@ __all__ = ["VideoCreateParams"]
 class VideoCreateParams(TypedDict, total=False):
     prompt: Required[str]
     """Text prompt that describes the video to generate."""
+
+    character_ids: SequenceNotStr[str]
+    """Character IDs to include in the generation."""
 
     input_reference: FileTypes
     """Optional image reference that guides generation."""
