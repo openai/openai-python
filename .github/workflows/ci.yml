@@ -63,7 +63,7 @@ jobs:
       - name: Get GitHub OIDC Token
         if: github.repository == 'stainless-sdks/openai-python'
         id: github-oidc
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: core.setOutput('github_token', await core.getIDToken());
 
