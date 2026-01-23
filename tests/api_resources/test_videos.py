@@ -38,6 +38,7 @@ class TestVideos:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         video = client.videos.create(
             prompt="x",
+            character_ids=["char_123"],
             input_reference=b"raw file contents",
             model="string",
             seconds="4",
@@ -296,6 +297,7 @@ class TestAsyncVideos:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         video = await async_client.videos.create(
             prompt="x",
+            character_ids=["char_123"],
             input_reference=b"raw file contents",
             model="string",
             seconds="4",

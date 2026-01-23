@@ -68,8 +68,8 @@ class Files(SyncAPIResource):
         """Upload a file that can be used across various endpoints.
 
         Individual files can be
-        up to 512 MB, and the size of all files uploaded by one organization can be up
-        to 1 TB.
+        up to 512 MB, and each project can store up to 2.5 TB of files in total. There
+        is no organization-wide storage limit.
 
         - The Assistants API supports files up to 2 million tokens and of specific file
           types. See the
@@ -389,8 +389,8 @@ class AsyncFiles(AsyncAPIResource):
         """Upload a file that can be used across various endpoints.
 
         Individual files can be
-        up to 512 MB, and the size of all files uploaded by one organization can be up
-        to 1 TB.
+        up to 512 MB, and each project can store up to 2.5 TB of files in total. There
+        is no organization-wide storage limit.
 
         - The Assistants API supports files up to 2 million tokens and of specific file
           types. See the
