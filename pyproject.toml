@@ -101,7 +101,7 @@ typecheck = { chain = [
   "typecheck:pyright",
   "typecheck:mypy"
 ]}
-"typecheck:pyright" = "pyright"
+"typecheck:pyright" = "scripts/run-pyright"
 "typecheck:verify-types" = "pyright --verifytypes openai --ignoreexternal"
 "typecheck:mypy" = "mypy ."
 
