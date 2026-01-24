@@ -21,4 +21,4 @@ done
 
 # Instead of running the tests, use the linter to check if an
 # older test is no longer compatible with the latest SDK.
-./scripts/lint
+PYRIGHT_PROJECT=scripts/pyrightconfig.breaking-changes.json ./scripts/lint

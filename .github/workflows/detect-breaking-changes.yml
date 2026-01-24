@@ -36,9 +36,7 @@ jobs:
 
       - name: Detect breaking changes
         run: |
-          # Try to check out previous versions of the breaking change detection script. This ensures that
-          # we still detect breaking changes when entire files and their tests are removed.
-          git checkout "${{ github.event.pull_request.base.sha }}" -- ./scripts/detect-breaking-changes 2>/dev/null || true
+          test -f ./scripts/detect-breaking-changes || { echo "Missing scripts/detect-breaking-changes"; exit 1; }
           ./scripts/detect-breaking-changes ${{ github.event.pull_request.base.sha }}
 
   agents_sdk:
