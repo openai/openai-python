@@ -6,7 +6,7 @@ import logging
 from typing import TYPE_CHECKING, List, Union, Mapping, Optional, cast
 from typing_extensions import Literal, overload, assert_never
 
-import httpx
+import requestx
 
 from ... import _legacy_response
 from ..._types import (
@@ -80,7 +80,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Transcription:
         """
         Transcribes audio into the input language.
@@ -164,7 +164,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
     @overload
@@ -185,7 +185,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     @overload
@@ -206,7 +206,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionDiarized: ...
 
     @overload
@@ -230,7 +230,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -338,7 +338,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -446,7 +446,7 @@ class Transcriptions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> str | Transcription | TranscriptionDiarized | TranscriptionVerbose | Stream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {
@@ -528,7 +528,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse:
         """
         Transcribes audio into the input language.
@@ -628,7 +628,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionVerbose: ...
 
     @overload
@@ -649,7 +649,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> str: ...
 
     @overload
@@ -673,7 +673,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -781,7 +781,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
@@ -889,7 +889,7 @@ class AsyncTranscriptions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Transcription | TranscriptionVerbose | TranscriptionDiarized | str | AsyncStream[TranscriptionStreamEvent]:
         body = deepcopy_minimal(
             {

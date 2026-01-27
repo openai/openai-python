@@ -29,9 +29,105 @@ from typing_extensions import (
     runtime_checkable,
 )
 
-import httpx
 import pydantic
-from httpx import URL, Proxy, Timeout, Response, BaseTransport, AsyncBaseTransport
+import requestx
+from requestx import Proxy, Timeout, Response
+
+
+# URL class compatible with requestx
+class URL:
+    """URL wrapper class compatible with requestx."""
+
+    def __init__(self, url: str = "") -> None:
+        self._url = str(url)
+        self._parsed = self._parse_url(self._url)
+
+    def _parse_url(self, url: str) -> dict:
+        from urllib.parse import urlparse, parse_qs
+
+        parsed = urlparse(url)
+        return {
+            "scheme": parsed.scheme,
+            "host": parsed.hostname or "",
+            "port": parsed.port,
+            "path": parsed.path,
+            "query": parsed.query,
+            "params": parse_qs(parsed.query),
+        }
+
+    @property
+    def host(self) -> str:
+        return self._parsed["host"]
+
+    @property
+    def scheme(self) -> str:
+        return self._parsed["scheme"]
+
+    @property
+    def path(self) -> str:
+        return self._parsed["path"]
+
+    @property
+    def raw_path(self) -> bytes:
+        return self._parsed["path"].encode("utf-8")
+
+    @property
+    def params(self) -> dict:
+        return self._parsed["params"]
+
+    @property
+    def is_relative_url(self) -> bool:
+        return not self._parsed["scheme"]
+
+    def copy_with(
+        self,
+        *,
+        scheme: str | None = None,
+        raw_path: bytes | None = None,
+        params: dict | None = None,
+    ) -> "URL":
+        from urllib.parse import urlencode
+
+        new_scheme = scheme if scheme is not None else self._parsed["scheme"]
+        new_path = raw_path.decode("utf-8") if raw_path is not None else self._parsed["path"]
+        new_params = params if params is not None else self._parsed["params"]
+
+        # Reconstruct URL
+        host_part = self._parsed["host"]
+        if self._parsed["port"]:
+            host_part = f"{host_part}:{self._parsed['port']}"
+
+        if new_scheme:
+            base = f"{new_scheme}://{host_part}"
+        else:
+            base = ""
+
+        query_str = urlencode(new_params, doseq=True) if new_params else ""
+        if query_str:
+            url_str = f"{base}{new_path}?{query_str}"
+        else:
+            url_str = f"{base}{new_path}"
+
+        return URL(url_str)
+
+    def __str__(self) -> str:
+        return self._url
+
+    def __repr__(self) -> str:
+        return f"URL({self._url!r})"
+
+
+# Transport base classes (stubs for API compatibility)
+class BaseTransport:
+    """Base transport class stub for API compatibility."""
+
+    pass
+
+
+class AsyncBaseTransport:
+    """Async base transport class stub for API compatibility."""
+
+    pass
 
 if TYPE_CHECKING:
     from ._models import BaseModel
@@ -237,7 +333,7 @@ class _GenericAlias(Protocol):
 
 
 class HttpxSendArgs(TypedDict, total=False):
-    auth: httpx.Auth
+    auth: "requestx.Auth"
     follow_redirects: bool
 
 

@@ -9,7 +9,7 @@ authors = [
 ]
 
 dependencies = [
-  "httpx>=0.23.0, <1",
+  "requestx @ git+https://github.com/neuesql/requestx.git@v1.0.3",
   "pydantic>=1.9.0, <3",
     "typing-extensions>=4.11, <5",
   "anyio>=3.5.0, <5",
@@ -19,13 +19,10 @@ dependencies = [
     "jiter>=0.10.0, <1",
 ]
 
-requires-python = ">= 3.9"
+requires-python = ">= 3.12"
 classifiers = [
   "Typing :: Typed",
   "Intended Audience :: Developers",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
@@ -46,7 +43,7 @@ Repository = "https://github.com/openai/openai-python"
 openai = "openai.cli:main"
 
 [project.optional-dependencies]
-aiohttp = ["aiohttp", "httpx_aiohttp>=0.1.9"]
+aiohttp = ["aiohttp"]
 realtime = ["websockets >= 13, < 16"]
 datalib = ["numpy >= 1", "pandas >= 1.2.3", "pandas-stubs >= 1.1.0.11"]
 voice_helpers = ["sounddevice>=0.5.1", "numpy>=2.0.2"]
@@ -57,7 +54,6 @@ managed = true
 dev-dependencies = [
     "pyright==1.1.399",
     "mypy==1.17",
-    "respx",
     "pytest",
     "pytest-asyncio",
     "ruff",
@@ -109,6 +105,9 @@ typecheck = { chain = [
 requires = ["hatchling==1.26.3", "hatch-fancy-pypi-readme"]
 build-backend = "hatchling.build"
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [tool.hatch.build]
 include = [
   "src/*"
@@ -151,6 +150,9 @@ asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 filterwarnings = [
   "error"
+]
+markers = [
+  "respx(base_url): mark test as using respx mocking (not supported with requestx)"
 ]
 
 [tool.inline-snapshot]

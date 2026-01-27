@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Mapping, cast
 from typing_extensions import Literal, assert_never
 
-import httpx
+import requestx
 
 from .. import _legacy_response
 from ..types import (
@@ -73,7 +73,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a video
@@ -138,7 +138,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """Create a video and wait for it to be processed."""
         video = self.create(
@@ -206,7 +206,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Retrieve a video
@@ -241,7 +241,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Video]:
         """
         List videos
@@ -291,7 +291,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
         Delete a video
@@ -325,7 +325,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """Download video content
 
@@ -367,7 +367,7 @@ class Videos(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a video remix
@@ -428,7 +428,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a video
@@ -493,7 +493,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """Create a video and wait for it to be processed."""
         video = await self.create(
@@ -561,7 +561,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Retrieve a video
@@ -596,7 +596,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Video, AsyncConversationCursorPage[Video]]:
         """
         List videos
@@ -646,7 +646,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> VideoDeleteResponse:
         """
         Delete a video
@@ -680,7 +680,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """Download video content
 
@@ -724,7 +724,7 @@ class AsyncVideos(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """
         Create a video remix

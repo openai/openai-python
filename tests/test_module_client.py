@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import os as _os
 
-import httpx
+import requestx
 import pytest
-from httpx import URL
+from requestx import URL
 
 import openai
 from openai import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
@@ -91,7 +91,7 @@ def test_http_client_option() -> None:
     original_http_client = openai.completions._client._client
     assert original_http_client is not None
 
-    new_client = httpx.Client()
+    new_client = requestx.Client()
     openai.http_client = new_client
 
     assert openai.completions._client._client is new_client

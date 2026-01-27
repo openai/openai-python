@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, List
 from pathlib import Path
 from argparse import ArgumentParser
 
-import httpx
+import requestx
 
 from .._errors import CLIError, SilentCLIError
 from .._models import BaseModel
@@ -114,7 +114,7 @@ def install() -> Path:
     download_url = f"https://github.com/getgrit/gritql/releases/latest/download/{file_name}.tar.gz"
 
     sys.stdout.write(f"Downloading Grit CLI from {download_url}\n")
-    with httpx.Client() as client:
+    with requestx.Client() as client:
         download_response = client.get(download_url, follow_redirects=True)
         if download_response.status_code != 200:
             raise CLIError(f"Failed to download Grit CLI from {download_url}")

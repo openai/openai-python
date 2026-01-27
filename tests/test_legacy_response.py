@@ -2,7 +2,7 @@ import json
 from typing import Any, Union, cast
 from typing_extensions import Annotated
 
-import httpx
+import requestx
 import pytest
 import pydantic
 
@@ -19,7 +19,7 @@ class PydanticModel(pydantic.BaseModel): ...
 
 def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(200, content=b"foo"),
+        raw=requestx.Response(200, content=b"foo"),
         client=client,
         stream=False,
         stream_cls=None,
@@ -47,7 +47,7 @@ def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
 )
 def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(200, content=content),
+        raw=requestx.Response(200, content=content),
         client=client,
         stream=False,
         stream_cls=None,
@@ -61,7 +61,7 @@ def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> No
 
 def test_response_parse_custom_stream(client: OpenAI) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(200, content=b"foo"),
+        raw=requestx.Response(200, content=b"foo"),
         client=client,
         stream=True,
         stream_cls=None,
@@ -80,7 +80,7 @@ class CustomModel(BaseModel):
 
 def test_response_parse_custom_model(client: OpenAI) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        raw=requestx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
         stream=False,
         stream_cls=None,
@@ -95,7 +95,7 @@ def test_response_parse_custom_model(client: OpenAI) -> None:
 
 def test_response_basemodel_request_id(client: OpenAI) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(
+        raw=requestx.Response(
             200,
             headers={"x-request-id": "my-req-id"},
             content=json.dumps({"foo": "hello!", "bar": 2}),
@@ -118,7 +118,7 @@ def test_response_basemodel_request_id(client: OpenAI) -> None:
 
 def test_response_parse_annotated_type(client: OpenAI) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        raw=requestx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
         stream=False,
         stream_cls=None,
@@ -140,7 +140,7 @@ class OtherModel(pydantic.BaseModel):
 @pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
 def test_response_parse_expect_model_union_non_json_content(client: OpenAI) -> None:
     response = LegacyAPIResponse(
-        raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
+        raw=requestx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=client,
         stream=False,
         stream_cls=None,

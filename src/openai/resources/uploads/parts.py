@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Mapping, cast
 
-import httpx
+import requestx
 
 from ... import _legacy_response
 from ..._types import Body, Query, Headers, NotGiven, FileTypes, not_given
@@ -49,7 +49,7 @@ class Parts(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> UploadPart:
         """
         Adds a
@@ -124,7 +124,7 @@ class AsyncParts(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> UploadPart:
         """
         Adds a

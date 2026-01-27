@@ -10,7 +10,7 @@ from typing import overload
 from pathlib import Path
 
 import anyio
-import httpx
+import requestx
 
 from ... import _legacy_response
 from .parts import (
@@ -175,7 +175,7 @@ class Uploads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Creates an intermediate
@@ -251,7 +251,7 @@ class Uploads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """Cancels the Upload.
 
@@ -287,7 +287,7 @@ class Uploads(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Completes the
@@ -482,7 +482,7 @@ class AsyncUploads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Creates an intermediate
@@ -558,7 +558,7 @@ class AsyncUploads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """Cancels the Upload.
 
@@ -594,7 +594,7 @@ class AsyncUploads(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Upload:
         """
         Completes the

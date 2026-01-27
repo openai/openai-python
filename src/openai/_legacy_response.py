@@ -20,7 +20,7 @@ from typing import (
 from typing_extensions import Awaitable, ParamSpec, override, deprecated, get_origin
 
 import anyio
-import httpx
+import requestx
 import pydantic
 
 from ._types import NoneType
@@ -62,7 +62,7 @@ class LegacyAPIResponse(Generic[R]):
     _stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None
     _options: FinalRequestOptions
 
-    http_response: httpx.Response
+    http_response: requestx.Response
 
     retries_taken: int
     """The number of retries made. If no retries happened this will be `0`"""
@@ -70,7 +70,7 @@ class LegacyAPIResponse(Generic[R]):
     def __init__(
         self,
         *,
-        raw: httpx.Response,
+        raw: requestx.Response,
         cast_to: type[R],
         client: BaseClient[Any, Any],
         stream: bool,
@@ -127,7 +127,7 @@ class LegacyAPIResponse(Generic[R]):
           - `str`
           - `int`
           - `float`
-          - `httpx.Response`
+          - `requestx.Response`
         """
         cache_key = to if to is not None else self._cast_to
         cached = self._parsed_by_type.get(cache_key)
@@ -145,11 +145,11 @@ class LegacyAPIResponse(Generic[R]):
         return cast(R, parsed)
 
     @property
-    def headers(self) -> httpx.Headers:
+    def headers(self) -> requestx.Headers:
         return self.http_response.headers
 
     @property
-    def http_request(self) -> httpx.Request:
+    def http_request(self) -> requestx.Request:
         return self.http_response.request
 
     @property
@@ -157,7 +157,7 @@ class LegacyAPIResponse(Generic[R]):
         return self.http_response.status_code
 
     @property
-    def url(self) -> httpx.URL:
+    def url(self) -> requestx.URL:
         return self.http_response.url
 
     @property
@@ -187,12 +187,17 @@ class LegacyAPIResponse(Generic[R]):
 
     @property
     def is_closed(self) -> bool:
-        return self.http_response.is_closed
+        # requestx Response doesn't have is_closed, return False as a safe default
+        return getattr(self.http_response, 'is_closed', False)
 
     @property
     def elapsed(self) -> datetime.timedelta:
         """The time taken for the complete request/response cycle to complete."""
-        return self.http_response.elapsed
+        # requestx returns elapsed as a float (seconds), convert to timedelta
+        elapsed = self.http_response.elapsed
+        if isinstance(elapsed, (int, float)):
+            return datetime.timedelta(seconds=elapsed)
+        return elapsed
 
     def _parse(self, *, to: type[_T] | None = None) -> R | _T:
         cast_to = to if to is not None else self._cast_to
@@ -271,14 +276,14 @@ class LegacyAPIResponse(Generic[R]):
 
         if inspect.isclass(
             origin  # pyright: ignore[reportUnknownArgumentType]
-        ) and issubclass(origin, httpx.Response):
-            # Because of the invariance of our ResponseT TypeVar, users can subclass httpx.Response
+        ) and issubclass(origin, requestx.Response):
+            # Because of the invariance of our ResponseT TypeVar, users can subclass requestx.Response
             # and pass that class to our request functions. We cannot change the variance to be either
             # covariant or contravariant as that makes our usage of ResponseT illegal. We could construct
             # the response class ourselves but that is something that should be supported directly in httpx
             # as it would be easy to incorrectly construct the Response object due to the multitude of arguments.
-            if cast_to != httpx.Response:
-                raise ValueError(f"Subclasses of httpx.Response cannot be passed to `cast_to`")
+            if cast_to != requestx.Response:
+                raise ValueError(f"Subclasses of requestx.Response cannot be passed to `cast_to`")
             return cast(R, response)
 
         if (
@@ -298,7 +303,7 @@ class LegacyAPIResponse(Generic[R]):
             and not issubclass(origin, BaseModel)
         ):
             raise RuntimeError(
-                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {httpx.Response}."
+                f"Unsupported type, expected {cast_to} to be a subclass of {BaseModel}, {dict}, {list}, {Union}, {NoneType}, {str} or {requestx.Response}."
             )
 
         # split is required to handle cases where additional information is included
@@ -384,9 +389,9 @@ def async_to_raw_response_wrapper(func: Callable[P, Awaitable[R]]) -> Callable[P
 
 
 class HttpxBinaryResponseContent:
-    response: httpx.Response
+    response: requestx.Response
 
-    def __init__(self, response: httpx.Response) -> None:
+    def __init__(self, response: requestx.Response) -> None:
         self.response = response
 
     @property

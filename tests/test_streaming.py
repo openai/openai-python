@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Iterator, AsyncIterator
 
-import httpx
+import requestx
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
@@ -241,8 +241,8 @@ def make_event_iterator(
     async_client: AsyncOpenAI,
 ) -> Iterator[ServerSentEvent] | AsyncIterator[ServerSentEvent]:
     if sync:
-        return Stream(cast_to=object, client=client, response=httpx.Response(200, content=content))._iter_events()
+        return Stream(cast_to=object, client=client, response=requestx.Response(200, content=content))._iter_events()
 
     return AsyncStream(
-        cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
+        cast_to=object, client=async_client, response=requestx.Response(200, content=to_aiter(content))
     )._iter_events()

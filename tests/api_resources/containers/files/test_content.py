@@ -5,9 +5,8 @@ from __future__ import annotations
 import os
 from typing import Any, cast
 
-import httpx
+import requestx
 import pytest
-from respx import MockRouter
 
 import openai._legacy_response as _legacy_response
 from openai import OpenAI, AsyncOpenAI
@@ -23,9 +22,9 @@ class TestContent:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    def test_method_retrieve(self, client: OpenAI, respx_mock: MockRouter) -> None:
+    def test_method_retrieve(self, client: OpenAI, respx_mock: Any) -> None:
         respx_mock.get("/containers/container_id/files/file_id/content").mock(
-            return_value=httpx.Response(200, json={"foo": "bar"})
+            return_value=requestx.Response(200, json={"foo": "bar"})
         )
         content = client.containers.files.content.retrieve(
             file_id="file_id",
@@ -36,9 +35,9 @@ class TestContent:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_retrieve(self, client: OpenAI, respx_mock: MockRouter) -> None:
+    def test_raw_response_retrieve(self, client: OpenAI, respx_mock: Any) -> None:
         respx_mock.get("/containers/container_id/files/file_id/content").mock(
-            return_value=httpx.Response(200, json={"foo": "bar"})
+            return_value=requestx.Response(200, json={"foo": "bar"})
         )
 
         response = client.containers.files.content.with_raw_response.retrieve(
@@ -53,9 +52,9 @@ class TestContent:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    def test_streaming_response_retrieve(self, client: OpenAI, respx_mock: MockRouter) -> None:
+    def test_streaming_response_retrieve(self, client: OpenAI, respx_mock: Any) -> None:
         respx_mock.get("/containers/container_id/files/file_id/content").mock(
-            return_value=httpx.Response(200, json={"foo": "bar"})
+            return_value=requestx.Response(200, json={"foo": "bar"})
         )
         with client.containers.files.content.with_streaming_response.retrieve(
             file_id="file_id",
@@ -92,9 +91,9 @@ class TestAsyncContent:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_method_retrieve(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_method_retrieve(self, async_client: AsyncOpenAI, respx_mock: Any) -> None:
         respx_mock.get("/containers/container_id/files/file_id/content").mock(
-            return_value=httpx.Response(200, json={"foo": "bar"})
+            return_value=requestx.Response(200, json={"foo": "bar"})
         )
         content = await async_client.containers.files.content.retrieve(
             file_id="file_id",
@@ -105,9 +104,9 @@ class TestAsyncContent:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_raw_response_retrieve(self, async_client: AsyncOpenAI, respx_mock: Any) -> None:
         respx_mock.get("/containers/container_id/files/file_id/content").mock(
-            return_value=httpx.Response(200, json={"foo": "bar"})
+            return_value=requestx.Response(200, json={"foo": "bar"})
         )
 
         response = await async_client.containers.files.content.with_raw_response.retrieve(
@@ -122,9 +121,9 @@ class TestAsyncContent:
 
     @parametrize
     @pytest.mark.respx(base_url=base_url)
-    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
+    async def test_streaming_response_retrieve(self, async_client: AsyncOpenAI, respx_mock: Any) -> None:
         respx_mock.get("/containers/container_id/files/file_id/content").mock(
-            return_value=httpx.Response(200, json={"foo": "bar"})
+            return_value=requestx.Response(200, json={"foo": "bar"})
         )
         async with async_client.containers.files.content.with_streaming_response.retrieve(
             file_id="file_id",

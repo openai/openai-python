@@ -32,11 +32,12 @@ from typing import (
 from typing_extensions import Literal, override, get_origin
 
 import anyio
-import httpx
+import requestx
 import distro
 import pydantic
-from httpx import URL
 from pydantic import PrivateAttr
+
+from ._types import URL
 
 from . import _exceptions
 from ._qs import Querystring
@@ -100,17 +101,13 @@ _StreamT = TypeVar("_StreamT", bound=Stream[Any])
 _AsyncStreamT = TypeVar("_AsyncStreamT", bound=AsyncStream[Any])
 
 if TYPE_CHECKING:
-    from httpx._config import (
-        DEFAULT_TIMEOUT_CONFIG,  # pyright: ignore[reportPrivateImportUsage]
-    )
-
-    HTTPX_DEFAULT_TIMEOUT = DEFAULT_TIMEOUT_CONFIG
+    REQUESTX_DEFAULT_TIMEOUT = Timeout(5.0)
 else:
-    try:
-        from httpx._config import DEFAULT_TIMEOUT_CONFIG as HTTPX_DEFAULT_TIMEOUT
-    except ImportError:
-        # taken from https://github.com/encode/httpx/blob/3ba5fe0d7ac70222590e759c31442b1cab263791/httpx/_config.py#L366
-        HTTPX_DEFAULT_TIMEOUT = Timeout(5.0)
+    # Default timeout for requestx
+    REQUESTX_DEFAULT_TIMEOUT = Timeout(5.0)
+
+# Compatibility alias for code using the old name
+HTTPX_DEFAULT_TIMEOUT = REQUESTX_DEFAULT_TIMEOUT
 
 
 class PageInfo:
@@ -190,9 +187,11 @@ class BasePage(GenericModel, Generic[_T]):
     def _get_page_items(self) -> Iterable[_T]:  # type: ignore[empty-body]
         ...
 
-    def _params_from_url(self, url: URL) -> httpx.QueryParams:
+    def _params_from_url(self, url: URL) -> dict:
         # TODO: do we have to preprocess params here?
-        return httpx.QueryParams(cast(Any, self._options.params)).merge(url.params)
+        params = dict(cast(Any, self._options.params) or {})
+        params.update(url.params)
+        return params
 
     def _info_to_options(self, info: PageInfo) -> FinalRequestOptions:
         options = model_copy(self._options)
@@ -354,7 +353,7 @@ class BaseAsyncPage(BasePage[_T], Generic[_T]):
         return await self._client._request_api_list(self._model, page=self.__class__, options=options)
 
 
-_HttpxClientT = TypeVar("_HttpxClientT", bound=Union[httpx.Client, httpx.AsyncClient])
+_HttpxClientT = TypeVar("_HttpxClientT", bound=Union[requestx.Client, requestx.AsyncClient])
 _DefaultStreamT = TypeVar("_DefaultStreamT", bound=Union[Stream[Any], AsyncStream[Any]])
 
 
@@ -401,9 +400,12 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
     def _make_status_error_from_response(
         self,
-        response: httpx.Response,
+        response: requestx.Response,
     ) -> APIStatusError:
-        if response.is_closed and not response.is_stream_consumed:
+        # Check if response is closed and stream was consumed (requestx may not have these attributes)
+        is_closed = getattr(response, 'is_closed', False)
+        is_stream_consumed = getattr(response, 'is_stream_consumed', True)
+        if is_closed and not is_stream_consumed:
             # We can't read the response body as it has been closed
             # before it was read. This can happen if an event hook
             # raises a status error.
@@ -426,17 +428,17 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         err_msg: str,
         *,
         body: object,
-        response: httpx.Response,
+        response: requestx.Response,
     ) -> _exceptions.APIStatusError:
         raise NotImplementedError()
 
-    def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> httpx.Headers:
+    def _build_headers(self, options: FinalRequestOptions, *, retries_taken: int = 0) -> dict[str, str]:
         custom_headers = options.headers or {}
         headers_dict = _merge_mappings(self.default_headers, custom_headers)
         self._validate_headers(headers_dict, custom_headers)
 
-        # headers are case-insensitive while dictionaries are not.
-        headers = httpx.Headers(headers_dict)
+        # Convert to dict with string values
+        headers = {k: str(v) for k, v in headers_dict.items() if v is not None}
 
         idempotency_header = self._idempotency_header
         if idempotency_header and options.idempotency_key and idempotency_header not in headers:
@@ -477,7 +479,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         options: FinalRequestOptions,
         *,
         retries_taken: int = 0,
-    ) -> httpx.Request:
+    ) -> requestx.Request:
         if log.isEnabledFor(logging.DEBUG):
             log.debug("Request options: %s", model_dump(options, exclude_unset=True))
 
@@ -604,7 +606,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
 
         return cast_to
 
-    def _should_stream_response_body(self, request: httpx.Request) -> bool:
+    def _should_stream_response_body(self, request: requestx.Request) -> bool:
         return request.headers.get(RAW_RESPONSE_HEADER) == "stream"  # type: ignore[no-any-return]
 
     def _process_response_data(
@@ -612,7 +614,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         *,
         data: object,
         cast_to: type[ResponseT],
-        response: httpx.Response,
+        response: requestx.Response,
     ) -> ResponseT:
         if data is None:
             return cast(ResponseT, None)
@@ -636,7 +638,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return Querystring()
 
     @property
-    def custom_auth(self) -> httpx.Auth | None:
+    def custom_auth(self) -> requestx.Auth | None:
         return None
 
     @property
@@ -689,7 +691,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         # https://github.com/python/cpython/issues/88476
         return platform_headers(self._version, platform=self._platform)
 
-    def _parse_retry_after_header(self, response_headers: Optional[httpx.Headers] = None) -> float | None:
+    def _parse_retry_after_header(self, response_headers: Optional[dict] = None) -> float | None:
         """Returns a float of the number of seconds (not milliseconds) to wait after retrying, or None if unspecified.
 
         About the Retry-After header: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Retry-After
@@ -727,7 +729,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         self,
         remaining_retries: int,
         options: FinalRequestOptions,
-        response_headers: Optional[httpx.Headers] = None,
+        response_headers: Optional[dict] = None,
     ) -> float:
         max_retries = options.get_max_retries(self.max_retries)
 
@@ -747,7 +749,7 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         timeout = sleep_seconds * jitter
         return timeout if timeout >= 0 else 0
 
-    def _should_retry(self, response: httpx.Response) -> bool:
+    def _should_retry(self, response: requestx.Response) -> bool:
         # Note: this is not a standard header
         should_retry_header = response.headers.get("x-should-retry")
 
@@ -786,29 +788,51 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         return f"stainless-python-retry-{uuid.uuid4()}"
 
 
-class _DefaultHttpxClient(httpx.Client):
+def _create_default_sync_client(**kwargs: Any) -> requestx.Client:
+    """Create a requestx.Client with SDK defaults."""
+    kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+    # Note: requestx doesn't support limits parameter, we track it but don't pass it
+    kwargs.pop("limits", None)
+    kwargs.setdefault("follow_redirects", True)
+    return requestx.Client(**kwargs)
+
+
+# For type checking and backwards compatibility
+DefaultHttpxClient = requestx.Client
+"""An alias to `requestx.Client` that provides the same defaults that this SDK
+uses internally.
+
+This is useful because overriding the `http_client` with your own instance of
+`requestx.Client` will result in requestx's defaults being used, not ours.
+"""
+
+
+class SyncHttpxClientWrapper:
+    """Wrapper around requestx.Client with automatic cleanup."""
+
     def __init__(self, **kwargs: Any) -> None:
-        kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
-        kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
-        kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        self._client = _create_default_sync_client(**kwargs)
+        self._closed = False
+        self._timeout = kwargs.get("timeout", DEFAULT_TIMEOUT)
 
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._client, name)
 
-if TYPE_CHECKING:
-    DefaultHttpxClient = httpx.Client
-    """An alias to `httpx.Client` that provides the same defaults that this SDK
-    uses internally.
+    @property
+    def is_closed(self) -> bool:
+        return self._closed
 
-    This is useful because overriding the `http_client` with your own instance of
-    `httpx.Client` will result in httpx's defaults being used, not ours.
-    """
-else:
-    DefaultHttpxClient = _DefaultHttpxClient
+    @property
+    def timeout(self) -> Any:
+        return self._timeout
 
+    def close(self) -> None:
+        if not self._closed:
+            self._client.close()
+            self._closed = True
 
-class SyncHttpxClientWrapper(DefaultHttpxClient):
     def __del__(self) -> None:
-        if self.is_closed:
+        if self._closed:
             return
 
         try:
@@ -817,8 +841,8 @@ class SyncHttpxClientWrapper(DefaultHttpxClient):
             pass
 
 
-class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
-    _client: httpx.Client
+class SyncAPIClient(BaseClient[requestx.Client, Stream[Any]]):
+    _client: requestx.Client
     _default_stream_cls: type[Stream[Any]] | None = None
 
     def __init__(
@@ -828,7 +852,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         base_url: str | URL,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = not_given,
-        http_client: httpx.Client | None = None,
+        http_client: requestx.Client | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
         _strict_response_validation: bool,
@@ -841,14 +865,17 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
-                timeout = http_client.timeout
+            #
+            # Note: requestx.Client may not have a timeout attribute
+            client_timeout = getattr(http_client, 'timeout', None) if http_client else None
+            if client_timeout is not None and client_timeout != REQUESTX_DEFAULT_TIMEOUT:
+                timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not isinstance(http_client, httpx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if http_client is not None and not isinstance(http_client, requestx.Client):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.Client` but got {type(http_client)}"
+                f"Invalid `http_client` argument; Expected an instance of `requestx.Client` but got {type(http_client)}"
             )
 
         super().__init__(
@@ -868,10 +895,10 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         )
 
     def is_closed(self) -> bool:
-        return self._client.is_closed
+        return getattr(self._client, 'is_closed', False)
 
     def close(self) -> None:
-        """Close the underlying HTTPX client.
+        """Close the underlying requestx client.
 
         The client will *not* be usable after this.
         """
@@ -900,7 +927,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
     def _prepare_request(
         self,
-        request: httpx.Request,  # noqa: ARG002
+        request: requestx.Request,  # noqa: ARG002
     ) -> None:
         """This method is used as a callback for mutating the `Request` object
         after it has been constructed.
@@ -956,7 +983,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
             # ensure the idempotency key is reused between requests
             input_options.idempotency_key = self._idempotency_key()
 
-        response: httpx.Response | None = None
+        response: requestx.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
 
         retries_taken = 0
@@ -984,8 +1011,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
                 )
-            except httpx.TimeoutException as err:
-                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+            except requestx.TimeoutError as err:
+                log.debug("Encountered requestx.TimeoutError", exc_info=True)
 
                 if remaining_retries > 0:
                     self._sleep_for_retry(
@@ -1025,8 +1052,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
             try:
                 response.raise_for_status()
-            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
-                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+            except requestx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered requestx.HTTPStatusError", exc_info=True)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     err.response.close()
@@ -1040,7 +1067,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
                 # If the response is streamed then we need to explicitly read the response
                 # to completion before attempting to access the response text.
-                if not err.response.is_closed:
+                if not getattr(err.response, 'is_closed', False):
                     err.response.read()
 
                 log.debug("Re-raising status error")
@@ -1059,7 +1086,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         )
 
     def _sleep_for_retry(
-        self, *, retries_taken: int, max_retries: int, options: FinalRequestOptions, response: httpx.Response | None
+        self, *, retries_taken: int, max_retries: int, options: FinalRequestOptions, response: requestx.Response | None
     ) -> None:
         remaining_retries = max_retries - retries_taken
         if remaining_retries == 1:
@@ -1077,7 +1104,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         *,
         cast_to: Type[ResponseT],
         options: FinalRequestOptions,
-        response: httpx.Response,
+        response: requestx.Response,
         stream: bool,
         stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
         retries_taken: int = 0,
@@ -1123,7 +1150,7 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 ),
             )
 
-        if cast_to == httpx.Response:
+        if cast_to == requestx.Response:
             return cast(ResponseT, response)
 
         api_response = APIResponse(
@@ -1311,51 +1338,54 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         return self._request_api_list(model, page, opts)
 
 
-class _DefaultAsyncHttpxClient(httpx.AsyncClient):
+def _create_default_async_client(**kwargs: Any) -> requestx.AsyncClient:
+    """Create a requestx.AsyncClient with SDK defaults."""
+    kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
+    # Note: requestx doesn't support limits parameter, we track it but don't pass it
+    kwargs.pop("limits", None)
+    kwargs.setdefault("follow_redirects", True)
+    return requestx.AsyncClient(**kwargs)
+
+
+# For type checking and backwards compatibility
+DefaultAsyncHttpxClient = requestx.AsyncClient
+"""An alias to `requestx.AsyncClient` that provides the same defaults that this SDK
+uses internally.
+
+This is useful because overriding the `http_client` with your own instance of
+`requestx.AsyncClient` will result in requestx's defaults being used, not ours.
+"""
+
+DefaultAioHttpClient = requestx.AsyncClient
+"""An alias to `requestx.AsyncClient` (aiohttp transport not supported with requestx)."""
+
+
+class AsyncHttpxClientWrapper:
+    """Wrapper around requestx.AsyncClient with automatic cleanup."""
+
     def __init__(self, **kwargs: Any) -> None:
-        kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
-        kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
-        kwargs.setdefault("follow_redirects", True)
-        super().__init__(**kwargs)
+        self._client = _create_default_async_client(**kwargs)
+        self._closed = False
+        self._timeout = kwargs.get("timeout", DEFAULT_TIMEOUT)
 
+    def __getattr__(self, name: str) -> Any:
+        return getattr(self._client, name)
 
-try:
-    import httpx_aiohttp
-except ImportError:
+    @property
+    def is_closed(self) -> bool:
+        return self._closed
 
-    class _DefaultAioHttpClient(httpx.AsyncClient):
-        def __init__(self, **_kwargs: Any) -> None:
-            raise RuntimeError("To use the aiohttp client you must have installed the package with the `aiohttp` extra")
-else:
+    @property
+    def timeout(self) -> Any:
+        return self._timeout
 
-    class _DefaultAioHttpClient(httpx_aiohttp.HttpxAiohttpClient):  # type: ignore
-        def __init__(self, **kwargs: Any) -> None:
-            kwargs.setdefault("timeout", DEFAULT_TIMEOUT)
-            kwargs.setdefault("limits", DEFAULT_CONNECTION_LIMITS)
-            kwargs.setdefault("follow_redirects", True)
+    async def aclose(self) -> None:
+        if not self._closed:
+            await self._client.aclose()
+            self._closed = True
 
-            super().__init__(**kwargs)
-
-
-if TYPE_CHECKING:
-    DefaultAsyncHttpxClient = httpx.AsyncClient
-    """An alias to `httpx.AsyncClient` that provides the same defaults that this SDK
-    uses internally.
-
-    This is useful because overriding the `http_client` with your own instance of
-    `httpx.AsyncClient` will result in httpx's defaults being used, not ours.
-    """
-
-    DefaultAioHttpClient = httpx.AsyncClient
-    """An alias to `httpx.AsyncClient` that changes the default HTTP transport to `aiohttp`."""
-else:
-    DefaultAsyncHttpxClient = _DefaultAsyncHttpxClient
-    DefaultAioHttpClient = _DefaultAioHttpClient
-
-
-class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
     def __del__(self) -> None:
-        if self.is_closed:
+        if self._closed:
             return
 
         try:
@@ -1365,8 +1395,8 @@ class AsyncHttpxClientWrapper(DefaultAsyncHttpxClient):
             pass
 
 
-class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
-    _client: httpx.AsyncClient
+class AsyncAPIClient(BaseClient[requestx.AsyncClient, AsyncStream[Any]]):
+    _client: requestx.AsyncClient
     _default_stream_cls: type[AsyncStream[Any]] | None = None
 
     def __init__(
@@ -1377,7 +1407,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         _strict_response_validation: bool,
         max_retries: int = DEFAULT_MAX_RETRIES,
         timeout: float | Timeout | None | NotGiven = not_given,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: requestx.AsyncClient | None = None,
         custom_headers: Mapping[str, str] | None = None,
         custom_query: Mapping[str, object] | None = None,
     ) -> None:
@@ -1389,14 +1419,17 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # where they've explicitly set the timeout to match the default timeout
             # as this check is structural, meaning that we'll think they didn't
             # pass in a timeout and will ignore it
-            if http_client and http_client.timeout != HTTPX_DEFAULT_TIMEOUT:
-                timeout = http_client.timeout
+            #
+            # Note: requestx.AsyncClient may not have a timeout attribute
+            client_timeout = getattr(http_client, 'timeout', None) if http_client else None
+            if client_timeout is not None and client_timeout != REQUESTX_DEFAULT_TIMEOUT:
+                timeout = client_timeout
             else:
                 timeout = DEFAULT_TIMEOUT
 
-        if http_client is not None and not isinstance(http_client, httpx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
+        if http_client is not None and not isinstance(http_client, requestx.AsyncClient):  # pyright: ignore[reportUnnecessaryIsInstance]
             raise TypeError(
-                f"Invalid `http_client` argument; Expected an instance of `httpx.AsyncClient` but got {type(http_client)}"
+                f"Invalid `http_client` argument; Expected an instance of `requestx.AsyncClient` but got {type(http_client)}"
             )
 
         super().__init__(
@@ -1416,10 +1449,10 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         )
 
     def is_closed(self) -> bool:
-        return self._client.is_closed
+        return getattr(self._client, 'is_closed', False)
 
     async def close(self) -> None:
-        """Close the underlying HTTPX client.
+        """Close the underlying requestx client.
 
         The client will *not* be usable after this.
         """
@@ -1445,7 +1478,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
     async def _prepare_request(
         self,
-        request: httpx.Request,  # noqa: ARG002
+        request: requestx.Request,  # noqa: ARG002
     ) -> None:
         """This method is used as a callback for mutating the `Request` object
         after it has been constructed.
@@ -1506,7 +1539,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
             # ensure the idempotency key is reused between requests
             input_options.idempotency_key = self._idempotency_key()
 
-        response: httpx.Response | None = None
+        response: requestx.Response | None = None
         max_retries = input_options.get_max_retries(self.max_retries)
 
         retries_taken = 0
@@ -1534,8 +1567,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                     stream=stream or self._should_stream_response_body(request=request),
                     **kwargs,
                 )
-            except httpx.TimeoutException as err:
-                log.debug("Encountered httpx.TimeoutException", exc_info=True)
+            except requestx.TimeoutError as err:
+                log.debug("Encountered requestx.TimeoutError", exc_info=True)
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(
@@ -1575,8 +1608,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
             try:
                 response.raise_for_status()
-            except httpx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
-                log.debug("Encountered httpx.HTTPStatusError", exc_info=True)
+            except requestx.HTTPStatusError as err:  # thrown on 4xx and 5xx status code
+                log.debug("Encountered requestx.HTTPStatusError", exc_info=True)
 
                 if remaining_retries > 0 and self._should_retry(err.response):
                     await err.response.aclose()
@@ -1590,7 +1623,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
                 # If the response is streamed then we need to explicitly read the response
                 # to completion before attempting to access the response text.
-                if not err.response.is_closed:
+                if not getattr(err.response, 'is_closed', False):
                     await err.response.aread()
 
                 log.debug("Re-raising status error")
@@ -1609,7 +1642,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         )
 
     async def _sleep_for_retry(
-        self, *, retries_taken: int, max_retries: int, options: FinalRequestOptions, response: httpx.Response | None
+        self, *, retries_taken: int, max_retries: int, options: FinalRequestOptions, response: requestx.Response | None
     ) -> None:
         remaining_retries = max_retries - retries_taken
         if remaining_retries == 1:
@@ -1627,7 +1660,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         *,
         cast_to: Type[ResponseT],
         options: FinalRequestOptions,
-        response: httpx.Response,
+        response: requestx.Response,
         stream: bool,
         stream_cls: type[Stream[Any]] | type[AsyncStream[Any]] | None,
         retries_taken: int = 0,
@@ -1673,7 +1706,7 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 ),
             )
 
-        if cast_to == httpx.Response:
+        if cast_to == requestx.Response:
             return cast(ResponseT, response)
 
         api_response = AsyncAPIResponse(
@@ -1856,7 +1889,7 @@ def make_request_options(
     extra_query: Query | None = None,
     extra_body: Body | None = None,
     idempotency_key: str | None = None,
-    timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    timeout: float | requestx.Timeout | None | NotGiven = not_given,
     post_parser: PostParser | NotGiven = not_given,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""

@@ -6,7 +6,7 @@ import argparse
 from typing import Any, List, Type, Optional
 from typing_extensions import ClassVar
 
-import httpx
+import requestx
 import pydantic
 
 import openai
@@ -166,16 +166,16 @@ def _main() -> None:
     if args.verbosity != 0:
         sys.stderr.write("Warning: --verbosity isn't supported yet\n")
 
-    proxies: dict[str, httpx.BaseTransport] = {}
+    proxies: dict[str, requestx.BaseTransport] = {}
     if args.proxy is not None:
         for proxy in args.proxy:
             key = "https://" if proxy.startswith("https") else "http://"
             if key in proxies:
                 raise CLIError(f"Multiple {key} proxies given - only the last one would be used")
 
-            proxies[key] = httpx.HTTPTransport(proxy=httpx.Proxy(httpx.URL(proxy)))
+            proxies[key] = requestx.HTTPTransport(proxy=requestx.Proxy(requestx.URL(proxy)))
 
-    http_client = httpx.Client(
+    http_client = requestx.Client(
         mounts=proxies or None,
         http2=can_use_http2(),
     )

@@ -7,7 +7,7 @@ import base64
 from typing import Union, Iterable, cast
 from typing_extensions import Literal
 
-import httpx
+import requestx
 
 from .. import _legacy_response
 from ..types import embedding_create_params
@@ -57,7 +57,7 @@ class Embeddings(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.
@@ -176,7 +176,7 @@ class AsyncEmbeddings(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> CreateEmbeddingResponse:
         """
         Creates an embedding vector representing the input text.

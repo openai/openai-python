@@ -5,7 +5,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterable, Iterator, cast
 from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_never
 
-import httpx
+import requestx
 
 from ..._utils import is_dict, is_list, consume_sync_iterator, consume_async_iterator
 from ..._compat import model_dump
@@ -407,7 +407,7 @@ class AssistantEventHandler:
                 self._emit_sse_event(event)
 
                 yield event
-        except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
+        except (requestx.TimeoutException, asyncio.TimeoutError) as exc:
             self.on_timeout()
             self.on_exception(exc)
             raise
@@ -839,7 +839,7 @@ class AsyncAssistantEventHandler:
                 await self._emit_sse_event(event)
 
                 yield event
-        except (httpx.TimeoutException, asyncio.TimeoutError) as exc:
+        except (requestx.TimeoutException, asyncio.TimeoutError) as exc:
             await self.on_timeout()
             await self.on_exception(exc)
             raise

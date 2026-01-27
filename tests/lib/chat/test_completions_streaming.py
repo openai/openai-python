@@ -5,9 +5,8 @@ from typing import Any, Generic, Callable, Iterator, cast, overload
 from typing_extensions import Literal, TypeVar
 
 import rich
-import httpx
+import requestx
 import pytest
-from respx import MockRouter
 from pydantic import BaseModel
 from inline_snapshot import (
     external,
@@ -44,7 +43,7 @@ _T = TypeVar("_T")
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_nothing(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
         lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
@@ -95,7 +94,7 @@ checking a reliable weather website or a weather app.",
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_pydantic_model(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
@@ -192,7 +191,7 @@ ContentDoneEvent[Location](
 
 @pytest.mark.respx(base_url=base_url)
 def test_parse_pydantic_model_multiple_choices(
-    client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+    client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     class Location(BaseModel):
         city: str
@@ -371,7 +370,7 @@ def test_parse_pydantic_model_multiple_choices(
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> None:
+def test_parse_max_tokens_reached(client: OpenAI, respx_mock: Any) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
@@ -397,7 +396,7 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
@@ -447,7 +446,7 @@ RefusalDoneEvent(refusal="I'm sorry, I can't assist with that request.", type='r
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_content_logprobs_events(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
         lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
@@ -521,7 +520,7 @@ def test_content_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_refusal_logprobs_events(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
         temperature: float
@@ -633,7 +632,7 @@ def test_refusal_logprobs_events(client: OpenAI, respx_mock: MockRouter, monkeyp
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_pydantic_tool(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     class GetWeatherArgs(BaseModel):
         city: str
         country: str
@@ -725,7 +724,7 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     class GetWeatherArgs(BaseModel):
         """Get the temperature for the given country/city combo"""
 
@@ -834,7 +833,7 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_parse_strict_tools(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
         lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
@@ -906,7 +905,7 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_non_pydantic_response_format(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     listener = _make_stream_snapshot_request(
         lambda c: c.chat.completions.stream(
             model="gpt-4o-2024-08-06",
@@ -953,7 +952,7 @@ def test_non_pydantic_response_format(client: OpenAI, respx_mock: MockRouter, mo
 
 @pytest.mark.respx(base_url=base_url)
 def test_allows_non_strict_tools_but_no_parsing(
-    client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+    client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     listener = _make_stream_snapshot_request(
         lambda c: c.chat.completions.stream(
@@ -1019,7 +1018,7 @@ FunctionToolCallArgumentsDoneEvent(
 
 
 @pytest.mark.respx(base_url=base_url)
-def test_chat_completion_state_helper(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_chat_completion_state_helper(client: OpenAI, respx_mock: Any, monkeypatch: pytest.MonkeyPatch) -> None:
     state = ChatCompletionStreamState()
 
     def streamer(client: OpenAI) -> Iterator[ChatCompletionChunk]:
@@ -1103,7 +1102,7 @@ def _make_stream_snapshot_request(
     func: Callable[[OpenAI], ChatCompletionStreamManager[ResponseFormatT]],
     *,
     content_snapshot: Any,
-    respx_mock: MockRouter,
+    respx_mock: Any,
     mock_client: OpenAI,
     on_event: Callable[[ChatCompletionStream[ResponseFormatT], ChatCompletionStreamEvent[ResponseFormatT]], Any]
     | None = None,
@@ -1111,14 +1110,14 @@ def _make_stream_snapshot_request(
     live = os.environ.get("OPENAI_LIVE") == "1"
     if live:
 
-        def _on_response(response: httpx.Response) -> None:
+        def _on_response(response: requestx.Response) -> None:
             # update the content snapshot
             assert outsource(response.read()) == content_snapshot
 
         respx_mock.stop()
 
         client = OpenAI(
-            http_client=httpx.Client(
+            http_client=requestx.Client(
                 event_hooks={
                     "response": [_on_response],
                 }
@@ -1126,7 +1125,7 @@ def _make_stream_snapshot_request(
         )
     else:
         respx_mock.post("/chat/completions").mock(
-            return_value=httpx.Response(
+            return_value=requestx.Response(
                 200,
                 content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "text/event-stream"},
@@ -1152,20 +1151,20 @@ def _make_raw_stream_snapshot_request(
     func: Callable[[OpenAI], Iterator[ChatCompletionChunk]],
     *,
     content_snapshot: Any,
-    respx_mock: MockRouter,
+    respx_mock: Any,
     mock_client: OpenAI,
 ) -> None:
     live = os.environ.get("OPENAI_LIVE") == "1"
     if live:
 
-        def _on_response(response: httpx.Response) -> None:
+        def _on_response(response: requestx.Response) -> None:
             # update the content snapshot
             assert outsource(response.read()) == content_snapshot
 
         respx_mock.stop()
 
         client = OpenAI(
-            http_client=httpx.Client(
+            http_client=requestx.Client(
                 event_hooks={
                     "response": [_on_response],
                 }
@@ -1173,7 +1172,7 @@ def _make_raw_stream_snapshot_request(
         )
     else:
         respx_mock.post("/chat/completions").mock(
-            return_value=httpx.Response(
+            return_value=requestx.Response(
                 200,
                 content=get_snapshot_value(content_snapshot),
                 headers={"content-type": "text/event-stream"},

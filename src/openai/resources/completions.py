@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Dict, Union, Iterable, Optional
 from typing_extensions import Literal, overload
 
-import httpx
+import requestx
 
 from .. import _legacy_response
 from ..types import completion_create_params
@@ -71,7 +71,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Completion:
         """
         Creates a completion for the provided prompt and parameters.
@@ -226,7 +226,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Stream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
@@ -381,7 +381,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Completion | Stream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
@@ -536,7 +536,7 @@ class Completions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Completion | Stream[Completion]:
         return self._post(
             "/completions",
@@ -621,7 +621,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Completion:
         """
         Creates a completion for the provided prompt and parameters.
@@ -776,7 +776,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> AsyncStream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
@@ -931,7 +931,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Completion | AsyncStream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
@@ -1086,7 +1086,7 @@ class AsyncCompletions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> Completion | AsyncStream[Completion]:
         return await self._post(
             "/completions",

@@ -115,7 +115,7 @@ for __name in __all__:
 import typing as _t
 import typing_extensions as _te
 
-import httpx as _httpx
+import requestx as _requestx
 
 from ._base_client import DEFAULT_TIMEOUT, DEFAULT_MAX_RETRIES
 
@@ -127,7 +127,7 @@ project: str | None = None
 
 webhook_secret: str | None = None
 
-base_url: str | _httpx.URL | None = None
+base_url: str | _requestx.URL | None = None
 
 timeout: float | Timeout | None = DEFAULT_TIMEOUT
 
@@ -137,7 +137,7 @@ default_headers: _t.Mapping[str, str] | None = None
 
 default_query: _t.Mapping[str, object] | None = None
 
-http_client: _httpx.Client | None = None
+http_client: _requestx.Client | None = None
 
 _ApiType = _te.Literal["openai", "azure"]
 
@@ -202,14 +202,14 @@ class _ModuleClient(OpenAI):
 
     @property
     @override
-    def base_url(self) -> _httpx.URL:
+    def base_url(self) -> _requestx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return _requestx.URL(base_url)
 
         return super().base_url
 
     @base_url.setter
-    def base_url(self, url: _httpx.URL | str) -> None:
+    def base_url(self, url: _requestx.URL | str) -> None:
         super().base_url = url  # type: ignore[misc]
 
     @property  # type: ignore
@@ -258,11 +258,11 @@ class _ModuleClient(OpenAI):
 
     @property  # type: ignore
     @override
-    def _client(self) -> _httpx.Client:
+    def _client(self) -> _requestx.Client:
         return http_client or super()._client
 
     @_client.setter  # type: ignore
-    def _client(self, value: _httpx.Client) -> None:  # type: ignore
+    def _client(self, value: _requestx.Client) -> None:  # type: ignore
         global http_client
 
         http_client = value

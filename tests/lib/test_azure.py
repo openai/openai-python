@@ -4,9 +4,8 @@ import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
 
-import httpx
+import requestx
 import pytest
-from respx import MockRouter
 
 from openai._utils import SensitiveHeadersFilter, is_dict
 from openai._models import FinalRequestOptions
@@ -29,7 +28,7 @@ async_client = AsyncAzureOpenAI(
 
 
 class MockRequestCall(Protocol):
-    request: httpx.Request
+    request: requestx.Request
 
 
 @pytest.mark.parametrize("client", [sync_client, async_client])
@@ -77,13 +76,13 @@ def test_client_copying_override_options(client: Client) -> None:
 
 
 @pytest.mark.respx()
-def test_client_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
+def test_client_token_provider_refresh_sync(respx_mock: Any) -> None:
     respx_mock.post(
         "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
     ).mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json={"foo": "bar"}),
+            requestx.Response(500, json={"error": "server error"}),
+            requestx.Response(200, json={"foo": "bar"}),
         ]
     )
 
@@ -116,13 +115,13 @@ def test_client_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
 
 @pytest.mark.asyncio
 @pytest.mark.respx()
-async def test_client_token_provider_refresh_async(respx_mock: MockRouter) -> None:
+async def test_client_token_provider_refresh_async(respx_mock: Any) -> None:
     respx_mock.post(
         "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
     ).mock(
         side_effect=[
-            httpx.Response(500, json={"error": "server error"}),
-            httpx.Response(200, json={"foo": "bar"}),
+            requestx.Response(500, json={"error": "server error"}),
+            requestx.Response(200, json={"foo": "bar"}),
         ]
     )
 
@@ -163,10 +162,10 @@ class TestAzureLogging:
         return logger
 
     @pytest.mark.respx()
-    def test_azure_api_key_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+    def test_azure_api_key_redacted(self, respx_mock: Any, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=requestx.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -182,10 +181,10 @@ class TestAzureLogging:
                 assert record.args["headers"]["api-key"] == "<redacted>"
 
     @pytest.mark.respx()
-    def test_azure_bearer_token_redacted(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+    def test_azure_bearer_token_redacted(self, respx_mock: Any, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=requestx.Response(200, json={"model": "gpt-4"}))
 
         client = AzureOpenAI(
             api_version="2024-06-01",
@@ -202,10 +201,10 @@ class TestAzureLogging:
 
     @pytest.mark.asyncio
     @pytest.mark.respx()
-    async def test_azure_api_key_redacted_async(self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture) -> None:
+    async def test_azure_api_key_redacted_async(self, respx_mock: Any, caplog: pytest.LogCaptureFixture) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=requestx.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",
@@ -223,11 +222,11 @@ class TestAzureLogging:
     @pytest.mark.asyncio
     @pytest.mark.respx()
     async def test_azure_bearer_token_redacted_async(
-        self, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture
+        self, respx_mock: Any, caplog: pytest.LogCaptureFixture
     ) -> None:
         respx_mock.post(
             "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-06-01"
-        ).mock(return_value=httpx.Response(200, json={"model": "gpt-4"}))
+        ).mock(return_value=requestx.Response(200, json={"model": "gpt-4"}))
 
         client = AsyncAzureOpenAI(
             api_version="2024-06-01",

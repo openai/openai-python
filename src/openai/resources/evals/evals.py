@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import Iterable, Optional
 from typing_extensions import Literal
 
-import httpx
+import requestx
 
 from ... import _legacy_response
 from ...types import eval_list_params, eval_create_params, eval_update_params
@@ -70,7 +70,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalCreateResponse:
         """
         Create the structure of an evaluation that can be used to test a model's
@@ -132,7 +132,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalRetrieveResponse:
         """
         Get an evaluation by ID.
@@ -167,7 +167,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalUpdateResponse:
         """
         Update certain properties of an evaluation.
@@ -219,7 +219,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[EvalListResponse]:
         """
         List evaluations for a project.
@@ -273,7 +273,7 @@ class Evals(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalDeleteResponse:
         """
         Delete an evaluation.
@@ -334,7 +334,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalCreateResponse:
         """
         Create the structure of an evaluation that can be used to test a model's
@@ -396,7 +396,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalRetrieveResponse:
         """
         Get an evaluation by ID.
@@ -431,7 +431,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalUpdateResponse:
         """
         Update certain properties of an evaluation.
@@ -483,7 +483,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[EvalListResponse, AsyncCursorPage[EvalListResponse]]:
         """
         List evaluations for a project.
@@ -537,7 +537,7 @@ class AsyncEvals(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> EvalDeleteResponse:
         """
         Delete an evaluation.

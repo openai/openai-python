@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal
 
-import httpx
+import requestx
 
 from ._utils import is_dict
 from ._models import construct_type
@@ -34,7 +34,7 @@ class OpenAIError(Exception):
 
 class APIError(OpenAIError):
     message: str
-    request: httpx.Request
+    request: requestx.Request
 
     body: object | None
     """The API response body.
@@ -51,7 +51,7 @@ class APIError(OpenAIError):
     param: Optional[str] = None
     type: Optional[str]
 
-    def __init__(self, message: str, request: httpx.Request, *, body: object | None) -> None:
+    def __init__(self, message: str, request: requestx.Request, *, body: object | None) -> None:
         super().__init__(message)
         self.request = request
         self.message = message
@@ -68,10 +68,10 @@ class APIError(OpenAIError):
 
 
 class APIResponseValidationError(APIError):
-    response: httpx.Response
+    response: requestx.Response
     status_code: int
 
-    def __init__(self, response: httpx.Response, body: object | None, *, message: str | None = None) -> None:
+    def __init__(self, response: requestx.Response, body: object | None, *, message: str | None = None) -> None:
         super().__init__(message or "Data returned by API invalid for expected schema.", response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -80,11 +80,11 @@ class APIResponseValidationError(APIError):
 class APIStatusError(APIError):
     """Raised when an API response has a status code of 4xx or 5xx."""
 
-    response: httpx.Response
+    response: requestx.Response
     status_code: int
     request_id: str | None
 
-    def __init__(self, message: str, *, response: httpx.Response, body: object | None) -> None:
+    def __init__(self, message: str, *, response: requestx.Response, body: object | None) -> None:
         super().__init__(message, response.request, body=body)
         self.response = response
         self.status_code = response.status_code
@@ -92,12 +92,12 @@ class APIStatusError(APIError):
 
 
 class APIConnectionError(APIError):
-    def __init__(self, *, message: str = "Connection error.", request: httpx.Request) -> None:
+    def __init__(self, *, message: str = "Connection error.", request: requestx.Request) -> None:
         super().__init__(message, request, body=None)
 
 
 class APITimeoutError(APIConnectionError):
-    def __init__(self, request: httpx.Request) -> None:
+    def __init__(self, request: requestx.Request) -> None:
         super().__init__(message="Request timed out.", request=request)
 
 

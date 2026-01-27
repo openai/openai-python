@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-import httpx
+import requestx
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -47,7 +47,7 @@ class ClientSecrets(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> ClientSecretCreateResponse:
         """
         Create a Realtime client secret with an associated session configuration.
@@ -115,7 +115,7 @@ class AsyncClientSecrets(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> ClientSecretCreateResponse:
         """
         Create a Realtime client secret with an associated session configuration.

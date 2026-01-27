@@ -2,7 +2,7 @@ import json
 from typing import Any, List, Union, cast
 from typing_extensions import Annotated
 
-import httpx
+import requestx
 import pytest
 import pydantic
 
@@ -27,7 +27,7 @@ class ConcreteBaseAPIResponse(APIResponse[bytes]): ...
 class ConcreteAPIResponse(APIResponse[List[str]]): ...
 
 
-class ConcreteAsyncAPIResponse(APIResponse[httpx.Response]): ...
+class ConcreteAsyncAPIResponse(APIResponse[requestx.Response]): ...
 
 
 def test_extract_response_type_direct_classes() -> None:
@@ -47,7 +47,7 @@ def test_extract_response_type_direct_class_missing_type_arg() -> None:
 def test_extract_response_type_concrete_subclasses() -> None:
     assert extract_response_type(ConcreteBaseAPIResponse) == bytes
     assert extract_response_type(ConcreteAPIResponse) == List[str]
-    assert extract_response_type(ConcreteAsyncAPIResponse) == httpx.Response
+    assert extract_response_type(ConcreteAsyncAPIResponse) == requestx.Response
 
 
 def test_extract_response_type_binary_response() -> None:
@@ -60,7 +60,7 @@ class PydanticModel(pydantic.BaseModel): ...
 
 def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
     response = APIResponse(
-        raw=httpx.Response(200, content=b"foo"),
+        raw=requestx.Response(200, content=b"foo"),
         client=client,
         stream=False,
         stream_cls=None,
@@ -78,7 +78,7 @@ def test_response_parse_mismatched_basemodel(client: OpenAI) -> None:
 @pytest.mark.asyncio
 async def test_async_response_parse_mismatched_basemodel(async_client: AsyncOpenAI) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(200, content=b"foo"),
+        raw=requestx.Response(200, content=b"foo"),
         client=async_client,
         stream=False,
         stream_cls=None,
@@ -95,7 +95,7 @@ async def test_async_response_parse_mismatched_basemodel(async_client: AsyncOpen
 
 def test_response_parse_custom_stream(client: OpenAI) -> None:
     response = APIResponse(
-        raw=httpx.Response(200, content=b"foo"),
+        raw=requestx.Response(200, content=b"foo"),
         client=client,
         stream=True,
         stream_cls=None,
@@ -110,7 +110,7 @@ def test_response_parse_custom_stream(client: OpenAI) -> None:
 @pytest.mark.asyncio
 async def test_async_response_parse_custom_stream(async_client: AsyncOpenAI) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(200, content=b"foo"),
+        raw=requestx.Response(200, content=b"foo"),
         client=async_client,
         stream=True,
         stream_cls=None,
@@ -129,7 +129,7 @@ class CustomModel(BaseModel):
 
 def test_response_parse_custom_model(client: OpenAI) -> None:
     response = APIResponse(
-        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        raw=requestx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
         stream=False,
         stream_cls=None,
@@ -145,7 +145,7 @@ def test_response_parse_custom_model(client: OpenAI) -> None:
 @pytest.mark.asyncio
 async def test_async_response_parse_custom_model(async_client: AsyncOpenAI) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        raw=requestx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=async_client,
         stream=False,
         stream_cls=None,
@@ -160,7 +160,7 @@ async def test_async_response_parse_custom_model(async_client: AsyncOpenAI) -> N
 
 def test_response_basemodel_request_id(client: OpenAI) -> None:
     response = APIResponse(
-        raw=httpx.Response(
+        raw=requestx.Response(
             200,
             headers={"x-request-id": "my-req-id"},
             content=json.dumps({"foo": "hello!", "bar": 2}),
@@ -184,7 +184,7 @@ def test_response_basemodel_request_id(client: OpenAI) -> None:
 @pytest.mark.asyncio
 async def test_async_response_basemodel_request_id(client: OpenAI) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(
+        raw=requestx.Response(
             200,
             headers={"x-request-id": "my-req-id"},
             content=json.dumps({"foo": "hello!", "bar": 2}),
@@ -205,7 +205,7 @@ async def test_async_response_basemodel_request_id(client: OpenAI) -> None:
 
 def test_response_parse_annotated_type(client: OpenAI) -> None:
     response = APIResponse(
-        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        raw=requestx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=client,
         stream=False,
         stream_cls=None,
@@ -222,7 +222,7 @@ def test_response_parse_annotated_type(client: OpenAI) -> None:
 
 async def test_async_response_parse_annotated_type(async_client: AsyncOpenAI) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
+        raw=requestx.Response(200, content=json.dumps({"foo": "hello!", "bar": 2})),
         client=async_client,
         stream=False,
         stream_cls=None,
@@ -250,7 +250,7 @@ async def test_async_response_parse_annotated_type(async_client: AsyncOpenAI) ->
 )
 def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> None:
     response = APIResponse(
-        raw=httpx.Response(200, content=content),
+        raw=requestx.Response(200, content=content),
         client=client,
         stream=False,
         stream_cls=None,
@@ -275,7 +275,7 @@ def test_response_parse_bool(client: OpenAI, content: str, expected: bool) -> No
 )
 async def test_async_response_parse_bool(client: AsyncOpenAI, content: str, expected: bool) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(200, content=content),
+        raw=requestx.Response(200, content=content),
         client=client,
         stream=False,
         stream_cls=None,
@@ -294,7 +294,7 @@ class OtherModel(BaseModel):
 @pytest.mark.parametrize("client", [False], indirect=True)  # loose validation
 def test_response_parse_expect_model_union_non_json_content(client: OpenAI) -> None:
     response = APIResponse(
-        raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
+        raw=requestx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=client,
         stream=False,
         stream_cls=None,
@@ -311,7 +311,7 @@ def test_response_parse_expect_model_union_non_json_content(client: OpenAI) -> N
 @pytest.mark.parametrize("async_client", [False], indirect=True)  # loose validation
 async def test_async_response_parse_expect_model_union_non_json_content(async_client: AsyncOpenAI) -> None:
     response = AsyncAPIResponse(
-        raw=httpx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
+        raw=requestx.Response(200, content=b"foo", headers={"Content-Type": "application/text"}),
         client=async_client,
         stream=False,
         stream_cls=None,

@@ -13,9 +13,8 @@ from typing import Any, Union, Protocol, cast
 from unittest import mock
 from typing_extensions import Literal
 
-import httpx
+import requestx
 import pytest
-from respx import MockRouter
 from pydantic import ValidationError
 
 from openai import OpenAI, AsyncOpenAI, APIResponseValidationError
@@ -42,12 +41,12 @@ api_key = "My API Key"
 
 
 class MockRequestCall(Protocol):
-    request: httpx.Request
+    request: requestx.Request
 
 
 def _get_params(client: BaseClient[Any, Any]) -> dict[str, str]:
     request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-    url = httpx.URL(request.url)
+    url = requestx.URL(request.url)
     return dict(url.params)
 
 
@@ -57,7 +56,7 @@ def _low_retry_timeout(*_args: Any, **_kwargs: Any) -> float:
 
 def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
     transport = client._client._transport
-    assert isinstance(transport, httpx.HTTPTransport) or isinstance(transport, httpx.AsyncHTTPTransport)
+    assert isinstance(transport, requestx.HTTPTransport) or isinstance(transport, requestx.AsyncHTTPTransport)
 
     pool = transport._pool
     return len(pool._requests)
@@ -65,23 +64,23 @@ def _get_open_connections(client: OpenAI | AsyncOpenAI) -> int:
 
 class TestOpenAI:
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response(self, respx_mock: MockRouter, client: OpenAI) -> None:
-        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    def test_raw_response(self, respx_mock: Any, client: OpenAI) -> None:
+        respx_mock.post("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
-        response = client.post("/foo", cast_to=httpx.Response)
+        response = client.post("/foo", cast_to=requestx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert isinstance(response, requestx.Response)
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
-    def test_raw_response_for_binary(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_raw_response_for_binary(self, respx_mock: Any, client: OpenAI) -> None:
         respx_mock.post("/foo").mock(
-            return_value=httpx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
+            return_value=requestx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
         )
 
-        response = client.post("/foo", cast_to=httpx.Response)
+        response = client.post("/foo", cast_to=requestx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert isinstance(response, requestx.Response)
         assert response.json() == {"foo": "bar"}
 
     def test_copy(self, client: OpenAI) -> None:
@@ -103,10 +102,10 @@ class TestOpenAI:
         assert copied.max_retries == 7
 
         # timeout
-        assert isinstance(client.timeout, httpx.Timeout)
+        assert isinstance(client.timeout, requestx.Timeout)
         copied = client.copy(timeout=None)
         assert copied.timeout is None
-        assert isinstance(client.timeout, httpx.Timeout)
+        assert isinstance(client.timeout, requestx.Timeout)
 
     def test_copy_default_headers(self) -> None:
         client = OpenAI(
@@ -262,62 +261,62 @@ class TestOpenAI:
 
     def test_request_timeout(self, client: OpenAI) -> None:
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
         assert timeout == DEFAULT_TIMEOUT
 
-        request = client._build_request(FinalRequestOptions(method="get", url="/foo", timeout=httpx.Timeout(100.0)))
-        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
-        assert timeout == httpx.Timeout(100.0)
+        request = client._build_request(FinalRequestOptions(method="get", url="/foo", timeout=requestx.Timeout(100.0)))
+        timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == requestx.Timeout(100.0)
 
     def test_client_timeout_option(self) -> None:
-        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0))
+        client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=requestx.Timeout(0))
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
-        assert timeout == httpx.Timeout(0)
+        timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == requestx.Timeout(0)
 
         client.close()
 
     def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
-        with httpx.Client(timeout=None) as http_client:
+        with requestx.Client(timeout=None) as http_client:
             client = OpenAI(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
-            assert timeout == httpx.Timeout(None)
+            timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == requestx.Timeout(None)
 
             client.close()
 
         # no timeout given to the httpx client should not use the httpx default
-        with httpx.Client() as http_client:
+        with requestx.Client() as http_client:
             client = OpenAI(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT
 
             client.close()
 
         # explicitly passing the default timeout currently results in it being ignored
-        with httpx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
+        with requestx.Client(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
             client = OpenAI(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
 
             client.close()
 
     async def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
-            async with httpx.AsyncClient() as http_client:
+            async with requestx.AsyncClient() as http_client:
                 OpenAI(
                     base_url=base_url,
                     api_key=api_key,
@@ -366,7 +365,7 @@ class TestOpenAI:
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        url = httpx.URL(request.url)
+        url = requestx.URL(request.url)
         assert dict(url.params) == {"query_param": "bar"}
 
         request = client._build_request(
@@ -376,7 +375,7 @@ class TestOpenAI:
                 params={"foo": "baz", "query_param": "overridden"},
             )
         )
-        url = httpx.URL(request.url)
+        url = requestx.URL(request.url)
         assert dict(url.params) == {"foo": "baz", "query_param": "overridden"}
 
         client.close()
@@ -508,21 +507,21 @@ class TestOpenAI:
         ]
 
     @pytest.mark.respx(base_url=base_url)
-    def test_basic_union_response(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_basic_union_response(self, respx_mock: Any, client: OpenAI) -> None:
         class Model1(BaseModel):
             name: str
 
         class Model2(BaseModel):
             foo: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
         response = client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model2)
         assert response.foo == "bar"
 
     @pytest.mark.respx(base_url=base_url)
-    def test_union_response_different_types(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_union_response_different_types(self, respx_mock: Any, client: OpenAI) -> None:
         """Union of objects with the same field name using a different type"""
 
         class Model1(BaseModel):
@@ -531,20 +530,20 @@ class TestOpenAI:
         class Model2(BaseModel):
             foo: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
         response = client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model2)
         assert response.foo == "bar"
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": 1}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": 1}))
 
         response = client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model1)
         assert response.foo == 1
 
     @pytest.mark.respx(base_url=base_url)
-    def test_non_application_json_content_type_for_json_data(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_non_application_json_content_type_for_json_data(self, respx_mock: Any, client: OpenAI) -> None:
         """
         Response that sets Content-Type to something other than application/json but returns json data
         """
@@ -553,7 +552,7 @@ class TestOpenAI:
             foo: int
 
         respx_mock.get("/foo").mock(
-            return_value=httpx.Response(
+            return_value=requestx.Response(
                 200,
                 content=json.dumps({"foo": 2}),
                 headers={"Content-Type": "application/text"},
@@ -587,7 +586,7 @@ class TestOpenAI:
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
-                http_client=httpx.Client(),
+                http_client=requestx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
@@ -611,7 +610,7 @@ class TestOpenAI:
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
-                http_client=httpx.Client(),
+                http_client=requestx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
@@ -635,7 +634,7 @@ class TestOpenAI:
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
-                http_client=httpx.Client(),
+                http_client=requestx.Client(),
             ),
         ],
         ids=["standard", "custom http client"],
@@ -671,11 +670,11 @@ class TestOpenAI:
         assert test_client.is_closed()
 
     @pytest.mark.respx(base_url=base_url)
-    def test_client_response_validation_error(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_client_response_validation_error(self, respx_mock: Any, client: OpenAI) -> None:
         class Model(BaseModel):
             foo: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": {"invalid": True}}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": {"invalid": True}}))
 
         with pytest.raises(APIResponseValidationError) as exc:
             client.get("/foo", cast_to=Model)
@@ -687,22 +686,22 @@ class TestOpenAI:
             OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True, max_retries=cast(Any, None))
 
     @pytest.mark.respx(base_url=base_url)
-    def test_default_stream_cls(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_default_stream_cls(self, respx_mock: Any, client: OpenAI) -> None:
         class Model(BaseModel):
             name: str
 
-        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.post("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
         stream = client.post("/foo", cast_to=Model, stream=True, stream_cls=Stream[Model])
         assert isinstance(stream, Stream)
         stream.response.close()
 
     @pytest.mark.respx(base_url=base_url)
-    def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
+    def test_received_text_for_expected_json(self, respx_mock: Any) -> None:
         class Model(BaseModel):
             name: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, text="my-custom-format"))
 
         strict_client = OpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
@@ -742,15 +741,15 @@ class TestOpenAI:
     def test_parse_retry_after_header(
         self, remaining_retries: int, retry_after: str, timeout: float, client: OpenAI
     ) -> None:
-        headers = httpx.Headers({"retry-after": retry_after})
+        headers = requestx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, client: OpenAI) -> None:
-        respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+    def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: Any, client: OpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(side_effect=requestx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
             client.chat.completions.with_streaming_response.create(
@@ -767,8 +766,8 @@ class TestOpenAI:
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, client: OpenAI) -> None:
-        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(500))
+    def test_retrying_status_errors_doesnt_leak(self, respx_mock: Any, client: OpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=requestx.Response(500))
 
         with pytest.raises(APIStatusError):
             client.chat.completions.with_streaming_response.create(
@@ -791,20 +790,20 @@ class TestOpenAI:
         client: OpenAI,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
-        respx_mock: MockRouter,
+        respx_mock: Any,
     ) -> None:
         client = client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
                     raise RuntimeError("oops")
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -825,18 +824,18 @@ class TestOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_omit_retry_count_header(
-        self, client: OpenAI, failures_before_success: int, respx_mock: MockRouter
+        self, client: OpenAI, failures_before_success: int, respx_mock: Any
     ) -> None:
         client = client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -857,18 +856,18 @@ class TestOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_overwrite_retry_count_header(
-        self, client: OpenAI, failures_before_success: int, respx_mock: MockRouter
+        self, client: OpenAI, failures_before_success: int, respx_mock: Any
     ) -> None:
         client = client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -889,18 +888,18 @@ class TestOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     def test_retries_taken_new_response_class(
-        self, client: OpenAI, failures_before_success: int, respx_mock: MockRouter
+        self, client: OpenAI, failures_before_success: int, respx_mock: Any
     ) -> None:
         client = client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -935,30 +934,30 @@ class TestOpenAI:
             trust_env=True,
             http1=True,
             http2=False,
-            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+            limits=requestx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
     @pytest.mark.respx(base_url=base_url)
-    def test_follow_redirects(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_follow_redirects(self, respx_mock: Any, client: OpenAI) -> None:
         # Test that the default follow_redirects=True allows following redirects
         respx_mock.post("/redirect").mock(
-            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+            return_value=requestx.Response(302, headers={"Location": f"{base_url}/redirected"})
         )
-        respx_mock.get("/redirected").mock(return_value=httpx.Response(200, json={"status": "ok"}))
+        respx_mock.get("/redirected").mock(return_value=requestx.Response(200, json={"status": "ok"}))
 
-        response = client.post("/redirect", body={"key": "value"}, cast_to=httpx.Response)
+        response = client.post("/redirect", body={"key": "value"}, cast_to=requestx.Response)
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
     @pytest.mark.respx(base_url=base_url)
-    def test_follow_redirects_disabled(self, respx_mock: MockRouter, client: OpenAI) -> None:
+    def test_follow_redirects_disabled(self, respx_mock: Any, client: OpenAI) -> None:
         # Test that follow_redirects=False prevents following redirects
         respx_mock.post("/redirect").mock(
-            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+            return_value=requestx.Response(302, headers={"Location": f"{base_url}/redirected"})
         )
 
         with pytest.raises(APIStatusError) as exc_info:
-            client.post("/redirect", body={"key": "value"}, options={"follow_redirects": False}, cast_to=httpx.Response)
+            client.post("/redirect", body={"key": "value"}, options={"follow_redirects": False}, cast_to=requestx.Response)
 
         assert exc_info.value.response.status_code == 302
         assert exc_info.value.response.headers["Location"] == f"{base_url}/redirected"
@@ -983,11 +982,11 @@ class TestOpenAI:
         assert client.auth_headers.get("Authorization") == "Bearer test_api_key"
 
     @pytest.mark.respx()
-    def test_api_key_refresh_on_retry(self, respx_mock: MockRouter) -> None:
+    def test_api_key_refresh_on_retry(self, respx_mock: Any) -> None:
         respx_mock.post(base_url + "/chat/completions").mock(
             side_effect=[
-                httpx.Response(500, json={"error": "server error"}),
-                httpx.Response(200, json={"foo": "bar"}),
+                requestx.Response(500, json={"error": "server error"}),
+                requestx.Response(200, json={"foo": "bar"}),
             ]
         )
 
@@ -1022,23 +1021,23 @@ class TestOpenAI:
 
 class TestAsyncOpenAI:
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
-        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+    async def test_raw_response(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
+        respx_mock.post("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
-        response = await async_client.post("/foo", cast_to=httpx.Response)
+        response = await async_client.post("/foo", cast_to=requestx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert isinstance(response, requestx.Response)
         assert response.json() == {"foo": "bar"}
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_raw_response_for_binary(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_raw_response_for_binary(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         respx_mock.post("/foo").mock(
-            return_value=httpx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
+            return_value=requestx.Response(200, headers={"Content-Type": "application/binary"}, content='{"foo": "bar"}')
         )
 
-        response = await async_client.post("/foo", cast_to=httpx.Response)
+        response = await async_client.post("/foo", cast_to=requestx.Response)
         assert response.status_code == 200
-        assert isinstance(response, httpx.Response)
+        assert isinstance(response, requestx.Response)
         assert response.json() == {"foo": "bar"}
 
     def test_copy(self, async_client: AsyncOpenAI) -> None:
@@ -1060,10 +1059,10 @@ class TestAsyncOpenAI:
         assert copied.max_retries == 7
 
         # timeout
-        assert isinstance(async_client.timeout, httpx.Timeout)
+        assert isinstance(async_client.timeout, requestx.Timeout)
         copied = async_client.copy(timeout=None)
         assert copied.timeout is None
-        assert isinstance(async_client.timeout, httpx.Timeout)
+        assert isinstance(async_client.timeout, requestx.Timeout)
 
     async def test_copy_default_headers(self) -> None:
         client = AsyncOpenAI(
@@ -1219,66 +1218,66 @@ class TestAsyncOpenAI:
 
     async def test_request_timeout(self, async_client: AsyncOpenAI) -> None:
         request = async_client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+        timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
         assert timeout == DEFAULT_TIMEOUT
 
         request = async_client._build_request(
-            FinalRequestOptions(method="get", url="/foo", timeout=httpx.Timeout(100.0))
+            FinalRequestOptions(method="get", url="/foo", timeout=requestx.Timeout(100.0))
         )
-        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
-        assert timeout == httpx.Timeout(100.0)
+        timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == requestx.Timeout(100.0)
 
     async def test_client_timeout_option(self) -> None:
         client = AsyncOpenAI(
-            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=httpx.Timeout(0)
+            base_url=base_url, api_key=api_key, _strict_response_validation=True, timeout=requestx.Timeout(0)
         )
 
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
-        assert timeout == httpx.Timeout(0)
+        timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
+        assert timeout == requestx.Timeout(0)
 
         await client.close()
 
     async def test_http_client_timeout_option(self) -> None:
         # custom timeout given to the httpx client should be used
-        async with httpx.AsyncClient(timeout=None) as http_client:
+        async with requestx.AsyncClient(timeout=None) as http_client:
             client = AsyncOpenAI(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
-            assert timeout == httpx.Timeout(None)
+            timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
+            assert timeout == requestx.Timeout(None)
 
             await client.close()
 
         # no timeout given to the httpx client should not use the httpx default
-        async with httpx.AsyncClient() as http_client:
+        async with requestx.AsyncClient() as http_client:
             client = AsyncOpenAI(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT
 
             await client.close()
 
         # explicitly passing the default timeout currently results in it being ignored
-        async with httpx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
+        async with requestx.AsyncClient(timeout=HTTPX_DEFAULT_TIMEOUT) as http_client:
             client = AsyncOpenAI(
                 base_url=base_url, api_key=api_key, _strict_response_validation=True, http_client=http_client
             )
 
             request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-            timeout = httpx.Timeout(**request.extensions["timeout"])  # type: ignore
+            timeout = requestx.Timeout(**request.extensions["timeout"])  # type: ignore
             assert timeout == DEFAULT_TIMEOUT  # our default
 
             await client.close()
 
     def test_invalid_http_client(self) -> None:
         with pytest.raises(TypeError, match="Invalid `http_client` arg"):
-            with httpx.Client() as http_client:
+            with requestx.Client() as http_client:
                 AsyncOpenAI(
                     base_url=base_url,
                     api_key=api_key,
@@ -1326,7 +1325,7 @@ class TestAsyncOpenAI:
             base_url=base_url, api_key=api_key, _strict_response_validation=True, default_query={"query_param": "bar"}
         )
         request = client._build_request(FinalRequestOptions(method="get", url="/foo"))
-        url = httpx.URL(request.url)
+        url = requestx.URL(request.url)
         assert dict(url.params) == {"query_param": "bar"}
 
         request = client._build_request(
@@ -1336,7 +1335,7 @@ class TestAsyncOpenAI:
                 params={"foo": "baz", "query_param": "overridden"},
             )
         )
-        url = httpx.URL(request.url)
+        url = requestx.URL(request.url)
         assert dict(url.params) == {"foo": "baz", "query_param": "overridden"}
 
         await client.close()
@@ -1468,21 +1467,21 @@ class TestAsyncOpenAI:
         ]
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_basic_union_response(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_basic_union_response(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         class Model1(BaseModel):
             name: str
 
         class Model2(BaseModel):
             foo: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
         response = await async_client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model2)
         assert response.foo == "bar"
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_union_response_different_types(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_union_response_different_types(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         """Union of objects with the same field name using a different type"""
 
         class Model1(BaseModel):
@@ -1491,13 +1490,13 @@ class TestAsyncOpenAI:
         class Model2(BaseModel):
             foo: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
         response = await async_client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model2)
         assert response.foo == "bar"
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": 1}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": 1}))
 
         response = await async_client.get("/foo", cast_to=cast(Any, Union[Model1, Model2]))
         assert isinstance(response, Model1)
@@ -1505,7 +1504,7 @@ class TestAsyncOpenAI:
 
     @pytest.mark.respx(base_url=base_url)
     async def test_non_application_json_content_type_for_json_data(
-        self, respx_mock: MockRouter, async_client: AsyncOpenAI
+        self, respx_mock: Any, async_client: AsyncOpenAI
     ) -> None:
         """
         Response that sets Content-Type to something other than application/json but returns json data
@@ -1515,7 +1514,7 @@ class TestAsyncOpenAI:
             foo: int
 
         respx_mock.get("/foo").mock(
-            return_value=httpx.Response(
+            return_value=requestx.Response(
                 200,
                 content=json.dumps({"foo": 2}),
                 headers={"Content-Type": "application/text"},
@@ -1553,7 +1552,7 @@ class TestAsyncOpenAI:
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
-                http_client=httpx.AsyncClient(),
+                http_client=requestx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
@@ -1579,7 +1578,7 @@ class TestAsyncOpenAI:
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
-                http_client=httpx.AsyncClient(),
+                http_client=requestx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
@@ -1605,7 +1604,7 @@ class TestAsyncOpenAI:
                 base_url="http://localhost:5000/custom/path/",
                 api_key=api_key,
                 _strict_response_validation=True,
-                http_client=httpx.AsyncClient(),
+                http_client=requestx.AsyncClient(),
             ),
         ],
         ids=["standard", "custom http client"],
@@ -1642,11 +1641,11 @@ class TestAsyncOpenAI:
         assert test_client.is_closed()
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_client_response_validation_error(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_client_response_validation_error(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         class Model(BaseModel):
             foo: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, json={"foo": {"invalid": True}}))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, json={"foo": {"invalid": True}}))
 
         with pytest.raises(APIResponseValidationError) as exc:
             await async_client.get("/foo", cast_to=Model)
@@ -1660,22 +1659,22 @@ class TestAsyncOpenAI:
             )
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_default_stream_cls(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_default_stream_cls(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         class Model(BaseModel):
             name: str
 
-        respx_mock.post("/foo").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+        respx_mock.post("/foo").mock(return_value=requestx.Response(200, json={"foo": "bar"}))
 
         stream = await async_client.post("/foo", cast_to=Model, stream=True, stream_cls=AsyncStream[Model])
         assert isinstance(stream, AsyncStream)
         await stream.response.aclose()
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_received_text_for_expected_json(self, respx_mock: MockRouter) -> None:
+    async def test_received_text_for_expected_json(self, respx_mock: Any) -> None:
         class Model(BaseModel):
             name: str
 
-        respx_mock.get("/foo").mock(return_value=httpx.Response(200, text="my-custom-format"))
+        respx_mock.get("/foo").mock(return_value=requestx.Response(200, text="my-custom-format"))
 
         strict_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
 
@@ -1715,15 +1714,15 @@ class TestAsyncOpenAI:
     async def test_parse_retry_after_header(
         self, remaining_retries: int, retry_after: str, timeout: float, async_client: AsyncOpenAI
     ) -> None:
-        headers = httpx.Headers({"retry-after": retry_after})
+        headers = requestx.Headers({"retry-after": retry_after})
         options = FinalRequestOptions(method="get", url="/foo", max_retries=3)
         calculated = async_client._calculate_retry_timeout(remaining_retries, options, headers)
         assert calculated == pytest.approx(timeout, 0.5 * 0.875)  # pyright: ignore[reportUnknownMemberType]
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
-        respx_mock.post("/chat/completions").mock(side_effect=httpx.TimeoutException("Test timeout error"))
+    async def test_retrying_timeout_errors_doesnt_leak(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(side_effect=requestx.TimeoutException("Test timeout error"))
 
         with pytest.raises(APITimeoutError):
             await async_client.chat.completions.with_streaming_response.create(
@@ -1740,8 +1739,8 @@ class TestAsyncOpenAI:
 
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
-    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
-        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(500))
+    async def test_retrying_status_errors_doesnt_leak(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=requestx.Response(500))
 
         with pytest.raises(APIStatusError):
             await async_client.chat.completions.with_streaming_response.create(
@@ -1764,20 +1763,20 @@ class TestAsyncOpenAI:
         async_client: AsyncOpenAI,
         failures_before_success: int,
         failure_mode: Literal["status", "exception"],
-        respx_mock: MockRouter,
+        respx_mock: Any,
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
                 if failure_mode == "exception":
                     raise RuntimeError("oops")
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -1798,18 +1797,18 @@ class TestAsyncOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_omit_retry_count_header(
-        self, async_client: AsyncOpenAI, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncOpenAI, failures_before_success: int, respx_mock: Any
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -1830,18 +1829,18 @@ class TestAsyncOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_overwrite_retry_count_header(
-        self, async_client: AsyncOpenAI, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncOpenAI, failures_before_success: int, respx_mock: Any
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -1862,18 +1861,18 @@ class TestAsyncOpenAI:
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
     @pytest.mark.respx(base_url=base_url)
     async def test_retries_taken_new_response_class(
-        self, async_client: AsyncOpenAI, failures_before_success: int, respx_mock: MockRouter
+        self, async_client: AsyncOpenAI, failures_before_success: int, respx_mock: Any
     ) -> None:
         client = async_client.with_options(max_retries=4)
 
         nb_retries = 0
 
-        def retry_handler(_request: httpx.Request) -> httpx.Response:
+        def retry_handler(_request: requestx.Request) -> requestx.Response:
             nonlocal nb_retries
             if nb_retries < failures_before_success:
                 nb_retries += 1
-                return httpx.Response(500)
-            return httpx.Response(200)
+                return requestx.Response(500)
+            return requestx.Response(200)
 
         respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
 
@@ -1912,31 +1911,31 @@ class TestAsyncOpenAI:
             trust_env=True,
             http1=True,
             http2=False,
-            limits=httpx.Limits(max_connections=100, max_keepalive_connections=20),
+            limits=requestx.Limits(max_connections=100, max_keepalive_connections=20),
         )
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_follow_redirects(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_follow_redirects(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         # Test that the default follow_redirects=True allows following redirects
         respx_mock.post("/redirect").mock(
-            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+            return_value=requestx.Response(302, headers={"Location": f"{base_url}/redirected"})
         )
-        respx_mock.get("/redirected").mock(return_value=httpx.Response(200, json={"status": "ok"}))
+        respx_mock.get("/redirected").mock(return_value=requestx.Response(200, json={"status": "ok"}))
 
-        response = await async_client.post("/redirect", body={"key": "value"}, cast_to=httpx.Response)
+        response = await async_client.post("/redirect", body={"key": "value"}, cast_to=requestx.Response)
         assert response.status_code == 200
         assert response.json() == {"status": "ok"}
 
     @pytest.mark.respx(base_url=base_url)
-    async def test_follow_redirects_disabled(self, respx_mock: MockRouter, async_client: AsyncOpenAI) -> None:
+    async def test_follow_redirects_disabled(self, respx_mock: Any, async_client: AsyncOpenAI) -> None:
         # Test that follow_redirects=False prevents following redirects
         respx_mock.post("/redirect").mock(
-            return_value=httpx.Response(302, headers={"Location": f"{base_url}/redirected"})
+            return_value=requestx.Response(302, headers={"Location": f"{base_url}/redirected"})
         )
 
         with pytest.raises(APIStatusError) as exc_info:
             await async_client.post(
-                "/redirect", body={"key": "value"}, options={"follow_redirects": False}, cast_to=httpx.Response
+                "/redirect", body={"key": "value"}, options={"follow_redirects": False}, cast_to=requestx.Response
             )
 
         assert exc_info.value.response.status_code == 302
@@ -1968,11 +1967,11 @@ class TestAsyncOpenAI:
 
     @pytest.mark.asyncio
     @pytest.mark.respx()
-    async def test_bearer_token_refresh_async(self, respx_mock: MockRouter) -> None:
+    async def test_bearer_token_refresh_async(self, respx_mock: Any) -> None:
         respx_mock.post(base_url + "/chat/completions").mock(
             side_effect=[
-                httpx.Response(500, json={"error": "server error"}),
-                httpx.Response(200, json={"foo": "bar"}),
+                requestx.Response(500, json={"error": "server error"}),
+                requestx.Response(200, json={"foo": "bar"}),
             ]
         )
 

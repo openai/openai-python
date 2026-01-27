@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from typing_extensions import override
 
-import httpx
+import requestx
 
 from openai import _legacy_response
 from openai._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
@@ -28,7 +28,7 @@ class _Calls(Calls):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         if session is omit:
             extra_headers = {"Accept": "application/sdp", "Content-Type": "application/sdp", **(extra_headers or {})}
@@ -65,7 +65,7 @@ class _AsyncCalls(AsyncCalls):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+        timeout: float | requestx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         if session is omit:
             extra_headers = {"Accept": "application/sdp", "Content-Type": "application/sdp", **(extra_headers or {})}

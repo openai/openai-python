@@ -6,7 +6,7 @@ import os
 import logging
 from typing import TYPE_CHECKING, Iterator, AsyncIterator
 
-import httpx
+import requestx
 import pytest
 from pytest_asyncio import is_async_test
 
@@ -19,6 +19,14 @@ if TYPE_CHECKING:
 pytest.register_assert_rewrite("tests.utils")
 
 logging.getLogger("openai").setLevel(logging.DEBUG)
+
+
+def pytest_configure(config):
+    """Register custom markers."""
+    config.addinivalue_line(
+        "markers",
+        "respx(base_url): mark test as using respx mocking (not supported with requestx)"
+    )
 
 
 # automatically add `pytest.mark.asyncio()` to all of our async tests
@@ -64,7 +72,7 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncOpenAI]:
 
     # defaults
     strict = True
-    http_client: None | httpx.AsyncClient = None
+    http_client: None | requestx.AsyncClient = None
 
     if isinstance(param, bool):
         strict = param
@@ -72,9 +80,10 @@ async def async_client(request: FixtureRequest) -> AsyncIterator[AsyncOpenAI]:
         strict = param.get("strict", True)
         assert isinstance(strict, bool)
 
-        http_client_type = param.get("http_client", "httpx")
+        http_client_type = param.get("http_client", "requestx")
         if http_client_type == "aiohttp":
-            http_client = DefaultAioHttpClient()
+            # Note: aiohttp transport is not supported with requestx
+            http_client = None
     else:
         raise TypeError(f"Unexpected fixture parameter type {type(param)}, expected bool or dict")
 

@@ -6,7 +6,7 @@ import os
 from typing import TYPE_CHECKING, Any, Mapping, Callable, Awaitable
 from typing_extensions import Self, override
 
-import httpx
+import requestx
 
 from . import _exceptions
 from ._qs import Querystring
@@ -88,7 +88,7 @@ class OpenAI(SyncAPIClient):
     project: str | None
     webhook_secret: str | None
 
-    websocket_base_url: str | httpx.URL | None
+    websocket_base_url: str | requestx.URL | None
     """Base URL for WebSocket connections.
 
     If not specified, the default base URL will be used, with 'wss://' replacing the
@@ -103,8 +103,8 @@ class OpenAI(SyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        base_url: str | httpx.URL | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        base_url: str | requestx.URL | None = None,
+        websocket_base_url: str | requestx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -112,7 +112,7 @@ class OpenAI(SyncAPIClient):
         # Configure a custom httpx client.
         # We provide a `DefaultHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
         # See the [httpx documentation](https://www.python-httpx.org/api/#client) for more details.
-        http_client: httpx.Client | None = None,
+        http_client: requestx.Client | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -345,10 +345,10 @@ class OpenAI(SyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
-        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | requestx.URL | None = None,
+        base_url: str | requestx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
-        http_client: httpx.Client | None = None,
+        http_client: requestx.Client | None = None,
         max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -403,7 +403,7 @@ class OpenAI(SyncAPIClient):
         err_msg: str,
         *,
         body: object,
-        response: httpx.Response,
+        response: requestx.Response,
     ) -> APIStatusError:
         data = body.get("error", body) if is_mapping(body) else body
         if response.status_code == 400:
@@ -439,7 +439,7 @@ class AsyncOpenAI(AsyncAPIClient):
     project: str | None
     webhook_secret: str | None
 
-    websocket_base_url: str | httpx.URL | None
+    websocket_base_url: str | requestx.URL | None
     """Base URL for WebSocket connections.
 
     If not specified, the default base URL will be used, with 'wss://' replacing the
@@ -454,8 +454,8 @@ class AsyncOpenAI(AsyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        base_url: str | httpx.URL | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
+        base_url: str | requestx.URL | None = None,
+        websocket_base_url: str | requestx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
         max_retries: int = DEFAULT_MAX_RETRIES,
         default_headers: Mapping[str, str] | None = None,
@@ -463,7 +463,7 @@ class AsyncOpenAI(AsyncAPIClient):
         # Configure a custom httpx client.
         # We provide a `DefaultAsyncHttpxClient` class that you can pass to retain the default values we use for `limits`, `timeout` & `follow_redirects`.
         # See the [httpx documentation](https://www.python-httpx.org/api/#asyncclient) for more details.
-        http_client: httpx.AsyncClient | None = None,
+        http_client: requestx.AsyncClient | None = None,
         # Enable or disable schema validation for data returned by the API.
         # When enabled an error APIResponseValidationError is raised
         # if the API responds with invalid data for the expected schema.
@@ -696,10 +696,10 @@ class AsyncOpenAI(AsyncAPIClient):
         organization: str | None = None,
         project: str | None = None,
         webhook_secret: str | None = None,
-        websocket_base_url: str | httpx.URL | None = None,
-        base_url: str | httpx.URL | None = None,
+        websocket_base_url: str | requestx.URL | None = None,
+        base_url: str | requestx.URL | None = None,
         timeout: float | Timeout | None | NotGiven = not_given,
-        http_client: httpx.AsyncClient | None = None,
+        http_client: requestx.AsyncClient | None = None,
         max_retries: int | NotGiven = not_given,
         default_headers: Mapping[str, str] | None = None,
         set_default_headers: Mapping[str, str] | None = None,
@@ -754,7 +754,7 @@ class AsyncOpenAI(AsyncAPIClient):
         err_msg: str,
         *,
         body: object,
-        response: httpx.Response,
+        response: requestx.Response,
     ) -> APIStatusError:
         data = body.get("error", body) if is_mapping(body) else body
         if response.status_code == 400:

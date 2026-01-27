@@ -7,7 +7,7 @@ from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, AsyncIterator, cast
 from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
 
-import httpx
+import requestx
 
 from ._utils import is_mapping, extract_type_var_from_base
 from ._exceptions import APIError
@@ -22,7 +22,7 @@ _T = TypeVar("_T")
 class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
 
-    response: httpx.Response
+    response: requestx.Response
 
     _decoder: SSEBytesDecoder
 
@@ -30,7 +30,7 @@ class Stream(Generic[_T]):
         self,
         *,
         cast_to: type[_T],
-        response: httpx.Response,
+        response: requestx.Response,
         client: OpenAI,
     ) -> None:
         self.response = response
@@ -124,7 +124,7 @@ class Stream(Generic[_T]):
 class AsyncStream(Generic[_T]):
     """Provides the core interface to iterate over an asynchronous stream response."""
 
-    response: httpx.Response
+    response: requestx.Response
 
     _decoder: SSEDecoder | SSEBytesDecoder
 
@@ -132,7 +132,7 @@ class AsyncStream(Generic[_T]):
         self,
         *,
         cast_to: type[_T],
-        response: httpx.Response,
+        response: requestx.Response,
         client: AsyncOpenAI,
     ) -> None:
         self.response = response

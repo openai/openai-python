@@ -5,7 +5,7 @@ from __future__ import annotations
 from typing import List, Union, Iterable
 from typing_extensions import Literal
 
-import httpx
+import requestx
 
 from .... import _legacy_response
 from ...._types import NOT_GIVEN, Body, Query, Headers, NotGiven
@@ -75,7 +75,7 @@ class Sessions(SyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | requestx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SessionCreateResponse:
         """
         Create an ephemeral API token for use in client-side applications with the
@@ -259,7 +259,7 @@ class AsyncSessions(AsyncAPIResource):
         extra_headers: Headers | None = None,
         extra_query: Query | None = None,
         extra_body: Body | None = None,
-        timeout: float | httpx.Timeout | None | NotGiven = NOT_GIVEN,
+        timeout: float | requestx.Timeout | None | NotGiven = NOT_GIVEN,
     ) -> SessionCreateResponse:
         """
         Create an ephemeral API token for use in client-side applications with the
