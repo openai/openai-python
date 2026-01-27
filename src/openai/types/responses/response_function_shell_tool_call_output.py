@@ -75,6 +75,12 @@ class ResponseFunctionShellToolCallOutput(BaseModel):
     output: List[Output]
     """An array of shell call output contents"""
 
+    status: Literal["in_progress", "completed", "incomplete"]
+    """The status of the shell call output.
+
+    One of `in_progress`, `completed`, or `incomplete`.
+    """
+
     type: Literal["shell_call_output"]
     """The type of the shell call output. Always `shell_call_output`."""
 
