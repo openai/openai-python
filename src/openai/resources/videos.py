@@ -16,7 +16,7 @@ from ..types import (
     video_create_params,
     video_download_content_params,
 )
-from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, SequenceNotStr, omit, not_given
+from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
 from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
@@ -64,7 +64,6 @@ class Videos(SyncAPIResource):
         self,
         *,
         prompt: str,
-        character_ids: SequenceNotStr[str] | Omit = omit,
         input_reference: FileTypes | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
@@ -81,8 +80,6 @@ class Videos(SyncAPIResource):
 
         Args:
           prompt: Text prompt that describes the video to generate.
-
-          character_ids: Character IDs to include in the generation.
 
           input_reference: Optional image reference that guides generation.
 
@@ -105,7 +102,6 @@ class Videos(SyncAPIResource):
         body = deepcopy_minimal(
             {
                 "prompt": prompt,
-                "character_ids": character_ids,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
@@ -425,7 +421,6 @@ class AsyncVideos(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        character_ids: SequenceNotStr[str] | Omit = omit,
         input_reference: FileTypes | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
@@ -442,8 +437,6 @@ class AsyncVideos(AsyncAPIResource):
 
         Args:
           prompt: Text prompt that describes the video to generate.
-
-          character_ids: Character IDs to include in the generation.
 
           input_reference: Optional image reference that guides generation.
 
@@ -466,7 +459,6 @@ class AsyncVideos(AsyncAPIResource):
         body = deepcopy_minimal(
             {
                 "prompt": prompt,
-                "character_ids": character_ids,
                 "input_reference": input_reference,
                 "model": model,
                 "seconds": seconds,
