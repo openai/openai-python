@@ -3,7 +3,7 @@ import asyncio
 
 from azure.identity.aio import DefaultAzureCredential, get_bearer_token_provider
 
-from openai import AsyncAzureOpenAI
+from openai import AsyncOpenAI
 
 # Azure OpenAI Realtime Docs
 
@@ -21,18 +21,37 @@ async def main() -> None:
     """
 
     credential = DefaultAzureCredential()
-    client = AsyncAzureOpenAI(
-        azure_endpoint=os.environ["AZURE_OPENAI_ENDPOINT"],
-        azure_ad_token_provider=get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default"),
-        api_version="2024-10-01-preview",
+    token_provider = get_bearer_token_provider(credential, "https://cognitiveservices.azure.com/.default")
+    token = await token_provider()
+
+    # The endpoint of your Azure OpenAI resource is required. You can set it in the AZURE_OPENAI_ENDPOINT
+    # environment variable.
+    # You can find it in the Microsoft Foundry portal in the Overview page of your Azure OpenAI resource.
+    # Example: https://{your-resource}.openai.azure.com
+    endpoint = os.environ["AZURE_OPENAI_ENDPOINT"]
+
+    # The deployment name of the model you want to use is required. You can set it in the AZURE_OPENAI_DEPLOYMENT_NAME
+    # environment variable.
+    # You can find it in the Foundry portal in the "Models + endpoints" page of your Azure OpenAI resource.
+    # Example: gpt-realtime
+    deployment_name = os.environ["AZURE_OPENAI_DEPLOYMENT_NAME"]
+
+    base_url = endpoint.replace("https://", "wss://").rstrip("/") + "/openai/v1"
+
+    # The APIs are compatible with the OpenAI client library.
+    # You can use the OpenAI client library to access the Azure OpenAI APIs.
+    # Make sure to set the baseURL and apiKey to use the Azure OpenAI endpoint and token.
+    client = AsyncOpenAI(
+        websocket_base_url=base_url,
+        api_key=token
     )
     async with client.realtime.connect(
-        model="gpt-realtime",  # deployment name for your model
+        model=deployment_name,
     ) as connection:
         await connection.session.update(
             session={
                 "output_modalities": ["text"],
-                "model": "gpt-realtime",
+                "model": deployment_name,
                 "type": "realtime",
             }
         )
