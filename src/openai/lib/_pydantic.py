@@ -66,6 +66,15 @@ def _ensure_strict_json_schema(
     if is_dict(items):
         json_schema["items"] = _ensure_strict_json_schema(items, path=(*path, "items"), root=root)
 
+    # typed dictionaries
+    # { 'type': 'object', 'additionalProperties': {...} }
+    # Note: additionalProperties can be boolean (true/false) or a schema dict
+    additional_properties = json_schema.get("additionalProperties")
+    if is_dict(additional_properties):
+        json_schema["additionalProperties"] = _ensure_strict_json_schema(
+            additional_properties, path=(*path, "additionalProperties"), root=root
+        )
+
     # unions
     any_of = json_schema.get("anyOf")
     if is_list(any_of):
@@ -111,6 +120,30 @@ def _ensure_strict_json_schema(
         # Since the schema expanded from `$ref` might not have `additionalProperties: false` applied,
         # we call `_ensure_strict_json_schema` again to fix the inlined schema and ensure it's valid.
         return _ensure_strict_json_schema(json_schema, path=path, root=root)
+
+    # Remove JSON Schema keywords that are not supported by OpenAI's structured outputs
+    # These keywords are used for validation but cause errors with strict mode
+    # See: https://platform.openai.com/docs/guides/structured-outputs/supported-schemas
+    unsupported_keywords = [
+        "pattern",         # Regex patterns (e.g., from Decimal fields)
+        "format",          # String formats like "date-time"
+        "minLength",       # String length constraints
+        "maxLength",       # String length constraints
+        "minimum",         # Numeric minimum values
+        "maximum",         # Numeric maximum values
+        "exclusiveMinimum",  # Exclusive numeric bounds
+        "exclusiveMaximum",  # Exclusive numeric bounds
+        "multipleOf",      # Numeric multiple constraints
+        "patternProperties",  # Pattern-based object properties
+        "minItems",        # Array size constraints
+        "maxItems",        # Array size constraints
+        "minProperties",   # Object property count constraints
+        "maxProperties",   # Object property count constraints
+        "uniqueItems",     # Array uniqueness constraints
+    ]
+
+    for keyword in unsupported_keywords:
+        json_schema.pop(keyword, None)
 
     return json_schema
 
