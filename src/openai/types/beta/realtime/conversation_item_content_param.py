@@ -24,8 +24,8 @@ class ConversationItemContentParam(TypedDict, total=False):
     transcript: str
     """The transcript of the audio, used for `input_audio` and `audio` content types."""
 
-    type: Literal["input_text", "input_audio", "item_reference", "text", "audio"]
+    type: Literal["input_text", "input_audio", "input_image", "item_reference", "text", "audio"]
     """
-    The content type (`input_text`, `input_audio`, `item_reference`, `text`,
+    The content type (`input_text`, `input_audio`, `input_image`, `item_reference`, `text`,
     `audio`).
     """
