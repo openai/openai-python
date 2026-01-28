@@ -52,6 +52,8 @@ class MutuallyExclusiveAuthError(OpenAIError):
 class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     _azure_endpoint: httpx.URL | None
     _azure_deployment: str | None
+    # https://learn.microsoft.com/en-us/azure/ai-foundry/openai/api-version-lifecycle?tabs=entra#next-generation-api-1
+    _azure_next_supported_generation_api_version: list[str] = ["preview", "latest"]
 
     @override
     def _build_request(
@@ -62,7 +64,7 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
     ) -> httpx.Request:
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
             model = options.json_data.get("model")
-            if model is not None and "/deployments" not in str(self.base_url.path):
+            if model is not None and self._api_version not in self._azure_next_supported_generation_api_version and "/deployments" not in str(self.base_url.path):  # pylint: disable=no-member
                 options.url = f"/deployments/{model}{options.url}"
 
         return super()._build_request(options, retries_taken=retries_taken)

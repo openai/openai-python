@@ -802,3 +802,25 @@ def test_client_sets_base_url(client: Client) -> None:
         )
     )
     assert req.url == "https://example-resource.azure.openai.com/openai/models?api-version=2024-02-01"
+
+@pytest.mark.parametrize("api_version", ["preview", "latest"])
+def test_client_sets_base_url_with_new_generation_api_version(api_version: str) -> None:
+    client = AzureOpenAI(
+        api_version=api_version,
+        api_key="example API key",
+        base_url="https://example-resource.azure.openai.com/openai/v1/"
+    )
+    assert client.base_url == "https://example-resource.azure.openai.com/openai/v1/"
+
+
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/chat/completions",
+            json_data={"model": "placeholder"},
+        )
+    )
+    assert (
+        req.url
+        == f"https://example-resource.azure.openai.com/openai/v1/chat/completions?api-version={api_version}"
+    )
