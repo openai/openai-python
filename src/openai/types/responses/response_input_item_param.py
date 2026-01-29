@@ -286,6 +286,9 @@ class ShellCallOutput(TypedDict, total=False):
     output.
     """
 
+    status: Optional[Literal["in_progress", "completed", "incomplete"]]
+    """The status of the shell call output."""
+
 
 class ApplyPatchCallOperationCreateFile(TypedDict, total=False):
     """Instruction for creating a new file via the apply_patch tool."""
