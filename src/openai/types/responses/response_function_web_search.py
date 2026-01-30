@@ -41,7 +41,7 @@ class ActionOpenPage(BaseModel):
     type: Literal["open_page"]
     """The action type."""
 
-    url: str
+    url: Optional[str] = None
     """The URL opened by the model."""
 
 
@@ -74,7 +74,7 @@ class ResponseFunctionWebSearch(BaseModel):
     action: Action
     """
     An object describing the specific action taken in this web search call. Includes
-    details on how the model used the web (search, open_page, find).
+    details on how the model used the web (search, open_page, find_in_page).
     """
 
     status: Literal["in_progress", "searching", "completed", "failed"]
