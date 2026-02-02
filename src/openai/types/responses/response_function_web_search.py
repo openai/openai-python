@@ -6,7 +6,14 @@ from typing_extensions import Literal, Annotated, TypeAlias
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
 
-__all__ = ["ResponseFunctionWebSearch", "Action", "ActionSearch", "ActionSearchSource", "ActionOpenPage", "ActionFind"]
+__all__ = [
+    "ResponseFunctionWebSearch",
+    "Action",
+    "ActionSearch",
+    "ActionSearchSource",
+    "ActionOpenPage",
+    "ActionFindInPage",
+]
 
 
 class ActionSearchSource(BaseModel):
@@ -45,20 +52,20 @@ class ActionOpenPage(BaseModel):
     """The URL opened by the model."""
 
 
-class ActionFind(BaseModel):
-    """Action type "find": Searches for a pattern within a loaded page."""
+class ActionFindInPage(BaseModel):
+    """Action type "find_in_page": Searches for a pattern within a loaded page."""
 
     pattern: str
     """The pattern or text to search for within the page."""
 
-    type: Literal["find"]
+    type: Literal["find_in_page"]
     """The action type."""
 
     url: str
     """The URL of the page searched for the pattern."""
 
 
-Action: TypeAlias = Annotated[Union[ActionSearch, ActionOpenPage, ActionFind], PropertyInfo(discriminator="type")]
+Action: TypeAlias = Annotated[Union[ActionSearch, ActionOpenPage, ActionFindInPage], PropertyInfo(discriminator="type")]
 
 
 class ResponseFunctionWebSearch(BaseModel):
