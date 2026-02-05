@@ -1,5 +1,21 @@
 # Changelog
 
+## 2.17.0 (2026-02-05)
+
+Full Changelog: [v2.16.0...v2.17.0](https://github.com/openai/openai-python/compare/v2.16.0...v2.17.0)
+
+### Features
+
+* **api:** add shell_call_output status field ([1bbaf88](https://github.com/openai/openai-python/commit/1bbaf8865000b338c24c9fdd5e985183feaca10f))
+* **api:** image generation actions for responses; ResponseFunctionCallArgumentsDoneEvent.name ([7d96513](https://github.com/openai/openai-python/commit/7d965135f93f41b0c3dbf3dc9f01796bd9645b6c))
+* **client:** add custom JSON encoder for extended type support ([9f43c8b](https://github.com/openai/openai-python/commit/9f43c8b1a1641db2336cc6d0ec0c6dc470a89103))
+
+
+### Bug Fixes
+
+* **client:** undo change to web search Find action ([8f14eb0](https://github.com/openai/openai-python/commit/8f14eb0a74363fdfc648c5cd5c6d34a85b938d3c))
+* **client:** update type for `find_in_page` action ([ec54dde](https://github.com/openai/openai-python/commit/ec54ddeb357e49edd81cc3fe53d549c297e59a07))
+
 ## 2.16.0 (2026-01-27)
 
 Full Changelog: [v2.15.0...v2.16.0](https://github.com/openai/openai-python/compare/v2.15.0...v2.16.0)
