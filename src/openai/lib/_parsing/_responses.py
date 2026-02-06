@@ -63,6 +63,9 @@ def parse_response(
         if output.type == "message":
             content_list: List[ParsedContent[TextFormatT]] = []
             for item in output.content:
+                if item.type == "refusal":
+                    from ..._exceptions import ContentFilterFinishReasonError
+                    raise ContentFilterFinishReasonError()   
                 if item.type != "output_text":
                     content_list.append(item)
                     continue
