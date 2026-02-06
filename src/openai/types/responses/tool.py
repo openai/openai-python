@@ -227,6 +227,9 @@ class ImageGeneration(BaseModel):
     type: Literal["image_generation"]
     """The type of the image generation tool. Always `image_generation`."""
 
+    action: Optional[Literal["generate", "edit", "auto"]] = None
+    """Whether to generate a new image or edit an existing image. Default: `auto`."""
+
     background: Optional[Literal["transparent", "opaque", "auto"]] = None
     """Background type for the generated image.
 
@@ -247,7 +250,7 @@ class ImageGeneration(BaseModel):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini"], None] = None
+    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"], None] = None
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Optional[Literal["auto", "low"]] = None

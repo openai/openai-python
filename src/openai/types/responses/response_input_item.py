@@ -285,6 +285,9 @@ class ShellCallOutput(BaseModel):
     output.
     """
 
+    status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
+    """The status of the shell call output."""
+
 
 class ApplyPatchCallOperationCreateFile(BaseModel):
     """Instruction for creating a new file via the apply_patch tool."""

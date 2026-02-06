@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable
+from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
@@ -49,17 +49,17 @@ class ActionOpenPage(TypedDict, total=False):
     type: Required[Literal["open_page"]]
     """The action type."""
 
-    url: Required[str]
+    url: Optional[str]
     """The URL opened by the model."""
 
 
 class ActionFind(TypedDict, total=False):
-    """Action type "find": Searches for a pattern within a loaded page."""
+    """Action type "find_in_page": Searches for a pattern within a loaded page."""
 
     pattern: Required[str]
     """The pattern or text to search for within the page."""
 
-    type: Required[Literal["find"]]
+    type: Required[Literal["find_in_page"]]
     """The action type."""
 
     url: Required[str]
@@ -82,7 +82,7 @@ class ResponseFunctionWebSearchParam(TypedDict, total=False):
     action: Required[Action]
     """
     An object describing the specific action taken in this web search call. Includes
-    details on how the model used the web (search, open_page, find).
+    details on how the model used the web (search, open_page, find_in_page).
     """
 
     status: Required[Literal["in_progress", "searching", "completed", "failed"]]
