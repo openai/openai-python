@@ -172,8 +172,8 @@ class Images(SyncAPIResource):
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -291,8 +291,8 @@ class Images(SyncAPIResource):
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -406,8 +406,8 @@ class Images(SyncAPIResource):
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1068,8 +1068,8 @@ class AsyncImages(AsyncAPIResource):
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1187,8 +1187,8 @@ class AsyncImages(AsyncAPIResource):
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,
@@ -1302,8 +1302,8 @@ class AsyncImages(AsyncAPIResource):
 
           input_fidelity: Control how much effort the model will exert to match the style and features,
               especially facial features, of input images. This parameter is only supported
-              for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-              `low`. Defaults to `low`.
+              for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+              `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
 
           mask: An additional image whose fully transparent areas (e.g. where alpha is zero)
               indicate where `image` should be edited. If there are multiple images provided,

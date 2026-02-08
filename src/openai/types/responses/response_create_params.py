@@ -25,6 +25,7 @@ from ..shared_params.responses_model import ResponsesModel
 
 __all__ = [
     "ResponseCreateParamsBase",
+    "ContextManagement",
     "Conversation",
     "StreamOptions",
     "ToolChoice",
@@ -39,6 +40,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
+
+    context_management: Optional[Iterable[ContextManagement]]
+    """Context management configuration for this request."""
 
     conversation: Optional[Conversation]
     """The conversation that this response belongs to.
@@ -277,6 +281,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
+
+
+class ContextManagement(TypedDict, total=False):
+    type: Required[str]
+    """The context management entry type. Currently only 'compaction' is supported."""
+
+    compact_threshold: Optional[int]
+    """Token threshold at which compaction should be triggered for this entry."""
 
 
 Conversation: TypeAlias = Union[str, ResponseConversationParam]
