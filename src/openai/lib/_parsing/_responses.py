@@ -72,7 +72,7 @@ def parse_response(
                         type_=cast(Any, ParsedResponseOutputText)[solved_t],
                         value={
                             **item.to_dict(),
-                            "parsed": parse_text(item.text, text_format=text_format),
+                            "parsed": parse_text(item.text, text_format=text_format, response=response),
                         },
                     )
                 )
@@ -135,20 +135,53 @@ def parse_response(
     )
 
 
-def parse_text(text: str, text_format: type[TextFormatT] | Omit) -> TextFormatT | None:
+def parse_text(
+    text: str,
+    text_format: type[TextFormatT] | Omit,
+    response: Response | ParsedResponse[object] | None = None,
+) -> TextFormatT | None:
     if not is_given(text_format):
         return None
 
-    if is_basemodel_type(text_format):
-        return cast(TextFormatT, model_parse_json(text_format, text))
+    try:
+        if is_basemodel_type(text_format):
+            return cast(TextFormatT, model_parse_json(text_format, text))
 
-    if is_dataclass_like_type(text_format):
-        if PYDANTIC_V1:
-            raise TypeError(f"Non BaseModel types are only supported with Pydantic v2 - {text_format}")
+        if is_dataclass_like_type(text_format):
+            if PYDANTIC_V1:
+                raise TypeError(f"Non BaseModel types are only supported with Pydantic v2 - {text_format}")
 
-        return pydantic.TypeAdapter(text_format).validate_json(text)
+            return pydantic.TypeAdapter(text_format).validate_json(text)
 
-    raise TypeError(f"Unable to automatically parse response format type {text_format}")
+        raise TypeError(f"Unable to automatically parse response format type {text_format}")
+    except (pydantic.ValidationError, json.JSONDecodeError) as e:
+        # Check if this is due to content moderation/filtering
+        if response and getattr(response, "incomplete_details", None):
+            incomplete_details = response.incomplete_details
+            if incomplete_details and getattr(incomplete_details, "reason", None) == "content_filter":
+                from ..._exceptions import ContentFilterFinishReasonError
+
+                raise ContentFilterFinishReasonError() from e
+
+        # For other validation errors, raise a more helpful exception
+        from ..._exceptions import APIResponseValidationError
+
+        error_msg = (
+            f"Failed to parse response content as {text_format.__name__ if hasattr(text_format, '__name__') else text_format}. "
+            f"The model returned text that doesn't match the expected schema. "
+            f"Text received: {text[:200]}{'...' if len(text) > 200 else ''}"
+        )
+
+        # Create a minimal request object for the exception
+        # In practice, this should ideally come from the actual request, but we don't have access here
+        import httpx
+
+        request = httpx.Request("POST", "https://api.openai.com/v1/responses")
+        raise APIResponseValidationError(
+            response=httpx.Response(200, request=request),
+            body={"error": str(e), "text": text},
+            message=error_msg,
+        ) from e
 
 
 def get_input_tool_by_name(*, input_tools: Iterable[ToolParam], name: str) -> FunctionToolParam | None:
