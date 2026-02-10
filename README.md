@@ -77,7 +77,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/3/36/Danbo_Cheese.jpg"
+img_url = "https://raw.githubusercontent.com/openai/openai-python/main/.github/vision-example.jpg"
 
 response = client.responses.create(
     model="gpt-5.2",
