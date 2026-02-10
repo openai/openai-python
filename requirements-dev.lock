@@ -215,16 +215,12 @@ typing-extensions==4.15.0
     # via virtualenv
 typing-inspection==0.4.2
     # via pydantic
-<<<<<<< HEAD
 tzdata==2025.2
     # via pandas
 urllib3==2.5.0
     # via requests
     # via types-requests
 virtualenv==20.35.4
-=======
-virtualenv==20.36.1
->>>>>>> origin/generated--merge-conflict
     # via nox
 websockets==15.0.1
     # via openai
