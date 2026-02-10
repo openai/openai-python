@@ -6,9 +6,12 @@ from .tool import Tool as Tool
 from .response import Response as Response
 from .tool_param import ToolParam as ToolParam
 from .custom_tool import CustomTool as CustomTool
+from .local_skill import LocalSkill as LocalSkill
+from .inline_skill import InlineSkill as InlineSkill
 from .computer_tool import ComputerTool as ComputerTool
 from .function_tool import FunctionTool as FunctionTool
 from .response_item import ResponseItem as ResponseItem
+from .container_auto import ContainerAuto as ContainerAuto
 from .response_error import ResponseError as ResponseError
 from .response_usage import ResponseUsage as ResponseUsage
 from .parsed_response import (
@@ -21,26 +24,33 @@ from .parsed_response import (
 )
 from .response_prompt import ResponsePrompt as ResponsePrompt
 from .response_status import ResponseStatus as ResponseStatus
+from .skill_reference import SkillReference as SkillReference
 from .tool_choice_mcp import ToolChoiceMcp as ToolChoiceMcp
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .apply_patch_tool import ApplyPatchTool as ApplyPatchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .custom_tool_param import CustomToolParam as CustomToolParam
+from .local_environment import LocalEnvironment as LocalEnvironment
+from .local_skill_param import LocalSkillParam as LocalSkillParam
 from .tool_choice_shell import ToolChoiceShell as ToolChoiceShell
 from .tool_choice_types import ToolChoiceTypes as ToolChoiceTypes
 from .compacted_response import CompactedResponse as CompactedResponse
 from .easy_input_message import EasyInputMessage as EasyInputMessage
+from .inline_skill_param import InlineSkillParam as InlineSkillParam
 from .response_item_list import ResponseItemList as ResponseItemList
 from .tool_choice_custom import ToolChoiceCustom as ToolChoiceCustom
 from .computer_tool_param import ComputerToolParam as ComputerToolParam
+from .container_reference import ContainerReference as ContainerReference
 from .function_shell_tool import FunctionShellTool as FunctionShellTool
 from .function_tool_param import FunctionToolParam as FunctionToolParam
+from .inline_skill_source import InlineSkillSource as InlineSkillSource
 from .response_includable import ResponseIncludable as ResponseIncludable
 from .response_input_file import ResponseInputFile as ResponseInputFile
 from .response_input_item import ResponseInputItem as ResponseInputItem
 from .response_input_text import ResponseInputText as ResponseInputText
 from .tool_choice_allowed import ToolChoiceAllowed as ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
+from .container_auto_param import ContainerAutoParam as ContainerAutoParam
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
 from .response_input_audio import ResponseInputAudio as ResponseInputAudio
 from .response_input_image import ResponseInputImage as ResponseInputImage
@@ -53,6 +63,7 @@ from .response_failed_event import ResponseFailedEvent as ResponseFailedEvent
 from .response_prompt_param import ResponsePromptParam as ResponsePromptParam
 from .response_queued_event import ResponseQueuedEvent as ResponseQueuedEvent
 from .response_stream_event import ResponseStreamEvent as ResponseStreamEvent
+from .skill_reference_param import SkillReferenceParam as SkillReferenceParam
 from .tool_choice_mcp_param import ToolChoiceMcpParam as ToolChoiceMcpParam
 from .web_search_tool_param import WebSearchToolParam as WebSearchToolParam
 from .apply_patch_tool_param import ApplyPatchToolParam as ApplyPatchToolParam
@@ -61,6 +72,7 @@ from .input_item_list_params import InputItemListParams as InputItemListParams
 from .response_create_params import ResponseCreateParams as ResponseCreateParams
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
 from .response_input_content import ResponseInputContent as ResponseInputContent
+from .local_environment_param import LocalEnvironmentParam as LocalEnvironmentParam
 from .response_compact_params import ResponseCompactParams as ResponseCompactParams
 from .response_output_message import ResponseOutputMessage as ResponseOutputMessage
 from .response_output_refusal import ResponseOutputRefusal as ResponseOutputRefusal
@@ -76,7 +88,9 @@ from .response_completed_event import ResponseCompletedEvent as ResponseComplete
 from .response_retrieve_params import ResponseRetrieveParams as ResponseRetrieveParams
 from .response_text_done_event import ResponseTextDoneEvent as ResponseTextDoneEvent
 from .tool_choice_custom_param import ToolChoiceCustomParam as ToolChoiceCustomParam
+from .container_reference_param import ContainerReferenceParam as ContainerReferenceParam
 from .function_shell_tool_param import FunctionShellToolParam as FunctionShellToolParam
+from .inline_skill_source_param import InlineSkillSourceParam as InlineSkillSourceParam
 from .response_audio_done_event import ResponseAudioDoneEvent as ResponseAudioDoneEvent
 from .response_custom_tool_call import ResponseCustomToolCall as ResponseCustomToolCall
 from .response_incomplete_event import ResponseIncompleteEvent as ResponseIncompleteEvent
@@ -90,6 +104,7 @@ from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudio
 from .response_in_progress_event import ResponseInProgressEvent as ResponseInProgressEvent
 from .response_input_audio_param import ResponseInputAudioParam as ResponseInputAudioParam
 from .response_input_image_param import ResponseInputImageParam as ResponseInputImageParam
+from .response_local_environment import ResponseLocalEnvironment as ResponseLocalEnvironment
 from .response_output_text_param import ResponseOutputTextParam as ResponseOutputTextParam
 from .response_text_config_param import ResponseTextConfigParam as ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam as ToolChoiceFunctionParam
@@ -101,6 +116,7 @@ from .response_input_file_content import ResponseInputFileContent as ResponseInp
 from .response_input_message_item import ResponseInputMessageItem as ResponseInputMessageItem
 from .response_input_text_content import ResponseInputTextContent as ResponseInputTextContent
 from .response_refusal_done_event import ResponseRefusalDoneEvent as ResponseRefusalDoneEvent
+from .response_container_reference import ResponseContainerReference as ResponseContainerReference
 from .response_function_web_search import ResponseFunctionWebSearch as ResponseFunctionWebSearch
 from .response_input_content_param import ResponseInputContentParam as ResponseInputContentParam
 from .response_input_image_content import ResponseInputImageContent as ResponseInputImageContent
@@ -120,6 +136,7 @@ from .response_content_part_done_event import ResponseContentPartDoneEvent as Re
 from .response_custom_tool_call_output import ResponseCustomToolCallOutput as ResponseCustomToolCallOutput
 from .response_function_tool_call_item import ResponseFunctionToolCallItem as ResponseFunctionToolCallItem
 from .response_output_item_added_event import ResponseOutputItemAddedEvent as ResponseOutputItemAddedEvent
+from .container_network_policy_disabled import ContainerNetworkPolicyDisabled as ContainerNetworkPolicyDisabled
 from .response_computer_tool_call_param import ResponseComputerToolCallParam as ResponseComputerToolCallParam
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
 from .response_format_text_config_param import ResponseFormatTextConfigParam as ResponseFormatTextConfigParam
@@ -128,6 +145,7 @@ from .response_function_tool_call_param import ResponseFunctionToolCallParam as 
 from .response_input_file_content_param import ResponseInputFileContentParam as ResponseInputFileContentParam
 from .response_input_text_content_param import ResponseInputTextContentParam as ResponseInputTextContentParam
 from .response_mcp_call_completed_event import ResponseMcpCallCompletedEvent as ResponseMcpCallCompletedEvent
+from .container_network_policy_allowlist import ContainerNetworkPolicyAllowlist as ContainerNetworkPolicyAllowlist
 from .response_function_call_output_item import ResponseFunctionCallOutputItem as ResponseFunctionCallOutputItem
 from .response_function_web_search_param import ResponseFunctionWebSearchParam as ResponseFunctionWebSearchParam
 from .response_input_image_content_param import ResponseInputImageContentParam as ResponseInputImageContentParam
@@ -144,11 +162,17 @@ from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOut
 from .response_audio_transcript_delta_event import (
     ResponseAudioTranscriptDeltaEvent as ResponseAudioTranscriptDeltaEvent,
 )
+from .container_network_policy_domain_secret import (
+    ContainerNetworkPolicyDomainSecret as ContainerNetworkPolicyDomainSecret,
+)
 from .response_custom_tool_call_output_param import (
     ResponseCustomToolCallOutputParam as ResponseCustomToolCallOutputParam,
 )
 from .response_mcp_call_arguments_done_event import (
     ResponseMcpCallArgumentsDoneEvent as ResponseMcpCallArgumentsDoneEvent,
+)
+from .container_network_policy_disabled_param import (
+    ContainerNetworkPolicyDisabledParam as ContainerNetworkPolicyDisabledParam,
 )
 from .response_computer_tool_call_output_item import (
     ResponseComputerToolCallOutputItem as ResponseComputerToolCallOutputItem,
@@ -170,6 +194,9 @@ from .response_mcp_call_arguments_delta_event import (
 )
 from .response_mcp_list_tools_completed_event import (
     ResponseMcpListToolsCompletedEvent as ResponseMcpListToolsCompletedEvent,
+)
+from .container_network_policy_allowlist_param import (
+    ContainerNetworkPolicyAllowlistParam as ContainerNetworkPolicyAllowlistParam,
 )
 from .response_function_call_output_item_param import (
     ResponseFunctionCallOutputItemParam as ResponseFunctionCallOutputItemParam,
@@ -239,6 +266,9 @@ from .response_reasoning_summary_part_added_event import (
 )
 from .response_reasoning_summary_text_delta_event import (
     ResponseReasoningSummaryTextDeltaEvent as ResponseReasoningSummaryTextDeltaEvent,
+)
+from .container_network_policy_domain_secret_param import (
+    ContainerNetworkPolicyDomainSecretParam as ContainerNetworkPolicyDomainSecretParam,
 )
 from .response_function_call_arguments_delta_event import (
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,

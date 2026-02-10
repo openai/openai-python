@@ -5,6 +5,7 @@ from __future__ import annotations
 from .batch import Batch as Batch
 from .image import Image as Image
 from .model import Model as Model
+from .skill import Skill as Skill
 from .video import Video as Video
 from .shared import (
     Metadata as Metadata,
@@ -30,6 +31,7 @@ from .embedding import Embedding as Embedding
 from .chat_model import ChatModel as ChatModel
 from .completion import Completion as Completion
 from .moderation import Moderation as Moderation
+from .skill_list import SkillList as SkillList
 from .video_size import VideoSize as VideoSize
 from .audio_model import AudioModel as AudioModel
 from .batch_error import BatchError as BatchError
@@ -41,6 +43,7 @@ from .file_content import FileContent as FileContent
 from .file_deleted import FileDeleted as FileDeleted
 from .file_purpose import FilePurpose as FilePurpose
 from .vector_store import VectorStore as VectorStore
+from .deleted_skill import DeletedSkill as DeletedSkill
 from .model_deleted import ModelDeleted as ModelDeleted
 from .video_seconds import VideoSeconds as VideoSeconds
 from .embedding_model import EmbeddingModel as EmbeddingModel
@@ -52,6 +55,7 @@ from .moderation_model import ModerationModel as ModerationModel
 from .batch_list_params import BatchListParams as BatchListParams
 from .completion_choice import CompletionChoice as CompletionChoice
 from .image_edit_params import ImageEditParams as ImageEditParams
+from .skill_list_params import SkillListParams as SkillListParams
 from .video_list_params import VideoListParams as VideoListParams
 from .video_model_param import VideoModelParam as VideoModelParam
 from .eval_create_params import EvalCreateParams as EvalCreateParams
@@ -61,6 +65,8 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .video_create_error import VideoCreateError as VideoCreateError
 from .video_remix_params import VideoRemixParams as VideoRemixParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
+from .skill_create_params import SkillCreateParams as SkillCreateParams
+from .skill_update_params import SkillUpdateParams as SkillUpdateParams
 from .video_create_params import VideoCreateParams as VideoCreateParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
 from .eval_create_response import EvalCreateResponse as EvalCreateResponse

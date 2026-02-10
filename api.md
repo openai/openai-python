@@ -736,11 +736,20 @@ from openai.types.responses import (
     ApplyPatchTool,
     CompactedResponse,
     ComputerTool,
+    ContainerAuto,
+    ContainerNetworkPolicyAllowlist,
+    ContainerNetworkPolicyDisabled,
+    ContainerNetworkPolicyDomainSecret,
+    ContainerReference,
     CustomTool,
     EasyInputMessage,
     FileSearchTool,
     FunctionShellTool,
     FunctionTool,
+    InlineSkill,
+    InlineSkillSource,
+    LocalEnvironment,
+    LocalSkill,
     Response,
     ResponseApplyPatchToolCall,
     ResponseApplyPatchToolCallOutput,
@@ -760,6 +769,7 @@ from openai.types.responses import (
     ResponseComputerToolCall,
     ResponseComputerToolCallOutputItem,
     ResponseComputerToolCallOutputScreenshot,
+    ResponseContainerReference,
     ResponseContent,
     ResponseContentPartAddedEvent,
     ResponseContentPartDoneEvent,
@@ -809,6 +819,7 @@ from openai.types.responses import (
     ResponseInputText,
     ResponseInputTextContent,
     ResponseItem,
+    ResponseLocalEnvironment,
     ResponseMcpCallArgumentsDeltaEvent,
     ResponseMcpCallArgumentsDoneEvent,
     ResponseMcpCallCompletedEvent,
@@ -845,6 +856,7 @@ from openai.types.responses import (
     ResponseWebSearchCallCompletedEvent,
     ResponseWebSearchCallInProgressEvent,
     ResponseWebSearchCallSearchingEvent,
+    SkillReference,
     Tool,
     ToolChoiceAllowed,
     ToolChoiceApplyPatch,
@@ -1169,6 +1181,49 @@ Methods:
 Methods:
 
 - <code title="get /containers/{container_id}/files/{file_id}/content">client.containers.files.content.<a href="./src/openai/resources/containers/files/content.py">retrieve</a>(file_id, \*, container_id) -> HttpxBinaryResponseContent</code>
+
+# Skills
+
+Types:
+
+```python
+from openai.types import DeletedSkill, Skill, SkillList
+```
+
+Methods:
+
+- <code title="post /skills">client.skills.<a href="./src/openai/resources/skills/skills.py">create</a>(\*\*<a href="src/openai/types/skill_create_params.py">params</a>) -> <a href="./src/openai/types/skill.py">Skill</a></code>
+- <code title="get /skills/{skill_id}">client.skills.<a href="./src/openai/resources/skills/skills.py">retrieve</a>(skill_id) -> <a href="./src/openai/types/skill.py">Skill</a></code>
+- <code title="post /skills/{skill_id}">client.skills.<a href="./src/openai/resources/skills/skills.py">update</a>(skill_id, \*\*<a href="src/openai/types/skill_update_params.py">params</a>) -> <a href="./src/openai/types/skill.py">Skill</a></code>
+- <code title="get /skills">client.skills.<a href="./src/openai/resources/skills/skills.py">list</a>(\*\*<a href="src/openai/types/skill_list_params.py">params</a>) -> <a href="./src/openai/types/skill.py">SyncCursorPage[Skill]</a></code>
+- <code title="delete /skills/{skill_id}">client.skills.<a href="./src/openai/resources/skills/skills.py">delete</a>(skill_id) -> <a href="./src/openai/types/deleted_skill.py">DeletedSkill</a></code>
+
+## Content
+
+Methods:
+
+- <code title="get /skills/{skill_id}/content">client.skills.content.<a href="./src/openai/resources/skills/content.py">retrieve</a>(skill_id) -> HttpxBinaryResponseContent</code>
+
+## Versions
+
+Types:
+
+```python
+from openai.types.skills import DeletedSkillVersion, SkillVersion, SkillVersionList
+```
+
+Methods:
+
+- <code title="post /skills/{skill_id}/versions">client.skills.versions.<a href="./src/openai/resources/skills/versions/versions.py">create</a>(skill_id, \*\*<a href="src/openai/types/skills/version_create_params.py">params</a>) -> <a href="./src/openai/types/skills/skill_version.py">SkillVersion</a></code>
+- <code title="get /skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/openai/resources/skills/versions/versions.py">retrieve</a>(version, \*, skill_id) -> <a href="./src/openai/types/skills/skill_version.py">SkillVersion</a></code>
+- <code title="get /skills/{skill_id}/versions">client.skills.versions.<a href="./src/openai/resources/skills/versions/versions.py">list</a>(skill_id, \*\*<a href="src/openai/types/skills/version_list_params.py">params</a>) -> <a href="./src/openai/types/skills/skill_version.py">SyncCursorPage[SkillVersion]</a></code>
+- <code title="delete /skills/{skill_id}/versions/{version}">client.skills.versions.<a href="./src/openai/resources/skills/versions/versions.py">delete</a>(version, \*, skill_id) -> <a href="./src/openai/types/skills/deleted_skill_version.py">DeletedSkillVersion</a></code>
+
+### Content
+
+Methods:
+
+- <code title="get /skills/{skill_id}/versions/{version}/content">client.skills.versions.content.<a href="./src/openai/resources/skills/versions/content.py">retrieve</a>(version, \*, skill_id) -> HttpxBinaryResponseContent</code>
 
 # Videos
 
