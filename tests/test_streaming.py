@@ -216,6 +216,32 @@ async def test_multi_byte_character_multiple_chunks(
     assert sse.json() == {"content": "известни"}
 
 
+@pytest.mark.asyncio
+async def test_async_stream_aclose(async_client: AsyncOpenAI) -> None:
+    """AsyncStream should support aclose() as an alias for close().
+
+    This is the standard Python async cleanup method name (used by contextlib,
+    asyncio, and the language spec for async generators).  Callers such as
+    ``AsyncChatCompletionStream.close()`` and Langfuse's
+    ``LangfuseResponseGeneratorAsync`` invoke ``aclose()`` on the underlying
+    stream, so its absence causes ``AttributeError`` at cleanup time.
+    """
+
+    def body() -> Iterator[bytes]:
+        yield b"data: [DONE]\n\n"
+
+    stream = AsyncStream(
+        cast_to=object,
+        client=async_client,
+        response=httpx.Response(200, content=to_aiter(body())),
+    )
+
+    assert hasattr(stream, "aclose"), "AsyncStream must expose aclose()"
+
+    # aclose() should behave identically to close()
+    await stream.aclose()
+
+
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
     for chunk in iter:
         yield chunk
