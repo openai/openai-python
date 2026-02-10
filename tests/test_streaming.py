@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from typing import Iterator, AsyncIterator
+from unittest import mock
 
 import httpx
 import pytest
@@ -238,8 +239,10 @@ async def test_async_stream_aclose(async_client: AsyncOpenAI) -> None:
 
     assert hasattr(stream, "aclose"), "AsyncStream must expose aclose()"
 
-    # aclose() should behave identically to close()
-    await stream.aclose()
+    # aclose() should delegate to close()
+    with mock.patch.object(stream, "close", wraps=stream.close) as mock_close:
+        await stream.aclose()
+        mock_close.assert_called_once()
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
