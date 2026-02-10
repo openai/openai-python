@@ -12,14 +12,14 @@
 -e file:.
 aiohappyeyeballs==2.6.1
     # via aiohttp
-aiohttp==3.13.2
+aiohttp==3.13.3
     # via httpx-aiohttp
     # via openai
 aiosignal==1.4.0
     # via aiohttp
 annotated-types==0.7.0
     # via pydantic
-anyio==4.12.0
+anyio==4.12.1
     # via httpx
     # via openai
 argcomplete==3.6.3
@@ -38,7 +38,7 @@ azure-core==1.36.0
 azure-identity==1.25.1
 backports-asyncio-runner==1.2.0
     # via pytest-asyncio
-certifi==2025.11.12
+certifi==2026.1.4
     # via httpcore
     # via httpx
     # via requests
@@ -84,7 +84,7 @@ httpx==0.28.1
     # via httpx-aiohttp
     # via openai
     # via respx
-httpx-aiohttp==0.1.9
+httpx-aiohttp==0.1.12
     # via openai
 humanize==4.13.0
     # via nox
@@ -94,7 +94,7 @@ idna==3.11
     # via requests
     # via trio
     # via yarl
-importlib-metadata==8.7.0
+importlib-metadata==8.7.1
 iniconfig==2.1.0
     # via pytest
 inline-snapshot==0.31.1
@@ -170,8 +170,12 @@ requests==2.32.5
     # via msal
 respx==0.22.0
 rich==14.2.0
+<<<<<<< HEAD
     # via inline-snapshot
 ruff==0.14.7
+=======
+ruff==0.14.13
+>>>>>>> origin/generated--merge-conflict
 six==1.17.0
     # via python-dateutil
 sniffio==1.3.1
@@ -182,7 +186,7 @@ sortedcontainers==2.4.0
 sounddevice==0.5.3
     # via openai
 time-machine==2.19.0
-tomli==2.3.0
+tomli==2.4.0
     # via dependency-groups
     # via inline-snapshot
     # via mypy
@@ -215,12 +219,16 @@ typing-extensions==4.15.0
     # via virtualenv
 typing-inspection==0.4.2
     # via pydantic
+<<<<<<< HEAD
 tzdata==2025.2
     # via pandas
 urllib3==2.5.0
     # via requests
     # via types-requests
 virtualenv==20.35.4
+=======
+virtualenv==20.36.1
+>>>>>>> origin/generated--merge-conflict
     # via nox
 websockets==15.0.1
     # via openai
