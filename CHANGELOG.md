@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.20.0 (2026-02-10)
+
+Full Changelog: [v2.19.0...v2.20.0](https://github.com/openai/openai-python/compare/v2.19.0...v2.20.0)
+
+### Features
+
+* **api:** support for images in batch api ([28edb6e](https://github.com/openai/openai-python/commit/28edb6e1b7eb30dbb7be49979cee7882e8889264))
+
 ## 2.19.0 (2026-02-10)
 
 Full Changelog: [v2.18.0...v2.19.0](https://github.com/openai/openai-python/compare/v2.18.0...v2.19.0)
