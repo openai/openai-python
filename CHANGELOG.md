@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.19.0 (2026-02-10)
+
+Full Changelog: [v2.18.0...v2.19.0](https://github.com/openai/openai-python/compare/v2.18.0...v2.19.0)
+
+### Features
+
+* **api:** skills and hosted shell ([27fdf68](https://github.com/openai/openai-python/commit/27fdf6820655b5994e3c1eddb3c8d9344a8be744))
+
+
+### Chores
+
+* **internal:** bump dependencies ([fae10fd](https://github.com/openai/openai-python/commit/fae10fd6e936a044f8393a454a39906aa325a893))
+
 ## 2.18.0 (2026-02-09)
 
 Full Changelog: [v2.17.0...v2.18.0](https://github.com/openai/openai-python/compare/v2.17.0...v2.18.0)
