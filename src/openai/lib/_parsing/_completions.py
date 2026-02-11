@@ -141,17 +141,14 @@ def parse_chat_completion(
                 type_=ParsedChoice[ResponseFormatT],
                 value={
                     **choice.to_dict(),
-                    "message": construct_type_unchecked(
-                        type_=ParsedChatCompletionMessage[ResponseFormatT],
-                        value={
-                            **message.to_dict(),
-                            "parsed": maybe_parse_content(
-                                response_format=response_format,
-                                message=message,
-                            ),
-                            "tool_calls": tool_calls if tool_calls else None,
-                        },
-                    ),
+                    "message": {
+                        **message.to_dict(),
+                        "parsed": maybe_parse_content(
+                            response_format=response_format,
+                            message=message,
+                        ),
+                        "tool_calls": tool_calls if tool_calls else None,
+                    },
                 },
             )
         )
