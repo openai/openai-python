@@ -198,20 +198,6 @@ def maybe_parse_content(
     return None
 
 
-def solve_response_format_t(
-    response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
-) -> type[ResponseFormatT]:
-    """Return the runtime type for the given response format.
-
-    If no response format is given, or if we won't auto-parse the response format
-    then we default to `None`.
-    """
-    if has_rich_response_format(response_format):
-        return response_format
-
-    return cast("type[ResponseFormatT]", _default_response_format)
-
-
 def has_parseable_input(
     *,
     response_format: type | ResponseFormatParam | Omit,
