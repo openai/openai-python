@@ -28,4 +28,7 @@ def print_obj(obj: object, monkeypatch: pytest.MonkeyPatch) -> str:
 
         string = rich_print_str(obj)
 
+        # Pydantic v1 and v2 have different implementations of __repr__ and print out
+        # generics differently, so we strip out generic type parameters to ensure
+        # consistent snapshot tests across both versions
         return re.sub(r"([A-Za-z_]\w*)\[[^\[\]]+\](?=\()", r"\1", string)
