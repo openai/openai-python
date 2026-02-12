@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Iterable, Union
+
 from typing_extensions import Literal, Required, TypedDict
 
 from .._types import SequenceNotStr
+from .responses.inline_skill_param import InlineSkillParam
+from .responses.skill_reference_param import SkillReferenceParam
 
 __all__ = ["ContainerCreateParams", "ExpiresAfter"]
 
@@ -21,6 +25,9 @@ class ContainerCreateParams(TypedDict, total=False):
 
     memory_limit: Literal["1g", "4g", "16g", "64g"]
     """Optional memory limit for the container. Defaults to "1g"."""
+
+    # skills: Iterable[Union[SkillReferenceParam, InlineSkillParam]]
+    """Optional list of skills referenced by id or inline data."""
 
 
 class ExpiresAfter(TypedDict, total=False):
