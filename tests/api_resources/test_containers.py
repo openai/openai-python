@@ -39,6 +39,10 @@ class TestContainers:
             },
             file_ids=["string"],
             memory_limit="1g",
+            skills=[
+                {"type": "skill_reference", "skill_id": "skill_4db6f1a2c9e73508b41f9da06e2c7b5f"},
+                {"type": "skill_reference", "skill_id": "openai-spreadsheets", "version": "latest"},
+            ],
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 
@@ -199,6 +203,10 @@ class TestAsyncContainers:
             },
             file_ids=["string"],
             memory_limit="1g",
+            skills=[
+                {"type": "skill_reference", "skill_id": "skill_4db6f1a2c9e73508b41f9da06e2c7b5f"},
+                {"type": "skill_reference", "skill_id": "openai-spreadsheets", "version": "latest"},
+            ],
         )
         assert_matches_type(ContainerCreateResponse, container, path=["response"])
 

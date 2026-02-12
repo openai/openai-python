@@ -2,12 +2,16 @@
 
 from __future__ import annotations
 
+from typing import Iterable, Union
+
 from typing_extensions import Literal
 
 import httpx
 
 from ... import _legacy_response
 from ...types import container_list_params, container_create_params
+from ...types.responses.inline_skill_param import InlineSkillParam
+from ...types.responses.skill_reference_param import SkillReferenceParam
 from ..._types import Body, Omit, Query, Headers, NoneType, NotGiven, SequenceNotStr, omit, not_given
 from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
@@ -61,6 +65,7 @@ class Containers(SyncAPIResource):
         expires_after: container_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
         memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
+        skills: Iterable[Union[SkillReferenceParam, InlineSkillParam]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -80,6 +85,8 @@ class Containers(SyncAPIResource):
 
           memory_limit: Optional memory limit for the container. Defaults to "1g".
 
+          skills: Optional list of skills referenced by id or inline data.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -96,6 +103,7 @@ class Containers(SyncAPIResource):
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "memory_limit": memory_limit,
+                    "skills": skills,
                 },
                 container_create_params.ContainerCreateParams,
             ),
@@ -261,6 +269,7 @@ class AsyncContainers(AsyncAPIResource):
         expires_after: container_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
         memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
+        skills: Iterable[Union[SkillReferenceParam, InlineSkillParam]] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -280,6 +289,8 @@ class AsyncContainers(AsyncAPIResource):
 
           memory_limit: Optional memory limit for the container. Defaults to "1g".
 
+          skills: Optional list of skills referenced by id or inline data.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -296,6 +307,7 @@ class AsyncContainers(AsyncAPIResource):
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "memory_limit": memory_limit,
+                    "skills": skills,
                 },
                 container_create_params.ContainerCreateParams,
             ),
