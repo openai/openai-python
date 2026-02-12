@@ -26,7 +26,7 @@ class ContainerCreateParams(TypedDict, total=False):
     memory_limit: Literal["1g", "4g", "16g", "64g"]
     """Optional memory limit for the container. Defaults to "1g"."""
 
-    # skills: Iterable[Union[SkillReferenceParam, InlineSkillParam]]
+    skills: Iterable[Union[SkillReferenceParam, InlineSkillParam]]
     """Optional list of skills referenced by id or inline data."""
 
 
