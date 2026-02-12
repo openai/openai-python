@@ -95,6 +95,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -146,6 +147,8 @@ class Responses(SyncAPIResource):
         Args:
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          context_management: Context management configuration for this request.
 
           conversation: The conversation that this response belongs to. Items from this conversation are
               prepended to `input_items` for this response request. Input items and output
@@ -341,6 +344,7 @@ class Responses(SyncAPIResource):
         *,
         stream: Literal[True],
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -398,6 +402,8 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          context_management: Context management configuration for this request.
 
           conversation: The conversation that this response belongs to. Items from this conversation are
               prepended to `input_items` for this response request. Input items and output
@@ -586,6 +592,7 @@ class Responses(SyncAPIResource):
         *,
         stream: bool,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -643,6 +650,8 @@ class Responses(SyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          context_management: Context management configuration for this request.
 
           conversation: The conversation that this response belongs to. Items from this conversation are
               prepended to `input_items` for this response request. Input items and output
@@ -829,6 +838,7 @@ class Responses(SyncAPIResource):
         self,
         *,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -868,6 +878,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
                     "input": input,
@@ -930,6 +941,7 @@ class Responses(SyncAPIResource):
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
         tools: Iterable[ParseableToolParam] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -970,6 +982,7 @@ class Responses(SyncAPIResource):
         input: Union[str, ResponseInputParam] | Omit = omit,
         model: ResponsesModel | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
         tools: Iterable[ParseableToolParam] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -1006,6 +1019,7 @@ class Responses(SyncAPIResource):
         new_response_args = {
             "input": input,
             "model": model,
+            "context_management": context_management,
             "conversation": conversation,
             "include": include,
             "instructions": instructions,
@@ -1061,6 +1075,7 @@ class Responses(SyncAPIResource):
                 input=input,
                 model=model,
                 tools=tools,
+                context_management=context_management,
                 conversation=conversation,
                 include=include,
                 instructions=instructions,
@@ -1118,6 +1133,7 @@ class Responses(SyncAPIResource):
         *,
         text_format: type[TextFormatT] | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -1176,6 +1192,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
                     "input": input,
@@ -1709,6 +1726,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -1760,6 +1778,8 @@ class AsyncResponses(AsyncAPIResource):
         Args:
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          context_management: Context management configuration for this request.
 
           conversation: The conversation that this response belongs to. Items from this conversation are
               prepended to `input_items` for this response request. Input items and output
@@ -1955,6 +1975,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: Literal[True],
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -2012,6 +2033,8 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          context_management: Context management configuration for this request.
 
           conversation: The conversation that this response belongs to. Items from this conversation are
               prepended to `input_items` for this response request. Input items and output
@@ -2200,6 +2223,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         stream: bool,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -2257,6 +2281,8 @@ class AsyncResponses(AsyncAPIResource):
 
           background: Whether to run the model response in the background.
               [Learn more](https://platform.openai.com/docs/guides/background).
+
+          context_management: Context management configuration for this request.
 
           conversation: The conversation that this response belongs to. Items from this conversation are
               prepended to `input_items` for this response request. Input items and output
@@ -2443,6 +2469,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         *,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -2482,6 +2509,7 @@ class AsyncResponses(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
                     "input": input,
@@ -2544,6 +2572,7 @@ class AsyncResponses(AsyncAPIResource):
         input: Union[str, ResponseInputParam],
         model: ResponsesModel,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
         tools: Iterable[ParseableToolParam] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2584,6 +2613,7 @@ class AsyncResponses(AsyncAPIResource):
         input: Union[str, ResponseInputParam] | Omit = omit,
         model: ResponsesModel | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         text_format: type[TextFormatT] | Omit = omit,
         tools: Iterable[ParseableToolParam] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
@@ -2620,6 +2650,7 @@ class AsyncResponses(AsyncAPIResource):
         new_response_args = {
             "input": input,
             "model": model,
+            "context_management": context_management,
             "conversation": conversation,
             "include": include,
             "instructions": instructions,
@@ -2675,6 +2706,7 @@ class AsyncResponses(AsyncAPIResource):
                 model=model,
                 stream=True,
                 tools=tools,
+                context_management=context_management,
                 conversation=conversation,
                 include=include,
                 instructions=instructions,
@@ -2736,6 +2768,7 @@ class AsyncResponses(AsyncAPIResource):
         *,
         text_format: type[TextFormatT] | Omit = omit,
         background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[response_create_params.ContextManagement]] | Omit = omit,
         conversation: Optional[response_create_params.Conversation] | Omit = omit,
         include: Optional[List[ResponseIncludable]] | Omit = omit,
         input: Union[str, ResponseInputParam] | Omit = omit,
@@ -2794,6 +2827,7 @@ class AsyncResponses(AsyncAPIResource):
             body=maybe_transform(
                 {
                     "background": background,
+                    "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
                     "input": input,

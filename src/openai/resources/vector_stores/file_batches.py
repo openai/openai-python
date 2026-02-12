@@ -194,15 +194,29 @@ class FileBatches(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
-        poll_interval_ms: int | Omit = omit,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = self.create(
             vector_store_id=vector_store_id,
-            file_ids=file_ids,
+            attributes=attributes,
             chunking_strategy=chunking_strategy,
+            file_ids=file_ids,
+            files=files,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
         # TODO: don't poll unless necessary??
         return self.poll(
@@ -539,15 +553,29 @@ class AsyncFileBatches(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
-        poll_interval_ms: int | Omit = omit,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = await self.create(
             vector_store_id=vector_store_id,
-            file_ids=file_ids,
+            attributes=attributes,
             chunking_strategy=chunking_strategy,
+            file_ids=file_ids,
+            files=files,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
         # TODO: don't poll unless necessary??
         return await self.poll(
