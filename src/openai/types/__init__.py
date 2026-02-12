@@ -65,6 +65,12 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .video_create_error import VideoCreateError as VideoCreateError
 from .video_remix_params import VideoRemixParams as VideoRemixParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
+from .batch_request_input import BatchRequestInput as BatchRequestInput
+from .batch_request_output import (
+    BatchRequestOutput as BatchRequestOutput,
+    BatchRequestOutputError as BatchRequestOutputError,
+    BatchRequestOutputResponse as BatchRequestOutputResponse,
+)
 from .skill_create_params import SkillCreateParams as SkillCreateParams
 from .skill_update_params import SkillUpdateParams as SkillUpdateParams
 from .video_create_params import VideoCreateParams as VideoCreateParams
@@ -99,8 +105,7 @@ from .vector_store_search_params import VectorStoreSearchParams as VectorStoreSe
 from .vector_store_update_params import VectorStoreUpdateParams as VectorStoreUpdateParams
 from .container_retrieve_response import ContainerRetrieveResponse as ContainerRetrieveResponse
 from .moderation_text_input_param import ModerationTextInputParam as ModerationTextInputParam
-from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam
-from .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
+from .file_chunking_strategy_param import FileChunkingStrategyParam as FileChunkingStrategyParam\nfrom .vector_store_search_response import VectorStoreSearchResponse as VectorStoreSearchResponse
 from .websocket_connection_options import WebsocketConnectionOptions as WebsocketConnectionOptions
 from .image_create_variation_params import ImageCreateVariationParams as ImageCreateVariationParams
 from .image_gen_partial_image_event import ImageGenPartialImageEvent as ImageGenPartialImageEvent
