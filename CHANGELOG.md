@@ -1,5 +1,30 @@
 # Changelog
 
+## 2.21.0 (2026-02-13)
+
+Full Changelog: [v2.20.0...v2.21.0](https://github.com/openai/openai-python/compare/v2.20.0...v2.21.0)
+
+### Features
+
+* **api:** container network_policy and skills ([d19de2e](https://github.com/openai/openai-python/commit/d19de2ee5c74413f9dc52684b650df1898dee82b))
+
+
+### Bug Fixes
+
+* **structured outputs:** resolve memory leak in parse methods ([#2860](https://github.com/openai/openai-python/issues/2860)) ([6dcbe21](https://github.com/openai/openai-python/commit/6dcbe211f12f8470db542a5cb95724cb933786dd))
+* **webhooks:** preserve method visibility for compatibility checks ([44a8936](https://github.com/openai/openai-python/commit/44a8936d580b770f23fae79659101a27eadafad6))
+
+
+### Chores
+
+* **internal:** fix lint error on Python 3.14 ([534f215](https://github.com/openai/openai-python/commit/534f215941f504443d63509e872409a0b1236452))
+
+
+### Documentation
+
+* split `api.md` by standalone resources ([96e41b3](https://github.com/openai/openai-python/commit/96e41b398a110212ddec71436b2439343bea87d4))
+* update comment ([63def23](https://github.com/openai/openai-python/commit/63def23b7acd5c6dacf03337fe1bd08439d1dba8))
+
 ## 2.20.0 (2026-02-10)
 
 Full Changelog: [v2.19.0...v2.20.0](https://github.com/openai/openai-python/compare/v2.19.0...v2.20.0)
