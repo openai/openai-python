@@ -138,7 +138,7 @@ def parse_chat_completion(
 
         choices.append(
             construct_type_unchecked(
-                type_=cast(Any, ParsedChoice)[solve_response_format_t(response_format)],
+                type_=ParsedChoice[ResponseFormatT],
                 value={
                     **choice.to_dict(),
                     "message": {
@@ -153,15 +153,12 @@ def parse_chat_completion(
             )
         )
 
-    return cast(
-        ParsedChatCompletion[ResponseFormatT],
-        construct_type_unchecked(
-            type_=cast(Any, ParsedChatCompletion)[solve_response_format_t(response_format)],
-            value={
-                **chat_completion.to_dict(),
-                "choices": choices,
-            },
-        ),
+    return construct_type_unchecked(
+        type_=ParsedChatCompletion[ResponseFormatT],
+        value={
+            **chat_completion.to_dict(),
+            "choices": choices,
+        },
     )
 
 
@@ -199,20 +196,6 @@ def maybe_parse_content(
         return _parse_content(response_format, message.content)
 
     return None
-
-
-def solve_response_format_t(
-    response_format: type[ResponseFormatT] | ResponseFormatParam | Omit,
-) -> type[ResponseFormatT]:
-    """Return the runtime type for the given response format.
-
-    If no response format is given, or if we won't auto-parse the response format
-    then we default to `None`.
-    """
-    if has_rich_response_format(response_format):
-        return response_format
-
-    return cast("type[ResponseFormatT]", _default_response_format)
 
 
 def has_parseable_input(
