@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from .resources.models import Models
     from .resources.videos import Videos
     from .resources.batches import Batches
-    from .resources.webhooks import Webhooks
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
@@ -22,6 +21,7 @@ if TYPE_CHECKING:
     from .resources.skills.skills import Skills
     from .resources.uploads.uploads import Uploads
     from .resources.realtime.realtime import Realtime
+    from .resources.webhooks.webhooks import Webhooks
     from .resources.responses.responses import Responses
     from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
