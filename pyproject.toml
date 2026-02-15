@@ -1,6 +1,6 @@
 [project]
 name = "openai"
-version = "2.20.0"
+version = "2.21.0"
 description = "The official Python library for the openai API"
 dynamic = ["readme"]
 license = "Apache-2.0"
@@ -84,7 +84,7 @@ format = { chain = [
   # run formatting again to fix any inconsistencies when imports are stripped
   "format:ruff",
 ]}
-"format:docs" = "python scripts/utils/ruffen-docs.py README.md api.md"
+"format:docs" = "bash -c 'python scripts/utils/ruffen-docs.py README.md $(find . -type f -name api.md)'"
 "format:ruff" = "ruff format"
 
 "lint" = { chain = [

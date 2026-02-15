@@ -63,7 +63,6 @@ if TYPE_CHECKING:
     from .resources.models import Models, AsyncModels
     from .resources.videos import Videos, AsyncVideos
     from .resources.batches import Batches, AsyncBatches
-    from .resources.webhooks import Webhooks, AsyncWebhooks
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
     from .resources.embeddings import Embeddings, AsyncEmbeddings
@@ -74,6 +73,7 @@ if TYPE_CHECKING:
     from .resources.skills.skills import Skills, AsyncSkills
     from .resources.uploads.uploads import Uploads, AsyncUploads
     from .resources.realtime.realtime import Realtime, AsyncRealtime
+    from .resources.webhooks.webhooks import Webhooks, AsyncWebhooks
     from .resources.responses.responses import Responses, AsyncResponses
     from .resources.containers.containers import Containers, AsyncContainers
     from .resources.fine_tuning.fine_tuning import FineTuning, AsyncFineTuning

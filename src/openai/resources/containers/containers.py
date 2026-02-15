@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Iterable
 from typing_extensions import Literal
 
 import httpx
@@ -61,6 +62,8 @@ class Containers(SyncAPIResource):
         expires_after: container_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
         memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
+        network_policy: container_create_params.NetworkPolicy | Omit = omit,
+        skills: Iterable[container_create_params.Skill] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -80,6 +83,10 @@ class Containers(SyncAPIResource):
 
           memory_limit: Optional memory limit for the container. Defaults to "1g".
 
+          network_policy: Network access policy for the container.
+
+          skills: An optional list of skills referenced by id or inline data.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -96,6 +103,8 @@ class Containers(SyncAPIResource):
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "memory_limit": memory_limit,
+                    "network_policy": network_policy,
+                    "skills": skills,
                 },
                 container_create_params.ContainerCreateParams,
             ),
@@ -143,6 +152,7 @@ class Containers(SyncAPIResource):
         *,
         after: str | Omit = omit,
         limit: int | Omit = omit,
+        name: str | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -163,6 +173,8 @@ class Containers(SyncAPIResource):
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
+
+          name: Filter results by container name.
 
           order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
               order and `desc` for descending order.
@@ -187,6 +199,7 @@ class Containers(SyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "name": name,
                         "order": order,
                     },
                     container_list_params.ContainerListParams,
@@ -261,6 +274,8 @@ class AsyncContainers(AsyncAPIResource):
         expires_after: container_create_params.ExpiresAfter | Omit = omit,
         file_ids: SequenceNotStr[str] | Omit = omit,
         memory_limit: Literal["1g", "4g", "16g", "64g"] | Omit = omit,
+        network_policy: container_create_params.NetworkPolicy | Omit = omit,
+        skills: Iterable[container_create_params.Skill] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -280,6 +295,10 @@ class AsyncContainers(AsyncAPIResource):
 
           memory_limit: Optional memory limit for the container. Defaults to "1g".
 
+          network_policy: Network access policy for the container.
+
+          skills: An optional list of skills referenced by id or inline data.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -296,6 +315,8 @@ class AsyncContainers(AsyncAPIResource):
                     "expires_after": expires_after,
                     "file_ids": file_ids,
                     "memory_limit": memory_limit,
+                    "network_policy": network_policy,
+                    "skills": skills,
                 },
                 container_create_params.ContainerCreateParams,
             ),
@@ -343,6 +364,7 @@ class AsyncContainers(AsyncAPIResource):
         *,
         after: str | Omit = omit,
         limit: int | Omit = omit,
+        name: str | Omit = omit,
         order: Literal["asc", "desc"] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
@@ -363,6 +385,8 @@ class AsyncContainers(AsyncAPIResource):
 
           limit: A limit on the number of objects to be returned. Limit can range between 1 and
               100, and the default is 20.
+
+          name: Filter results by container name.
 
           order: Sort order by the `created_at` timestamp of the objects. `asc` for ascending
               order and `desc` for descending order.
@@ -387,6 +411,7 @@ class AsyncContainers(AsyncAPIResource):
                     {
                         "after": after,
                         "limit": limit,
+                        "name": name,
                         "order": order,
                     },
                     container_list_params.ContainerListParams,
