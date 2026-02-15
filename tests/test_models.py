@@ -961,3 +961,18 @@ def test_extra_properties() -> None:
     assert model.a.prop == 1
     assert isinstance(model.a, Item)
     assert model.other == "foo"
+
+
+@pytest.mark.skipif(PYDANTIC_V1, reason="TypeAdapter cache is only used in Pydantic v2")
+def test_type_adapter_cache_is_bounded() -> None:
+    """Regression test for https://github.com/openai/openai-python/issues/2672
+
+    The TypeAdapter cache must have a bounded maxsize to prevent memory leaks
+    in multi-threaded environments where parameterized generic types get
+    regenerated with different identities on each call.
+    """
+    from openai._models import TypeAdapter
+
+    cache_info = TypeAdapter.cache_info()
+    assert cache_info.maxsize is not None, "TypeAdapter cache maxsize must not be None (unbounded)"
+    assert cache_info.maxsize > 0, "TypeAdapter cache maxsize must be positive"
