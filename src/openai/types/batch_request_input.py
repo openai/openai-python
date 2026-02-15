@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from typing import Optional
 from typing_extensions import Literal, Required, TypedDict
 
 __all__ = ["BatchRequestInput"]
@@ -23,5 +22,5 @@ class BatchRequestInput(TypedDict, total=False):
     supported.
     """
 
-    body: Optional[object]
+    body: Required[object]
     """The body of the request."""
