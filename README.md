@@ -144,7 +144,26 @@ async def main() -> None:
 asyncio.run(main())
 ```
 
-Functionality between the synchronous and asynchronous clients is otherwise identical.
+Functionality between the synchronous and asynchronous clients is otherwise mostly identical.
+
+### Async Garbage Collection
+
+When opening multiple `AsyncOpenAI` clients, it is recommended to use `with` blocks to handle
+resource management instead of relying on traditional garbage collection. Failing to do this
+may result in leaked connections and degraded performance over time since the async event loop
+can be cleaned up before the `AsyncOpenAI` client has a chance to clean up its resources.
+
+```
+async def callModel(prompt) -> None:
+   async with getAsyncVLLMClient(api_key=os.environ.get("OPENAI_API_KEY")) as client:
+      response = await client.responses.create(
+          model="gpt-4o", input=prompt
+      )
+
+prompts = [...]
+for prompt in prompts:
+   asyncio.run(callModel(prompt))
+```
 
 ### With aiohttp
 
