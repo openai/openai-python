@@ -156,6 +156,7 @@ class Videos(SyncAPIResource):
         return self.poll(
             video.id,
             poll_interval_ms=poll_interval_ms,
+            timeout=timeout,
         )
 
     def poll(
@@ -163,11 +164,15 @@ class Videos(SyncAPIResource):
         video_id: str,
         *,
         poll_interval_ms: int | Omit = omit,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """Wait for the vector store file to finish processing.
 
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
+
+        Args:
+          timeout: Override the client-level default timeout applied to each poll request, in seconds.
         """
         headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
         if is_given(poll_interval_ms):
@@ -177,6 +182,7 @@ class Videos(SyncAPIResource):
             response = self.with_raw_response.retrieve(
                 video_id,
                 extra_headers=headers,
+                timeout=timeout,
             )
 
             video = response.parse()
@@ -511,6 +517,7 @@ class AsyncVideos(AsyncAPIResource):
         return await self.poll(
             video.id,
             poll_interval_ms=poll_interval_ms,
+            timeout=timeout,
         )
 
     async def poll(
@@ -518,11 +525,15 @@ class AsyncVideos(AsyncAPIResource):
         video_id: str,
         *,
         poll_interval_ms: int | Omit = omit,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Video:
         """Wait for the vector store file to finish processing.
 
         Note: this will return even if the file failed to process, you need to check
         file.last_error and file.status to handle these cases
+
+        Args:
+          timeout: Override the client-level default timeout applied to each poll request, in seconds.
         """
         headers: dict[str, str] = {"X-Stainless-Poll-Helper": "true"}
         if is_given(poll_interval_ms):
@@ -532,6 +543,7 @@ class AsyncVideos(AsyncAPIResource):
             response = await self.with_raw_response.retrieve(
                 video_id,
                 extra_headers=headers,
+                timeout=timeout,
             )
 
             video = response.parse()
