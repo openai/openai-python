@@ -32,7 +32,7 @@ class TestResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -119,7 +119,7 @@ class TestResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -440,7 +440,7 @@ class TestAsyncResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],
@@ -527,7 +527,7 @@ class TestAsyncResponses:
             background=True,
             context_management=[
                 {
-                    "type": "type",
+                    "type": "compaction",
                     "compact_threshold": 1000,
                 }
             ],

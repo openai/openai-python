@@ -77,7 +77,7 @@ With an image URL:
 
 ```python
 prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/640px-2023_06_08_Raccoon1.jpg"
 
 response = client.responses.create(
     model="gpt-5.2",
@@ -92,6 +92,8 @@ response = client.responses.create(
     ],
 )
 ```
+
+If you get `BadRequestError` with `"invalid_value"` when downloading the image, either swap in a smaller URL you control or switch to the base64 example below so the image is uploaded directly rather than fetched from the web.
 
 With the image as a base64 encoded string:
 
