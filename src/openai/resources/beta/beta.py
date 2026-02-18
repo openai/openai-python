@@ -59,6 +59,11 @@ class Beta(SyncAPIResource):
         return Threads(self._client)
 
     @cached_property
+    def vector_stores(self):
+        from ...resources.vector_stores import VectorStores
+        return VectorStores(self._client)
+
+    @cached_property
     def with_raw_response(self) -> BetaWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
