@@ -85,6 +85,9 @@ class Transcriptions(SyncAPIResource):
         """
         Transcribes audio into the input language.
 
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
+
         Args:
           file:
               The audio file object (not file name) to transcribe, in one of these formats:
@@ -235,6 +238,9 @@ class Transcriptions(SyncAPIResource):
         """
         Transcribes audio into the input language.
 
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
+
         Args:
           file:
               The audio file object (not file name) to transcribe, in one of these formats:
@@ -342,6 +348,9 @@ class Transcriptions(SyncAPIResource):
     ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
+
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
 
         Args:
           file:
@@ -533,6 +542,9 @@ class AsyncTranscriptions(AsyncAPIResource):
         """
         Transcribes audio into the input language.
 
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
+
         Args:
           file:
               The audio file object (not file name) to transcribe, in one of these formats:
@@ -678,6 +690,9 @@ class AsyncTranscriptions(AsyncAPIResource):
         """
         Transcribes audio into the input language.
 
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
+
         Args:
           file:
               The audio file object (not file name) to transcribe, in one of these formats:
@@ -785,6 +800,9 @@ class AsyncTranscriptions(AsyncAPIResource):
     ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
+
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
 
         Args:
           file:

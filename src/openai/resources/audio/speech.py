@@ -67,6 +67,8 @@ class Speech(SyncAPIResource):
         """
         Generates audio from the input text.
 
+        Returns the audio file content, or a stream of audio events.
+
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.
 
@@ -163,6 +165,8 @@ class AsyncSpeech(AsyncAPIResource):
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
+
+        Returns the audio file content, or a stream of audio events.
 
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.

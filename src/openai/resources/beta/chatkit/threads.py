@@ -55,7 +55,7 @@ class Threads(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ChatKitThread:
         """
-        Retrieve a ChatKit thread
+        Retrieve a ChatKit thread by its identifier.
 
         Args:
           extra_headers: Send extra headers
@@ -93,7 +93,7 @@ class Threads(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[ChatKitThread]:
         """
-        List ChatKit threads
+        List ChatKit threads with optional pagination and user filters.
 
         Args:
           after: List items created after this thread item ID. Defaults to null for the first
@@ -152,7 +152,7 @@ class Threads(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleteResponse:
         """
-        Delete a ChatKit thread
+        Delete a ChatKit thread along with its items and stored attachments.
 
         Args:
           extra_headers: Send extra headers
@@ -190,7 +190,7 @@ class Threads(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncConversationCursorPage[Data]:
         """
-        List ChatKit thread items
+        List items that belong to a ChatKit thread.
 
         Args:
           after: List items created after this thread item ID. Defaults to null for the first
@@ -268,7 +268,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ChatKitThread:
         """
-        Retrieve a ChatKit thread
+        Retrieve a ChatKit thread by its identifier.
 
         Args:
           extra_headers: Send extra headers
@@ -306,7 +306,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[ChatKitThread, AsyncConversationCursorPage[ChatKitThread]]:
         """
-        List ChatKit threads
+        List ChatKit threads with optional pagination and user filters.
 
         Args:
           after: List items created after this thread item ID. Defaults to null for the first
@@ -365,7 +365,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> ThreadDeleteResponse:
         """
-        Delete a ChatKit thread
+        Delete a ChatKit thread along with its items and stored attachments.
 
         Args:
           extra_headers: Send extra headers
@@ -403,7 +403,7 @@ class AsyncThreads(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Data, AsyncConversationCursorPage[Data]]:
         """
-        List ChatKit thread items
+        List items that belong to a ChatKit thread.
 
         Args:
           after: List items created after this thread item ID. Defaults to null for the first

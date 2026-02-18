@@ -52,7 +52,7 @@ class Content(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Get Skill Version Content
+        Download a skill version zip bundle.
 
         Args:
           version: The skill version number.
@@ -112,7 +112,7 @@ class AsyncContent(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Get Skill Version Content
+        Download a skill version zip bundle.
 
         Args:
           version: The skill version number.

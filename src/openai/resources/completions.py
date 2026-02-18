@@ -76,6 +76,9 @@ class Completions(SyncAPIResource):
         """
         Creates a completion for the provided prompt and parameters.
 
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
+
         Args:
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -231,6 +234,9 @@ class Completions(SyncAPIResource):
         """
         Creates a completion for the provided prompt and parameters.
 
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
+
         Args:
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -385,6 +391,9 @@ class Completions(SyncAPIResource):
     ) -> Completion | Stream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
+
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
 
         Args:
           model: ID of the model to use. You can use the
@@ -626,6 +635,9 @@ class AsyncCompletions(AsyncAPIResource):
         """
         Creates a completion for the provided prompt and parameters.
 
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
+
         Args:
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -781,6 +793,9 @@ class AsyncCompletions(AsyncAPIResource):
         """
         Creates a completion for the provided prompt and parameters.
 
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
+
         Args:
           model: ID of the model to use. You can use the
               [List models](https://platform.openai.com/docs/api-reference/models/list) API to
@@ -935,6 +950,9 @@ class AsyncCompletions(AsyncAPIResource):
     ) -> Completion | AsyncStream[Completion]:
         """
         Creates a completion for the provided prompt and parameters.
+
+        Returns a completion object, or a sequence of completion objects if the request
+        is streamed.
 
         Args:
           model: ID of the model to use. You can use the

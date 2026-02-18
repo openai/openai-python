@@ -1645,8 +1645,14 @@ class Responses(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
-        """
-        Compact conversation
+        """Compact a conversation.
+
+        Returns a compacted response object.
+
+        Learn when and how to compact long-running conversations in the
+        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        For ZDR-compatible compaction details, see
+        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
           model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a
@@ -3280,8 +3286,14 @@ class AsyncResponses(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> CompactedResponse:
-        """
-        Compact conversation
+        """Compact a conversation.
+
+        Returns a compacted response object.
+
+        Learn when and how to compact long-running conversations in the
+        [conversation state guide](https://platform.openai.com/docs/guides/conversation-state#managing-the-context-window).
+        For ZDR-compatible compaction details, see
+        [Compaction (advanced)](https://platform.openai.com/docs/guides/conversation-state#compaction-advanced).
 
         Args:
           model: Model ID used to generate the response, like `gpt-5` or `o3`. OpenAI offers a

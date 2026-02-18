@@ -88,7 +88,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Create Skill
+        Create a new skill.
 
         Args:
           files: Skill files to upload (directory upload) or a single zip file.
@@ -130,7 +130,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Get Skill
+        Get a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -164,7 +164,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Update Skill Default Version
+        Update the default version pointer for a skill.
 
         Args:
           default_version: The skill version number to set as default.
@@ -202,7 +202,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[Skill]:
         """
-        List Skills
+        List all skills for the current project.
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -252,7 +252,7 @@ class Skills(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkill:
         """
-        Delete Skill
+        Delete a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -314,7 +314,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Create Skill
+        Create a new skill.
 
         Args:
           files: Skill files to upload (directory upload) or a single zip file.
@@ -356,7 +356,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Get Skill
+        Get a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -390,7 +390,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Skill:
         """
-        Update Skill Default Version
+        Update the default version pointer for a skill.
 
         Args:
           default_version: The skill version number to set as default.
@@ -430,7 +430,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[Skill, AsyncCursorPage[Skill]]:
         """
-        List Skills
+        List all skills for the current project.
 
         Args:
           after: Identifier for the last item from the previous pagination request
@@ -480,7 +480,7 @@ class AsyncSkills(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkill:
         """
-        Delete Skill
+        Delete a skill by its ID.
 
         Args:
           extra_headers: Send extra headers
