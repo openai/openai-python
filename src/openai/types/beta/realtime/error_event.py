@@ -32,5 +32,5 @@ class ErrorEvent(BaseModel):
     event_id: str
     """The unique ID of the server event."""
 
-    type: Literal["error"]
+    type: Literal["error"] = "error"
     """The event type, must be `error`."""
