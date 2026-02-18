@@ -51,7 +51,7 @@ class Content(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Get Skill Content
+        Download a skill zip bundle by its ID.
 
         Args:
           extra_headers: Send extra headers
@@ -106,7 +106,7 @@ class AsyncContent(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
-        Get Skill Content
+        Download a skill zip bundle by its ID.
 
         Args:
           extra_headers: Send extra headers
