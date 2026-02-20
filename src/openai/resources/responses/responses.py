@@ -238,8 +238,9 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -493,8 +494,9 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -741,8 +743,9 @@ class Responses(SyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -1875,8 +1878,9 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -2130,8 +2134,9 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
@@ -2378,8 +2383,9 @@ class AsyncResponses(AsyncAPIResource):
 
           safety_identifier: A stable identifier used to help detect users of your application that may be
               violating OpenAI's usage policies. The IDs should be a string that uniquely
-              identifies each user. We recommend hashing their username or email address, in
-              order to avoid sending us any identifying information.
+              identifies each user, with a maximum length of 64 characters. We recommend
+              hashing their username or email address, in order to avoid sending us any
+              identifying information.
               [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
 
           service_tier: Specifies the processing type used for serving the request.
