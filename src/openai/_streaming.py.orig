@@ -410,15 +410,3 @@ def extract_stream_chunk_type(
         generic_bases=cast("tuple[type, ...]", (Stream, AsyncStream)),
         failure_message=failure_message,
     )
-
-
-async def streaming_helper(stream: AsyncStream[_T]) -> list[_T]:
-    """Helper function to collect all items from an async stream into a list.
-
-    Args:
-        stream: An AsyncStream instance to collect items from.
-
-    Returns:
-        A list containing all items from the stream.
-    """
-    return [item async for item in stream]
