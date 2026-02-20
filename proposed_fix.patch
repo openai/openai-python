@@ -1,0 +1,72 @@
+The user wants a Python patch (diff format) to add a `streaming_helper` function to the provided code.
+The code provided is a Python module containing stream handling logic, specifically `Stream`, `AsyncStream`, `ServerSentEvent`, `SSEDecoder`, and some helper functions.
+The user specifically requested a "streaming_helper" function to "handle async streaming of completions".
+
+Looking at the existing code, `AsyncStream` handles async streaming. The prompt asks for a helper function, often in these libraries, there are helper functions to wrap the streaming logic or to consume the stream and return a list or process chunks.
+However, looking at standard patterns in OpenAI-like libraries (the code seems to be from the OpenAI Python SDK or a fork), "helpers" often encapsulate the logic of turning a raw response into a typed stream or handling the iterator context.
+
+Let's look at what a "streaming_helper" might do.
+Context: The code contains `Stream` (sync) and `AsyncStream` (async).
+The prompt says: "The helper should handle async streaming of completions."
+
+Possibilities for `streaming_helper`:
+1.  A function that takes an async generator/iterator and yields processed events.
+2.  A function that manages the lifecycle of an `AsyncStream` given a response.
+3.  A utility to consume a stream and aggregate results (less likely for a "streaming" helper, usually that's `list(stream)`).
+
+Let's analyze the existing structure. `AsyncStream` is initialized with `cast_to`, `response`, and `client`. It implements `__aiter__` and `__anext__`.
+The prompt asks to add a function *to this code*. I should place it at the end of the file or in a logical location relative to the existing functions.
+
+Since the prompt is vague on *exactly* what the helper does, I need to infer a reasonable implementation based on "handle async streaming of completions".
+In the OpenAI SDK source (which this code resembles), there isn't a function named `streaming_helper` exactly in `_stream.py` (where this code usually lives). However, sometimes users ask for specific helper functions to bridge gaps or simplify usage.
+
+Let's assume the user wants a helper function that simplifies the creation or consumption of an `AsyncStream` specifically for completions.
+Or perhaps it's a helper to iterate over the stream safely.
+
+Let's look at the user's specific request again: "handle async streaming of completions".
+Completions usually involve `ChatCompletion` chunks.
+Maybe it's about consuming the stream?
+Or maybe it's a factory method?
+
+Let's look for similar patterns in the file.
+There are `is_stream_class_type` and `extract_stream_chunk_type` at the bottom.
+Adding a function `streaming_helper` suggests a utility function.
+
+If I look at how `AsyncStream` is used, one instantiates it and iterates.
+Perhaps the helper is meant to encapsulate the decoding and iteration logic outside of the class? No, the class does that.
+
+Maybe the helper is to process a completion stream into a single object?
+Or simply an async generator wrapper?
+
+Let's assume a signature like:
+`async def streaming_helper(...)`
+
+Let's try to create a generic helper that takes an async iterator (like the raw byte stream) and yields the processed events, similar to what `AsyncStream._iter_events` or `AsyncStream.__stream__` does, but standalone?
+Actually, the class `AsyncStream` already does this.
+
+Is it possible the user is asking for a helper that abstracts the `cast_to` logic?
+Or maybe it's a higher level helper?
+
+Let's reconsider the wording "handle async streaming of completions".
+If I look at `httpx_sse` (mentioned in the header), it has `EventSource` or `aiter_sse`.
+
+Let's write a helper that likely fits the pattern of "consuming" or "managing" the stream.
+Given the lack of specific signature requirements, I should provide a robust helper that likely handles the iteration and error handling shown in the class.
+
+However, the most standard "helper" in these contexts is often just a wrapper to execute the stream iteration or setup.
+
+Let's look at the imports. `AsyncOpenAI` is imported in `TYPE_CHECKING`.
+The code handles `SSEDecoder`.
+
+Let's propose a `streaming_helper` that likely acts as a convenience method for iterating over a stream. Since the code defines `AsyncStream`, maybe the helper is:
+```python
+async def streaming_helper(stream: AsyncStream[_T]) -> AsyncIterator[_T]:
+    async with stream:
+        async for item in stream:
+            yield item
+```
+That seems too trivial.
+
+Maybe the user wants a helper that creates the `AsyncStream`? But that requires `cast_to`, `response`, `client`, which is specific to the client implementation.
+
+Let's look at the logic inside `AsyncStream
