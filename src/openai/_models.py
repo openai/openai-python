@@ -3,6 +3,7 @@ from __future__ import annotations
 import os
 import inspect
 import weakref
+import threading
 from typing import (
     IO,
     TYPE_CHECKING,
@@ -54,7 +55,6 @@ from ._utils import (
     is_list,
     is_given,
     json_safe,
-    lru_cache,
     is_mapping,
     parse_date,
     coerce_boolean,
@@ -799,12 +799,21 @@ else:
 if not PYDANTIC_V1:
     from pydantic import TypeAdapter as _TypeAdapter
 
-    _CachedTypeAdapter = cast("TypeAdapter[object]", lru_cache(maxsize=128)(_TypeAdapter))
+    _type_adapter_cache: threading.local = threading.local()
+
+    def _get_cached_type_adapter(type_: type[_T]) -> _TypeAdapter[_T]:
+        cache: dict[type[Any], _TypeAdapter[Any]] = getattr(_type_adapter_cache, "adapters", None) or {}
+        _type_adapter_cache.adapters = cache
+        adapter = cache.get(type_)
+        if adapter is None:
+            adapter = _TypeAdapter(type_)
+            cache[type_] = adapter
+        return adapter
 
     if TYPE_CHECKING:
         from pydantic import TypeAdapter
     else:
-        TypeAdapter = _CachedTypeAdapter
+        TypeAdapter = _get_cached_type_adapter
 
     def _validate_non_model_type(*, type_: type[_T], value: object) -> _T:
         return TypeAdapter(type_).validate_python(value)

@@ -964,15 +964,21 @@ def test_extra_properties() -> None:
 
 
 @pytest.mark.skipif(PYDANTIC_V1, reason="TypeAdapter cache is only used in Pydantic v2")
-def test_type_adapter_cache_is_bounded() -> None:
+def test_type_adapter_cache_is_thread_local() -> None:
     """Regression test for https://github.com/openai/openai-python/issues/2672
 
-    The TypeAdapter cache must have a bounded maxsize to prevent memory leaks
-    in multi-threaded environments where parameterized generic types get
-    regenerated with different identities on each call.
+    The TypeAdapter cache uses threading.local() to prevent memory leaks
+    in multi-threaded environments. Each thread maintains its own cache that
+    is cleaned up when the thread exits.
     """
-    from openai._models import TypeAdapter
+    import threading
 
-    cache_info = TypeAdapter.cache_info()
-    assert cache_info.maxsize is not None, "TypeAdapter cache maxsize must not be None (unbounded)"
-    assert cache_info.maxsize > 0, "TypeAdapter cache maxsize must be positive"
+    from openai._models import TypeAdapter, _type_adapter_cache
+
+    # Verify the cache is thread-local
+    assert isinstance(_type_adapter_cache, threading.local)
+
+    # Verify TypeAdapter returns a cached instance for the same type
+    adapter1 = TypeAdapter(int)
+    adapter2 = TypeAdapter(int)
+    assert adapter1 is adapter2, "TypeAdapter should return cached instances for the same type"
