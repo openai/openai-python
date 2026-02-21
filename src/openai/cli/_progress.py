@@ -41,13 +41,14 @@ class BufferReader(io.BytesIO):
 
 
 def progress(total: float, desc: str | None) -> Callable[[float], None]:
-    import tqdm
+    from tqdm import tqdm
 
-    meter = tqdm.tqdm(total=total, unit_scale=True, desc=desc)
+    meter = tqdm(total=total, unit_scale=True, unit="B", desc=desc)
 
     def incr(progress: float) -> None:
         meter.n = progress
         if progress == total:
+            meter.refresh()
             meter.close()
         else:
             meter.refresh()
