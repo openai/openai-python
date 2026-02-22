@@ -3,7 +3,10 @@
 from typing import TYPE_CHECKING, List, Union, Generic, TypeVar, Optional
 from typing_extensions import Annotated, TypeAlias
 
-from pydantic import SerializeAsAny
+from ..._compat import PYDANTIC_V1
+
+if not PYDANTIC_V1:
+    from pydantic import SerializeAsAny
 
 from ..._utils import PropertyInfo
 from .response import Response
@@ -55,8 +58,10 @@ ParsedContent: TypeAlias = Annotated[
 class ParsedResponseOutputMessage(ResponseOutputMessage, GenericModel, Generic[ContentType]):
     if TYPE_CHECKING:
         content: List[ParsedContent[ContentType]]  # type: ignore[assignment]
-    else:
+    elif not PYDANTIC_V1:
         content: List[SerializeAsAny[ParsedContent]]
+    else:
+        content: List[ParsedContent]  # type: ignore[assignment]
 
 
 class ParsedResponseFunctionToolCall(ResponseFunctionToolCall):
@@ -94,8 +99,10 @@ ParsedResponseOutputItem: TypeAlias = Annotated[
 class ParsedResponse(Response, GenericModel, Generic[ContentType]):
     if TYPE_CHECKING:
         output: List[ParsedResponseOutputItem[ContentType]]  # type: ignore[assignment]
-    else:
+    elif not PYDANTIC_V1:
         output: List[SerializeAsAny[ParsedResponseOutputItem]]
+    else:
+        output: List[ParsedResponseOutputItem]  # type: ignore[assignment]
 
     @property
     def output_parsed(self) -> Optional[ContentType]:
