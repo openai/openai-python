@@ -1,50 +1,82 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from __future__ import annotations
+from typing import List, Union, Optional
+from typing_extensions import Literal, TypeAlias
 
-from typing import List, Union, Iterable, Optional
-from typing_extensions import Literal, Required, TypeAlias, TypedDict
-
-from .tool_param import ToolParam
+from .tool import Tool
+from ..._models import BaseModel
+from .response_input import ResponseInput
+from .response_prompt import ResponsePrompt
+from .tool_choice_mcp import ToolChoiceMcp
+from ..shared.metadata import Metadata
+from ..shared.reasoning import Reasoning
+from .tool_choice_shell import ToolChoiceShell
+from .tool_choice_types import ToolChoiceTypes
+from .tool_choice_custom import ToolChoiceCustom
 from .response_includable import ResponseIncludable
+from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
-from .response_input_param import ResponseInputParam
-from .response_prompt_param import ResponsePromptParam
-from .tool_choice_mcp_param import ToolChoiceMcpParam
-from ..shared_params.metadata import Metadata
-from .tool_choice_shell_param import ToolChoiceShellParam
-from .tool_choice_types_param import ToolChoiceTypesParam
-from ..shared_params.reasoning import Reasoning
-from .tool_choice_custom_param import ToolChoiceCustomParam
-from .tool_choice_allowed_param import ToolChoiceAllowedParam
-from .response_text_config_param import ResponseTextConfigParam
-from .tool_choice_function_param import ToolChoiceFunctionParam
-from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
-from ..shared_params.responses_model import ResponsesModel
-from .response_conversation_param_param import ResponseConversationParamParam
+from .response_text_config import ResponseTextConfig
+from .tool_choice_function import ToolChoiceFunction
+from ..shared.responses_model import ResponsesModel
+from .tool_choice_apply_patch import ToolChoiceApplyPatch
+from .response_conversation_param import ResponseConversationParam
 
-__all__ = [
-    "ResponseCreateParamsBase",
-    "ContextManagement",
-    "Conversation",
-    "StreamOptions",
-    "ToolChoice",
-    "ResponseCreateParamsNonStreaming",
-    "ResponseCreateParamsStreaming",
+__all__ = ["ResponsesClientEvent", "ContextManagement", "Conversation", "StreamOptions", "ToolChoice"]
+
+
+class ContextManagement(BaseModel):
+    type: str
+    """The context management entry type. Currently only 'compaction' is supported."""
+
+    compact_threshold: Optional[int] = None
+    """Token threshold at which compaction should be triggered for this entry."""
+
+
+Conversation: TypeAlias = Union[str, ResponseConversationParam, None]
+
+
+class StreamOptions(BaseModel):
+    """Options for streaming responses. Only set this when you set `stream: true`."""
+
+    include_obfuscation: Optional[bool] = None
+    """When true, stream obfuscation will be enabled.
+
+    Stream obfuscation adds random characters to an `obfuscation` field on streaming
+    delta events to normalize payload sizes as a mitigation to certain side-channel
+    attacks. These obfuscation fields are included by default, but add a small
+    amount of overhead to the data stream. You can set `include_obfuscation` to
+    false to optimize for bandwidth if you trust the network links between your
+    application and the OpenAI API.
+    """
+
+
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions,
+    ToolChoiceAllowed,
+    ToolChoiceTypes,
+    ToolChoiceFunction,
+    ToolChoiceMcp,
+    ToolChoiceCustom,
+    ToolChoiceApplyPatch,
+    ToolChoiceShell,
 ]
 
 
-class ResponseCreateParamsBase(TypedDict, total=False):
-    background: Optional[bool]
+class ResponsesClientEvent(BaseModel):
+    type: Literal["response.create"]
+    """The type of the client event. Always `response.create`."""
+
+    background: Optional[bool] = None
     """
     Whether to run the model response in the background.
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
-    context_management: Optional[Iterable[ContextManagement]]
+    context_management: Optional[List[ContextManagement]] = None
     """Context management configuration for this request."""
 
-    conversation: Optional[Conversation]
+    conversation: Optional[Conversation] = None
     """The conversation that this response belongs to.
 
     Items from this conversation are prepended to `input_items` for this response
@@ -52,7 +84,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     to this conversation after this response completes.
     """
 
-    include: Optional[List[ResponseIncludable]]
+    include: Optional[List[ResponseIncludable]] = None
     """Specify additional output data to include in the model response.
 
     Currently supported values are:
@@ -74,7 +106,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       in the zero data retention program).
     """
 
-    input: Union[str, ResponseInputParam]
+    input: Union[str, ResponseInput, None] = None
     """Text, image, or file inputs to the model, used to generate a response.
 
     Learn more:
@@ -86,7 +118,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     - [Function calling](https://platform.openai.com/docs/guides/function-calling)
     """
 
-    instructions: Optional[str]
+    instructions: Optional[str] = None
     """A system (or developer) message inserted into the model's context.
 
     When using along with `previous_response_id`, the instructions from a previous
@@ -94,14 +126,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     swap out system (or developer) messages in new responses.
     """
 
-    max_output_tokens: Optional[int]
+    max_output_tokens: Optional[int] = None
     """
     An upper bound for the number of tokens that can be generated for a response,
     including visible output tokens and
     [reasoning tokens](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    max_tool_calls: Optional[int]
+    max_tool_calls: Optional[int] = None
     """
     The maximum number of total calls to built-in tools that can be processed in a
     response. This maximum number applies across all built-in tool calls, not per
@@ -109,7 +141,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     ignored.
     """
 
-    metadata: Optional[Metadata]
+    metadata: Optional[Metadata] = None
     """Set of 16 key-value pairs that can be attached to an object.
 
     This can be useful for storing additional information about the object in a
@@ -119,7 +151,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     a maximum length of 512 characters.
     """
 
-    model: ResponsesModel
+    model: Optional[ResponsesModel] = None
     """Model ID used to generate the response, like `gpt-4o` or `o3`.
 
     OpenAI offers a wide range of models with different capabilities, performance
@@ -128,10 +160,10 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     available models.
     """
 
-    parallel_tool_calls: Optional[bool]
+    parallel_tool_calls: Optional[bool] = None
     """Whether to allow the model to run tool calls in parallel."""
 
-    previous_response_id: Optional[str]
+    previous_response_id: Optional[str] = None
     """The unique ID of the previous response to the model.
 
     Use this to create multi-turn conversations. Learn more about
@@ -139,20 +171,20 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     Cannot be used in conjunction with `conversation`.
     """
 
-    prompt: Optional[ResponsePromptParam]
+    prompt: Optional[ResponsePrompt] = None
     """
     Reference to a prompt template and its variables.
     [Learn more](https://platform.openai.com/docs/guides/text?api-mode=responses#reusable-prompts).
     """
 
-    prompt_cache_key: str
+    prompt_cache_key: Optional[str] = None
     """
     Used by OpenAI to cache responses for similar requests to optimize your cache
     hit rates. Replaces the `user` field.
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching).
     """
 
-    prompt_cache_retention: Optional[Literal["in-memory", "24h"]]
+    prompt_cache_retention: Optional[Literal["in-memory", "24h"]] = None
     """The retention policy for the prompt cache.
 
     Set to `24h` to enable extended prompt caching, which keeps cached prefixes
@@ -160,14 +192,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/prompt-caching#prompt-cache-retention).
     """
 
-    reasoning: Optional[Reasoning]
+    reasoning: Optional[Reasoning] = None
     """**gpt-5 and o-series models only**
 
     Configuration options for
     [reasoning models](https://platform.openai.com/docs/guides/reasoning).
     """
 
-    safety_identifier: str
+    safety_identifier: Optional[str] = None
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
@@ -177,7 +209,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
-    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]]
+    service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] = None
     """Specifies the processing type used for serving the request.
 
     - If set to 'auto', then the request will be processed with the service tier
@@ -196,13 +228,23 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     parameter.
     """
 
-    store: Optional[bool]
+    store: Optional[bool] = None
     """Whether to store the generated model response for later retrieval via API."""
 
-    stream_options: Optional[StreamOptions]
+    stream: Optional[bool] = None
+    """
+    If set to true, the model response data will be streamed to the client as it is
+    generated using
+    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+    See the
+    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+    for more information.
+    """
+
+    stream_options: Optional[StreamOptions] = None
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
-    temperature: Optional[float]
+    temperature: Optional[float] = None
     """What sampling temperature to use, between 0 and 2.
 
     Higher values like 0.8 will make the output more random, while lower values like
@@ -210,7 +252,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     this or `top_p` but not both.
     """
 
-    text: ResponseTextConfigParam
+    text: Optional[ResponseTextConfig] = None
     """Configuration options for a text response from the model.
 
     Can be plain text or structured JSON data. Learn more:
@@ -219,14 +261,14 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
     """
 
-    tool_choice: ToolChoice
+    tool_choice: Optional[ToolChoice] = None
     """
     How the model should select which tool (or tools) to use when generating a
     response. See the `tools` parameter to see how to specify which tools the model
     can call.
     """
 
-    tools: Iterable[ToolParam]
+    tools: Optional[List[Tool]] = None
     """An array of tools the model may call while generating a response.
 
     You can specify which tool to use by setting the `tool_choice` parameter.
@@ -249,13 +291,13 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       You can also use custom tools to call your own code.
     """
 
-    top_logprobs: Optional[int]
+    top_logprobs: Optional[int] = None
     """
     An integer between 0 and 20 specifying the number of most likely tokens to
     return at each token position, each with an associated log probability.
     """
 
-    top_p: Optional[float]
+    top_p: Optional[float] = None
     """
     An alternative to sampling with temperature, called nucleus sampling, where the
     model considers the results of the tokens with top_p probability mass. So 0.1
@@ -264,7 +306,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     We generally recommend altering this or `temperature` but not both.
     """
 
-    truncation: Optional[Literal["auto", "disabled"]]
+    truncation: Optional[Literal["auto", "disabled"]] = None
     """The truncation strategy to use for the model response.
 
     - `auto`: If the input to this Response exceeds the model's context window size,
@@ -274,7 +316,7 @@ class ResponseCreateParamsBase(TypedDict, total=False):
       for a model, the request will fail with a 400 error.
     """
 
-    user: str
+    user: Optional[str] = None
     """This field is being replaced by `safety_identifier` and `prompt_cache_key`.
 
     Use `prompt_cache_key` instead to maintain caching optimizations. A stable
@@ -282,68 +324,3 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
-
-
-class ContextManagement(TypedDict, total=False):
-    type: Required[str]
-    """The context management entry type. Currently only 'compaction' is supported."""
-
-    compact_threshold: Optional[int]
-    """Token threshold at which compaction should be triggered for this entry."""
-
-
-Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
-
-
-class StreamOptions(TypedDict, total=False):
-    """Options for streaming responses. Only set this when you set `stream: true`."""
-
-    include_obfuscation: bool
-    """When true, stream obfuscation will be enabled.
-
-    Stream obfuscation adds random characters to an `obfuscation` field on streaming
-    delta events to normalize payload sizes as a mitigation to certain side-channel
-    attacks. These obfuscation fields are included by default, but add a small
-    amount of overhead to the data stream. You can set `include_obfuscation` to
-    false to optimize for bandwidth if you trust the network links between your
-    application and the OpenAI API.
-    """
-
-
-ToolChoice: TypeAlias = Union[
-    ToolChoiceOptions,
-    ToolChoiceAllowedParam,
-    ToolChoiceTypesParam,
-    ToolChoiceFunctionParam,
-    ToolChoiceMcpParam,
-    ToolChoiceCustomParam,
-    ToolChoiceApplyPatchParam,
-    ToolChoiceShellParam,
-]
-
-
-class ResponseCreateParamsNonStreaming(ResponseCreateParamsBase, total=False):
-    stream: Optional[Literal[False]]
-    """
-    If set to true, the model response data will be streamed to the client as it is
-    generated using
-    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
-    See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
-    for more information.
-    """
-
-
-class ResponseCreateParamsStreaming(ResponseCreateParamsBase):
-    stream: Required[Literal[True]]
-    """
-    If set to true, the model response data will be streamed to the client as it is
-    generated using
-    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
-    See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
-    for more information.
-    """
-
-
-ResponseCreateParams = Union[ResponseCreateParamsNonStreaming, ResponseCreateParamsStreaming]

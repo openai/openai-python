@@ -13,6 +13,7 @@ from .function_tool import FunctionTool as FunctionTool
 from .response_item import ResponseItem as ResponseItem
 from .container_auto import ContainerAuto as ContainerAuto
 from .response_error import ResponseError as ResponseError
+from .response_input import ResponseInput as ResponseInput
 from .response_usage import ResponseUsage as ResponseUsage
 from .parsed_response import (
     ParsedContent as ParsedContent,
@@ -72,6 +73,8 @@ from .input_item_list_params import InputItemListParams as InputItemListParams
 from .response_create_params import ResponseCreateParams as ResponseCreateParams
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
 from .response_input_content import ResponseInputContent as ResponseInputContent
+from .responses_client_event import ResponsesClientEvent as ResponsesClientEvent
+from .responses_server_event import ResponsesServerEvent as ResponsesServerEvent
 from .local_environment_param import LocalEnvironmentParam as LocalEnvironmentParam
 from .response_compact_params import ResponseCompactParams as ResponseCompactParams
 from .response_output_message import ResponseOutputMessage as ResponseOutputMessage
@@ -121,6 +124,7 @@ from .response_function_web_search import ResponseFunctionWebSearch as ResponseF
 from .response_input_content_param import ResponseInputContentParam as ResponseInputContentParam
 from .response_input_image_content import ResponseInputImageContent as ResponseInputImageContent
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent as ResponseRefusalDeltaEvent
+from .responses_client_event_param import ResponsesClientEventParam as ResponsesClientEventParam
 from .response_output_message_param import ResponseOutputMessageParam as ResponseOutputMessageParam
 from .response_output_refusal_param import ResponseOutputRefusalParam as ResponseOutputRefusalParam
 from .response_reasoning_item_param import ResponseReasoningItemParam as ResponseReasoningItemParam
@@ -139,6 +143,7 @@ from .response_output_item_added_event import ResponseOutputItemAddedEvent as Re
 from .container_network_policy_disabled import ContainerNetworkPolicyDisabled as ContainerNetworkPolicyDisabled
 from .response_computer_tool_call_param import ResponseComputerToolCallParam as ResponseComputerToolCallParam
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
+from .response_conversation_param_param import ResponseConversationParamParam as ResponseConversationParamParam
 from .response_format_text_config_param import ResponseFormatTextConfigParam as ResponseFormatTextConfigParam
 from .response_function_shell_tool_call import ResponseFunctionShellToolCall as ResponseFunctionShellToolCall
 from .response_function_tool_call_param import ResponseFunctionToolCallParam as ResponseFunctionToolCallParam

@@ -2,17 +2,22 @@
 
 from __future__ import annotations
 
+import json
+import logging
 from copy import copy
-from typing import Any, List, Type, Union, Iterable, Optional, cast
+from types import TracebackType
+from typing import TYPE_CHECKING, Any, List, Type, Union, Iterable, Iterator, Optional, AsyncIterator, cast
 from functools import partial
 from typing_extensions import Literal, overload
 
 import httpx
+from pydantic import BaseModel
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
-from ..._utils import is_given, maybe_transform, async_maybe_transform
+from ..._utils import is_given, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
+from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
 from .input_items import (
@@ -33,11 +38,13 @@ from .input_tokens import (
     InputTokensWithStreamingResponse,
     AsyncInputTokensWithStreamingResponse,
 )
-from ..._base_client import make_request_options
+from ..._exceptions import OpenAIError
+from ..._base_client import _merge_mappings, make_request_options
 from ...types.responses import (
     response_create_params,
     response_compact_params,
     response_retrieve_params,
+    responses_client_event_param,
 )
 from ...lib._parsing._responses import (
     TextFormatT,
@@ -51,15 +58,27 @@ from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.parsed_response import ParsedResponse
 from ...lib.streaming.responses._responses import ResponseStreamManager, AsyncResponseStreamManager
 from ...types.responses.compacted_response import CompactedResponse
+from ...types.websocket_connection_options import WebsocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
 from ...types.responses.response_prompt_param import ResponsePromptParam
 from ...types.responses.response_stream_event import ResponseStreamEvent
+from ...types.responses.responses_client_event import ResponsesClientEvent
+from ...types.responses.responses_server_event import ResponsesServerEvent
 from ...types.responses.response_input_item_param import ResponseInputItemParam
 from ...types.responses.response_text_config_param import ResponseTextConfigParam
+from ...types.responses.responses_client_event_param import ResponsesClientEventParam
+
+if TYPE_CHECKING:
+    from websockets.sync.client import ClientConnection as WebsocketConnection
+    from websockets.asyncio.client import ClientConnection as AsyncWebsocketConnection
+
+    from ..._client import OpenAI, AsyncOpenAI
 
 __all__ = ["Responses", "AsyncResponses"]
+
+log: logging.Logger = logging.getLogger(__name__)
 
 
 class Responses(SyncAPIResource):
@@ -1699,6 +1718,23 @@ class Responses(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=CompactedResponse,
+        )
+
+    def connect(
+        self,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        websocket_connection_options: WebsocketConnectionOptions = {},
+    ) -> ResponsesConnectionManager:
+        """Connect to a persistent Responses API WebSocket.
+
+        Send `response.create` events and receive response stream events over the socket.
+        """
+        return ResponsesConnectionManager(
+            client=self._client,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            websocket_connection_options=websocket_connection_options,
         )
 
 
@@ -3345,6 +3381,23 @@ class AsyncResponses(AsyncAPIResource):
             cast_to=CompactedResponse,
         )
 
+    def connect(
+        self,
+        extra_query: Query = {},
+        extra_headers: Headers = {},
+        websocket_connection_options: WebsocketConnectionOptions = {},
+    ) -> AsyncResponsesConnectionManager:
+        """Connect to a persistent Responses API WebSocket.
+
+        Send `response.create` events and receive response stream events over the socket.
+        """
+        return AsyncResponsesConnectionManager(
+            client=self._client,
+            extra_query=extra_query,
+            extra_headers=extra_headers,
+            websocket_connection_options=websocket_connection_options,
+        )
+
 
 class ResponsesWithRawResponse:
     def __init__(self, responses: Responses) -> None:
@@ -3504,3 +3557,491 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
         converted_tools.append(new_tool.cast())
 
     return converted_tools
+
+
+class AsyncResponsesConnection:
+    """Represents a live WebSocket connection to the Responses API"""
+
+    response: AsyncResponsesResponseResource
+
+    _connection: AsyncWebsocketConnection
+
+    def __init__(self, connection: AsyncWebsocketConnection) -> None:
+        self._connection = connection
+
+        self.response = AsyncResponsesResponseResource(self)
+
+    async def __aiter__(self) -> AsyncIterator[ResponsesServerEvent]:
+        """
+        An infinite-iterator that will continue to yield events until
+        the connection is closed.
+        """
+        from websockets.exceptions import ConnectionClosedOK
+
+        try:
+            while True:
+                yield await self.recv()
+        except ConnectionClosedOK:
+            return
+
+    async def recv(self) -> ResponsesServerEvent:
+        """
+        Receive the next message from the connection and parses it into a `ResponsesServerEvent` object.
+
+        Canceling this method is safe. There's no risk of losing data.
+        """
+        return self.parse_event(await self.recv_bytes())
+
+    async def recv_bytes(self) -> bytes:
+        """Receive the next message from the connection as raw bytes.
+
+        Canceling this method is safe. There's no risk of losing data.
+
+        If you want to parse the message into a `ResponsesServerEvent` object like `.recv()` does,
+        then you can call `.parse_event(data)`.
+        """
+        message = await self._connection.recv(decode=False)
+        log.debug(f"Received websocket message: %s", message)
+        return message
+
+    async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(await async_maybe_transform(event, ResponsesClientEventParam))
+        )
+        await self._connection.send(data)
+
+    async def close(self, *, code: int = 1000, reason: str = "") -> None:
+        await self._connection.close(code=code, reason=reason)
+
+    def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
+        """
+        Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
+
+        This is helpful if you're using `.recv_bytes()`.
+        """
+        return cast(
+            ResponsesServerEvent,
+            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
+        )
+
+
+class AsyncResponsesConnectionManager:
+    """
+    Context manager over a `AsyncResponsesConnection` that is returned by `responses.connect()`
+
+    This context manager ensures that the connection will be closed when it exits.
+
+    ---
+
+    Note that if your application doesn't work well with the context manager approach then you
+    can call the `.enter()` method directly to initiate a connection.
+
+    **Warning**: You must remember to close the connection with `.close()`.
+
+    ```py
+    connection = await client.responses.connect(...).enter()
+    # ...
+    await connection.close()
+    ```
+    """
+
+    def __init__(
+        self,
+        *,
+        client: AsyncOpenAI,
+        extra_query: Query,
+        extra_headers: Headers,
+        websocket_connection_options: WebsocketConnectionOptions,
+    ) -> None:
+        self.__client = client
+        self.__connection: AsyncResponsesConnection | None = None
+        self.__extra_query = extra_query
+        self.__extra_headers = extra_headers
+        self.__websocket_connection_options = websocket_connection_options
+
+    async def __aenter__(self) -> AsyncResponsesConnection:
+        """
+        👋 If your application doesn't work well with the context manager approach then you
+        can call this method directly to initiate a connection.
+
+        **Warning**: You must remember to close the connection with `.close()`.
+
+        ```py
+        connection = await client.responses.connect(...).enter()
+        # ...
+        await connection.close()
+        ```
+        """
+        try:
+            from websockets.asyncio.client import connect
+        except ImportError as exc:
+            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
+
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                **self.__extra_query,
+            },
+        )
+        log.debug("Connecting to %s", url)
+        if self.__websocket_connection_options:
+            log.debug("Connection options: %s", self.__websocket_connection_options)
+
+        self.__connection = AsyncResponsesConnection(
+            await connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {
+                        **self.__client.auth_headers,
+                    },
+                    self.__extra_headers,
+                ),
+                **self.__websocket_connection_options,
+            )
+        )
+
+        return self.__connection
+
+    enter = __aenter__
+
+    def _prepare_url(self) -> httpx.URL:
+        if self.__client.websocket_base_url is not None:
+            base_url = httpx.URL(self.__client.websocket_base_url)
+        else:
+            base_url = self.__client._base_url.copy_with(scheme="wss")
+
+        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        return base_url.copy_with(raw_path=merge_raw_path)
+
+    async def __aexit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
+        if self.__connection is not None:
+            await self.__connection.close()
+
+
+class ResponsesConnection:
+    """Represents a live WebSocket connection to the Responses API"""
+
+    response: ResponsesResponseResource
+
+    _connection: WebsocketConnection
+
+    def __init__(self, connection: WebsocketConnection) -> None:
+        self._connection = connection
+
+        self.response = ResponsesResponseResource(self)
+
+    def __iter__(self) -> Iterator[ResponsesServerEvent]:
+        """
+        An infinite-iterator that will continue to yield events until
+        the connection is closed.
+        """
+        from websockets.exceptions import ConnectionClosedOK
+
+        try:
+            while True:
+                yield self.recv()
+        except ConnectionClosedOK:
+            return
+
+    def recv(self) -> ResponsesServerEvent:
+        """
+        Receive the next message from the connection and parses it into a `ResponsesServerEvent` object.
+
+        Canceling this method is safe. There's no risk of losing data.
+        """
+        return self.parse_event(self.recv_bytes())
+
+    def recv_bytes(self) -> bytes:
+        """Receive the next message from the connection as raw bytes.
+
+        Canceling this method is safe. There's no risk of losing data.
+
+        If you want to parse the message into a `ResponsesServerEvent` object like `.recv()` does,
+        then you can call `.parse_event(data)`.
+        """
+        message = self._connection.recv(decode=False)
+        log.debug(f"Received websocket message: %s", message)
+        return message
+
+    def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
+        data = (
+            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            if isinstance(event, BaseModel)
+            else json.dumps(maybe_transform(event, ResponsesClientEventParam))
+        )
+        self._connection.send(data)
+
+    def close(self, *, code: int = 1000, reason: str = "") -> None:
+        self._connection.close(code=code, reason=reason)
+
+    def parse_event(self, data: str | bytes) -> ResponsesServerEvent:
+        """
+        Converts a raw `str` or `bytes` message into a `ResponsesServerEvent` object.
+
+        This is helpful if you're using `.recv_bytes()`.
+        """
+        return cast(
+            ResponsesServerEvent,
+            construct_type_unchecked(value=json.loads(data), type_=cast(Any, ResponsesServerEvent)),
+        )
+
+
+class ResponsesConnectionManager:
+    """
+    Context manager over a `ResponsesConnection` that is returned by `responses.connect()`
+
+    This context manager ensures that the connection will be closed when it exits.
+
+    ---
+
+    Note that if your application doesn't work well with the context manager approach then you
+    can call the `.enter()` method directly to initiate a connection.
+
+    **Warning**: You must remember to close the connection with `.close()`.
+
+    ```py
+    connection = client.responses.connect(...).enter()
+    # ...
+    connection.close()
+    ```
+    """
+
+    def __init__(
+        self,
+        *,
+        client: OpenAI,
+        extra_query: Query,
+        extra_headers: Headers,
+        websocket_connection_options: WebsocketConnectionOptions,
+    ) -> None:
+        self.__client = client
+        self.__connection: ResponsesConnection | None = None
+        self.__extra_query = extra_query
+        self.__extra_headers = extra_headers
+        self.__websocket_connection_options = websocket_connection_options
+
+    def __enter__(self) -> ResponsesConnection:
+        """
+        👋 If your application doesn't work well with the context manager approach then you
+        can call this method directly to initiate a connection.
+
+        **Warning**: You must remember to close the connection with `.close()`.
+
+        ```py
+        connection = client.responses.connect(...).enter()
+        # ...
+        connection.close()
+        ```
+        """
+        try:
+            from websockets.sync.client import connect
+        except ImportError as exc:
+            raise OpenAIError("You need to install `openai[realtime]` to use this method") from exc
+
+        url = self._prepare_url().copy_with(
+            params={
+                **self.__client.base_url.params,
+                **self.__extra_query,
+            },
+        )
+        log.debug("Connecting to %s", url)
+        if self.__websocket_connection_options:
+            log.debug("Connection options: %s", self.__websocket_connection_options)
+
+        self.__connection = ResponsesConnection(
+            connect(
+                str(url),
+                user_agent_header=self.__client.user_agent,
+                additional_headers=_merge_mappings(
+                    {
+                        **self.__client.auth_headers,
+                    },
+                    self.__extra_headers,
+                ),
+                **self.__websocket_connection_options,
+            )
+        )
+
+        return self.__connection
+
+    enter = __enter__
+
+    def _prepare_url(self) -> httpx.URL:
+        if self.__client.websocket_base_url is not None:
+            base_url = httpx.URL(self.__client.websocket_base_url)
+        else:
+            base_url = self.__client._base_url.copy_with(scheme="wss")
+
+        merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/responses"
+        return base_url.copy_with(raw_path=merge_raw_path)
+
+    def __exit__(
+        self, exc_type: type[BaseException] | None, exc: BaseException | None, exc_tb: TracebackType | None
+    ) -> None:
+        if self.__connection is not None:
+            self.__connection.close()
+
+
+class BaseResponsesConnectionResource:
+    def __init__(self, connection: ResponsesConnection) -> None:
+        self._connection = connection
+
+
+class ResponsesResponseResource(BaseResponsesConnectionResource):
+    def create(
+        self,
+        *,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
+        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[bool] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+    ) -> None:
+        self._connection.send(
+            cast(
+                ResponsesClientEventParam,
+                strip_not_given(
+                    {
+                        "type": "response.create",
+                        "background": background,
+                        "context_management": context_management,
+                        "conversation": conversation,
+                        "include": include,
+                        "input": input,
+                        "instructions": instructions,
+                        "max_output_tokens": max_output_tokens,
+                        "max_tool_calls": max_tool_calls,
+                        "metadata": metadata,
+                        "model": model,
+                        "parallel_tool_calls": parallel_tool_calls,
+                        "previous_response_id": previous_response_id,
+                        "prompt": prompt,
+                        "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_retention": prompt_cache_retention,
+                        "reasoning": reasoning,
+                        "safety_identifier": safety_identifier,
+                        "service_tier": service_tier,
+                        "store": store,
+                        "stream": stream,
+                        "stream_options": stream_options,
+                        "temperature": temperature,
+                        "text": text,
+                        "tool_choice": tool_choice,
+                        "tools": tools,
+                        "top_logprobs": top_logprobs,
+                        "top_p": top_p,
+                        "truncation": truncation,
+                        "user": user,
+                    }
+                ),
+            )
+        )
+
+
+class BaseAsyncResponsesConnectionResource:
+    def __init__(self, connection: AsyncResponsesConnection) -> None:
+        self._connection = connection
+
+
+class AsyncResponsesResponseResource(BaseAsyncResponsesConnectionResource):
+    async def create(
+        self,
+        *,
+        background: Optional[bool] | Omit = omit,
+        context_management: Optional[Iterable[responses_client_event_param.ContextManagement]] | Omit = omit,
+        conversation: Optional[responses_client_event_param.Conversation] | Omit = omit,
+        include: Optional[List[ResponseIncludable]] | Omit = omit,
+        input: Union[str, ResponseInputParam] | Omit = omit,
+        instructions: Optional[str] | Omit = omit,
+        max_output_tokens: Optional[int] | Omit = omit,
+        max_tool_calls: Optional[int] | Omit = omit,
+        metadata: Optional[Metadata] | Omit = omit,
+        model: ResponsesModel | Omit = omit,
+        parallel_tool_calls: Optional[bool] | Omit = omit,
+        previous_response_id: Optional[str] | Omit = omit,
+        prompt: Optional[ResponsePromptParam] | Omit = omit,
+        prompt_cache_key: str | Omit = omit,
+        prompt_cache_retention: Optional[Literal["in-memory", "24h"]] | Omit = omit,
+        reasoning: Optional[Reasoning] | Omit = omit,
+        safety_identifier: str | Omit = omit,
+        service_tier: Optional[Literal["auto", "default", "flex", "scale", "priority"]] | Omit = omit,
+        store: Optional[bool] | Omit = omit,
+        stream: Optional[bool] | Omit = omit,
+        stream_options: Optional[responses_client_event_param.StreamOptions] | Omit = omit,
+        temperature: Optional[float] | Omit = omit,
+        text: ResponseTextConfigParam | Omit = omit,
+        tool_choice: responses_client_event_param.ToolChoice | Omit = omit,
+        tools: Iterable[ToolParam] | Omit = omit,
+        top_logprobs: Optional[int] | Omit = omit,
+        top_p: Optional[float] | Omit = omit,
+        truncation: Optional[Literal["auto", "disabled"]] | Omit = omit,
+        user: str | Omit = omit,
+    ) -> None:
+        await self._connection.send(
+            cast(
+                ResponsesClientEventParam,
+                strip_not_given(
+                    {
+                        "type": "response.create",
+                        "background": background,
+                        "context_management": context_management,
+                        "conversation": conversation,
+                        "include": include,
+                        "input": input,
+                        "instructions": instructions,
+                        "max_output_tokens": max_output_tokens,
+                        "max_tool_calls": max_tool_calls,
+                        "metadata": metadata,
+                        "model": model,
+                        "parallel_tool_calls": parallel_tool_calls,
+                        "previous_response_id": previous_response_id,
+                        "prompt": prompt,
+                        "prompt_cache_key": prompt_cache_key,
+                        "prompt_cache_retention": prompt_cache_retention,
+                        "reasoning": reasoning,
+                        "safety_identifier": safety_identifier,
+                        "service_tier": service_tier,
+                        "store": store,
+                        "stream": stream,
+                        "stream_options": stream_options,
+                        "temperature": temperature,
+                        "text": text,
+                        "tool_choice": tool_choice,
+                        "tools": tools,
+                        "top_logprobs": top_logprobs,
+                        "top_p": top_p,
+                        "truncation": truncation,
+                        "user": user,
+                    }
+                ),
+            )
+        )

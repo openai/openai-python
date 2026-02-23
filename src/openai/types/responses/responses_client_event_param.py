@@ -23,18 +23,51 @@ from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
 from ..shared_params.responses_model import ResponsesModel
 from .response_conversation_param_param import ResponseConversationParamParam
 
-__all__ = [
-    "ResponseCreateParamsBase",
-    "ContextManagement",
-    "Conversation",
-    "StreamOptions",
-    "ToolChoice",
-    "ResponseCreateParamsNonStreaming",
-    "ResponseCreateParamsStreaming",
+__all__ = ["ResponsesClientEventParam", "ContextManagement", "Conversation", "StreamOptions", "ToolChoice"]
+
+
+class ContextManagement(TypedDict, total=False):
+    type: Required[str]
+    """The context management entry type. Currently only 'compaction' is supported."""
+
+    compact_threshold: Optional[int]
+    """Token threshold at which compaction should be triggered for this entry."""
+
+
+Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
+
+
+class StreamOptions(TypedDict, total=False):
+    """Options for streaming responses. Only set this when you set `stream: true`."""
+
+    include_obfuscation: bool
+    """When true, stream obfuscation will be enabled.
+
+    Stream obfuscation adds random characters to an `obfuscation` field on streaming
+    delta events to normalize payload sizes as a mitigation to certain side-channel
+    attacks. These obfuscation fields are included by default, but add a small
+    amount of overhead to the data stream. You can set `include_obfuscation` to
+    false to optimize for bandwidth if you trust the network links between your
+    application and the OpenAI API.
+    """
+
+
+ToolChoice: TypeAlias = Union[
+    ToolChoiceOptions,
+    ToolChoiceAllowedParam,
+    ToolChoiceTypesParam,
+    ToolChoiceFunctionParam,
+    ToolChoiceMcpParam,
+    ToolChoiceCustomParam,
+    ToolChoiceApplyPatchParam,
+    ToolChoiceShellParam,
 ]
 
 
-class ResponseCreateParamsBase(TypedDict, total=False):
+class ResponsesClientEventParam(TypedDict, total=False):
+    type: Required[Literal["response.create"]]
+    """The type of the client event. Always `response.create`."""
+
     background: Optional[bool]
     """
     Whether to run the model response in the background.
@@ -199,6 +232,16 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     store: Optional[bool]
     """Whether to store the generated model response for later retrieval via API."""
 
+    stream: Optional[bool]
+    """
+    If set to true, the model response data will be streamed to the client as it is
+    generated using
+    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
+    See the
+    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
+    for more information.
+    """
+
     stream_options: Optional[StreamOptions]
     """Options for streaming responses. Only set this when you set `stream: true`."""
 
@@ -282,68 +325,3 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     similar requests and to help OpenAI detect and prevent abuse.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
-
-
-class ContextManagement(TypedDict, total=False):
-    type: Required[str]
-    """The context management entry type. Currently only 'compaction' is supported."""
-
-    compact_threshold: Optional[int]
-    """Token threshold at which compaction should be triggered for this entry."""
-
-
-Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
-
-
-class StreamOptions(TypedDict, total=False):
-    """Options for streaming responses. Only set this when you set `stream: true`."""
-
-    include_obfuscation: bool
-    """When true, stream obfuscation will be enabled.
-
-    Stream obfuscation adds random characters to an `obfuscation` field on streaming
-    delta events to normalize payload sizes as a mitigation to certain side-channel
-    attacks. These obfuscation fields are included by default, but add a small
-    amount of overhead to the data stream. You can set `include_obfuscation` to
-    false to optimize for bandwidth if you trust the network links between your
-    application and the OpenAI API.
-    """
-
-
-ToolChoice: TypeAlias = Union[
-    ToolChoiceOptions,
-    ToolChoiceAllowedParam,
-    ToolChoiceTypesParam,
-    ToolChoiceFunctionParam,
-    ToolChoiceMcpParam,
-    ToolChoiceCustomParam,
-    ToolChoiceApplyPatchParam,
-    ToolChoiceShellParam,
-]
-
-
-class ResponseCreateParamsNonStreaming(ResponseCreateParamsBase, total=False):
-    stream: Optional[Literal[False]]
-    """
-    If set to true, the model response data will be streamed to the client as it is
-    generated using
-    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
-    See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
-    for more information.
-    """
-
-
-class ResponseCreateParamsStreaming(ResponseCreateParamsBase):
-    stream: Required[Literal[True]]
-    """
-    If set to true, the model response data will be streamed to the client as it is
-    generated using
-    [server-sent events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events#Event_stream_format).
-    See the
-    [Streaming section below](https://platform.openai.com/docs/api-reference/responses-streaming)
-    for more information.
-    """
-
-
-ResponseCreateParams = Union[ResponseCreateParamsNonStreaming, ResponseCreateParamsStreaming]
