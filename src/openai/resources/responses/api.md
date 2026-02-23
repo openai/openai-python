@@ -127,6 +127,8 @@ from openai.types.responses import (
     ResponseWebSearchCallCompletedEvent,
     ResponseWebSearchCallInProgressEvent,
     ResponseWebSearchCallSearchingEvent,
+    ResponsesClientEvent,
+    ResponsesServerEvent,
     SkillReference,
     Tool,
     ToolChoiceAllowed,
