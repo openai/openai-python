@@ -1660,6 +1660,7 @@ class Responses(SyncAPIResource):
         input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -1695,6 +1696,8 @@ class Responses(SyncAPIResource):
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
+          prompt_cache_key: A key to use when reading from or writing to the prompt cache.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -1711,6 +1714,7 @@ class Responses(SyncAPIResource):
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
+                    "prompt_cache_key": prompt_cache_key,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
@@ -3321,6 +3325,7 @@ class AsyncResponses(AsyncAPIResource):
         input: Union[str, Iterable[ResponseInputItemParam], None] | Omit = omit,
         instructions: Optional[str] | Omit = omit,
         previous_response_id: Optional[str] | Omit = omit,
+        prompt_cache_key: Optional[str] | Omit = omit,
         # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
         # The extra values given here take precedence over values defined on the client or passed to this method.
         extra_headers: Headers | None = None,
@@ -3356,6 +3361,8 @@ class AsyncResponses(AsyncAPIResource):
               [conversation state](https://platform.openai.com/docs/guides/conversation-state).
               Cannot be used in conjunction with `conversation`.
 
+          prompt_cache_key: A key to use when reading from or writing to the prompt cache.
+
           extra_headers: Send extra headers
 
           extra_query: Add additional query parameters to the request
@@ -3372,6 +3379,7 @@ class AsyncResponses(AsyncAPIResource):
                     "input": input,
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
+                    "prompt_cache_key": prompt_cache_key,
                 },
                 response_compact_params.ResponseCompactParams,
             ),
