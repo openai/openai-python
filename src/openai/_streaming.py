@@ -58,46 +58,40 @@ class Stream(Generic[_T]):
         process_data = self._client._process_response_data
         iterator = self._iter_events()
 
+        def _raise_streaming_error(data: object) -> None:
+            if not is_mapping(data):
+                return
+            error = data.get("error")
+            if not error:
+                return
+
+            message: str | None = None
+            if is_mapping(error):
+                message = error.get("message")
+            if not message or not isinstance(message, str):
+                message = "An error occurred during streaming"
+
+            raise APIError(
+                message=message,
+                request=self.response.request,
+                body=error,
+            )
+
         try:
             for sse in iterator:
                 if sse.data.startswith("[DONE]"):
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
+                data = sse.json()
+                if sse.event == "error":
+                    _raise_streaming_error(data)
+
                 if sse.event and sse.event.startswith("thread."):
-                    data = sse.json()
-
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
+                    _raise_streaming_error(data)
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
-                    data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
+                    _raise_streaming_error(data)
                     yield process_data(data=data, cast_to=cast_to, response=response)
 
         finally:
@@ -163,46 +157,40 @@ class AsyncStream(Generic[_T]):
         process_data = self._client._process_response_data
         iterator = self._iter_events()
 
+        def _raise_streaming_error(data: object) -> None:
+            if not is_mapping(data):
+                return
+            error = data.get("error")
+            if not error:
+                return
+
+            message: str | None = None
+            if is_mapping(error):
+                message = error.get("message")
+            if not message or not isinstance(message, str):
+                message = "An error occurred during streaming"
+
+            raise APIError(
+                message=message,
+                request=self.response.request,
+                body=error,
+            )
+
         try:
             async for sse in iterator:
                 if sse.data.startswith("[DONE]"):
                     break
 
                 # we have to special case the Assistants `thread.` events since we won't have an "event" key in the data
+                data = sse.json()
+                if sse.event == "error":
+                    _raise_streaming_error(data)
+
                 if sse.event and sse.event.startswith("thread."):
-                    data = sse.json()
-
-                    if sse.event == "error" and is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
+                    _raise_streaming_error(data)
                     yield process_data(data={"data": data, "event": sse.event}, cast_to=cast_to, response=response)
                 else:
-                    data = sse.json()
-                    if is_mapping(data) and data.get("error"):
-                        message = None
-                        error = data.get("error")
-                        if is_mapping(error):
-                            message = error.get("message")
-                        if not message or not isinstance(message, str):
-                            message = "An error occurred during streaming"
-
-                        raise APIError(
-                            message=message,
-                            request=self.response.request,
-                            body=data["error"],
-                        )
-
+                    _raise_streaming_error(data)
                     yield process_data(data=data, cast_to=cast_to, response=response)
 
         finally:
@@ -227,6 +215,10 @@ class AsyncStream(Generic[_T]):
         Automatically called if the response body is read to completion.
         """
         await self.response.aclose()
+
+    async def aclose(self) -> None:
+        """Alias for `close` so contexts depending on `aclose` still work."""
+        await self.close()
 
 
 class ServerSentEvent:
