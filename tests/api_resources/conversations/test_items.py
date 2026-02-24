@@ -44,7 +44,6 @@ class TestItems:
                 {
                     "content": "string",
                     "role": "user",
-                    "phase": "commentary",
                     "type": "message",
                 }
             ],
@@ -286,7 +285,6 @@ class TestAsyncItems:
                 {
                     "content": "string",
                     "role": "user",
-                    "phase": "commentary",
                     "type": "message",
                 }
             ],
