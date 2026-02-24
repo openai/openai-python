@@ -804,6 +804,7 @@ class FinalRequestOptionsInput(TypedDict, total=False):
     json_data: Body
     extra_json: AnyMapping
     follow_redirects: bool
+    synthesize_event_and_data: bool
 
 
 @final
@@ -818,6 +819,7 @@ class FinalRequestOptions(pydantic.BaseModel):
     idempotency_key: Union[str, None] = None
     post_parser: Union[Callable[[Any], Any], NotGiven] = NotGiven()
     follow_redirects: Union[bool, None] = None
+    synthesize_event_and_data: Optional[bool] = None
 
     content: Union[bytes, bytearray, IO[bytes], Iterable[bytes], AsyncIterable[bytes], None] = None
     # It should be noted that we cannot use `json` here as that would override
