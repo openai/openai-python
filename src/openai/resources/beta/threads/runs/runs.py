@@ -620,6 +620,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1368,7 +1369,11 @@ class Runs(SyncAPIResource):
                 else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -2075,6 +2080,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -2822,7 +2828,11 @@ class AsyncRuns(AsyncAPIResource):
                 else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,

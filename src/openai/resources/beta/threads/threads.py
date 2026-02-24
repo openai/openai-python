@@ -729,7 +729,11 @@ class Threads(SyncAPIResource):
                 else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1587,7 +1591,11 @@ class AsyncThreads(AsyncAPIResource):
                 else thread_create_and_run_params.ThreadCreateAndRunParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
