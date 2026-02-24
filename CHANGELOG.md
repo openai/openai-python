@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.23.0 (2026-02-24)
+
+Full Changelog: [v2.22.0...v2.23.0](https://github.com/openai/openai-python/compare/v2.22.0...v2.23.0)
+
+### Features
+
+* **api:** add gpt-realtime-1.5 and gpt-audio-1.5 model options to realtime calls ([3300b61](https://github.com/openai/openai-python/commit/3300b61e1d5a34c9d28ec9cebbebd0de1fa93aa6))
+
+
+### Chores
+
+* **internal:** make `test_proxy_environment_variables` more resilient ([6b441e2](https://github.com/openai/openai-python/commit/6b441e2c43df60a773f62308e918d76b8eb3c4d3))
+
 ## 2.22.0 (2026-02-23)
 
 Full Changelog: [v2.21.0...v2.22.0](https://github.com/openai/openai-python/compare/v2.21.0...v2.22.0)
