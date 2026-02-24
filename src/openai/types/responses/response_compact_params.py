@@ -131,3 +131,6 @@ class ResponseCompactParams(TypedDict, total=False):
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
+
+    prompt_cache_key: Optional[str]
+    """A key to use when reading from or writing to the prompt cache."""
