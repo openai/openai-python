@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.24.0 (2026-02-24)
+
+Full Changelog: [v2.23.0...v2.24.0](https://github.com/openai/openai-python/compare/v2.23.0...v2.24.0)
+
+### Features
+
+* **api:** add phase ([391deb9](https://github.com/openai/openai-python/commit/391deb99f6a92e51bffb25efd8dfe367d144bb9d))
+
+
+### Bug Fixes
+
+* **api:** fix phase enum ([42ebf7c](https://github.com/openai/openai-python/commit/42ebf7c30b7e27a175c0d75fcf42c8dc858e56d6))
+* **api:** phase docs ([7ddc61c](https://github.com/openai/openai-python/commit/7ddc61cd0f7825d5e7f3a10daf809135511d8d20))
+
+
+### Chores
+
+* **internal:** make `test_proxy_environment_variables` more resilient to env ([65af8fd](https://github.com/openai/openai-python/commit/65af8fd8550e99236e3f4dcb035312441788157a))
+* **internal:** refactor sse event parsing ([2344600](https://github.com/openai/openai-python/commit/23446008f06fb474d8c75d14a1bce26f4c5b95d8))
+
 ## 2.23.0 (2026-02-24)
 
 Full Changelog: [v2.22.0...v2.23.0](https://github.com/openai/openai-python/compare/v2.22.0...v2.23.0)
