@@ -1,0 +1,7 @@
+./scripts/test
+
+Main test suite
+Result: 4006 passed, 24 skipped in 13.69s
+
+Pydantic v1 tests
+Result: 4002 passed, 28 skipped in 12.04s
