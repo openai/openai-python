@@ -31,7 +31,7 @@ class EasyInputMessageParam(TypedDict, total=False):
     One of `user`, `assistant`, `system`, or `developer`.
     """
 
-    phase: Optional[Literal["commentary"]]
+    phase: Optional[Literal["commentary", "final_answer"]]
     """
     Labels an `assistant` message as intermediate commentary (`commentary`) or the
     final answer (`final_answer`). For models like `gpt-5.3-codex` and beyond, when

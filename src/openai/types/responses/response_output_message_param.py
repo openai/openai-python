@@ -35,7 +35,7 @@ class ResponseOutputMessageParam(TypedDict, total=False):
     type: Required[Literal["message"]]
     """The type of the output message. Always `message`."""
 
-    phase: Optional[Literal["commentary"]]
+    phase: Optional[Literal["commentary", "final_answer"]]
     """
     Labels an `assistant` message as intermediate commentary (`commentary`) or the
     final answer (`final_answer`). For models like `gpt-5.3-codex` and beyond, when
