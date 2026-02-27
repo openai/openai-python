@@ -17,3 +17,4 @@ from .response_format_json_object import ResponseFormatJSONObject as ResponseFor
 from .response_format_json_schema import ResponseFormatJSONSchema as ResponseFormatJSONSchema
 from .response_format_text_python import ResponseFormatTextPython as ResponseFormatTextPython
 from .response_format_text_grammar import ResponseFormatTextGrammar as ResponseFormatTextGrammar
+from .image_detail import ImageDetail as ImageDetail
