@@ -15,6 +15,7 @@ from .shared import (
     ErrorObject as ErrorObject,
     CompoundFilter as CompoundFilter,
     ResponsesModel as ResponsesModel,
+    ImageDetail as ImageDetail,
     ReasoningEffort as ReasoningEffort,
     ComparisonFilter as ComparisonFilter,
     FunctionDefinition as FunctionDefinition,
