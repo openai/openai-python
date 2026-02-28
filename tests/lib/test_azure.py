@@ -47,6 +47,29 @@ def test_implicit_deployment_path(client: Client) -> None:
     )
 
 
+@pytest.mark.parametrize("client", [sync_client, async_client])
+def test_implicit_deployment_strips_model_from_body(client: Client) -> None:
+    """model is used for URL routing and must not remain in the request body.
+
+    Azure validates the body ``model`` field against canonical model names,
+    so keeping a deployment name that differs (e.g. ``gpt-image-1-5`` vs
+    ``gpt-image-1.5``) causes a 400 Bad Request.  See #2892.
+    """
+    import json
+
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url="/images/generations",
+            json_data={"model": "gpt-image-1-5", "prompt": "A sunset"},
+        )
+    )
+    assert "/deployments/gpt-image-1-5/" in str(req.url)
+    body = json.loads(req.content)
+    assert "model" not in body
+    assert body["prompt"] == "A sunset"
+
+
 @pytest.mark.parametrize(
     "client,method",
     [
