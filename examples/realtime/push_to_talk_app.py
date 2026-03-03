@@ -38,8 +38,8 @@ from textual.reactive import reactive
 from textual.containers import Container
 
 from openai import AsyncOpenAI
-from openai.types.realtime.session import Session
 from openai.resources.realtime.realtime import AsyncRealtimeConnection
+from openai.types.realtime.session_update_event import Session
 
 
 class SessionDisplay(Static):
@@ -176,8 +176,9 @@ class RealtimeApp(App[None]):
                 if event.type == "session.created":
                     self.session = event.session
                     session_display = self.query_one(SessionDisplay)
-                    assert event.session.id is not None
-                    session_display.session_id = event.session.id
+                    # `id` exists in the server response but is currently missing from generated type definitions.
+                    assert event.session.id is not None  # type: ignore[attr-defined]
+                    session_display.session_id = event.session.id  # type: ignore[attr-defined]
                     continue
 
                 if event.type == "session.updated":
@@ -272,7 +273,7 @@ class RealtimeApp(App[None]):
                 self.should_send_audio.clear()
                 status_indicator.is_recording = False
 
-                if self.session and self.session.turn_detection is None:
+                if self.session and hasattr(self.session, "turn_detection") and self.session.turn_detection is None:
                     # The default in the API is that the model will automatically detect when the user has
                     # stopped talking and then start responding itself.
                     #
