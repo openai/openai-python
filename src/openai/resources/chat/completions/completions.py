@@ -47,8 +47,15 @@ __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
+    """
+    Given a list of messages comprising a conversation, the model will return a response.
+    """
+
     @cached_property
     def messages(self) -> Messages:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return Messages(self._client)
 
     @cached_property
@@ -1268,8 +1275,15 @@ class Completions(SyncAPIResource):
 
 
 class AsyncCompletions(AsyncAPIResource):
+    """
+    Given a list of messages comprising a conversation, the model will return a response.
+    """
+
     @cached_property
     def messages(self) -> AsyncMessages:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncMessages(self._client)
 
     @cached_property
@@ -2510,6 +2524,9 @@ class CompletionsWithRawResponse:
 
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return MessagesWithRawResponse(self._completions.messages)
 
 
@@ -2535,6 +2552,9 @@ class AsyncCompletionsWithRawResponse:
 
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncMessagesWithRawResponse(self._completions.messages)
 
 
@@ -2560,6 +2580,9 @@ class CompletionsWithStreamingResponse:
 
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return MessagesWithStreamingResponse(self._completions.messages)
 
 
@@ -2585,4 +2608,7 @@ class AsyncCompletionsWithStreamingResponse:
 
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
+        """
+        Given a list of messages comprising a conversation, the model will return a response.
+        """
         return AsyncMessagesWithStreamingResponse(self._completions.messages)

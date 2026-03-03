@@ -32,8 +32,11 @@ __all__ = ["Jobs", "AsyncJobs"]
 
 
 class Jobs(SyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def checkpoints(self) -> Checkpoints:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return Checkpoints(self._client)
 
     @cached_property
@@ -412,8 +415,11 @@ class Jobs(SyncAPIResource):
 
 
 class AsyncJobs(AsyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def checkpoints(self) -> AsyncCheckpoints:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncCheckpoints(self._client)
 
     @cached_property
@@ -819,6 +825,7 @@ class JobsWithRawResponse:
 
     @cached_property
     def checkpoints(self) -> CheckpointsWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return CheckpointsWithRawResponse(self._jobs.checkpoints)
 
 
@@ -850,6 +857,7 @@ class AsyncJobsWithRawResponse:
 
     @cached_property
     def checkpoints(self) -> AsyncCheckpointsWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncCheckpointsWithRawResponse(self._jobs.checkpoints)
 
 
@@ -881,6 +889,7 @@ class JobsWithStreamingResponse:
 
     @cached_property
     def checkpoints(self) -> CheckpointsWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return CheckpointsWithStreamingResponse(self._jobs.checkpoints)
 
 
@@ -912,4 +921,5 @@ class AsyncJobsWithStreamingResponse:
 
     @cached_property
     def checkpoints(self) -> AsyncCheckpointsWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncCheckpointsWithStreamingResponse(self._jobs.checkpoints)

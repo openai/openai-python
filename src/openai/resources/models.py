@@ -18,6 +18,8 @@ __all__ = ["Models", "AsyncModels"]
 
 
 class Models(SyncAPIResource):
+    """List and describe the various models available in the API."""
+
     @cached_property
     def with_raw_response(self) -> ModelsWithRawResponse:
         """
@@ -131,6 +133,8 @@ class Models(SyncAPIResource):
 
 
 class AsyncModels(AsyncAPIResource):
+    """List and describe the various models available in the API."""
+
     @cached_property
     def with_raw_response(self) -> AsyncModelsWithRawResponse:
         """

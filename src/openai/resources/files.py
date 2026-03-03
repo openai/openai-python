@@ -32,6 +32,10 @@ __all__ = ["Files", "AsyncFiles"]
 
 
 class Files(SyncAPIResource):
+    """
+    Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+    """
+
     @cached_property
     def with_raw_response(self) -> FilesWithRawResponse:
         """
@@ -330,6 +334,10 @@ class Files(SyncAPIResource):
 
 
 class AsyncFiles(AsyncAPIResource):
+    """
+    Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncFilesWithRawResponse:
         """

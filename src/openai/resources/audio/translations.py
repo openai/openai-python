@@ -22,6 +22,8 @@ __all__ = ["Translations", "AsyncTranslations"]
 
 
 class Translations(SyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> TranslationsWithRawResponse:
         """
@@ -119,6 +121,8 @@ class Translations(SyncAPIResource):
 
 
 class AsyncTranslations(AsyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> AsyncTranslationsWithRawResponse:
         """

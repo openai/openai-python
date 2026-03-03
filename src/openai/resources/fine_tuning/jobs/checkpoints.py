@@ -19,6 +19,8 @@ __all__ = ["Checkpoints", "AsyncCheckpoints"]
 
 
 class Checkpoints(SyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def with_raw_response(self) -> CheckpointsWithRawResponse:
         """
@@ -90,6 +92,8 @@ class Checkpoints(SyncAPIResource):
 
 
 class AsyncCheckpoints(AsyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def with_raw_response(self) -> AsyncCheckpointsWithRawResponse:
         """

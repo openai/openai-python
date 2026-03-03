@@ -174,6 +174,9 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def completions(self) -> Completions:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import Completions
 
         return Completions(self)
@@ -186,18 +189,25 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def embeddings(self) -> Embeddings:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import Embeddings
 
         return Embeddings(self)
 
     @cached_property
     def files(self) -> Files:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import Files
 
         return Files(self)
 
     @cached_property
     def images(self) -> Images:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import Images
 
         return Images(self)
@@ -210,12 +220,16 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def moderations(self) -> Moderations:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import Moderations
 
         return Moderations(self)
 
     @cached_property
     def models(self) -> Models:
+        """List and describe the various models available in the API."""
         from .resources.models import Models
 
         return Models(self)
@@ -246,12 +260,14 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def batches(self) -> Batches:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import Batches
 
         return Batches(self)
 
     @cached_property
     def uploads(self) -> Uploads:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import Uploads
 
         return Uploads(self)
@@ -270,12 +286,14 @@ class OpenAI(SyncAPIClient):
 
     @cached_property
     def conversations(self) -> Conversations:
+        """Manage conversations and conversation items."""
         from .resources.conversations import Conversations
 
         return Conversations(self)
 
     @cached_property
     def evals(self) -> Evals:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import Evals
 
         return Evals(self)
@@ -514,6 +532,9 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def completions(self) -> AsyncCompletions:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import AsyncCompletions
 
         return AsyncCompletions(self)
@@ -526,18 +547,25 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def embeddings(self) -> AsyncEmbeddings:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import AsyncEmbeddings
 
         return AsyncEmbeddings(self)
 
     @cached_property
     def files(self) -> AsyncFiles:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import AsyncFiles
 
         return AsyncFiles(self)
 
     @cached_property
     def images(self) -> AsyncImages:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImages
 
         return AsyncImages(self)
@@ -550,12 +578,16 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def moderations(self) -> AsyncModerations:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import AsyncModerations
 
         return AsyncModerations(self)
 
     @cached_property
     def models(self) -> AsyncModels:
+        """List and describe the various models available in the API."""
         from .resources.models import AsyncModels
 
         return AsyncModels(self)
@@ -586,12 +618,14 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def batches(self) -> AsyncBatches:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatches
 
         return AsyncBatches(self)
 
     @cached_property
     def uploads(self) -> AsyncUploads:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploads
 
         return AsyncUploads(self)
@@ -610,12 +644,14 @@ class AsyncOpenAI(AsyncAPIClient):
 
     @cached_property
     def conversations(self) -> AsyncConversations:
+        """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversations
 
         return AsyncConversations(self)
 
     @cached_property
     def evals(self) -> AsyncEvals:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvals
 
         return AsyncEvals(self)
@@ -770,6 +806,9 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def completions(self) -> completions.CompletionsWithRawResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import CompletionsWithRawResponse
 
         return CompletionsWithRawResponse(self._client.completions)
@@ -782,18 +821,25 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.EmbeddingsWithRawResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import EmbeddingsWithRawResponse
 
         return EmbeddingsWithRawResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.FilesWithRawResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import FilesWithRawResponse
 
         return FilesWithRawResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.ImagesWithRawResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import ImagesWithRawResponse
 
         return ImagesWithRawResponse(self._client.images)
@@ -806,12 +852,16 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def moderations(self) -> moderations.ModerationsWithRawResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import ModerationsWithRawResponse
 
         return ModerationsWithRawResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.ModelsWithRawResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import ModelsWithRawResponse
 
         return ModelsWithRawResponse(self._client.models)
@@ -836,12 +886,14 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def batches(self) -> batches.BatchesWithRawResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import BatchesWithRawResponse
 
         return BatchesWithRawResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.UploadsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import UploadsWithRawResponse
 
         return UploadsWithRawResponse(self._client.uploads)
@@ -860,12 +912,14 @@ class OpenAIWithRawResponse:
 
     @cached_property
     def conversations(self) -> conversations.ConversationsWithRawResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import ConversationsWithRawResponse
 
         return ConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.EvalsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import EvalsWithRawResponse
 
         return EvalsWithRawResponse(self._client.evals)
@@ -897,6 +951,9 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def completions(self) -> completions.AsyncCompletionsWithRawResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import AsyncCompletionsWithRawResponse
 
         return AsyncCompletionsWithRawResponse(self._client.completions)
@@ -909,18 +966,25 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.AsyncEmbeddingsWithRawResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import AsyncEmbeddingsWithRawResponse
 
         return AsyncEmbeddingsWithRawResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.AsyncFilesWithRawResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import AsyncFilesWithRawResponse
 
         return AsyncFilesWithRawResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.AsyncImagesWithRawResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImagesWithRawResponse
 
         return AsyncImagesWithRawResponse(self._client.images)
@@ -933,12 +997,16 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def moderations(self) -> moderations.AsyncModerationsWithRawResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import AsyncModerationsWithRawResponse
 
         return AsyncModerationsWithRawResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.AsyncModelsWithRawResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import AsyncModelsWithRawResponse
 
         return AsyncModelsWithRawResponse(self._client.models)
@@ -963,12 +1031,14 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def batches(self) -> batches.AsyncBatchesWithRawResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatchesWithRawResponse
 
         return AsyncBatchesWithRawResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.AsyncUploadsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploadsWithRawResponse
 
         return AsyncUploadsWithRawResponse(self._client.uploads)
@@ -987,12 +1057,14 @@ class AsyncOpenAIWithRawResponse:
 
     @cached_property
     def conversations(self) -> conversations.AsyncConversationsWithRawResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversationsWithRawResponse
 
         return AsyncConversationsWithRawResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.AsyncEvalsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvalsWithRawResponse
 
         return AsyncEvalsWithRawResponse(self._client.evals)
@@ -1024,6 +1096,9 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def completions(self) -> completions.CompletionsWithStreamingResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import CompletionsWithStreamingResponse
 
         return CompletionsWithStreamingResponse(self._client.completions)
@@ -1036,18 +1111,25 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.EmbeddingsWithStreamingResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import EmbeddingsWithStreamingResponse
 
         return EmbeddingsWithStreamingResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.FilesWithStreamingResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import FilesWithStreamingResponse
 
         return FilesWithStreamingResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.ImagesWithStreamingResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import ImagesWithStreamingResponse
 
         return ImagesWithStreamingResponse(self._client.images)
@@ -1060,12 +1142,16 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def moderations(self) -> moderations.ModerationsWithStreamingResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import ModerationsWithStreamingResponse
 
         return ModerationsWithStreamingResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.ModelsWithStreamingResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import ModelsWithStreamingResponse
 
         return ModelsWithStreamingResponse(self._client.models)
@@ -1090,12 +1176,14 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def batches(self) -> batches.BatchesWithStreamingResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import BatchesWithStreamingResponse
 
         return BatchesWithStreamingResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.UploadsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import UploadsWithStreamingResponse
 
         return UploadsWithStreamingResponse(self._client.uploads)
@@ -1114,12 +1202,14 @@ class OpenAIWithStreamedResponse:
 
     @cached_property
     def conversations(self) -> conversations.ConversationsWithStreamingResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import ConversationsWithStreamingResponse
 
         return ConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.EvalsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import EvalsWithStreamingResponse
 
         return EvalsWithStreamingResponse(self._client.evals)
@@ -1151,6 +1241,9 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def completions(self) -> completions.AsyncCompletionsWithStreamingResponse:
+        """
+        Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+        """
         from .resources.completions import AsyncCompletionsWithStreamingResponse
 
         return AsyncCompletionsWithStreamingResponse(self._client.completions)
@@ -1163,18 +1256,25 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def embeddings(self) -> embeddings.AsyncEmbeddingsWithStreamingResponse:
+        """
+        Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+        """
         from .resources.embeddings import AsyncEmbeddingsWithStreamingResponse
 
         return AsyncEmbeddingsWithStreamingResponse(self._client.embeddings)
 
     @cached_property
     def files(self) -> files.AsyncFilesWithStreamingResponse:
+        """
+        Files are used to upload documents that can be used with features like Assistants and Fine-tuning.
+        """
         from .resources.files import AsyncFilesWithStreamingResponse
 
         return AsyncFilesWithStreamingResponse(self._client.files)
 
     @cached_property
     def images(self) -> images.AsyncImagesWithStreamingResponse:
+        """Given a prompt and/or an input image, the model will generate a new image."""
         from .resources.images import AsyncImagesWithStreamingResponse
 
         return AsyncImagesWithStreamingResponse(self._client.images)
@@ -1187,12 +1287,16 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def moderations(self) -> moderations.AsyncModerationsWithStreamingResponse:
+        """
+        Given text and/or image inputs, classifies if those inputs are potentially harmful.
+        """
         from .resources.moderations import AsyncModerationsWithStreamingResponse
 
         return AsyncModerationsWithStreamingResponse(self._client.moderations)
 
     @cached_property
     def models(self) -> models.AsyncModelsWithStreamingResponse:
+        """List and describe the various models available in the API."""
         from .resources.models import AsyncModelsWithStreamingResponse
 
         return AsyncModelsWithStreamingResponse(self._client.models)
@@ -1217,12 +1321,14 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def batches(self) -> batches.AsyncBatchesWithStreamingResponse:
+        """Create large batches of API requests to run asynchronously."""
         from .resources.batches import AsyncBatchesWithStreamingResponse
 
         return AsyncBatchesWithStreamingResponse(self._client.batches)
 
     @cached_property
     def uploads(self) -> uploads.AsyncUploadsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         from .resources.uploads import AsyncUploadsWithStreamingResponse
 
         return AsyncUploadsWithStreamingResponse(self._client.uploads)
@@ -1241,12 +1347,14 @@ class AsyncOpenAIWithStreamedResponse:
 
     @cached_property
     def conversations(self) -> conversations.AsyncConversationsWithStreamingResponse:
+        """Manage conversations and conversation items."""
         from .resources.conversations import AsyncConversationsWithStreamingResponse
 
         return AsyncConversationsWithStreamingResponse(self._client.conversations)
 
     @cached_property
     def evals(self) -> evals.AsyncEvalsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         from .resources.evals import AsyncEvalsWithStreamingResponse
 
         return AsyncEvalsWithStreamingResponse(self._client.evals)

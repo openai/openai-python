@@ -24,6 +24,8 @@ __all__ = ["Steps", "AsyncSteps"]
 
 
 class Steps(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> StepsWithRawResponse:
         """
@@ -180,6 +182,8 @@ class Steps(SyncAPIResource):
 
 
 class AsyncSteps(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncStepsWithRawResponse:
         """
