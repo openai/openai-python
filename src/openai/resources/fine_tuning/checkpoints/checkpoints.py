@@ -19,6 +19,7 @@ __all__ = ["Checkpoints", "AsyncCheckpoints"]
 class Checkpoints(SyncAPIResource):
     @cached_property
     def permissions(self) -> Permissions:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return Permissions(self._client)
 
     @cached_property
@@ -44,6 +45,7 @@ class Checkpoints(SyncAPIResource):
 class AsyncCheckpoints(AsyncAPIResource):
     @cached_property
     def permissions(self) -> AsyncPermissions:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncPermissions(self._client)
 
     @cached_property
@@ -72,6 +74,7 @@ class CheckpointsWithRawResponse:
 
     @cached_property
     def permissions(self) -> PermissionsWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return PermissionsWithRawResponse(self._checkpoints.permissions)
 
 
@@ -81,6 +84,7 @@ class AsyncCheckpointsWithRawResponse:
 
     @cached_property
     def permissions(self) -> AsyncPermissionsWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncPermissionsWithRawResponse(self._checkpoints.permissions)
 
 
@@ -90,6 +94,7 @@ class CheckpointsWithStreamingResponse:
 
     @cached_property
     def permissions(self) -> PermissionsWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return PermissionsWithStreamingResponse(self._checkpoints.permissions)
 
 
@@ -99,4 +104,5 @@ class AsyncCheckpointsWithStreamingResponse:
 
     @cached_property
     def permissions(self) -> AsyncPermissionsWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncPermissionsWithStreamingResponse(self._checkpoints.permissions)

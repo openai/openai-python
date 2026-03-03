@@ -22,6 +22,10 @@ __all__ = ["Moderations", "AsyncModerations"]
 
 
 class Moderations(SyncAPIResource):
+    """
+    Given text and/or image inputs, classifies if those inputs are potentially harmful.
+    """
+
     @cached_property
     def with_raw_response(self) -> ModerationsWithRawResponse:
         """
@@ -92,6 +96,10 @@ class Moderations(SyncAPIResource):
 
 
 class AsyncModerations(AsyncAPIResource):
+    """
+    Given text and/or image inputs, classifies if those inputs are potentially harmful.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncModerationsWithRawResponse:
         """

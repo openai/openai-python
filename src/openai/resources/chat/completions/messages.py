@@ -21,6 +21,10 @@ __all__ = ["Messages", "AsyncMessages"]
 
 
 class Messages(SyncAPIResource):
+    """
+    Given a list of messages comprising a conversation, the model will return a response.
+    """
+
     @cached_property
     def with_raw_response(self) -> MessagesWithRawResponse:
         """
@@ -99,6 +103,10 @@ class Messages(SyncAPIResource):
 
 
 class AsyncMessages(AsyncAPIResource):
+    """
+    Given a list of messages comprising a conversation, the model will return a response.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncMessagesWithRawResponse:
         """

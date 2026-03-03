@@ -31,8 +31,11 @@ __all__ = ["Conversations", "AsyncConversations"]
 
 
 class Conversations(SyncAPIResource):
+    """Manage conversations and conversation items."""
+
     @cached_property
     def items(self) -> Items:
+        """Manage conversations and conversation items."""
         return Items(self._client)
 
     @cached_property
@@ -214,8 +217,11 @@ class Conversations(SyncAPIResource):
 
 
 class AsyncConversations(AsyncAPIResource):
+    """Manage conversations and conversation items."""
+
     @cached_property
     def items(self) -> AsyncItems:
+        """Manage conversations and conversation items."""
         return AsyncItems(self._client)
 
     @cached_property
@@ -417,6 +423,7 @@ class ConversationsWithRawResponse:
 
     @cached_property
     def items(self) -> ItemsWithRawResponse:
+        """Manage conversations and conversation items."""
         return ItemsWithRawResponse(self._conversations.items)
 
 
@@ -439,6 +446,7 @@ class AsyncConversationsWithRawResponse:
 
     @cached_property
     def items(self) -> AsyncItemsWithRawResponse:
+        """Manage conversations and conversation items."""
         return AsyncItemsWithRawResponse(self._conversations.items)
 
 
@@ -461,6 +469,7 @@ class ConversationsWithStreamingResponse:
 
     @cached_property
     def items(self) -> ItemsWithStreamingResponse:
+        """Manage conversations and conversation items."""
         return ItemsWithStreamingResponse(self._conversations.items)
 
 
@@ -483,4 +492,5 @@ class AsyncConversationsWithStreamingResponse:
 
     @cached_property
     def items(self) -> AsyncItemsWithStreamingResponse:
+        """Manage conversations and conversation items."""
         return AsyncItemsWithStreamingResponse(self._conversations.items)

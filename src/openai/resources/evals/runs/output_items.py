@@ -22,6 +22,8 @@ __all__ = ["OutputItems", "AsyncOutputItems"]
 
 
 class OutputItems(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def with_raw_response(self) -> OutputItemsWithRawResponse:
         """
@@ -145,6 +147,8 @@ class OutputItems(SyncAPIResource):
 
 
 class AsyncOutputItems(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def with_raw_response(self) -> AsyncOutputItemsWithRawResponse:
         """
