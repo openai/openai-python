@@ -307,9 +307,14 @@ class Response(BaseModel):
 
     @property
     def output_text(self) -> str:
-        """Convenience property that aggregates all `output_text` items from the `output` list.
+        """Convenience property that aggregates all text content from the `output` list.
 
-        If no `output_text` content blocks exist, then an empty string is returned.
+        Includes text from:
+        - ``message`` output items (``output_text`` content blocks)
+        - ``code_interpreter_call`` items (log output)
+        - ``shell_call_output`` items (stdout)
+
+        If no text content exists, then an empty string is returned.
         """
         texts: List[str] = []
         for output in self.output:
@@ -317,5 +322,13 @@ class Response(BaseModel):
                 for content in output.content:
                     if content.type == "output_text":
                         texts.append(content.text)
+            elif output.type == "code_interpreter_call":
+                for item in output.outputs or []:
+                    if item.type == "logs" and item.logs:
+                        texts.append(item.logs)
+            elif output.type == "shell_call_output":
+                for item in output.output:
+                    if item.stdout:
+                        texts.append(item.stdout)
 
         return "".join(texts)
