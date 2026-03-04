@@ -161,7 +161,7 @@ class OpenAI(SyncAPIClient):
         self.websocket_base_url = websocket_base_url
 
         if base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
+            base_url = os.environ.get("OPENAI_BASE_URL") or None
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
 
@@ -518,7 +518,7 @@ class AsyncOpenAI(AsyncAPIClient):
         self.websocket_base_url = websocket_base_url
 
         if base_url is None:
-            base_url = os.environ.get("OPENAI_BASE_URL")
+            base_url = os.environ.get("OPENAI_BASE_URL") or None
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
 
