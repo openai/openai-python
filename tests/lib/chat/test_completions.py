@@ -993,3 +993,41 @@ def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpe
         checking_client.chat.completions.parse,
         exclude_params={"response_format", "stream"},
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_invalid_json_returns_none(
+    client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """When the API returns non-JSON content (e.g. whitespace), `parsed` should be None
+    rather than raising an unhandled ValidationError.
+
+    Regression test for https://github.com/openai/openai-python/issues/1763
+    """
+
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    completion = make_snapshot_request(
+        lambda c: c.chat.completions.parse(
+            model="gpt-4o-2024-08-06",
+            messages=[
+                {
+                    "role": "user",
+                    "content": "What's the weather like in SF?",
+                },
+            ],
+            response_format=Location,
+        ),
+        content_snapshot=snapshot(
+            '{"id": "chatcmpl-invalid-json", "object": "chat.completion", "created": 1727346143, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "\\n   \\n\\n \\n   \\n", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 14, "total_tokens": 93, "completion_tokens_details": {"reasoning_tokens": 0}}, "system_fingerprint": "fp_5050236cbd"}'
+        ),
+        path="/chat/completions",
+        mock_client=client,
+        respx_mock=respx_mock,
+    )
+
+    assert completion.choices[0].message.parsed is None
+    assert completion.choices[0].message.content == "\n   \n\n \n   \n"

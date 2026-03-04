@@ -193,7 +193,15 @@ def maybe_parse_content(
     message: ChatCompletionMessage | ParsedChatCompletionMessage[object],
 ) -> ResponseFormatT | None:
     if has_rich_response_format(response_format) and message.content and not message.refusal:
-        return _parse_content(response_format, message.content)
+        try:
+            return _parse_content(response_format, message.content)
+        except pydantic.ValidationError:
+            log.warning(
+                "Failed to parse structured output content into %s; "
+                "`.parsed` will be `None`.  Raw content is available via `.content`.",
+                response_format.__name__ if hasattr(response_format, "__name__") else response_format,
+            )
+            return None
 
     return None
 
