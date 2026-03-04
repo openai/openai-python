@@ -61,7 +61,16 @@ from ._types import (
     ModelBuilderProtocol,
     not_given,
 )
-from ._utils import SensitiveHeadersFilter, is_dict, is_list, asyncify, is_given, lru_cache, is_mapping
+from ._utils import (
+    SensitiveHeadersFilter,
+    is_dict,
+    is_list,
+    asyncify,
+    is_given,
+    lru_cache,
+    is_mapping,
+    redact_sensitive_headers,
+)
 from ._compat import PYDANTIC_V1, model_copy, model_dump
 from ._models import GenericModel, FinalRequestOptions, validate_type, construct_type
 from ._response import (
@@ -1036,15 +1045,16 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
                 log.debug("Raising connection error")
                 raise APIConnectionError(request=request) from err
 
-            log.debug(
-                'HTTP Response: %s %s "%i %s" %s',
-                request.method,
-                request.url,
-                response.status_code,
-                response.reason_phrase,
-                response.headers,
-            )
-            log.debug("request_id: %s", response.headers.get("x-request-id"))
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug(
+                    'HTTP Response: %s %s "%i %s" %s',
+                    request.method,
+                    request.url,
+                    response.status_code,
+                    response.reason_phrase,
+                    redact_sensitive_headers(response.headers),
+                )
+                log.debug("request_id: %s", response.headers.get("x-request-id"))
 
             try:
                 response.raise_for_status()
@@ -1635,15 +1645,16 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
                 log.debug("Raising connection error")
                 raise APIConnectionError(request=request) from err
 
-            log.debug(
-                'HTTP Response: %s %s "%i %s" %s',
-                request.method,
-                request.url,
-                response.status_code,
-                response.reason_phrase,
-                response.headers,
-            )
-            log.debug("request_id: %s", response.headers.get("x-request-id"))
+            if log.isEnabledFor(logging.DEBUG):
+                log.debug(
+                    'HTTP Response: %s %s "%i %s" %s',
+                    request.method,
+                    request.url,
+                    response.status_code,
+                    response.reason_phrase,
+                    redact_sensitive_headers(response.headers),
+                )
+                log.debug("request_id: %s", response.headers.get("x-request-id"))
 
             try:
                 response.raise_for_status()
