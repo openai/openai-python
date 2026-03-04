@@ -61,9 +61,11 @@ class BaseAzureClient(BaseClient[_HttpxClientT, _DefaultStreamT]):
         retries_taken: int = 0,
     ) -> httpx.Request:
         if options.url in _deployments_endpoints and is_mapping(options.json_data):
-            model = options.json_data.get("model")
+            json_data = cast(Mapping[str, Any], options.json_data)
+            model = json_data.get("model")
             if model is not None and "/deployments" not in str(self.base_url.path):
                 options.url = f"/deployments/{model}{options.url}"
+                options.json_data = {k: v for k, v in json_data.items() if k != "model"}
 
         return super()._build_request(options, retries_taken=retries_taken)
 

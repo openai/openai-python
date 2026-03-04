@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import logging
 from typing import Union, cast
 from typing_extensions import Literal, Protocol
@@ -44,6 +45,38 @@ def test_implicit_deployment_path(client: Client) -> None:
     assert (
         req.url
         == "https://example-resource.azure.openai.com/openai/deployments/my-deployment-model/chat/completions?api-version=2023-07-01"
+    )
+
+
+@pytest.mark.parametrize("client", [sync_client, async_client])
+@pytest.mark.parametrize(
+    "endpoint,model",
+    [
+        ("/chat/completions", "gpt-4o"),
+        ("/completions", "gpt-4o"),
+        ("/embeddings", "text-embedding-ada-002"),
+        ("/images/generations", "gpt-image-1-5"),
+        ("/images/edits", "gpt-image-1-5"),
+        ("/audio/transcriptions", "whisper-1"),
+        ("/audio/translations", "whisper-1"),
+        ("/audio/speech", "tts-1"),
+    ],
+)
+def test_implicit_deployment_strips_model_from_body(client: Client, endpoint: str, model: str) -> None:
+    req = client._build_request(
+        FinalRequestOptions.construct(
+            method="post",
+            url=endpoint,
+            json_data={"model": model, "extra": "value"},
+        )
+    )
+
+    body = json.loads(req.content.decode())
+    assert "model" not in body
+    assert body["extra"] == "value"
+    assert (
+        str(req.url)
+        == f"https://example-resource.azure.openai.com/openai/deployments/{model}{endpoint}?api-version=2023-07-01"
     )
 
 
