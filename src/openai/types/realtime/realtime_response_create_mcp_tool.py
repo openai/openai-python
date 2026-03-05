@@ -134,6 +134,9 @@ class RealtimeResponseCreateMcpTool(BaseModel):
     - SharePoint: `connector_sharepoint`
     """
 
+    defer_loading: Optional[bool] = None
+    """Whether this MCP tool is deferred and discovered via tool search."""
+
     headers: Optional[Dict[str, str]] = None
     """Optional HTTP headers to send to the MCP server.
 

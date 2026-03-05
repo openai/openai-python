@@ -17,10 +17,10 @@ class ResponseInputImageContentParam(TypedDict, total=False):
     type: Required[Literal["input_image"]]
     """The type of the input item. Always `input_image`."""
 
-    detail: Optional[Literal["low", "high", "auto"]]
+    detail: Optional[Literal["low", "high", "auto", "original"]]
     """The detail level of the image to be sent to the model.
 
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
     """
 
     file_id: Optional[str]

@@ -21,6 +21,9 @@ class CustomToolParam(TypedDict, total=False):
     type: Required[Literal["custom"]]
     """The type of the custom tool. Always `custom`."""
 
+    defer_loading: bool
+    """Whether this tool should be deferred and discovered via tool search."""
+
     description: str
     """Optional description of the custom tool, used to provide more context."""
 

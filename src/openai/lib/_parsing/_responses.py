@@ -101,6 +101,8 @@ def parse_response(
             output.type == "computer_call"
             or output.type == "file_search_call"
             or output.type == "web_search_call"
+            or output.type == "tool_search_call"
+            or output.type == "tool_search_output"
             or output.type == "reasoning"
             or output.type == "compaction"
             or output.type == "mcp_call"

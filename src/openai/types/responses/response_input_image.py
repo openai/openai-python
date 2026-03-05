@@ -14,10 +14,10 @@ class ResponseInputImage(BaseModel):
     Learn about [image inputs](https://platform.openai.com/docs/guides/vision).
     """
 
-    detail: Literal["low", "high", "auto"]
+    detail: Literal["low", "high", "auto", "original"]
     """The detail level of the image to be sent to the model.
 
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
     """
 
     type: Literal["input_image"]
