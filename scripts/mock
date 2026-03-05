@@ -21,11 +21,22 @@ echo "==> Starting mock server with URL ${URL}"
 
 # Run prism mock on the given spec
 if [ "$1" == "--daemon" ]; then
+  # Pre-install the package so the download doesn't eat into the startup timeout
+  npm exec --package=@stainless-api/prism-cli@5.15.0 -- prism --version
+
   npm exec --package=@stainless-api/prism-cli@5.15.0 -- prism mock "$URL" &> .prism.log &
 
-  # Wait for server to come online
+  # Wait for server to come online (max 30s)
   echo -n "Waiting for server"
+  attempts=0
   while ! grep -q "✖  fatal\|Prism is listening" ".prism.log" ; do
+    attempts=$((attempts + 1))
+    if [ "$attempts" -ge 300 ]; then
+      echo
+      echo "Timed out waiting for Prism server to start"
+      cat .prism.log
+      exit 1
+    fi
     echo -n "."
     sleep 0.1
   done
