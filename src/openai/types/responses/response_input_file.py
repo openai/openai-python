@@ -14,6 +14,12 @@ class ResponseInputFile(BaseModel):
     type: Literal["input_file"]
     """The type of the input item. Always `input_file`."""
 
+    detail: Optional[Literal["low", "high"]] = None
+    """The detail level of the file to be sent to the model.
+
+    One of `high` or `low`. Defaults to `high`.
+    """
+
     file_data: Optional[str] = None
     """The content of the file to be sent to the model."""
 

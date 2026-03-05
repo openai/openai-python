@@ -5,9 +5,11 @@ from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
+from .computer_action_list import ComputerActionList
 
 __all__ = [
     "ResponseComputerToolCall",
+    "PendingSafetyCheck",
     "Action",
     "ActionClick",
     "ActionDoubleClick",
@@ -19,8 +21,20 @@ __all__ = [
     "ActionScroll",
     "ActionType",
     "ActionWait",
-    "PendingSafetyCheck",
 ]
+
+
+class PendingSafetyCheck(BaseModel):
+    """A pending safety check for the computer call."""
+
+    id: str
+    """The ID of the pending safety check."""
+
+    code: Optional[str] = None
+    """The type of the pending safety check."""
+
+    message: Optional[str] = None
+    """Details about the pending safety check."""
 
 
 class ActionClick(BaseModel):
@@ -194,19 +208,6 @@ Action: TypeAlias = Annotated[
 ]
 
 
-class PendingSafetyCheck(BaseModel):
-    """A pending safety check for the computer call."""
-
-    id: str
-    """The ID of the pending safety check."""
-
-    code: Optional[str] = None
-    """The type of the pending safety check."""
-
-    message: Optional[str] = None
-    """Details about the pending safety check."""
-
-
 class ResponseComputerToolCall(BaseModel):
     """A tool call to a computer use tool.
 
@@ -216,9 +217,6 @@ class ResponseComputerToolCall(BaseModel):
 
     id: str
     """The unique ID of the computer call."""
-
-    action: Action
-    """A click action."""
 
     call_id: str
     """An identifier used when responding to the tool call with output."""
@@ -235,3 +233,12 @@ class ResponseComputerToolCall(BaseModel):
 
     type: Literal["computer_call"]
     """The type of the computer call. Always `computer_call`."""
+
+    action: Optional[Action] = None
+    """A click action."""
+
+    actions: Optional[ComputerActionList] = None
+    """Flattened batched actions for `computer_use`.
+
+    Each action includes an `type` discriminator and action-specific fields.
+    """

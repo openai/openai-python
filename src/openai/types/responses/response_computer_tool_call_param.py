@@ -6,9 +6,11 @@ from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
+from .computer_action_list_param import ComputerActionListParam
 
 __all__ = [
     "ResponseComputerToolCallParam",
+    "PendingSafetyCheck",
     "Action",
     "ActionClick",
     "ActionDoubleClick",
@@ -20,8 +22,20 @@ __all__ = [
     "ActionScroll",
     "ActionType",
     "ActionWait",
-    "PendingSafetyCheck",
 ]
+
+
+class PendingSafetyCheck(TypedDict, total=False):
+    """A pending safety check for the computer call."""
+
+    id: Required[str]
+    """The ID of the pending safety check."""
+
+    code: Optional[str]
+    """The type of the pending safety check."""
+
+    message: Optional[str]
+    """Details about the pending safety check."""
 
 
 class ActionClick(TypedDict, total=False):
@@ -192,19 +206,6 @@ Action: TypeAlias = Union[
 ]
 
 
-class PendingSafetyCheck(TypedDict, total=False):
-    """A pending safety check for the computer call."""
-
-    id: Required[str]
-    """The ID of the pending safety check."""
-
-    code: Optional[str]
-    """The type of the pending safety check."""
-
-    message: Optional[str]
-    """Details about the pending safety check."""
-
-
 class ResponseComputerToolCallParam(TypedDict, total=False):
     """A tool call to a computer use tool.
 
@@ -214,9 +215,6 @@ class ResponseComputerToolCallParam(TypedDict, total=False):
 
     id: Required[str]
     """The unique ID of the computer call."""
-
-    action: Required[Action]
-    """A click action."""
 
     call_id: Required[str]
     """An identifier used when responding to the tool call with output."""
@@ -233,3 +231,12 @@ class ResponseComputerToolCallParam(TypedDict, total=False):
 
     type: Required[Literal["computer_call"]]
     """The type of the computer call. Always `computer_call`."""
+
+    action: Action
+    """A click action."""
+
+    actions: ComputerActionListParam
+    """Flattened batched actions for `computer_use`.
+
+    Each action includes an `type` discriminator and action-specific fields.
+    """

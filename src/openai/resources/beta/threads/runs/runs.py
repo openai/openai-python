@@ -59,8 +59,11 @@ __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def steps(self) -> Steps:
+        """Build Assistants that can call models and use tools."""
         return Steps(self._client)
 
     @cached_property
@@ -1518,8 +1521,11 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def steps(self) -> AsyncSteps:
+        """Build Assistants that can call models and use tools."""
         return AsyncSteps(self._client)
 
     @cached_property
@@ -3015,6 +3021,7 @@ class RunsWithRawResponse:
 
     @cached_property
     def steps(self) -> StepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return StepsWithRawResponse(self._runs.steps)
 
 
@@ -3055,6 +3062,7 @@ class AsyncRunsWithRawResponse:
 
     @cached_property
     def steps(self) -> AsyncStepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncStepsWithRawResponse(self._runs.steps)
 
 
@@ -3095,6 +3103,7 @@ class RunsWithStreamingResponse:
 
     @cached_property
     def steps(self) -> StepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return StepsWithStreamingResponse(self._runs.steps)
 
 
@@ -3135,4 +3144,5 @@ class AsyncRunsWithStreamingResponse:
 
     @cached_property
     def steps(self) -> AsyncStepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncStepsWithStreamingResponse(self._runs.steps)

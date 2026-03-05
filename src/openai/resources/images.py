@@ -25,6 +25,8 @@ __all__ = ["Images", "AsyncImages"]
 
 
 class Images(SyncAPIResource):
+    """Given a prompt and/or an input image, the model will generate a new image."""
+
     @cached_property
     def with_raw_response(self) -> ImagesWithRawResponse:
         """
@@ -915,6 +917,8 @@ class Images(SyncAPIResource):
 
 
 class AsyncImages(AsyncAPIResource):
+    """Given a prompt and/or an input image, the model will generate a new image."""
+
     @cached_property
     def with_raw_response(self) -> AsyncImagesWithRawResponse:
         """

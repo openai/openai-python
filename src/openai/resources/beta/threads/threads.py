@@ -60,12 +60,16 @@ __all__ = ["Threads", "AsyncThreads"]
 
 
 class Threads(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def runs(self) -> Runs:
+        """Build Assistants that can call models and use tools."""
         return Runs(self._client)
 
     @cached_property
     def messages(self) -> Messages:
+        """Build Assistants that can call models and use tools."""
         return Messages(self._client)
 
     @cached_property
@@ -922,12 +926,16 @@ class Threads(SyncAPIResource):
 
 
 class AsyncThreads(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def runs(self) -> AsyncRuns:
+        """Build Assistants that can call models and use tools."""
         return AsyncRuns(self._client)
 
     @cached_property
     def messages(self) -> AsyncMessages:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessages(self._client)
 
     @cached_property
@@ -1819,10 +1827,12 @@ class ThreadsWithRawResponse:
 
     @cached_property
     def runs(self) -> RunsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return RunsWithRawResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> MessagesWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return MessagesWithRawResponse(self._threads.messages)
 
 
@@ -1858,10 +1868,12 @@ class AsyncThreadsWithRawResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncRunsWithRawResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> AsyncMessagesWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessagesWithRawResponse(self._threads.messages)
 
 
@@ -1897,10 +1909,12 @@ class ThreadsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> RunsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return RunsWithStreamingResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> MessagesWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return MessagesWithStreamingResponse(self._threads.messages)
 
 
@@ -1936,8 +1950,10 @@ class AsyncThreadsWithStreamingResponse:
 
     @cached_property
     def runs(self) -> AsyncRunsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncRunsWithStreamingResponse(self._threads.runs)
 
     @cached_property
     def messages(self) -> AsyncMessagesWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncMessagesWithStreamingResponse(self._threads.messages)

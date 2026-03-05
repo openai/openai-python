@@ -29,6 +29,8 @@ __all__ = ["Messages", "AsyncMessages"]
 
 
 class Messages(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> MessagesWithRawResponse:
         """
@@ -312,6 +314,8 @@ class Messages(SyncAPIResource):
 
 
 class AsyncMessages(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncMessagesWithRawResponse:
         """

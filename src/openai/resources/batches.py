@@ -23,6 +23,8 @@ __all__ = ["Batches", "AsyncBatches"]
 
 
 class Batches(SyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> BatchesWithRawResponse:
         """
@@ -247,6 +249,8 @@ class Batches(SyncAPIResource):
 
 
 class AsyncBatches(AsyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> AsyncBatchesWithRawResponse:
         """

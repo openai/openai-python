@@ -25,6 +25,10 @@ __all__ = ["Completions", "AsyncCompletions"]
 
 
 class Completions(SyncAPIResource):
+    """
+    Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+    """
+
     @cached_property
     def with_raw_response(self) -> CompletionsWithRawResponse:
         """
@@ -584,6 +588,10 @@ class Completions(SyncAPIResource):
 
 
 class AsyncCompletions(AsyncAPIResource):
+    """
+    Given a prompt, the model will return one or more predicted completions, and can also return the probabilities of alternative tokens at each position.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncCompletionsWithRawResponse:
         """
