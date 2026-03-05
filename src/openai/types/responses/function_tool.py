@@ -1,0 +1,36 @@
+# File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+
+from typing import Dict, Optional
+from typing_extensions import Literal
+
+from ..._models import BaseModel
+
+__all__ = ["FunctionTool"]
+
+
+class FunctionTool(BaseModel):
+    """Defines a function in your own code the model can choose to call.
+
+    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    """
+
+    name: str
+    """The name of the function to call."""
+
+    parameters: Optional[Dict[str, object]] = None
+    """A JSON schema object describing the parameters of the function."""
+
+    strict: Optional[bool] = None
+    """Whether to enforce strict parameter validation. Default `true`."""
+
+    type: Literal["function"]
+    """The type of the function tool. Always `function`."""
+
+    defer_loading: Optional[bool] = None
+    """Whether this function is deferred and loaded via tool search."""
+
+    description: Optional[str] = None
+    """A description of the function.
+
+    Used by the model to determine whether or not to call the function.
+    """

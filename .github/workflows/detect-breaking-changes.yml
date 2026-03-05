@@ -1,0 +1,88 @@
+name: CI
+on:
+  pull_request:
+    branches:
+      - main
+      - next
+
+jobs:
+  detect_breaking_changes:
+    runs-on: 'ubuntu-latest'
+    name: detect-breaking-changes
+    if: github.repository == 'openai/openai-python'
+    steps:
+      - name: Calculate fetch-depth
+        run: |
+          echo "FETCH_DEPTH=$(expr ${{ github.event.pull_request.commits }} + 1)" >> $GITHUB_ENV
+
+      - uses: actions/checkout@v6
+        with:
+          # Ensure we can check out the pull request base in the script below.
+          fetch-depth: ${{ env.FETCH_DEPTH }}
+
+      - name: Install Rye
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+      - name: Install dependencies
+        run: |
+          rye sync --all-features
+      - name: Detect removed symbols
+        run: |
+          rye run python scripts/detect-breaking-changes.py "${{ github.event.pull_request.base.sha }}"
+
+      - name: Detect breaking changes
+        run: |
+          test -f ./scripts/detect-breaking-changes || { echo "Missing scripts/detect-breaking-changes"; exit 1; }
+          ./scripts/detect-breaking-changes ${{ github.event.pull_request.base.sha }}
+
+  agents_sdk:
+    runs-on: 'ubuntu-latest'
+    name: Detect Agents SDK regressions
+    if: github.repository == 'openai/openai-python'
+    steps:
+      # Setup this sdk
+      - uses: actions/checkout@v4
+        with:
+          path: openai-python
+
+      - name: Install Rye
+        working-directory: openai-python
+        run: |
+          curl -sSf https://rye.astral.sh/get | bash
+          echo "$HOME/.rye/shims" >> $GITHUB_PATH
+        env:
+          RYE_VERSION: '0.44.0'
+          RYE_INSTALL_OPTION: '--yes'
+
+      - name: Install dependencies
+        working-directory: openai-python
+        run: |
+          rye sync --all-features
+
+      # Setup the agents lib
+      - uses: actions/checkout@v4
+        with:
+          repository: openai/openai-agents-python
+          path: openai-agents-python
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Link to local SDK
+        working-directory: openai-agents-python
+        run: uv add ../openai-python
+
+      - name: Install dependencies
+        working-directory: openai-agents-python
+        run: make sync
+
+      - name: Run integration type checks
+        working-directory: openai-agents-python
+        run: make mypy
+
