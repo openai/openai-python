@@ -33,7 +33,6 @@ from .web_search_tool import WebSearchTool as WebSearchTool
 from .apply_patch_tool import ApplyPatchTool as ApplyPatchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
 from .tool_search_tool import ToolSearchTool as ToolSearchTool
-from .computer_use_tool import ComputerUseTool as ComputerUseTool
 from .custom_tool_param import CustomToolParam as CustomToolParam
 from .local_environment import LocalEnvironment as LocalEnvironment
 from .local_skill_param import LocalSkillParam as LocalSkillParam
@@ -83,7 +82,6 @@ from .response_input_content import ResponseInputContent as ResponseInputContent
 from .responses_client_event import ResponsesClientEvent as ResponsesClientEvent
 from .responses_server_event import ResponsesServerEvent as ResponsesServerEvent
 from .tool_search_tool_param import ToolSearchToolParam as ToolSearchToolParam
-from .computer_use_tool_param import ComputerUseToolParam as ComputerUseToolParam
 from .local_environment_param import LocalEnvironmentParam as LocalEnvironmentParam
 from .response_compact_params import ResponseCompactParams as ResponseCompactParams
 from .response_output_message import ResponseOutputMessage as ResponseOutputMessage
@@ -100,6 +98,7 @@ from .response_completed_event import ResponseCompletedEvent as ResponseComplete
 from .response_retrieve_params import ResponseRetrieveParams as ResponseRetrieveParams
 from .response_text_done_event import ResponseTextDoneEvent as ResponseTextDoneEvent
 from .tool_choice_custom_param import ToolChoiceCustomParam as ToolChoiceCustomParam
+from .computer_use_preview_tool import ComputerUsePreviewTool as ComputerUsePreviewTool
 from .container_reference_param import ContainerReferenceParam as ContainerReferenceParam
 from .function_shell_tool_param import FunctionShellToolParam as FunctionShellToolParam
 from .inline_skill_source_param import InlineSkillSourceParam as InlineSkillSourceParam
@@ -145,6 +144,7 @@ from .response_apply_patch_tool_call import ResponseApplyPatchToolCall as Respon
 from .response_compaction_item_param import ResponseCompactionItemParam as ResponseCompactionItemParam
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam as ComputerUsePreviewToolParam
 from .response_custom_tool_call_param import ResponseCustomToolCallParam as ResponseCustomToolCallParam
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent as ResponseContentPartDoneEvent
