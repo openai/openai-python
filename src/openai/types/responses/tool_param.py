@@ -14,9 +14,9 @@ from .web_search_tool_param import WebSearchToolParam
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
 from .tool_search_tool_param import ToolSearchToolParam
-from .computer_use_tool_param import ComputerUseToolParam
 from .function_shell_tool_param import FunctionShellToolParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
 from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
 from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
@@ -305,8 +305,8 @@ class LocalShell(TypedDict, total=False):
 ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
-    ComputerUseToolParam,
     ComputerToolParam,
+    ComputerUsePreviewToolParam,
     WebSearchToolParam,
     Mcp,
     CodeInterpreter,

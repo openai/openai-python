@@ -13,9 +13,9 @@ from .web_search_tool import WebSearchTool
 from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
 from .tool_search_tool import ToolSearchTool
-from .computer_use_tool import ComputerUseTool
 from .function_shell_tool import FunctionShellTool
 from .web_search_preview_tool import WebSearchPreviewTool
+from .computer_use_preview_tool import ComputerUsePreviewTool
 from .container_network_policy_disabled import ContainerNetworkPolicyDisabled
 from .container_network_policy_allowlist import ContainerNetworkPolicyAllowlist
 
@@ -307,8 +307,8 @@ Tool: TypeAlias = Annotated[
     Union[
         FunctionTool,
         FileSearchTool,
-        ComputerUseTool,
         ComputerTool,
+        ComputerUsePreviewTool,
         WebSearchTool,
         Mcp,
         CodeInterpreter,
