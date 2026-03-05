@@ -9,7 +9,7 @@ from openai.types.responses import (
     ComputerAction,
     ComputerActionList,
     ComputerTool,
-    ComputerUseTool,
+    ComputerUsePreviewTool,
     ContainerAuto,
     ContainerNetworkPolicyAllowlist,
     ContainerNetworkPolicyDisabled,

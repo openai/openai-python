@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.26.0 (2026-03-05)
+
+Full Changelog: [v2.25.0...v2.26.0](https://github.com/openai/openai-python/compare/v2.25.0...v2.26.0)
+
+### Features
+
+* **api:** The GA ComputerTool now uses the CompuerTool class. The 'computer_use_preview' tool is moved to ComputerUsePreview ([78f5b3c](https://github.com/openai/openai-python/commit/78f5b3c287b71ed6fbeb71fb6b5c0366db704cd2))
+
 ## 2.25.0 (2026-03-05)
 
 Full Changelog: [v2.24.0...v2.25.0](https://github.com/openai/openai-python/compare/v2.24.0...v2.25.0)
