@@ -1192,6 +1192,8 @@ class Responses(SyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.4",
+                "gpt-5.3-chat-latest",
                 "gpt-5.2",
                 "gpt-5.2-2025-12-11",
                 "gpt-5.2-chat-latest",
@@ -2488,6 +2490,8 @@ class AsyncResponses(AsyncAPIResource):
         *,
         model: Union[
             Literal[
+                "gpt-5.4",
+                "gpt-5.3-chat-latest",
                 "gpt-5.2",
                 "gpt-5.2-2025-12-11",
                 "gpt-5.2-chat-latest",

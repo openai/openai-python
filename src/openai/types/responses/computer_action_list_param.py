@@ -2,43 +2,28 @@
 
 from __future__ import annotations
 
-from typing import Union, Iterable, Optional
+from typing import List, Union, Iterable
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
-from .computer_action_list_param import ComputerActionListParam
 
 __all__ = [
-    "ResponseComputerToolCallParam",
-    "PendingSafetyCheck",
-    "Action",
-    "ActionClick",
-    "ActionDoubleClick",
-    "ActionDrag",
-    "ActionDragPath",
-    "ActionKeypress",
-    "ActionMove",
-    "ActionScreenshot",
-    "ActionScroll",
-    "ActionType",
-    "ActionWait",
+    "ComputerActionListParam",
+    "ComputerActionParam",
+    "Click",
+    "DoubleClick",
+    "Drag",
+    "DragPath",
+    "Keypress",
+    "Move",
+    "Screenshot",
+    "Scroll",
+    "Type",
+    "Wait",
 ]
 
 
-class PendingSafetyCheck(TypedDict, total=False):
-    """A pending safety check for the computer call."""
-
-    id: Required[str]
-    """The ID of the pending safety check."""
-
-    code: Optional[str]
-    """The type of the pending safety check."""
-
-    message: Optional[str]
-    """Details about the pending safety check."""
-
-
-class ActionClick(TypedDict, total=False):
+class Click(TypedDict, total=False):
     """A click action."""
 
     button: Required[Literal["left", "right", "wheel", "back", "forward"]]
@@ -57,7 +42,7 @@ class ActionClick(TypedDict, total=False):
     """The y-coordinate where the click occurred."""
 
 
-class ActionDoubleClick(TypedDict, total=False):
+class DoubleClick(TypedDict, total=False):
     """A double click action."""
 
     type: Required[Literal["double_click"]]
@@ -73,7 +58,7 @@ class ActionDoubleClick(TypedDict, total=False):
     """The y-coordinate where the double click occurred."""
 
 
-class ActionDragPath(TypedDict, total=False):
+class DragPath(TypedDict, total=False):
     """An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`."""
 
     x: Required[int]
@@ -83,10 +68,10 @@ class ActionDragPath(TypedDict, total=False):
     """The y-coordinate."""
 
 
-class ActionDrag(TypedDict, total=False):
+class Drag(TypedDict, total=False):
     """A drag action."""
 
-    path: Required[Iterable[ActionDragPath]]
+    path: Required[Iterable[DragPath]]
     """An array of coordinates representing the path of the drag action.
 
     Coordinates will appear as an array of objects, eg
@@ -106,7 +91,7 @@ class ActionDrag(TypedDict, total=False):
     """
 
 
-class ActionKeypress(TypedDict, total=False):
+class Keypress(TypedDict, total=False):
     """A collection of keypresses the model would like to perform."""
 
     keys: Required[SequenceNotStr[str]]
@@ -122,7 +107,7 @@ class ActionKeypress(TypedDict, total=False):
     """
 
 
-class ActionMove(TypedDict, total=False):
+class Move(TypedDict, total=False):
     """A mouse move action."""
 
     type: Required[Literal["move"]]
@@ -138,7 +123,7 @@ class ActionMove(TypedDict, total=False):
     """The y-coordinate to move to."""
 
 
-class ActionScreenshot(TypedDict, total=False):
+class Screenshot(TypedDict, total=False):
     """A screenshot action."""
 
     type: Required[Literal["screenshot"]]
@@ -148,7 +133,7 @@ class ActionScreenshot(TypedDict, total=False):
     """
 
 
-class ActionScroll(TypedDict, total=False):
+class Scroll(TypedDict, total=False):
     """A scroll action."""
 
     scroll_x: Required[int]
@@ -170,7 +155,7 @@ class ActionScroll(TypedDict, total=False):
     """The y-coordinate where the scroll occurred."""
 
 
-class ActionType(TypedDict, total=False):
+class Type(TypedDict, total=False):
     """An action to type in text."""
 
     text: Required[str]
@@ -183,7 +168,7 @@ class ActionType(TypedDict, total=False):
     """
 
 
-class ActionWait(TypedDict, total=False):
+class Wait(TypedDict, total=False):
     """A wait action."""
 
     type: Required[Literal["wait"]]
@@ -193,50 +178,6 @@ class ActionWait(TypedDict, total=False):
     """
 
 
-Action: TypeAlias = Union[
-    ActionClick,
-    ActionDoubleClick,
-    ActionDrag,
-    ActionKeypress,
-    ActionMove,
-    ActionScreenshot,
-    ActionScroll,
-    ActionType,
-    ActionWait,
-]
+ComputerActionParam: TypeAlias = Union[Click, DoubleClick, Drag, Keypress, Move, Screenshot, Scroll, Type, Wait]
 
-
-class ResponseComputerToolCallParam(TypedDict, total=False):
-    """A tool call to a computer use tool.
-
-    See the
-    [computer use guide](https://platform.openai.com/docs/guides/tools-computer-use) for more information.
-    """
-
-    id: Required[str]
-    """The unique ID of the computer call."""
-
-    call_id: Required[str]
-    """An identifier used when responding to the tool call with output."""
-
-    pending_safety_checks: Required[Iterable[PendingSafetyCheck]]
-    """The pending safety checks for the computer call."""
-
-    status: Required[Literal["in_progress", "completed", "incomplete"]]
-    """The status of the item.
-
-    One of `in_progress`, `completed`, or `incomplete`. Populated when items are
-    returned via API.
-    """
-
-    type: Required[Literal["computer_call"]]
-    """The type of the computer call. Always `computer_call`."""
-
-    action: Action
-    """A click action."""
-
-    actions: ComputerActionListParam
-    """Flattened batched actions for `computer_use`.
-
-    Each action includes an `type` discriminator and action-specific fields.
-    """
+ComputerActionListParam: TypeAlias = List[ComputerActionParam]

@@ -871,7 +871,7 @@ class TestOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__enter__()
 
         assert _get_open_connections(client) == 0
@@ -889,7 +889,7 @@ class TestOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__enter__()
         assert _get_open_connections(client) == 0
 
@@ -926,7 +926,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.retries_taken == failures_before_success
@@ -958,7 +958,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": Omit()},
         )
 
@@ -990,7 +990,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": "42"},
         )
 
@@ -1022,7 +1022,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -1861,7 +1861,7 @@ class TestAsyncOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__aenter__()
 
         assert _get_open_connections(async_client) == 0
@@ -1879,7 +1879,7 @@ class TestAsyncOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__aenter__()
         assert _get_open_connections(async_client) == 0
 
@@ -1916,7 +1916,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.retries_taken == failures_before_success
@@ -1948,7 +1948,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": Omit()},
         )
 
@@ -1980,7 +1980,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": "42"},
         )
 
@@ -2012,7 +2012,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success

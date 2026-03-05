@@ -17,7 +17,7 @@ class VideoCreateParams(TypedDict, total=False):
     """Text prompt that describes the video to generate."""
 
     input_reference: FileTypes
-    """Optional image reference that guides generation."""
+    """Optional multipart reference asset that guides generation."""
 
     model: VideoModelParam
     """The video generation model to use (allowed values: sora-2, sora-2-pro).

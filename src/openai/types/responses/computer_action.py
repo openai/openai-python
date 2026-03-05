@@ -1,43 +1,27 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import List, Union
 from typing_extensions import Literal, Annotated, TypeAlias
 
 from ..._utils import PropertyInfo
 from ..._models import BaseModel
-from .computer_action_list import ComputerActionList
 
 __all__ = [
-    "ResponseComputerToolCall",
-    "PendingSafetyCheck",
-    "Action",
-    "ActionClick",
-    "ActionDoubleClick",
-    "ActionDrag",
-    "ActionDragPath",
-    "ActionKeypress",
-    "ActionMove",
-    "ActionScreenshot",
-    "ActionScroll",
-    "ActionType",
-    "ActionWait",
+    "ComputerAction",
+    "Click",
+    "DoubleClick",
+    "Drag",
+    "DragPath",
+    "Keypress",
+    "Move",
+    "Screenshot",
+    "Scroll",
+    "Type",
+    "Wait",
 ]
 
 
-class PendingSafetyCheck(BaseModel):
-    """A pending safety check for the computer call."""
-
-    id: str
-    """The ID of the pending safety check."""
-
-    code: Optional[str] = None
-    """The type of the pending safety check."""
-
-    message: Optional[str] = None
-    """Details about the pending safety check."""
-
-
-class ActionClick(BaseModel):
+class Click(BaseModel):
     """A click action."""
 
     button: Literal["left", "right", "wheel", "back", "forward"]
@@ -56,7 +40,7 @@ class ActionClick(BaseModel):
     """The y-coordinate where the click occurred."""
 
 
-class ActionDoubleClick(BaseModel):
+class DoubleClick(BaseModel):
     """A double click action."""
 
     type: Literal["double_click"]
@@ -72,7 +56,7 @@ class ActionDoubleClick(BaseModel):
     """The y-coordinate where the double click occurred."""
 
 
-class ActionDragPath(BaseModel):
+class DragPath(BaseModel):
     """An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`."""
 
     x: int
@@ -82,10 +66,10 @@ class ActionDragPath(BaseModel):
     """The y-coordinate."""
 
 
-class ActionDrag(BaseModel):
+class Drag(BaseModel):
     """A drag action."""
 
-    path: List[ActionDragPath]
+    path: List[DragPath]
     """An array of coordinates representing the path of the drag action.
 
     Coordinates will appear as an array of objects, eg
@@ -105,7 +89,7 @@ class ActionDrag(BaseModel):
     """
 
 
-class ActionKeypress(BaseModel):
+class Keypress(BaseModel):
     """A collection of keypresses the model would like to perform."""
 
     keys: List[str]
@@ -121,7 +105,7 @@ class ActionKeypress(BaseModel):
     """
 
 
-class ActionMove(BaseModel):
+class Move(BaseModel):
     """A mouse move action."""
 
     type: Literal["move"]
@@ -137,7 +121,7 @@ class ActionMove(BaseModel):
     """The y-coordinate to move to."""
 
 
-class ActionScreenshot(BaseModel):
+class Screenshot(BaseModel):
     """A screenshot action."""
 
     type: Literal["screenshot"]
@@ -147,7 +131,7 @@ class ActionScreenshot(BaseModel):
     """
 
 
-class ActionScroll(BaseModel):
+class Scroll(BaseModel):
     """A scroll action."""
 
     scroll_x: int
@@ -169,7 +153,7 @@ class ActionScroll(BaseModel):
     """The y-coordinate where the scroll occurred."""
 
 
-class ActionType(BaseModel):
+class Type(BaseModel):
     """An action to type in text."""
 
     text: str
@@ -182,7 +166,7 @@ class ActionType(BaseModel):
     """
 
 
-class ActionWait(BaseModel):
+class Wait(BaseModel):
     """A wait action."""
 
     type: Literal["wait"]
@@ -192,53 +176,6 @@ class ActionWait(BaseModel):
     """
 
 
-Action: TypeAlias = Annotated[
-    Union[
-        ActionClick,
-        ActionDoubleClick,
-        ActionDrag,
-        ActionKeypress,
-        ActionMove,
-        ActionScreenshot,
-        ActionScroll,
-        ActionType,
-        ActionWait,
-    ],
-    PropertyInfo(discriminator="type"),
+ComputerAction: TypeAlias = Annotated[
+    Union[Click, DoubleClick, Drag, Keypress, Move, Screenshot, Scroll, Type, Wait], PropertyInfo(discriminator="type")
 ]
-
-
-class ResponseComputerToolCall(BaseModel):
-    """A tool call to a computer use tool.
-
-    See the
-    [computer use guide](https://platform.openai.com/docs/guides/tools-computer-use) for more information.
-    """
-
-    id: str
-    """The unique ID of the computer call."""
-
-    call_id: str
-    """An identifier used when responding to the tool call with output."""
-
-    pending_safety_checks: List[PendingSafetyCheck]
-    """The pending safety checks for the computer call."""
-
-    status: Literal["in_progress", "completed", "incomplete"]
-    """The status of the item.
-
-    One of `in_progress`, `completed`, or `incomplete`. Populated when items are
-    returned via API.
-    """
-
-    type: Literal["computer_call"]
-    """The type of the computer call. Always `computer_call`."""
-
-    action: Optional[Action] = None
-    """A click action."""
-
-    actions: Optional[ComputerActionList] = None
-    """Flattened batched actions for `computer_use`.
-
-    Each action includes an `type` discriminator and action-specific fields.
-    """

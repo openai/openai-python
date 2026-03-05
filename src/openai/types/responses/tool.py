@@ -8,9 +8,12 @@ from ..._models import BaseModel
 from .custom_tool import CustomTool
 from .computer_tool import ComputerTool
 from .function_tool import FunctionTool
+from .namespace_tool import NamespaceTool
 from .web_search_tool import WebSearchTool
 from .apply_patch_tool import ApplyPatchTool
 from .file_search_tool import FileSearchTool
+from .tool_search_tool import ToolSearchTool
+from .computer_use_tool import ComputerUseTool
 from .function_shell_tool import FunctionShellTool
 from .web_search_preview_tool import WebSearchPreviewTool
 from .container_network_policy_disabled import ContainerNetworkPolicyDisabled
@@ -152,6 +155,9 @@ class Mcp(BaseModel):
     - Outlook Email: `connector_outlookemail`
     - SharePoint: `connector_sharepoint`
     """
+
+    defer_loading: Optional[bool] = None
+    """Whether this MCP tool is deferred and discovered via tool search."""
 
     headers: Optional[Dict[str, str]] = None
     """Optional HTTP headers to send to the MCP server.
@@ -301,6 +307,7 @@ Tool: TypeAlias = Annotated[
     Union[
         FunctionTool,
         FileSearchTool,
+        ComputerUseTool,
         ComputerTool,
         WebSearchTool,
         Mcp,
@@ -309,6 +316,8 @@ Tool: TypeAlias = Annotated[
         LocalShell,
         FunctionShellTool,
         CustomTool,
+        NamespaceTool,
+        ToolSearchTool,
         WebSearchPreviewTool,
         ApplyPatchTool,
     ],

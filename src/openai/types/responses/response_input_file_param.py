@@ -14,6 +14,12 @@ class ResponseInputFileParam(TypedDict, total=False):
     type: Required[Literal["input_file"]]
     """The type of the input item. Always `input_file`."""
 
+    detail: Literal["low", "high"]
+    """The detail level of the file to be sent to the model.
+
+    One of `high` or `low`. Defaults to `high`.
+    """
+
     file_data: str
     """The content of the file to be sent to the model."""
 

@@ -30,7 +30,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -44,7 +44,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             audio={
                 "format": "wav",
                 "voice": "ash",
@@ -126,7 +126,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.is_closed is True
@@ -143,7 +143,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -162,7 +162,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
         completion_stream.response.close()
@@ -177,7 +177,7 @@ class TestCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
             audio={
                 "format": "wav",
@@ -259,7 +259,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
 
@@ -276,7 +276,7 @@ class TestCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         ) as response:
             assert not response.is_closed
@@ -456,7 +456,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
         assert_matches_type(ChatCompletion, completion, path=["response"])
 
@@ -470,7 +470,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             audio={
                 "format": "wav",
                 "voice": "ash",
@@ -552,7 +552,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.is_closed is True
@@ -569,7 +569,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -588,7 +588,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
         await completion_stream.response.aclose()
@@ -603,7 +603,7 @@ class TestAsyncCompletions:
                     "name": "name",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
             audio={
                 "format": "wav",
@@ -685,7 +685,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         )
 
@@ -702,7 +702,7 @@ class TestAsyncCompletions:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             stream=True,
         ) as response:
             assert not response.is_closed
