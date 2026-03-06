@@ -1,4 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
+# NOTE: logprobs field manually changed to Optional to support non-OpenAI providers
+# that may not include logprobs in streaming responses. See #2489.
 
 from typing import List, Optional
 from typing_extensions import Literal
@@ -42,7 +44,7 @@ class ResponseTextDoneEvent(BaseModel):
     item_id: str
     """The ID of the output item that the text content is finalized."""
 
-    logprobs: List[Logprob]
+    logprobs: Optional[List[Logprob]] = None
     """The log probabilities of the tokens in the delta."""
 
     output_index: int
