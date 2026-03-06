@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import TYPE_CHECKING, Any, Optional, cast
 from typing_extensions import Literal
 
@@ -24,6 +25,7 @@ __all__ = [
     "InternalServerError",
     "LengthFinishReasonError",
     "ContentFilterFinishReasonError",
+    "ContentFormatError",
     "InvalidWebhookSignatureError",
 ]
 
@@ -155,6 +157,58 @@ class ContentFilterFinishReasonError(OpenAIError):
         super().__init__(
             f"Could not parse response content as the request was rejected by the content filter",
         )
+
+
+class ContentFormatError(OpenAIError):
+    """Raised when the API returns content that cannot be parsed into the expected response format.
+
+    This typically happens when the model returns malformed or truncated JSON that
+    does not match the expected schema for the response type (for example, a Pydantic
+    model or dataclass validated via `pydantic.TypeAdapter`).
+    """
+
+    raw_content: str
+    """The raw content string returned by the API that failed to parse."""
+
+    def __init__(self, *, raw_content: str, error: Exception, response_format: object | None = None) -> None:
+        expected_response_format = _response_format_name(response_format)
+        expected_details = (
+            f" Expected response format: {expected_response_format}." if expected_response_format is not None else ""
+        )
+        truncated_content = raw_content[:500] + "..." if len(raw_content) > 500 else raw_content
+        super().__init__(
+            f"Could not parse response content as the response did not match the expected format."
+            f"{expected_details} Raw content: {truncated_content!r}."
+            f" Validation error: {_format_parse_error(error)}."
+        )
+        self.raw_content = raw_content
+        self.expected_response_format = expected_response_format
+        self.error = error
+
+
+def _response_format_name(response_format: object | None) -> str | None:
+    if response_format is None:
+        return None
+    return cast(
+        str,
+        getattr(response_format, "__name__", None)
+        or getattr(response_format, "__qualname__", None)
+        or repr(response_format),
+    )
+
+
+def _format_parse_error(error: Exception) -> str:
+    if isinstance(error, json.JSONDecodeError):
+        return f"{error.msg} (line {error.lineno}, column {error.colno})"
+
+    errors_fn = getattr(error, "errors", None)
+    if callable(errors_fn):
+        try:
+            return repr(errors_fn(include_input=False))
+        except TypeError:
+            return repr(errors_fn())
+
+    return str(error)
 
 
 class InvalidWebhookSignatureError(ValueError):

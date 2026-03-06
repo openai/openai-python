@@ -25,7 +25,7 @@ from ...types.chat import (
     ChatCompletionFunctionToolParam,
     completion_create_params,
 )
-from ..._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
+from ..._exceptions import ContentFormatError, LengthFinishReasonError, ContentFilterFinishReasonError
 from ...types.shared_params import FunctionDefinition
 from ...types.chat.completion_create_params import ResponseFormat as ResponseFormatParam
 from ...types.chat.chat_completion_message_function_tool_call import Function
@@ -241,14 +241,17 @@ def is_parseable_tool(input_tool: ChatCompletionToolUnionParam) -> bool:
 
 
 def _parse_content(response_format: type[ResponseFormatT], content: str) -> ResponseFormatT:
-    if is_basemodel_type(response_format):
-        return cast(ResponseFormatT, model_parse_json(response_format, content))
+    try:
+        if is_basemodel_type(response_format):
+            return cast(ResponseFormatT, model_parse_json(response_format, content))
 
-    if is_dataclass_like_type(response_format):
-        if PYDANTIC_V1:
-            raise TypeError(f"Non BaseModel types are only supported with Pydantic v2 - {response_format}")
+        if is_dataclass_like_type(response_format):
+            if PYDANTIC_V1:
+                raise TypeError(f"Non BaseModel types are only supported with Pydantic v2 - {response_format}")
 
-        return pydantic.TypeAdapter(response_format).validate_json(content)
+            return pydantic.TypeAdapter(response_format).validate_json(content)
+    except (pydantic.ValidationError, json.JSONDecodeError) as exc:
+        raise ContentFormatError(raw_content=content, error=exc, response_format=response_format) from exc
 
     raise TypeError(f"Unable to automatically parse response format type {response_format}")
 
