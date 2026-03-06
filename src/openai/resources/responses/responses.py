@@ -1129,7 +1129,19 @@ class Responses(SyncAPIResource):
                 timeout=timeout,
             )
 
-            return ResponseStreamManager(api_request, text_format=text_format, input_tools=tools, starting_after=None)
+            return ResponseStreamManager(
+                api_request,
+                text_format=text_format,
+                input_tools=tools,
+                starting_after=None,
+                cancel_response=lambda response_id: self.cancel(
+                    response_id,
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                ),
+            )
         else:
             if not is_given(response_id):
                 raise ValueError("id must be provided when streaming an existing response")
@@ -1148,6 +1160,13 @@ class Responses(SyncAPIResource):
                 text_format=text_format,
                 input_tools=tools,
                 starting_after=starting_after if is_given(starting_after) else None,
+                cancel_response=lambda response_id: self.cancel(
+                    response_id,
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                ),
             )
 
     def parse(
@@ -2796,6 +2815,13 @@ class AsyncResponses(AsyncAPIResource):
                 text_format=text_format,
                 input_tools=tools,
                 starting_after=None,
+                cancel_response=lambda response_id: self.cancel(
+                    response_id,
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                ),
             )
         else:
             if isinstance(response_id, Omit):
@@ -2815,6 +2841,13 @@ class AsyncResponses(AsyncAPIResource):
                 text_format=text_format,
                 input_tools=tools,
                 starting_after=starting_after if is_given(starting_after) else None,
+                cancel_response=lambda response_id: self.cancel(
+                    response_id,
+                    extra_headers=extra_headers,
+                    extra_query=extra_query,
+                    extra_body=extra_body,
+                    timeout=timeout,
+                ),
             )
 
     async def parse(
