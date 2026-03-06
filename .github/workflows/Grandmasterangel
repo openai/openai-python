@@ -1,5 +1,5 @@
-name: CI
-on:
+name: CI RITTHIKRAI KIRIKAN 
+on:ฤทธิไกร กิริกัน
   push:
     branches-ignore:
       - 'generated'
