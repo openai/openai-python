@@ -14,6 +14,7 @@ import openai
 from . import _tools
 from .. import _ApiType, __version__
 from ._api import register_commands
+from ._completion import register_completion_command
 from ._utils import can_use_http2
 from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V1, ConfigDict, model_parse
@@ -119,6 +120,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
     _tools.register_commands(sub_tools, subparsers)
+
+    # Shell completion
+    register_completion_command(subparsers)
 
     return parser
 
