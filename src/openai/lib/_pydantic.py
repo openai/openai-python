@@ -47,7 +47,7 @@ def _ensure_strict_json_schema(
             _ensure_strict_json_schema(definition_schema, path=(*path, "definitions", definition_name), root=root)
 
     typ = json_schema.get("type")
-    if typ == "object" and "additionalProperties" not in json_schema:
+    if typ == "object":
         json_schema["additionalProperties"] = False
 
     # object types
