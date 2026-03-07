@@ -1,5 +1,13 @@
 # Changelog
 
+## 2.26.1 (2026-03-07)
+
+Full Changelog: [v2.26.0...v2.26.1](https://github.com/openai/openai-python/compare/v2.26.0...v2.26.1)
+
+### Chores
+
+* **internal:** codegen related update ([93af129](https://github.com/openai/openai-python/commit/93af129e8919de6d3aee19329c8bdef0532bd20a))
+
 ## 2.26.0 (2026-03-05)
 
 Full Changelog: [v2.25.0...v2.26.0](https://github.com/openai/openai-python/compare/v2.25.0...v2.26.0)
