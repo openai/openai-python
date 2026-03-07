@@ -41,8 +41,11 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Uploads(SyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def parts(self) -> Parts:
+        """Use Uploads to upload large files in multiple parts."""
         return Parts(self._client)
 
     @cached_property
@@ -343,8 +346,11 @@ class Uploads(SyncAPIResource):
 
 
 class AsyncUploads(AsyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def parts(self) -> AsyncParts:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncParts(self._client)
 
     @cached_property
@@ -671,6 +677,7 @@ class UploadsWithRawResponse:
 
     @cached_property
     def parts(self) -> PartsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return PartsWithRawResponse(self._uploads.parts)
 
 
@@ -690,6 +697,7 @@ class AsyncUploadsWithRawResponse:
 
     @cached_property
     def parts(self) -> AsyncPartsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncPartsWithRawResponse(self._uploads.parts)
 
 
@@ -709,6 +717,7 @@ class UploadsWithStreamingResponse:
 
     @cached_property
     def parts(self) -> PartsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return PartsWithStreamingResponse(self._uploads.parts)
 
 
@@ -728,4 +737,5 @@ class AsyncUploadsWithStreamingResponse:
 
     @cached_property
     def parts(self) -> AsyncPartsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncPartsWithStreamingResponse(self._uploads.parts)

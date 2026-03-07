@@ -29,6 +29,9 @@ class ResponseFunctionToolCallParam(TypedDict, total=False):
     id: str
     """The unique ID of the function tool call."""
 
+    namespace: str
+    """The namespace of the function to run."""
+
     status: Literal["in_progress", "completed", "incomplete"]
     """The status of the item.
 

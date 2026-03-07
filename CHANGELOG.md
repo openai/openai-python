@@ -1,5 +1,36 @@
 # Changelog
 
+## 2.26.0 (2026-03-05)
+
+Full Changelog: [v2.25.0...v2.26.0](https://github.com/openai/openai-python/compare/v2.25.0...v2.26.0)
+
+### Features
+
+* **api:** The GA ComputerTool now uses the CompuerTool class. The 'computer_use_preview' tool is moved to ComputerUsePreview ([78f5b3c](https://github.com/openai/openai-python/commit/78f5b3c287b71ed6fbeb71fb6b5c0366db704cd2))
+
+## 2.25.0 (2026-03-05)
+
+Full Changelog: [v2.24.0...v2.25.0](https://github.com/openai/openai-python/compare/v2.24.0...v2.25.0)
+
+### Features
+
+* **api:** gpt-5.4, tool search tool, and new computer tool ([6b2043f](https://github.com/openai/openai-python/commit/6b2043f3d63058f5582eab7a7705b30a3d5536f0))
+* **api:** remove prompt_cache_key param from responses, phase field from message types ([44fb382](https://github.com/openai/openai-python/commit/44fb382698872d98d5f72c880b47846c7b594f4f))
+
+
+### Bug Fixes
+
+* **api:** internal schema fixes ([0c0f970](https://github.com/openai/openai-python/commit/0c0f970cbd164131bf06f7ab38f170bbcb323683))
+* **api:** manual updates ([9fc323f](https://github.com/openai/openai-python/commit/9fc323f4da6cfca9de194e12c1486a3cd1bfa4b5))
+* **api:** readd phase ([1b27b5a](https://github.com/openai/openai-python/commit/1b27b5a834f5cb75f80c597259d0df0352ba83bd))
+
+
+### Chores
+
+* **internal:** codegen related update ([bdb837d](https://github.com/openai/openai-python/commit/bdb837d2c1d2a161cc4b22ef26e9e8446d5dc2a3))
+* **internal:** codegen related update ([b1de941](https://github.com/openai/openai-python/commit/b1de9419a68fd6fb97a63f415fb3d1e5851582cb))
+* **internal:** reduce warnings ([7cdbd06](https://github.com/openai/openai-python/commit/7cdbd06d3ca41af64d616b4b4bb61226cc38b662))
+
 ## 2.24.0 (2026-02-24)
 
 Full Changelog: [v2.23.0...v2.24.0](https://github.com/openai/openai-python/compare/v2.23.0...v2.24.0)

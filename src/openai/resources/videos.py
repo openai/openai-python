@@ -81,7 +81,7 @@ class Videos(SyncAPIResource):
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional image reference that guides generation.
+          input_reference: Optional multipart reference asset that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -437,7 +437,7 @@ class AsyncVideos(AsyncAPIResource):
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional image reference that guides generation.
+          input_reference: Optional multipart reference asset that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.

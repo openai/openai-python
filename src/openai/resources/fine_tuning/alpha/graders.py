@@ -19,6 +19,8 @@ __all__ = ["Graders", "AsyncGraders"]
 
 
 class Graders(SyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def with_raw_response(self) -> GradersWithRawResponse:
         """
@@ -127,6 +129,8 @@ class Graders(SyncAPIResource):
 
 
 class AsyncGraders(AsyncAPIResource):
+    """Manage fine-tuning jobs to tailor a model to your specific training data."""
+
     @cached_property
     def with_raw_response(self) -> AsyncGradersWithRawResponse:
         """

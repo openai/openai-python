@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import List, Optional
 from typing_extensions import Literal
 
 from ..._models import BaseModel
@@ -44,6 +44,8 @@ class WebSearchPreviewTool(BaseModel):
 
     One of `web_search_preview` or `web_search_preview_2025_03_11`.
     """
+
+    search_content_types: Optional[List[Literal["text", "image"]]] = None
 
     search_context_size: Optional[Literal["low", "medium", "high"]] = None
     """High level guidance for the amount of context window space to use for the
