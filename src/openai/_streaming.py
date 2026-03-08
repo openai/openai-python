@@ -252,6 +252,17 @@ class AsyncStream(Generic[_T]):
         """
         await self.response.aclose()
 
+    async def aclose(self) -> None:
+        """Async-convention alias for :meth:`close`.
+
+        Follows the standard Python async cleanup protocol used by
+        ``asyncio.StreamWriter``, ``httpx.AsyncByteStream``, and async
+        generators (PEP 525), allowing callers and instrumentation libraries
+        to call ``await stream.aclose()`` uniformly without special-casing
+        this class.
+        """
+        await self.close()
+
 
 class ServerSentEvent:
     def __init__(
