@@ -250,60 +250,69 @@ class ResponseStreamState(Generic[TextFormatT]):
         events: List[ResponseStreamEvent[TextFormatT]] = []
 
         if event.type == "response.output_text.delta":
-            output = snapshot.output[event.output_index]
-            assert output.type == "message"
+            if event.output_index < len(snapshot.output):
+                output = snapshot.output[event.output_index]
+                assert output.type == "message"
 
-            content = output.content[event.content_index]
-            assert content.type == "output_text"
+                content = output.content[event.content_index]
+                assert content.type == "output_text"
 
-            events.append(
-                build(
-                    ResponseTextDeltaEvent,
-                    content_index=event.content_index,
-                    delta=event.delta,
-                    item_id=event.item_id,
-                    output_index=event.output_index,
-                    sequence_number=event.sequence_number,
-                    logprobs=event.logprobs,
-                    type="response.output_text.delta",
-                    snapshot=content.text,
+                events.append(
+                    build(
+                        ResponseTextDeltaEvent,
+                        content_index=event.content_index,
+                        delta=event.delta,
+                        item_id=event.item_id,
+                        output_index=event.output_index,
+                        sequence_number=event.sequence_number,
+                        logprobs=event.logprobs,
+                        type="response.output_text.delta",
+                        snapshot=content.text,
+                    )
                 )
-            )
+            else:
+                events.append(event)
         elif event.type == "response.output_text.done":
-            output = snapshot.output[event.output_index]
-            assert output.type == "message"
+            if event.output_index < len(snapshot.output):
+                output = snapshot.output[event.output_index]
+                assert output.type == "message"
 
-            content = output.content[event.content_index]
-            assert content.type == "output_text"
+                content = output.content[event.content_index]
+                assert content.type == "output_text"
 
-            events.append(
-                build(
-                    ResponseTextDoneEvent[TextFormatT],
-                    content_index=event.content_index,
-                    item_id=event.item_id,
-                    output_index=event.output_index,
-                    sequence_number=event.sequence_number,
-                    logprobs=event.logprobs,
-                    type="response.output_text.done",
-                    text=event.text,
-                    parsed=parse_text(event.text, text_format=self._text_format),
+                events.append(
+                    build(
+                        ResponseTextDoneEvent[TextFormatT],
+                        content_index=event.content_index,
+                        item_id=event.item_id,
+                        output_index=event.output_index,
+                        sequence_number=event.sequence_number,
+                        logprobs=event.logprobs,
+                        type="response.output_text.done",
+                        text=event.text,
+                        parsed=parse_text(event.text, text_format=self._text_format),
+                    )
                 )
-            )
+            else:
+                events.append(event)
         elif event.type == "response.function_call_arguments.delta":
-            output = snapshot.output[event.output_index]
-            assert output.type == "function_call"
+            if event.output_index < len(snapshot.output):
+                output = snapshot.output[event.output_index]
+                assert output.type == "function_call"
 
-            events.append(
-                build(
-                    ResponseFunctionCallArgumentsDeltaEvent,
-                    delta=event.delta,
-                    item_id=event.item_id,
-                    output_index=event.output_index,
-                    sequence_number=event.sequence_number,
-                    type="response.function_call_arguments.delta",
-                    snapshot=output.arguments,
+                events.append(
+                    build(
+                        ResponseFunctionCallArgumentsDeltaEvent,
+                        delta=event.delta,
+                        item_id=event.item_id,
+                        output_index=event.output_index,
+                        sequence_number=event.sequence_number,
+                        type="response.function_call_arguments.delta",
+                        snapshot=output.arguments,
+                    )
                 )
-            )
+            else:
+                events.append(event)
 
         elif event.type == "response.completed":
             response = self._completed_response
@@ -341,21 +350,24 @@ class ResponseStreamState(Generic[TextFormatT]):
             else:
                 snapshot.output.append(event.item)
         elif event.type == "response.content_part.added":
-            output = snapshot.output[event.output_index]
-            if output.type == "message":
-                output.content.append(
-                    construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
-                )
+            if event.output_index < len(snapshot.output):
+                output = snapshot.output[event.output_index]
+                if output.type == "message":
+                    output.content.append(
+                        construct_type_unchecked(type_=cast(Any, ParsedContent), value=event.part.to_dict())
+                    )
         elif event.type == "response.output_text.delta":
-            output = snapshot.output[event.output_index]
-            if output.type == "message":
-                content = output.content[event.content_index]
-                assert content.type == "output_text"
-                content.text += event.delta
+            if event.output_index < len(snapshot.output):
+                output = snapshot.output[event.output_index]
+                if output.type == "message":
+                    content = output.content[event.content_index]
+                    assert content.type == "output_text"
+                    content.text += event.delta
         elif event.type == "response.function_call_arguments.delta":
-            output = snapshot.output[event.output_index]
-            if output.type == "function_call":
-                output.arguments += event.delta
+            if event.output_index < len(snapshot.output):
+                output = snapshot.output[event.output_index]
+                if output.type == "function_call":
+                    output.arguments += event.delta
         elif event.type == "response.completed":
             self._completed_response = parse_response(
                 text_format=self._text_format,
