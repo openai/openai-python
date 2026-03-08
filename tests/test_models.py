@@ -157,6 +157,20 @@ def test_unknown_fields() -> None:
     assert model_dump(m2) == {"foo": "foo", "unknown": {"foo_bar": True}}
 
 
+def test_model_dump_by_alias_none() -> None:
+    """Ensure model_dump does not crash when by_alias defaults to None (GH-2921)."""
+    m = BasicModel.construct(foo="hello")
+    # by_alias=None is the default — must not raise TypeError
+    result = model_dump(m)
+    assert result == {"foo": "hello"}
+    # Explicit by_alias=None must also work
+    result = model_dump(m, by_alias=None)
+    assert result == {"foo": "hello"}
+    # Explicit by_alias=True/False must still be forwarded
+    result = model_dump(m, by_alias=False)
+    assert result == {"foo": "hello"}
+
+
 def test_strict_validation_unknown_fields() -> None:
     class Model(BaseModel):
         foo: str

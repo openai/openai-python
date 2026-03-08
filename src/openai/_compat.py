@@ -142,15 +142,17 @@ def model_dump(
     by_alias: bool | None = None,
 ) -> dict[str, Any]:
     if (not PYDANTIC_V1) or hasattr(model, "model_dump"):
-        return model.model_dump(
+        kwargs: dict[str, Any] = dict(
             mode=mode,
             exclude=exclude,
             exclude_unset=exclude_unset,
             exclude_defaults=exclude_defaults,
             # warnings are not supported in Pydantic v1
             warnings=True if PYDANTIC_V1 else warnings,
-            by_alias=by_alias,
         )
+        if by_alias is not None:
+            kwargs["by_alias"] = by_alias
+        return model.model_dump(**kwargs)
     return cast(
         "dict[str, Any]",
         model.dict(  # pyright: ignore[reportDeprecated, reportUnnecessaryCast]
