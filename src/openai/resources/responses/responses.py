@@ -30,6 +30,7 @@ from .input_items import (
 )
 from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
+from ...lib._validation import validate_tools
 from .input_tokens import (
     InputTokens,
     AsyncInputTokens,
@@ -3536,6 +3537,8 @@ class AsyncResponsesWithStreamingResponse:
 def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] | Omit:
     if not is_given(tools):
         return omit
+
+    validate_tools(tools)
 
     converted_tools: List[ToolParam] = []
     for tool in tools:
