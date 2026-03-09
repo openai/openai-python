@@ -10,7 +10,7 @@ import re
 from typing import Any, Iterable, Optional
 
 _PROTOCOL_RE = re.compile(r"^https?://", re.IGNORECASE)
-_PATH_RE = re.compile(r"/.")
+_PATH_RE = re.compile(r"/.*$")
 
 
 def validate_network_policy_allowlist(
