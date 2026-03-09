@@ -175,7 +175,7 @@ class ContentFormatError(OpenAIError):
         expected_details = (
             f" Expected response format: {expected_response_format}." if expected_response_format is not None else ""
         )
-        truncated_content = raw_content[:500] + "..." if len(raw_content) > 500 else raw_content
+        truncated_content = raw_content[:200] + "..." if len(raw_content) > 200 else raw_content
         super().__init__(
             f"Could not parse response content as the response did not match the expected format."
             f"{expected_details} Raw content: {truncated_content!r}."
