@@ -616,9 +616,9 @@ def test_content_format_error_truncates_raw_content() -> None:
     msg = str(err)
     # Full raw_content is preserved on the attribute
     assert len(err.raw_content) == 1000
-    # Message should contain truncated version (500 chars + "...")
+    # Message should contain truncated version (200 chars + "...")
     assert "xxx..." in msg
-    assert len(long_content) > 500  # sanity
+    assert len(long_content) > 200  # sanity
     # Should not contain the full 1000-char string in the message
     assert long_content not in msg
 
