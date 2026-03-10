@@ -19,6 +19,7 @@ from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V1, ConfigDict, model_parse
 from .._models import BaseModel
 from .._exceptions import APIError
+from ._completion import register_completion_command
 
 logger = logging.getLogger()
 formatter = logging.Formatter("[%(asctime)s] %(message)s")
@@ -107,7 +108,7 @@ def _build_parser() -> argparse.ArgumentParser:
         version="%(prog)s " + __version__,
     )
 
-    def help() -> None:
+    def help(args: argparse.Namespace | None = None) -> None:
         parser.print_help()
 
     parser.set_defaults(func=help)
@@ -119,6 +120,9 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
     _tools.register_commands(sub_tools, subparsers)
+
+    # Register the completion subcommand
+    register_completion_command(subparsers)
 
     return parser
 
@@ -221,7 +225,7 @@ def _main() -> None:
                 )
             )
         else:
-            parsed.func()
+            parsed.func(parsed)
     finally:
         try:
             http_client.close()
