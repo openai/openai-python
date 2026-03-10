@@ -204,7 +204,7 @@ class _ModuleClient(OpenAI):
     @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return self._enforce_trailing_slash(_httpx.URL(base_url))
 
         return super().base_url
 
@@ -266,6 +266,11 @@ class _ModuleClient(OpenAI):
         global http_client
 
         http_client = value
+
+    def _enforce_trailing_slash(self, url: _httpx.URL) -> _httpx.URL:
+        if url.raw_path.endswith(b"/"):
+            return url
+        return url.copy_with(raw_path=url.raw_path + b"/")
 
 
 class _AzureModuleClient(_ModuleClient, AzureOpenAI):  # type: ignore
