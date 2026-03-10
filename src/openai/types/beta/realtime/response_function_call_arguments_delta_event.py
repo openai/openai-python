@@ -26,5 +26,5 @@ class ResponseFunctionCallArgumentsDeltaEvent(BaseModel):
     response_id: str
     """The ID of the response."""
 
-    type: Literal["response.function_call_arguments.delta"]
+    type: Literal["response.function_call_arguments.delta"] = "response.function_call_arguments.delta"
     """The event type, must be `response.function_call_arguments.delta`."""
