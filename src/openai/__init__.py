@@ -98,17 +98,6 @@ if not _t.TYPE_CHECKING:
 if _t.TYPE_CHECKING:
     from . import types as types
     from .lib.azure import AzureADTokenProvider, AzureOpenAI, AsyncAzureOpenAI
-else:
-    from ._utils._proxy import LazyProxy as _LazyProxy
-
-    class _TypesProxy(_LazyProxy[_t.Any]):
-        @override
-        def __load__(self) -> _t.Any:
-            import importlib
-
-            return importlib.import_module("openai.types")
-
-    types = _TypesProxy().__as_proxied__()
 
 from .version import VERSION as VERSION
 from .lib._old_api import *
@@ -143,6 +132,12 @@ def _lazy_azure_openai() -> object:
     return AzureOpenAI
 
 
+def _lazy_types_module() -> object:
+    import importlib
+
+    return importlib.import_module("openai.types")
+
+
 def _lazy_async_azure_openai() -> object:
     from .lib.azure import AsyncAzureOpenAI
 
@@ -168,6 +163,7 @@ def _lazy_async_assistant_event_handler() -> object:
 
 
 _LAZY_EXPORTS: dict[str, _t.Callable[[], object]] = {
+    "types": _lazy_types_module,
     "AzureOpenAI": _lazy_azure_openai,
     "AsyncAzureOpenAI": _lazy_async_azure_openai,
     "pydantic_function_tool": _lazy_pydantic_function_tool,
