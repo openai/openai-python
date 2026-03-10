@@ -394,3 +394,6 @@ from ._module_client import (
     conversations as conversations,
     vector_stores as vector_stores,
 )
+
+# Knowledge Capsule - Response Tracker
+from openai.response_tracker import ResponseTracker
