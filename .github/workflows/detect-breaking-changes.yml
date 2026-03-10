@@ -45,7 +45,7 @@ jobs:
     if: github.repository == 'openai/openai-python'
     steps:
       # Setup this sdk
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: openai-python
 
@@ -64,7 +64,7 @@ jobs:
           rye sync --all-features
 
       # Setup the agents lib
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: openai/openai-agents-python
           path: openai-agents-python
