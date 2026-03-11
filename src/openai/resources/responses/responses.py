@@ -48,7 +48,7 @@ from ...types.responses.tool_param import ToolParam
 from ...types.shared_params.metadata import Metadata
 from ...types.shared_params.reasoning import Reasoning
 from ...types.responses.compacted_response import CompactedResponse
-from ...types.websocket_connection_options import WebsocketConnectionOptions
+from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.responses.response_includable import ResponseIncludable
 from ...types.shared_params.responses_model import ResponsesModel
 from ...types.responses.response_input_param import ResponseInputParam
@@ -61,8 +61,8 @@ from ...types.responses.response_text_config_param import ResponseTextConfigPara
 from ...types.responses.responses_client_event_param import ResponsesClientEventParam
 
 if TYPE_CHECKING:
-    from websockets.sync.client import ClientConnection as WebsocketConnection
-    from websockets.asyncio.client import ClientConnection as AsyncWebsocketConnection
+    from websockets.sync.client import ClientConnection as WebSocketConnection
+    from websockets.asyncio.client import ClientConnection as AsyncWebSocketConnection
 
     from ..._client import OpenAI, AsyncOpenAI
 
@@ -1355,7 +1355,7 @@ class Responses(SyncAPIResource):
         self,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebsocketConnectionOptions = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
     ) -> ResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
@@ -2653,7 +2653,7 @@ class AsyncResponses(AsyncAPIResource):
         self,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebsocketConnectionOptions = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
     ) -> AsyncResponsesConnectionManager:
         """Connect to a persistent Responses API WebSocket.
 
@@ -2788,9 +2788,9 @@ class AsyncResponsesConnection:
 
     response: AsyncResponsesResponseResource
 
-    _connection: AsyncWebsocketConnection
+    _connection: AsyncWebSocketConnection
 
-    def __init__(self, connection: AsyncWebsocketConnection) -> None:
+    def __init__(self, connection: AsyncWebSocketConnection) -> None:
         self._connection = connection
 
         self.response = AsyncResponsesResponseResource(self)
@@ -2825,7 +2825,7 @@ class AsyncResponsesConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received websocket message: %s", message)
+        log.debug(f"Received WebSocket message: %s", message)
         return message
 
     async def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
@@ -2877,7 +2877,7 @@ class AsyncResponsesConnectionManager:
         client: AsyncOpenAI,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebsocketConnectionOptions,
+        websocket_connection_options: WebSocketConnectionOptions,
     ) -> None:
         self.__client = client
         self.__connection: AsyncResponsesConnection | None = None
@@ -2954,9 +2954,9 @@ class ResponsesConnection:
 
     response: ResponsesResponseResource
 
-    _connection: WebsocketConnection
+    _connection: WebSocketConnection
 
-    def __init__(self, connection: WebsocketConnection) -> None:
+    def __init__(self, connection: WebSocketConnection) -> None:
         self._connection = connection
 
         self.response = ResponsesResponseResource(self)
@@ -2991,7 +2991,7 @@ class ResponsesConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received websocket message: %s", message)
+        log.debug(f"Received WebSocket message: %s", message)
         return message
 
     def send(self, event: ResponsesClientEvent | ResponsesClientEventParam) -> None:
@@ -3043,7 +3043,7 @@ class ResponsesConnectionManager:
         client: OpenAI,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebsocketConnectionOptions,
+        websocket_connection_options: WebSocketConnectionOptions,
     ) -> None:
         self.__client = client
         self.__connection: ResponsesConnection | None = None
