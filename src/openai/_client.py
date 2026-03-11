@@ -162,7 +162,7 @@ class OpenAI(SyncAPIClient):
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
+        if base_url is None or base_url == "":
             base_url = f"https://api.openai.com/v1"
 
         super().__init__(
@@ -537,7 +537,7 @@ class AsyncOpenAI(AsyncAPIClient):
 
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
-        if base_url is None:
+        if base_url is None or base_url == "":
             base_url = f"https://api.openai.com/v1"
 
         super().__init__(
