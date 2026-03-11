@@ -289,6 +289,13 @@ class TestCheckStreamError:
         with pytest.raises(APIError, match="An error occurred during streaming"):
             _check_stream_error(data, sse, request)
 
+    def test_error_event_with_none_data_raises(self) -> None:
+        """An error event with no payload should still raise, not be skipped."""
+        sse = ServerSentEvent(data="", event="error")
+        request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+        with pytest.raises(APIError, match="An error occurred during streaming"):
+            _check_stream_error(None, sse, request)
+
 
 class TestParseSSEData:
     """Tests for _parse_sse_data helper."""
@@ -362,6 +369,78 @@ async def test_error_event_handling(sync: bool, client: OpenAI, async_client: As
     sse = await iter_next(iterator)
     assert sse.event == "error"
     assert sse.json()["error"]["message"] == "stream interrupted"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
+async def test_error_event_empty_payload_at_sse_level(sync: bool, client: OpenAI, async_client: AsyncOpenAI) -> None:
+    """Test that a bare error event with no data is properly yielded by the SSE decoder."""
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"content":"hello"}\n'
+        yield b"\n"
+        yield b"event: error\n"
+        yield b"\n"
+
+    iterator = make_event_iterator(content=body(), sync=sync, client=client, async_client=async_client)
+
+    sse = await iter_next(iterator)
+    assert sse.json() == {"content": "hello"}
+
+    # The bare error event (empty data) should still be yielded by the decoder
+    sse = await iter_next(iterator)
+    assert sse.event == "error"
+    assert sse.data == ""
+
+
+def test_stream_error_event_empty_payload_raises(client: OpenAI) -> None:
+    """Test that Stream.__stream__ raises APIError for error events with no payload.
+
+    This ensures empty error events from backends/proxies are not silently skipped.
+    """
+
+    def body() -> Iterator[bytes]:
+        yield b'data: {"content":"hello"}\n'
+        yield b"\n"
+        yield b"event: error\n"
+        yield b"\n"
+
+    request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    response = httpx.Response(200, content=body(), request=request)
+
+    stream: Stream[object] = Stream(
+        cast_to=object,
+        client=client,
+        response=response,
+    )
+
+    with pytest.raises(APIError, match="An error occurred during streaming"):
+        for _item in stream:
+            pass
+
+
+@pytest.mark.asyncio
+async def test_async_stream_error_event_empty_payload_raises(async_client: AsyncOpenAI) -> None:
+    """Test that AsyncStream.__stream__ raises APIError for error events with no payload."""
+
+    async def body() -> AsyncIterator[bytes]:
+        yield b'data: {"content":"hello"}\n'
+        yield b"\n"
+        yield b"event: error\n"
+        yield b"\n"
+
+    request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+    response = httpx.Response(200, content=body(), request=request)
+
+    stream: AsyncStream[object] = AsyncStream(
+        cast_to=object,
+        client=async_client,
+        response=response,
+    )
+
+    with pytest.raises(APIError, match="An error occurred during streaming"):
+        async for _item in stream:
+            pass
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:

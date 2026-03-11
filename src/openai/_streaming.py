@@ -34,6 +34,15 @@ def _check_stream_error(data: object, sse: ServerSentEvent, request: httpx.Reque
     if not is_error_event and not has_error_field:
         return
 
+    # An explicit error event with no payload (or empty payload) should still
+    # surface as an error rather than being silently skipped.
+    if data is None and is_error_event:
+        raise APIError(
+            message="An error occurred during streaming",
+            request=request,
+            body=None,
+        )
+
     message: str | None = None
 
     if is_mapping(data):
@@ -125,12 +134,14 @@ class Stream(Generic[_T]):
                     break
 
                 data = _parse_sse_data(sse)
-                if data is None:
-                    continue
 
                 # Check for error events before processing - handles both explicit
-                # error events and data payloads containing an error field
+                # error events (including those with empty payloads) and data
+                # payloads containing an "error" field
                 _check_stream_error(data, sse, self.response.request)
+
+                if data is None:
+                    continue
 
                 # Assistants `thread.` events need special handling since we synthesize the event key
                 if sse.event and sse.event.startswith("thread."):
@@ -212,12 +223,14 @@ class AsyncStream(Generic[_T]):
                     break
 
                 data = _parse_sse_data(sse)
-                if data is None:
-                    continue
 
                 # Check for error events before processing - handles both explicit
-                # error events and data payloads containing an error field
+                # error events (including those with empty payloads) and data
+                # payloads containing an "error" field
                 _check_stream_error(data, sse, self.response.request)
+
+                if data is None:
+                    continue
 
                 # Assistants `thread.` events need special handling since we synthesize the event key
                 if sse.event and sse.event.startswith("thread."):
