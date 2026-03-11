@@ -20,7 +20,6 @@ from openai.lib._validation import (
 )
 from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
-
 # ---------------------------------------------------------------------------
 # Validation unit tests
 # ---------------------------------------------------------------------------
@@ -55,6 +54,10 @@ class TestValidateNetworkPolicyAllowlist:
     def test_domain_with_path_raises(self) -> None:
         with pytest.raises(ValueError, match="without a path"):
             validate_network_policy_allowlist(["example.com/api/v1"])
+
+    def test_domain_with_trailing_slash_raises(self) -> None:
+        with pytest.raises(ValueError, match="without a path"):
+            validate_network_policy_allowlist(["example.com/"])
 
     def test_empty_string_raises(self) -> None:
         with pytest.raises(ValueError, match="invalid entry"):
