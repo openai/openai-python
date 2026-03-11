@@ -15,8 +15,16 @@ def _restore_openai_modules(original_modules: dict[str, object]) -> None:
     sys.modules.update(original_modules)
 
 
-def test_openai_azure_is_lazy_imported(monkeypatch) -> None:
-    monkeypatch.delenv("OPENAI_EAGER_IMPORT", raising=False)
+def _resolve_lazy_exports(openai_module: object) -> None:
+    getattr(openai_module, "types")
+    getattr(openai_module, "AzureOpenAI")
+    getattr(openai_module, "AsyncAzureOpenAI")
+    getattr(openai_module, "pydantic_function_tool")
+    getattr(openai_module, "AssistantEventHandler")
+    getattr(openai_module, "AsyncAssistantEventHandler")
+
+
+def test_openai_azure_is_lazy_imported() -> None:
     original_modules = _openai_modules()
 
     for name in original_modules:
@@ -33,15 +41,19 @@ def test_openai_azure_is_lazy_imported(monkeypatch) -> None:
         _restore_openai_modules(original_modules)
 
 
-def test_openai_eager_import_resolves_lazy_exports(monkeypatch) -> None:
+def test_openai_can_explicitly_resolve_lazy_exports() -> None:
     original_modules = _openai_modules()
-    monkeypatch.setenv("OPENAI_EAGER_IMPORT", "1")
 
     for name in original_modules:
         sys.modules.pop(name, None)
 
     try:
         openai = importlib.import_module("openai")
+
+        assert "openai.types" not in sys.modules
+        assert "openai.lib.azure" not in sys.modules
+
+        _resolve_lazy_exports(openai)
 
         assert "openai.types" in sys.modules
         assert "openai.lib.azure" in sys.modules
