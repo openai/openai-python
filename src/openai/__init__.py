@@ -121,11 +121,6 @@ for __name in __all__:
             pass
 
 
-def _is_truthy_env_var(name: str) -> bool:
-    value = _os.environ.get(name, "")
-    return value not in ("", "0", "false", "False")
-
-
 def _lazy_azure_openai() -> object:
     from .lib.azure import AzureOpenAI
 
@@ -179,21 +174,6 @@ def __getattr__(name: str) -> object:
         return value
 
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
-
-
-def _resolve_eager_imports() -> None:
-    if not _is_truthy_env_var("OPENAI_EAGER_IMPORT"):
-        return
-
-    import importlib
-
-    # Resolve all lazy exports up-front in eager mode to catch import failures in CI/dev.
-    globals()["types"] = importlib.import_module("openai.types")
-    for name in _LAZY_EXPORTS:
-        __getattr__(name)
-
-
-_resolve_eager_imports()
 
 # ------ Module level client ------
 import typing as _t

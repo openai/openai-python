@@ -18,11 +18,18 @@ def _restore_openai_modules(original_modules: dict[str, object]) -> None:
     sys.modules.update(original_modules)
 
 
+def _resolve_lazy_exports(openai_module: object) -> None:
+    getattr(openai_module, "types")
+    getattr(openai_module, "AzureOpenAI")
+    getattr(openai_module, "AsyncAzureOpenAI")
+    getattr(openai_module, "pydantic_function_tool")
+    getattr(openai_module, "AssistantEventHandler")
+    getattr(openai_module, "AsyncAssistantEventHandler")
+
+
 @pytest.mark.skipif(os.environ.get("OPENAI_LIVE") != "1", reason="requires OPENAI_LIVE=1")
 @pytest.mark.skipif(not os.environ.get("OPENAI_API_KEY"), reason="requires OPENAI_API_KEY")
-def test_eager_import_with_live_token_allows_real_request(monkeypatch) -> None:
-    # Exercise eager mode in a real SDK flow behind explicit live-test flags.
-    monkeypatch.setenv("OPENAI_EAGER_IMPORT", "1")
+def test_explicit_lazy_export_resolution_allows_real_request() -> None:
     original_modules = _openai_modules()
 
     for name in original_modules:
@@ -31,6 +38,8 @@ def test_eager_import_with_live_token_allows_real_request(monkeypatch) -> None:
     client = None
     try:
         openai = importlib.import_module("openai")
+
+        _resolve_lazy_exports(openai)
 
         assert "openai.types" in sys.modules
         assert "openai.lib.azure" in sys.modules
