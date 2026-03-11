@@ -10,8 +10,8 @@ if TYPE_CHECKING:
     from websockets.extensions import ClientExtensionFactory
 
 
-class WebsocketConnectionOptions(TypedDict, total=False):
-    """Websocket connection options copied from `websockets`.
+class WebSocketConnectionOptions(TypedDict, total=False):
+    """WebSocket connection options copied from `websockets`.
 
     For example: https://websockets.readthedocs.io/en/stable/reference/asyncio/client.html#websockets.asyncio.client.connect
     """
