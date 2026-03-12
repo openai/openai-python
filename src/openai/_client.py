@@ -60,7 +60,6 @@ if TYPE_CHECKING:
     from .resources.files import Files, AsyncFiles
     from .resources.images import Images, AsyncImages
     from .resources.models import Models, AsyncModels
-    from .resources.videos import Videos, AsyncVideos
     from .resources.batches import Batches, AsyncBatches
     from .resources.beta.beta import Beta, AsyncBeta
     from .resources.chat.chat import Chat, AsyncChat
@@ -70,6 +69,7 @@ if TYPE_CHECKING:
     from .resources.evals.evals import Evals, AsyncEvals
     from .resources.moderations import Moderations, AsyncModerations
     from .resources.skills.skills import Skills, AsyncSkills
+    from .resources.videos.videos import Videos, AsyncVideos
     from .resources.uploads.uploads import Uploads, AsyncUploads
     from .resources.realtime.realtime import Realtime, AsyncRealtime
     from .resources.webhooks.webhooks import Webhooks, AsyncWebhooks

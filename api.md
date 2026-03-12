@@ -817,9 +817,24 @@ from openai.types import (
 
 Methods:
 
-- <code title="post /videos">client.videos.<a href="./src/openai/resources/videos.py">create</a>(\*\*<a href="src/openai/types/video_create_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
-- <code title="get /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos.py">retrieve</a>(video_id) -> <a href="./src/openai/types/video.py">Video</a></code>
-- <code title="get /videos">client.videos.<a href="./src/openai/resources/videos.py">list</a>(\*\*<a href="src/openai/types/video_list_params.py">params</a>) -> <a href="./src/openai/types/video.py">SyncConversationCursorPage[Video]</a></code>
-- <code title="delete /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos.py">delete</a>(video_id) -> <a href="./src/openai/types/video_delete_response.py">VideoDeleteResponse</a></code>
-- <code title="get /videos/{video_id}/content">client.videos.<a href="./src/openai/resources/videos.py">download_content</a>(video_id, \*\*<a href="src/openai/types/video_download_content_params.py">params</a>) -> HttpxBinaryResponseContent</code>
-- <code title="post /videos/{video_id}/remix">client.videos.<a href="./src/openai/resources/videos.py">remix</a>(video_id, \*\*<a href="src/openai/types/video_remix_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="post /videos">client.videos.<a href="./src/openai/resources/videos/videos.py">create</a>(\*\*<a href="src/openai/types/video_create_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="get /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos/videos.py">retrieve</a>(video_id) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="get /videos">client.videos.<a href="./src/openai/resources/videos/videos.py">list</a>(\*\*<a href="src/openai/types/video_list_params.py">params</a>) -> <a href="./src/openai/types/video.py">SyncConversationCursorPage[Video]</a></code>
+- <code title="delete /videos/{video_id}">client.videos.<a href="./src/openai/resources/videos/videos.py">delete</a>(video_id) -> <a href="./src/openai/types/video_delete_response.py">VideoDeleteResponse</a></code>
+- <code title="get /videos/{video_id}/content">client.videos.<a href="./src/openai/resources/videos/videos.py">download_content</a>(video_id, \*\*<a href="src/openai/types/video_download_content_params.py">params</a>) -> HttpxBinaryResponseContent</code>
+- <code title="post /videos/edits">client.videos.<a href="./src/openai/resources/videos/videos.py">edit</a>(\*\*<a href="src/openai/types/video_edit_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="post /videos/extensions">client.videos.<a href="./src/openai/resources/videos/videos.py">extend</a>(\*\*<a href="src/openai/types/video_extend_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+- <code title="post /videos/{video_id}/remix">client.videos.<a href="./src/openai/resources/videos/videos.py">remix</a>(video_id, \*\*<a href="src/openai/types/video_remix_params.py">params</a>) -> <a href="./src/openai/types/video.py">Video</a></code>
+
+## Character
+
+Types:
+
+```python
+from openai.types.videos import CharacterCreateResponse, CharacterGetResponse
+```
+
+Methods:
+
+- <code title="post /videos/characters">client.videos.character.<a href="./src/openai/resources/videos/character.py">create</a>(\*\*<a href="src/openai/types/videos/character_create_params.py">params</a>) -> <a href="./src/openai/types/videos/character_create_response.py">CharacterCreateResponse</a></code>
+- <code title="get /videos/characters/{character_id}">client.videos.character.<a href="./src/openai/resources/videos/character.py">get</a>(character_id) -> <a href="./src/openai/types/videos/character_get_response.py">CharacterGetResponse</a></code>
