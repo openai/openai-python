@@ -6,6 +6,7 @@ import gc
 import os
 import sys
 import json
+import logging
 import asyncio
 import inspect
 import dataclasses
@@ -937,6 +938,38 @@ class TestOpenAI:
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    def test_retry_log_includes_attempt_count(
+        self, client: OpenAI, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        client = client.with_options(max_retries=4)
+
+        nb_retries = 0
+
+        def retry_handler(_request: httpx.Request) -> httpx.Response:
+            nonlocal nb_retries
+            if nb_retries < 2:
+                nb_retries += 1
+                return httpx.Response(500)
+            return httpx.Response(200)
+
+        respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
+
+        with caplog.at_level(logging.INFO):
+            client.chat.completions.with_raw_response.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        assert any("Retrying request to /chat/completions" in message and "(1/4)" in message for message in caplog.messages)
+        assert any("Retrying request to /chat/completions" in message and "(2/4)" in message for message in caplog.messages)
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
@@ -1984,6 +2017,38 @@ class TestAsyncOpenAI:
 
         assert response.retries_taken == failures_before_success
         assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
+
+    @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)
+    @pytest.mark.respx(base_url=base_url)
+    async def test_retry_log_includes_attempt_count(
+        self, async_client: AsyncOpenAI, respx_mock: MockRouter, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        client = async_client.with_options(max_retries=4)
+
+        nb_retries = 0
+
+        def retry_handler(_request: httpx.Request) -> httpx.Response:
+            nonlocal nb_retries
+            if nb_retries < 2:
+                nb_retries += 1
+                return httpx.Response(500)
+            return httpx.Response(200)
+
+        respx_mock.post("/chat/completions").mock(side_effect=retry_handler)
+
+        with caplog.at_level(logging.INFO):
+            await client.chat.completions.with_raw_response.create(
+                messages=[
+                    {
+                        "content": "string",
+                        "role": "developer",
+                    }
+                ],
+                model="gpt-5.4",
+            )
+
+        assert any("Retrying request to /chat/completions" in message and "(1/4)" in message for message in caplog.messages)
+        assert any("Retrying request to /chat/completions" in message and "(2/4)" in message for message in caplog.messages)
 
     @pytest.mark.parametrize("failures_before_success", [0, 2, 4])
     @mock.patch("openai._base_client.BaseClient._calculate_retry_timeout", _low_retry_timeout)

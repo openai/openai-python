@@ -1085,13 +1085,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
         self, *, retries_taken: int, max_retries: int, options: FinalRequestOptions, response: httpx.Response | None
     ) -> None:
         remaining_retries = max_retries - retries_taken
-        if remaining_retries == 1:
-            log.debug("1 retry left")
-        else:
-            log.debug("%i retries left", remaining_retries)
-
         timeout = self._calculate_retry_timeout(remaining_retries, options, response.headers if response else None)
-        log.info("Retrying request to %s in %f seconds", options.url, timeout)
+        log.info("Retrying request to %s in %f seconds (%i/%i)", options.url, timeout, retries_taken + 1, max_retries)
 
         time.sleep(timeout)
 
@@ -1684,13 +1679,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
         self, *, retries_taken: int, max_retries: int, options: FinalRequestOptions, response: httpx.Response | None
     ) -> None:
         remaining_retries = max_retries - retries_taken
-        if remaining_retries == 1:
-            log.debug("1 retry left")
-        else:
-            log.debug("%i retries left", remaining_retries)
-
         timeout = self._calculate_retry_timeout(remaining_retries, options, response.headers if response else None)
-        log.info("Retrying request to %s in %f seconds", options.url, timeout)
+        log.info("Retrying request to %s in %f seconds (%i/%i)", options.url, timeout, retries_taken + 1, max_retries)
 
         await anyio.sleep(timeout)
 
