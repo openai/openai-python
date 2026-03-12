@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
-from typing_extensions import Required, TypedDict
+from typing import Union
+from typing_extensions import Required, TypeAlias, TypedDict
 
-__all__ = ["VideoEditParams", "Video"]
+from .._types import FileTypes
+
+__all__ = ["VideoEditParams", "Video", "VideoVideoReferenceInputParam"]
 
 
 class VideoEditParams(TypedDict, total=False):
@@ -15,8 +18,11 @@ class VideoEditParams(TypedDict, total=False):
     """Reference to the completed video to edit."""
 
 
-class Video(TypedDict, total=False):
-    """Reference to the completed video to edit."""
+class VideoVideoReferenceInputParam(TypedDict, total=False):
+    """Reference to the completed video."""
 
     id: Required[str]
     """The identifier of the completed video."""
+
+
+Video: TypeAlias = Union[FileTypes, VideoVideoReferenceInputParam]

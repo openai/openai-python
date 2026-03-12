@@ -94,8 +94,7 @@ class Videos(SyncAPIResource):
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional reference object that guides generation. Provide exactly one of
-              `image_url` or `file_id`.
+          input_reference: Optional reference asset upload or reference object that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -123,11 +122,10 @@ class Videos(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/videos",
             body=maybe_transform(body, video_create_params.VideoCreateParams),
@@ -335,11 +333,10 @@ class Videos(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/videos/edits",
             body=maybe_transform(body, video_edit_params.VideoEditParams),
@@ -372,7 +369,7 @@ class Videos(SyncAPIResource):
           seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
               8, 12, 16, 20).
 
-          video: Reference to the completed video to extend.
+          video: Reference to the completed video.
 
           extra_headers: Send extra headers
 
@@ -390,11 +387,10 @@ class Videos(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/videos/extensions",
             body=maybe_transform(body, video_extend_params.VideoExtendParams),
@@ -488,8 +484,7 @@ class AsyncVideos(AsyncAPIResource):
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional reference object that guides generation. Provide exactly one of
-              `image_url` or `file_id`.
+          input_reference: Optional reference asset upload or reference object that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -517,11 +512,10 @@ class AsyncVideos(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/videos",
             body=await async_maybe_transform(body, video_create_params.VideoCreateParams),
@@ -731,11 +725,10 @@ class AsyncVideos(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/videos/edits",
             body=await async_maybe_transform(body, video_edit_params.VideoEditParams),
@@ -768,7 +761,7 @@ class AsyncVideos(AsyncAPIResource):
           seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
               8, 12, 16, 20).
 
-          video: Reference to the completed video to extend.
+          video: Reference to the completed video.
 
           extra_headers: Send extra headers
 
@@ -786,11 +779,10 @@ class AsyncVideos(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/videos/extensions",
             body=await async_maybe_transform(body, video_extend_params.VideoExtendParams),
