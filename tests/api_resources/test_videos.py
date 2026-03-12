@@ -38,10 +38,7 @@ class TestVideos:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         video = client.videos.create(
             prompt="x",
-            input_reference={
-                "file_id": "file-123",
-                "image_url": "image_url",
-            },
+            input_reference=b"Example data",
             model="string",
             seconds="4",
             size="720x1280",
@@ -244,7 +241,7 @@ class TestVideos:
     def test_method_edit(self, client: OpenAI) -> None:
         video = client.videos.edit(
             prompt="x",
-            video={"id": "video_123"},
+            video=b"Example data",
         )
         assert_matches_type(Video, video, path=["response"])
 
@@ -252,7 +249,7 @@ class TestVideos:
     def test_raw_response_edit(self, client: OpenAI) -> None:
         response = client.videos.with_raw_response.edit(
             prompt="x",
-            video={"id": "video_123"},
+            video=b"Example data",
         )
 
         assert response.is_closed is True
@@ -264,7 +261,7 @@ class TestVideos:
     def test_streaming_response_edit(self, client: OpenAI) -> None:
         with client.videos.with_streaming_response.edit(
             prompt="x",
-            video={"id": "video_123"},
+            video=b"Example data",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -370,10 +367,7 @@ class TestAsyncVideos:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         video = await async_client.videos.create(
             prompt="x",
-            input_reference={
-                "file_id": "file-123",
-                "image_url": "image_url",
-            },
+            input_reference=b"Example data",
             model="string",
             seconds="4",
             size="720x1280",
@@ -578,7 +572,7 @@ class TestAsyncVideos:
     async def test_method_edit(self, async_client: AsyncOpenAI) -> None:
         video = await async_client.videos.edit(
             prompt="x",
-            video={"id": "video_123"},
+            video=b"Example data",
         )
         assert_matches_type(Video, video, path=["response"])
 
@@ -586,7 +580,7 @@ class TestAsyncVideos:
     async def test_raw_response_edit(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.videos.with_raw_response.edit(
             prompt="x",
-            video={"id": "video_123"},
+            video=b"Example data",
         )
 
         assert response.is_closed is True
@@ -598,7 +592,7 @@ class TestAsyncVideos:
     async def test_streaming_response_edit(self, async_client: AsyncOpenAI) -> None:
         async with async_client.videos.with_streaming_response.edit(
             prompt="x",
-            video={"id": "video_123"},
+            video=b"Example data",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"

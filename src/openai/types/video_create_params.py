@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-from typing_extensions import Required, TypedDict
+from typing import Union
+from typing_extensions import Required, TypeAlias, TypedDict
 
+from .._types import FileTypes
 from .video_size import VideoSize
 from .video_seconds import VideoSeconds
 from .video_model_param import VideoModelParam
 
-__all__ = ["VideoCreateParams", "InputReference"]
+__all__ = ["VideoCreateParams", "InputReference", "InputReferenceImageRefParam2"]
 
 
 class VideoCreateParams(TypedDict, total=False):
@@ -16,10 +18,7 @@ class VideoCreateParams(TypedDict, total=False):
     """Text prompt that describes the video to generate."""
 
     input_reference: InputReference
-    """Optional reference object that guides generation.
-
-    Provide exactly one of `image_url` or `file_id`.
-    """
+    """Optional reference asset upload or reference object that guides generation."""
 
     model: VideoModelParam
     """The video generation model to use (allowed values: sora-2, sora-2-pro).
@@ -37,13 +36,11 @@ class VideoCreateParams(TypedDict, total=False):
     """
 
 
-class InputReference(TypedDict, total=False):
-    """Optional reference object that guides generation.
-
-    Provide exactly one of `image_url` or `file_id`.
-    """
-
+class InputReferenceImageRefParam2(TypedDict, total=False):
     file_id: str
 
     image_url: str
     """A fully qualified URL or base64-encoded data URL."""
+
+
+InputReference: TypeAlias = Union[FileTypes, InputReferenceImageRefParam2]
