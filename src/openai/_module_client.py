@@ -9,6 +9,7 @@ if TYPE_CHECKING:
     from .resources.files import Files
     from .resources.images import Images
     from .resources.models import Models
+    from .resources.videos import Videos
     from .resources.batches import Batches
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
@@ -18,7 +19,6 @@ if TYPE_CHECKING:
     from .resources.evals.evals import Evals
     from .resources.moderations import Moderations
     from .resources.skills.skills import Skills
-    from .resources.videos.videos import Videos
     from .resources.uploads.uploads import Uploads
     from .resources.realtime.realtime import Realtime
     from .resources.webhooks.webhooks import Webhooks

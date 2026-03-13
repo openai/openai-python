@@ -2,12 +2,12 @@
 
 from typing import Optional
 
-from ..._models import BaseModel
+from .._models import BaseModel
 
-__all__ = ["CharacterCreateResponse"]
+__all__ = ["VideoGetCharacterResponse"]
 
 
-class CharacterCreateResponse(BaseModel):
+class VideoGetCharacterResponse(BaseModel):
     id: Optional[str] = None
     """Identifier for the character creation cameo."""
 

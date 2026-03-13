@@ -7,8 +7,8 @@ from typing_extensions import Literal
 
 import httpx
 
-from ... import _legacy_response
-from ...types import (
+from .. import _legacy_response
+from ..types import (
     VideoSize,
     VideoSeconds,
     video_edit_params,
@@ -16,21 +16,14 @@ from ...types import (
     video_remix_params,
     video_create_params,
     video_extend_params,
+    video_create_character_params,
     video_download_content_params,
 )
-from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ..._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
-from ..._compat import cached_property
-from .character import (
-    Character,
-    AsyncCharacter,
-    CharacterWithRawResponse,
-    AsyncCharacterWithRawResponse,
-    CharacterWithStreamingResponse,
-    AsyncCharacterWithStreamingResponse,
-)
-from ..._resource import SyncAPIResource, AsyncAPIResource
-from ..._response import (
+from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
+from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._compat import cached_property
+from .._resource import SyncAPIResource, AsyncAPIResource
+from .._response import (
     StreamedBinaryAPIResponse,
     AsyncStreamedBinaryAPIResponse,
     to_streamed_response_wrapper,
@@ -38,22 +31,20 @@ from ..._response import (
     to_custom_streamed_response_wrapper,
     async_to_custom_streamed_response_wrapper,
 )
-from ...pagination import SyncConversationCursorPage, AsyncConversationCursorPage
-from ...types.video import Video
-from ..._base_client import AsyncPaginator, make_request_options
-from ...types.video_size import VideoSize
-from ...types.video_seconds import VideoSeconds
-from ...types.video_model_param import VideoModelParam
-from ...types.video_delete_response import VideoDeleteResponse
+from ..pagination import SyncConversationCursorPage, AsyncConversationCursorPage
+from ..types.video import Video
+from .._base_client import AsyncPaginator, make_request_options
+from ..types.video_size import VideoSize
+from ..types.video_seconds import VideoSeconds
+from ..types.video_model_param import VideoModelParam
+from ..types.video_delete_response import VideoDeleteResponse
+from ..types.video_get_character_response import VideoGetCharacterResponse
+from ..types.video_create_character_response import VideoCreateCharacterResponse
 
 __all__ = ["Videos", "AsyncVideos"]
 
 
 class Videos(SyncAPIResource):
-    @cached_property
-    def character(self) -> Character:
-        return Character(self._client)
-
     @cached_property
     def with_raw_response(self) -> VideosWithRawResponse:
         """
@@ -254,6 +245,55 @@ class Videos(SyncAPIResource):
             cast_to=VideoDeleteResponse,
         )
 
+    def create_character(
+        self,
+        *,
+        name: str,
+        video: FileTypes,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoCreateCharacterResponse:
+        """
+        Create a character from an uploaded video.
+
+        Args:
+          name: Display name for this API character.
+
+          video: Video file used to create a character.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "name": name,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/characters",
+            body=maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoCreateCharacterResponse,
+        )
+
     def download_content(
         self,
         video_id: str,
@@ -369,7 +409,7 @@ class Videos(SyncAPIResource):
           seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
               8, 12, 16, 20).
 
-          video: Reference to the completed video.
+          video: Reference to the completed video to extend.
 
           extra_headers: Send extra headers
 
@@ -399,6 +439,39 @@ class Videos(SyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Video,
+        )
+
+    def get_character(
+        self,
+        character_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoGetCharacterResponse:
+        """
+        Fetch a character.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not character_id:
+            raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
+        return self._get(
+            f"/videos/characters/{character_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoGetCharacterResponse,
         )
 
     def remix(
@@ -440,10 +513,6 @@ class Videos(SyncAPIResource):
 
 
 class AsyncVideos(AsyncAPIResource):
-    @cached_property
-    def character(self) -> AsyncCharacter:
-        return AsyncCharacter(self._client)
-
     @cached_property
     def with_raw_response(self) -> AsyncVideosWithRawResponse:
         """
@@ -644,6 +713,55 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=VideoDeleteResponse,
         )
 
+    async def create_character(
+        self,
+        *,
+        name: str,
+        video: FileTypes,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoCreateCharacterResponse:
+        """
+        Create a character from an uploaded video.
+
+        Args:
+          name: Display name for this API character.
+
+          video: Video file used to create a character.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "name": name,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/characters",
+            body=await async_maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoCreateCharacterResponse,
+        )
+
     async def download_content(
         self,
         video_id: str,
@@ -761,7 +879,7 @@ class AsyncVideos(AsyncAPIResource):
           seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
               8, 12, 16, 20).
 
-          video: Reference to the completed video.
+          video: Reference to the completed video to extend.
 
           extra_headers: Send extra headers
 
@@ -791,6 +909,39 @@ class AsyncVideos(AsyncAPIResource):
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
             cast_to=Video,
+        )
+
+    async def get_character(
+        self,
+        character_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoGetCharacterResponse:
+        """
+        Fetch a character.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not character_id:
+            raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
+        return await self._get(
+            f"/videos/characters/{character_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoGetCharacterResponse,
         )
 
     async def remix(
@@ -847,6 +998,9 @@ class VideosWithRawResponse:
         self.delete = _legacy_response.to_raw_response_wrapper(
             videos.delete,
         )
+        self.create_character = _legacy_response.to_raw_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = _legacy_response.to_raw_response_wrapper(
             videos.download_content,
         )
@@ -856,13 +1010,12 @@ class VideosWithRawResponse:
         self.extend = _legacy_response.to_raw_response_wrapper(
             videos.extend,
         )
+        self.get_character = _legacy_response.to_raw_response_wrapper(
+            videos.get_character,
+        )
         self.remix = _legacy_response.to_raw_response_wrapper(
             videos.remix,
         )
-
-    @cached_property
-    def character(self) -> CharacterWithRawResponse:
-        return CharacterWithRawResponse(self._videos.character)
 
 
 class AsyncVideosWithRawResponse:
@@ -881,6 +1034,9 @@ class AsyncVideosWithRawResponse:
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             videos.delete,
         )
+        self.create_character = _legacy_response.async_to_raw_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = _legacy_response.async_to_raw_response_wrapper(
             videos.download_content,
         )
@@ -890,13 +1046,12 @@ class AsyncVideosWithRawResponse:
         self.extend = _legacy_response.async_to_raw_response_wrapper(
             videos.extend,
         )
+        self.get_character = _legacy_response.async_to_raw_response_wrapper(
+            videos.get_character,
+        )
         self.remix = _legacy_response.async_to_raw_response_wrapper(
             videos.remix,
         )
-
-    @cached_property
-    def character(self) -> AsyncCharacterWithRawResponse:
-        return AsyncCharacterWithRawResponse(self._videos.character)
 
 
 class VideosWithStreamingResponse:
@@ -915,6 +1070,9 @@ class VideosWithStreamingResponse:
         self.delete = to_streamed_response_wrapper(
             videos.delete,
         )
+        self.create_character = to_streamed_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = to_custom_streamed_response_wrapper(
             videos.download_content,
             StreamedBinaryAPIResponse,
@@ -925,13 +1083,12 @@ class VideosWithStreamingResponse:
         self.extend = to_streamed_response_wrapper(
             videos.extend,
         )
+        self.get_character = to_streamed_response_wrapper(
+            videos.get_character,
+        )
         self.remix = to_streamed_response_wrapper(
             videos.remix,
         )
-
-    @cached_property
-    def character(self) -> CharacterWithStreamingResponse:
-        return CharacterWithStreamingResponse(self._videos.character)
 
 
 class AsyncVideosWithStreamingResponse:
@@ -950,6 +1107,9 @@ class AsyncVideosWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             videos.delete,
         )
+        self.create_character = async_to_streamed_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = async_to_custom_streamed_response_wrapper(
             videos.download_content,
             AsyncStreamedBinaryAPIResponse,
@@ -960,10 +1120,9 @@ class AsyncVideosWithStreamingResponse:
         self.extend = async_to_streamed_response_wrapper(
             videos.extend,
         )
+        self.get_character = async_to_streamed_response_wrapper(
+            videos.get_character,
+        )
         self.remix = async_to_streamed_response_wrapper(
             videos.remix,
         )
-
-    @cached_property
-    def character(self) -> AsyncCharacterWithStreamingResponse:
-        return AsyncCharacterWithStreamingResponse(self._videos.character)

@@ -22,7 +22,7 @@ class VideoExtendParams(TypedDict, total=False):
     """
 
     video: Required[Video]
-    """Reference to the completed video."""
+    """Reference to the completed video to extend."""
 
 
 class VideoVideoReferenceInputParam(TypedDict, total=False):
@@ -32,4 +32,4 @@ class VideoVideoReferenceInputParam(TypedDict, total=False):
     """The identifier of the completed video."""
 
 
-Video: TypeAlias = Union[VideoVideoReferenceInputParam, FileTypes]
+Video: TypeAlias = Union[FileTypes, VideoVideoReferenceInputParam]

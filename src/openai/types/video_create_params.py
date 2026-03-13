@@ -9,8 +9,9 @@ from .._types import FileTypes
 from .video_size import VideoSize
 from .video_seconds import VideoSeconds
 from .video_model_param import VideoModelParam
+from .image_input_reference_param import ImageInputReferenceParam
 
-__all__ = ["VideoCreateParams", "InputReference", "InputReferenceImageRefParam2"]
+__all__ = ["VideoCreateParams", "InputReference"]
 
 
 class VideoCreateParams(TypedDict, total=False):
@@ -36,11 +37,4 @@ class VideoCreateParams(TypedDict, total=False):
     """
 
 
-class InputReferenceImageRefParam2(TypedDict, total=False):
-    file_id: str
-
-    image_url: str
-    """A fully qualified URL or base64-encoded data URL."""
-
-
-InputReference: TypeAlias = Union[FileTypes, InputReferenceImageRefParam2]
+InputReference: TypeAlias = Union[FileTypes, ImageInputReferenceParam]
