@@ -75,6 +75,7 @@ class TestResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -161,6 +162,7 @@ class TestResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -374,24 +376,25 @@ class TestResponses:
     @parametrize
     def test_method_compact(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     def test_method_compact_with_all_params(self, client: OpenAI) -> None:
         response = client.responses.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
+            prompt_cache_key="prompt_cache_key",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     def test_raw_response_compact(self, client: OpenAI) -> None:
         http_response = client.responses.with_raw_response.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
         )
 
         assert http_response.is_closed is True
@@ -402,7 +405,7 @@ class TestResponses:
     @parametrize
     def test_streaming_response_compact(self, client: OpenAI) -> None:
         with client.responses.with_streaming_response.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -483,6 +486,7 @@ class TestAsyncResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -569,6 +573,7 @@ class TestAsyncResponses:
                     "parameters": {"foo": "bar"},
                     "strict": True,
                     "type": "function",
+                    "defer_loading": True,
                     "description": "description",
                 }
             ],
@@ -782,24 +787,25 @@ class TestAsyncResponses:
     @parametrize
     async def test_method_compact(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     async def test_method_compact_with_all_params(self, async_client: AsyncOpenAI) -> None:
         response = await async_client.responses.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
             input="string",
             instructions="instructions",
             previous_response_id="resp_123",
+            prompt_cache_key="prompt_cache_key",
         )
         assert_matches_type(CompactedResponse, response, path=["response"])
 
     @parametrize
     async def test_raw_response_compact(self, async_client: AsyncOpenAI) -> None:
         http_response = await async_client.responses.with_raw_response.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
         )
 
         assert http_response.is_closed is True
@@ -810,7 +816,7 @@ class TestAsyncResponses:
     @parametrize
     async def test_streaming_response_compact(self, async_client: AsyncOpenAI) -> None:
         async with async_client.responses.with_streaming_response.compact(
-            model="gpt-5.2",
+            model="gpt-5.4",
         ) as http_response:
             assert not http_response.is_closed
             assert http_response.http_request.headers.get("X-Stainless-Lang") == "python"

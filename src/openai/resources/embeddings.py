@@ -25,6 +25,10 @@ __all__ = ["Embeddings", "AsyncEmbeddings"]
 
 
 class Embeddings(SyncAPIResource):
+    """
+    Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+    """
+
     @cached_property
     def with_raw_response(self) -> EmbeddingsWithRawResponse:
         """
@@ -144,6 +148,10 @@ class Embeddings(SyncAPIResource):
 
 
 class AsyncEmbeddings(AsyncAPIResource):
+    """
+    Get a vector representation of a given input that can be easily consumed by machine learning models and algorithms.
+    """
+
     @cached_property
     def with_raw_response(self) -> AsyncEmbeddingsWithRawResponse:
         """

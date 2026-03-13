@@ -363,6 +363,9 @@ class ToolMcpTool(BaseModel):
     - SharePoint: `connector_sharepoint`
     """
 
+    defer_loading: Optional[bool] = None
+    """Whether this MCP tool is deferred and discovered via tool search."""
+
     headers: Optional[Dict[str, str]] = None
     """Optional HTTP headers to send to the MCP server.
 
@@ -460,6 +463,7 @@ class RealtimeSessionCreateResponse(BaseModel):
         str,
         Literal[
             "gpt-realtime",
+            "gpt-realtime-1.5",
             "gpt-realtime-2025-08-28",
             "gpt-4o-realtime-preview",
             "gpt-4o-realtime-preview-2024-10-01",
@@ -470,6 +474,7 @@ class RealtimeSessionCreateResponse(BaseModel):
             "gpt-realtime-mini",
             "gpt-realtime-mini-2025-10-06",
             "gpt-realtime-mini-2025-12-15",
+            "gpt-audio-1.5",
             "gpt-audio-mini",
             "gpt-audio-mini-2025-10-06",
             "gpt-audio-mini-2025-12-15",

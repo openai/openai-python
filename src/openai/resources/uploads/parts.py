@@ -20,6 +20,8 @@ __all__ = ["Parts", "AsyncParts"]
 
 
 class Parts(SyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def with_raw_response(self) -> PartsWithRawResponse:
         """
@@ -95,6 +97,8 @@ class Parts(SyncAPIResource):
 
 
 class AsyncParts(AsyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def with_raw_response(self) -> AsyncPartsWithRawResponse:
         """

@@ -33,6 +33,8 @@ __all__ = ["Assistants", "AsyncAssistants"]
 
 
 class Assistants(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AssistantsWithRawResponse:
         """
@@ -507,6 +509,8 @@ class Assistants(SyncAPIResource):
 
 
 class AsyncAssistants(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def with_raw_response(self) -> AsyncAssistantsWithRawResponse:
         """

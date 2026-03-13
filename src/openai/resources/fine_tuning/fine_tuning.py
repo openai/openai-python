@@ -35,6 +35,7 @@ __all__ = ["FineTuning", "AsyncFineTuning"]
 class FineTuning(SyncAPIResource):
     @cached_property
     def jobs(self) -> Jobs:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return Jobs(self._client)
 
     @cached_property
@@ -68,6 +69,7 @@ class FineTuning(SyncAPIResource):
 class AsyncFineTuning(AsyncAPIResource):
     @cached_property
     def jobs(self) -> AsyncJobs:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncJobs(self._client)
 
     @cached_property
@@ -104,6 +106,7 @@ class FineTuningWithRawResponse:
 
     @cached_property
     def jobs(self) -> JobsWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return JobsWithRawResponse(self._fine_tuning.jobs)
 
     @cached_property
@@ -121,6 +124,7 @@ class AsyncFineTuningWithRawResponse:
 
     @cached_property
     def jobs(self) -> AsyncJobsWithRawResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncJobsWithRawResponse(self._fine_tuning.jobs)
 
     @cached_property
@@ -138,6 +142,7 @@ class FineTuningWithStreamingResponse:
 
     @cached_property
     def jobs(self) -> JobsWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return JobsWithStreamingResponse(self._fine_tuning.jobs)
 
     @cached_property
@@ -155,6 +160,7 @@ class AsyncFineTuningWithStreamingResponse:
 
     @cached_property
     def jobs(self) -> AsyncJobsWithStreamingResponse:
+        """Manage fine-tuning jobs to tailor a model to your specific training data."""
         return AsyncJobsWithStreamingResponse(self._fine_tuning.jobs)
 
     @cached_property

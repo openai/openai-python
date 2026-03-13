@@ -12,8 +12,11 @@ from .computer_tool import ComputerTool as ComputerTool
 from .function_tool import FunctionTool as FunctionTool
 from .response_item import ResponseItem as ResponseItem
 from .container_auto import ContainerAuto as ContainerAuto
+from .namespace_tool import NamespaceTool as NamespaceTool
 from .response_error import ResponseError as ResponseError
+from .response_input import ResponseInput as ResponseInput
 from .response_usage import ResponseUsage as ResponseUsage
+from .computer_action import ComputerAction as ComputerAction
 from .parsed_response import (
     ParsedContent as ParsedContent,
     ParsedResponse as ParsedResponse,
@@ -29,6 +32,7 @@ from .tool_choice_mcp import ToolChoiceMcp as ToolChoiceMcp
 from .web_search_tool import WebSearchTool as WebSearchTool
 from .apply_patch_tool import ApplyPatchTool as ApplyPatchTool
 from .file_search_tool import FileSearchTool as FileSearchTool
+from .tool_search_tool import ToolSearchTool as ToolSearchTool
 from .custom_tool_param import CustomToolParam as CustomToolParam
 from .local_environment import LocalEnvironment as LocalEnvironment
 from .local_skill_param import LocalSkillParam as LocalSkillParam
@@ -50,7 +54,9 @@ from .response_input_item import ResponseInputItem as ResponseInputItem
 from .response_input_text import ResponseInputText as ResponseInputText
 from .tool_choice_allowed import ToolChoiceAllowed as ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions as ToolChoiceOptions
+from .computer_action_list import ComputerActionList as ComputerActionList
 from .container_auto_param import ContainerAutoParam as ContainerAutoParam
+from .namespace_tool_param import NamespaceToolParam as NamespaceToolParam
 from .response_error_event import ResponseErrorEvent as ResponseErrorEvent
 from .response_input_audio import ResponseInputAudio as ResponseInputAudio
 from .response_input_image import ResponseInputImage as ResponseInputImage
@@ -59,6 +65,7 @@ from .response_output_item import ResponseOutputItem as ResponseOutputItem
 from .response_output_text import ResponseOutputText as ResponseOutputText
 from .response_text_config import ResponseTextConfig as ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction as ToolChoiceFunction
+from .computer_action_param import ComputerActionParam as ComputerActionParam
 from .response_failed_event import ResponseFailedEvent as ResponseFailedEvent
 from .response_prompt_param import ResponsePromptParam as ResponsePromptParam
 from .response_queued_event import ResponseQueuedEvent as ResponseQueuedEvent
@@ -72,6 +79,9 @@ from .input_item_list_params import InputItemListParams as InputItemListParams
 from .response_create_params import ResponseCreateParams as ResponseCreateParams
 from .response_created_event import ResponseCreatedEvent as ResponseCreatedEvent
 from .response_input_content import ResponseInputContent as ResponseInputContent
+from .responses_client_event import ResponsesClientEvent as ResponsesClientEvent
+from .responses_server_event import ResponsesServerEvent as ResponsesServerEvent
+from .tool_search_tool_param import ToolSearchToolParam as ToolSearchToolParam
 from .local_environment_param import LocalEnvironmentParam as LocalEnvironmentParam
 from .response_compact_params import ResponseCompactParams as ResponseCompactParams
 from .response_output_message import ResponseOutputMessage as ResponseOutputMessage
@@ -88,6 +98,7 @@ from .response_completed_event import ResponseCompletedEvent as ResponseComplete
 from .response_retrieve_params import ResponseRetrieveParams as ResponseRetrieveParams
 from .response_text_done_event import ResponseTextDoneEvent as ResponseTextDoneEvent
 from .tool_choice_custom_param import ToolChoiceCustomParam as ToolChoiceCustomParam
+from .computer_use_preview_tool import ComputerUsePreviewTool as ComputerUsePreviewTool
 from .container_reference_param import ContainerReferenceParam as ContainerReferenceParam
 from .function_shell_tool_param import FunctionShellToolParam as FunctionShellToolParam
 from .inline_skill_source_param import InlineSkillSourceParam as InlineSkillSourceParam
@@ -98,7 +109,9 @@ from .response_input_file_param import ResponseInputFileParam as ResponseInputFi
 from .response_input_item_param import ResponseInputItemParam as ResponseInputItemParam
 from .response_input_text_param import ResponseInputTextParam as ResponseInputTextParam
 from .response_text_delta_event import ResponseTextDeltaEvent as ResponseTextDeltaEvent
+from .response_tool_search_call import ResponseToolSearchCall as ResponseToolSearchCall
 from .tool_choice_allowed_param import ToolChoiceAllowedParam as ToolChoiceAllowedParam
+from .computer_action_list_param import ComputerActionListParam as ComputerActionListParam
 from .input_token_count_response import InputTokenCountResponse as InputTokenCountResponse
 from .response_audio_delta_event import ResponseAudioDeltaEvent as ResponseAudioDeltaEvent
 from .response_in_progress_event import ResponseInProgressEvent as ResponseInProgressEvent
@@ -121,6 +134,7 @@ from .response_function_web_search import ResponseFunctionWebSearch as ResponseF
 from .response_input_content_param import ResponseInputContentParam as ResponseInputContentParam
 from .response_input_image_content import ResponseInputImageContent as ResponseInputImageContent
 from .response_refusal_delta_event import ResponseRefusalDeltaEvent as ResponseRefusalDeltaEvent
+from .responses_client_event_param import ResponsesClientEventParam as ResponsesClientEventParam
 from .response_output_message_param import ResponseOutputMessageParam as ResponseOutputMessageParam
 from .response_output_refusal_param import ResponseOutputRefusalParam as ResponseOutputRefusalParam
 from .response_reasoning_item_param import ResponseReasoningItemParam as ResponseReasoningItemParam
@@ -130,15 +144,18 @@ from .response_apply_patch_tool_call import ResponseApplyPatchToolCall as Respon
 from .response_compaction_item_param import ResponseCompactionItemParam as ResponseCompactionItemParam
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam as ComputerUsePreviewToolParam
 from .response_custom_tool_call_param import ResponseCustomToolCallParam as ResponseCustomToolCallParam
 from .response_output_item_done_event import ResponseOutputItemDoneEvent as ResponseOutputItemDoneEvent
 from .response_content_part_done_event import ResponseContentPartDoneEvent as ResponseContentPartDoneEvent
 from .response_custom_tool_call_output import ResponseCustomToolCallOutput as ResponseCustomToolCallOutput
 from .response_function_tool_call_item import ResponseFunctionToolCallItem as ResponseFunctionToolCallItem
 from .response_output_item_added_event import ResponseOutputItemAddedEvent as ResponseOutputItemAddedEvent
+from .response_tool_search_output_item import ResponseToolSearchOutputItem as ResponseToolSearchOutputItem
 from .container_network_policy_disabled import ContainerNetworkPolicyDisabled as ContainerNetworkPolicyDisabled
 from .response_computer_tool_call_param import ResponseComputerToolCallParam as ResponseComputerToolCallParam
 from .response_content_part_added_event import ResponseContentPartAddedEvent as ResponseContentPartAddedEvent
+from .response_conversation_param_param import ResponseConversationParamParam as ResponseConversationParamParam
 from .response_format_text_config_param import ResponseFormatTextConfigParam as ResponseFormatTextConfigParam
 from .response_function_shell_tool_call import ResponseFunctionShellToolCall as ResponseFunctionShellToolCall
 from .response_function_tool_call_param import ResponseFunctionToolCallParam as ResponseFunctionToolCallParam
@@ -170,6 +187,9 @@ from .response_custom_tool_call_output_param import (
 )
 from .response_mcp_call_arguments_done_event import (
     ResponseMcpCallArgumentsDoneEvent as ResponseMcpCallArgumentsDoneEvent,
+)
+from .response_tool_search_output_item_param import (
+    ResponseToolSearchOutputItemParam as ResponseToolSearchOutputItemParam,
 )
 from .container_network_policy_disabled_param import (
     ContainerNetworkPolicyDisabledParam as ContainerNetworkPolicyDisabledParam,
@@ -272,6 +292,9 @@ from .container_network_policy_domain_secret_param import (
 )
 from .response_function_call_arguments_delta_event import (
     ResponseFunctionCallArgumentsDeltaEvent as ResponseFunctionCallArgumentsDeltaEvent,
+)
+from .response_tool_search_output_item_param_param import (
+    ResponseToolSearchOutputItemParamParam as ResponseToolSearchOutputItemParamParam,
 )
 from .response_computer_tool_call_output_screenshot import (
     ResponseComputerToolCallOutputScreenshot as ResponseComputerToolCallOutputScreenshot,

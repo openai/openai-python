@@ -78,7 +78,7 @@ class Versions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
-        Create Skill Version
+        Create a new immutable skill version.
 
         Args:
           default: Whether to set this version as the default.
@@ -130,7 +130,7 @@ class Versions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
-        Get Skill Version
+        Get a specific skill version.
 
         Args:
           version: The version number to retrieve.
@@ -170,7 +170,7 @@ class Versions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SyncCursorPage[SkillVersion]:
         """
-        List Skill Versions
+        List skill versions for a skill.
 
         Args:
           after: The skill version ID to start after.
@@ -222,7 +222,7 @@ class Versions(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkillVersion:
         """
-        Delete Skill Version
+        Delete a skill version.
 
         Args:
           version: The skill version number.
@@ -286,7 +286,7 @@ class AsyncVersions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
-        Create Skill Version
+        Create a new immutable skill version.
 
         Args:
           default: Whether to set this version as the default.
@@ -338,7 +338,7 @@ class AsyncVersions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> SkillVersion:
         """
-        Get Skill Version
+        Get a specific skill version.
 
         Args:
           version: The version number to retrieve.
@@ -378,7 +378,7 @@ class AsyncVersions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> AsyncPaginator[SkillVersion, AsyncCursorPage[SkillVersion]]:
         """
-        List Skill Versions
+        List skill versions for a skill.
 
         Args:
           after: The skill version ID to start after.
@@ -430,7 +430,7 @@ class AsyncVersions(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> DeletedSkillVersion:
         """
-        Delete Skill Version
+        Delete a skill version.
 
         Args:
           version: The skill version number.

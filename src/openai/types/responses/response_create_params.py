@@ -19,9 +19,9 @@ from .tool_choice_custom_param import ToolChoiceCustomParam
 from .tool_choice_allowed_param import ToolChoiceAllowedParam
 from .response_text_config_param import ResponseTextConfigParam
 from .tool_choice_function_param import ToolChoiceFunctionParam
-from .response_conversation_param import ResponseConversationParam
 from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam
 from ..shared_params.responses_model import ResponsesModel
+from .response_conversation_param_param import ResponseConversationParamParam
 
 __all__ = [
     "ResponseCreateParamsBase",
@@ -171,8 +171,9 @@ class ResponseCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
@@ -291,7 +292,7 @@ class ContextManagement(TypedDict, total=False):
     """Token threshold at which compaction should be triggered for this entry."""
 
 
-Conversation: TypeAlias = Union[str, ResponseConversationParam]
+Conversation: TypeAlias = Union[str, ResponseConversationParamParam]
 
 
 class StreamOptions(TypedDict, total=False):

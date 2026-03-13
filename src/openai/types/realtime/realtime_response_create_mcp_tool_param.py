@@ -134,6 +134,9 @@ class RealtimeResponseCreateMcpToolParam(TypedDict, total=False):
     - SharePoint: `connector_sharepoint`
     """
 
+    defer_loading: bool
+    """Whether this MCP tool is deferred and discovered via tool search."""
+
     headers: Optional[Dict[str, str]]
     """Optional HTTP headers to send to the MCP server.
 

@@ -14,6 +14,8 @@ class ResponseCompactParams(TypedDict, total=False):
     model: Required[
         Union[
             Literal[
+                "gpt-5.4",
+                "gpt-5.3-chat-latest",
                 "gpt-5.2",
                 "gpt-5.2-2025-12-11",
                 "gpt-5.2-chat-latest",
@@ -131,3 +133,6 @@ class ResponseCompactParams(TypedDict, total=False):
     [conversation state](https://platform.openai.com/docs/guides/conversation-state).
     Cannot be used in conjunction with `conversation`.
     """
+
+    prompt_cache_key: Optional[str]
+    """A key to use when reading from or writing to the prompt cache."""

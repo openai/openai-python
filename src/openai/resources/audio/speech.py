@@ -26,6 +26,8 @@ __all__ = ["Speech", "AsyncSpeech"]
 
 
 class Speech(SyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> SpeechWithRawResponse:
         """
@@ -66,6 +68,8 @@ class Speech(SyncAPIResource):
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
+
+        Returns the audio file content, or a stream of audio events.
 
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.
@@ -123,6 +127,8 @@ class Speech(SyncAPIResource):
 
 
 class AsyncSpeech(AsyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> AsyncSpeechWithRawResponse:
         """
@@ -163,6 +169,8 @@ class AsyncSpeech(AsyncAPIResource):
     ) -> _legacy_response.HttpxBinaryResponseContent:
         """
         Generates audio from the input text.
+
+        Returns the audio file content, or a stream of audio events.
 
         Args:
           input: The text to generate audio for. The maximum length is 4096 characters.

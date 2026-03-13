@@ -25,3 +25,6 @@ class ResponseCustomToolCall(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the custom tool call in the OpenAI platform."""
+
+    namespace: Optional[str] = None
+    """The namespace of the custom tool being called."""

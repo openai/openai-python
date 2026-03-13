@@ -41,8 +41,11 @@ log: logging.Logger = logging.getLogger(__name__)
 
 
 class Uploads(SyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def parts(self) -> Parts:
+        """Use Uploads to upload large files in multiple parts."""
         return Parts(self._client)
 
     @cached_property
@@ -198,6 +201,8 @@ class Uploads(SyncAPIResource):
         the documentation on
         [creating a File](https://platform.openai.com/docs/api-reference/files/create).
 
+        Returns the Upload object with status `pending`.
+
         Args:
           bytes: The number of bytes in the file you are uploading.
 
@@ -257,6 +262,8 @@ class Uploads(SyncAPIResource):
 
         No Parts may be added after an Upload is cancelled.
 
+        Returns the Upload object with status `cancelled`.
+
         Args:
           extra_headers: Send extra headers
 
@@ -302,7 +309,9 @@ class Uploads(SyncAPIResource):
 
         The number of bytes uploaded upon completion must match the number of bytes
         initially specified when creating the Upload object. No Parts may be added after
-        an Upload is completed.
+        an Upload is completed. Returns the Upload object with status `completed`,
+        including an additional `file` property containing the created usable File
+        object.
 
         Args:
           part_ids: The ordered list of Part IDs.
@@ -337,8 +346,11 @@ class Uploads(SyncAPIResource):
 
 
 class AsyncUploads(AsyncAPIResource):
+    """Use Uploads to upload large files in multiple parts."""
+
     @cached_property
     def parts(self) -> AsyncParts:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncParts(self._client)
 
     @cached_property
@@ -505,6 +517,8 @@ class AsyncUploads(AsyncAPIResource):
         the documentation on
         [creating a File](https://platform.openai.com/docs/api-reference/files/create).
 
+        Returns the Upload object with status `pending`.
+
         Args:
           bytes: The number of bytes in the file you are uploading.
 
@@ -564,6 +578,8 @@ class AsyncUploads(AsyncAPIResource):
 
         No Parts may be added after an Upload is cancelled.
 
+        Returns the Upload object with status `cancelled`.
+
         Args:
           extra_headers: Send extra headers
 
@@ -609,7 +625,9 @@ class AsyncUploads(AsyncAPIResource):
 
         The number of bytes uploaded upon completion must match the number of bytes
         initially specified when creating the Upload object. No Parts may be added after
-        an Upload is completed.
+        an Upload is completed. Returns the Upload object with status `completed`,
+        including an additional `file` property containing the created usable File
+        object.
 
         Args:
           part_ids: The ordered list of Part IDs.
@@ -659,6 +677,7 @@ class UploadsWithRawResponse:
 
     @cached_property
     def parts(self) -> PartsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return PartsWithRawResponse(self._uploads.parts)
 
 
@@ -678,6 +697,7 @@ class AsyncUploadsWithRawResponse:
 
     @cached_property
     def parts(self) -> AsyncPartsWithRawResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncPartsWithRawResponse(self._uploads.parts)
 
 
@@ -697,6 +717,7 @@ class UploadsWithStreamingResponse:
 
     @cached_property
     def parts(self) -> PartsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return PartsWithStreamingResponse(self._uploads.parts)
 
 
@@ -716,4 +737,5 @@ class AsyncUploadsWithStreamingResponse:
 
     @cached_property
     def parts(self) -> AsyncPartsWithStreamingResponse:
+        """Use Uploads to upload large files in multiple parts."""
         return AsyncPartsWithStreamingResponse(self._uploads.parts)

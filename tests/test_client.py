@@ -877,7 +877,7 @@ class TestOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__enter__()
 
         assert _get_open_connections(client) == 0
@@ -895,7 +895,7 @@ class TestOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__enter__()
         assert _get_open_connections(client) == 0
 
@@ -932,7 +932,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.retries_taken == failures_before_success
@@ -964,7 +964,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": Omit()},
         )
 
@@ -996,7 +996,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": "42"},
         )
 
@@ -1028,7 +1028,7 @@ class TestOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -1036,6 +1036,14 @@ class TestOpenAI:
     def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
         monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
+        # Delete in case our environment has any proxy env vars set
+        monkeypatch.delenv("HTTP_PROXY", raising=False)
+        monkeypatch.delenv("ALL_PROXY", raising=False)
+        monkeypatch.delenv("NO_PROXY", raising=False)
+        monkeypatch.delenv("http_proxy", raising=False)
+        monkeypatch.delenv("https_proxy", raising=False)
+        monkeypatch.delenv("all_proxy", raising=False)
+        monkeypatch.delenv("no_proxy", raising=False)
 
         client = DefaultHttpxClient()
 
@@ -1916,7 +1924,7 @@ class TestAsyncOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__aenter__()
 
         assert _get_open_connections(async_client) == 0
@@ -1934,7 +1942,7 @@ class TestAsyncOpenAI:
                         "role": "developer",
                     }
                 ],
-                model="gpt-4o",
+                model="gpt-5.4",
             ).__aenter__()
         assert _get_open_connections(async_client) == 0
 
@@ -1971,7 +1979,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         )
 
         assert response.retries_taken == failures_before_success
@@ -2003,7 +2011,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": Omit()},
         )
 
@@ -2035,7 +2043,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
             extra_headers={"x-stainless-retry-count": "42"},
         )
 
@@ -2067,7 +2075,7 @@ class TestAsyncOpenAI:
                     "role": "developer",
                 }
             ],
-            model="gpt-4o",
+            model="gpt-5.4",
         ) as response:
             assert response.retries_taken == failures_before_success
             assert int(response.http_request.headers.get("x-stainless-retry-count")) == failures_before_success
@@ -2079,6 +2087,14 @@ class TestAsyncOpenAI:
     async def test_proxy_environment_variables(self, monkeypatch: pytest.MonkeyPatch) -> None:
         # Test that the proxy environment variables are set correctly
         monkeypatch.setenv("HTTPS_PROXY", "https://example.org")
+        # Delete in case our environment has any proxy env vars set
+        monkeypatch.delenv("HTTP_PROXY", raising=False)
+        monkeypatch.delenv("ALL_PROXY", raising=False)
+        monkeypatch.delenv("NO_PROXY", raising=False)
+        monkeypatch.delenv("http_proxy", raising=False)
+        monkeypatch.delenv("https_proxy", raising=False)
+        monkeypatch.delenv("all_proxy", raising=False)
+        monkeypatch.delenv("no_proxy", raising=False)
 
         client = DefaultAsyncHttpxClient()
 

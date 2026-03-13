@@ -42,6 +42,8 @@ log: logging.Logger = logging.getLogger("openai.audio.transcriptions")
 
 
 class Transcriptions(SyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> TranscriptionsWithRawResponse:
         """
@@ -84,6 +86,9 @@ class Transcriptions(SyncAPIResource):
     ) -> Transcription:
         """
         Transcribes audio into the input language.
+
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
 
         Args:
           file:
@@ -235,6 +240,9 @@ class Transcriptions(SyncAPIResource):
         """
         Transcribes audio into the input language.
 
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
+
         Args:
           file:
               The audio file object (not file name) to transcribe, in one of these formats:
@@ -342,6 +350,9 @@ class Transcriptions(SyncAPIResource):
     ) -> TranscriptionCreateResponse | Stream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
+
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
 
         Args:
           file:
@@ -488,6 +499,8 @@ class Transcriptions(SyncAPIResource):
 
 
 class AsyncTranscriptions(AsyncAPIResource):
+    """Turn audio into text or text into audio."""
+
     @cached_property
     def with_raw_response(self) -> AsyncTranscriptionsWithRawResponse:
         """
@@ -532,6 +545,9 @@ class AsyncTranscriptions(AsyncAPIResource):
     ) -> TranscriptionCreateResponse:
         """
         Transcribes audio into the input language.
+
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
 
         Args:
           file:
@@ -678,6 +694,9 @@ class AsyncTranscriptions(AsyncAPIResource):
         """
         Transcribes audio into the input language.
 
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
+
         Args:
           file:
               The audio file object (not file name) to transcribe, in one of these formats:
@@ -785,6 +804,9 @@ class AsyncTranscriptions(AsyncAPIResource):
     ) -> TranscriptionCreateResponse | AsyncStream[TranscriptionStreamEvent]:
         """
         Transcribes audio into the input language.
+
+        Returns a transcription object in `json`, `diarized_json`, or `verbose_json`
+        format, or a stream of transcript events.
 
         Args:
           file:

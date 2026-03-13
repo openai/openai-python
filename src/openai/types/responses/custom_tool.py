@@ -21,6 +21,9 @@ class CustomTool(BaseModel):
     type: Literal["custom"]
     """The type of the custom tool. Always `custom`."""
 
+    defer_loading: Optional[bool] = None
+    """Whether this tool should be deferred and discovered via tool search."""
+
     description: Optional[str] = None
     """Optional description of the custom tool, used to provide more context."""
 

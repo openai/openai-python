@@ -1,5 +1,90 @@
 # Changelog
 
+## 2.26.0 (2026-03-05)
+
+Full Changelog: [v2.25.0...v2.26.0](https://github.com/openai/openai-python/compare/v2.25.0...v2.26.0)
+
+### Features
+
+* **api:** The GA ComputerTool now uses the CompuerTool class. The 'computer_use_preview' tool is moved to ComputerUsePreview ([78f5b3c](https://github.com/openai/openai-python/commit/78f5b3c287b71ed6fbeb71fb6b5c0366db704cd2))
+
+## 2.25.0 (2026-03-05)
+
+Full Changelog: [v2.24.0...v2.25.0](https://github.com/openai/openai-python/compare/v2.24.0...v2.25.0)
+
+### Features
+
+* **api:** gpt-5.4, tool search tool, and new computer tool ([6b2043f](https://github.com/openai/openai-python/commit/6b2043f3d63058f5582eab7a7705b30a3d5536f0))
+* **api:** remove prompt_cache_key param from responses, phase field from message types ([44fb382](https://github.com/openai/openai-python/commit/44fb382698872d98d5f72c880b47846c7b594f4f))
+
+
+### Bug Fixes
+
+* **api:** internal schema fixes ([0c0f970](https://github.com/openai/openai-python/commit/0c0f970cbd164131bf06f7ab38f170bbcb323683))
+* **api:** manual updates ([9fc323f](https://github.com/openai/openai-python/commit/9fc323f4da6cfca9de194e12c1486a3cd1bfa4b5))
+* **api:** readd phase ([1b27b5a](https://github.com/openai/openai-python/commit/1b27b5a834f5cb75f80c597259d0df0352ba83bd))
+
+
+### Chores
+
+* **internal:** codegen related update ([bdb837d](https://github.com/openai/openai-python/commit/bdb837d2c1d2a161cc4b22ef26e9e8446d5dc2a3))
+* **internal:** codegen related update ([b1de941](https://github.com/openai/openai-python/commit/b1de9419a68fd6fb97a63f415fb3d1e5851582cb))
+* **internal:** reduce warnings ([7cdbd06](https://github.com/openai/openai-python/commit/7cdbd06d3ca41af64d616b4b4bb61226cc38b662))
+
+## 2.24.0 (2026-02-24)
+
+Full Changelog: [v2.23.0...v2.24.0](https://github.com/openai/openai-python/compare/v2.23.0...v2.24.0)
+
+### Features
+
+* **api:** add phase ([391deb9](https://github.com/openai/openai-python/commit/391deb99f6a92e51bffb25efd8dfe367d144bb9d))
+
+
+### Bug Fixes
+
+* **api:** fix phase enum ([42ebf7c](https://github.com/openai/openai-python/commit/42ebf7c30b7e27a175c0d75fcf42c8dc858e56d6))
+* **api:** phase docs ([7ddc61c](https://github.com/openai/openai-python/commit/7ddc61cd0f7825d5e7f3a10daf809135511d8d20))
+
+
+### Chores
+
+* **internal:** make `test_proxy_environment_variables` more resilient to env ([65af8fd](https://github.com/openai/openai-python/commit/65af8fd8550e99236e3f4dcb035312441788157a))
+* **internal:** refactor sse event parsing ([2344600](https://github.com/openai/openai-python/commit/23446008f06fb474d8c75d14a1bce26f4c5b95d8))
+
+## 2.23.0 (2026-02-24)
+
+Full Changelog: [v2.22.0...v2.23.0](https://github.com/openai/openai-python/compare/v2.22.0...v2.23.0)
+
+### Features
+
+* **api:** add gpt-realtime-1.5 and gpt-audio-1.5 model options to realtime calls ([3300b61](https://github.com/openai/openai-python/commit/3300b61e1d5a34c9d28ec9cebbebd0de1fa93aa6))
+
+
+### Chores
+
+* **internal:** make `test_proxy_environment_variables` more resilient ([6b441e2](https://github.com/openai/openai-python/commit/6b441e2c43df60a773f62308e918d76b8eb3c4d3))
+
+## 2.22.0 (2026-02-23)
+
+Full Changelog: [v2.21.0...v2.22.0](https://github.com/openai/openai-python/compare/v2.21.0...v2.22.0)
+
+### Features
+
+* **api:** websockets for responses api ([c01f6fb](https://github.com/openai/openai-python/commit/c01f6fb0d55b7454f73c4904ea7a1954553085dc))
+
+
+### Chores
+
+* **internal:** add request options to SSE classes ([cdb4315](https://github.com/openai/openai-python/commit/cdb4315ee29d5260bb373625d74cb523b4e3859c))
+* update mock server docs ([91f4da8](https://github.com/openai/openai-python/commit/91f4da80ec3dba5d3566961560dfd6feb9c2feb0))
+
+
+### Documentation
+
+* **api:** add batch size limit to file_batches parameter descriptions ([16ae76a](https://github.com/openai/openai-python/commit/16ae76a20a47f94c91ee2ca0b2ada274633abab3))
+* **api:** enhance method descriptions across audio, chat, realtime, skills, uploads, videos ([21f9e5a](https://github.com/openai/openai-python/commit/21f9e5aaf6ae27f0235fddb3ffa30fe73337f59b))
+* **api:** update safety_identifier documentation in chat completions and responses ([d74bfff](https://github.com/openai/openai-python/commit/d74bfff62c1c2b32d4dc88fd47ae7b1b2a962017))
+
 ## 2.21.0 (2026-02-13)
 
 Full Changelog: [v2.20.0...v2.21.0](https://github.com/openai/openai-python/compare/v2.20.0...v2.21.0)

@@ -1984,6 +1984,7 @@ def make_request_options(
     idempotency_key: str | None = None,
     timeout: float | httpx.Timeout | None | NotGiven = not_given,
     post_parser: PostParser | NotGiven = not_given,
+    synthesize_event_and_data: bool | None = None,
 ) -> RequestOptions:
     """Create a dict of type RequestOptions without keys of NotGiven values."""
     options: RequestOptions = {}
@@ -2008,6 +2009,9 @@ def make_request_options(
     if is_given(post_parser):
         # internal
         options["post_parser"] = post_parser  # type: ignore
+
+    if synthesize_event_and_data is not None:
+        options["synthesize_event_and_data"] = synthesize_event_and_data
 
     return options
 
