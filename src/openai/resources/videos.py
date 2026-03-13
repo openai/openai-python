@@ -11,9 +11,12 @@ from .. import _legacy_response
 from ..types import (
     VideoSize,
     VideoSeconds,
+    video_edit_params,
     video_list_params,
     video_remix_params,
     video_create_params,
+    video_extend_params,
+    video_create_character_params,
     video_download_content_params,
 )
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
@@ -36,6 +39,8 @@ from ..types.video_size import VideoSize
 from ..types.video_seconds import VideoSeconds
 from ..types.video_model_param import VideoModelParam
 from ..types.video_delete_response import VideoDeleteResponse
+from ..types.video_get_character_response import VideoGetCharacterResponse
+from ..types.video_create_character_response import VideoCreateCharacterResponse
 
 __all__ = ["Videos", "AsyncVideos"]
 
@@ -64,7 +69,7 @@ class Videos(SyncAPIResource):
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -81,7 +86,7 @@ class Videos(SyncAPIResource):
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional multipart reference asset that guides generation.
+          input_reference: Optional reference asset upload or reference object that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -109,11 +114,10 @@ class Videos(SyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
             "/videos",
             body=maybe_transform(body, video_create_params.VideoCreateParams),
@@ -128,7 +132,7 @@ class Videos(SyncAPIResource):
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -315,6 +319,55 @@ class Videos(SyncAPIResource):
             cast_to=VideoDeleteResponse,
         )
 
+    def create_character(
+        self,
+        *,
+        name: str,
+        video: FileTypes,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoCreateCharacterResponse:
+        """
+        Create a character from an uploaded video.
+
+        Args:
+          name: Display name for this API character.
+
+          video: Video file used to create a character.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "name": name,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/characters",
+            body=maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoCreateCharacterResponse,
+        )
+
     def download_content(
         self,
         video_id: str,
@@ -356,6 +409,143 @@ class Videos(SyncAPIResource):
                 query=maybe_transform({"variant": variant}, video_download_content_params.VideoDownloadContentParams),
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
+        )
+
+    def edit(
+        self,
+        *,
+        prompt: str,
+        video: video_edit_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create a new video generation job by editing a source video or existing
+        generated video.
+
+        Args:
+          prompt: Text prompt that describes how to edit the source video.
+
+          video: Reference to the completed video to edit.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "prompt": prompt,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/edits",
+            body=maybe_transform(body, video_edit_params.VideoEditParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Video,
+        )
+
+    def extend(
+        self,
+        *,
+        prompt: str,
+        seconds: VideoSeconds,
+        video: video_extend_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create an extension of a completed video.
+
+        Args:
+          prompt: Updated text prompt that directs the extension generation.
+
+          seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
+              8, 12, 16, 20).
+
+          video: Reference to the completed video to extend.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "prompt": prompt,
+                "seconds": seconds,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return self._post(
+            "/videos/extensions",
+            body=maybe_transform(body, video_extend_params.VideoExtendParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Video,
+        )
+
+    def get_character(
+        self,
+        character_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoGetCharacterResponse:
+        """
+        Fetch a character.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not character_id:
+            raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
+        return self._get(
+            f"/videos/characters/{character_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoGetCharacterResponse,
         )
 
     def remix(
@@ -420,7 +610,7 @@ class AsyncVideos(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -437,7 +627,7 @@ class AsyncVideos(AsyncAPIResource):
         Args:
           prompt: Text prompt that describes the video to generate.
 
-          input_reference: Optional multipart reference asset that guides generation.
+          input_reference: Optional reference asset upload or reference object that guides generation.
 
           model: The video generation model to use (allowed values: sora-2, sora-2-pro). Defaults
               to `sora-2`.
@@ -465,11 +655,10 @@ class AsyncVideos(AsyncAPIResource):
             }
         )
         files = extract_files(cast(Mapping[str, object], body), paths=[["input_reference"]])
-        if files:
-            # It should be noted that the actual Content-Type header that will be
-            # sent to the server will contain a `boundary` parameter, e.g.
-            # multipart/form-data; boundary=---abc--
-            extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
             "/videos",
             body=await async_maybe_transform(body, video_create_params.VideoCreateParams),
@@ -484,7 +673,7 @@ class AsyncVideos(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -671,6 +860,55 @@ class AsyncVideos(AsyncAPIResource):
             cast_to=VideoDeleteResponse,
         )
 
+    async def create_character(
+        self,
+        *,
+        name: str,
+        video: FileTypes,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoCreateCharacterResponse:
+        """
+        Create a character from an uploaded video.
+
+        Args:
+          name: Display name for this API character.
+
+          video: Video file used to create a character.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "name": name,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/characters",
+            body=await async_maybe_transform(body, video_create_character_params.VideoCreateCharacterParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoCreateCharacterResponse,
+        )
+
     async def download_content(
         self,
         video_id: str,
@@ -714,6 +952,143 @@ class AsyncVideos(AsyncAPIResource):
                 ),
             ),
             cast_to=_legacy_response.HttpxBinaryResponseContent,
+        )
+
+    async def edit(
+        self,
+        *,
+        prompt: str,
+        video: video_edit_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create a new video generation job by editing a source video or existing
+        generated video.
+
+        Args:
+          prompt: Text prompt that describes how to edit the source video.
+
+          video: Reference to the completed video to edit.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "prompt": prompt,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/edits",
+            body=await async_maybe_transform(body, video_edit_params.VideoEditParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Video,
+        )
+
+    async def extend(
+        self,
+        *,
+        prompt: str,
+        seconds: VideoSeconds,
+        video: video_extend_params.Video,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> Video:
+        """
+        Create an extension of a completed video.
+
+        Args:
+          prompt: Updated text prompt that directs the extension generation.
+
+          seconds: Length of the newly generated extension segment in seconds (allowed values: 4,
+              8, 12, 16, 20).
+
+          video: Reference to the completed video to extend.
+
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        body = deepcopy_minimal(
+            {
+                "prompt": prompt,
+                "seconds": seconds,
+                "video": video,
+            }
+        )
+        files = extract_files(cast(Mapping[str, object], body), paths=[["video"]])
+        # It should be noted that the actual Content-Type header that will be
+        # sent to the server will contain a `boundary` parameter, e.g.
+        # multipart/form-data; boundary=---abc--
+        extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
+        return await self._post(
+            "/videos/extensions",
+            body=await async_maybe_transform(body, video_extend_params.VideoExtendParams),
+            files=files,
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=Video,
+        )
+
+    async def get_character(
+        self,
+        character_id: str,
+        *,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
+    ) -> VideoGetCharacterResponse:
+        """
+        Fetch a character.
+
+        Args:
+          extra_headers: Send extra headers
+
+          extra_query: Add additional query parameters to the request
+
+          extra_body: Add additional JSON properties to the request
+
+          timeout: Override the client-level default timeout for this request, in seconds
+        """
+        if not character_id:
+            raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
+        return await self._get(
+            f"/videos/characters/{character_id}",
+            options=make_request_options(
+                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+            ),
+            cast_to=VideoGetCharacterResponse,
         )
 
     async def remix(
@@ -770,8 +1145,20 @@ class VideosWithRawResponse:
         self.delete = _legacy_response.to_raw_response_wrapper(
             videos.delete,
         )
+        self.create_character = _legacy_response.to_raw_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = _legacy_response.to_raw_response_wrapper(
             videos.download_content,
+        )
+        self.edit = _legacy_response.to_raw_response_wrapper(
+            videos.edit,
+        )
+        self.extend = _legacy_response.to_raw_response_wrapper(
+            videos.extend,
+        )
+        self.get_character = _legacy_response.to_raw_response_wrapper(
+            videos.get_character,
         )
         self.remix = _legacy_response.to_raw_response_wrapper(
             videos.remix,
@@ -794,8 +1181,20 @@ class AsyncVideosWithRawResponse:
         self.delete = _legacy_response.async_to_raw_response_wrapper(
             videos.delete,
         )
+        self.create_character = _legacy_response.async_to_raw_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = _legacy_response.async_to_raw_response_wrapper(
             videos.download_content,
+        )
+        self.edit = _legacy_response.async_to_raw_response_wrapper(
+            videos.edit,
+        )
+        self.extend = _legacy_response.async_to_raw_response_wrapper(
+            videos.extend,
+        )
+        self.get_character = _legacy_response.async_to_raw_response_wrapper(
+            videos.get_character,
         )
         self.remix = _legacy_response.async_to_raw_response_wrapper(
             videos.remix,
@@ -818,9 +1217,21 @@ class VideosWithStreamingResponse:
         self.delete = to_streamed_response_wrapper(
             videos.delete,
         )
+        self.create_character = to_streamed_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = to_custom_streamed_response_wrapper(
             videos.download_content,
             StreamedBinaryAPIResponse,
+        )
+        self.edit = to_streamed_response_wrapper(
+            videos.edit,
+        )
+        self.extend = to_streamed_response_wrapper(
+            videos.extend,
+        )
+        self.get_character = to_streamed_response_wrapper(
+            videos.get_character,
         )
         self.remix = to_streamed_response_wrapper(
             videos.remix,
@@ -843,9 +1254,21 @@ class AsyncVideosWithStreamingResponse:
         self.delete = async_to_streamed_response_wrapper(
             videos.delete,
         )
+        self.create_character = async_to_streamed_response_wrapper(
+            videos.create_character,
+        )
         self.download_content = async_to_custom_streamed_response_wrapper(
             videos.download_content,
             AsyncStreamedBinaryAPIResponse,
+        )
+        self.edit = async_to_streamed_response_wrapper(
+            videos.edit,
+        )
+        self.extend = async_to_streamed_response_wrapper(
+            videos.extend,
+        )
+        self.get_character = async_to_streamed_response_wrapper(
+            videos.get_character,
         )
         self.remix = async_to_streamed_response_wrapper(
             videos.remix,

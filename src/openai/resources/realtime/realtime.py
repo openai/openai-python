@@ -41,7 +41,7 @@ from .client_secrets import (
     AsyncClientSecretsWithStreamingResponse,
 )
 from ...types.realtime import session_update_event_param
-from ...types.websocket_connection_options import WebsocketConnectionOptions
+from ...types.websocket_connection_options import WebSocketConnectionOptions
 from ...types.realtime.realtime_client_event import RealtimeClientEvent
 from ...types.realtime.realtime_server_event import RealtimeServerEvent
 from ...types.realtime.conversation_item_param import ConversationItemParam
@@ -49,8 +49,8 @@ from ...types.realtime.realtime_client_event_param import RealtimeClientEventPar
 from ...types.realtime.realtime_response_create_params_param import RealtimeResponseCreateParamsParam
 
 if TYPE_CHECKING:
-    from websockets.sync.client import ClientConnection as WebsocketConnection
-    from websockets.asyncio.client import ClientConnection as AsyncWebsocketConnection
+    from websockets.sync.client import ClientConnection as WebSocketConnection
+    from websockets.asyncio.client import ClientConnection as AsyncWebSocketConnection
 
     from ..._client import OpenAI, AsyncOpenAI
 
@@ -96,7 +96,7 @@ class Realtime(SyncAPIResource):
         model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebsocketConnectionOptions = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
     ) -> RealtimeConnectionManager:
         """
         The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as function calling.
@@ -156,7 +156,7 @@ class AsyncRealtime(AsyncAPIResource):
         model: str | Omit = omit,
         extra_query: Query = {},
         extra_headers: Headers = {},
-        websocket_connection_options: WebsocketConnectionOptions = {},
+        websocket_connection_options: WebSocketConnectionOptions = {},
     ) -> AsyncRealtimeConnectionManager:
         """
         The Realtime API enables you to build low-latency, multi-modal conversational experiences. It currently supports text and audio as both input and output, as well as function calling.
@@ -240,9 +240,9 @@ class AsyncRealtimeConnection:
     conversation: AsyncRealtimeConversationResource
     output_audio_buffer: AsyncRealtimeOutputAudioBufferResource
 
-    _connection: AsyncWebsocketConnection
+    _connection: AsyncWebSocketConnection
 
-    def __init__(self, connection: AsyncWebsocketConnection) -> None:
+    def __init__(self, connection: AsyncWebSocketConnection) -> None:
         self._connection = connection
 
         self.session = AsyncRealtimeSessionResource(self)
@@ -281,7 +281,7 @@ class AsyncRealtimeConnection:
         then you can call `.parse_event(data)`.
         """
         message = await self._connection.recv(decode=False)
-        log.debug(f"Received websocket message: %s", message)
+        log.debug(f"Received WebSocket message: %s", message)
         return message
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -334,7 +334,7 @@ class AsyncRealtimeConnectionManager:
         model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebsocketConnectionOptions,
+        websocket_connection_options: WebSocketConnectionOptions,
     ) -> None:
         self.__client = client
         self.__call_id = call_id
@@ -408,7 +408,9 @@ class AsyncRealtimeConnectionManager:
         if self.__client.websocket_base_url is not None:
             base_url = httpx.URL(self.__client.websocket_base_url)
         else:
-            base_url = self.__client._base_url.copy_with(scheme="wss")
+            scheme = self.__client._base_url.scheme
+            ws_scheme = "ws" if scheme == "http" else "wss"
+            base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
         merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
         return base_url.copy_with(raw_path=merge_raw_path)
@@ -429,9 +431,9 @@ class RealtimeConnection:
     conversation: RealtimeConversationResource
     output_audio_buffer: RealtimeOutputAudioBufferResource
 
-    _connection: WebsocketConnection
+    _connection: WebSocketConnection
 
-    def __init__(self, connection: WebsocketConnection) -> None:
+    def __init__(self, connection: WebSocketConnection) -> None:
         self._connection = connection
 
         self.session = RealtimeSessionResource(self)
@@ -470,7 +472,7 @@ class RealtimeConnection:
         then you can call `.parse_event(data)`.
         """
         message = self._connection.recv(decode=False)
-        log.debug(f"Received websocket message: %s", message)
+        log.debug(f"Received WebSocket message: %s", message)
         return message
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
@@ -523,7 +525,7 @@ class RealtimeConnectionManager:
         model: str | Omit = omit,
         extra_query: Query,
         extra_headers: Headers,
-        websocket_connection_options: WebsocketConnectionOptions,
+        websocket_connection_options: WebSocketConnectionOptions,
     ) -> None:
         self.__client = client
         self.__call_id = call_id
@@ -597,7 +599,9 @@ class RealtimeConnectionManager:
         if self.__client.websocket_base_url is not None:
             base_url = httpx.URL(self.__client.websocket_base_url)
         else:
-            base_url = self.__client._base_url.copy_with(scheme="wss")
+            scheme = self.__client._base_url.scheme
+            ws_scheme = "ws" if scheme == "http" else "wss"
+            base_url = self.__client._base_url.copy_with(scheme=ws_scheme)
 
         merge_raw_path = base_url.raw_path.rstrip(b"/") + b"/realtime"
         return base_url.copy_with(raw_path=merge_raw_path)

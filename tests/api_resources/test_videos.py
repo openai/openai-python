@@ -15,6 +15,8 @@ from tests.utils import assert_matches_type
 from openai.types import (
     Video,
     VideoDeleteResponse,
+    VideoGetCharacterResponse,
+    VideoCreateCharacterResponse,
 )
 from openai._utils import assert_signatures_in_sync
 from openai.pagination import SyncConversationCursorPage, AsyncConversationCursorPage
@@ -38,7 +40,7 @@ class TestVideos:
     def test_method_create_with_all_params(self, client: OpenAI) -> None:
         video = client.videos.create(
             prompt="x",
-            input_reference=b"raw file contents",
+            input_reference=b"Example data",
             model="string",
             seconds="4",
             size="720x1280",
@@ -180,6 +182,40 @@ class TestVideos:
             )
 
     @parametrize
+    def test_method_create_character(self, client: OpenAI) -> None:
+        video = client.videos.create_character(
+            name="x",
+            video=b"Example data",
+        )
+        assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+
+    @parametrize
+    def test_raw_response_create_character(self, client: OpenAI) -> None:
+        response = client.videos.with_raw_response.create_character(
+            name="x",
+            video=b"Example data",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+
+    @parametrize
+    def test_streaming_response_create_character(self, client: OpenAI) -> None:
+        with client.videos.with_streaming_response.create_character(
+            name="x",
+            video=b"Example data",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = response.parse()
+            assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     @pytest.mark.respx(base_url=base_url)
     def test_method_download_content(self, client: OpenAI, respx_mock: MockRouter) -> None:
         respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
@@ -235,6 +271,115 @@ class TestVideos:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
             client.videos.with_raw_response.download_content(
                 video_id="",
+            )
+
+    @parametrize
+    def test_method_edit(self, client: OpenAI) -> None:
+        video = client.videos.edit(
+            prompt="x",
+            video=b"Example data",
+        )
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    def test_raw_response_edit(self, client: OpenAI) -> None:
+        response = client.videos.with_raw_response.edit(
+            prompt="x",
+            video=b"Example data",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    def test_streaming_response_edit(self, client: OpenAI) -> None:
+        with client.videos.with_streaming_response.edit(
+            prompt="x",
+            video=b"Example data",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = response.parse()
+            assert_matches_type(Video, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_method_extend(self, client: OpenAI) -> None:
+        video = client.videos.extend(
+            prompt="x",
+            seconds="4",
+            video=b"Example data",
+        )
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    def test_raw_response_extend(self, client: OpenAI) -> None:
+        response = client.videos.with_raw_response.extend(
+            prompt="x",
+            seconds="4",
+            video=b"Example data",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    def test_streaming_response_extend(self, client: OpenAI) -> None:
+        with client.videos.with_streaming_response.extend(
+            prompt="x",
+            seconds="4",
+            video=b"Example data",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = response.parse()
+            assert_matches_type(Video, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_method_get_character(self, client: OpenAI) -> None:
+        video = client.videos.get_character(
+            "char_123",
+        )
+        assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+
+    @parametrize
+    def test_raw_response_get_character(self, client: OpenAI) -> None:
+        response = client.videos.with_raw_response.get_character(
+            "char_123",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+
+    @parametrize
+    def test_streaming_response_get_character(self, client: OpenAI) -> None:
+        with client.videos.with_streaming_response.get_character(
+            "char_123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = response.parse()
+            assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    def test_path_params_get_character(self, client: OpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `character_id` but received ''"):
+            client.videos.with_raw_response.get_character(
+                "",
             )
 
     @parametrize
@@ -296,7 +441,7 @@ class TestAsyncVideos:
     async def test_method_create_with_all_params(self, async_client: AsyncOpenAI) -> None:
         video = await async_client.videos.create(
             prompt="x",
-            input_reference=b"raw file contents",
+            input_reference=b"Example data",
             model="string",
             seconds="4",
             size="720x1280",
@@ -438,6 +583,40 @@ class TestAsyncVideos:
             )
 
     @parametrize
+    async def test_method_create_character(self, async_client: AsyncOpenAI) -> None:
+        video = await async_client.videos.create_character(
+            name="x",
+            video=b"Example data",
+        )
+        assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+
+    @parametrize
+    async def test_raw_response_create_character(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.videos.with_raw_response.create_character(
+            name="x",
+            video=b"Example data",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_create_character(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.videos.with_streaming_response.create_character(
+            name="x",
+            video=b"Example data",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = await response.parse()
+            assert_matches_type(VideoCreateCharacterResponse, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
     @pytest.mark.respx(base_url=base_url)
     async def test_method_download_content(self, async_client: AsyncOpenAI, respx_mock: MockRouter) -> None:
         respx_mock.get("/videos/video_123/content").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
@@ -495,6 +674,115 @@ class TestAsyncVideos:
         with pytest.raises(ValueError, match=r"Expected a non-empty value for `video_id` but received ''"):
             await async_client.videos.with_raw_response.download_content(
                 video_id="",
+            )
+
+    @parametrize
+    async def test_method_edit(self, async_client: AsyncOpenAI) -> None:
+        video = await async_client.videos.edit(
+            prompt="x",
+            video=b"Example data",
+        )
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    async def test_raw_response_edit(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.videos.with_raw_response.edit(
+            prompt="x",
+            video=b"Example data",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_edit(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.videos.with_streaming_response.edit(
+            prompt="x",
+            video=b"Example data",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = await response.parse()
+            assert_matches_type(Video, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_method_extend(self, async_client: AsyncOpenAI) -> None:
+        video = await async_client.videos.extend(
+            prompt="x",
+            seconds="4",
+            video=b"Example data",
+        )
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    async def test_raw_response_extend(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.videos.with_raw_response.extend(
+            prompt="x",
+            seconds="4",
+            video=b"Example data",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(Video, video, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_extend(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.videos.with_streaming_response.extend(
+            prompt="x",
+            seconds="4",
+            video=b"Example data",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = await response.parse()
+            assert_matches_type(Video, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_method_get_character(self, async_client: AsyncOpenAI) -> None:
+        video = await async_client.videos.get_character(
+            "char_123",
+        )
+        assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+
+    @parametrize
+    async def test_raw_response_get_character(self, async_client: AsyncOpenAI) -> None:
+        response = await async_client.videos.with_raw_response.get_character(
+            "char_123",
+        )
+
+        assert response.is_closed is True
+        assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+        video = response.parse()
+        assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+
+    @parametrize
+    async def test_streaming_response_get_character(self, async_client: AsyncOpenAI) -> None:
+        async with async_client.videos.with_streaming_response.get_character(
+            "char_123",
+        ) as response:
+            assert not response.is_closed
+            assert response.http_request.headers.get("X-Stainless-Lang") == "python"
+
+            video = await response.parse()
+            assert_matches_type(VideoGetCharacterResponse, video, path=["response"])
+
+        assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    async def test_path_params_get_character(self, async_client: AsyncOpenAI) -> None:
+        with pytest.raises(ValueError, match=r"Expected a non-empty value for `character_id` but received ''"):
+            await async_client.videos.with_raw_response.get_character(
+                "",
             )
 
     @parametrize
