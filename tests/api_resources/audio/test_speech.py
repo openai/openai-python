@@ -28,7 +28,7 @@ class TestSpeech:
         speech = client.audio.speech.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -40,7 +40,7 @@ class TestSpeech:
         speech = client.audio.speech.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
@@ -57,7 +57,7 @@ class TestSpeech:
         response = client.audio.speech.with_raw_response.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
         )
 
         assert response.is_closed is True
@@ -72,7 +72,7 @@ class TestSpeech:
         with client.audio.speech.with_streaming_response.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
@@ -95,7 +95,7 @@ class TestAsyncSpeech:
         speech = await async_client.audio.speech.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
         )
         assert isinstance(speech, _legacy_response.HttpxBinaryResponseContent)
         assert speech.json() == {"foo": "bar"}
@@ -107,7 +107,7 @@ class TestAsyncSpeech:
         speech = await async_client.audio.speech.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
             instructions="instructions",
             response_format="mp3",
             speed=0.25,
@@ -124,7 +124,7 @@ class TestAsyncSpeech:
         response = await async_client.audio.speech.with_raw_response.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
         )
 
         assert response.is_closed is True
@@ -139,7 +139,7 @@ class TestAsyncSpeech:
         async with async_client.audio.speech.with_streaming_response.create(
             input="string",
             model="string",
-            voice="ash",
+            voice="string",
         ) as response:
             assert not response.is_closed
             assert response.http_request.headers.get("X-Stainless-Lang") == "python"
