@@ -3,11 +3,23 @@
 from __future__ import annotations
 
 from typing import Union
-from typing_extensions import Literal, TypedDict
+from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from .realtime_audio_formats_param import RealtimeAudioFormatsParam
 
-__all__ = ["RealtimeAudioConfigOutputParam"]
+__all__ = ["RealtimeAudioConfigOutputParam", "Voice", "VoiceID"]
+
+
+class VoiceID(TypedDict, total=False):
+    """Custom voice reference."""
+
+    id: Required[str]
+    """The custom voice ID, e.g. `voice_1234`."""
+
+
+Voice: TypeAlias = Union[
+    str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"], VoiceID
+]
 
 
 class RealtimeAudioConfigOutputParam(TypedDict, total=False):
@@ -25,11 +37,12 @@ class RealtimeAudioConfigOutputParam(TypedDict, total=False):
     generated, it's also possible to prompt the model to speak faster or slower.
     """
 
-    voice: Union[str, Literal["alloy", "ash", "ballad", "coral", "echo", "sage", "shimmer", "verse", "marin", "cedar"]]
+    voice: Voice
     """The voice the model uses to respond.
 
     Supported built-in voices are `alloy`, `ash`, `ballad`, `coral`, `echo`, `sage`,
-    `shimmer`, `verse`, `marin`, and `cedar`. Voice cannot be changed during the
-    session once the model has responded with audio at least once. We recommend
-    `marin` and `cedar` for best quality.
+    `shimmer`, `verse`, `marin`, and `cedar`. You may also provide a custom voice
+    object with an `id`, for example `{ "id": "voice_1234" }`. Voice cannot be
+    changed during the session once the model has responded with audio at least
+    once. We recommend `marin` and `cedar` for best quality.
     """
