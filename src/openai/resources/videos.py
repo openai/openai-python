@@ -48,13 +48,6 @@ __all__ = ["Videos", "AsyncVideos"]
 class Videos(SyncAPIResource):
     @cached_property
     def with_raw_response(self) -> VideosWithRawResponse:
-
-__all__ = ["Videos", "AsyncVideos"]
-
-
-class Videos(SyncAPIResource):
-    @cached_property
-    def with_raw_response(self) -> VideosWithRawResponse:
         """
         This property can be used as a prefix for any HTTP method call to return
         the raw response object instead of the parsed content.
@@ -139,7 +132,7 @@ class Videos(SyncAPIResource):
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
@@ -680,7 +673,7 @@ class AsyncVideos(AsyncAPIResource):
         self,
         *,
         prompt: str,
-        input_reference: FileTypes | Omit = omit,
+        input_reference: video_create_params.InputReference | Omit = omit,
         model: VideoModelParam | Omit = omit,
         seconds: VideoSeconds | Omit = omit,
         size: VideoSize | Omit = omit,
