@@ -135,7 +135,20 @@ def main() -> int:
     return 0
 
 
+def _setup_completion(parser: argparse.ArgumentParser) -> None:
+    """Enable shell completion if argcomplete is available."""
+    try:
+        import argcomplete
+
+        argcomplete.autocomplete(parser)
+    except ImportError:
+        pass
+
+
 def _parse_args(parser: argparse.ArgumentParser) -> tuple[argparse.Namespace, Arguments, list[str]]:
+    # Enable shell completion if available
+    _setup_completion(parser)
+
     # argparse by default will strip out the `--` but we want to keep it for unknown arguments
     if "--" in sys.argv:
         idx = sys.argv.index("--")

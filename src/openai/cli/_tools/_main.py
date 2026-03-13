@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 from argparse import ArgumentParser
 
-from . import migrate, fine_tunes
+from . import migrate, fine_tunes, completion
 
 if TYPE_CHECKING:
     from argparse import _SubParsersAction
@@ -11,6 +11,7 @@ if TYPE_CHECKING:
 
 def register_commands(parser: ArgumentParser, subparser: _SubParsersAction[ArgumentParser]) -> None:
     migrate.register(subparser)
+    completion.register(subparser)
 
     namespaced = parser.add_subparsers(title="Tools", help="Convenience client side tools")
 
