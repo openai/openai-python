@@ -56,6 +56,7 @@ from .batch_list_params import BatchListParams as BatchListParams
 from .completion_choice import CompletionChoice as CompletionChoice
 from .image_edit_params import ImageEditParams as ImageEditParams
 from .skill_list_params import SkillListParams as SkillListParams
+from .video_edit_params import VideoEditParams as VideoEditParams
 from .video_list_params import VideoListParams as VideoListParams
 from .video_model_param import VideoModelParam as VideoModelParam
 from .eval_create_params import EvalCreateParams as EvalCreateParams
@@ -68,6 +69,7 @@ from .batch_create_params import BatchCreateParams as BatchCreateParams
 from .skill_create_params import SkillCreateParams as SkillCreateParams
 from .skill_update_params import SkillUpdateParams as SkillUpdateParams
 from .video_create_params import VideoCreateParams as VideoCreateParams
+from .video_extend_params import VideoExtendParams as VideoExtendParams
 from .batch_request_counts import BatchRequestCounts as BatchRequestCounts
 from .eval_create_response import EvalCreateResponse as EvalCreateResponse
 from .eval_delete_response import EvalDeleteResponse as EvalDeleteResponse
