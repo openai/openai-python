@@ -1,4 +1,8 @@
-from ._logs import SensitiveHeadersFilter as SensitiveHeadersFilter
+from ._logs import (
+    SENSITIVE_HEADERS as SENSITIVE_HEADERS,
+    SensitiveHeadersFilter as SensitiveHeadersFilter,
+    redact_sensitive_headers as redact_sensitive_headers,
+)
 from ._sync import asyncify as asyncify
 from ._proxy import LazyProxy as LazyProxy
 from ._utils import (
