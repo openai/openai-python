@@ -1,4 +1,4 @@
-#!/usr/bin/env -S poetry run python
+#!/usr/bin/env -S rye run python
 
 from openai import OpenAI
 
@@ -8,7 +8,7 @@ client = OpenAI()
 # Non-streaming:
 print("----- standard request -----")
 completion = client.chat.completions.create(
-    model="gpt-4",
+    model="gpt-4o",
     messages=[
         {
             "role": "user",
@@ -21,7 +21,7 @@ print(completion.choices[0].message.content)
 # Streaming:
 print("----- streaming request -----")
 stream = client.chat.completions.create(
-    model="gpt-4",
+    model="gpt-4o",
     messages=[
         {
             "role": "user",
@@ -40,7 +40,7 @@ print()
 # Response headers:
 print("----- custom response headers test -----")
 response = client.chat.completions.with_raw_response.create(
-    model="gpt-4",
+    model="gpt-4o",
     messages=[
         {
             "role": "user",
