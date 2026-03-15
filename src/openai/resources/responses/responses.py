@@ -30,6 +30,7 @@ from .input_items import (
 )
 from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
+from ...lib._validation import validate_tools
 from .input_tokens import (
     InputTokens,
     AsyncInputTokens,
@@ -3537,8 +3538,13 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
     if not is_given(tools):
         return omit
 
+    # Materialise once so that validation doesn't consume a one-shot iterator
+    tools_list = list(tools) if not isinstance(tools, list) else tools
+
+    validate_tools(tools_list)
+
     converted_tools: List[ToolParam] = []
-    for tool in tools:
+    for tool in tools_list:
         if tool["type"] != "function":
             converted_tools.append(tool)
             continue
