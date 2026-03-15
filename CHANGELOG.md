@@ -1,5 +1,14 @@
 # Changelog
 
+## 2.29.0 (2026-03-15)
+
+Full Changelog: [v2.28.0...v2.29.0](https://github.com/openai/openai-python/compare/v2.28.0...v2.29.0)
+
+### Features
+
+* **api:** add /v1/videos endpoint to batches create method ([c0e7a16](https://github.com/openai/openai-python/commit/c0e7a161a996854021e9eb69ea2a60ca0d08047f))
+* **api:** add defer_loading field to ToolFunction ([3167595](https://github.com/openai/openai-python/commit/3167595432bdda2f90721901d30ad316db49323e))
+
 ## 2.28.0 (2026-03-13)
 
 Full Changelog: [v2.27.0...v2.28.0](https://github.com/openai/openai-python/compare/v2.27.0...v2.28.0)
