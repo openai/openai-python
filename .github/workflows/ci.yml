@@ -1,12 +1,14 @@
 name: CI
 on:
   push:
-    branches-ignore:
-      - 'generated'
-      - 'codegen/**'
-      - 'integrated/**'
-      - 'stl-preview-head/**'
-      - 'stl-preview-base/**'
+    branches:
+      - '**'
+      - '!integrated/**'
+      - '!stl-preview-head/**'
+      - '!stl-preview-base/**'
+      - '!generated'
+      - '!codegen/**'
+      - 'codegen/stl/**'
   pull_request:
     branches-ignore:
       - 'stl-preview-head/**'
