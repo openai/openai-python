@@ -8,5 +8,7 @@ __all__ = ["ToolChoiceShellParam"]
 
 
 class ToolChoiceShellParam(TypedDict, total=False):
+    """Forces the model to call the shell tool when a tool call is required."""
+
     type: Required[Literal["shell"]]
     """The tool to call. Always `shell`."""

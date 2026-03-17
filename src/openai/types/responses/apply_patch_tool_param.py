@@ -8,5 +8,7 @@ __all__ = ["ApplyPatchToolParam"]
 
 
 class ApplyPatchToolParam(TypedDict, total=False):
+    """Allows the assistant to create, delete, or update files using unified diffs."""
+
     type: Required[Literal["apply_patch"]]
     """The type of the tool. Always `apply_patch`."""

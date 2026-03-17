@@ -50,13 +50,13 @@ def test_parse_nothing(client: OpenAI, respx_mock: MockRouter, monkeypatch: pyte
 
     assert print_obj(completion, monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[NoneType](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[NoneType](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[NoneType](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content="I'm unable to provide real-time weather updates. To get the current weather in San Francisco, I
@@ -120,13 +120,13 @@ def test_parse_pydantic_model(client: OpenAI, respx_mock: MockRouter, monkeypatc
 
     assert print_obj(completion, monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[Location](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[Location](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[Location](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":65,"units":"f"}',
@@ -191,13 +191,13 @@ def test_parse_pydantic_model_optional_default(
 
     assert print_obj(completion, monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[Location](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[Location](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[Location](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":65,"units":"f"}',
@@ -266,11 +266,11 @@ def test_parse_pydantic_model_enum(client: OpenAI, respx_mock: MockRouter, monke
 
     assert print_obj(completion.choices[0], monkeypatch) == snapshot(
         """\
-ParsedChoice[ColorDetection](
+ParsedChoice(
     finish_reason='stop',
     index=0,
     logprobs=None,
-    message=ParsedChatCompletionMessage[ColorDetection](
+    message=ParsedChatCompletionMessage(
         annotations=None,
         audio=None,
         content='{"color":"red","hex_color_code":"#FF0000"}',
@@ -317,11 +317,11 @@ def test_parse_pydantic_model_multiple_choices(
     assert print_obj(completion.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":64,"units":"f"}',
@@ -332,11 +332,11 @@ def test_parse_pydantic_model_multiple_choices(
             tool_calls=None
         )
     ),
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=1,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":65,"units":"f"}',
@@ -347,11 +347,11 @@ def test_parse_pydantic_model_multiple_choices(
             tool_calls=None
         )
     ),
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=2,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content='{"city":"San Francisco","temperature":63.0,"units":"f"}',
@@ -397,13 +397,13 @@ def test_parse_pydantic_dataclass(client: OpenAI, respx_mock: MockRouter, monkey
 
     assert print_obj(completion, monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[CalendarEvent](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[CalendarEvent](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[CalendarEvent](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content='{"name":"Science Fair","date":"Friday","participants":["Alice","Bob"]}',
@@ -462,11 +462,11 @@ def test_pydantic_tool_model_all_types(client: OpenAI, respx_mock: MockRouter, m
 
     assert print_obj(completion.choices[0], monkeypatch) == snapshot(
         """\
-ParsedChoice[Query](
+ParsedChoice(
     finish_reason='tool_calls',
     index=0,
     logprobs=None,
-    message=ParsedChatCompletionMessage[Query](
+    message=ParsedChatCompletionMessage(
         annotations=None,
         audio=None,
         content=None,
@@ -576,11 +576,11 @@ def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, mo
     assert print_obj(completion.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[Location](
+    ParsedChoice(
         finish_reason='stop',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[Location](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -627,11 +627,11 @@ def test_parse_pydantic_tool(client: OpenAI, respx_mock: MockRouter, monkeypatch
     assert print_obj(completion.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -701,11 +701,11 @@ def test_parse_multiple_pydantic_tools(client: OpenAI, respx_mock: MockRouter, m
     assert print_obj(completion.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -784,11 +784,11 @@ def test_parse_strict_tools(client: OpenAI, respx_mock: MockRouter, monkeypatch:
     assert print_obj(completion.choices, monkeypatch) == snapshot(
         """\
 [
-    ParsedChoice[NoneType](
+    ParsedChoice(
         finish_reason='tool_calls',
         index=0,
         logprobs=None,
-        message=ParsedChatCompletionMessage[NoneType](
+        message=ParsedChatCompletionMessage(
             annotations=None,
             audio=None,
             content=None,
@@ -866,13 +866,13 @@ def test_parse_pydantic_raw_response(client: OpenAI, respx_mock: MockRouter, mon
     assert isinstance(message.parsed.city, str)
     assert print_obj(completion, monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[Location](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[Location](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[Location](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":58,"units":"f"}',
@@ -943,13 +943,13 @@ async def test_async_parse_pydantic_raw_response(
     assert isinstance(message.parsed.city, str)
     assert print_obj(completion, monkeypatch) == snapshot(
         """\
-ParsedChatCompletion[Location](
+ParsedChatCompletion(
     choices=[
-        ParsedChoice[Location](
+        ParsedChoice(
             finish_reason='stop',
             index=0,
             logprobs=None,
-            message=ParsedChatCompletionMessage[Location](
+            message=ParsedChatCompletionMessage(
                 annotations=None,
                 audio=None,
                 content='{"city":"San Francisco","temperature":65,"units":"f"}',

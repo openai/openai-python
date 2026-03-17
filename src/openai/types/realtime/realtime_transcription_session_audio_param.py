@@ -10,4 +10,6 @@ __all__ = ["RealtimeTranscriptionSessionAudioParam"]
 
 
 class RealtimeTranscriptionSessionAudioParam(TypedDict, total=False):
+    """Configuration for input and output audio."""
+
     input: RealtimeTranscriptionSessionAudioInputParam

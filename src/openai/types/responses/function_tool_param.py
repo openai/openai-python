@@ -9,6 +9,11 @@ __all__ = ["FunctionToolParam"]
 
 
 class FunctionToolParam(TypedDict, total=False):
+    """Defines a function in your own code the model can choose to call.
+
+    Learn more about [function calling](https://platform.openai.com/docs/guides/function-calling).
+    """
+
     name: Required[str]
     """The name of the function to call."""
 
@@ -20,6 +25,9 @@ class FunctionToolParam(TypedDict, total=False):
 
     type: Required[Literal["function"]]
     """The type of the function tool. Always `function`."""
+
+    defer_loading: bool
+    """Whether this function is deferred and loaded via tool search."""
 
     description: Optional[str]
     """A description of the function.

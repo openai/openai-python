@@ -30,10 +30,14 @@ class AudioOutput(BaseModel):
 
 
 class Audio(BaseModel):
+    """Configuration for audio output."""
+
     output: Optional[AudioOutput] = None
 
 
 class RealtimeResponse(BaseModel):
+    """The response resource."""
+
     id: Optional[str] = None
     """The unique ID of the response, will look like `resp_1234`."""
 

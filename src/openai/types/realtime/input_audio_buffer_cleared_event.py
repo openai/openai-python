@@ -8,6 +8,11 @@ __all__ = ["InputAudioBufferClearedEvent"]
 
 
 class InputAudioBufferClearedEvent(BaseModel):
+    """
+    Returned when the input audio buffer is cleared by the client with a
+    `input_audio_buffer.clear` event.
+    """
+
     event_id: str
     """The unique ID of the server event."""
 

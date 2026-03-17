@@ -20,6 +20,8 @@ __all__ = [
 
 
 class DataChatKitClientToolCall(BaseModel):
+    """Record of a client side tool invocation initiated by the assistant."""
+
     id: str
     """Identifier of the thread item."""
 
@@ -55,6 +57,8 @@ class DataChatKitClientToolCall(BaseModel):
 
 
 class DataChatKitTask(BaseModel):
+    """Task emitted by the workflow to show progress and status updates."""
+
     id: str
     """Identifier of the thread item."""
 
@@ -81,6 +85,8 @@ class DataChatKitTask(BaseModel):
 
 
 class DataChatKitTaskGroupTask(BaseModel):
+    """Task entry that appears within a TaskGroup."""
+
     heading: Optional[str] = None
     """Optional heading for the grouped task. Defaults to null when not provided."""
 
@@ -95,6 +101,8 @@ class DataChatKitTaskGroupTask(BaseModel):
 
 
 class DataChatKitTaskGroup(BaseModel):
+    """Collection of workflow tasks grouped together in the thread."""
+
     id: str
     """Identifier of the thread item."""
 
@@ -128,6 +136,8 @@ Data: TypeAlias = Annotated[
 
 
 class ChatKitThreadItemList(BaseModel):
+    """A paginated list of thread items rendered for the ChatKit API."""
+
     data: List[Data]
     """A list of items"""
 

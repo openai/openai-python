@@ -9,6 +9,8 @@ __all__ = ["ResponseReasoningItemParam", "Summary", "Content"]
 
 
 class Summary(TypedDict, total=False):
+    """A summary text from the model."""
+
     text: Required[str]
     """A summary of the reasoning output from the model so far."""
 
@@ -17,6 +19,8 @@ class Summary(TypedDict, total=False):
 
 
 class Content(TypedDict, total=False):
+    """Reasoning text from the model."""
+
     text: Required[str]
     """The reasoning text from the model."""
 
@@ -25,6 +29,13 @@ class Content(TypedDict, total=False):
 
 
 class ResponseReasoningItemParam(TypedDict, total=False):
+    """
+    A description of the chain of thought used by a reasoning model while generating
+    a response. Be sure to include these items in your `input` to the Responses API
+    for subsequent turns of a conversation if you are manually
+    [managing context](https://platform.openai.com/docs/guides/conversation-state).
+    """
+
     id: Required[str]
     """The unique identifier of the reasoning content."""
 

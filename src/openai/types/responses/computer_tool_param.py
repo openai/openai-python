@@ -8,14 +8,10 @@ __all__ = ["ComputerToolParam"]
 
 
 class ComputerToolParam(TypedDict, total=False):
-    display_height: Required[int]
-    """The height of the computer display."""
+    """A tool that controls a virtual computer.
 
-    display_width: Required[int]
-    """The width of the computer display."""
+    Learn more about the [computer tool](https://platform.openai.com/docs/guides/tools-computer-use).
+    """
 
-    environment: Required[Literal["windows", "mac", "linux", "ubuntu", "browser"]]
-    """The type of computer environment to control."""
-
-    type: Required[Literal["computer_use_preview"]]
-    """The type of the computer use tool. Always `computer_use_preview`."""
+    type: Required[Literal["computer"]]
+    """The type of the computer tool. Always `computer`."""

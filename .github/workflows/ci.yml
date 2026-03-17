@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rye
         run: |
@@ -44,7 +44,7 @@ jobs:
       id-token: write
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rye
         run: |
@@ -61,14 +61,18 @@ jobs:
         run: rye build
 
       - name: Get GitHub OIDC Token
-        if: github.repository == 'stainless-sdks/openai-python'
+        if: |-
+          github.repository == 'stainless-sdks/openai-python' &&
+          !startsWith(github.ref, 'refs/heads/stl/')
         id: github-oidc
-        uses: actions/github-script@v6
+        uses: actions/github-script@v8
         with:
           script: core.setOutput('github_token', await core.getIDToken());
 
       - name: Upload tarball
-        if: github.repository == 'stainless-sdks/openai-python'
+        if: |-
+          github.repository == 'stainless-sdks/openai-python' &&
+          !startsWith(github.ref, 'refs/heads/stl/')
         env:
           URL: https://pkg.stainless.com/s
           AUTH: ${{ steps.github-oidc.outputs.github_token }}
@@ -81,7 +85,7 @@ jobs:
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rye
         run: |
@@ -104,7 +108,7 @@ jobs:
     if: github.repository == 'openai/openai-python' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
       - name: Install Rye
         run: |

@@ -11,6 +11,12 @@ __all__ = ["Reasoning"]
 
 
 class Reasoning(TypedDict, total=False):
+    """**gpt-5 and o-series models only**
+
+    Configuration options for
+    [reasoning models](https://platform.openai.com/docs/guides/reasoning).
+    """
+
     effort: Optional[ReasoningEffort]
     """
     Constrains effort on reasoning for
@@ -25,7 +31,7 @@ class Reasoning(TypedDict, total=False):
     - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
       support `none`.
     - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     generate_summary: Optional[Literal["auto", "concise", "detailed"]]
@@ -42,5 +48,6 @@ class Reasoning(TypedDict, total=False):
     This can be useful for debugging and understanding the model's reasoning
     process. One of `auto`, `concise`, or `detailed`.
 
-    `concise` is only supported for `computer-use-preview` models.
+    `concise` is supported for `computer-use-preview` models and all reasoning
+    models after `gpt-5`.
     """

@@ -307,10 +307,23 @@ class Files(SyncAPIResource):
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         self.create(
-            vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy, attributes=attributes
+            vector_store_id=vector_store_id,
+            file_id=file_id,
+            chunking_strategy=chunking_strategy,
+            attributes=attributes,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
         return self.poll(
@@ -715,10 +728,23 @@ class AsyncFiles(AsyncAPIResource):
         attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         poll_interval_ms: int | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFile:
         """Attach a file to the given vector store and wait for it to be processed."""
         await self.create(
-            vector_store_id=vector_store_id, file_id=file_id, chunking_strategy=chunking_strategy, attributes=attributes
+            vector_store_id=vector_store_id,
+            file_id=file_id,
+            chunking_strategy=chunking_strategy,
+            attributes=attributes,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
 
         return await self.poll(

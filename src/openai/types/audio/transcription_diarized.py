@@ -11,6 +11,8 @@ __all__ = ["TranscriptionDiarized", "Usage", "UsageTokens", "UsageTokensInputTok
 
 
 class UsageTokensInputTokenDetails(BaseModel):
+    """Details about the input tokens billed for this request."""
+
     audio_tokens: Optional[int] = None
     """Number of audio tokens billed for this request."""
 
@@ -19,6 +21,8 @@ class UsageTokensInputTokenDetails(BaseModel):
 
 
 class UsageTokens(BaseModel):
+    """Usage statistics for models billed by token usage."""
+
     input_tokens: int
     """Number of input tokens billed for this request."""
 
@@ -36,6 +40,8 @@ class UsageTokens(BaseModel):
 
 
 class UsageDuration(BaseModel):
+    """Usage statistics for models billed by audio input duration."""
+
     seconds: float
     """Duration of the input audio in seconds."""
 
@@ -47,6 +53,10 @@ Usage: TypeAlias = Annotated[Union[UsageTokens, UsageDuration], PropertyInfo(dis
 
 
 class TranscriptionDiarized(BaseModel):
+    """
+    Represents a diarized transcription response returned by the model, including the combined transcript and speaker-segment annotations.
+    """
+
     duration: float
     """Duration of the input audio in seconds."""
 

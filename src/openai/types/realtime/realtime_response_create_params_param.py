@@ -23,6 +23,8 @@ Tool: TypeAlias = Union[RealtimeFunctionToolParam, RealtimeResponseCreateMcpTool
 
 
 class RealtimeResponseCreateParamsParam(TypedDict, total=False):
+    """Create a new Realtime response with these parameters"""
+
     audio: RealtimeResponseCreateAudioOutputParam
     """Configuration for audio input and output."""
 

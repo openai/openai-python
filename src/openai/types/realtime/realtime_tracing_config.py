@@ -9,6 +9,8 @@ __all__ = ["RealtimeTracingConfig", "TracingConfiguration"]
 
 
 class TracingConfiguration(BaseModel):
+    """Granular configuration for tracing."""
+
     group_id: Optional[str] = None
     """
     The group id to attach to this trace to enable filtering and grouping in the

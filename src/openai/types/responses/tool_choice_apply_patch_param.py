@@ -8,5 +8,7 @@ __all__ = ["ToolChoiceApplyPatchParam"]
 
 
 class ToolChoiceApplyPatchParam(TypedDict, total=False):
+    """Forces the model to call the apply_patch tool when executing a tool call."""
+
     type: Required[Literal["apply_patch"]]
     """The tool to call. Always `apply_patch`."""

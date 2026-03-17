@@ -16,11 +16,15 @@ __all__ = [
 
 
 class OutputOutcomeTimeout(BaseModel):
+    """Indicates that the shell call exceeded its configured time limit."""
+
     type: Literal["timeout"]
     """The outcome type. Always `timeout`."""
 
 
 class OutputOutcomeExit(BaseModel):
+    """Indicates that the shell commands finished and returned an exit code."""
+
     exit_code: int
     """Exit code from the shell process."""
 
@@ -32,6 +36,8 @@ OutputOutcome: TypeAlias = Annotated[Union[OutputOutcomeTimeout, OutputOutcomeEx
 
 
 class Output(BaseModel):
+    """The content of a shell tool call output that was emitted."""
+
     outcome: OutputOutcome
     """
     Represents either an exit outcome (with an exit code) or a timeout outcome for a
@@ -39,13 +45,18 @@ class Output(BaseModel):
     """
 
     stderr: str
+    """The standard error output that was captured."""
 
     stdout: str
+    """The standard output that was captured."""
 
     created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""
 
 
 class ResponseFunctionShellToolCallOutput(BaseModel):
+    """The output of a shell tool call that was emitted."""
+
     id: str
     """The unique ID of the shell call output.
 
@@ -64,7 +75,14 @@ class ResponseFunctionShellToolCallOutput(BaseModel):
     output: List[Output]
     """An array of shell call output contents"""
 
+    status: Literal["in_progress", "completed", "incomplete"]
+    """The status of the shell call output.
+
+    One of `in_progress`, `completed`, or `incomplete`.
+    """
+
     type: Literal["shell_call_output"]
     """The type of the shell call output. Always `shell_call_output`."""
 
     created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""

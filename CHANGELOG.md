@@ -1,5 +1,300 @@
 # Changelog
 
+## 2.28.0 (2026-03-13)
+
+Full Changelog: [v2.27.0...v2.28.0](https://github.com/openai/openai-python/compare/v2.27.0...v2.28.0)
+
+### Features
+
+* **api:** custom voices ([50dc060](https://github.com/openai/openai-python/commit/50dc060b55767615419219ef567d31210517e613))
+
+## 2.27.0 (2026-03-13)
+
+Full Changelog: [v2.26.0...v2.27.0](https://github.com/openai/openai-python/compare/v2.26.0...v2.27.0)
+
+### Features
+
+* **api:** api update ([60ab24a](https://github.com/openai/openai-python/commit/60ab24ae722a7fa280eb4b2273da4ded1f930231))
+* **api:** manual updates ([b244b09](https://github.com/openai/openai-python/commit/b244b0946045aaa0dbfa8c0ce5164b64e1156834))
+* **api:** manual updates ([d806635](https://github.com/openai/openai-python/commit/d806635081a736cc81344bf1e62b57956a88d093))
+* **api:** sora api improvements: character api, video extensions/edits, higher resolution exports. ([58b70d3](https://github.com/openai/openai-python/commit/58b70d304a4b2cf70eae4db4b448d439fc8b8ba3))
+
+
+### Bug Fixes
+
+* **api:** repair merged videos resource ([742d8ee](https://github.com/openai/openai-python/commit/742d8ee1f969ee1bbb39ba9d799dcd5c480d8ddb))
+
+
+### Chores
+
+* **internal:** codegen related update ([4e6498e](https://github.com/openai/openai-python/commit/4e6498e2d222dd35d76bb397ba976ff53c852e12))
+* **internal:** codegen related update ([93af129](https://github.com/openai/openai-python/commit/93af129e8919de6d3aee19329c8bdef0532bd20a))
+* match http protocol with ws protocol instead of wss ([026f9de](https://github.com/openai/openai-python/commit/026f9de35d2aa74f35c91261eb5ea43d4ab1b8ba))
+* use proper capitalization for WebSockets ([a2f9b07](https://github.com/openai/openai-python/commit/a2f9b0722597627e8d01aa05c27a52015072726b))
+
+## 2.26.0 (2026-03-05)
+
+Full Changelog: [v2.25.0...v2.26.0](https://github.com/openai/openai-python/compare/v2.25.0...v2.26.0)
+
+### Features
+
+* **api:** The GA ComputerTool now uses the CompuerTool class. The 'computer_use_preview' tool is moved to ComputerUsePreview ([78f5b3c](https://github.com/openai/openai-python/commit/78f5b3c287b71ed6fbeb71fb6b5c0366db704cd2))
+
+## 2.25.0 (2026-03-05)
+
+Full Changelog: [v2.24.0...v2.25.0](https://github.com/openai/openai-python/compare/v2.24.0...v2.25.0)
+
+### Features
+
+* **api:** gpt-5.4, tool search tool, and new computer tool ([6b2043f](https://github.com/openai/openai-python/commit/6b2043f3d63058f5582eab7a7705b30a3d5536f0))
+* **api:** remove prompt_cache_key param from responses, phase field from message types ([44fb382](https://github.com/openai/openai-python/commit/44fb382698872d98d5f72c880b47846c7b594f4f))
+
+
+### Bug Fixes
+
+* **api:** internal schema fixes ([0c0f970](https://github.com/openai/openai-python/commit/0c0f970cbd164131bf06f7ab38f170bbcb323683))
+* **api:** manual updates ([9fc323f](https://github.com/openai/openai-python/commit/9fc323f4da6cfca9de194e12c1486a3cd1bfa4b5))
+* **api:** readd phase ([1b27b5a](https://github.com/openai/openai-python/commit/1b27b5a834f5cb75f80c597259d0df0352ba83bd))
+
+
+### Chores
+
+* **internal:** codegen related update ([bdb837d](https://github.com/openai/openai-python/commit/bdb837d2c1d2a161cc4b22ef26e9e8446d5dc2a3))
+* **internal:** codegen related update ([b1de941](https://github.com/openai/openai-python/commit/b1de9419a68fd6fb97a63f415fb3d1e5851582cb))
+* **internal:** reduce warnings ([7cdbd06](https://github.com/openai/openai-python/commit/7cdbd06d3ca41af64d616b4b4bb61226cc38b662))
+
+## 2.24.0 (2026-02-24)
+
+Full Changelog: [v2.23.0...v2.24.0](https://github.com/openai/openai-python/compare/v2.23.0...v2.24.0)
+
+### Features
+
+* **api:** add phase ([391deb9](https://github.com/openai/openai-python/commit/391deb99f6a92e51bffb25efd8dfe367d144bb9d))
+
+
+### Bug Fixes
+
+* **api:** fix phase enum ([42ebf7c](https://github.com/openai/openai-python/commit/42ebf7c30b7e27a175c0d75fcf42c8dc858e56d6))
+* **api:** phase docs ([7ddc61c](https://github.com/openai/openai-python/commit/7ddc61cd0f7825d5e7f3a10daf809135511d8d20))
+
+
+### Chores
+
+* **internal:** make `test_proxy_environment_variables` more resilient to env ([65af8fd](https://github.com/openai/openai-python/commit/65af8fd8550e99236e3f4dcb035312441788157a))
+* **internal:** refactor sse event parsing ([2344600](https://github.com/openai/openai-python/commit/23446008f06fb474d8c75d14a1bce26f4c5b95d8))
+
+## 2.23.0 (2026-02-24)
+
+Full Changelog: [v2.22.0...v2.23.0](https://github.com/openai/openai-python/compare/v2.22.0...v2.23.0)
+
+### Features
+
+* **api:** add gpt-realtime-1.5 and gpt-audio-1.5 model options to realtime calls ([3300b61](https://github.com/openai/openai-python/commit/3300b61e1d5a34c9d28ec9cebbebd0de1fa93aa6))
+
+
+### Chores
+
+* **internal:** make `test_proxy_environment_variables` more resilient ([6b441e2](https://github.com/openai/openai-python/commit/6b441e2c43df60a773f62308e918d76b8eb3c4d3))
+
+## 2.22.0 (2026-02-23)
+
+Full Changelog: [v2.21.0...v2.22.0](https://github.com/openai/openai-python/compare/v2.21.0...v2.22.0)
+
+### Features
+
+* **api:** websockets for responses api ([c01f6fb](https://github.com/openai/openai-python/commit/c01f6fb0d55b7454f73c4904ea7a1954553085dc))
+
+
+### Chores
+
+* **internal:** add request options to SSE classes ([cdb4315](https://github.com/openai/openai-python/commit/cdb4315ee29d5260bb373625d74cb523b4e3859c))
+* update mock server docs ([91f4da8](https://github.com/openai/openai-python/commit/91f4da80ec3dba5d3566961560dfd6feb9c2feb0))
+
+
+### Documentation
+
+* **api:** add batch size limit to file_batches parameter descriptions ([16ae76a](https://github.com/openai/openai-python/commit/16ae76a20a47f94c91ee2ca0b2ada274633abab3))
+* **api:** enhance method descriptions across audio, chat, realtime, skills, uploads, videos ([21f9e5a](https://github.com/openai/openai-python/commit/21f9e5aaf6ae27f0235fddb3ffa30fe73337f59b))
+* **api:** update safety_identifier documentation in chat completions and responses ([d74bfff](https://github.com/openai/openai-python/commit/d74bfff62c1c2b32d4dc88fd47ae7b1b2a962017))
+
+## 2.21.0 (2026-02-13)
+
+Full Changelog: [v2.20.0...v2.21.0](https://github.com/openai/openai-python/compare/v2.20.0...v2.21.0)
+
+### Features
+
+* **api:** container network_policy and skills ([d19de2e](https://github.com/openai/openai-python/commit/d19de2ee5c74413f9dc52684b650df1898dee82b))
+
+
+### Bug Fixes
+
+* **structured outputs:** resolve memory leak in parse methods ([#2860](https://github.com/openai/openai-python/issues/2860)) ([6dcbe21](https://github.com/openai/openai-python/commit/6dcbe211f12f8470db542a5cb95724cb933786dd))
+* **webhooks:** preserve method visibility for compatibility checks ([44a8936](https://github.com/openai/openai-python/commit/44a8936d580b770f23fae79659101a27eadafad6))
+
+
+### Chores
+
+* **internal:** fix lint error on Python 3.14 ([534f215](https://github.com/openai/openai-python/commit/534f215941f504443d63509e872409a0b1236452))
+
+
+### Documentation
+
+* split `api.md` by standalone resources ([96e41b3](https://github.com/openai/openai-python/commit/96e41b398a110212ddec71436b2439343bea87d4))
+* update comment ([63def23](https://github.com/openai/openai-python/commit/63def23b7acd5c6dacf03337fe1bd08439d1dba8))
+
+## 2.20.0 (2026-02-10)
+
+Full Changelog: [v2.19.0...v2.20.0](https://github.com/openai/openai-python/compare/v2.19.0...v2.20.0)
+
+### Features
+
+* **api:** support for images in batch api ([28edb6e](https://github.com/openai/openai-python/commit/28edb6e1b7eb30dbb7be49979cee7882e8889264))
+
+## 2.19.0 (2026-02-10)
+
+Full Changelog: [v2.18.0...v2.19.0](https://github.com/openai/openai-python/compare/v2.18.0...v2.19.0)
+
+### Features
+
+* **api:** skills and hosted shell ([27fdf68](https://github.com/openai/openai-python/commit/27fdf6820655b5994e3c1eddb3c8d9344a8be744))
+
+
+### Chores
+
+* **internal:** bump dependencies ([fae10fd](https://github.com/openai/openai-python/commit/fae10fd6e936a044f8393a454a39906aa325a893))
+
+## 2.18.0 (2026-02-09)
+
+Full Changelog: [v2.17.0...v2.18.0](https://github.com/openai/openai-python/compare/v2.17.0...v2.18.0)
+
+### Features
+
+* **api:** add context_management to responses ([137e992](https://github.com/openai/openai-python/commit/137e992b80956401d1867274fa7a0969edfdba54))
+* **api:** responses context_management ([c3bd017](https://github.com/openai/openai-python/commit/c3bd017318347af0a0105a7e975c8d91e22f7941))
+
+## 2.17.0 (2026-02-05)
+
+Full Changelog: [v2.16.0...v2.17.0](https://github.com/openai/openai-python/compare/v2.16.0...v2.17.0)
+
+### Features
+
+* **api:** add shell_call_output status field ([1bbaf88](https://github.com/openai/openai-python/commit/1bbaf8865000b338c24c9fdd5e985183feaca10f))
+* **api:** image generation actions for responses; ResponseFunctionCallArgumentsDoneEvent.name ([7d96513](https://github.com/openai/openai-python/commit/7d965135f93f41b0c3dbf3dc9f01796bd9645b6c))
+* **client:** add custom JSON encoder for extended type support ([9f43c8b](https://github.com/openai/openai-python/commit/9f43c8b1a1641db2336cc6d0ec0c6dc470a89103))
+
+
+### Bug Fixes
+
+* **client:** undo change to web search Find action ([8f14eb0](https://github.com/openai/openai-python/commit/8f14eb0a74363fdfc648c5cd5c6d34a85b938d3c))
+* **client:** update type for `find_in_page` action ([ec54dde](https://github.com/openai/openai-python/commit/ec54ddeb357e49edd81cc3fe53d549c297e59a07))
+
+## 2.16.0 (2026-01-27)
+
+Full Changelog: [v2.15.0...v2.16.0](https://github.com/openai/openai-python/compare/v2.15.0...v2.16.0)
+
+### Features
+
+* **api:** api update ([b97f9f2](https://github.com/openai/openai-python/commit/b97f9f26b9c46ca4519130e60a8bf12ad8d52bf3))
+* **api:** api updates ([9debcc0](https://github.com/openai/openai-python/commit/9debcc02370f5b76a6a609ded18fbf8dea87b9cb))
+* **client:** add support for binary request streaming ([49561d8](https://github.com/openai/openai-python/commit/49561d88279628bc400d1b09aa98765b67018ef1))
+
+
+### Bug Fixes
+
+* **api:** mark assistants as deprecated ([0419cbc](https://github.com/openai/openai-python/commit/0419cbcbf1021131c7492321436ed01ca4337835))
+
+
+### Chores
+
+* **ci:** upgrade `actions/github-script` ([5139f13](https://github.com/openai/openai-python/commit/5139f13ef35e64dadc65f2ba2bab736977985769))
+* **internal:** update `actions/checkout` version ([f276714](https://github.com/openai/openai-python/commit/f2767144c11833070c0579063ed33918089b4617))
+
+
+### Documentation
+
+* **examples:** update Azure Realtime sample to use v1 API ([#2829](https://github.com/openai/openai-python/issues/2829)) ([3b31981](https://github.com/openai/openai-python/commit/3b319819544d629c5b8c206b8b1f6ec6328c6136))
+
+## 2.15.0 (2026-01-09)
+
+Full Changelog: [v2.14.0...v2.15.0](https://github.com/openai/openai-python/compare/v2.14.0...v2.15.0)
+
+### Features
+
+* **api:** add new Response completed_at prop ([f077752](https://github.com/openai/openai-python/commit/f077752f4a8364a74f784f8fb1cbe31277e1762b))
+
+
+### Chores
+
+* **internal:** codegen related update ([e7daba6](https://github.com/openai/openai-python/commit/e7daba6662a3c30f73d991e96cb19d2b54d772e0))
+
+## 2.14.0 (2025-12-19)
+
+Full Changelog: [v2.13.0...v2.14.0](https://github.com/openai/openai-python/compare/v2.13.0...v2.14.0)
+
+### Features
+
+* **api:** slugs for new audio models; make all `model` params accept strings ([e517792](https://github.com/openai/openai-python/commit/e517792b58d1768cfb3432a555a354ae0a9cfa21))
+
+
+### Bug Fixes
+
+* use async_to_httpx_files in patch method ([a6af9ee](https://github.com/openai/openai-python/commit/a6af9ee5643197222f328d5e73a80ab3515c32e2))
+
+
+### Chores
+
+* **internal:** add `--fix` argument to lint script ([93107ef](https://github.com/openai/openai-python/commit/93107ef36abcfd9c6b1419533a1720031f03caec))
+
+## 2.13.0 (2025-12-16)
+
+Full Changelog: [v2.12.0...v2.13.0](https://github.com/openai/openai-python/compare/v2.12.0...v2.13.0)
+
+### Features
+
+* **api:** gpt-image-1.5 ([1c88f03](https://github.com/openai/openai-python/commit/1c88f03bb48aa67426744e5b74f6197f30f61c73))
+
+
+### Chores
+
+* **ci:** add CI job to detect breaking changes with the Agents SDK ([#1436](https://github.com/openai/openai-python/issues/1436)) ([237c91e](https://github.com/openai/openai-python/commit/237c91ee6738b6764b139fd7afa68294d3ee0153))
+* **internal:** add missing files argument to base client ([e6d6fd5](https://github.com/openai/openai-python/commit/e6d6fd5989d76358ea5d9abb5949aa87646cbef6))
+
+## 2.12.0 (2025-12-15)
+
+Full Changelog: [v2.11.0...v2.12.0](https://github.com/openai/openai-python/compare/v2.11.0...v2.12.0)
+
+### Features
+
+* **api:** api update ([a95c4d0](https://github.com/openai/openai-python/commit/a95c4d0952ff5eb767206574e687cb029a49a4ab))
+* **api:** fix grader input list, add dated slugs for sora-2 ([b2c389b](https://github.com/openai/openai-python/commit/b2c389bf5c3bde50bac2d9f60cce58f4aef44a41))
+
+## 2.11.0 (2025-12-11)
+
+Full Changelog: [v2.10.0...v2.11.0](https://github.com/openai/openai-python/compare/v2.10.0...v2.11.0)
+
+### Features
+
+* **api:** gpt 5.2 ([dd9b8e8](https://github.com/openai/openai-python/commit/dd9b8e85cf91fe0d7470143fba10fe950ec740c4))
+
+## 2.10.0 (2025-12-10)
+
+Full Changelog: [v2.9.0...v2.10.0](https://github.com/openai/openai-python/compare/v2.9.0...v2.10.0)
+
+### Features
+
+* **api:** make model required for the responses/compact endpoint ([a12936b](https://github.com/openai/openai-python/commit/a12936b18cf19009d4e6d586c9b1958359636dbe))
+
+
+### Bug Fixes
+
+* **types:** allow pyright to infer TypedDict types within SequenceNotStr ([8f0d230](https://github.com/openai/openai-python/commit/8f0d23066c1edc38a6e9858b054dceaf92ae001b))
+
+
+### Chores
+
+* add missing docstrings ([f20a9a1](https://github.com/openai/openai-python/commit/f20a9a18a421ba69622c77ab539509d218e774eb))
+* **internal:** update docstring ([9a993f2](https://github.com/openai/openai-python/commit/9a993f2261b6524aa30b955e006c7ea89f086968))
+
 ## 2.9.0 (2025-12-04)
 
 Full Changelog: [v2.8.1...v2.9.0](https://github.com/openai/openai-python/compare/v2.8.1...v2.9.0)

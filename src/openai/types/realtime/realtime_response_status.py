@@ -9,6 +9,11 @@ __all__ = ["RealtimeResponseStatus", "Error"]
 
 
 class Error(BaseModel):
+    """
+    A description of the error that caused the response to fail,
+    populated when the `status` is `failed`.
+    """
+
     code: Optional[str] = None
     """Error code, if any."""
 
@@ -17,6 +22,8 @@ class Error(BaseModel):
 
 
 class RealtimeResponseStatus(BaseModel):
+    """Additional details about the status."""
+
     error: Optional[Error] = None
     """
     A description of the error that caused the response to fail, populated when the

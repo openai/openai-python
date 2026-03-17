@@ -8,6 +8,8 @@ __all__ = ["RealtimeResponseUsageInputTokenDetails", "CachedTokensDetails"]
 
 
 class CachedTokensDetails(BaseModel):
+    """Details about the cached tokens used as input for the Response."""
+
     audio_tokens: Optional[int] = None
     """The number of cached audio tokens used as input for the Response."""
 
@@ -19,6 +21,11 @@ class CachedTokensDetails(BaseModel):
 
 
 class RealtimeResponseUsageInputTokenDetails(BaseModel):
+    """Details about the input tokens used in the Response.
+
+    Cached tokens are tokens from previous turns in the conversation that are included as context for the current response. Cached tokens here are counted as a subset of input tokens, meaning input tokens will include cached and uncached tokens.
+    """
+
     audio_tokens: Optional[int] = None
     """The number of audio tokens used as input for the Response."""
 

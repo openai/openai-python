@@ -16,11 +16,15 @@ __all__ = [
 
 
 class CustomFormatText(TypedDict, total=False):
+    """Unconstrained free-form text."""
+
     type: Required[Literal["text"]]
     """Unconstrained text format. Always `text`."""
 
 
 class CustomFormatGrammarGrammar(TypedDict, total=False):
+    """Your chosen grammar."""
+
     definition: Required[str]
     """The grammar definition."""
 
@@ -29,6 +33,8 @@ class CustomFormatGrammarGrammar(TypedDict, total=False):
 
 
 class CustomFormatGrammar(TypedDict, total=False):
+    """A grammar defined by the user."""
+
     grammar: Required[CustomFormatGrammarGrammar]
     """Your chosen grammar."""
 
@@ -40,6 +46,8 @@ CustomFormat: TypeAlias = Union[CustomFormatText, CustomFormatGrammar]
 
 
 class Custom(TypedDict, total=False):
+    """Properties of the custom tool."""
+
     name: Required[str]
     """The name of the custom tool, used to identify it in tool calls."""
 
@@ -51,6 +59,8 @@ class Custom(TypedDict, total=False):
 
 
 class ChatCompletionCustomToolParam(TypedDict, total=False):
+    """A custom tool that processes input using a specified format."""
+
     custom: Required[Custom]
     """Properties of the custom tool."""
 

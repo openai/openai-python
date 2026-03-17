@@ -44,6 +44,8 @@ class Content(TypedDict, total=False):
 
 
 class RealtimeConversationItemUserMessageParam(TypedDict, total=False):
+    """A user message item in a Realtime conversation."""
+
     content: Required[Iterable[Content]]
     """The content of the message."""
 

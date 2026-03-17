@@ -19,6 +19,8 @@ __all__ = [
 
 
 class AllowedToolsMcpToolFilter(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -35,6 +37,8 @@ AllowedTools: TypeAlias = Union[SequenceNotStr[str], AllowedToolsMcpToolFilter]
 
 
 class RequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -48,6 +52,8 @@ class RequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
 
 
 class RequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -61,6 +67,13 @@ class RequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
 
 
 class RequireApprovalMcpToolApprovalFilter(TypedDict, total=False):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: RequireApprovalMcpToolApprovalFilterAlways
     """A filter object to specify which tools are allowed."""
 
@@ -72,6 +85,11 @@ RequireApproval: TypeAlias = Union[RequireApprovalMcpToolApprovalFilter, Literal
 
 
 class RealtimeResponseCreateMcpToolParam(TypedDict, total=False):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: Required[str]
     """A label for this MCP server, used to identify it in tool calls."""
 
@@ -115,6 +133,9 @@ class RealtimeResponseCreateMcpToolParam(TypedDict, total=False):
     - Outlook Email: `connector_outlookemail`
     - SharePoint: `connector_sharepoint`
     """
+
+    defer_loading: bool
+    """Whether this MCP tool is deferred and discovered via tool search."""
 
     headers: Optional[Dict[str, str]]
     """Optional HTTP headers to send to the MCP server.

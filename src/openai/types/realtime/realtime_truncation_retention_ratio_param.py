@@ -8,6 +8,11 @@ __all__ = ["RealtimeTruncationRetentionRatioParam", "TokenLimits"]
 
 
 class TokenLimits(TypedDict, total=False):
+    """Optional custom token limits for this truncation strategy.
+
+    If not provided, the model's default token limits will be used.
+    """
+
     post_instructions: int
     """
     Maximum tokens allowed in the conversation after instructions (which including
@@ -19,6 +24,10 @@ class TokenLimits(TypedDict, total=False):
 
 
 class RealtimeTruncationRetentionRatioParam(TypedDict, total=False):
+    """
+    Retain a fraction of the conversation tokens when the conversation exceeds the input token limit. This allows you to amortize truncations across multiple turns, which can help improve cached token usage.
+    """
+
     retention_ratio: Required[float]
     """
     Fraction of post-instruction conversation tokens to retain (`0.0` - `1.0`) when

@@ -8,6 +8,8 @@ __all__ = ["McpListToolsInProgress"]
 
 
 class McpListToolsInProgress(BaseModel):
+    """Returned when listing MCP tools is in progress for an item."""
+
     event_id: str
     """The unique ID of the server event."""
 

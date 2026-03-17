@@ -9,6 +9,8 @@ __all__ = ["DpoHyperparameters"]
 
 
 class DpoHyperparameters(BaseModel):
+    """The hyperparameters used for the DPO fine-tuning job."""
+
     batch_size: Union[Literal["auto"], int, None] = None
     """Number of examples in each batch.
 

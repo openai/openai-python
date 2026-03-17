@@ -207,7 +207,7 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
       support `none`.
     - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: ResponseFormat
@@ -227,8 +227,9 @@ class CompletionCreateParamsBase(TypedDict, total=False):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 
@@ -382,6 +383,8 @@ ResponseFormat: TypeAlias = Union[ResponseFormatText, ResponseFormatJSONSchema, 
 
 
 class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     city: str
     """Free text input for the city of the user, e.g. `San Francisco`."""
 
@@ -402,6 +405,8 @@ class WebSearchOptionsUserLocationApproximate(TypedDict, total=False):
 
 
 class WebSearchOptionsUserLocation(TypedDict, total=False):
+    """Approximate location parameters for the search."""
+
     approximate: Required[WebSearchOptionsUserLocationApproximate]
     """Approximate location parameters for the search."""
 
@@ -410,6 +415,11 @@ class WebSearchOptionsUserLocation(TypedDict, total=False):
 
 
 class WebSearchOptions(TypedDict, total=False):
+    """
+    This tool searches the web for relevant results to use in a response.
+    Learn more about the [web search tool](https://platform.openai.com/docs/guides/tools-web-search?api-mode=chat).
+    """
+
     search_context_size: Literal["low", "medium", "high"]
     """
     High level guidance for the amount of context window space to use for the

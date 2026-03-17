@@ -6,9 +6,11 @@ from typing import Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
+from .computer_action_list_param import ComputerActionListParam
 
 __all__ = [
     "ResponseComputerToolCallParam",
+    "PendingSafetyCheck",
     "Action",
     "ActionClick",
     "ActionDoubleClick",
@@ -20,11 +22,25 @@ __all__ = [
     "ActionScroll",
     "ActionType",
     "ActionWait",
-    "PendingSafetyCheck",
 ]
 
 
+class PendingSafetyCheck(TypedDict, total=False):
+    """A pending safety check for the computer call."""
+
+    id: Required[str]
+    """The ID of the pending safety check."""
+
+    code: Optional[str]
+    """The type of the pending safety check."""
+
+    message: Optional[str]
+    """Details about the pending safety check."""
+
+
 class ActionClick(TypedDict, total=False):
+    """A click action."""
+
     button: Required[Literal["left", "right", "wheel", "back", "forward"]]
     """Indicates which mouse button was pressed during the click.
 
@@ -42,6 +58,8 @@ class ActionClick(TypedDict, total=False):
 
 
 class ActionDoubleClick(TypedDict, total=False):
+    """A double click action."""
+
     type: Required[Literal["double_click"]]
     """Specifies the event type.
 
@@ -56,6 +74,8 @@ class ActionDoubleClick(TypedDict, total=False):
 
 
 class ActionDragPath(TypedDict, total=False):
+    """An x/y coordinate pair, e.g. `{ x: 100, y: 200 }`."""
+
     x: Required[int]
     """The x-coordinate."""
 
@@ -64,6 +84,8 @@ class ActionDragPath(TypedDict, total=False):
 
 
 class ActionDrag(TypedDict, total=False):
+    """A drag action."""
+
     path: Required[Iterable[ActionDragPath]]
     """An array of coordinates representing the path of the drag action.
 
@@ -85,6 +107,8 @@ class ActionDrag(TypedDict, total=False):
 
 
 class ActionKeypress(TypedDict, total=False):
+    """A collection of keypresses the model would like to perform."""
+
     keys: Required[SequenceNotStr[str]]
     """The combination of keys the model is requesting to be pressed.
 
@@ -99,6 +123,8 @@ class ActionKeypress(TypedDict, total=False):
 
 
 class ActionMove(TypedDict, total=False):
+    """A mouse move action."""
+
     type: Required[Literal["move"]]
     """Specifies the event type.
 
@@ -113,6 +139,8 @@ class ActionMove(TypedDict, total=False):
 
 
 class ActionScreenshot(TypedDict, total=False):
+    """A screenshot action."""
+
     type: Required[Literal["screenshot"]]
     """Specifies the event type.
 
@@ -121,6 +149,8 @@ class ActionScreenshot(TypedDict, total=False):
 
 
 class ActionScroll(TypedDict, total=False):
+    """A scroll action."""
+
     scroll_x: Required[int]
     """The horizontal scroll distance."""
 
@@ -141,6 +171,8 @@ class ActionScroll(TypedDict, total=False):
 
 
 class ActionType(TypedDict, total=False):
+    """An action to type in text."""
+
     text: Required[str]
     """The text to type."""
 
@@ -152,6 +184,8 @@ class ActionType(TypedDict, total=False):
 
 
 class ActionWait(TypedDict, total=False):
+    """A wait action."""
+
     type: Required[Literal["wait"]]
     """Specifies the event type.
 
@@ -172,23 +206,15 @@ Action: TypeAlias = Union[
 ]
 
 
-class PendingSafetyCheck(TypedDict, total=False):
-    id: Required[str]
-    """The ID of the pending safety check."""
-
-    code: Optional[str]
-    """The type of the pending safety check."""
-
-    message: Optional[str]
-    """Details about the pending safety check."""
-
-
 class ResponseComputerToolCallParam(TypedDict, total=False):
+    """A tool call to a computer use tool.
+
+    See the
+    [computer use guide](https://platform.openai.com/docs/guides/tools-computer-use) for more information.
+    """
+
     id: Required[str]
     """The unique ID of the computer call."""
-
-    action: Required[Action]
-    """A click action."""
 
     call_id: Required[str]
     """An identifier used when responding to the tool call with output."""
@@ -205,3 +231,12 @@ class ResponseComputerToolCallParam(TypedDict, total=False):
 
     type: Required[Literal["computer_call"]]
     """The type of the computer call. Always `computer_call`."""
+
+    action: Action
+    """A click action."""
+
+    actions: ComputerActionListParam
+    """Flattened batched actions for `computer_use`.
+
+    Each action includes an `type` discriminator and action-specific fields.
+    """

@@ -65,7 +65,10 @@ class InputTokens(SyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> InputTokenCountResponse:
         """
-        Get input token counts
+        Returns input token counts of the request.
+
+        Returns an object with `object` set to `response.input_tokens` and an
+        `input_tokens` count.
 
         Args:
           conversation: The conversation that this response belongs to. Items from this conversation are
@@ -102,9 +105,7 @@ class InputTokens(SyncAPIResource):
               - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
               - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
-          tool_choice: How the model should select which tool (or tools) to use when generating a
-              response. See the `tools` parameter to see how to specify which tools the model
-              can call.
+          tool_choice: Controls which tool the model should use, if any.
 
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.
@@ -190,7 +191,10 @@ class AsyncInputTokens(AsyncAPIResource):
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> InputTokenCountResponse:
         """
-        Get input token counts
+        Returns input token counts of the request.
+
+        Returns an object with `object` set to `response.input_tokens` and an
+        `input_tokens` count.
 
         Args:
           conversation: The conversation that this response belongs to. Items from this conversation are
@@ -227,9 +231,7 @@ class AsyncInputTokens(AsyncAPIResource):
               - [Text inputs and outputs](https://platform.openai.com/docs/guides/text)
               - [Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs)
 
-          tool_choice: How the model should select which tool (or tools) to use when generating a
-              response. See the `tools` parameter to see how to specify which tools the model
-              can call.
+          tool_choice: Controls which tool the model should use, if any.
 
           tools: An array of tools the model may call while generating a response. You can
               specify which tool to use by setting the `tool_choice` parameter.

@@ -9,6 +9,12 @@ __all__ = ["ResponseFunctionToolCall"]
 
 
 class ResponseFunctionToolCall(BaseModel):
+    """A tool call to run a function.
+
+    See the
+    [function calling guide](https://platform.openai.com/docs/guides/function-calling) for more information.
+    """
+
     arguments: str
     """A JSON string of the arguments to pass to the function."""
 
@@ -23,6 +29,9 @@ class ResponseFunctionToolCall(BaseModel):
 
     id: Optional[str] = None
     """The unique ID of the function tool call."""
+
+    namespace: Optional[str] = None
+    """The namespace of the function to run."""
 
     status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
     """The status of the item.

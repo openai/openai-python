@@ -8,6 +8,8 @@ __all__ = ["LogProbProperties"]
 
 
 class LogProbProperties(BaseModel):
+    """A log probability object."""
+
     token: str
     """The token that was used to generate the log probability."""
 

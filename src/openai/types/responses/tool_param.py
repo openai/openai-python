@@ -11,11 +11,16 @@ from ..._types import SequenceNotStr
 from .custom_tool_param import CustomToolParam
 from .computer_tool_param import ComputerToolParam
 from .function_tool_param import FunctionToolParam
+from .namespace_tool_param import NamespaceToolParam
 from .web_search_tool_param import WebSearchToolParam
 from .apply_patch_tool_param import ApplyPatchToolParam
 from .file_search_tool_param import FileSearchToolParam
+from .tool_search_tool_param import ToolSearchToolParam
 from .function_shell_tool_param import FunctionShellToolParam
 from .web_search_preview_tool_param import WebSearchPreviewToolParam
+from .computer_use_preview_tool_param import ComputerUsePreviewToolParam
+from .container_network_policy_disabled_param import ContainerNetworkPolicyDisabledParam
+from .container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
 __all__ = [
     "ToolParam",
@@ -29,6 +34,7 @@ __all__ = [
     "CodeInterpreter",
     "CodeInterpreterContainer",
     "CodeInterpreterContainerCodeInterpreterToolAuto",
+    "CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy",
     "ImageGeneration",
     "ImageGenerationInputImageMask",
     "LocalShell",
@@ -40,6 +46,8 @@ WebSearchToolUserLocation = web_search_tool_param.UserLocation
 
 
 class McpAllowedToolsMcpToolFilter(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -56,6 +64,8 @@ McpAllowedTools: TypeAlias = Union[SequenceNotStr[str], McpAllowedToolsMcpToolFi
 
 
 class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -69,6 +79,8 @@ class McpRequireApprovalMcpToolApprovalFilterAlways(TypedDict, total=False):
 
 
 class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
+    """A filter object to specify which tools are allowed."""
+
     read_only: bool
     """Indicates whether or not a tool modifies data or is read-only.
 
@@ -82,6 +94,13 @@ class McpRequireApprovalMcpToolApprovalFilterNever(TypedDict, total=False):
 
 
 class McpRequireApprovalMcpToolApprovalFilter(TypedDict, total=False):
+    """Specify which of the MCP server's tools require approval.
+
+    Can be
+    `always`, `never`, or a filter object associated with tools
+    that require approval.
+    """
+
     always: McpRequireApprovalMcpToolApprovalFilterAlways
     """A filter object to specify which tools are allowed."""
 
@@ -93,6 +112,11 @@ McpRequireApproval: TypeAlias = Union[McpRequireApprovalMcpToolApprovalFilter, L
 
 
 class Mcp(TypedDict, total=False):
+    """
+    Give the model access to additional tools via remote Model Context Protocol
+    (MCP) servers. [Learn more about MCP](https://platform.openai.com/docs/guides/tools-remote-mcp).
+    """
+
     server_label: Required[str]
     """A label for this MCP server, used to identify it in tool calls."""
 
@@ -137,6 +161,9 @@ class Mcp(TypedDict, total=False):
     - SharePoint: `connector_sharepoint`
     """
 
+    defer_loading: bool
+    """Whether this MCP tool is deferred and discovered via tool search."""
+
     headers: Optional[Dict[str, str]]
     """Optional HTTP headers to send to the MCP server.
 
@@ -156,7 +183,17 @@ class Mcp(TypedDict, total=False):
     """
 
 
+CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy: TypeAlias = Union[
+    ContainerNetworkPolicyDisabledParam, ContainerNetworkPolicyAllowlistParam
+]
+
+
 class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
+    """Configuration for a code interpreter container.
+
+    Optionally specify the IDs of the files to run the code on.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -164,12 +201,18 @@ class CodeInterpreterContainerCodeInterpreterToolAuto(TypedDict, total=False):
     """An optional list of uploaded files to make available to your code."""
 
     memory_limit: Optional[Literal["1g", "4g", "16g", "64g"]]
+    """The memory limit for the code interpreter container."""
+
+    network_policy: CodeInterpreterContainerCodeInterpreterToolAutoNetworkPolicy
+    """Network access policy for the container."""
 
 
 CodeInterpreterContainer: TypeAlias = Union[str, CodeInterpreterContainerCodeInterpreterToolAuto]
 
 
 class CodeInterpreter(TypedDict, total=False):
+    """A tool that runs Python code to help generate a response to a prompt."""
+
     container: Required[CodeInterpreterContainer]
     """The code interpreter container.
 
@@ -182,6 +225,12 @@ class CodeInterpreter(TypedDict, total=False):
 
 
 class ImageGenerationInputImageMask(TypedDict, total=False):
+    """Optional mask for inpainting.
+
+    Contains `image_url`
+    (string, optional) and `file_id` (string, optional).
+    """
+
     file_id: str
     """File ID for the mask image."""
 
@@ -190,8 +239,13 @@ class ImageGenerationInputImageMask(TypedDict, total=False):
 
 
 class ImageGeneration(TypedDict, total=False):
+    """A tool that generates images using the GPT image models."""
+
     type: Required[Literal["image_generation"]]
     """The type of the image generation tool. Always `image_generation`."""
+
+    action: Literal["generate", "edit", "auto"]
+    """Whether to generate a new image or edit an existing image. Default: `auto`."""
 
     background: Literal["transparent", "opaque", "auto"]
     """Background type for the generated image.
@@ -203,8 +257,8 @@ class ImageGeneration(TypedDict, total=False):
     """
     Control how much effort the model will exert to match the style and features,
     especially facial features, of input images. This parameter is only supported
-    for `gpt-image-1`. Unsupported for `gpt-image-1-mini`. Supports `high` and
-    `low`. Defaults to `low`.
+    for `gpt-image-1` and `gpt-image-1.5` and later models, unsupported for
+    `gpt-image-1-mini`. Supports `high` and `low`. Defaults to `low`.
     """
 
     input_image_mask: ImageGenerationInputImageMask
@@ -213,7 +267,7 @@ class ImageGeneration(TypedDict, total=False):
     Contains `image_url` (string, optional) and `file_id` (string, optional).
     """
 
-    model: Literal["gpt-image-1", "gpt-image-1-mini"]
+    model: Union[str, Literal["gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"]]
     """The image generation model to use. Default: `gpt-image-1`."""
 
     moderation: Literal["auto", "low"]
@@ -248,6 +302,8 @@ class ImageGeneration(TypedDict, total=False):
 
 
 class LocalShell(TypedDict, total=False):
+    """A tool that allows the model to execute shell commands in a local environment."""
+
     type: Required[Literal["local_shell"]]
     """The type of the local shell tool. Always `local_shell`."""
 
@@ -256,6 +312,7 @@ ToolParam: TypeAlias = Union[
     FunctionToolParam,
     FileSearchToolParam,
     ComputerToolParam,
+    ComputerUsePreviewToolParam,
     WebSearchToolParam,
     Mcp,
     CodeInterpreter,
@@ -263,6 +320,8 @@ ToolParam: TypeAlias = Union[
     LocalShell,
     FunctionShellToolParam,
     CustomToolParam,
+    NamespaceToolParam,
+    ToolSearchToolParam,
     WebSearchPreviewToolParam,
     ApplyPatchToolParam,
 ]

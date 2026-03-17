@@ -9,11 +9,13 @@ from .response_output_message import ResponseOutputMessage
 from .response_reasoning_item import ResponseReasoningItem
 from .response_compaction_item import ResponseCompactionItem
 from .response_custom_tool_call import ResponseCustomToolCall
+from .response_tool_search_call import ResponseToolSearchCall
 from .response_computer_tool_call import ResponseComputerToolCall
 from .response_function_tool_call import ResponseFunctionToolCall
 from .response_function_web_search import ResponseFunctionWebSearch
 from .response_apply_patch_tool_call import ResponseApplyPatchToolCall
 from .response_file_search_tool_call import ResponseFileSearchToolCall
+from .response_tool_search_output_item import ResponseToolSearchOutputItem
 from .response_function_shell_tool_call import ResponseFunctionShellToolCall
 from .response_code_interpreter_tool_call import ResponseCodeInterpreterToolCall
 from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOutput
@@ -32,6 +34,8 @@ __all__ = [
 
 
 class ImageGenerationCall(BaseModel):
+    """An image generation request made by the model."""
+
     id: str
     """The unique ID of the image generation call."""
 
@@ -46,6 +50,8 @@ class ImageGenerationCall(BaseModel):
 
 
 class LocalShellCallAction(BaseModel):
+    """Execute a shell command on the server."""
+
     command: List[str]
     """The command to run."""
 
@@ -66,6 +72,8 @@ class LocalShellCallAction(BaseModel):
 
 
 class LocalShellCall(BaseModel):
+    """A tool call to run a command on the local shell."""
+
     id: str
     """The unique ID of the local shell call."""
 
@@ -83,6 +91,8 @@ class LocalShellCall(BaseModel):
 
 
 class McpCall(BaseModel):
+    """An invocation of a tool on an MCP server."""
+
     id: str
     """The unique ID of the tool call."""
 
@@ -119,6 +129,8 @@ class McpCall(BaseModel):
 
 
 class McpListToolsTool(BaseModel):
+    """A tool available on an MCP server."""
+
     input_schema: object
     """The JSON schema describing the tool's input."""
 
@@ -133,6 +145,8 @@ class McpListToolsTool(BaseModel):
 
 
 class McpListTools(BaseModel):
+    """A list of tools available on an MCP server."""
+
     id: str
     """The unique ID of the list."""
 
@@ -150,6 +164,8 @@ class McpListTools(BaseModel):
 
 
 class McpApprovalRequest(BaseModel):
+    """A request for human approval of a tool invocation."""
+
     id: str
     """The unique ID of the approval request."""
 
@@ -174,6 +190,8 @@ ResponseOutputItem: TypeAlias = Annotated[
         ResponseFunctionWebSearch,
         ResponseComputerToolCall,
         ResponseReasoningItem,
+        ResponseToolSearchCall,
+        ResponseToolSearchOutputItem,
         ResponseCompactionItem,
         ImageGenerationCall,
         ResponseCodeInterpreterToolCall,

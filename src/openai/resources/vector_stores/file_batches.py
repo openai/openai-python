@@ -79,12 +79,14 @@ class FileBatches(SyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
               the vector store should use. Useful for tools like `file_search` that can access
               files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. Mutually exclusive with `files`.
+              to all files in the batch. The maximum batch size is 2000 files. Mutually
+              exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
               files. The global `attributes` or `chunking_strategy` will be ignored and must
-              be specified for each file. Mutually exclusive with `file_ids`.
+              be specified for each file. The maximum batch size is 2000 files. Mutually
+              exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -194,15 +196,29 @@ class FileBatches(SyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
-        poll_interval_ms: int | Omit = omit,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = self.create(
             vector_store_id=vector_store_id,
-            file_ids=file_ids,
+            attributes=attributes,
             chunking_strategy=chunking_strategy,
+            file_ids=file_ids,
+            files=files,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
         # TODO: don't poll unless necessary??
         return self.poll(
@@ -424,12 +440,14 @@ class AsyncFileBatches(AsyncAPIResource):
           file_ids: A list of [File](https://platform.openai.com/docs/api-reference/files) IDs that
               the vector store should use. Useful for tools like `file_search` that can access
               files. If `attributes` or `chunking_strategy` are provided, they will be applied
-              to all files in the batch. Mutually exclusive with `files`.
+              to all files in the batch. The maximum batch size is 2000 files. Mutually
+              exclusive with `files`.
 
           files: A list of objects that each include a `file_id` plus optional `attributes` or
               `chunking_strategy`. Use this when you need to override metadata for specific
               files. The global `attributes` or `chunking_strategy` will be ignored and must
-              be specified for each file. Mutually exclusive with `file_ids`.
+              be specified for each file. The maximum batch size is 2000 files. Mutually
+              exclusive with `file_ids`.
 
           extra_headers: Send extra headers
 
@@ -539,15 +557,29 @@ class AsyncFileBatches(AsyncAPIResource):
         self,
         vector_store_id: str,
         *,
-        file_ids: SequenceNotStr[str],
-        poll_interval_ms: int | Omit = omit,
+        attributes: Optional[Dict[str, Union[str, float, bool]]] | Omit = omit,
         chunking_strategy: FileChunkingStrategyParam | Omit = omit,
+        file_ids: SequenceNotStr[str] | Omit = omit,
+        files: Iterable[file_batch_create_params.File] | Omit = omit,
+        poll_interval_ms: int | Omit = omit,
+        # Use the following arguments if you need to pass additional parameters to the API that aren't available via kwargs.
+        # The extra values given here take precedence over values defined on the client or passed to this method.
+        extra_headers: Headers | None = None,
+        extra_query: Query | None = None,
+        extra_body: Body | None = None,
+        timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> VectorStoreFileBatch:
         """Create a vector store batch and poll until all files have been processed."""
         batch = await self.create(
             vector_store_id=vector_store_id,
-            file_ids=file_ids,
+            attributes=attributes,
             chunking_strategy=chunking_strategy,
+            file_ids=file_ids,
+            files=files,
+            extra_headers=extra_headers,
+            extra_query=extra_query,
+            extra_body=extra_body,
+            timeout=timeout,
         )
         # TODO: don't poll unless necessary??
         return await self.poll(

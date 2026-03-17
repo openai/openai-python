@@ -8,6 +8,8 @@ __all__ = ["ResponseError"]
 
 
 class ResponseError(BaseModel):
+    """An error object returned when the model fails to generate a Response."""
+
     code: Literal[
         "server_error",
         "rate_limit_exceeded",

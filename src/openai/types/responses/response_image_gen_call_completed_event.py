@@ -8,6 +8,10 @@ __all__ = ["ResponseImageGenCallCompletedEvent"]
 
 
 class ResponseImageGenCallCompletedEvent(BaseModel):
+    """
+    Emitted when an image generation tool call has completed and the final image is available.
+    """
+
     item_id: str
     """The unique identifier of the image generation item being processed."""
 

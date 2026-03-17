@@ -9,6 +9,10 @@ __all__ = ["RealtimeTranscriptionSessionAudioInputTurnDetectionParam", "ServerVa
 
 
 class ServerVad(TypedDict, total=False):
+    """
+    Server-side voice activity detection (VAD) which flips on when user speech is detected and off after a period of silence.
+    """
+
     type: Required[Literal["server_vad"]]
     """Type of turn detection, `server_vad` to turn on simple Server VAD."""
 
@@ -75,6 +79,10 @@ class ServerVad(TypedDict, total=False):
 
 
 class SemanticVad(TypedDict, total=False):
+    """
+    Server-side semantic turn detection which uses a model to determine when the user has finished speaking.
+    """
+
     type: Required[Literal["semantic_vad"]]
     """Type of turn detection, `semantic_vad` to turn on Semantic VAD."""
 

@@ -10,6 +10,8 @@ __all__ = ["MessageDelta"]
 
 
 class MessageDelta(BaseModel):
+    """The delta containing the fields that have changed on the Message."""
+
     content: Optional[List[MessageContentDelta]] = None
     """The content of the message in array of text and/or images."""
 

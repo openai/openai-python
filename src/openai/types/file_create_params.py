@@ -15,12 +15,14 @@ class FileCreateParams(TypedDict, total=False):
     """The File object (not file name) to be uploaded."""
 
     purpose: Required[FilePurpose]
-    """The intended purpose of the uploaded file.
+    """The intended purpose of the uploaded file. One of:
 
-    One of: - `assistants`: Used in the Assistants API - `batch`: Used in the Batch
-    API - `fine-tune`: Used for fine-tuning - `vision`: Images used for vision
-    fine-tuning - `user_data`: Flexible file type for any purpose - `evals`: Used
-    for eval data sets
+    - `assistants`: Used in the Assistants API
+    - `batch`: Used in the Batch API
+    - `fine-tune`: Used for fine-tuning
+    - `vision`: Images used for vision fine-tuning
+    - `user_data`: Flexible file type for any purpose
+    - `evals`: Used for eval data sets
     """
 
     expires_after: ExpiresAfter
@@ -32,6 +34,11 @@ class FileCreateParams(TypedDict, total=False):
 
 
 class ExpiresAfter(TypedDict, total=False):
+    """The expiration policy for a file.
+
+    By default, files with `purpose=batch` expire after 30 days and all other files are persisted until they are manually deleted.
+    """
+
     anchor: Required[Literal["created_at"]]
     """Anchor timestamp after which the expiration policy applies.
 

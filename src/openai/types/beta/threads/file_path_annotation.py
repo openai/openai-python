@@ -13,6 +13,10 @@ class FilePath(BaseModel):
 
 
 class FilePathAnnotation(BaseModel):
+    """
+    A URL for the file that's generated when the assistant used the `code_interpreter` tool to generate a file.
+    """
+
     end_index: int
 
     file_path: FilePath

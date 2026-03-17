@@ -11,6 +11,8 @@ __all__ = ["Moderation", "Categories", "CategoryAppliedInputTypes", "CategorySco
 
 
 class Categories(BaseModel):
+    """A list of the categories, and whether they are flagged or not."""
+
     harassment: bool
     """
     Content that expresses, incites, or promotes harassing language towards any
@@ -89,6 +91,10 @@ class Categories(BaseModel):
 
 
 class CategoryAppliedInputTypes(BaseModel):
+    """
+    A list of the categories along with the input type(s) that the score applies to.
+    """
+
     harassment: List[Literal["text"]]
     """The applied input type(s) for the category 'harassment'."""
 
@@ -130,6 +136,8 @@ class CategoryAppliedInputTypes(BaseModel):
 
 
 class CategoryScores(BaseModel):
+    """A list of the categories along with their scores as predicted by model."""
+
     harassment: float
     """The score for the category 'harassment'."""
 

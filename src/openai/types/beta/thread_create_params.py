@@ -106,6 +106,11 @@ class ToolResourcesCodeInterpreter(TypedDict, total=False):
 
 
 class ToolResourcesFileSearchVectorStoreChunkingStrategyAuto(TypedDict, total=False):
+    """The default strategy.
+
+    This strategy currently uses a `max_chunk_size_tokens` of `800` and `chunk_overlap_tokens` of `400`.
+    """
+
     type: Required[Literal["auto"]]
     """Always `auto`."""
 
@@ -147,8 +152,9 @@ class ToolResourcesFileSearchVectorStore(TypedDict, total=False):
     file_ids: SequenceNotStr[str]
     """
     A list of [file](https://platform.openai.com/docs/api-reference/files) IDs to
-    add to the vector store. There can be a maximum of 10000 files in a vector
-    store.
+    add to the vector store. For vector stores created before Nov 2025, there can be
+    a maximum of 10,000 files in a vector store. For vector stores created starting
+    in Nov 2025, the limit is 100,000,000 files.
     """
 
     metadata: Optional[Metadata]
@@ -181,6 +187,10 @@ class ToolResourcesFileSearch(TypedDict, total=False):
 
 
 class ToolResources(TypedDict, total=False):
+    """
+    A set of resources that are made available to the assistant's tools in this thread. The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch

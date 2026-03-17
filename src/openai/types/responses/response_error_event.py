@@ -9,6 +9,8 @@ __all__ = ["ResponseErrorEvent"]
 
 
 class ResponseErrorEvent(BaseModel):
+    """Emitted when an error occurs."""
+
     code: Optional[str] = None
     """The error code."""
 

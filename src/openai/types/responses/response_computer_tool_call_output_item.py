@@ -10,6 +10,8 @@ __all__ = ["ResponseComputerToolCallOutputItem", "AcknowledgedSafetyCheck"]
 
 
 class AcknowledgedSafetyCheck(BaseModel):
+    """A pending safety check for the computer call."""
+
     id: str
     """The ID of the pending safety check."""
 

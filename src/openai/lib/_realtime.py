@@ -34,7 +34,7 @@ class _Calls(Calls):
             extra_headers = {"Accept": "application/sdp", "Content-Type": "application/sdp", **(extra_headers or {})}
             return self._post(
                 "/realtime/calls",
-                body=sdp.encode("utf-8"),
+                content=sdp.encode("utf-8"),
                 options=make_request_options(extra_headers=extra_headers, extra_query=extra_query, timeout=timeout),
                 cast_to=_legacy_response.HttpxBinaryResponseContent,
             )
@@ -71,7 +71,7 @@ class _AsyncCalls(AsyncCalls):
             extra_headers = {"Accept": "application/sdp", "Content-Type": "application/sdp", **(extra_headers or {})}
             return await self._post(
                 "/realtime/calls",
-                body=sdp.encode("utf-8"),
+                content=sdp.encode("utf-8"),
                 options=make_request_options(extra_headers=extra_headers, extra_query=extra_query, timeout=timeout),
                 cast_to=_legacy_response.HttpxBinaryResponseContent,
             )

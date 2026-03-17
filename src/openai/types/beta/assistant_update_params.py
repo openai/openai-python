@@ -107,7 +107,7 @@ class AssistantUpdateParams(TypedDict, total=False):
     - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
       support `none`.
     - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-    - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+    - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
     """
 
     response_format: Optional[AssistantResponseFormatOptionParam]
@@ -187,6 +187,11 @@ class ToolResourcesFileSearch(TypedDict, total=False):
 
 
 class ToolResources(TypedDict, total=False):
+    """A set of resources that are used by the assistant's tools.
+
+    The resources are specific to the type of tool. For example, the `code_interpreter` tool requires a list of file IDs, while the `file_search` tool requires a list of vector store IDs.
+    """
+
     code_interpreter: ToolResourcesCodeInterpreter
 
     file_search: ToolResourcesFileSearch

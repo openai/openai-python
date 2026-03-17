@@ -8,6 +8,8 @@ __all__ = ["ResponseFileSearchCallCompletedEvent"]
 
 
 class ResponseFileSearchCallCompletedEvent(BaseModel):
+    """Emitted when a file search call is completed (results found)."""
+
     item_id: str
     """The ID of the output item that the file search call is initiated."""
 

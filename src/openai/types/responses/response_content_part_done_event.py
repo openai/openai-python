@@ -12,6 +12,8 @@ __all__ = ["ResponseContentPartDoneEvent", "Part", "PartReasoningText"]
 
 
 class PartReasoningText(BaseModel):
+    """Reasoning text from the model."""
+
     text: str
     """The reasoning text from the model."""
 
@@ -25,6 +27,8 @@ Part: TypeAlias = Annotated[
 
 
 class ResponseContentPartDoneEvent(BaseModel):
+    """Emitted when a content part is done."""
+
     content_index: int
     """The index of the content part that is done."""
 

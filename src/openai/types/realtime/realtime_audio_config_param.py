@@ -11,6 +11,8 @@ __all__ = ["RealtimeAudioConfigParam"]
 
 
 class RealtimeAudioConfigParam(TypedDict, total=False):
+    """Configuration for input and output audio."""
+
     input: RealtimeAudioConfigInputParam
 
     output: RealtimeAudioConfigOutputParam

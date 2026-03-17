@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from typing import Union
 from typing_extensions import Literal, TypedDict
 
 __all__ = ["AudioTranscriptionParam"]
@@ -16,11 +17,21 @@ class AudioTranscriptionParam(TypedDict, total=False):
     format will improve accuracy and latency.
     """
 
-    model: Literal["whisper-1", "gpt-4o-mini-transcribe", "gpt-4o-transcribe", "gpt-4o-transcribe-diarize"]
+    model: Union[
+        str,
+        Literal[
+            "whisper-1",
+            "gpt-4o-mini-transcribe",
+            "gpt-4o-mini-transcribe-2025-12-15",
+            "gpt-4o-transcribe",
+            "gpt-4o-transcribe-diarize",
+        ],
+    ]
     """The model to use for transcription.
 
-    Current options are `whisper-1`, `gpt-4o-mini-transcribe`, `gpt-4o-transcribe`,
-    and `gpt-4o-transcribe-diarize`. Use `gpt-4o-transcribe-diarize` when you need
+    Current options are `whisper-1`, `gpt-4o-mini-transcribe`,
+    `gpt-4o-mini-transcribe-2025-12-15`, `gpt-4o-transcribe`, and
+    `gpt-4o-transcribe-diarize`. Use `gpt-4o-transcribe-diarize` when you need
     diarization with speaker labels.
     """
 

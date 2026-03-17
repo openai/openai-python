@@ -9,6 +9,8 @@ __all__ = ["WebSearchTool", "Filters", "UserLocation"]
 
 
 class Filters(BaseModel):
+    """Filters for the search."""
+
     allowed_domains: Optional[List[str]] = None
     """Allowed domains for the search.
 
@@ -20,6 +22,8 @@ class Filters(BaseModel):
 
 
 class UserLocation(BaseModel):
+    """The approximate location of the user."""
+
     city: Optional[str] = None
     """Free text input for the city of the user, e.g. `San Francisco`."""
 
@@ -43,6 +47,12 @@ class UserLocation(BaseModel):
 
 
 class WebSearchTool(BaseModel):
+    """Search the Internet for sources related to the prompt.
+
+    Learn more about the
+    [web search tool](https://platform.openai.com/docs/guides/tools-web-search).
+    """
+
     type: Literal["web_search", "web_search_2025_08_26"]
     """The type of the web search tool.
 

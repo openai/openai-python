@@ -23,6 +23,11 @@ __all__ = [
 
 
 class IncompleteDetails(BaseModel):
+    """Details on why the run is incomplete.
+
+    Will be `null` if the run is not incomplete.
+    """
+
     reason: Optional[Literal["max_completion_tokens", "max_prompt_tokens"]] = None
     """The reason why the run is incomplete.
 
@@ -32,6 +37,8 @@ class IncompleteDetails(BaseModel):
 
 
 class LastError(BaseModel):
+    """The last error associated with this run. Will be `null` if there are no errors."""
+
     code: Literal["server_error", "rate_limit_exceeded", "invalid_prompt"]
     """One of `server_error`, `rate_limit_exceeded`, or `invalid_prompt`."""
 
@@ -40,11 +47,18 @@ class LastError(BaseModel):
 
 
 class RequiredActionSubmitToolOutputs(BaseModel):
+    """Details on the tool outputs needed for this run to continue."""
+
     tool_calls: List[RequiredActionFunctionToolCall]
     """A list of the relevant tool calls."""
 
 
 class RequiredAction(BaseModel):
+    """Details on the action required to continue the run.
+
+    Will be `null` if no action is required.
+    """
+
     submit_tool_outputs: RequiredActionSubmitToolOutputs
     """Details on the tool outputs needed for this run to continue."""
 
@@ -53,6 +67,11 @@ class RequiredAction(BaseModel):
 
 
 class TruncationStrategy(BaseModel):
+    """Controls for how a thread will be truncated prior to the run.
+
+    Use this to control the initial context window of the run.
+    """
+
     type: Literal["auto", "last_messages"]
     """The truncation strategy to use for the thread.
 
@@ -70,6 +89,11 @@ class TruncationStrategy(BaseModel):
 
 
 class Usage(BaseModel):
+    """Usage statistics related to the run.
+
+    This value will be `null` if the run is not in a terminal state (i.e. `in_progress`, `queued`, etc.).
+    """
+
     completion_tokens: int
     """Number of completion tokens used over the course of the run."""
 
@@ -81,6 +105,10 @@ class Usage(BaseModel):
 
 
 class Run(BaseModel):
+    """
+    Represents an execution run on a [thread](https://platform.openai.com/docs/api-reference/threads).
+    """
+
     id: str
     """The identifier, which can be referenced in API endpoints."""
 

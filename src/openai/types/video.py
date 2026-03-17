@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import Optional
+from typing import Union, Optional
 from typing_extensions import Literal
 
 from .._models import BaseModel
@@ -13,6 +13,8 @@ __all__ = ["Video"]
 
 
 class Video(BaseModel):
+    """Structured information describing a generated video job."""
+
     id: str
     """Unique identifier for the video job."""
 
@@ -43,8 +45,11 @@ class Video(BaseModel):
     remixed_from_video_id: Optional[str] = None
     """Identifier of the source video if this video is a remix."""
 
-    seconds: VideoSeconds
-    """Duration of the generated clip in seconds."""
+    seconds: Union[str, VideoSeconds]
+    """Duration of the generated clip in seconds.
+
+    For extensions, this is the stitched total duration.
+    """
 
     size: VideoSize
     """The resolution of the generated video."""

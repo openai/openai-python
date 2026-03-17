@@ -14,6 +14,18 @@ Session: TypeAlias = Union[RealtimeSessionCreateRequestParam, RealtimeTranscript
 
 
 class SessionUpdateEventParam(TypedDict, total=False):
+    """
+    Send this event to update the session’s configuration.
+    The client may send this event at any time to update any field
+    except for `voice` and `model`. `voice` can be updated only if there have been no other audio outputs yet.
+
+    When the server receives a `session.update`, it will respond
+    with a `session.updated` event showing the full, effective configuration.
+    Only the fields that are present in the `session.update` are updated. To clear a field like
+    `instructions`, pass an empty string. To clear a field like `tools`, pass an empty array.
+    To clear a field like `turn_detection`, pass `null`.
+    """
+
     session: Required[Session]
     """Update the Realtime session.
 

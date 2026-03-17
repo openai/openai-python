@@ -8,5 +8,7 @@ __all__ = ["ToolChoiceApplyPatch"]
 
 
 class ToolChoiceApplyPatch(BaseModel):
+    """Forces the model to call the apply_patch tool when executing a tool call."""
+
     type: Literal["apply_patch"]
     """The tool to call. Always `apply_patch`."""

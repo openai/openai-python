@@ -8,11 +8,21 @@ __all__ = ["ChatSessionChatKitConfigurationParam", "AutomaticThreadTitling", "Fi
 
 
 class AutomaticThreadTitling(TypedDict, total=False):
+    """Configuration for automatic thread titling.
+
+    When omitted, automatic thread titling is enabled by default.
+    """
+
     enabled: bool
     """Enable automatic thread title generation. Defaults to true."""
 
 
 class FileUpload(TypedDict, total=False):
+    """Configuration for upload enablement and limits.
+
+    When omitted, uploads are disabled by default (max_files 10, max_file_size 512 MB).
+    """
+
     enabled: bool
     """Enable uploads for this session. Defaults to false."""
 
@@ -27,6 +37,11 @@ class FileUpload(TypedDict, total=False):
 
 
 class History(TypedDict, total=False):
+    """Configuration for chat history retention.
+
+    When omitted, history is enabled by default with no limit on recent_threads (null).
+    """
+
     enabled: bool
     """Enables chat users to access previous ChatKit threads. Defaults to true."""
 
@@ -38,6 +53,8 @@ class History(TypedDict, total=False):
 
 
 class ChatSessionChatKitConfigurationParam(TypedDict, total=False):
+    """Optional per-session configuration settings for ChatKit behavior."""
+
     automatic_thread_titling: AutomaticThreadTitling
     """Configuration for automatic thread titling.
 

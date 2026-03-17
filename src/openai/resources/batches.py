@@ -23,6 +23,8 @@ __all__ = ["Batches", "AsyncBatches"]
 
 
 class Batches(SyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> BatchesWithRawResponse:
         """
@@ -47,7 +49,13 @@ class Batches(SyncAPIResource):
         *,
         completion_window: Literal["24h"],
         endpoint: Literal[
-            "/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions", "/v1/moderations"
+            "/v1/responses",
+            "/v1/chat/completions",
+            "/v1/embeddings",
+            "/v1/completions",
+            "/v1/moderations",
+            "/v1/images/generations",
+            "/v1/images/edits",
         ],
         input_file_id: str,
         metadata: Optional[Metadata] | Omit = omit,
@@ -68,9 +76,9 @@ class Batches(SyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              and `/v1/moderations` are supported. Note that `/v1/embeddings` batches are also
-              restricted to a maximum of 50,000 embedding inputs across all requests in the
-              batch.
+              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
+              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
+              of 50,000 embedding inputs across all requests in the batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 
@@ -241,6 +249,8 @@ class Batches(SyncAPIResource):
 
 
 class AsyncBatches(AsyncAPIResource):
+    """Create large batches of API requests to run asynchronously."""
+
     @cached_property
     def with_raw_response(self) -> AsyncBatchesWithRawResponse:
         """
@@ -265,7 +275,13 @@ class AsyncBatches(AsyncAPIResource):
         *,
         completion_window: Literal["24h"],
         endpoint: Literal[
-            "/v1/responses", "/v1/chat/completions", "/v1/embeddings", "/v1/completions", "/v1/moderations"
+            "/v1/responses",
+            "/v1/chat/completions",
+            "/v1/embeddings",
+            "/v1/completions",
+            "/v1/moderations",
+            "/v1/images/generations",
+            "/v1/images/edits",
         ],
         input_file_id: str,
         metadata: Optional[Metadata] | Omit = omit,
@@ -286,9 +302,9 @@ class AsyncBatches(AsyncAPIResource):
 
           endpoint: The endpoint to be used for all requests in the batch. Currently
               `/v1/responses`, `/v1/chat/completions`, `/v1/embeddings`, `/v1/completions`,
-              and `/v1/moderations` are supported. Note that `/v1/embeddings` batches are also
-              restricted to a maximum of 50,000 embedding inputs across all requests in the
-              batch.
+              `/v1/moderations`, `/v1/images/generations`, and `/v1/images/edits` are
+              supported. Note that `/v1/embeddings` batches are also restricted to a maximum
+              of 50,000 embedding inputs across all requests in the batch.
 
           input_file_id: The ID of an uploaded file that contains requests for the new batch.
 

@@ -9,6 +9,8 @@ __all__ = ["ResponseContentPartDoneEvent", "Part"]
 
 
 class Part(BaseModel):
+    """The content part that is done."""
+
     audio: Optional[str] = None
     """Base64-encoded audio data (if type is "audio")."""
 
@@ -23,6 +25,11 @@ class Part(BaseModel):
 
 
 class ResponseContentPartDoneEvent(BaseModel):
+    """
+    Returned when a content part is done streaming in an assistant message item.
+    Also emitted when a Response is interrupted, incomplete, or cancelled.
+    """
+
     content_index: int
     """The index of the content part in the item's content array."""
 

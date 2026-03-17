@@ -59,8 +59,11 @@ __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def steps(self) -> Steps:
+        """Build Assistants that can call models and use tools."""
         return Steps(self._client)
 
     @cached_property
@@ -179,7 +182,7 @@ class Runs(SyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -341,7 +344,7 @@ class Runs(SyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -499,7 +502,7 @@ class Runs(SyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -620,6 +623,7 @@ class Runs(SyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1368,7 +1372,11 @@ class Runs(SyncAPIResource):
                 else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -1513,8 +1521,11 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
+    """Build Assistants that can call models and use tools."""
+
     @cached_property
     def steps(self) -> AsyncSteps:
+        """Build Assistants that can call models and use tools."""
         return AsyncSteps(self._client)
 
     @cached_property
@@ -1633,7 +1644,7 @@ class AsyncRuns(AsyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1795,7 +1806,7 @@ class AsyncRuns(AsyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -1953,7 +1964,7 @@ class AsyncRuns(AsyncAPIResource):
               - All models before `gpt-5.1` default to `medium` reasoning effort, and do not
                 support `none`.
               - The `gpt-5-pro` model defaults to (and only supports) `high` reasoning effort.
-              - `xhigh` is currently only supported for `gpt-5.1-codex-max`.
+              - `xhigh` is supported for all models after `gpt-5.1-codex-max`.
 
           response_format: Specifies the format that the model must output. Compatible with
               [GPT-4o](https://platform.openai.com/docs/models#gpt-4o),
@@ -2075,6 +2086,7 @@ class AsyncRuns(AsyncAPIResource):
                 extra_body=extra_body,
                 timeout=timeout,
                 query=await async_maybe_transform({"include": include}, run_create_params.RunCreateParams),
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -2822,7 +2834,11 @@ class AsyncRuns(AsyncAPIResource):
                 else run_submit_tool_outputs_params.RunSubmitToolOutputsParamsNonStreaming,
             ),
             options=make_request_options(
-                extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
+                extra_headers=extra_headers,
+                extra_query=extra_query,
+                extra_body=extra_body,
+                timeout=timeout,
+                synthesize_event_and_data=True,
             ),
             cast_to=Run,
             stream=stream or False,
@@ -3005,6 +3021,7 @@ class RunsWithRawResponse:
 
     @cached_property
     def steps(self) -> StepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return StepsWithRawResponse(self._runs.steps)
 
 
@@ -3045,6 +3062,7 @@ class AsyncRunsWithRawResponse:
 
     @cached_property
     def steps(self) -> AsyncStepsWithRawResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncStepsWithRawResponse(self._runs.steps)
 
 
@@ -3085,6 +3103,7 @@ class RunsWithStreamingResponse:
 
     @cached_property
     def steps(self) -> StepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return StepsWithStreamingResponse(self._runs.steps)
 
 
@@ -3125,4 +3144,5 @@ class AsyncRunsWithStreamingResponse:
 
     @cached_property
     def steps(self) -> AsyncStepsWithStreamingResponse:
+        """Build Assistants that can call models and use tools."""
         return AsyncStepsWithStreamingResponse(self._runs.steps)

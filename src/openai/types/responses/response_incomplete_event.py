@@ -9,6 +9,8 @@ __all__ = ["ResponseIncompleteEvent"]
 
 
 class ResponseIncompleteEvent(BaseModel):
+    """An event that is emitted when a response finishes as incomplete."""
+
     response: Response
     """The response that was incomplete."""
 

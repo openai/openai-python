@@ -20,6 +20,8 @@ Grader: TypeAlias = Union[
 
 
 class ReinforcementMethodParam(TypedDict, total=False):
+    """Configuration for the reinforcement fine-tuning method."""
+
     grader: Required[Grader]
     """The grader used for the fine-tuning job."""
 

@@ -40,7 +40,7 @@ class TestClientSecrets:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "whisper-1",
+                            "model": "string",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -59,7 +59,7 @@ class TestClientSecrets:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "ash",
+                        "voice": "string",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],
@@ -136,7 +136,7 @@ class TestAsyncClientSecrets:
                         "noise_reduction": {"type": "near_field"},
                         "transcription": {
                             "language": "language",
-                            "model": "whisper-1",
+                            "model": "string",
                             "prompt": "prompt",
                         },
                         "turn_detection": {
@@ -155,7 +155,7 @@ class TestAsyncClientSecrets:
                             "type": "audio/pcm",
                         },
                         "speed": 0.25,
-                        "voice": "ash",
+                        "voice": "string",
                     },
                 },
                 "include": ["item.input_audio_transcription.logprobs"],

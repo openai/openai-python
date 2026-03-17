@@ -11,7 +11,6 @@ if TYPE_CHECKING:
     from .resources.models import Models
     from .resources.videos import Videos
     from .resources.batches import Batches
-    from .resources.webhooks import Webhooks
     from .resources.beta.beta import Beta
     from .resources.chat.chat import Chat
     from .resources.embeddings import Embeddings
@@ -19,8 +18,10 @@ if TYPE_CHECKING:
     from .resources.completions import Completions
     from .resources.evals.evals import Evals
     from .resources.moderations import Moderations
+    from .resources.skills.skills import Skills
     from .resources.uploads.uploads import Uploads
     from .resources.realtime.realtime import Realtime
+    from .resources.webhooks.webhooks import Webhooks
     from .resources.responses.responses import Responses
     from .resources.containers.containers import Containers
     from .resources.fine_tuning.fine_tuning import FineTuning
@@ -71,6 +72,12 @@ class ModelsProxy(LazyProxy["Models"]):
     @override
     def __load__(self) -> Models:
         return _load_client().models
+
+
+class SkillsProxy(LazyProxy["Skills"]):
+    @override
+    def __load__(self) -> Skills:
+        return _load_client().skills
 
 
 class VideosProxy(LazyProxy["Videos"]):
@@ -158,6 +165,7 @@ audio: Audio = AudioProxy().__as_proxied__()
 evals: Evals = EvalsProxy().__as_proxied__()
 images: Images = ImagesProxy().__as_proxied__()
 models: Models = ModelsProxy().__as_proxied__()
+skills: Skills = SkillsProxy().__as_proxied__()
 videos: Videos = VideosProxy().__as_proxied__()
 batches: Batches = BatchesProxy().__as_proxied__()
 uploads: Uploads = UploadsProxy().__as_proxied__()

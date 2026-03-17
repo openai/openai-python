@@ -8,6 +8,8 @@ __all__ = ["TranscriptionDiarizedSegment"]
 
 
 class TranscriptionDiarizedSegment(BaseModel):
+    """A segment of diarized transcript text with speaker metadata."""
+
     id: str
     """Unique identifier for the segment."""
 

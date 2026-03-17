@@ -9,13 +9,18 @@ __all__ = ["ResponseInputImageContent"]
 
 
 class ResponseInputImageContent(BaseModel):
+    """An image input to the model.
+
+    Learn about [image inputs](https://platform.openai.com/docs/guides/vision)
+    """
+
     type: Literal["input_image"]
     """The type of the input item. Always `input_image`."""
 
-    detail: Optional[Literal["low", "high", "auto"]] = None
+    detail: Optional[Literal["low", "high", "auto", "original"]] = None
     """The detail level of the image to be sent to the model.
 
-    One of `high`, `low`, or `auto`. Defaults to `auto`.
+    One of `high`, `low`, `auto`, or `original`. Defaults to `auto`.
     """
 
     file_id: Optional[str] = None

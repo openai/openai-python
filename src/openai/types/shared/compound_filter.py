@@ -12,6 +12,8 @@ Filter: TypeAlias = Union[ComparisonFilter, object]
 
 
 class CompoundFilter(BaseModel):
+    """Combine multiple filters using `and` or `or`."""
+
     filters: List[Filter]
     """Array of filters to combine.
 

@@ -36,6 +36,8 @@ Filters: TypeAlias = Union[ComparisonFilter, CompoundFilter]
 
 
 class RankingOptions(TypedDict, total=False):
+    """Ranking options for search."""
+
     ranker: Literal["none", "auto", "default-2024-11-15"]
     """Enable re-ranking; set to `none` to disable, which can help reduce latency."""
 

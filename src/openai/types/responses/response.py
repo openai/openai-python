@@ -28,6 +28,8 @@ __all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
 
 class IncompleteDetails(BaseModel):
+    """Details about why the response is incomplete."""
+
     reason: Optional[Literal["max_output_tokens", "content_filter"]] = None
     """The reason why the response is incomplete."""
 
@@ -45,8 +47,13 @@ ToolChoice: TypeAlias = Union[
 
 
 class Conversation(BaseModel):
+    """The conversation that this response belonged to.
+
+    Input items and output items from this response were automatically added to this conversation.
+    """
+
     id: str
-    """The unique ID of the conversation."""
+    """The unique ID of the conversation that this response was associated with."""
 
 
 class Response(BaseModel):
@@ -158,10 +165,16 @@ class Response(BaseModel):
     [Learn more](https://platform.openai.com/docs/guides/background).
     """
 
-    conversation: Optional[Conversation] = None
-    """The conversation that this response belongs to.
+    completed_at: Optional[float] = None
+    """
+    Unix timestamp (in seconds) of when this Response was completed. Only present
+    when the status is `completed`.
+    """
 
-    Input items and output items from this response are automatically added to this
+    conversation: Optional[Conversation] = None
+    """The conversation that this response belonged to.
+
+    Input items and output items from this response were automatically added to this
     conversation.
     """
 
@@ -220,8 +233,9 @@ class Response(BaseModel):
     """
     A stable identifier used to help detect users of your application that may be
     violating OpenAI's usage policies. The IDs should be a string that uniquely
-    identifies each user. We recommend hashing their username or email address, in
-    order to avoid sending us any identifying information.
+    identifies each user, with a maximum length of 64 characters. We recommend
+    hashing their username or email address, in order to avoid sending us any
+    identifying information.
     [Learn more](https://platform.openai.com/docs/guides/safety-best-practices#safety-identifiers).
     """
 

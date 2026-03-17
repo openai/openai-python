@@ -4,7 +4,7 @@ from __future__ import annotations
 import json
 import inspect
 from types import TracebackType
-from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, AsyncIterator, cast
+from typing import TYPE_CHECKING, Any, Generic, TypeVar, Iterator, Optional, AsyncIterator, cast
 from typing_extensions import Self, Protocol, TypeGuard, override, get_origin, runtime_checkable
 
 import httpx
@@ -14,6 +14,7 @@ from ._exceptions import APIError
 
 if TYPE_CHECKING:
     from ._client import OpenAI, AsyncOpenAI
+    from ._models import FinalRequestOptions
 
 
 _T = TypeVar("_T")
@@ -23,7 +24,7 @@ class Stream(Generic[_T]):
     """Provides the core interface to iterate over a synchronous stream response."""
 
     response: httpx.Response
-
+    _options: Optional[FinalRequestOptions] = None
     _decoder: SSEBytesDecoder
 
     def __init__(
@@ -32,10 +33,12 @@ class Stream(Generic[_T]):
         cast_to: type[_T],
         response: httpx.Response,
         client: OpenAI,
+        options: Optional[FinalRequestOptions] = None,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
         self._client = client
+        self._options = options
         self._decoder = client._make_sse_decoder()
         self._iterator = self.__stream__()
 
@@ -95,8 +98,13 @@ class Stream(Generic[_T]):
                             body=data["error"],
                         )
 
-                    yield process_data(data=data, cast_to=cast_to, response=response)
-
+                    yield process_data(
+                        data={"data": data, "event": sse.event}
+                        if self._options is not None and self._options.synthesize_event_and_data
+                        else data,
+                        cast_to=cast_to,
+                        response=response,
+                    )
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             response.close()
@@ -125,7 +133,7 @@ class AsyncStream(Generic[_T]):
     """Provides the core interface to iterate over an asynchronous stream response."""
 
     response: httpx.Response
-
+    _options: Optional[FinalRequestOptions] = None
     _decoder: SSEDecoder | SSEBytesDecoder
 
     def __init__(
@@ -134,10 +142,12 @@ class AsyncStream(Generic[_T]):
         cast_to: type[_T],
         response: httpx.Response,
         client: AsyncOpenAI,
+        options: Optional[FinalRequestOptions] = None,
     ) -> None:
         self.response = response
         self._cast_to = cast_to
         self._client = client
+        self._options = options
         self._decoder = client._make_sse_decoder()
         self._iterator = self.__stream__()
 
@@ -198,8 +208,13 @@ class AsyncStream(Generic[_T]):
                             body=data["error"],
                         )
 
-                    yield process_data(data=data, cast_to=cast_to, response=response)
-
+                    yield process_data(
+                        data={"data": data, "event": sse.event}
+                        if self._options is not None and self._options.synthesize_event_and_data
+                        else data,
+                        cast_to=cast_to,
+                        response=response,
+                    )
         finally:
             # Ensure the response is closed even if the consumer doesn't read all data
             await response.aclose()

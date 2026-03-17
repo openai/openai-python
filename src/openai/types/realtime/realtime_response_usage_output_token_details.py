@@ -8,6 +8,8 @@ __all__ = ["RealtimeResponseUsageOutputTokenDetails"]
 
 
 class RealtimeResponseUsageOutputTokenDetails(BaseModel):
+    """Details about the output tokens used in the Response."""
+
     audio_tokens: Optional[int] = None
     """The number of audio tokens used in the Response."""
 

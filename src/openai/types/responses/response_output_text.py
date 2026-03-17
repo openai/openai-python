@@ -19,6 +19,8 @@ __all__ = [
 
 
 class AnnotationFileCitation(BaseModel):
+    """A citation to a file."""
+
     file_id: str
     """The ID of the file."""
 
@@ -33,6 +35,8 @@ class AnnotationFileCitation(BaseModel):
 
 
 class AnnotationURLCitation(BaseModel):
+    """A citation for a web resource used to generate a model response."""
+
     end_index: int
     """The index of the last character of the URL citation in the message."""
 
@@ -50,6 +54,8 @@ class AnnotationURLCitation(BaseModel):
 
 
 class AnnotationContainerFileCitation(BaseModel):
+    """A citation for a container file used to generate a model response."""
+
     container_id: str
     """The ID of the container file."""
 
@@ -70,6 +76,8 @@ class AnnotationContainerFileCitation(BaseModel):
 
 
 class AnnotationFilePath(BaseModel):
+    """A path to a file."""
+
     file_id: str
     """The ID of the file."""
 
@@ -87,6 +95,8 @@ Annotation: TypeAlias = Annotated[
 
 
 class LogprobTopLogprob(BaseModel):
+    """The top log probability of a token."""
+
     token: str
 
     bytes: List[int]
@@ -95,6 +105,8 @@ class LogprobTopLogprob(BaseModel):
 
 
 class Logprob(BaseModel):
+    """The log probability of a token."""
+
     token: str
 
     bytes: List[int]
@@ -105,6 +117,8 @@ class Logprob(BaseModel):
 
 
 class ResponseOutputText(BaseModel):
+    """A text output from the model."""
+
     annotations: List[Annotation]
     """The annotations of the text output."""
 

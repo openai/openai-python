@@ -8,6 +8,8 @@ __all__ = ["ResponseMcpListToolsFailedEvent"]
 
 
 class ResponseMcpListToolsFailedEvent(BaseModel):
+    """Emitted when the attempt to list available MCP tools has failed."""
+
     item_id: str
     """The ID of the MCP tool call item that failed."""
 

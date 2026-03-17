@@ -35,8 +35,11 @@ __all__ = ["Runs", "AsyncRuns"]
 
 
 class Runs(SyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def output_items(self) -> OutputItems:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItems(self._client)
 
     @cached_property
@@ -285,8 +288,11 @@ class Runs(SyncAPIResource):
 
 
 class AsyncRuns(AsyncAPIResource):
+    """Manage and run evals in the OpenAI platform."""
+
     @cached_property
     def output_items(self) -> AsyncOutputItems:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItems(self._client)
 
     @cached_property
@@ -556,6 +562,7 @@ class RunsWithRawResponse:
 
     @cached_property
     def output_items(self) -> OutputItemsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItemsWithRawResponse(self._runs.output_items)
 
 
@@ -581,6 +588,7 @@ class AsyncRunsWithRawResponse:
 
     @cached_property
     def output_items(self) -> AsyncOutputItemsWithRawResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItemsWithRawResponse(self._runs.output_items)
 
 
@@ -606,6 +614,7 @@ class RunsWithStreamingResponse:
 
     @cached_property
     def output_items(self) -> OutputItemsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return OutputItemsWithStreamingResponse(self._runs.output_items)
 
 
@@ -631,4 +640,5 @@ class AsyncRunsWithStreamingResponse:
 
     @cached_property
     def output_items(self) -> AsyncOutputItemsWithStreamingResponse:
+        """Manage and run evals in the OpenAI platform."""
         return AsyncOutputItemsWithStreamingResponse(self._runs.output_items)
