@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.29.0 (2026-03-17)
+
+Full Changelog: [v2.28.0...v2.29.0](https://github.com/openai/openai-python/compare/v2.28.0...v2.29.0)
+
+### Features
+
+* **api:** 5.4 nano and mini model slugs ([3b45666](https://github.com/openai/openai-python/commit/3b456661f77ca3196aceb5ab3350664a63481114))
+* **api:** add /v1/videos endpoint to batches create method ([c0e7a16](https://github.com/openai/openai-python/commit/c0e7a161a996854021e9eb69ea2a60ca0d08047f))
+* **api:** add defer_loading field to ToolFunction ([3167595](https://github.com/openai/openai-python/commit/3167595432bdda2f90721901d30ad316db49323e))
+* **api:** add in and nin operators to ComparisonFilter type ([664f02b](https://github.com/openai/openai-python/commit/664f02b051af84e1ca3fa313981ec72fdea269b3))
+
+
+### Bug Fixes
+
+* **deps:** bump minimum typing-extensions version ([a2fb2ca](https://github.com/openai/openai-python/commit/a2fb2ca55142c6658a18be7bd1392a01f5a83f35))
+* **pydantic:** do not pass `by_alias` unless set ([8ebe8fb](https://github.com/openai/openai-python/commit/8ebe8fbcb011c6a005a715cae50c6400a8596ee0))
+
+
+### Chores
+
+* **internal:** tweak CI branches ([96ccc3c](https://github.com/openai/openai-python/commit/96ccc3cca35645fd3140f99b0fc8e55545065212))
+
 ## 2.28.0 (2026-03-13)
 
 Full Changelog: [v2.27.0...v2.28.0](https://github.com/openai/openai-python/compare/v2.27.0...v2.28.0)
