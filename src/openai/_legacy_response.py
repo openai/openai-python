@@ -394,7 +394,17 @@ class HttpxBinaryResponseContent:
 
     @property
     def content(self) -> bytes:
-        return self.response.content
+        """Return the response content, streamed in chunks to avoid ConnectionResetError on large files.
+
+        Streaming in 1 MB chunks prevents issues with large Batch API result files (>200 MB)
+        where reading the entire body at once can trigger a server-side connection reset
+        on long-lived HTTP connections. Fixes #2959.
+        """
+        _CHUNK_SIZE = 1024 * 1024  # 1 MB
+        buf = bytearray()
+        for chunk in self.response.iter_bytes(chunk_size=_CHUNK_SIZE):
+            buf.extend(chunk)
+        return bytes(buf)
 
     @property
     def text(self) -> str:
