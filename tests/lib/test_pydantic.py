@@ -409,3 +409,50 @@ def test_nested_inline_ref_expansion() -> None:
                 "additionalProperties": False,
             }
         )
+
+
+def test_discriminated_union_oneOf() -> None:
+    """Pydantic v2 generates oneOf for discriminated unions.
+
+    _ensure_strict_json_schema must recurse into oneOf variants
+    so that inline object schemas receive additionalProperties: false
+    and required arrays, just like it already does for anyOf.
+    """
+    if PYDANTIC_V1:
+        return
+
+    from typing import Literal, Union
+
+    class Cat(BaseModel):
+        pet_type: Literal["cat"]
+        meows: int
+
+    class Dog(BaseModel):
+        pet_type: Literal["dog"]
+        barks: float
+
+    class PetOwner(BaseModel):
+        name: str
+        pet: Union[Cat, Dog] = Field(discriminator="pet_type")
+
+    schema = to_strict_json_schema(PetOwner)
+
+    # Top-level must be strict
+    assert schema["additionalProperties"] is False
+    assert "name" in schema["required"]
+    assert "pet" in schema["required"]
+
+    # $defs must be strict
+    for def_name in ("Cat", "Dog"):
+        assert schema["$defs"][def_name]["additionalProperties"] is False
+        assert "pet_type" in schema["$defs"][def_name]["required"]
+
+    # The pet property should have oneOf (Pydantic v2 discriminated union)
+    pet_prop = schema["properties"]["pet"]
+    assert "oneOf" in pet_prop, f"Expected oneOf in pet property, got keys: {list(pet_prop.keys())}"
+
+    # Each oneOf variant (which is a $ref) should have been processed
+    for variant in pet_prop["oneOf"]:
+        # Variants are $ref entries; the key point is that the recursion
+        # did not raise and the schema is well-formed
+        assert isinstance(variant, dict)

@@ -74,6 +74,14 @@ def _ensure_strict_json_schema(
             for i, variant in enumerate(any_of)
         ]
 
+    # discriminated unions (Pydantic v2 uses oneOf for fields with discriminator=...)
+    one_of = json_schema.get("oneOf")
+    if is_list(one_of):
+        json_schema["oneOf"] = [
+            _ensure_strict_json_schema(variant, path=(*path, "oneOf", str(i)), root=root)
+            for i, variant in enumerate(one_of)
+        ]
+
     # intersections
     all_of = json_schema.get("allOf")
     if is_list(all_of):
