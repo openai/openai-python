@@ -204,7 +204,7 @@ class _ModuleClient(OpenAI):
     @override
     def base_url(self) -> _httpx.URL:
         if base_url is not None:
-            return _httpx.URL(base_url)
+            return self._enforce_trailing_slash(_httpx.URL(base_url))
 
         return super().base_url
 
