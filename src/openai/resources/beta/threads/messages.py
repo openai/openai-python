@@ -10,7 +10,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -101,7 +101,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             body=maybe_transform(
                 {
                     "content": content,
@@ -148,7 +148,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -194,7 +194,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._post(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -253,7 +253,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             page=SyncCursorPage[Message],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -305,7 +305,7 @@ class Messages(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._delete(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -386,7 +386,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             body=await async_maybe_transform(
                 {
                     "content": content,
@@ -433,7 +433,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._get(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -479,7 +479,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._post(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             body=await async_maybe_transform({"metadata": metadata}, message_update_params.MessageUpdateParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -538,7 +538,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `thread_id` but received {thread_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return self._get_api_list(
-            f"/threads/{thread_id}/messages",
+            path_template("/threads/{thread_id}/messages", thread_id=thread_id),
             page=AsyncCursorPage[Message],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -590,7 +590,7 @@ class AsyncMessages(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `message_id` but received {message_id!r}")
         extra_headers = {"OpenAI-Beta": "assistants=v2", **(extra_headers or {})}
         return await self._delete(
-            f"/threads/{thread_id}/messages/{message_id}",
+            path_template("/threads/{thread_id}/messages/{message_id}", thread_id=thread_id, message_id=message_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
