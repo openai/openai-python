@@ -42,8 +42,15 @@ def test_base_url_option() -> None:
 
     openai.base_url = "http://foo.com"
 
-    assert openai.base_url == URL("http://foo.com")
-    assert openai.completions._client.base_url == URL("http://foo.com")
+    assert openai.base_url == "http://foo.com"
+    assert openai.completions._client.base_url.raw_path == b"/"
+
+
+def test_base_url_option_without_trailing_slash() -> None:
+    openai.base_url = "http://foo.com/custom/path"
+
+    assert openai.base_url == "http://foo.com/custom/path"
+    assert openai.completions._client.base_url == URL("http://foo.com/custom/path/")
 
 
 def test_timeout_option() -> None:
