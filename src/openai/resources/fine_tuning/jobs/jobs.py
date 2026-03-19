@@ -9,7 +9,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform, async_maybe_transform
+from ...._utils import path_template, maybe_transform, async_maybe_transform
 from ...._compat import cached_property
 from .checkpoints import (
     Checkpoints,
@@ -205,7 +205,7 @@ class Jobs(SyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -290,7 +290,7 @@ class Jobs(SyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._post(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/cancel", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -329,7 +329,7 @@ class Jobs(SyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get_api_list(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/events",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/events", fine_tuning_job_id=fine_tuning_job_id),
             page=SyncCursorPage[FineTuningJobEvent],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -373,7 +373,7 @@ class Jobs(SyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._post(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/pause",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/pause", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -406,7 +406,7 @@ class Jobs(SyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._post(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/resume",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/resume", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -588,7 +588,7 @@ class AsyncJobs(AsyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return await self._get(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -673,7 +673,7 @@ class AsyncJobs(AsyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return await self._post(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/cancel",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/cancel", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -712,7 +712,7 @@ class AsyncJobs(AsyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return self._get_api_list(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/events",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/events", fine_tuning_job_id=fine_tuning_job_id),
             page=AsyncCursorPage[FineTuningJobEvent],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -756,7 +756,7 @@ class AsyncJobs(AsyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return await self._post(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/pause",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/pause", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -789,7 +789,7 @@ class AsyncJobs(AsyncAPIResource):
         if not fine_tuning_job_id:
             raise ValueError(f"Expected a non-empty value for `fine_tuning_job_id` but received {fine_tuning_job_id!r}")
         return await self._post(
-            f"/fine_tuning/jobs/{fine_tuning_job_id}/resume",
+            path_template("/fine_tuning/jobs/{fine_tuning_job_id}/resume", fine_tuning_job_id=fine_tuning_job_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

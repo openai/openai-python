@@ -9,7 +9,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import (
@@ -230,7 +230,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/accept",
+            path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=maybe_transform(
                 {
                     "type": type,
@@ -281,7 +281,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/hangup",
+            path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -319,7 +319,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/refer",
+            path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -358,7 +358,7 @@ class Calls(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._post(
-            f"/realtime/calls/{call_id}/reject",
+            path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -559,7 +559,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/accept",
+            path_template("/realtime/calls/{call_id}/accept", call_id=call_id),
             body=await async_maybe_transform(
                 {
                     "type": type,
@@ -610,7 +610,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/hangup",
+            path_template("/realtime/calls/{call_id}/hangup", call_id=call_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -648,7 +648,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/refer",
+            path_template("/realtime/calls/{call_id}/refer", call_id=call_id),
             body=await async_maybe_transform({"target_uri": target_uri}, call_refer_params.CallReferParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -687,7 +687,7 @@ class AsyncCalls(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `call_id` but received {call_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._post(
-            f"/realtime/calls/{call_id}/reject",
+            path_template("/realtime/calls/{call_id}/reject", call_id=call_id),
             body=await async_maybe_transform({"status_code": status_code}, call_reject_params.CallRejectParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout

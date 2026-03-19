@@ -20,7 +20,7 @@ from ..types import (
     video_download_content_params,
 )
 from .._types import Body, Omit, Query, Headers, NotGiven, FileTypes, omit, not_given
-from .._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from .._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
 from .._compat import cached_property
 from .._resource import SyncAPIResource, AsyncAPIResource
 from .._response import (
@@ -153,7 +153,7 @@ class Videos(SyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return self._get(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -238,7 +238,7 @@ class Videos(SyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return self._delete(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -326,7 +326,7 @@ class Videos(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return self._get(
-            f"/videos/{video_id}/content",
+            path_template("/videos/{video_id}/content", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -467,7 +467,7 @@ class Videos(SyncAPIResource):
         if not character_id:
             raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
         return self._get(
-            f"/videos/characters/{character_id}",
+            path_template("/videos/characters/{character_id}", character_id=character_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -503,7 +503,7 @@ class Videos(SyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return self._post(
-            f"/videos/{video_id}/remix",
+            path_template("/videos/{video_id}/remix", video_id=video_id),
             body=maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
@@ -621,7 +621,7 @@ class AsyncVideos(AsyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return await self._get(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -706,7 +706,7 @@ class AsyncVideos(AsyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return await self._delete(
-            f"/videos/{video_id}",
+            path_template("/videos/{video_id}", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -794,7 +794,7 @@ class AsyncVideos(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         extra_headers = {"Accept": "application/binary", **(extra_headers or {})}
         return await self._get(
-            f"/videos/{video_id}/content",
+            path_template("/videos/{video_id}/content", video_id=video_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -937,7 +937,7 @@ class AsyncVideos(AsyncAPIResource):
         if not character_id:
             raise ValueError(f"Expected a non-empty value for `character_id` but received {character_id!r}")
         return await self._get(
-            f"/videos/characters/{character_id}",
+            path_template("/videos/characters/{character_id}", character_id=character_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -973,7 +973,7 @@ class AsyncVideos(AsyncAPIResource):
         if not video_id:
             raise ValueError(f"Expected a non-empty value for `video_id` but received {video_id!r}")
         return await self._post(
-            f"/videos/{video_id}/remix",
+            path_template("/videos/{video_id}/remix", video_id=video_id),
             body=await async_maybe_transform({"prompt": prompt}, video_remix_params.VideoRemixParams),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
