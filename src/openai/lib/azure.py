@@ -320,6 +320,7 @@ class AzureOpenAI(BaseAzureClient[httpx.Client, Stream[Any]], OpenAI):
 
     @override
     def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        self._refresh_api_key()
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
         options = model_copy(options)
@@ -603,6 +604,7 @@ class AsyncAzureOpenAI(BaseAzureClient[httpx.AsyncClient, AsyncStream[Any]], Asy
 
     @override
     async def _prepare_options(self, options: FinalRequestOptions) -> FinalRequestOptions:
+        await self._refresh_api_key()
         headers: dict[str, str | Omit] = {**options.headers} if is_given(options.headers) else {}
 
         options = model_copy(options)
