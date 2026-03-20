@@ -246,3 +246,26 @@ def make_event_iterator(
     return AsyncStream(
         cast_to=object, client=async_client, response=httpx.Response(200, content=to_aiter(content))
     )._iter_events()
+
+
+@pytest.mark.asyncio
+async def test_async_stream_has_aclose_alias(async_client: AsyncOpenAI) -> None:
+    stream = AsyncStream(
+        cast_to=object,
+        client=async_client,
+        response=httpx.Response(200, content=to_aiter(iter(()))),
+    )
+
+    assert hasattr(stream, "aclose")
+    assert callable(stream.aclose)
+    await stream.aclose()
+
+
+@pytest.mark.asyncio
+async def test_async_stream_aclose_closes_response(async_client: AsyncOpenAI) -> None:
+    response = httpx.Response(200, content=to_aiter(iter(())))
+    stream = AsyncStream(cast_to=object, client=async_client, response=response)
+
+    await stream.aclose()
+
+    assert response.is_closed
