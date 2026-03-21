@@ -149,7 +149,8 @@ def model_dump(
             exclude_defaults=exclude_defaults,
             # warnings are not supported in Pydantic v1
             warnings=True if PYDANTIC_V1 else warnings,
-            by_alias=by_alias,
+            # pydantic-core's Rust serializer rejects None for by_alias; coerce to bool.
+            by_alias=bool(by_alias) if by_alias is not None else False,
         )
     return cast(
         "dict[str, Any]",
