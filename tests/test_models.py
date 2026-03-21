@@ -8,7 +8,7 @@ import pydantic
 from pydantic import Field
 
 from openai._utils import PropertyInfo
-from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
+from openai._compat import PYDANTIC_V1, ConfigDict, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
 
 
@@ -157,18 +157,20 @@ def test_unknown_fields() -> None:
     assert model_dump(m2) == {"foo": "foo", "unknown": {"foo_bar": True}}
 
 
+@pytest.mark.skipif(PYDANTIC_V1, reason="GH-2921 affects the Pydantic v2 path")
 def test_model_dump_by_alias_none() -> None:
-    """Ensure model_dump does not crash when by_alias defaults to None (GH-2921)."""
-    m = BasicModel.construct(foo="hello")
-    # by_alias=None is the default — must not raise TypeError
-    result = model_dump(m)
-    assert result == {"foo": "hello"}
-    # Explicit by_alias=None must also work
-    result = model_dump(m, by_alias=None)
-    assert result == {"foo": "hello"}
-    # Explicit by_alias=True/False must still be forwarded
-    result = model_dump(m, by_alias=False)
-    assert result == {"foo": "hello"}
+    """Ensure model_dump preserves the model default when by_alias defaults to None (GH-2921)."""
+
+    class AliasModel(pydantic.BaseModel):
+        model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+        foo: str = Field(alias="fooAlias")
+
+    m = AliasModel(fooAlias="hello")
+
+    assert model_dump(m) == {"fooAlias": "hello"}
+    assert model_dump(m, by_alias=None) == {"fooAlias": "hello"}
+    assert model_dump(m, by_alias=False) == {"foo": "hello"}
+    assert model_dump(m, by_alias=True) == {"fooAlias": "hello"}
 
 
 def test_strict_validation_unknown_fields() -> None:
