@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 import os
+import json
 from typing import Any, cast
 
+import httpx
 import pytest
 import pydantic
+from respx import MockRouter
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -73,7 +76,6 @@ class TestCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
             safety_identifier="safety-identifier-1234",
@@ -207,7 +209,6 @@ class TestCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
             safety_identifier="safety-identifier-1234",
@@ -459,6 +460,27 @@ class TestCompletions:
                 response_format=cast(Any, MyModel),
             )
 
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    def test_raw_response_create_serializes_prompt_cache_retention_with_underscore(
+        self, client: OpenAI, respx_mock: MockRouter
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+        response = client.chat.completions.with_raw_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "developer",
+                }
+            ],
+            model="gpt-5.4",
+            prompt_cache_retention="in_memory",
+        )
+
+        request_body = json.loads(response.http_request.content.decode("utf-8"))
+        assert request_body["prompt_cache_retention"] == "in_memory"
+
 
 class TestAsyncCompletions:
     parametrize = pytest.mark.parametrize(
@@ -516,7 +538,6 @@ class TestAsyncCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
             safety_identifier="safety-identifier-1234",
@@ -650,7 +671,6 @@ class TestAsyncCompletions:
             },
             presence_penalty=-2,
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning_effort="none",
             response_format={"type": "text"},
             safety_identifier="safety-identifier-1234",
@@ -730,6 +750,27 @@ class TestAsyncCompletions:
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    async def test_async_raw_response_create_serializes_prompt_cache_retention_with_underscore(
+        self, async_client: AsyncOpenAI, respx_mock: MockRouter
+    ) -> None:
+        respx_mock.post("/chat/completions").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+        response = await async_client.chat.completions.with_raw_response.create(
+            messages=[
+                {
+                    "content": "string",
+                    "role": "developer",
+                }
+            ],
+            model="gpt-5.4",
+            prompt_cache_retention="in_memory",
+        )
+
+        request_body = json.loads(response.http_request.content.decode("utf-8"))
+        assert request_body["prompt_cache_retention"] == "in_memory"
 
     @parametrize
     async def test_method_retrieve(self, async_client: AsyncOpenAI) -> None:

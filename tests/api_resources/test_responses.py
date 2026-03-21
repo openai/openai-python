@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import os
+import json
 from typing import Any, cast
 
+import httpx
 import pytest
+from respx import MockRouter
 
 from openai import OpenAI, AsyncOpenAI
 from tests.utils import assert_matches_type
@@ -14,6 +17,12 @@ from openai.types.responses import (
     Response,
     CompactedResponse,
 )
+from openai.resources.responses.responses import Responses
+from openai.types.chat.completion_create_params import CompletionCreateParamsBase
+from openai.resources.chat.completions.completions import Completions
+from openai.types.responses.response_create_params import ResponseCreateParamsBase
+from openai.types.responses.responses_client_event import ResponsesClientEvent
+from openai.types.responses.responses_client_event_param import ResponsesClientEventParam
 
 base_url = os.environ.get("TEST_API_BASE_URL", "http://127.0.0.1:4010")
 
@@ -52,7 +61,6 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -140,7 +148,6 @@ class TestResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -195,6 +202,22 @@ class TestResponses:
             stream.close()
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    def test_raw_response_create_serializes_prompt_cache_retention_with_underscore(
+        self, client: OpenAI, respx_mock: MockRouter
+    ) -> None:
+        respx_mock.post("/responses").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+        response = client.responses.with_raw_response.create(
+            input="string",
+            model="gpt-5.1",
+            prompt_cache_retention="in_memory",
+        )
+
+        request_body = json.loads(response.http_request.content.decode("utf-8"))
+        assert request_body["prompt_cache_retention"] == "in_memory"
 
     @parametrize
     def test_method_retrieve_overload_1(self, client: OpenAI) -> None:
@@ -427,6 +450,22 @@ def test_parse_method_in_sync(sync: bool, client: OpenAI, async_client: AsyncOpe
     )
 
 
+def test_prompt_cache_retention_request_surface_uses_underscore() -> None:
+    annotations = [
+        CompletionCreateParamsBase.__annotations__["prompt_cache_retention"],
+        ResponseCreateParamsBase.__annotations__["prompt_cache_retention"],
+        ResponsesClientEventParam.__annotations__["prompt_cache_retention"],
+        ResponsesClientEvent.__annotations__["prompt_cache_retention"],
+        Completions.create.__annotations__["prompt_cache_retention"],
+        Responses.create.__annotations__["prompt_cache_retention"],
+    ]
+
+    for annotation in annotations:
+        rendered = str(annotation)
+        assert "in_memory" in rendered
+        assert "in-memory" not in rendered
+
+
 class TestAsyncResponses:
     parametrize = pytest.mark.parametrize(
         "async_client", [False, True, {"http_client": "aiohttp"}], indirect=True, ids=["loose", "strict", "aiohttp"]
@@ -463,7 +502,6 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -551,7 +589,6 @@ class TestAsyncResponses:
                 "version": "version",
             },
             prompt_cache_key="prompt-cache-key-1234",
-            prompt_cache_retention="in_memory",
             reasoning={
                 "effort": "none",
                 "generate_summary": "auto",
@@ -606,6 +643,22 @@ class TestAsyncResponses:
             await stream.close()
 
         assert cast(Any, response.is_closed) is True
+
+    @parametrize
+    @pytest.mark.respx(base_url=base_url)
+    async def test_async_raw_response_create_serializes_prompt_cache_retention_with_underscore(
+        self, async_client: AsyncOpenAI, respx_mock: MockRouter
+    ) -> None:
+        respx_mock.post("/responses").mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+        response = await async_client.responses.with_raw_response.create(
+            input="string",
+            model="gpt-5.1",
+            prompt_cache_retention="in_memory",
+        )
+
+        request_body = json.loads(response.http_request.content.decode("utf-8"))
+        assert request_body["prompt_cache_retention"] == "in_memory"
 
     @parametrize
     async def test_method_retrieve_overload_1(self, async_client: AsyncOpenAI) -> None:
