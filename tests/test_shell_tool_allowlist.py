@@ -6,7 +6,8 @@ Covers https://github.com/openai/openai-python/issues/2920
 from __future__ import annotations
 
 import json
-from typing import Any
+from typing import Any, Iterator, cast
+from typing_extensions import override
 
 import httpx
 import pytest
@@ -18,11 +19,40 @@ from openai.lib._validation import (
     validate_shell_tool,
     validate_network_policy_allowlist,
 )
+from openai.types.responses.tool_param import ToolParam, CodeInterpreter
+from openai.types.responses.container_auto_param import ContainerAutoParam
 from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
+from openai.types.responses.function_shell_tool_param import FunctionShellToolParam
 
 # ---------------------------------------------------------------------------
 # Validation unit tests
 # ---------------------------------------------------------------------------
+
+
+def _shell_tool(allowed_domains: list[str]) -> FunctionShellToolParam:
+    return {
+        "type": "shell",
+        "environment": {
+            "type": "container_auto",
+            "network_policy": {
+                "type": "allowlist",
+                "allowed_domains": allowed_domains,
+            },
+        },
+    }
+
+
+def _code_interpreter_tool(allowed_domains: list[str]) -> CodeInterpreter:
+    return {
+        "type": "code_interpreter",
+        "container": {
+            "type": "auto",
+            "network_policy": {
+                "type": "allowlist",
+                "allowed_domains": allowed_domains,
+            },
+        },
+    }
 
 
 class TestValidateNetworkPolicyAllowlist:
@@ -134,17 +164,7 @@ class TestValidateTools:
 
     def test_code_interpreter_allowlist_validated(self) -> None:
         with pytest.raises(ValueError, match="protocol prefix"):
-            validate_tools([
-                {
-                    "type": "code_interpreter",
-                    "container": {
-                        "network_policy": {
-                            "type": "allowlist",
-                            "allowed_domains": ["https://pypi.org"],
-                        },
-                    },
-                }
-            ])
+            validate_tools([_code_interpreter_tool(["https://pypi.org"])])
 
 
 # ---------------------------------------------------------------------------
@@ -157,6 +177,7 @@ class _CaptureTransport(httpx.BaseTransport):
 
     last_request: httpx.Request | None = None
 
+    @override
     def handle_request(self, request: httpx.Request) -> httpx.Response:
         self.last_request = request
         return httpx.Response(200, json={
@@ -175,7 +196,7 @@ class _CaptureTransport(httpx.BaseTransport):
 
 def _captured_body(transport: _CaptureTransport) -> dict[str, Any]:
     assert transport.last_request is not None
-    return json.loads(transport.last_request.content)
+    return cast(dict[str, Any], json.loads(transport.last_request.content))
 
 
 class TestShellToolSerialization:
@@ -194,16 +215,7 @@ class TestShellToolSerialization:
         client.responses.create(
             model="gpt-5.2",
             input="test",
-            tools=[{
-                "type": "shell",
-                "environment": {
-                    "type": "container_auto",
-                    "network_policy": {
-                        "type": "allowlist",
-                        "allowed_domains": ["google.com"],
-                    },
-                },
-            }],
+            tools=[_shell_tool(["google.com"])],
         )
         body = _captured_body(transport)
         tool = body["tools"][0]
@@ -213,22 +225,29 @@ class TestShellToolSerialization:
         assert policy["type"] == "allowlist"
         assert policy["allowed_domains"] == ["google.com"]
 
+    def test_allowlist_serialization_with_generator_tools(self) -> None:
+        client, transport = self._make_client()
+
+        def iter_tools() -> Iterator[ToolParam]:
+            yield _shell_tool(["google.com"])
+
+        client.responses.create(
+            model="gpt-5.2",
+            input="test",
+            tools=iter_tools(),
+        )
+        body = _captured_body(transport)
+        tool = body["tools"][0]
+        assert tool["type"] == "shell"
+        assert tool["environment"]["network_policy"]["allowed_domains"] == ["google.com"]
+
     def test_allowlist_with_multiple_domains(self) -> None:
         client, transport = self._make_client()
         domains = ["pypi.org", "files.pythonhosted.org", "github.com"]
         client.responses.create(
             model="gpt-5.2",
             input="test",
-            tools=[{
-                "type": "shell",
-                "environment": {
-                    "type": "container_auto",
-                    "network_policy": {
-                        "type": "allowlist",
-                        "allowed_domains": domains,
-                    },
-                },
-            }],
+            tools=[_shell_tool(domains)],
         )
         body = _captured_body(transport)
         assert body["tools"][0]["environment"]["network_policy"]["allowed_domains"] == domains
@@ -294,22 +313,20 @@ class TestTransformAllowlist:
         params = {
             "model": "gpt-5.2",
             "input": "test",
-            "tools": [
-                {
-                    "type": "shell",
-                    "environment": {
-                        "type": "container_auto",
-                        "network_policy": {
-                            "type": "allowlist",
-                            "allowed_domains": ["example.com", "api.example.com"],
-                        },
-                    },
-                }
-            ],
+            "tools": [_shell_tool(["example.com", "api.example.com"])],
         }
         result = maybe_transform(params, ResponseCreateParamsNonStreaming)
-        tool = result["tools"][0]
-        assert tool["environment"]["network_policy"] == {
+        assert result is not None
+        tools = cast(list[FunctionShellToolParam], list(result.get("tools", [])))
+        assert tools
+        tool = tools[0]
+        assert "environment" in tool
+        environment = tool["environment"]
+        assert environment is not None
+        assert environment["type"] == "container_auto"
+        container_auto: ContainerAutoParam = environment
+        assert "network_policy" in container_auto
+        assert container_auto["network_policy"] == {
             "type": "allowlist",
             "allowed_domains": ["example.com", "api.example.com"],
         }

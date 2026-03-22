@@ -30,7 +30,6 @@ from .input_items import (
 )
 from ..._streaming import Stream, AsyncStream
 from ...lib._tools import PydanticFunctionTool, ResponsesPydanticFunctionTool
-from ...lib._validation import validate_tools
 from .input_tokens import (
     InputTokens,
     AsyncInputTokens,
@@ -41,6 +40,7 @@ from .input_tokens import (
 )
 from ..._exceptions import OpenAIError
 from ..._base_client import _merge_mappings, make_request_options
+from ...lib._validation import validate_tools
 from ...types.responses import (
     response_create_params,
     response_compact_params,
@@ -3554,7 +3554,7 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
     converted_tools: List[ToolParam] = []
     for tool in tools_list:
         if tool["type"] != "function":
-            converted_tools.append(tool)
+            converted_tools.append(cast(ToolParam, tool))
             continue
 
         if "function" not in tool:

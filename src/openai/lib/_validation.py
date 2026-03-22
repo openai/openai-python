@@ -7,14 +7,21 @@ to the API, and surface clear error messages instead of opaque 500 errors.
 from __future__ import annotations
 
 import re
-from typing import Any, Iterable, Optional
+from typing import Iterable, cast
+
+from openai.types.responses.tool_param import (
+    ParseableToolParam,
+)
+from openai.types.responses.container_auto_param import ContainerAutoParam
+from openai.types.responses.function_shell_tool_param import FunctionShellToolParam
+from openai.types.responses.container_network_policy_allowlist_param import ContainerNetworkPolicyAllowlistParam
 
 _PROTOCOL_RE = re.compile(r"^https?://", re.IGNORECASE)
 _PATH_RE = re.compile(r"/.*$")
 
 
 def validate_network_policy_allowlist(
-    allowed_domains: Iterable[str],
+    allowed_domains: Iterable[object],
     *,
     source: str = "network_policy.allowed_domains",
 ) -> None:
@@ -60,51 +67,51 @@ def validate_network_policy_allowlist(
             )
 
 
-def validate_shell_tool(tool: Any) -> None:
+def validate_shell_tool(tool: FunctionShellToolParam) -> None:
     """Run validation checks on a shell tool dict before it is sent to the API.
 
     Currently validates the ``network_policy.allowed_domains`` field when
     an allowlist policy is specified.
     """
-    if not isinstance(tool, dict):
+    environment = tool.get("environment")
+    if environment is None:
         return
 
-    env: Optional[dict[str, Any]] = tool.get("environment")
-    if not isinstance(env, dict):
+    if environment.get("type") != "container_auto":
         return
 
-    policy: Optional[dict[str, Any]] = env.get("network_policy")
-    if not isinstance(policy, dict):
+    container_auto = cast(ContainerAutoParam, environment)
+    policy = container_auto.get("network_policy")
+    if policy is None or policy.get("type") != "allowlist":
         return
 
-    if policy.get("type") != "allowlist":
-        return
-
-    domains = policy.get("allowed_domains")
-    if domains is not None:
-        validate_network_policy_allowlist(
-            domains,
-            source="shell tool network_policy.allowed_domains",
-        )
+    allowlist = cast(ContainerNetworkPolicyAllowlistParam, policy)
+    validate_network_policy_allowlist(
+        allowlist["allowed_domains"],
+        source="shell tool network_policy.allowed_domains",
+    )
 
 
-def validate_tools(tools: Iterable[Any]) -> None:
+def validate_tools(tools: Iterable[object]) -> None:
     """Validate a list of tool dicts before they are sent to the API."""
     for tool in tools:
         if not isinstance(tool, dict):
             continue
 
-        tool_type = tool.get("type")
-        if tool_type == "shell":
-            validate_shell_tool(tool)
-        elif tool_type == "code_interpreter":
-            container = tool.get("container")
+        typed_tool = cast(ParseableToolParam, tool)
+
+        if typed_tool["type"] == "shell":
+            validate_shell_tool(typed_tool)
+        elif typed_tool["type"] == "code_interpreter":
+            container = typed_tool["container"]
             if isinstance(container, dict):
+                if container.get("type") != "auto":
+                    continue
+
                 policy = container.get("network_policy")
-                if isinstance(policy, dict) and policy.get("type") == "allowlist":
-                    domains = policy.get("allowed_domains")
-                    if domains is not None:
-                        validate_network_policy_allowlist(
-                            domains,
-                            source="code_interpreter container network_policy.allowed_domains",
-                        )
+                if policy is not None and policy.get("type") == "allowlist":
+                    allowlist = cast(ContainerNetworkPolicyAllowlistParam, policy)
+                    validate_network_policy_allowlist(
+                        allowlist["allowed_domains"],
+                        source="code_interpreter container network_policy.allowed_domains",
+                    )
