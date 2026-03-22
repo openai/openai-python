@@ -40,6 +40,7 @@ from .input_tokens import (
 )
 from ..._exceptions import OpenAIError
 from ..._base_client import _merge_mappings, make_request_options
+from ...lib._validation import validate_tools
 from ...types.responses import (
     response_create_params,
     response_compact_params,
@@ -895,6 +896,8 @@ class Responses(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
+        tools = _make_tools(tools)
+
         return self._post(
             "/responses",
             body=maybe_transform(
@@ -2562,6 +2565,8 @@ class AsyncResponses(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
+        tools = _make_tools(tools)
+
         return await self._post(
             "/responses",
             body=await async_maybe_transform(
@@ -3545,10 +3550,15 @@ def _make_tools(tools: Iterable[ParseableToolParam] | Omit) -> List[ToolParam] |
     if not is_given(tools):
         return omit
 
+    # Materialise once so that validation doesn't consume a one-shot iterator
+    tools_list = list(tools) if not isinstance(tools, list) else tools
+
+    validate_tools(tools_list)
+
     converted_tools: List[ToolParam] = []
-    for tool in tools:
+    for tool in tools_list:
         if tool["type"] != "function":
-            converted_tools.append(tool)
+            converted_tools.append(cast(ToolParam, tool))
             continue
 
         if "function" not in tool:
