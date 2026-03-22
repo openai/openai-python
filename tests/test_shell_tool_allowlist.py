@@ -199,6 +199,28 @@ def _captured_body(transport: _CaptureTransport) -> dict[str, Any]:
     return cast(dict[str, Any], json.loads(transport.last_request.content))
 
 
+class _AsyncCaptureTransport(httpx.AsyncBaseTransport):
+    """Async transport that records the last request and returns a minimal valid response."""
+
+    last_request: httpx.Request | None = None
+
+    @override
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        self.last_request = request
+        return httpx.Response(200, json={
+            "id": "resp_test",
+            "object": "response",
+            "created_at": 1234567890,
+            "status": "completed",
+            "model": "gpt-5.2",
+            "output": [],
+            "output_text": "",
+            "parallel_tool_calls": True,
+            "tool_choice": "auto",
+            "tools": [],
+        })
+
+
 class TestShellToolSerialization:
     """Ensure shell tool with allowlist is serialized exactly as the API expects."""
 
@@ -207,6 +229,14 @@ class TestShellToolSerialization:
         client = openai.OpenAI(
             api_key="test-key",
             http_client=httpx.Client(transport=transport),
+        )
+        return client, transport
+
+    def _make_async_client(self) -> tuple[openai.AsyncOpenAI, _AsyncCaptureTransport]:
+        transport = _AsyncCaptureTransport()
+        client = openai.AsyncOpenAI(
+            api_key="test-key",
+            http_client=httpx.AsyncClient(transport=transport),
         )
         return client, transport
 
@@ -250,6 +280,21 @@ class TestShellToolSerialization:
                 input="test",
                 tools=[_shell_tool(["example.com/"])],
             )
+
+        assert transport.last_request is None
+
+    async def test_async_invalid_allowlist_raises_before_request_send(self) -> None:
+        client, transport = self._make_async_client()
+
+        try:
+            with pytest.raises(ValueError, match="without a path"):
+                await client.responses.create(
+                    model="gpt-5.2",
+                    input="test",
+                    tools=[_shell_tool(["example.com/"])],
+                )
+        finally:
+            await client.close()
 
         assert transport.last_request is None
 
