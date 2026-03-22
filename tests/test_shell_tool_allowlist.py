@@ -241,6 +241,18 @@ class TestShellToolSerialization:
         assert tool["type"] == "shell"
         assert tool["environment"]["network_policy"]["allowed_domains"] == ["google.com"]
 
+    def test_invalid_allowlist_raises_before_request_send(self) -> None:
+        client, transport = self._make_client()
+
+        with pytest.raises(ValueError, match="without a path"):
+            client.responses.create(
+                model="gpt-5.2",
+                input="test",
+                tools=[_shell_tool(["example.com/"])],
+            )
+
+        assert transport.last_request is None
+
     def test_allowlist_with_multiple_domains(self) -> None:
         client, transport = self._make_client()
         domains = ["pypi.org", "files.pythonhosted.org", "github.com"]

@@ -896,6 +896,8 @@ class Responses(SyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | Stream[ResponseStreamEvent]:
+        tools = _make_tools(tools)
+
         return self._post(
             "/responses",
             body=maybe_transform(
@@ -2563,6 +2565,8 @@ class AsyncResponses(AsyncAPIResource):
         extra_body: Body | None = None,
         timeout: float | httpx.Timeout | None | NotGiven = not_given,
     ) -> Response | AsyncStream[ResponseStreamEvent]:
+        tools = _make_tools(tools)
+
         return await self._post(
             "/responses",
             body=await async_maybe_transform(
