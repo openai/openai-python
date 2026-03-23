@@ -1,4 +1,5 @@
 .prism.log
+.stdy.log
 _dev
 
 __pycache__
