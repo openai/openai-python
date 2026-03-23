@@ -548,6 +548,82 @@ def test_parse_max_tokens_reached(client: OpenAI, respx_mock: MockRouter) -> Non
 
 
 @pytest.mark.respx(base_url=base_url)
+def test_parse_malformed_json_content(client: OpenAI, respx_mock: MockRouter) -> None:
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    with pytest.raises(openai.ContentFormatError) as exc_info:
+        make_snapshot_request(
+            lambda c: c.chat.completions.parse(
+                model="gpt-4o-2024-08-06",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "What's the weather like in SF?",
+                    },
+                ],
+                response_format=Location,
+            ),
+            content_snapshot=snapshot(
+                '{"id": "chatcmpl-truncated", "object": "chat.completion", "created": 1727346163, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\": \\"San", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 5, "total_tokens": 84}, "system_fingerprint": "fp_test"}'
+            ),
+            path="/chat/completions",
+            mock_client=client,
+            respx_mock=respx_mock,
+        )
+    assert '{"city": "San' in exc_info.value.raw_content
+    assert exc_info.value.expected_response_format == "Location"
+    assert "Raw content:" in str(exc_info.value)
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_parse_invalid_json_schema(client: OpenAI, respx_mock: MockRouter) -> None:
+    class Location(BaseModel):
+        city: str
+        temperature: float
+        units: Literal["c", "f"]
+
+    with pytest.raises(openai.ContentFormatError) as exc_info:
+        make_snapshot_request(
+            lambda c: c.chat.completions.parse(
+                model="gpt-4o-2024-08-06",
+                messages=[
+                    {
+                        "role": "user",
+                        "content": "What's the weather like in SF?",
+                    },
+                ],
+                response_format=Location,
+            ),
+            content_snapshot=snapshot(
+                '{"id": "chatcmpl-badschema", "object": "chat.completion", "created": 1727346163, "model": "gpt-4o-2024-08-06", "choices": [{"index": 0, "message": {"role": "assistant", "content": "{\\"city\\": \\"San Francisco\\"}", "refusal": null}, "logprobs": null, "finish_reason": "stop"}], "usage": {"prompt_tokens": 79, "completion_tokens": 10, "total_tokens": 89}, "system_fingerprint": "fp_test"}'
+            ),
+            path="/chat/completions",
+            mock_client=client,
+            respx_mock=respx_mock,
+        )
+    assert exc_info.value.raw_content == '{"city": "San Francisco"}'
+    assert exc_info.value.expected_response_format == "Location"
+    assert "Raw content:" in str(exc_info.value)
+
+
+def test_content_format_error_truncates_raw_content() -> None:
+    """Verify raw_content is truncated in the exception message for very large payloads."""
+    long_content = "x" * 1000
+    err = openai.ContentFormatError(raw_content=long_content, error=ValueError("bad"), response_format=None)
+    msg = str(err)
+    # Full raw_content is preserved on the attribute
+    assert len(err.raw_content) == 1000
+    # Message should contain truncated version (200 chars + "...")
+    assert "xxx..." in msg
+    assert len(long_content) > 200  # sanity
+    # Should not contain the full 1000-char string in the message
+    assert long_content not in msg
+
+
+@pytest.mark.respx(base_url=base_url)
 def test_parse_pydantic_model_refusal(client: OpenAI, respx_mock: MockRouter, monkeypatch: pytest.MonkeyPatch) -> None:
     class Location(BaseModel):
         city: str
