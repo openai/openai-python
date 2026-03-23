@@ -43,7 +43,7 @@ elif ! steady_is_running ; then
   echo -e "To run the server, pass in the path or url of your OpenAPI"
   echo -e "spec to the steady command:"
   echo
-  echo -e "  \$ ${YELLOW}npm exec --package=@stdy/cli@0.19.5 -- steady path/to/your.openapi.yml --host 127.0.0.1 -p 4010 --validator-form-array-format=brackets --validator-query-array-format=brackets --validator-form-object-format=brackets --validator-query-object-format=brackets${NC}"
+  echo -e "  \$ ${YELLOW}npm exec --package=@stdy/cli@0.19.6 -- steady path/to/your.openapi.yml --host 127.0.0.1 -p 4010 --validator-form-array-format=brackets --validator-query-array-format=brackets --validator-form-object-format=brackets --validator-query-object-format=brackets${NC}"
   echo
 
   exit 1
