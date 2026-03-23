@@ -18,6 +18,7 @@ from ._utils import can_use_http2
 from ._errors import CLIError, display_error
 from .._compat import PYDANTIC_V1, ConfigDict, model_parse
 from .._models import BaseModel
+from ._completion import handle_completion, add_completion_argument
 from .._exceptions import APIError
 
 logger = logging.getLogger()
@@ -61,6 +62,7 @@ class Arguments(BaseModel):
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=None, prog="openai")
+    add_completion_argument(parser)
     parser.add_argument(
         "-v",
         "--verbose",
@@ -144,6 +146,10 @@ def _parse_args(parser: argparse.ArgumentParser) -> tuple[argparse.Namespace, Ar
     else:
         known_args = sys.argv[1:]
         unknown_args = []
+
+    if "--completion" in known_args:
+        handle_completion(parser, known_args)
+        raise SystemExit(0)
 
     parsed, remaining_unknown = parser.parse_known_args(known_args)
 
