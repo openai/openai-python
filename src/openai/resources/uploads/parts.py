@@ -8,7 +8,7 @@ import httpx
 
 from ... import _legacy_response
 from ..._types import Body, Query, Headers, NotGiven, FileTypes, not_given
-from ..._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ..._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -86,7 +86,7 @@ class Parts(SyncAPIResource):
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
-            f"/uploads/{upload_id}/parts",
+            path_template("/uploads/{upload_id}/parts", upload_id=upload_id),
             body=maybe_transform(body, part_create_params.PartCreateParams),
             files=files,
             options=make_request_options(
@@ -163,7 +163,7 @@ class AsyncParts(AsyncAPIResource):
         # multipart/form-data; boundary=---abc--
         extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
-            f"/uploads/{upload_id}/parts",
+            path_template("/uploads/{upload_id}/parts", upload_id=upload_id),
             body=await async_maybe_transform(body, part_create_params.PartCreateParams),
             files=files,
             options=make_request_options(

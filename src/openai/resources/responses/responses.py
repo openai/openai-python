@@ -15,7 +15,7 @@ from pydantic import BaseModel
 
 from ... import _legacy_response
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
-from ..._utils import is_given, maybe_transform, strip_not_given, async_maybe_transform
+from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
 from ..._models import construct_type_unchecked
 from ..._resource import SyncAPIResource, AsyncAPIResource
@@ -1471,7 +1471,7 @@ class Responses(SyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._get(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -1519,7 +1519,7 @@ class Responses(SyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return self._delete(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -1555,7 +1555,7 @@ class Responses(SyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return self._post(
-            f"/responses/{response_id}/cancel",
+            path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -3142,7 +3142,7 @@ class AsyncResponses(AsyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._get(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers,
                 extra_query=extra_query,
@@ -3190,7 +3190,7 @@ class AsyncResponses(AsyncAPIResource):
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         extra_headers = {"Accept": "*/*", **(extra_headers or {})}
         return await self._delete(
-            f"/responses/{response_id}",
+            path_template("/responses/{response_id}", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -3226,7 +3226,7 @@ class AsyncResponses(AsyncAPIResource):
         if not response_id:
             raise ValueError(f"Expected a non-empty value for `response_id` but received {response_id!r}")
         return await self._post(
-            f"/responses/{response_id}/cancel",
+            path_template("/responses/{response_id}/cancel", response_id=response_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),

@@ -23,7 +23,7 @@ from .parts import (
 )
 from ...types import FilePurpose, upload_create_params, upload_complete_params
 from ..._types import Body, Omit, Query, Headers, NotGiven, SequenceNotStr, omit, not_given
-from ..._utils import maybe_transform, async_maybe_transform
+from ..._utils import path_template, maybe_transform, async_maybe_transform
 from ..._compat import cached_property
 from ..._resource import SyncAPIResource, AsyncAPIResource
 from ..._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -276,7 +276,7 @@ class Uploads(SyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return self._post(
-            f"/uploads/{upload_id}/cancel",
+            path_template("/uploads/{upload_id}/cancel", upload_id=upload_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -330,7 +330,7 @@ class Uploads(SyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return self._post(
-            f"/uploads/{upload_id}/complete",
+            path_template("/uploads/{upload_id}/complete", upload_id=upload_id),
             body=maybe_transform(
                 {
                     "part_ids": part_ids,
@@ -592,7 +592,7 @@ class AsyncUploads(AsyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return await self._post(
-            f"/uploads/{upload_id}/cancel",
+            path_template("/uploads/{upload_id}/cancel", upload_id=upload_id),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -646,7 +646,7 @@ class AsyncUploads(AsyncAPIResource):
         if not upload_id:
             raise ValueError(f"Expected a non-empty value for `upload_id` but received {upload_id!r}")
         return await self._post(
-            f"/uploads/{upload_id}/complete",
+            path_template("/uploads/{upload_id}/complete", upload_id=upload_id),
             body=await async_maybe_transform(
                 {
                     "part_ids": part_ids,
