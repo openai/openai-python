@@ -107,9 +107,11 @@ def parse_response(
             or output.type == "compaction"
             or output.type == "mcp_call"
             or output.type == "mcp_approval_request"
+            or output.type == "mcp_approval_response"
             or output.type == "image_generation_call"
             or output.type == "code_interpreter_call"
             or output.type == "local_shell_call"
+            or output.type == "local_shell_call_output"
             or output.type == "shell_call"
             or output.type == "shell_call_output"
             or output.type == "apply_patch_call"
@@ -117,6 +119,9 @@ def parse_response(
             or output.type == "mcp_list_tools"
             or output.type == "exec"
             or output.type == "custom_tool_call"
+            or output.type == "function_call_output"
+            or output.type == "computer_call_output"
+            or output.type == "custom_tool_call_output"
         ):
             output_list.append(output)
         elif TYPE_CHECKING:  # type: ignore
