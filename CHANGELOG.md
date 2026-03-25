@@ -1,5 +1,35 @@
 # Changelog
 
+## 2.30.0 (2026-03-25)
+
+Full Changelog: [v2.29.0...v2.30.0](https://github.com/openai/openai-python/compare/v2.29.0...v2.30.0)
+
+### Features
+
+* **api:** add keys field to Click/DoubleClick/Drag/Move/Scroll computer actions ([ee1bbed](https://github.com/openai/openai-python/commit/ee1bbeddbb38dab817557412dc106354409bb950))
+
+
+### Bug Fixes
+
+* **api:** align SDK response types with expanded item schemas ([f3f258a](https://github.com/openai/openai-python/commit/f3f258a9d4d19db3fb0c6c35e25ad3cedbe71254))
+* sanitize endpoint path params ([89f6698](https://github.com/openai/openai-python/commit/89f66988fde790c0c83ff8b876d1e1b10d616367))
+* **types:** make type required in ResponseInputMessageItem ([cfdb167](https://github.com/openai/openai-python/commit/cfdb1676ea0550840330a58f1a31a40a41a0a53f))
+
+
+### Chores
+
+* **ci:** skip lint on metadata-only changes ([faa93e1](https://github.com/openai/openai-python/commit/faa93e19a1d5c30c7dd672a08dbbdbb3c0374714))
+* **internal:** update gitignore ([c468477](https://github.com/openai/openai-python/commit/c468477f1546579618865a726e35a685cffeacd9))
+* **tests:** bump steady to v0.19.4 ([f350af8](https://github.com/openai/openai-python/commit/f350af86c13ade0237778010d264c55fda443354))
+* **tests:** bump steady to v0.19.5 ([5c03401](https://github.com/openai/openai-python/commit/5c0340128fc1a416e2dfdc6ab4b05f1e954e8482))
+* **tests:** bump steady to v0.19.6 ([b6353b8](https://github.com/openai/openai-python/commit/b6353b8411d31dcc95875d801ce9e90a21e0fd52))
+* **tests:** bump steady to v0.19.7 ([1d654be](https://github.com/openai/openai-python/commit/1d654bea74ac9c3d43302587f98f33cfff502e48))
+
+
+### Refactors
+
+* **tests:** switch from prism to steady ([4a82035](https://github.com/openai/openai-python/commit/4a82035669b739d16a0e85d4ded778d51e061948))
+
 ## 2.29.0 (2026-03-17)
 
 Full Changelog: [v2.28.0...v2.29.0](https://github.com/openai/openai-python/compare/v2.28.0...v2.29.0)
