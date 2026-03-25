@@ -21,7 +21,7 @@ jobs:
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rye
         run: |
@@ -46,7 +46,7 @@ jobs:
       id-token: write
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rye
         run: |
@@ -67,7 +67,7 @@ jobs:
           github.repository == 'stainless-sdks/openai-python' &&
           !startsWith(github.ref, 'refs/heads/stl/')
         id: github-oidc
-        uses: actions/github-script@v8
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
         with:
           script: core.setOutput('github_token', await core.getIDToken());
 
@@ -87,7 +87,7 @@ jobs:
     runs-on: ${{ github.repository == 'stainless-sdks/openai-python' && 'depot-ubuntu-24.04' || 'ubuntu-latest' }}
     if: github.event_name == 'push' || github.event.pull_request.head.repo.fork
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rye
         run: |
@@ -110,7 +110,7 @@ jobs:
     if: github.repository == 'openai/openai-python' && (github.event_name == 'push' || github.event.pull_request.head.repo.fork)
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install Rye
         run: |
