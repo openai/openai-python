@@ -29,12 +29,15 @@ class ResponseFunctionToolCallOutputItem(BaseModel):
     list of output content.
     """
 
-    type: Literal["function_call_output"]
-    """The type of the function tool call output. Always `function_call_output`."""
-
-    status: Optional[Literal["in_progress", "completed", "incomplete"]] = None
+    status: Literal["in_progress", "completed", "incomplete"]
     """The status of the item.
 
     One of `in_progress`, `completed`, or `incomplete`. Populated when items are
     returned via API.
     """
+
+    type: Literal["function_call_output"]
+    """The type of the function tool call output. Always `function_call_output`."""
+
+    created_by: Optional[str] = None
+    """The identifier of the actor that created the item."""
