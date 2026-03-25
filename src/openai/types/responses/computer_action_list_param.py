@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import List, Union, Iterable
+from typing import List, Union, Iterable, Optional
 from typing_extensions import Literal, Required, TypeAlias, TypedDict
 
 from ..._types import SequenceNotStr
@@ -41,9 +41,15 @@ class Click(TypedDict, total=False):
     y: Required[int]
     """The y-coordinate where the click occurred."""
 
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while clicking."""
+
 
 class DoubleClick(TypedDict, total=False):
     """A double click action."""
+
+    keys: Required[Optional[SequenceNotStr[str]]]
+    """The keys being held while double-clicking."""
 
     type: Required[Literal["double_click"]]
     """Specifies the event type.
@@ -90,6 +96,9 @@ class Drag(TypedDict, total=False):
     For a drag action, this property is always set to `drag`.
     """
 
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while dragging the mouse."""
+
 
 class Keypress(TypedDict, total=False):
     """A collection of keypresses the model would like to perform."""
@@ -122,6 +131,9 @@ class Move(TypedDict, total=False):
     y: Required[int]
     """The y-coordinate to move to."""
 
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while moving the mouse."""
+
 
 class Screenshot(TypedDict, total=False):
     """A screenshot action."""
@@ -153,6 +165,9 @@ class Scroll(TypedDict, total=False):
 
     y: Required[int]
     """The y-coordinate where the scroll occurred."""
+
+    keys: Optional[SequenceNotStr[str]]
+    """The keys being held while scrolling."""
 
 
 class Type(TypedDict, total=False):
