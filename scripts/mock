@@ -24,7 +24,7 @@ if [ "$1" == "--daemon" ]; then
   # Pre-install the package so the download doesn't eat into the startup timeout
   npm exec --package=@stdy/cli@0.19.7 -- steady --version
 
-  npm exec --package=@stdy/cli@0.19.7 -- steady --host 127.0.0.1 -p 4010 --validator-form-array-format=brackets --validator-query-array-format=brackets --validator-form-object-format=brackets --validator-query-object-format=brackets "$URL" &> .stdy.log &
+  npm exec --package=@stdy/cli@0.19.7 -- steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL" &> .stdy.log &
 
   # Wait for server to come online via health endpoint (max 30s)
   echo -n "Waiting for server"
@@ -48,5 +48,5 @@ if [ "$1" == "--daemon" ]; then
 
   echo
 else
-  npm exec --package=@stdy/cli@0.19.7 -- steady --host 127.0.0.1 -p 4010 --validator-form-array-format=brackets --validator-query-array-format=brackets --validator-form-object-format=brackets --validator-query-object-format=brackets "$URL"
+  npm exec --package=@stdy/cli@0.19.7 -- steady --host 127.0.0.1 -p 4010 --validator-query-array-format=brackets --validator-form-array-format=brackets --validator-query-object-format=brackets --validator-form-object-format=brackets "$URL"
 fi
