@@ -476,6 +476,26 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
     def _make_sse_decoder(self) -> SSEDecoder | SSEBytesDecoder:
         return SSEDecoder()
 
+    def _redact_sensitive_headers(self, headers):
+        """Redact sensitive headers (API keys, auth tokens) for safe logging."""
+        if not headers or not isinstance(headers, dict):
+            return headers
+        
+        redacted = {}
+        sensitive_keys = {
+            "authorization", "api-key", "x-api-key", 
+            "x-openai-api-key", "openai-api-key"
+        }
+        
+        for key, value in headers.items():
+            key_lower = key.lower()
+            if any(sensitive in key_lower for sensitive in sensitive_keys):
+                redacted[key] = "[REDACTED]"
+            else:
+                redacted[key] = value
+        
+        return redacted
+
     def _build_request(
         self,
         options: FinalRequestOptions,
@@ -483,11 +503,10 @@ class BaseClient(Generic[_HttpxClientT, _DefaultStreamT]):
         retries_taken: int = 0,
     ) -> httpx.Request:
         if log.isEnabledFor(logging.DEBUG):
-            log.debug(
-                "Request options: %s",
-                model_dump(
-                    options,
-                    exclude_unset=True,
+            safe_options = options.model_dump()
+            if "headers" in safe_options:
+                safe_options["headers"] = self._redact_sensitive_headers(safe_options["headers"])
+            log.debug("Request options: %s", safe_options)
                     # Pydantic v1 can't dump every type we support in content, so we exclude it for now.
                     exclude={
                         "content",
