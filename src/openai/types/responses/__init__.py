@@ -142,6 +142,7 @@ from .tool_choice_apply_patch_param import ToolChoiceApplyPatchParam as ToolChoi
 from .web_search_preview_tool_param import WebSearchPreviewToolParam as WebSearchPreviewToolParam
 from .response_apply_patch_tool_call import ResponseApplyPatchToolCall as ResponseApplyPatchToolCall
 from .response_compaction_item_param import ResponseCompactionItemParam as ResponseCompactionItemParam
+from .response_custom_tool_call_item import ResponseCustomToolCallItem as ResponseCustomToolCallItem
 from .response_file_search_tool_call import ResponseFileSearchToolCall as ResponseFileSearchToolCall
 from .response_mcp_call_failed_event import ResponseMcpCallFailedEvent as ResponseMcpCallFailedEvent
 from .computer_use_preview_tool_param import ComputerUsePreviewToolParam as ComputerUsePreviewToolParam
@@ -179,6 +180,7 @@ from .response_apply_patch_tool_call_output import ResponseApplyPatchToolCallOut
 from .response_audio_transcript_delta_event import (
     ResponseAudioTranscriptDeltaEvent as ResponseAudioTranscriptDeltaEvent,
 )
+from .response_custom_tool_call_output_item import ResponseCustomToolCallOutputItem as ResponseCustomToolCallOutputItem
 from .container_network_policy_domain_secret import (
     ContainerNetworkPolicyDomainSecret as ContainerNetworkPolicyDomainSecret,
 )

@@ -27,7 +27,7 @@ from ...._types import (
     omit,
     not_given,
 )
-from ...._utils import extract_files, maybe_transform, deepcopy_minimal, async_maybe_transform
+from ...._utils import extract_files, path_template, maybe_transform, deepcopy_minimal, async_maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -108,7 +108,7 @@ class Versions(SyncAPIResource):
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return self._post(
-            f"/skills/{skill_id}/versions",
+            path_template("/skills/{skill_id}/versions", skill_id=skill_id),
             body=maybe_transform(body, version_create_params.VersionCreateParams),
             files=extracted_files,
             options=make_request_options(
@@ -148,7 +148,7 @@ class Versions(SyncAPIResource):
         if not version:
             raise ValueError(f"Expected a non-empty value for `version` but received {version!r}")
         return self._get(
-            f"/skills/{skill_id}/versions/{version}",
+            path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -190,7 +190,7 @@ class Versions(SyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return self._get_api_list(
-            f"/skills/{skill_id}/versions",
+            path_template("/skills/{skill_id}/versions", skill_id=skill_id),
             page=SyncCursorPage[SkillVersion],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -240,7 +240,7 @@ class Versions(SyncAPIResource):
         if not version:
             raise ValueError(f"Expected a non-empty value for `version` but received {version!r}")
         return self._delete(
-            f"/skills/{skill_id}/versions/{version}",
+            path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -316,7 +316,7 @@ class AsyncVersions(AsyncAPIResource):
             # multipart/form-data; boundary=---abc--
             extra_headers = {"Content-Type": "multipart/form-data", **(extra_headers or {})}
         return await self._post(
-            f"/skills/{skill_id}/versions",
+            path_template("/skills/{skill_id}/versions", skill_id=skill_id),
             body=await async_maybe_transform(body, version_create_params.VersionCreateParams),
             files=extracted_files,
             options=make_request_options(
@@ -356,7 +356,7 @@ class AsyncVersions(AsyncAPIResource):
         if not version:
             raise ValueError(f"Expected a non-empty value for `version` but received {version!r}")
         return await self._get(
-            f"/skills/{skill_id}/versions/{version}",
+            path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -398,7 +398,7 @@ class AsyncVersions(AsyncAPIResource):
         if not skill_id:
             raise ValueError(f"Expected a non-empty value for `skill_id` but received {skill_id!r}")
         return self._get_api_list(
-            f"/skills/{skill_id}/versions",
+            path_template("/skills/{skill_id}/versions", skill_id=skill_id),
             page=AsyncCursorPage[SkillVersion],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -448,7 +448,7 @@ class AsyncVersions(AsyncAPIResource):
         if not version:
             raise ValueError(f"Expected a non-empty value for `version` but received {version!r}")
         return await self._delete(
-            f"/skills/{skill_id}/versions/{version}",
+            path_template("/skills/{skill_id}/versions/{version}", skill_id=skill_id, version=version),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
