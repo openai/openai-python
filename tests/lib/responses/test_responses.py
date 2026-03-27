@@ -1,13 +1,19 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._compat import parse_obj
+from openai.types.responses.response import Response
+from openai.types.responses.response_reasoning_item import ResponseReasoningItem
+from openai.types.responses.response_function_tool_call import ResponseFunctionToolCall
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +45,73 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_response_output_items_can_be_replayed_without_null_only_fields(
+    client: OpenAI,
+    respx_mock: MockRouter,
+) -> None:
+    route = respx_mock.post("/responses").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "resp_123",
+                "object": "response",
+                "created_at": 0,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "tool_choice": "auto",
+                "tools": [],
+            },
+        )
+    )
+
+    reasoning = parse_obj(
+        ResponseReasoningItem,
+        {
+            "id": "rs_123",
+            "type": "reasoning",
+            "summary": [],
+            "encrypted_content": None,
+            "status": None,
+        },
+    )
+    function_call = parse_obj(
+        ResponseFunctionToolCall,
+        {
+            "arguments": "{}",
+            "call_id": "call_123",
+            "name": "weather",
+            "type": "function_call",
+            "id": "fc_123",
+            "status": None,
+        },
+    )
+
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        input=[reasoning, function_call],
+    )
+
+    assert isinstance(response, Response)
+
+    request_body = json.loads(route.calls[0].request.content.decode("utf-8"))
+    assert request_body["input"] == [
+        {
+            "id": "rs_123",
+            "summary": [],
+            "type": "reasoning",
+        },
+        {
+            "arguments": "{}",
+            "call_id": "call_123",
+            "id": "fc_123",
+            "name": "weather",
+            "type": "function_call",
+        },
+    ]
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
