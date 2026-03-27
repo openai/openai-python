@@ -283,7 +283,7 @@ class AsyncRealtimeConnection:
 
     async def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(await async_maybe_transform(event, RealtimeClientEventParam))
         )
@@ -466,7 +466,7 @@ class RealtimeConnection:
 
     def send(self, event: RealtimeClientEvent | RealtimeClientEventParam) -> None:
         data = (
-            event.to_json(use_api_names=True, exclude_defaults=True, exclude_unset=True)
+            event.to_json(use_api_names=True, exclude_unset=True)
             if isinstance(event, BaseModel)
             else json.dumps(maybe_transform(event, RealtimeClientEventParam))
         )
