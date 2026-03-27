@@ -12,6 +12,7 @@ import pydantic
 import openai
 
 from . import _tools
+from ._completion import generate_completion, print_installation_instructions
 from .. import _ApiType, __version__
 from ._api import register_commands
 from ._utils import can_use_http2
@@ -119,6 +120,27 @@ def _build_parser() -> argparse.ArgumentParser:
 
     sub_tools = subparsers.add_parser("tools", help="Client side tools for convenience")
     _tools.register_commands(sub_tools, subparsers)
+    
+    # Add completion command
+    sub_completion = subparsers.add_parser("completion", help="Generate shell completion scripts")
+    sub_completion.add_argument(
+        "shell",
+        choices=["bash", "zsh", "fish", "powershell"],
+        help="Shell type (bash, zsh, fish, or powershell)"
+    )
+    sub_completion.add_argument(
+        "--instructions",
+        action="store_true",
+        help="Show installation instructions"
+    )
+    
+    def completion_handler(args: Any) -> None:
+        if args.instructions:
+            print_installation_instructions(args.shell)
+        else:
+            generate_completion(args.shell)
+    
+    sub_completion.set_defaults(func=completion_handler)
 
     return parser
 
