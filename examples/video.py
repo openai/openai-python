@@ -1,4 +1,10 @@
 #!/usr/bin/env -S poetry run python
+"""
+Example script demonstrating video generation using Sora.
+
+This async script generates a video from a text prompt using OpenAI's Sora model
+and polls until the video generation is complete.
+"""
 
 import asyncio
 
