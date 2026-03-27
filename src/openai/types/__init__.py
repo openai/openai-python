@@ -66,6 +66,12 @@ from .file_create_params import FileCreateParams as FileCreateParams
 from .video_create_error import VideoCreateError as VideoCreateError
 from .video_remix_params import VideoRemixParams as VideoRemixParams
 from .batch_create_params import BatchCreateParams as BatchCreateParams
+from .batch_request_input import BatchRequestInput as BatchRequestInput
+from .batch_request_output import (
+    BatchRequestOutput as BatchRequestOutput,
+    BatchRequestOutputError as BatchRequestOutputError,
+    BatchRequestOutputResponse as BatchRequestOutputResponse,
+)
 from .skill_create_params import SkillCreateParams as SkillCreateParams
 from .skill_update_params import SkillUpdateParams as SkillUpdateParams
 from .video_create_params import VideoCreateParams as VideoCreateParams
