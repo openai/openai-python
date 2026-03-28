@@ -16,8 +16,6 @@ Content: TypeAlias = Annotated[Union[ResponseOutputText, ResponseOutputRefusal],
 class ResponseOutputMessage(BaseModel):
     """An output message from the model."""
 
-    __api_exclude__ = {"status"}
-
     id: str
     """The unique ID of the output message."""
 
