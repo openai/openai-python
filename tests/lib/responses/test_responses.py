@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import cast
 from typing_extensions import TypeVar
 
 import pytest
@@ -8,6 +9,7 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai.types.responses import Response, ResponseReasoningItem
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +41,69 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_output_as_input_omits_null_only_response_fields() -> None:
+    response = Response.construct(
+        id="resp_123",
+        created_at=1754925861,
+        model="o4-mini",
+        object="response",
+        output=[
+            {
+                "id": "rs_123",
+                "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+                "type": "reasoning",
+            },
+            {
+                "id": "msg_123",
+                "type": "message",
+                "status": "completed",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "text": "Paris.",
+                    }
+                ],
+                "role": "assistant",
+            },
+        ],
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+    )
+
+    reasoning_item = cast(ResponseReasoningItem, response.output[0])
+    assert reasoning_item.model_dump() == {
+        "id": "rs_123",
+        "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+        "type": "reasoning",
+        "content": None,
+        "encrypted_content": None,
+        "status": None,
+    }
+
+    assert response.output_as_input == [
+        {
+            "id": "rs_123",
+            "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+            "type": "reasoning",
+        },
+        {
+            "id": "msg_123",
+            "type": "message",
+            "status": "completed",
+            "content": [
+                {
+                    "type": "output_text",
+                    "annotations": [],
+                    "text": "Paris.",
+                }
+            ],
+            "role": "assistant",
+        },
+    ]
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
