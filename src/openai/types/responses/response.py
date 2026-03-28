@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import TYPE_CHECKING, List, Union, Optional, cast
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -25,6 +25,9 @@ from ..shared.responses_model import ResponsesModel
 from .tool_choice_apply_patch import ToolChoiceApplyPatch
 
 __all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
+
+if TYPE_CHECKING:
+    from .response_input_item_param import ResponseInputItemParam
 
 
 class IncompleteDetails(BaseModel):
@@ -319,3 +322,15 @@ class Response(BaseModel):
                         texts.append(content.text)
 
         return "".join(texts)
+
+    @property
+    def output_as_input(self) -> List["ResponseInputItemParam"]:
+        """Convenience property that serializes `output` items into valid `input` items.
+
+        This is useful when manually managing conversation state with
+        `responses.create()` and resending a prior response's `output`.
+        """
+        return [
+            cast("ResponseInputItemParam", item.to_dict(mode="json", exclude_none=True))
+            for item in self.output
+        ]
