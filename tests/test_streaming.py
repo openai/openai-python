@@ -1,12 +1,14 @@
 from __future__ import annotations
 
-from typing import Iterator, AsyncIterator
+from typing import Any, Iterator, AsyncIterator, cast
 
 import httpx
 import pytest
 
 from openai import OpenAI, AsyncOpenAI
+from openai._types import omit
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
+from openai.lib.streaming.chat import AsyncChatCompletionStream
 
 
 @pytest.mark.asyncio
@@ -214,6 +216,36 @@ async def test_multi_byte_character_multiple_chunks(
     sse = await iter_next(iterator)
     assert sse.event is None
     assert sse.json() == {"content": "известни"}
+
+
+@pytest.mark.asyncio
+async def test_async_chat_completion_stream_close_accepts_wrapped_async_stream(async_client: AsyncOpenAI) -> None:
+    raw_stream = AsyncStream(
+        cast_to=object,
+        client=async_client,
+        response=httpx.Response(200, content=to_aiter(iter(()))),
+    )
+
+    class WrappedAsyncStream:
+        def __init__(self, stream: AsyncStream[object]) -> None:
+            self._stream = stream
+            self.response = stream
+
+        def __aiter__(self) -> AsyncIterator[object]:
+            return self._stream.__aiter__()
+
+        async def __anext__(self) -> object:
+            return await self._stream.__anext__()
+
+    stream = AsyncChatCompletionStream(
+        raw_stream=cast(Any, WrappedAsyncStream(raw_stream)),
+        response_format=omit,
+        input_tools=omit,
+    )
+
+    await stream.close()
+
+    assert raw_stream.response.is_closed is True
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:

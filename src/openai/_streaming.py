@@ -238,6 +238,10 @@ class AsyncStream(Generic[_T]):
         """
         await self.response.aclose()
 
+    async def aclose(self) -> None:
+        """Alias for `close()` to match async cleanup conventions."""
+        await self.close()
+
 
 class ServerSentEvent:
     def __init__(
