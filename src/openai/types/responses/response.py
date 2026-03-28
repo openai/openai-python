@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional, cast
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -23,6 +23,7 @@ from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
 from ..shared.responses_model import ResponsesModel
 from .tool_choice_apply_patch import ToolChoiceApplyPatch
+from .response_input_item_param import ResponseInputItemParam
 
 __all__ = ["Response", "IncompleteDetails", "ToolChoice", "Conversation"]
 
@@ -319,3 +320,12 @@ class Response(BaseModel):
                         texts.append(content.text)
 
         return "".join(texts)
+
+    def as_input(self) -> List[ResponseInputItemParam]:
+        """Convert `output` items into valid `input` items for a subsequent response.
+
+        This is useful when manually managing conversation state with the Responses
+        API. The returned items use API field names and omit `None` values that are
+        present on response models but rejected by the input schema.
+        """
+        return [cast(ResponseInputItemParam, output.to_dict(exclude_none=True)) for output in self.output]
