@@ -12,8 +12,6 @@ from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
 from openai._compat import parse_obj
 from openai.types.responses.response import Response
-from openai.types.responses.response_reasoning_item import ResponseReasoningItem
-from openai.types.responses.response_function_tool_call import ResponseFunctionToolCall
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -25,6 +23,84 @@ _T = TypeVar("_T")
 # you can update them with
 #
 # `OPENAI_LIVE=1 pytest --inline-snapshot=fix -p no:xdist -o addopts=""`
+
+
+EXPECTED_REPLAYED_OUTPUT_INPUT = [
+    {
+        "id": "rs_123",
+        "summary": [],
+        "type": "reasoning",
+    },
+    {
+        "arguments": "{}",
+        "call_id": "call_123",
+        "id": "fc_123",
+        "name": "weather",
+        "type": "function_call",
+    },
+    {
+        "content": [
+            {
+                "annotations": [],
+                "text": "The weather is sunny.",
+                "type": "output_text",
+            }
+        ],
+        "id": "msg_123",
+        "phase": "final_answer",
+        "role": "assistant",
+        "status": "completed",
+        "type": "message",
+    },
+]
+
+
+def make_replayed_response_output() -> list[object]:
+    response = parse_obj(
+        Response,
+        {
+            "id": "resp_123",
+            "object": "response",
+            "created_at": 0,
+            "model": "gpt-4o-mini",
+            "output": [
+                {
+                    "id": "rs_123",
+                    "type": "reasoning",
+                    "summary": [],
+                    "encrypted_content": None,
+                    "status": None,
+                },
+                {
+                    "arguments": "{}",
+                    "call_id": "call_123",
+                    "name": "weather",
+                    "type": "function_call",
+                    "id": "fc_123",
+                    "status": None,
+                },
+                {
+                    "id": "msg_123",
+                    "type": "message",
+                    "status": "completed",
+                    "role": "assistant",
+                    "phase": "final_answer",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "annotations": [],
+                            "logprobs": None,
+                            "text": "The weather is sunny.",
+                        }
+                    ],
+                },
+            ],
+            "parallel_tool_calls": True,
+            "tool_choice": "auto",
+            "tools": [],
+        },
+    )
+    return response.output
 
 
 @pytest.mark.respx(base_url=base_url)
@@ -68,50 +144,41 @@ def test_response_output_items_can_be_replayed_without_null_only_fields(
         )
     )
 
-    reasoning = parse_obj(
-        ResponseReasoningItem,
-        {
-            "id": "rs_123",
-            "type": "reasoning",
-            "summary": [],
-            "encrypted_content": None,
-            "status": None,
-        },
-    )
-    function_call = parse_obj(
-        ResponseFunctionToolCall,
-        {
-            "arguments": "{}",
-            "call_id": "call_123",
-            "name": "weather",
-            "type": "function_call",
-            "id": "fc_123",
-            "status": None,
-        },
-    )
-
     response = client.responses.create(
         model="gpt-4o-mini",
-        input=[reasoning, function_call],
+        input=make_replayed_response_output(),
     )
 
     assert isinstance(response, Response)
 
     request_body = json.loads(route.calls[0].request.content.decode("utf-8"))
-    assert request_body["input"] == [
-        {
-            "id": "rs_123",
-            "summary": [],
-            "type": "reasoning",
-        },
-        {
-            "arguments": "{}",
-            "call_id": "call_123",
-            "id": "fc_123",
-            "name": "weather",
-            "type": "function_call",
-        },
-    ]
+    assert request_body["input"] == EXPECTED_REPLAYED_OUTPUT_INPUT
+
+
+@pytest.mark.respx(base_url=base_url)
+async def test_async_replayed_response_output_items_can_be_counted_without_null_only_fields(
+    async_client: AsyncOpenAI,
+    respx_mock: MockRouter,
+) -> None:
+    route = respx_mock.post("/responses/input_tokens").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "input_tokens": 3,
+                "object": "response.input_tokens",
+            },
+        )
+    )
+
+    response = await async_client.responses.input_tokens.count(
+        model="gpt-4o-mini",
+        input=make_replayed_response_output(),
+    )
+
+    assert response.input_tokens == 3
+
+    request_body = json.loads(route.calls[0].request.content.decode("utf-8"))
+    assert request_body["input"] == EXPECTED_REPLAYED_OUTPUT_INPUT
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
