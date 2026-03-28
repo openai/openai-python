@@ -100,6 +100,7 @@ def test_output_as_input() -> None:
             "id": "msg_123",
             "type": "message",
             "role": "assistant",
+            "status": "completed",
             "phase": "final_answer",
             "content": [
                 {
