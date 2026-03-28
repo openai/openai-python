@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing_extensions import assert_type
 
+from openai._utils import maybe_transform
 from openai.types.responses.response_input_param import ImageGenerationCall as ImageGenerationCallParam
+from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 from openai.types.responses.response_input_item_param import ImageGenerationCall as ImageGenerationCallItemParam
 
 
@@ -22,3 +24,18 @@ def test_image_generation_call_input_params_can_omit_result_and_status() -> None
     assert "status" in ImageGenerationCallParam.__optional_keys__
     assert_type(input_item["id"], str)
     assert_type(input_param["id"], str)
+
+
+def test_image_generation_call_input_params_transform_without_result_and_status() -> None:
+    payload = maybe_transform(
+        {
+            "model": "gpt-4.1-mini",
+            "input": [{"id": "ig_123", "type": "image_generation_call"}],
+        },
+        ResponseCreateParamsNonStreaming,
+    )
+
+    assert payload == {
+        "model": "gpt-4.1-mini",
+        "input": [{"id": "ig_123", "type": "image_generation_call"}],
+    }
