@@ -7,9 +7,11 @@ import pytest
 import pydantic
 from pydantic import Field
 
-from openai._utils import PropertyInfo
+from openai._utils import PropertyInfo, maybe_transform
 from openai._compat import PYDANTIC_V1, parse_obj, model_dump, model_json
 from openai._models import DISCRIMINATOR_CACHE, BaseModel, construct_type
+from openai.types.responses import ResponseOutputMessage, ResponseReasoningItem
+from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
 
 class BasicModel(BaseModel):
@@ -570,6 +572,68 @@ def test_compat_method_no_error_for_warnings() -> None:
 
     m = Model(foo="hello")
     assert isinstance(model_dump(m, warnings=False), dict)
+
+
+def test_as_input_response_items() -> None:
+    reasoning = ResponseReasoningItem.construct(
+        id="rs_123",
+        type="reasoning",
+        summary=[{"text": "Reasoning summary", "type": "summary_text"}],
+        status=None,
+        encrypted_content=None,
+    )
+    message = ResponseOutputMessage.construct(
+        id="msg_123",
+        type="message",
+        role="assistant",
+        status="completed",
+        phase="final_answer",
+        content=[{"type": "output_text", "annotations": [], "text": "Paris"}],
+    )
+
+    assert reasoning.as_input() == {
+        "id": "rs_123",
+        "type": "reasoning",
+        "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+    }
+    assert message.as_input() == {
+        "id": "msg_123",
+        "type": "message",
+        "role": "assistant",
+        "phase": "final_answer",
+        "content": [{"type": "output_text", "annotations": [], "text": "Paris"}],
+    }
+
+
+def test_request_transform_respects_api_exclude_when_reusing_response_items() -> None:
+    reasoning = ResponseReasoningItem.construct(
+        id="rs_123",
+        type="reasoning",
+        summary=[{"text": "Reasoning summary", "type": "summary_text"}],
+        status="completed",
+    )
+    message = ResponseOutputMessage.construct(
+        id="msg_123",
+        type="message",
+        role="assistant",
+        status="completed",
+        content=[{"type": "output_text", "annotations": [], "text": "Paris"}],
+    )
+
+    transformed = maybe_transform(
+        {
+            "input": [reasoning, message],
+            "model": "o4-mini",
+            "stream": False,
+        },
+        ResponseCreateParamsNonStreaming,
+    )
+
+    assert transformed == {
+        "input": [reasoning.as_input(), message.as_input()],
+        "model": "o4-mini",
+        "stream": False,
+    }
 
 
 def test_to_json() -> None:

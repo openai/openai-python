@@ -209,6 +209,31 @@ class BaseModel(pydantic.BaseModel):
             warnings=warnings,
         )
 
+    def as_input(
+        self,
+        *,
+        warnings: bool = True,
+    ) -> dict[str, object]:
+        """Serializes this model for reuse as an API input item.
+
+        This drops fields that were never set, filters `None` values, and respects
+        any model-level `__api_exclude__` hints used by request serialization.
+        """
+        data = self.model_dump(
+            mode="json",
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+            warnings=warnings,
+        )
+
+        exclude = getattr(self, "__api_exclude__", None)
+        if exclude:
+            for key in exclude:
+                data.pop(key, None)
+
+        return cast("dict[str, object]", data)
+
     @override
     def __str__(self) -> str:
         # mypy complains about an invalid self arg
