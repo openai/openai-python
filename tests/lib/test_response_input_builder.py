@@ -81,15 +81,15 @@ def test_validate_passes_for_consecutive_pair_dicts() -> None:
     validate_response_input(items)  # should not raise
 
 
-def test_validate_raises_for_orphaned_message_dicts() -> None:
-    """ValueError raised when assistant message is not preceded by reasoning (dict form)."""
+def test_validate_raises_for_orphaned_reasoning_dicts() -> None:
+    """ValueError raised when reasoning is not followed by assistant message (dict form)."""
     items = [
         {"type": "message", "role": "user", "content": "hello"},
         {"type": "reasoning", "id": "rs_1", "summary": []},
         {"type": "message", "role": "user", "content": "follow-up"},
         {"type": "message", "role": "assistant", "id": "msg_orphan", "content": []},
     ]
-    with pytest.raises(ValueError, match="msg_orphan"):
+    with pytest.raises(ValueError, match="rs_1"):
         validate_response_input(items)
 
 
@@ -133,7 +133,7 @@ def test_validate_passes_with_object_form() -> None:
 
 
 def test_validate_raises_with_object_form_orphaned() -> None:
-    """Raises ValueError with object-form items when message is orphaned."""
+    """Raises ValueError with object-form items when reasoning is not followed by assistant."""
     reasoning = MagicMock()
     reasoning.type = "reasoning"
     reasoning.id = "rs_obj"
@@ -147,5 +147,66 @@ def test_validate_raises_with_object_form_orphaned() -> None:
     asst_msg.role = "assistant"
     asst_msg.id = "msg_orphan_obj"
 
-    with pytest.raises(ValueError, match="msg_orphan_obj"):
+    with pytest.raises(ValueError, match="rs_obj"):
         validate_response_input([reasoning, user_msg, asst_msg])
+
+
+def test_validate_passes_for_standalone_assistant_with_later_pair() -> None:
+    """Standalone assistant message is valid even when a reasoning+assistant pair exists later."""
+    items = [
+        {"type": "message", "role": "assistant", "id": "msg_standalone", "content": []},
+        {"type": "message", "role": "user", "content": "follow-up"},
+        {"type": "reasoning", "id": "rs_1", "summary": []},
+        {"type": "message", "role": "assistant", "id": "msg_paired", "content": []},
+    ]
+    validate_response_input(items)  # should not raise
+
+
+def test_validate_raises_for_reasoning_at_end() -> None:
+    """ValueError raised when reasoning item is the last item with no following message."""
+    items = [
+        {"type": "message", "role": "user", "content": "hello"},
+        {"type": "reasoning", "id": "rs_trailing", "summary": []},
+    ]
+    with pytest.raises(ValueError, match="rs_trailing"):
+        validate_response_input(items)
+
+
+def test_get_response_input_items_excludes_parsed_fields() -> None:
+    """SDK-only 'parsed' field is stripped from nested content items."""
+    message = MagicMock()
+    message.type = "message"
+    message.model_dump.return_value = {
+        "type": "message",
+        "role": "assistant",
+        "id": "msg_parsed",
+        "content": [
+            {"type": "output_text", "text": "hello", "parsed": {"key": "value"}},
+        ],
+    }
+    response = _make_response([message])
+    result = get_response_input_items(response)
+    assert len(result) == 1
+    assert "parsed" not in result[0]["content"][0]  # type: ignore[index]
+
+
+def test_get_response_input_items_respects_api_exclude() -> None:
+    """SDK-only fields listed in __api_exclude__ are excluded from output."""
+    full_data = {
+        "type": "function_call",
+        "id": "fc_1",
+        "name": "my_func",
+        "arguments": "{}",
+        "parsed_arguments": {"key": "value"},
+    }
+    tool_call = MagicMock()
+    tool_call.type = "function_call"
+    tool_call.__api_exclude__ = {"parsed_arguments"}
+    tool_call.model_dump.side_effect = lambda **kwargs: {
+        k: v for k, v in full_data.items()
+        if k not in (kwargs.get("exclude") or set())
+    }
+    response = _make_response([tool_call])
+    result = get_response_input_items(response)
+    assert len(result) == 1
+    assert "parsed_arguments" not in result[0]

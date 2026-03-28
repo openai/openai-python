@@ -18,6 +18,9 @@ def get_response_input_items(response: Response) -> List[ResponseInputItemParam]
     consecutive pair when building the ``input`` for the next turn.  Filtering
     out reasoning items (or re-ordering them) causes a 400 error from the API.
 
+    SDK-only fields (e.g. ``parsed`` from ``ParsedResponseOutputText``) are
+    excluded so the returned dicts conform to ``ResponseInputItemParam``.
+
     Example usage::
 
         from openai.lib import get_response_input_items
@@ -35,17 +38,29 @@ def get_response_input_items(response: Response) -> List[ResponseInputItemParam]
     """
     items: List[ResponseInputItemParam] = []
     for output_item in response.output:
-        items.append(output_item.model_dump(exclude_unset=True))  # type: ignore[arg-type]
+        data = output_item.model_dump(
+            exclude_unset=True,
+            exclude=getattr(output_item, "__api_exclude__", None),
+        )
+        # Strip SDK-only fields from nested content items
+        # (e.g. ParsedResponseOutputText.parsed is not part of the API schema)
+        for content_item in data.get("content", []):
+            if isinstance(content_item, dict):
+                content_item.pop("parsed", None)
+        items.append(data)  # type: ignore[arg-type]
     return items
 
 
 def validate_response_input(items: Sequence[Union[ResponseInputItemParam, object]]) -> None:
-    """Validate that reasoning+message pairs are not orphaned in an input list.
+    """Validate that reasoning+message pairs are intact in an input list.
 
-    Walks ``items`` and raises ``ValueError`` when it detects a ``message``-type
-    item (role=assistant) that is NOT immediately preceded by a ``reasoning``-type
-    item, but where a ``reasoning`` item exists elsewhere in the list — the classic
-    orphaning pattern that causes a 400 from the API.
+    Walks ``items`` and raises ``ValueError`` when it detects a ``reasoning``-type
+    item that is NOT immediately followed by a ``message``-type item with
+    role=assistant — the classic broken-pair pattern that causes a 400 from the
+    API.
+
+    Standalone assistant messages (those not part of a reasoning pair) are allowed
+    and will not trigger a validation error.
 
     This validator is a standalone opt-in helper.  The primary recommendation is
     to build the input list with :func:`get_response_input_items` instead of
@@ -59,37 +74,30 @@ def validate_response_input(items: Sequence[Union[ResponseInputItemParam, object
 
         from openai.lib import validate_response_input
 
-        validate_response_input(conversation)  # raises ValueError if orphaned
+        validate_response_input(conversation)  # raises ValueError if broken pair
         response = client.responses.create(model="o3", input=conversation)
     """
-    has_reasoning = any(_item_type(item) == "reasoning" for item in items)
-    if not has_reasoning:
-        # No reasoning items at all — nothing to validate.
-        return
-
     for i, item in enumerate(items):
-        if _item_type(item) != "message":
+        if _item_type(item) != "reasoning":
             continue
-        role = _item_role(item)
-        if role != "assistant":
-            continue
-        # This is an assistant message.  It must be immediately preceded by a
-        # reasoning item when reasoning items exist in the list.
-        preceded_by_reasoning = i > 0 and _item_type(items[i - 1]) == "reasoning"
-        if not preceded_by_reasoning:
-            item_id = _item_id(item)
-            id_hint = f" (id={item_id!r})" if item_id else ""
-            raise ValueError(
-                f"Orphaned assistant message{id_hint} detected: a 'message' item with "
-                f"role='assistant' must be immediately preceded by its paired 'reasoning' "
-                f"item when reasoning items are present in the input. "
-                f"The OpenAI Responses API requires that reasoning and the immediately "
-                f"following assistant message are always passed together as a consecutive "
-                f"pair. Either include the paired reasoning item directly before this "
-                f"message, use 'previous_response_id' to let the API manage context, or "
-                f"build the input list with get_response_input_items() which preserves "
-                f"pairs automatically."
-            )
+        # Each reasoning item must be immediately followed by an assistant message.
+        next_idx = i + 1
+        if next_idx < len(items):
+            next_item = items[next_idx]
+            if _item_type(next_item) == "message" and _item_role(next_item) == "assistant":
+                continue
+        item_id = _item_id(item)
+        id_hint = f" (id={item_id!r})" if item_id else ""
+        raise ValueError(
+            f"Orphaned reasoning item{id_hint} detected: a 'reasoning' item "
+            f"must be immediately followed by its paired 'message' item with "
+            f"role='assistant'. The OpenAI Responses API requires that reasoning "
+            f"and the immediately following assistant message are always passed "
+            f"together as a consecutive pair. Either include the paired assistant "
+            f"message directly after this reasoning item, or remove the reasoning "
+            f"item. Use get_response_input_items() to build input lists that "
+            f"preserve pairs automatically."
+        )
 
 
 def _item_type(item: object) -> str:
