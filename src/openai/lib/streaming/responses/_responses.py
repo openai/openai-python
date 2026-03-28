@@ -177,6 +177,10 @@ class AsyncResponseStream(Generic[TextFormatT]):
         """
         await self._response.aclose()
 
+    async def aclose(self) -> None:
+        """Alias for `close()` to match async cleanup conventions."""
+        await self.close()
+
     async def get_final_response(self) -> ParsedResponse[TextFormatT]:
         """Waits until the stream has been read to completion and returns
         the accumulated `ParsedResponse` object.

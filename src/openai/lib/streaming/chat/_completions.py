@@ -213,6 +213,10 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
         """
         await self._response.aclose()
 
+    async def aclose(self) -> None:
+        """Alias for `close()` to match async cleanup conventions."""
+        await self.close()
+
     async def get_final_completion(self) -> ParsedChatCompletion[ResponseFormatT]:
         """Waits until the stream has been read to completion and returns
         the accumulated `ParsedChatCompletion` object.

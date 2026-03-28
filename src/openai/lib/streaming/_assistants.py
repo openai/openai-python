@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterable, Iterator, cast
-from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_never
+from typing_extensions import Protocol, Awaitable, AsyncIterable, AsyncIterator, assert_never
 
 import httpx
 
@@ -486,6 +486,7 @@ class AsyncAssistantEventHandler:
         self.text_deltas = self.__text_deltas__()
         self._iterator = self.__stream__()
         self.__stream: AsyncStream[AssistantStreamEvent] | None = None
+        self.__response: _AsyncCloseable | None = None
 
     def _init(self, stream: AsyncStream[AssistantStreamEvent]) -> None:
         if self.__stream:
@@ -494,6 +495,7 @@ class AsyncAssistantEventHandler:
             )
 
         self.__stream = stream
+        self.__response = stream.response
 
     async def __anext__(self) -> AssistantStreamEvent:
         return await self._iterator.__anext__()
@@ -508,8 +510,12 @@ class AsyncAssistantEventHandler:
 
         Automatically called when the context manager exits.
         """
-        if self.__stream:
-            await self.__stream.close()
+        if self.__response:
+            await self.__response.aclose()
+
+    async def aclose(self) -> None:
+        """Alias for `close()` to match async cleanup conventions."""
+        await self.close()
 
     @property
     def current_event(self) -> AssistantStreamEvent | None:
@@ -887,7 +893,11 @@ class AsyncAssistantStreamManager(Generic[AsyncAssistantEventHandlerT]):
         exc_tb: TracebackType | None,
     ) -> None:
         if self.__stream is not None:
-            await self.__stream.close()
+            await self.__stream.response.aclose()
+
+
+class _AsyncCloseable(Protocol):
+    async def aclose(self) -> None: ...
 
 
 def accumulate_run_step(
