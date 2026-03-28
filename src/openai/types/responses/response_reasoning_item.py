@@ -36,6 +36,8 @@ class ResponseReasoningItem(BaseModel):
     [managing context](https://platform.openai.com/docs/guides/conversation-state).
     """
 
+    __api_exclude__ = {"status"}
+
     id: str
     """The unique identifier of the reasoning content."""
 
