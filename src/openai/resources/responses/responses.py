@@ -14,6 +14,7 @@ import httpx
 from pydantic import BaseModel
 
 from ... import _legacy_response
+from ._input import sanitize_response_input
 from ..._types import NOT_GIVEN, Body, Omit, Query, Headers, NoneType, NotGiven, omit, not_given
 from ..._utils import is_given, path_template, maybe_transform, strip_not_given, async_maybe_transform
 from ..._compat import cached_property
@@ -903,7 +904,7 @@ class Responses(SyncAPIResource):
                     "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
@@ -1217,7 +1218,7 @@ class Responses(SyncAPIResource):
                     "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
@@ -1717,7 +1718,7 @@ class Responses(SyncAPIResource):
             body=maybe_transform(
                 {
                     "model": model,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,
@@ -2570,7 +2571,7 @@ class AsyncResponses(AsyncAPIResource):
                     "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
@@ -2888,7 +2889,7 @@ class AsyncResponses(AsyncAPIResource):
                     "context_management": context_management,
                     "conversation": conversation,
                     "include": include,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "max_output_tokens": max_output_tokens,
                     "max_tool_calls": max_tool_calls,
@@ -3388,7 +3389,7 @@ class AsyncResponses(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "model": model,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "previous_response_id": previous_response_id,
                     "prompt_cache_key": prompt_cache_key,

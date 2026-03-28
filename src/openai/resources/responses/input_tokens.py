@@ -8,6 +8,7 @@ from typing_extensions import Literal
 import httpx
 
 from ... import _legacy_response
+from ._input import sanitize_response_input
 from ..._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
 from ..._utils import maybe_transform, async_maybe_transform
 from ..._compat import cached_property
@@ -129,7 +130,7 @@ class InputTokens(SyncAPIResource):
             body=maybe_transform(
                 {
                     "conversation": conversation,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
@@ -255,7 +256,7 @@ class AsyncInputTokens(AsyncAPIResource):
             body=await async_maybe_transform(
                 {
                     "conversation": conversation,
-                    "input": input,
+                    "input": sanitize_response_input(input),
                     "instructions": instructions,
                     "model": model,
                     "parallel_tool_calls": parallel_tool_calls,
