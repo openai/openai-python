@@ -238,6 +238,14 @@ class AsyncStream(Generic[_T]):
         """
         await self.response.aclose()
 
+    async def aclose(self) -> None:
+        """
+        Async close method - alias for close() to support standard async cleanup protocol.
+
+        Used by asyncio, contextlib.aclosing(), httpx, anyio, and instrumentation libraries.
+        """
+        await self.close()
+
 
 class ServerSentEvent:
     def __init__(
