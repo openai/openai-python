@@ -8,6 +8,7 @@ import sys
 import json
 import asyncio
 import inspect
+import threading
 import dataclasses
 import tracemalloc
 from typing import Any, Union, TypeVar, Callable, Iterable, Iterator, Optional, Protocol, Coroutine, cast
@@ -31,6 +32,7 @@ from openai._base_client import (
     BaseClient,
     OtherPlatform,
     DefaultHttpxClient,
+    AsyncHttpxClientWrapper,
     DefaultAsyncHttpxClient,
     get_platform,
     make_request_options,
@@ -1823,6 +1825,54 @@ class TestAsyncOpenAI:
 
         await asyncio.sleep(0.2)
         assert not test_client.is_closed()
+
+    async def test_async_http_client_wrapper_destructor_uses_creation_loop(self) -> None:
+        loop_ready = threading.Event()
+        close_called = threading.Event()
+        release_loop = threading.Event()
+        wrapper_holder: dict[str, AsyncHttpxClientWrapper] = {}
+        created_loop_holder: dict[str, asyncio.AbstractEventLoop] = {}
+        close_loop_holder: dict[str, asyncio.AbstractEventLoop] = {}
+
+        def run_loop() -> None:
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            async def runner() -> None:
+                wrapper = AsyncHttpxClientWrapper()
+
+                async def record_close() -> None:
+                    close_loop_holder["loop"] = asyncio.get_running_loop()
+                    close_called.set()
+
+                cast(Any, wrapper).aclose = record_close
+                wrapper_holder["wrapper"] = wrapper
+                created_loop_holder["loop"] = asyncio.get_running_loop()
+                loop_ready.set()
+
+                while not release_loop.is_set():
+                    await asyncio.sleep(0.01)
+
+            try:
+                loop.run_until_complete(runner())
+            finally:
+                loop.close()
+
+        thread = threading.Thread(target=run_loop)
+        thread.start()
+
+        try:
+            assert loop_ready.wait(timeout=5)
+
+            wrapper = wrapper_holder["wrapper"]
+            wrapper.__del__()
+
+            assert await asyncio.to_thread(close_called.wait, 5)
+            assert close_loop_holder["loop"] is created_loop_holder["loop"]
+            assert close_loop_holder["loop"] is not asyncio.get_running_loop()
+        finally:
+            release_loop.set()
+            thread.join(timeout=5)
 
     async def test_client_context_manager(self) -> None:
         test_client = AsyncOpenAI(base_url=base_url, api_key=api_key, _strict_response_validation=True)
