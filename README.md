@@ -379,7 +379,7 @@ from openai import OpenAI
 
 client = OpenAI()
 
-response = client.chat.responses.create(
+response = client.responses.create(
     input=[
         {
             "role": "user",
