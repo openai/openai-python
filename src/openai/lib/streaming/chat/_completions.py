@@ -35,7 +35,7 @@ from ..._parsing import (
     get_input_tool_by_name,
     parse_function_tool_arguments,
 )
-from ...._streaming import Stream, AsyncStream
+from ...._streaming import Stream, AsyncStream, _aclose_stream
 from ....types.chat import ChatCompletionChunk, ParsedChatCompletion, ChatCompletionToolUnionParam
 from ...._exceptions import LengthFinishReasonError, ContentFilterFinishReasonError
 from ....types.chat.chat_completion import ChoiceLogprobs
@@ -211,7 +211,7 @@ class AsyncChatCompletionStream(Generic[ResponseFormatT]):
 
         Automatically called if the response body is read to completion.
         """
-        await self._response.aclose()
+        await _aclose_stream(self._raw_stream)
 
     async def aclose(self) -> None:
         """Alias for `close()` to match async cleanup conventions."""

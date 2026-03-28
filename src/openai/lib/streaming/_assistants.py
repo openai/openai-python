@@ -3,14 +3,14 @@ from __future__ import annotations
 import asyncio
 from types import TracebackType
 from typing import TYPE_CHECKING, Any, Generic, TypeVar, Callable, Iterable, Iterator, cast
-from typing_extensions import Protocol, Awaitable, AsyncIterable, AsyncIterator, assert_never
+from typing_extensions import Awaitable, AsyncIterable, AsyncIterator, assert_never
 
 import httpx
 
 from ..._utils import is_dict, is_list, consume_sync_iterator, consume_async_iterator
 from ..._compat import model_dump
 from ..._models import construct_type
-from ..._streaming import Stream, AsyncStream
+from ..._streaming import Stream, AsyncStream, _aclose_stream
 from ...types.beta import AssistantStreamEvent
 from ...types.beta.threads import (
     Run,
@@ -486,7 +486,7 @@ class AsyncAssistantEventHandler:
         self.text_deltas = self.__text_deltas__()
         self._iterator = self.__stream__()
         self.__stream: AsyncStream[AssistantStreamEvent] | None = None
-        self.__response: _AsyncCloseable | None = None
+        self.__closeable: Any | None = None
 
     def _init(self, stream: AsyncStream[AssistantStreamEvent]) -> None:
         if self.__stream:
@@ -495,7 +495,7 @@ class AsyncAssistantEventHandler:
             )
 
         self.__stream = stream
-        self.__response = stream.response
+        self.__closeable = stream
 
     async def __anext__(self) -> AssistantStreamEvent:
         return await self._iterator.__anext__()
@@ -510,8 +510,8 @@ class AsyncAssistantEventHandler:
 
         Automatically called when the context manager exits.
         """
-        if self.__response:
-            await self.__response.aclose()
+        if self.__closeable:
+            await _aclose_stream(self.__closeable)
 
     async def aclose(self) -> None:
         """Alias for `close()` to match async cleanup conventions."""
@@ -893,12 +893,7 @@ class AsyncAssistantStreamManager(Generic[AsyncAssistantEventHandlerT]):
         exc_tb: TracebackType | None,
     ) -> None:
         if self.__stream is not None:
-            await self.__stream.response.aclose()
-
-
-class _AsyncCloseable(Protocol):
-    async def aclose(self) -> None: ...
-
+            await _aclose_stream(self.__stream)
 
 def accumulate_run_step(
     *,

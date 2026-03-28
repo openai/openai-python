@@ -8,7 +8,7 @@ import pytest
 from openai import OpenAI, AsyncOpenAI
 from openai._types import omit
 from openai._streaming import Stream, AsyncStream, ServerSentEvent
-from openai.lib.streaming import AsyncAssistantEventHandler
+from openai.lib.streaming import AsyncAssistantEventHandler, AsyncAssistantStreamManager
 from openai.lib.streaming.chat import AsyncChatCompletionStream
 from openai.lib.streaming.responses import AsyncResponseStream
 
@@ -223,24 +223,27 @@ async def test_multi_byte_character_multiple_chunks(
 @pytest.mark.asyncio
 async def test_async_chat_completion_stream_close_accepts_wrapped_async_stream(async_client: AsyncOpenAI) -> None:
     raw_stream = make_async_stream(async_client)
+    wrapped_stream = WrappedAsyncStream(raw_stream)
 
     stream = AsyncChatCompletionStream(
-        raw_stream=cast(Any, WrappedAsyncStream(raw_stream)),
+        raw_stream=cast(Any, wrapped_stream),
         response_format=omit,
         input_tools=omit,
     )
 
     await stream.aclose()
 
+    assert wrapped_stream.aclose_calls == 1
     assert raw_stream.response.is_closed is True
 
 
 @pytest.mark.asyncio
 async def test_async_response_stream_aclose_accepts_wrapped_async_stream(async_client: AsyncOpenAI) -> None:
     raw_stream = make_async_stream(async_client)
+    wrapped_stream = WrappedAsyncStream(raw_stream)
 
     stream = AsyncResponseStream(
-        raw_stream=cast(Any, WrappedAsyncStream(raw_stream)),
+        raw_stream=cast(Any, wrapped_stream),
         text_format=omit,
         input_tools=omit,
         starting_after=None,
@@ -248,6 +251,7 @@ async def test_async_response_stream_aclose_accepts_wrapped_async_stream(async_c
 
     await stream.aclose()
 
+    assert wrapped_stream.aclose_calls == 1
     assert raw_stream.response.is_closed is True
 
 
@@ -257,11 +261,31 @@ async def test_async_assistant_event_handler_close_accepts_wrapped_async_stream(
     async_client: AsyncOpenAI, close_method: str
 ) -> None:
     raw_stream = make_async_stream(async_client)
+    wrapped_stream = WrappedAsyncStream(raw_stream)
     handler = AsyncAssistantEventHandler()
-    handler._init(cast(Any, WrappedAsyncStream(raw_stream)))
+    handler._init(cast(Any, wrapped_stream))
 
     await cast(Any, getattr(handler, close_method))()
 
+    assert wrapped_stream.aclose_calls == 1
+    assert raw_stream.response.is_closed is True
+
+
+@pytest.mark.asyncio
+async def test_async_assistant_stream_manager_close_accepts_wrapped_async_stream(async_client: AsyncOpenAI) -> None:
+    raw_stream = make_async_stream(async_client)
+    wrapped_stream = WrappedAsyncStream(raw_stream)
+
+    async def api_request() -> AsyncStream[object]:
+        return cast(Any, wrapped_stream)
+
+    async with AsyncAssistantStreamManager(
+        api_request=cast(Any, api_request()),
+        event_handler=AsyncAssistantEventHandler(),
+    ):
+        pass
+
+    assert wrapped_stream.aclose_calls == 1
     assert raw_stream.response.is_closed is True
 
 
@@ -277,12 +301,17 @@ class WrappedAsyncStream:
     def __init__(self, stream: AsyncStream[object]) -> None:
         self._stream = stream
         self.response = stream
+        self.aclose_calls = 0
 
     def __aiter__(self) -> AsyncIterator[object]:
         return self._stream.__aiter__()
 
     async def __anext__(self) -> object:
         return await self._stream.__anext__()
+
+    async def aclose(self) -> None:
+        self.aclose_calls += 1
+        await self._stream.aclose()
 
 
 async def to_aiter(iter: Iterator[bytes]) -> AsyncIterator[bytes]:
