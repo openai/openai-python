@@ -1,13 +1,17 @@
 from __future__ import annotations
 
+import json
 from typing_extensions import TypeVar
 
+import httpx
 import pytest
 from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._models import construct_type_unchecked
+from openai.types.responses.response import Response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +43,94 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_output_as_input_omits_null_response_fields(client: OpenAI, respx_mock: MockRouter) -> None:
+    response = construct_type_unchecked(
+        type_=Response,
+        value={
+            "id": "resp_turn_1",
+            "object": "response",
+            "created_at": 0,
+            "model": "o4-mini",
+            "output": [
+                {
+                    "id": "rs_123",
+                    "type": "reasoning",
+                    "summary": [{"type": "summary_text", "text": "Reasoning summary"}],
+                },
+                {
+                    "id": "msg_123",
+                    "type": "message",
+                    "status": "completed",
+                    "role": "assistant",
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "annotations": [],
+                            "logprobs": [],
+                            "text": "Paris",
+                        }
+                    ],
+                },
+            ],
+            "parallel_tool_calls": True,
+            "tool_choice": "auto",
+            "tools": [],
+        },
+    )
+
+    expected_input = [
+        {
+            "id": "rs_123",
+            "type": "reasoning",
+            "summary": [{"type": "summary_text", "text": "Reasoning summary"}],
+        },
+        {
+            "id": "msg_123",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "output_text",
+                    "annotations": [],
+                    "logprobs": [],
+                    "text": "Paris",
+                }
+            ],
+        },
+    ]
+
+    assert response.output[0].as_input() == expected_input[0]
+    assert response.output[1].as_input() == expected_input[1]
+    assert response.output_as_input == expected_input
+
+    captured_request_body: dict[str, object] = {}
+
+    def capture_request(request: httpx.Request) -> httpx.Response:
+        nonlocal captured_request_body
+        captured_request_body = json.loads(request.content)
+        return httpx.Response(
+            200,
+            json={
+                "id": "resp_turn_2",
+                "object": "response",
+                "created_at": 1,
+                "model": "o4-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "tool_choice": "auto",
+                "tools": [],
+            },
+        )
+
+    respx_mock.post("/responses").mock(side_effect=capture_request)
+
+    client.responses.create(model="o4-mini", input=response.output_as_input)
+
+    assert captured_request_body["input"] == expected_input
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])

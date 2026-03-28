@@ -209,6 +209,21 @@ class BaseModel(pydantic.BaseModel):
             warnings=warnings,
         )
 
+    def as_input(self) -> dict[str, object]:
+        """Generate a JSON-safe representation suitable for reusing this model as API input.
+
+        This excludes fields that were not set by the API, omits `None` values that
+        can be invalid when echoed back to the API, and respects SDK-only helper
+        fields marked via `__api_exclude__`.
+        """
+        return self.model_dump(
+            mode="json",
+            by_alias=True,
+            exclude_unset=True,
+            exclude_none=True,
+            exclude=getattr(self, "__api_exclude__", None),
+        )
+
     @override
     def __str__(self) -> str:
         # mypy complains about an invalid self arg
