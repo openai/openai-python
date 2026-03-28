@@ -76,21 +76,27 @@ so that your API key is not stored in source control.
 With an image URL:
 
 ```python
-prompt = "What is in this image?"
-img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/2023_06_08_Raccoon1.jpg/1599px-2023_06_08_Raccoon1.jpg"
+from openai import OpenAI
 
-response = client.responses.create(
-    model="gpt-5.2",
-    input=[
+client = OpenAI()
+
+prompt = "What is in this image?"
+img_url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg"
+
+completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
         {
             "role": "user",
             "content": [
-                {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": f"{img_url}"},
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": img_url}},
             ],
         }
     ],
 )
+
+print(completion.choices[0].message.content)
 ```
 
 With the image as a base64 encoded string:
@@ -105,18 +111,20 @@ prompt = "What is in this image?"
 with open("path/to/image.png", "rb") as image_file:
     b64_image = base64.b64encode(image_file.read()).decode("utf-8")
 
-response = client.responses.create(
-    model="gpt-5.2",
-    input=[
+completion = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
         {
             "role": "user",
             "content": [
-                {"type": "input_text", "text": prompt},
-                {"type": "input_image", "image_url": f"data:image/png;base64,{b64_image}"},
+                {"type": "text", "text": prompt},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_image}"}},
             ],
         }
     ],
 )
+
+print(completion.choices[0].message.content)
 ```
 
 ## Async usage
