@@ -56,8 +56,8 @@ EXPECTED_REPLAYED_OUTPUT_INPUT = [
 ]
 
 
-def make_replayed_response_output() -> list[object]:
-    response = parse_obj(
+def make_replayed_response() -> Response:
+    return parse_obj(
         Response,
         {
             "id": "resp_123",
@@ -101,7 +101,10 @@ def make_replayed_response_output() -> list[object]:
             "tools": [],
         },
     )
-    return response.output
+
+
+def make_replayed_response_output() -> list[object]:
+    return make_replayed_response().output
 
 
 @pytest.mark.respx(base_url=base_url)
@@ -148,6 +151,40 @@ def test_response_output_items_can_be_replayed_without_null_only_fields(
     response = client.responses.create(
         model="gpt-4o-mini",
         input=make_replayed_response_output(),
+    )
+
+    assert isinstance(response, Response)
+
+    request_body = json.loads(route.calls[0].request.content.decode("utf-8"))
+    assert request_body["input"] == EXPECTED_REPLAYED_OUTPUT_INPUT
+
+
+@pytest.mark.respx(base_url=base_url)
+def test_output_as_input_can_be_replayed_without_losing_phase(
+    client: OpenAI,
+    respx_mock: MockRouter,
+) -> None:
+    route = respx_mock.post("/responses").mock(
+        return_value=httpx.Response(
+            200,
+            json={
+                "id": "resp_456",
+                "object": "response",
+                "created_at": 0,
+                "model": "gpt-4o-mini",
+                "output": [],
+                "parallel_tool_calls": True,
+                "tool_choice": "auto",
+                "tools": [],
+            },
+        )
+    )
+
+    replayed_response = make_replayed_response()
+
+    response = client.responses.create(
+        model="gpt-4o-mini",
+        input=replayed_response.output_as_input,
     )
 
     assert isinstance(response, Response)
