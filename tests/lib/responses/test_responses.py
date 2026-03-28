@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from typing import cast
 from typing_extensions import TypeVar
 
 import httpx
@@ -11,7 +12,7 @@ from inline_snapshot import snapshot
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
 from openai._compat import parse_obj
-from openai.types.responses.response import Response
+from openai.types.responses import Response, ResponseReasoningItem
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -179,6 +180,69 @@ async def test_async_replayed_response_output_items_can_be_counted_without_null_
 
     request_body = json.loads(route.calls[0].request.content.decode("utf-8"))
     assert request_body["input"] == EXPECTED_REPLAYED_OUTPUT_INPUT
+
+
+def test_output_as_input_omits_null_only_response_fields() -> None:
+    response = Response.construct(
+        id="resp_123",
+        created_at=1754925861,
+        model="o4-mini",
+        object="response",
+        output=[
+            {
+                "id": "rs_123",
+                "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+                "type": "reasoning",
+            },
+            {
+                "id": "msg_123",
+                "type": "message",
+                "status": "completed",
+                "content": [
+                    {
+                        "type": "output_text",
+                        "annotations": [],
+                        "text": "Paris.",
+                    }
+                ],
+                "role": "assistant",
+            },
+        ],
+        parallel_tool_calls=True,
+        tool_choice="auto",
+        tools=[],
+    )
+
+    reasoning_item = cast(ResponseReasoningItem, response.output[0])
+    assert reasoning_item.model_dump() == {
+        "id": "rs_123",
+        "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+        "type": "reasoning",
+        "content": None,
+        "encrypted_content": None,
+        "status": None,
+    }
+
+    assert response.output_as_input == [
+        {
+            "id": "rs_123",
+            "summary": [{"text": "Reasoning summary", "type": "summary_text"}],
+            "type": "reasoning",
+        },
+        {
+            "id": "msg_123",
+            "type": "message",
+            "status": "completed",
+            "content": [
+                {
+                    "type": "output_text",
+                    "annotations": [],
+                    "text": "Paris.",
+                }
+            ],
+            "role": "assistant",
+        },
+    ]
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])
