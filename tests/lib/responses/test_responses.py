@@ -7,7 +7,9 @@ from respx import MockRouter
 from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
-from openai._utils import assert_signatures_in_sync
+from openai._utils import maybe_transform, assert_signatures_in_sync
+from openai.types.responses import Response, ResponseOutputText, ResponseOutputMessage, ResponseReasoningItem
+from openai.types.responses.response_create_params import ResponseCreateParamsNonStreaming
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -61,3 +63,57 @@ def test_parse_method_definition_in_sync(sync: bool, client: OpenAI, async_clien
         checking_client.responses.parse,
         exclude_params={"tools"},
     )
+
+
+def test_output_as_input_excludes_response_only_none_fields() -> None:
+    response = Response.construct(
+        output=[
+            ResponseReasoningItem.construct(
+                id="rs_123",
+                type="reasoning",
+                summary=[{"text": "Summarized reasoning", "type": "summary_text"}],
+            ),
+            ResponseOutputMessage.construct(
+                id="msg_123",
+                type="message",
+                role="assistant",
+                status="completed",
+                content=[
+                    ResponseOutputText.construct(
+                        annotations=[],
+                        text="Paris",
+                        type="output_text",
+                    )
+                ],
+            ),
+        ]
+    )
+
+    assert response.output[0].model_dump()["status"] is None
+    assert response.output[0].model_dump()["encrypted_content"] is None
+    assert response.output[1].model_dump()["phase"] is None
+    assert response.output[1].content[0].model_dump()["logprobs"] is None
+
+    input_items = response.output_as_input()
+    request_body = maybe_transform(
+        {"model": "o4-mini", "input": input_items},
+        ResponseCreateParamsNonStreaming,
+    )
+
+    expected_input = [
+        {
+            "id": "rs_123",
+            "type": "reasoning",
+            "summary": [{"text": "Summarized reasoning", "type": "summary_text"}],
+        },
+        {
+            "id": "msg_123",
+            "type": "message",
+            "role": "assistant",
+            "status": "completed",
+            "content": [{"annotations": [], "text": "Paris", "type": "output_text"}],
+        },
+    ]
+
+    assert input_items == expected_input
+    assert request_body == {"model": "o4-mini", "input": expected_input}

@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional, cast
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -18,6 +18,7 @@ from .tool_choice_custom import ToolChoiceCustom
 from .response_input_item import ResponseInputItem
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
+from .response_input_param import ResponseInputParam, ResponseInputItemParam
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
@@ -319,3 +320,11 @@ class Response(BaseModel):
                         texts.append(content.text)
 
         return "".join(texts)
+
+    def output_as_input(self) -> ResponseInputParam:
+        """Convert `output` into a valid `input` payload for a follow-up response request.
+
+        This preserves the API response field names while dropping unset and `None`
+        values that should not be echoed back to `/responses`.
+        """
+        return [cast(ResponseInputItemParam, item.to_dict(mode="json", exclude_none=True)) for item in self.output]
