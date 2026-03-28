@@ -177,10 +177,10 @@ class ImageGenerationCall(TypedDict, total=False):
     id: Required[str]
     """The unique ID of the image generation call."""
 
-    result: Required[Optional[str]]
+    result: Optional[str]
     """The generated image encoded in base64."""
 
-    status: Required[Literal["in_progress", "completed", "generating", "failed"]]
+    status: Literal["in_progress", "completed", "generating", "failed"]
     """The status of the image generation call."""
 
     type: Required[Literal["image_generation_call"]]
