@@ -8,6 +8,8 @@ from inline_snapshot import snapshot
 
 from openai import OpenAI, AsyncOpenAI
 from openai._utils import assert_signatures_in_sync
+from openai._compat import parse_obj
+from openai.types.responses import Response
 
 from ...conftest import base_url
 from ..snapshots import make_snapshot_request
@@ -39,6 +41,68 @@ def test_output_text(client: OpenAI, respx_mock: MockRouter) -> None:
     assert response.output_text == snapshot(
         "I can't provide real-time updates, but you can easily check the current weather in San Francisco using a weather website or app. Typically, San Francisco has cool, foggy summers and mild winters, so it's good to be prepared for variable weather!"
     )
+
+
+def test_output_as_input() -> None:
+    response = parse_obj(
+        Response,
+        {
+            "id": "resp_123",
+            "object": "response",
+            "created_at": 0,
+            "model": "gpt-4.1",
+            "output": [
+                {
+                    "id": "rs_123",
+                    "type": "reasoning",
+                    "summary": [{"type": "summary_text", "text": "Paris"}],
+                    "content": None,
+                    "encrypted_content": None,
+                    "status": None,
+                },
+                {
+                    "id": "msg_123",
+                    "type": "message",
+                    "status": "completed",
+                    "role": "assistant",
+                    "phase": None,
+                    "content": [
+                        {
+                            "type": "output_text",
+                            "annotations": [],
+                            "logprobs": [],
+                            "text": "Paris",
+                        }
+                    ],
+                },
+            ],
+            "parallel_tool_calls": True,
+            "tool_choice": "auto",
+            "tools": [],
+        },
+    )
+
+    assert response.output_as_input == [
+        {
+            "id": "rs_123",
+            "type": "reasoning",
+            "summary": [{"type": "summary_text", "text": "Paris"}],
+        },
+        {
+            "id": "msg_123",
+            "type": "message",
+            "status": "completed",
+            "role": "assistant",
+            "content": [
+                {
+                    "type": "output_text",
+                    "annotations": [],
+                    "logprobs": [],
+                    "text": "Paris",
+                }
+            ],
+        },
+    ]
 
 
 @pytest.mark.parametrize("sync", [True, False], ids=["sync", "async"])

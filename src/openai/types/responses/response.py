@@ -1,6 +1,6 @@
 # File generated from our OpenAPI spec by Stainless. See CONTRIBUTING.md for details.
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional, cast
 from typing_extensions import Literal, TypeAlias
 
 from .tool import Tool
@@ -18,6 +18,7 @@ from .tool_choice_custom import ToolChoiceCustom
 from .response_input_item import ResponseInputItem
 from .tool_choice_allowed import ToolChoiceAllowed
 from .tool_choice_options import ToolChoiceOptions
+from .response_input_param import ResponseInputParam
 from .response_output_item import ResponseOutputItem
 from .response_text_config import ResponseTextConfig
 from .tool_choice_function import ToolChoiceFunction
@@ -319,3 +320,16 @@ class Response(BaseModel):
                         texts.append(content.text)
 
         return "".join(texts)
+
+    @property
+    def output_as_input(self) -> ResponseInputParam:
+        """Convenience property that turns `output` into safe follow-up `input` items.
+
+        The returned items are JSON-serializable and omit `None`-valued fields so
+        they can be passed directly to `client.responses.create(input=...)` for
+        manual multi-turn conversation state.
+        """
+        return cast(
+            ResponseInputParam,
+            [output.to_dict(mode="json", exclude_none=True) for output in self.output],
+        )
