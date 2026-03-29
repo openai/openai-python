@@ -1021,8 +1021,8 @@ class SyncAPIClient(BaseClient[httpx.Client, Stream[Any]]):
 
                 log.debug("Raising timeout error")
                 raise APITimeoutError(request=request) from err
-            except Exception as err:
-                log.debug("Encountered Exception", exc_info=True)
+            except (httpx.RequestError, OSError) as err:
+                log.debug("Encountered request error", exc_info=True)
 
                 if remaining_retries > 0:
                     self._sleep_for_retry(
@@ -1620,8 +1620,8 @@ class AsyncAPIClient(BaseClient[httpx.AsyncClient, AsyncStream[Any]]):
 
                 log.debug("Raising timeout error")
                 raise APITimeoutError(request=request) from err
-            except Exception as err:
-                log.debug("Encountered Exception", exc_info=True)
+            except (httpx.RequestError, OSError) as err:
+                log.debug("Encountered request error", exc_info=True)
 
                 if remaining_retries > 0:
                     await self._sleep_for_retry(
