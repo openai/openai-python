@@ -77,6 +77,133 @@ def test_client_copying_override_options(client: Client) -> None:
 
 
 @pytest.mark.respx()
+def test_client_api_key_provider_refresh_sync(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(
+        side_effect=[
+            httpx.Response(500, json={"error": "server error"}),
+            httpx.Response(200, json={"foo": "bar"}),
+        ]
+    )
+
+    counter = 0
+
+    def api_key_provider() -> str:
+        nonlocal counter
+
+        counter += 1
+
+        if counter == 1:
+            return "first"
+
+        return "second"
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=api_key_provider,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+
+    assert len(calls) == 2
+
+    assert calls[0].request.headers.get("api-key") == "first"
+    assert calls[1].request.headers.get("api-key") == "second"
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_client_api_key_provider_refresh_async(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(
+        side_effect=[
+            httpx.Response(500, json={"error": "server error"}),
+            httpx.Response(200, json={"foo": "bar"}),
+        ]
+    )
+
+    counter = 0
+
+    async def api_key_provider() -> str:
+        nonlocal counter
+
+        counter += 1
+
+        if counter == 1:
+            return "first"
+
+        return "second"
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=api_key_provider,
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+
+    assert len(calls) == 2
+
+    assert calls[0].request.headers.get("api-key") == "first"
+    assert calls[1].request.headers.get("api-key") == "second"
+
+
+@pytest.mark.respx()
+def test_client_api_key_provider_skipped_when_azure_ad_token_provider_is_used_sync(respx_mock: MockRouter) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+    def api_key_provider() -> str:
+        raise AssertionError("api_key provider should not be called when Azure AD auth is used")
+
+    client = AzureOpenAI(
+        api_version="2024-02-01",
+        api_key=api_key_provider,
+        azure_ad_token_provider=lambda: "azure-ad-token",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert len(calls) == 1
+    assert calls[0].request.headers.get("Authorization") == "Bearer azure-ad-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.respx()
+async def test_client_api_key_provider_skipped_when_azure_ad_token_provider_is_used_async(
+    respx_mock: MockRouter,
+) -> None:
+    respx_mock.post(
+        "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
+    ).mock(return_value=httpx.Response(200, json={"foo": "bar"}))
+
+    async def api_key_provider() -> str:
+        raise AssertionError("api_key provider should not be called when Azure AD auth is used")
+
+    client = AsyncAzureOpenAI(
+        api_version="2024-02-01",
+        api_key=api_key_provider,
+        azure_ad_token_provider=lambda: "azure-ad-token",
+        azure_endpoint="https://example-resource.azure.openai.com",
+    )
+    await client.chat.completions.create(messages=[], model="gpt-4")
+
+    calls = cast("list[MockRequestCall]", respx_mock.calls)
+    assert len(calls) == 1
+    assert calls[0].request.headers.get("Authorization") == "Bearer azure-ad-token"
+    assert calls[0].request.headers.get("api-key") is None
+
+
+@pytest.mark.respx()
 def test_client_token_provider_refresh_sync(respx_mock: MockRouter) -> None:
     respx_mock.post(
         "https://example-resource.azure.openai.com/openai/deployments/gpt-4/chat/completions?api-version=2024-02-01"
