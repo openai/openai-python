@@ -8,7 +8,7 @@ import httpx
 
 from .... import _legacy_response
 from ...._types import Body, Omit, Query, Headers, NotGiven, omit, not_given
-from ...._utils import maybe_transform
+from ...._utils import path_template, maybe_transform
 from ...._compat import cached_property
 from ...._resource import SyncAPIResource, AsyncAPIResource
 from ...._response import to_streamed_response_wrapper, async_to_streamed_response_wrapper
@@ -75,7 +75,12 @@ class OutputItems(SyncAPIResource):
         if not output_item_id:
             raise ValueError(f"Expected a non-empty value for `output_item_id` but received {output_item_id!r}")
         return self._get(
-            f"/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+            path_template(
+                "/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+                eval_id=eval_id,
+                run_id=run_id,
+                output_item_id=output_item_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -125,7 +130,7 @@ class OutputItems(SyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs/{run_id}/output_items",
+            path_template("/evals/{eval_id}/runs/{run_id}/output_items", eval_id=eval_id, run_id=run_id),
             page=SyncCursorPage[OutputItemListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
@@ -200,7 +205,12 @@ class AsyncOutputItems(AsyncAPIResource):
         if not output_item_id:
             raise ValueError(f"Expected a non-empty value for `output_item_id` but received {output_item_id!r}")
         return await self._get(
-            f"/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+            path_template(
+                "/evals/{eval_id}/runs/{run_id}/output_items/{output_item_id}",
+                eval_id=eval_id,
+                run_id=run_id,
+                output_item_id=output_item_id,
+            ),
             options=make_request_options(
                 extra_headers=extra_headers, extra_query=extra_query, extra_body=extra_body, timeout=timeout
             ),
@@ -250,7 +260,7 @@ class AsyncOutputItems(AsyncAPIResource):
         if not run_id:
             raise ValueError(f"Expected a non-empty value for `run_id` but received {run_id!r}")
         return self._get_api_list(
-            f"/evals/{eval_id}/runs/{run_id}/output_items",
+            path_template("/evals/{eval_id}/runs/{run_id}/output_items", eval_id=eval_id, run_id=run_id),
             page=AsyncCursorPage[OutputItemListResponse],
             options=make_request_options(
                 extra_headers=extra_headers,
